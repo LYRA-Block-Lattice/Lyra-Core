@@ -1,0 +1,47 @@
+using System;
+using Lyra.Core.Blocks;
+using Lyra.Core.Blocks.Transactions;
+
+namespace Lyra.Core.Accounts
+{
+    public interface IAccountDatabase : IDisposable
+    {
+        bool Exists(string path, string accountName);
+
+        // Opens account database; creates a new one if it does not already exists
+        void Open(string path, string accountName);
+
+        Block FindFirstBlock();
+
+        Block FindLatestBlock();
+
+        Block FindBlockByHash(string hash);
+
+        Block FindBlockByIndex(int index);
+
+        TokenGenesisBlock FindTokenGenesisBlockByTicker(string Ticker);
+      
+        long GetBlockCount();
+
+        void AddBlock(Block block);
+
+        // To DO - add encryption with user password
+        void StorePrivateKey(string PrivateKey);
+
+        string GetPrivateKey();
+
+        // This is currently Public Key
+        void StoreAccountId(string AccountId);
+
+        string GetAccountId();
+
+        void SaveTokenInfo(TokenGenesisBlock tokenGewnesisBlock);
+
+        TokenGenesisBlock GetTokenInfo(string token);
+
+        void Delete(string DatabaseName = null);
+    }
+
+
+
+}

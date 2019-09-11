@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ReleaseVersion>0.5.1</ReleaseVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
+    <ProjectReference Include="..\..\Core\Lyra.Core.TcpLib\Lyra.Core.TcpLib.csproj" />
+  </ItemGroup>
+</Project>

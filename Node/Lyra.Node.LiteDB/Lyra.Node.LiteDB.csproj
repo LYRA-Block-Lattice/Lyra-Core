@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ReleaseVersion>0.5.1</ReleaseVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Externals\LiteDB\LiteDB.csproj" />
+    <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>lyranode</AssemblyName>
+    <ReleaseVersion>0.5.1</ReleaseVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug\netcoreapp2.1</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release\netcoreapp2.1</OutputPath>
+    <OutputPath>bin\Release\netcoreapp2.1</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Server.cs" />
+    <Compile Remove="Server.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Authorizers\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Externals\CommandLine\CommandLine.csproj" />
+    <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
+    <ProjectReference Include="..\..\Core\Lyra.Core.LiteDB\Lyra.Core.LiteDB.csproj" />
+    <ProjectReference Include="..\..\Core\Lyra.Core.TcpLib\Lyra.Core.TcpLib.csproj" />
+    <ProjectReference Include="..\Lyra.Node.LiteDB\Lyra.Node.LiteDB.csproj" />
+    <ProjectReference Include="..\Lyra.Node.MongoDB\Lyra.Node.MongoDB.csproj" />
+  </ItemGroup>
+</Project>

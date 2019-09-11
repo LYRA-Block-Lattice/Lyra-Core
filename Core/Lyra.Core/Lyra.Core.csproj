@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <ReleaseVersion>0.5.1</ReleaseVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <ItemGroup>
+    <PackageReference Include="Portable.BouncyCastle" Version="1.8.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove=":Users:slava:Projects:Lyra:lyranode:GenesisBlocks.cs" />
+    <Compile Remove="BaseAccount %281%29.cs" />
+    <Compile Remove="BaseAccount %281%29.cs" />
+    <Compile Remove="API\AuthenticationInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Blocks\" />
+    <Folder Include="Accounts\" />
+    <Folder Include="Authorizations\" />
+    <Folder Include="Cryptography\" />
+    <Folder Include="API\" />
+  </ItemGroup>
+</Project>
