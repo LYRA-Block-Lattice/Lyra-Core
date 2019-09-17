@@ -114,6 +114,7 @@ namespace Lyra.Core.Blocks.Transactions
             extraData += Ticker + "|";
             extraData += DomainName + "|";
             extraData += ContractType + "|";
+            extraData += DateTimeToString(RenewalDate) + "|";
             extraData += Edition.ToString() + "|";
             extraData += Description + "|";
             extraData += Precision.ToString() + "|";
@@ -125,7 +126,7 @@ namespace Lyra.Core.Blocks.Transactions
             extraData += Address + "|";
             extraData += Currency + "|";
             extraData += Icon + "|";
-            extraData += Currency + "|";
+            extraData += Image + "|";
             extraData += Custom1 + "|";
             extraData += Custom2 + "|";
             extraData += Custom3 + "|";
