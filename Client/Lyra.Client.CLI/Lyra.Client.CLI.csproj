@@ -17,8 +17,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
-    <ProjectReference Include="..\Lyra.Client.InMemory\Lyra.Client.InMemory.csproj" />
-    <ProjectReference Include="..\Lyra.Client.RPC\Lyra.Client.RPC.csproj" />
     <ProjectReference Include="..\Lyra.Client.WebAPI\Lyra.Client.WebAPI.csproj" />
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
     <ProjectReference Include="..\..\Core\Lyra.Core.LiteDB\Lyra.Core.LiteDB.csproj" />

@@ -9,7 +9,7 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Accounts;
 
 //#if INMEMORY
-using Lyra.Client.InMemory;
+//using Lyra.Client.InMemory;
 //#else
 using Lyra.Core.LiteDB;
 //#endif
@@ -19,7 +19,7 @@ using Lyra.Core.API;
 //#if WEB
 using Lyra.Client.WebAPI;
 //#else
-using Lyra.Client.RPC;
+//using Lyra.Client.RPC;
 //#endif
 
 namespace Lyra.Client.CLI
@@ -46,8 +46,9 @@ namespace Lyra.Client.CLI
             Wallet wallet;
             if (INMEMORY)
             {
-                var inmemory_storage = new AccountInMemoryStorage();
-                wallet = new Wallet(inmemory_storage, network_id);
+                //var inmemory_storage = new AccountInMemoryStorage();
+                //wallet = new Wallet(inmemory_storage, network_id);
+                throw new ApplicationException("Not supported in demo version");
             }
             else
             {
@@ -79,21 +80,21 @@ namespace Lyra.Client.CLI
                     string fileName = "";
                     if (INMEMORY)
                     {
-                        fileName = full_path + wallet.AccountName + ".key";
+                        //fileName = full_path + wallet.AccountName + ".key";
 
-                        if (System.IO.File.Exists(fileName))
-                        {
-                            string private_key = System.IO.File.ReadAllText(fileName);
-                            if (wallet.ValidatePrivateKey(private_key))
-                            {
-                                var result = wallet.RestoreAccount(full_path, private_key);
-                                if (!result.Successful())
-                                {
-                                    Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
-                                    continue;
-                                }
-                            }
-                        }
+                        //if (System.IO.File.Exists(fileName))
+                        //{
+                        //    string private_key = System.IO.File.ReadAllText(fileName);
+                        //    if (wallet.ValidatePrivateKey(private_key))
+                        //    {
+                        //        var result = wallet.RestoreAccount(full_path, private_key);
+                        //        if (!result.Successful())
+                        //        {
+                        //            Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
+                        //            continue;
+                        //        }
+                        //    }
+                        //}
                     }
 
 
@@ -121,7 +122,7 @@ namespace Lyra.Client.CLI
                         }
                         if (INMEMORY)
                         {
-                            System.IO.File.WriteAllText(fileName, wallet.PrivateKey);
+                            //System.IO.File.WriteAllText(fileName, wallet.PrivateKey);
                         }
 
                     }
@@ -141,7 +142,8 @@ namespace Lyra.Client.CLI
                 }
                 else
                 {
-                    rpcClient = new RPCClient(wallet.AccountId);
+                    //rpcClient = new RPCClient(wallet.AccountId);
+                    throw new ApplicationException("Not supported in demo version");
                 }
 
                 //var sync_result = await wallet.Sync(rpcClient);
