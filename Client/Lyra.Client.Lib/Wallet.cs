@@ -1109,8 +1109,13 @@ namespace Lyra.Client.Lib
             return result.ResultCode;
         }
 
-        public async Task<AuthorizationAPIResult> CreateToken(string ticker, string domainName, string description, sbyte precision, decimal supply, bool isFinalSupply, string owner, string address, string currency, Dictionary<string, string> tags)
+        public async Task<AuthorizationAPIResult> CreateToken(string tokenName, string domainName, string description, sbyte precision, decimal supply, bool isFinalSupply, string owner, string address, string currency, Dictionary<string, string> tags)
         {
+            if (string.IsNullOrWhiteSpace(domainName))
+                domainName = "Custom";
+
+            string ticker = domainName + "." + tokenName;
+
             TransactionBlock latestBlock = GetLatestBlock();
             if (latestBlock == null || latestBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] < TokenGenerationFee)
             {

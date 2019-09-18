@@ -1,0 +1,39 @@
+﻿MAC:
+1) Run node:
+--seed self --networkid local --database litedb
+Note: to start from scratch, delete $HOME/Lyra-Node-local folder:
+rm -r "$HOME/Lyra-Node-local"
+
+Script: run-local-node.command
+
+2) Run Lyra.Node.API
+Script: run-local-webapi.command
+Test: 
+http://localhost:5000/api/getsyncheight
+https://localhost:5001/api/getsyncheight
+
+3) ngrok http -subdomain=lyranode 5000
+
+4) Run CLI client to test and to get funding account if needed:
+ 
+
+WINDOWS:
+4) Update LyraShop web.config:
+4.1 Type key command in CLI while in funding account, xopy and paste the key to LyraShop web.config:
+<add key="lyraFundingAccountKey" value="2HcCShCPCV6NAdSDCvadGpoRXErWxcrvPVf8R8hYzJA4ayBgLp" />
+4.2  Set network id to local:
+<add key="lyraNetworkId" value="local" />
+4.3 Point to Mac's node:
+<add key="lyraNodeAPIURL" value="https://lyranode.ngrok.io/api/" /> 
+
+5) To start from scratch, clean SQL database:
+Launch Microsoft SQL Server Management Studio
+Open (LocalDb)\MSSQLLocalDB
+
+Go to Shopify dev store and remove app:
+https://loyalshopper-dev-store-local.myshopify.com/admin/apps
+
+Install "Lyra Shop Dev" (linked to the Mac dev machine) 
+Note: Lyra Shop Test app is linked to Azure demo server
+
+ngrok http -subdomain=lyrashop 49792

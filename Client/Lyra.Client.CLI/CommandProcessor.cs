@@ -353,13 +353,13 @@ namespace Lyra.Client.CLI
                 tags.Add(tag_key, tag_value);
             }
 
-            if (string.IsNullOrWhiteSpace(domainname))
-                domainname = "Custom";
+            //if (string.IsNullOrWhiteSpace(domainname))
+            //    domainname = "Custom";
 
-            string ticker = domainname + "." + tokenname;
+            //string ticker = domainname + "." + tokenname;
 
 
-            var result = _wallet.CreateToken(ticker, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, tags).Result;
+            var result = _wallet.CreateToken(tokenname, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, tags).Result;
 
             if (result.ResultCode != APIResultCodes.Success)
             {

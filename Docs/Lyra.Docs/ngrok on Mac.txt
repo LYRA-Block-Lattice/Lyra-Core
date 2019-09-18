@@ -1,0 +1,4 @@
+﻿Install on MAc:
+https://gist.github.com/wosephjeber/aa174fb851dfe87e644e
+
+ngrok http -subdomain=lyranode 5002

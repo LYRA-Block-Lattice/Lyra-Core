@@ -1,0 +1,12 @@
+﻿1. (DONE!)Change API results to APIResult and its derived classes
+
+2. (DONE!) Return AuthorizationSignature as a result of authorization instead of requesting the whole block, 
+and save the updated block in local storage
+
+3. (DONE!) Create IOpenAccount interface and add it to all receive and genesis blocks when they are the first blocks on teh account, OR
+   make universal Open Account block and make it teh first block on teh account before any type of receive or genesis blocks is added
+
+4. (REJECTED) Add the Tx amount to the send and receive blocks,
+   so only the latest block stored in the client will be sufficient to process subsequent transactions
+
+5. Add AuthorizationSignature validations at client

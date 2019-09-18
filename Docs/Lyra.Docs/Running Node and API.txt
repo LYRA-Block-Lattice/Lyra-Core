@@ -1,0 +1,21 @@
+﻿Running Node:
+cd $HOME/Projects/Lyra/lyranode
+dotnet run lyranode.dll --testnet --seed self
+
+OR 
+
+cd $HOME/Projects/Lyra/lyranode/bin/Debug/netcoreapp2.1/netcoreapp2.1
+dotnet lyranode.dll --testnet --seed self
+
+Runnign Node's web API:
+
+cd $HOME/Projects/Lyra/Lyra.Node.API/bin/Debug/netcoreapp2.1
+dotnet Lyra.Node.API.dll
+
+OR
+
+cd $HOME/Projects/Lyra/Lyra.Node.API
+dotnet run Lyra.Node.API.dll
+
+In browser go to:
+http://localhost:5002/api/getsyncheight

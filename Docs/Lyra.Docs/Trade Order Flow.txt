@@ -1,0 +1,58 @@
+﻿Exchanging Discount tokens for reward tokens 
+
+Merchant sells discount tokens; customer buy discount tokens and "pays" with reward tokens;
+
+The merchant sets the price (ratio) and the max amount of discount per transaction 
+by creating a new sell order block for the max amount of discount tokens.
+
+The authorizer does not find the matching buy order and therefore approves the block which is added to the merchant's account.
+The block is also added to authorizer's dynamic list of open orders. 
+The list can be requested by clients by executing "orders" command.
+
+Note: if the authorizers finds matching buy order (with the same pair and matching or higer price), 
+it will reject the Sell Order Block and return the matching Buy Order info. 
+The seller than creates and sends Sell block instead, which sends the funds directly to the buyer.
+
+When the customer accumulates enough reward tokens and decides to use them to get a discount, 
+he/she will create Buy Order block and send it for authorization. 
+The authorizer finds the matching merchant's Sell Block and rejects the Buy Order with special code and 
+information about the sell order. The customer immediately creates a Buy block instead and sends it for authorization.
+
+The difference between Buy Order and Buy blocks is that Buy is aimed for particular sell order, 
+so once it's approved it means the trade is executed, and the seller must finalize the trade by
+creating Finalize Order block. At this point, neither seller nor buyer can cancel the trade. 
+(before that point the seller could cancel the sell order by creating Cancel order block anytime).
+Also, at this point neither seller nor buyer must finalize their trade by receiving the funds as they both 
+already send their funds to the counter party and basically fullfilled their obligations.
+However, in case of non-fungible tokens (discount tokens), the non-fingible info is created in FinalizeOrder block,
+after the Buy block is executed, because the Buy block contain the info about actual amount of discount tokens being purchased.
+Therefore, if FinalizeBlock is not created by the seller within some time interval defined by the network (published in service block),
+the buyer has a right to cancel the trade and restore his/her balance.
+
+So merchant's FinalizeOrder block contains the following information:
+1. the "change" - the difference between the maximum amount of discount tokens offered for sale by teh original Sell Order\
+and the amount requested by the customer in Buy block.
+2. The received reward tokens - linked to the customer's Buy block.
+3. The discount redemption code encrypted with buyer's public key, 
+so only the buyer can see and use the code for Shopify checkout.
+
+The customer's FinalizeBuy block duplicates the discount token info (encrypted redemption code). 
+Thus, the discount token is moved to the customer's account balance.
+
+
+Merchant                Authorizer              Customer
+--------                ----------              --------
+
+SellOrder ->            
+                        <- Approves
+                                                <- BuyOrder
+                        Rejects with
+                        SellOrder info ->       
+                                                <- Buy
+                        Approves ->
+FinlizeSell ->
+                        <- Approves
+                                                <- FinalizeBuy
+                        Approves ->
+                       
+        
