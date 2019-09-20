@@ -1,4 +1,15 @@
-﻿MAC:
+﻿RESTARTING DEV LYRASHOP
+
+1) Uninstrall the app from the shop:
+https://partners.shopify.com/997468/stores?
+https://loyalshopper-dev-store-local.myshopify.com/admin/apps
+
+
+
+
+
+
+MAC:
 1) Run node:
 --seed self --networkid local --database litedb
 Note: to start from scratch, delete $HOME/Lyra-Node-local folder:
@@ -15,7 +26,8 @@ https://localhost:5001/api/getsyncheight
 3) ngrok http -subdomain=lyranode 5000
 
 4) Run CLI client to test and to get funding account if needed:
- 
+Test:
+https://lyranode.ngrok.io/api/getsyncheight
 
 WINDOWS:
 4) Update LyraShop web.config:

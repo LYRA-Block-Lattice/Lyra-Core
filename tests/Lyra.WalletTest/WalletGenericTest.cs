@@ -38,10 +38,10 @@ namespace Lyra.WalletTest
     [TestClass]
     public class WalletGenericTest
     {
-        const string PRIVATE_KEY_1 = "25kksnE589CTHcDeMNbatGBGoCjiMNFzcDCuGULj1vgCMAfxNV";
-        const string PRIVATE_KEY_2 = "2QvkckNTBttTt9EwsvWhDCwibcvzSkksx5iBuikh1AzgdYsNov";
+        const string PRIVATE_KEY_1 = "25kksnE589CTHcDeMNbatGBGoCjiMNFzcDCuGULj1vgCMAfxNV"; // merchant
+        const string PRIVATE_KEY_2 = "2QvkckNTBttTt9EwsvWhDCwibcvzSkksx5iBuikh1AzgdYsNov"; // customer
 
-        const string NETWORK_ID = "local";
+        const string NETWORK_ID = "unittest";
 
         public WalletGenericTest()
         {
@@ -100,6 +100,7 @@ namespace Lyra.WalletTest
 
         }
 
+        // "one-time" test - only works once after network reset  
         [TestMethod]
         public void TestMethod_Create_LYRA_Token()
         {
@@ -115,6 +116,7 @@ namespace Lyra.WalletTest
             Assert.AreEqual(APIResultCodes.Success, result);
         }
 
+        // "one-time" test - only works once after network reset  
         [TestMethod]
         public void TestMethod_Create_CUSTOM_Token()
         {
@@ -126,9 +128,40 @@ namespace Lyra.WalletTest
             var result = wallet.Sync(node).Result;
             Assert.AreEqual(APIResultCodes.Success, result);
                         
-            result = wallet.CreateToken("Custom.USD", "Custom", "", 8, 1000000, true, "Slava", "", "", null).Result.ResultCode;
+            result = wallet.CreateToken("USD", "UnitTest", "", 8, 1000000, true, "Slava", "", "", null).Result.ResultCode;
 
             Assert.AreEqual(APIResultCodes.Success, result);
+        }
+
+        // "one-time" test - only works once after network reset  
+        [TestMethod]
+        public void TestMethod_Create_REWARDS_Token()
+        {
+            Wallet wallet = GetWallet(PRIVATE_KEY_1);
+            var result = wallet.CreateToken("rewards", "rewards", "", 2, 1000000, false, "Slava", "", "", null).Result.ResultCode;
+            Assert.AreEqual(APIResultCodes.Success, result);
+        }
+
+        // "one-time" test - only works once after network reset  
+        [TestMethod]
+        public void TestMethod_Create_DISCOUNT_Token()
+        {
+            Wallet wallet = GetWallet(PRIVATE_KEY_1);
+            var result = wallet.CreateToken("discounts", "discounts", "", 2, 1000000, false, "Slava", "", "", null).Result.ResultCode;
+            Assert.AreEqual(APIResultCodes.Success, result);
+        }
+
+        public static Wallet GetWallet(string PrivateKey)
+        {
+            var inmemory_storage = new AccountInMemoryStorage();
+            Wallet wallet = new Wallet(inmemory_storage, NETWORK_ID);
+            wallet.RestoreAccount("", PrivateKey);
+
+            var node = new RPCClient(PrivateKey);
+            var result = wallet.Sync(node).Result;
+            if (result == APIResultCodes.Success)
+                return wallet;
+            throw new Exception("Could not create wallet"); 
         }
     }
 }

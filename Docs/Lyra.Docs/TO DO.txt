@@ -10,3 +10,5 @@ and save the updated block in local storage
    so only the latest block stored in the client will be sufficient to process subsequent transactions
 
 5. Add AuthorizationSignature validations at client
+
+6. Add Timestamp to AuthorizationSignature, consider using average timestamp from all authorizers to be used as a timestamp for settlement

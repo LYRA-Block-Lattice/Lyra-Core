@@ -7,5 +7,5 @@ rm -r "$HOME/Lyra-Node-unittest"
 #
 # Node
 #
-cd $HOME/Projects/Lyra/lyranode/bin/Debug/netcoreapp2.1/netcoreapp2.1
-dotnet lyranode.dll --networkid unittest --seed self
+cd $HOME/Projects/LyraNetwork/Node/Lyra.Node/bin/Debug/netcoreapp2.1/netcoreapp2.1
+dotnet lyranode.dll --networkid unittest --seed self --database litedb
