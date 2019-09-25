@@ -222,10 +222,10 @@ namespace Lyra.WalletTest
             var result = merchant_wallet.CreateGenesisForCoreToken();
             Assert.AreEqual(APIResultCodes.Success, result);
 
-            result = merchant_wallet.CreateToken("rewards", "rewards", "", 2, 1000000, false, "Slava", "", "", null).Result.ResultCode;
+            result = merchant_wallet.CreateToken("rewards", "rewards", "", 2, 1000000, false, "Slava", "", "", Core.Blocks.Transactions.ContractTypes.RewardPoint, null).Result.ResultCode;
             Assert.AreEqual(APIResultCodes.Success, result);
 
-            result = merchant_wallet.CreateToken("discounts", "discounts", "", 2, 1000000, false, "Slava", "", "", null).Result.ResultCode;
+            result = merchant_wallet.CreateToken("discounts", "discounts", "", 2, 1000000, false, "Slava", "", "", Core.Blocks.Transactions.ContractTypes.RedeemedDiscount, null).Result.ResultCode;
             Assert.AreEqual(APIResultCodes.Success, result);
 
             result = merchant_wallet.TradeOrder(TradeOrderTypes.Sell, "discounts.discounts", "rewards.rewards", 100.00M, 1.00M, 10, true, false).Result.ResultCode;

@@ -128,7 +128,7 @@ namespace Lyra.WalletTest
             var result = wallet.Sync(node).Result;
             Assert.AreEqual(APIResultCodes.Success, result);
                         
-            result = wallet.CreateToken("USD", "UnitTest", "", 8, 1000000, true, "Slava", "", "", null).Result.ResultCode;
+            result = wallet.CreateToken("USD", "UnitTest", "", 8, 1000000, true, "Slava", "", "", Core.Blocks.Transactions.ContractTypes.Custom, null).Result.ResultCode;
 
             Assert.AreEqual(APIResultCodes.Success, result);
         }
@@ -138,7 +138,7 @@ namespace Lyra.WalletTest
         public void TestMethod_Create_REWARDS_Token()
         {
             Wallet wallet = GetWallet(PRIVATE_KEY_1);
-            var result = wallet.CreateToken("rewards", "rewards", "", 2, 1000000, false, "Slava", "", "", null).Result.ResultCode;
+            var result = wallet.CreateToken("rewards", "rewards", "", 2, 1000000, false, "Slava", "", "", Core.Blocks.Transactions.ContractTypes.Custom, null).Result.ResultCode;
             Assert.AreEqual(APIResultCodes.Success, result);
         }
 
@@ -147,7 +147,7 @@ namespace Lyra.WalletTest
         public void TestMethod_Create_DISCOUNT_Token()
         {
             Wallet wallet = GetWallet(PRIVATE_KEY_1);
-            var result = wallet.CreateToken("discounts", "discounts", "", 2, 1000000, false, "Slava", "", "", null).Result.ResultCode;
+            var result = wallet.CreateToken("discounts", "discounts", "", 2, 1000000, false, "Slava", "", "", Core.Blocks.Transactions.ContractTypes.Custom, null).Result.ResultCode;
             Assert.AreEqual(APIResultCodes.Success, result);
         }
 

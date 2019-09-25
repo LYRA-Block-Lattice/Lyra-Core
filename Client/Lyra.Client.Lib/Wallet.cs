@@ -1109,7 +1109,20 @@ namespace Lyra.Client.Lib
             return result.ResultCode;
         }
 
-        public async Task<AuthorizationAPIResult> CreateToken(string tokenName, string domainName, string description, sbyte precision, decimal supply, bool isFinalSupply, string owner, string address, string currency, Dictionary<string, string> tags)
+
+
+        public async Task<AuthorizationAPIResult> CreateToken(
+            string tokenName,
+            string domainName,
+            string description,
+            sbyte precision,
+            decimal supply,
+            bool isFinalSupply,
+            string owner, // shop name
+            string address, // shop URL
+            string currency, // USD
+            ContractTypes contractType, // reward or discount or custom
+            Dictionary<string, string> tags)
         {
             if (string.IsNullOrWhiteSpace(domainName))
                 domainName = "Custom";
@@ -1143,6 +1156,7 @@ namespace Lyra.Client.Lib
                 Currency = currency,
                 Tags = tags,
                 RenewalDate = DateTime.Now.Add(TimeSpan.FromDays(365)),
+                ContractType = contractType,
             };
             // TO DO - set service hash
 
