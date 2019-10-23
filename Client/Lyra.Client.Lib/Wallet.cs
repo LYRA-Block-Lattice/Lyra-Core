@@ -543,7 +543,7 @@ namespace Lyra.Client.Lib
 
             // see if we have enough LYR to pay the transfer fee
             if (ticker != TokenGenesisBlock.LYRA_TICKER_CODE)
-                if (previousBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] < TransferFee)
+                if (!previousBlock.Balances.ContainsKey(TokenGenesisBlock.LYRA_TICKER_CODE) || previousBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] < TransferFee)
                 {
                     //throw new ApplicationException("Insufficient funds to pay transfer fee");
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };

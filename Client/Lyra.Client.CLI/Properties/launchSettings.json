@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Lyra.Client.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "-database litedb --networkid devnet1 --protocol webapi",
+      "workingDirectory": "E:\\Repositories\\graft-project\\LyraNetwork\\Client\\Lyra.Client.CLI\\bin\\Debug\\netcoreapp2.1\\netcoreapp2.1"
+    }
+  }
+}

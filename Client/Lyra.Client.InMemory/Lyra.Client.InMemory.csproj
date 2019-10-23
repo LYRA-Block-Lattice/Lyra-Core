@@ -5,6 +5,10 @@
     <ReleaseVersion>0.5.1</ReleaseVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
   </ItemGroup>
