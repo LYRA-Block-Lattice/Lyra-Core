@@ -154,6 +154,7 @@ namespace Lyra.Node
         public const string DEV_NETWORK = "devnet";
         public const string TEST_NETWORK = "testnet";
         public const string MAIN_NETWORK = "mainnet";
+        public const string LEX_NETWORK = "lexnet";
 
         public const string MONGODB_DATABASE = "mongodb";
         public const string LITEDB_DATABASE = "litedb";

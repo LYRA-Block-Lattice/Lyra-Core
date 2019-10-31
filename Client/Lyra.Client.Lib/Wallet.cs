@@ -1066,8 +1066,8 @@ namespace Lyra.Client.Lib
                 RenewalDate = DateTime.MaxValue,
         };
             // TO DO - set service hash
-            //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 1800000000 };
-            var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
+            var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 1800000000 };
+            //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
 
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
             //openTokenGenesisBlock.Transaction = transaction;
