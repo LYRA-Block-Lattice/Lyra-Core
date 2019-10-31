@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LyraWallet.ViewModels"
+             x:Class="LyraWallet.Views.CreateAccountPage"
+             Title="Wallet Setup (Step 2 of 2)">
+    <ContentPage.Content>
+        <StackLayout BackgroundColor="White">
+            <Frame>
+                <StackLayout>
+                    <Button Text="Create New Account" Command="{Binding CreateNewCommand}" TextColor="White"  BackgroundColor="Gray" HorizontalOptions="Fill" />
+                </StackLayout>
+            </Frame>
+            <BoxView BackgroundColor="Silver" HeightRequest="1"  HorizontalOptions="FillAndExpand"/>
+            <Label Text="Or" HorizontalTextAlignment="Center"/>
+            <BoxView BackgroundColor="Silver" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
+            <Frame>
+                <StackLayout>
+                    <Editor Text="{Binding PrivateKey}" AutoSize="TextChanges" />
+                    <Button Text="Create/Restore by Private Key" Command="{Binding CreateByKeyCommand}" TextColor="White"  BackgroundColor="Gray" HorizontalOptions="Fill" />
+                </StackLayout>
+            </Frame>    
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

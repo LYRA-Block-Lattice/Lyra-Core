@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="LyraWallet.Views.WalletInfoPage"
+             Title="Wallet Configuration">
+    <ContentPage.Content>
+        <ScrollView BackgroundColor="White">
+            <StackLayout Padding="5">
+                <Label Text="Network for current account:" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding CurrentNetwork}" IsReadOnly="True" FontSize="Small" AutoSize="TextChanges"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Text="Account ID (Public Address):" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                    <ImageButton Source="copy.png" Grid.Column="1" WidthRequest="20" HeightRequest="20" HorizontalOptions="Start"
+                                 Clicked="CopyAccountID_Clicked"/>
+                </Grid>
+                <Editor x:Name="txtAccountID" Text="{Binding AccountID}" IsReadOnly="True" FontSize="Small" AutoSize="TextChanges"/>
+                <Button Margin="0,0,0,0" Text="Generate QR Code" Command="{Binding BarcodeGenCommand}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" x:Name="lblViewKey" Text="Private Key (Tap to show):" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                    <ImageButton Source="copy.png" Grid.Column="1" WidthRequest="20" HeightRequest="20" HorizontalOptions="Start"
+                                 Clicked="CopyPrivateKey_Clicked"/>
+                </Grid>
+                <Editor x:Name="txtPrivateKey" Text="****************************"
+                        IsReadOnly="True"  FontSize="Small" AutoSize="TextChanges"/>
+                <Label Text="You can also:" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Button Margin="0,0,0,0" Text="Show Blocks" Command="{Binding ShowBlocksCommand}" />
+                <Button Margin="0,0,0,0" Text="Create Token" Command="{Binding CreateTokenCommand}" />
+                <Button IsVisible="False" Margin="0,0,0,0" Text="Redeem Code" Command="{Binding RedeemCodeCommand}" />
+                <Label Text="Or even (Please backup private key first):" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Button Margin="0,0,0,0" TextColor="Red" Text="Remove Account" Command="{Binding RemoveAccountCommand}" />
+            </StackLayout>
+        </ScrollView>
+    </ContentPage.Content>
+</ContentPage>
