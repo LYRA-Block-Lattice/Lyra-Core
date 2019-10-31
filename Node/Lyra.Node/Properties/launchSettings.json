@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Lyra.Node": {
+      "commandName": "Project",
+      "commandLineArgs": "--database litedb --networkid local --seed self"
+    }
+  }
+}

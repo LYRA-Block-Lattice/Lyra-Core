@@ -51,7 +51,7 @@ namespace Lyra.Client.WebAPI
             {
                 //BaseAddress = new Uri("https://localhost:5001/api/")
                 BaseAddress = new Uri(BaseAddress),
-                Timeout = new TimeSpan(0, 0, 10)
+                Timeout = new TimeSpan(0, 0, 30)        // for debug. but 10 sec is too short for real env
             };
         }
 
