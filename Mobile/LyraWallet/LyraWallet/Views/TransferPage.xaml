@@ -8,14 +8,12 @@
         <ScrollView BackgroundColor="White">            
             <StackLayout Padding="5">
                 <ActivityIndicator x:Name="busyIndicator" IsVisible="{Binding IsWorking}" IsRunning="{Binding IsWorking}" />
-                <Label Text="Which Token do you want to transfer?" 
+                <Label Text="The Token do you want to transfer:" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />
-                <Picker Title="Select Token" 
-                    TextColor="Blue"
-                    ItemsSource="{Binding TokenNames}" 
-                    ItemDisplayBinding="{Binding .}"
-                    SelectedItem="{Binding SelectedTokenName}" />
+                <Label x:Name="lblTokenName" Text="{Binding SelectedTokenName}"
+                       FontAttributes="Bold"
+                       TextColor="DeepPink"/>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />

@@ -100,6 +100,7 @@ namespace LyraWallet.ViewModels
             }
         }
 
-         public ICommand RefreshCommand { get; }
+        public ICommand RefreshCommand { get; }
+        public ICommand TokenSelected { get; }
     }
 }

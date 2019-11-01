@@ -26,7 +26,8 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="80"/>
                                             <ColumnDefinition />
-                                        </Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
                                         <Image Grid.Column="0" WidthRequest="60">
                                             <Image.Source>
                                                 <FileImageSource File="lyracoins.png" />
@@ -40,7 +41,7 @@
                                                 />
                                             <Label Text="{Binding Value}" />
                                         </StackLayout>
-                                    </Grid>
+                                </Grid>
                                 </Frame>
                         </ViewCell>
                     </DataTemplate>

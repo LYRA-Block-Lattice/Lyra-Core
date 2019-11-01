@@ -15,14 +15,36 @@
             </x:Arguments>
         </NavigationPage>
         
-        <NavigationPage Title="Transfer">
+        <NavigationPage Title="POS">
             <NavigationPage.Icon>
                 <OnPlatform x:TypeArguments="FileImageSource">
                     <On Platform="iOS" Value="tab_feed.png"/>
                 </OnPlatform>
             </NavigationPage.Icon>
             <x:Arguments>
-                <views:TransferPage />
+                <views:PosViewPage />
+            </x:Arguments>
+        </NavigationPage>
+
+        <NavigationPage Title="LeX World">
+            <NavigationPage.Icon>
+                <OnPlatform x:TypeArguments="FileImageSource">
+                    <On Platform="iOS" Value="tab_about.png"/>
+                </OnPlatform>
+            </NavigationPage.Icon>
+            <x:Arguments>
+                <views:LexWorldPage />
+            </x:Arguments>
+        </NavigationPage>
+
+        <NavigationPage Title="Market">
+            <NavigationPage.Icon>
+                <OnPlatform x:TypeArguments="FileImageSource">
+                    <On Platform="iOS" Value="tab_about.png"/>
+                </OnPlatform>
+            </NavigationPage.Icon>
+            <x:Arguments>
+                <views:ExchangeViewPage />
             </x:Arguments>
         </NavigationPage>
         

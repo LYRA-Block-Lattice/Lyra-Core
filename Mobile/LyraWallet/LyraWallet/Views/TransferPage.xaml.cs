@@ -16,10 +16,11 @@ namespace LyraWallet.Views
 	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class TransferPage : ContentPage
 	{
-		public TransferPage ()
+		public TransferPage (string tokenName)
 		{
 			InitializeComponent ();
 
+            lblTokenName.Text = tokenName;
             BindingContext = new TransferViewModel(this);
 		}
 
