@@ -45,13 +45,13 @@ namespace LyraWallet
         protected override void OnSleep()
         {
             // close wallet
-            Container.CloseWallet().Wait();
+            Container.CloseWallet();
         }
 
         protected override void OnResume()
         {
             // re-open wallet
-            Container.OpenWalletFile().Wait();
+            Container.OpenWalletFile();
         }
     }
 }

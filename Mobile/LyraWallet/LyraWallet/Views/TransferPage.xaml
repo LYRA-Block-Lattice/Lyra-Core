@@ -8,7 +8,7 @@
         <ScrollView BackgroundColor="White">            
             <StackLayout Padding="5">
                 <ActivityIndicator x:Name="busyIndicator" IsVisible="{Binding IsWorking}" IsRunning="{Binding IsWorking}" />
-                <Label Text="The Token do you want to transfer:" 
+                <Label Text="The Token you want to transfer:" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />
                 <Label x:Name="lblTokenName" Text="{Binding SelectedTokenName}"

@@ -21,8 +21,10 @@ namespace LyraWallet.Views
 			InitializeComponent ();
 
             lblTokenName.Text = tokenName;
-            BindingContext = new TransferViewModel(this);
-		}
+            var trans = new TransferViewModel(this);
+            trans.SelectedTokenName = tokenName;
+            BindingContext = trans;
+        }
 
         private async void Paste_Clicked(object sender, EventArgs e)
         {
