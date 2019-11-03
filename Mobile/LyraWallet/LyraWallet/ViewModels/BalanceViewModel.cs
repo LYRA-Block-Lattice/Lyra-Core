@@ -88,17 +88,29 @@ namespace LyraWallet.ViewModels
                         // pay to result.Text
                         try
                         {
+                            if (string.IsNullOrWhiteSpace(result.Text))
+                                throw new Exception("Scan QR Code failed.");
+
                             var lyraUri = new Uri(result.Text);
                             var queryDictionary = System.Web.HttpUtility.ParseQueryString(lyraUri.Query);
+
                             var msg = "";
                             if (lyraUri.PathAndQuery.StartsWith("/cart/checkout"))
                             {
+                                Decimal total = 0;
+                                // check parameters is exists
+                                if (string.IsNullOrWhiteSpace(queryDictionary["Token"])
+                                    || string.IsNullOrWhiteSpace(queryDictionary["AccountID"])
+                                    || string.IsNullOrWhiteSpace(queryDictionary["Total"])
+                                    || !Decimal.TryParse(queryDictionary["Total"], out total))
+                                    throw new Exception("Unknown QR Code: " + result.Text);
+
                                 msg = $"Store {queryDictionary["Shop"]} Checkout, Total to Pay:\n";
-                                msg += $"{queryDictionary["Total"]} {queryDictionary["Token"]}";
+                                msg += $"{total} {queryDictionary["Token"]}";
                                 var isOK = await _thePage.DisplayAlert("Alert", msg, "Confirm", "Canel");
                                 if (isOK)
                                 {
-                                    await App.Container.Transfer(queryDictionary["Token"], queryDictionary["AccountID"], Decimal.Parse(queryDictionary["Total"]));
+                                    await App.Container.Transfer(queryDictionary["Token"], queryDictionary["AccountID"], total);
                                     await _thePage.DisplayAlert("Info", "Success!", "OK");
                                 }
                                 return;
@@ -117,7 +129,7 @@ namespace LyraWallet.ViewModels
                         }
                         catch(Exception ex)
                         {
-                            await _thePage.DisplayAlert("Alert", "Unable to pay: " + ex.Message, "OK");
+                            await _thePage.DisplayAlert("Alert", $"Unable to pay: {ex.Message}\n\nQR Code:\n{result.Text}", "OK");
                         }
                     });
                 };
