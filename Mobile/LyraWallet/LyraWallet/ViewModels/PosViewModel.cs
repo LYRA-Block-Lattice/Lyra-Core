@@ -112,8 +112,11 @@ namespace LyraWallet.ViewModels
             });
             CheckoutCommand = new Command(async () =>
             {
+                if(CartTotal > 0)
+                {
                     var nextPage = new PosCheckoutPage(CartItems.Where(a => a.Count > 0).ToList());
                     await ThePage.Navigation.PushAsync(nextPage);
+                }
             });
 
             MessagingCenter.Subscribe<BalanceViewModel>(
