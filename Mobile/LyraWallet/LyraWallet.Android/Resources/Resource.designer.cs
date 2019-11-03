@@ -26,6 +26,2259 @@ namespace LyraWallet.Droid
 		
 		public static void UpdateIdValues()
 		{
+			global::Plugin.Badge.Droid.Resource.Animation.abc_fade_in = global::LyraWallet.Droid.Resource.Animation.abc_fade_in;
+			global::Plugin.Badge.Droid.Resource.Animation.abc_fade_out = global::LyraWallet.Droid.Resource.Animation.abc_fade_out;
+			global::Plugin.Badge.Droid.Resource.Animation.abc_grow_fade_in_from_bottom = global::LyraWallet.Droid.Resource.Animation.abc_grow_fade_in_from_bottom;
+			global::Plugin.Badge.Droid.Resource.Animation.abc_popup_enter = global::LyraWallet.Droid.Resource.Animation.abc_popup_enter;
+			global::Plugin.Badge.Droid.Resource.Animation.abc_popup_exit = global::LyraWallet.Droid.Resource.Animation.abc_popup_exit;
+			global::Plugin.Badge.Droid.Resource.Animation.abc_shrink_fade_out_from_bottom = global::LyraWallet.Droid.Resource.Animation.abc_shrink_fade_out_from_bottom;
+			global::Plugin.Badge.Droid.Resource.Animation.abc_slide_in_bottom = global::LyraWallet.Droid.Resource.Animation.abc_slide_in_bottom;
+			global::Plugin.Badge.Droid.Resource.Animation.abc_slide_in_top = global::LyraWallet.Droid.Resource.Animation.abc_slide_in_top;
+			global::Plugin.Badge.Droid.Resource.Animation.abc_slide_out_bottom = global::LyraWallet.Droid.Resource.Animation.abc_slide_out_bottom;
+			global::Plugin.Badge.Droid.Resource.Animation.abc_slide_out_top = global::LyraWallet.Droid.Resource.Animation.abc_slide_out_top;
+			global::Plugin.Badge.Droid.Resource.Animation.design_bottom_sheet_slide_in = global::LyraWallet.Droid.Resource.Animation.design_bottom_sheet_slide_in;
+			global::Plugin.Badge.Droid.Resource.Animation.design_bottom_sheet_slide_out = global::LyraWallet.Droid.Resource.Animation.design_bottom_sheet_slide_out;
+			global::Plugin.Badge.Droid.Resource.Animation.design_snackbar_in = global::LyraWallet.Droid.Resource.Animation.design_snackbar_in;
+			global::Plugin.Badge.Droid.Resource.Animation.design_snackbar_out = global::LyraWallet.Droid.Resource.Animation.design_snackbar_out;
+			global::Plugin.Badge.Droid.Resource.Animation.EnterFromLeft = global::LyraWallet.Droid.Resource.Animation.EnterFromLeft;
+			global::Plugin.Badge.Droid.Resource.Animation.EnterFromRight = global::LyraWallet.Droid.Resource.Animation.EnterFromRight;
+			global::Plugin.Badge.Droid.Resource.Animation.ExitToLeft = global::LyraWallet.Droid.Resource.Animation.ExitToLeft;
+			global::Plugin.Badge.Droid.Resource.Animation.ExitToRight = global::LyraWallet.Droid.Resource.Animation.ExitToRight;
+			global::Plugin.Badge.Droid.Resource.Animator.design_appbar_state_list_animator = global::LyraWallet.Droid.Resource.Animator.design_appbar_state_list_animator;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarDivider = global::LyraWallet.Droid.Resource.Attribute.actionBarDivider;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarItemBackground = global::LyraWallet.Droid.Resource.Attribute.actionBarItemBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarPopupTheme = global::LyraWallet.Droid.Resource.Attribute.actionBarPopupTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarSize = global::LyraWallet.Droid.Resource.Attribute.actionBarSize;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarSplitStyle = global::LyraWallet.Droid.Resource.Attribute.actionBarSplitStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarStyle = global::LyraWallet.Droid.Resource.Attribute.actionBarStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarTabBarStyle = global::LyraWallet.Droid.Resource.Attribute.actionBarTabBarStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarTabStyle = global::LyraWallet.Droid.Resource.Attribute.actionBarTabStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarTabTextStyle = global::LyraWallet.Droid.Resource.Attribute.actionBarTabTextStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarTheme = global::LyraWallet.Droid.Resource.Attribute.actionBarTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionBarWidgetTheme = global::LyraWallet.Droid.Resource.Attribute.actionBarWidgetTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionButtonStyle = global::LyraWallet.Droid.Resource.Attribute.actionButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionDropDownStyle = global::LyraWallet.Droid.Resource.Attribute.actionDropDownStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionLayout = global::LyraWallet.Droid.Resource.Attribute.actionLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionMenuTextAppearance = global::LyraWallet.Droid.Resource.Attribute.actionMenuTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionMenuTextColor = global::LyraWallet.Droid.Resource.Attribute.actionMenuTextColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeBackground = global::LyraWallet.Droid.Resource.Attribute.actionModeBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeCloseButtonStyle = global::LyraWallet.Droid.Resource.Attribute.actionModeCloseButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeCloseDrawable = global::LyraWallet.Droid.Resource.Attribute.actionModeCloseDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeCopyDrawable = global::LyraWallet.Droid.Resource.Attribute.actionModeCopyDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeCutDrawable = global::LyraWallet.Droid.Resource.Attribute.actionModeCutDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeFindDrawable = global::LyraWallet.Droid.Resource.Attribute.actionModeFindDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModePasteDrawable = global::LyraWallet.Droid.Resource.Attribute.actionModePasteDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModePopupWindowStyle = global::LyraWallet.Droid.Resource.Attribute.actionModePopupWindowStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeSelectAllDrawable = global::LyraWallet.Droid.Resource.Attribute.actionModeSelectAllDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeShareDrawable = global::LyraWallet.Droid.Resource.Attribute.actionModeShareDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeSplitBackground = global::LyraWallet.Droid.Resource.Attribute.actionModeSplitBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeStyle = global::LyraWallet.Droid.Resource.Attribute.actionModeStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionModeWebSearchDrawable = global::LyraWallet.Droid.Resource.Attribute.actionModeWebSearchDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionOverflowButtonStyle = global::LyraWallet.Droid.Resource.Attribute.actionOverflowButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionOverflowMenuStyle = global::LyraWallet.Droid.Resource.Attribute.actionOverflowMenuStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionProviderClass = global::LyraWallet.Droid.Resource.Attribute.actionProviderClass;
+			global::Plugin.Badge.Droid.Resource.Attribute.actionViewClass = global::LyraWallet.Droid.Resource.Attribute.actionViewClass;
+			global::Plugin.Badge.Droid.Resource.Attribute.activityChooserViewStyle = global::LyraWallet.Droid.Resource.Attribute.activityChooserViewStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.alertDialogButtonGroupStyle = global::LyraWallet.Droid.Resource.Attribute.alertDialogButtonGroupStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.alertDialogCenterButtons = global::LyraWallet.Droid.Resource.Attribute.alertDialogCenterButtons;
+			global::Plugin.Badge.Droid.Resource.Attribute.alertDialogStyle = global::LyraWallet.Droid.Resource.Attribute.alertDialogStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.alertDialogTheme = global::LyraWallet.Droid.Resource.Attribute.alertDialogTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.allowStacking = global::LyraWallet.Droid.Resource.Attribute.allowStacking;
+			global::Plugin.Badge.Droid.Resource.Attribute.alpha = global::LyraWallet.Droid.Resource.Attribute.alpha;
+			global::Plugin.Badge.Droid.Resource.Attribute.alphabeticModifiers = global::LyraWallet.Droid.Resource.Attribute.alphabeticModifiers;
+			global::Plugin.Badge.Droid.Resource.Attribute.arrowHeadLength = global::LyraWallet.Droid.Resource.Attribute.arrowHeadLength;
+			global::Plugin.Badge.Droid.Resource.Attribute.arrowShaftLength = global::LyraWallet.Droid.Resource.Attribute.arrowShaftLength;
+			global::Plugin.Badge.Droid.Resource.Attribute.autoCompleteTextViewStyle = global::LyraWallet.Droid.Resource.Attribute.autoCompleteTextViewStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.autoSizeMaxTextSize = global::LyraWallet.Droid.Resource.Attribute.autoSizeMaxTextSize;
+			global::Plugin.Badge.Droid.Resource.Attribute.autoSizeMinTextSize = global::LyraWallet.Droid.Resource.Attribute.autoSizeMinTextSize;
+			global::Plugin.Badge.Droid.Resource.Attribute.autoSizePresetSizes = global::LyraWallet.Droid.Resource.Attribute.autoSizePresetSizes;
+			global::Plugin.Badge.Droid.Resource.Attribute.autoSizeStepGranularity = global::LyraWallet.Droid.Resource.Attribute.autoSizeStepGranularity;
+			global::Plugin.Badge.Droid.Resource.Attribute.autoSizeTextType = global::LyraWallet.Droid.Resource.Attribute.autoSizeTextType;
+			global::Plugin.Badge.Droid.Resource.Attribute.background = global::LyraWallet.Droid.Resource.Attribute.background;
+			global::Plugin.Badge.Droid.Resource.Attribute.backgroundSplit = global::LyraWallet.Droid.Resource.Attribute.backgroundSplit;
+			global::Plugin.Badge.Droid.Resource.Attribute.backgroundStacked = global::LyraWallet.Droid.Resource.Attribute.backgroundStacked;
+			global::Plugin.Badge.Droid.Resource.Attribute.backgroundTint = global::LyraWallet.Droid.Resource.Attribute.backgroundTint;
+			global::Plugin.Badge.Droid.Resource.Attribute.backgroundTintMode = global::LyraWallet.Droid.Resource.Attribute.backgroundTintMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.barLength = global::LyraWallet.Droid.Resource.Attribute.barLength;
+			global::Plugin.Badge.Droid.Resource.Attribute.behavior_autoHide = global::LyraWallet.Droid.Resource.Attribute.behavior_autoHide;
+			global::Plugin.Badge.Droid.Resource.Attribute.behavior_hideable = global::LyraWallet.Droid.Resource.Attribute.behavior_hideable;
+			global::Plugin.Badge.Droid.Resource.Attribute.behavior_overlapTop = global::LyraWallet.Droid.Resource.Attribute.behavior_overlapTop;
+			global::Plugin.Badge.Droid.Resource.Attribute.behavior_peekHeight = global::LyraWallet.Droid.Resource.Attribute.behavior_peekHeight;
+			global::Plugin.Badge.Droid.Resource.Attribute.behavior_skipCollapsed = global::LyraWallet.Droid.Resource.Attribute.behavior_skipCollapsed;
+			global::Plugin.Badge.Droid.Resource.Attribute.borderWidth = global::LyraWallet.Droid.Resource.Attribute.borderWidth;
+			global::Plugin.Badge.Droid.Resource.Attribute.borderlessButtonStyle = global::LyraWallet.Droid.Resource.Attribute.borderlessButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.bottomSheetDialogTheme = global::LyraWallet.Droid.Resource.Attribute.bottomSheetDialogTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.bottomSheetStyle = global::LyraWallet.Droid.Resource.Attribute.bottomSheetStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonBarButtonStyle = global::LyraWallet.Droid.Resource.Attribute.buttonBarButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonBarNegativeButtonStyle = global::LyraWallet.Droid.Resource.Attribute.buttonBarNegativeButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonBarNeutralButtonStyle = global::LyraWallet.Droid.Resource.Attribute.buttonBarNeutralButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonBarPositiveButtonStyle = global::LyraWallet.Droid.Resource.Attribute.buttonBarPositiveButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonBarStyle = global::LyraWallet.Droid.Resource.Attribute.buttonBarStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonGravity = global::LyraWallet.Droid.Resource.Attribute.buttonGravity;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonPanelSideLayout = global::LyraWallet.Droid.Resource.Attribute.buttonPanelSideLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonStyle = global::LyraWallet.Droid.Resource.Attribute.buttonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonStyleSmall = global::LyraWallet.Droid.Resource.Attribute.buttonStyleSmall;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonTint = global::LyraWallet.Droid.Resource.Attribute.buttonTint;
+			global::Plugin.Badge.Droid.Resource.Attribute.buttonTintMode = global::LyraWallet.Droid.Resource.Attribute.buttonTintMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.cardBackgroundColor = global::LyraWallet.Droid.Resource.Attribute.cardBackgroundColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.cardCornerRadius = global::LyraWallet.Droid.Resource.Attribute.cardCornerRadius;
+			global::Plugin.Badge.Droid.Resource.Attribute.cardElevation = global::LyraWallet.Droid.Resource.Attribute.cardElevation;
+			global::Plugin.Badge.Droid.Resource.Attribute.cardMaxElevation = global::LyraWallet.Droid.Resource.Attribute.cardMaxElevation;
+			global::Plugin.Badge.Droid.Resource.Attribute.cardPreventCornerOverlap = global::LyraWallet.Droid.Resource.Attribute.cardPreventCornerOverlap;
+			global::Plugin.Badge.Droid.Resource.Attribute.cardUseCompatPadding = global::LyraWallet.Droid.Resource.Attribute.cardUseCompatPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.checkboxStyle = global::LyraWallet.Droid.Resource.Attribute.checkboxStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.checkedTextViewStyle = global::LyraWallet.Droid.Resource.Attribute.checkedTextViewStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.closeIcon = global::LyraWallet.Droid.Resource.Attribute.closeIcon;
+			global::Plugin.Badge.Droid.Resource.Attribute.closeItemLayout = global::LyraWallet.Droid.Resource.Attribute.closeItemLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.collapseContentDescription = global::LyraWallet.Droid.Resource.Attribute.collapseContentDescription;
+			global::Plugin.Badge.Droid.Resource.Attribute.collapseIcon = global::LyraWallet.Droid.Resource.Attribute.collapseIcon;
+			global::Plugin.Badge.Droid.Resource.Attribute.collapsedTitleGravity = global::LyraWallet.Droid.Resource.Attribute.collapsedTitleGravity;
+			global::Plugin.Badge.Droid.Resource.Attribute.collapsedTitleTextAppearance = global::LyraWallet.Droid.Resource.Attribute.collapsedTitleTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.color = global::LyraWallet.Droid.Resource.Attribute.color;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorAccent = global::LyraWallet.Droid.Resource.Attribute.colorAccent;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorBackgroundFloating = global::LyraWallet.Droid.Resource.Attribute.colorBackgroundFloating;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorButtonNormal = global::LyraWallet.Droid.Resource.Attribute.colorButtonNormal;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorControlActivated = global::LyraWallet.Droid.Resource.Attribute.colorControlActivated;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorControlHighlight = global::LyraWallet.Droid.Resource.Attribute.colorControlHighlight;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorControlNormal = global::LyraWallet.Droid.Resource.Attribute.colorControlNormal;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorError = global::LyraWallet.Droid.Resource.Attribute.colorError;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorPrimary = global::LyraWallet.Droid.Resource.Attribute.colorPrimary;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorPrimaryDark = global::LyraWallet.Droid.Resource.Attribute.colorPrimaryDark;
+			global::Plugin.Badge.Droid.Resource.Attribute.colorSwitchThumbNormal = global::LyraWallet.Droid.Resource.Attribute.colorSwitchThumbNormal;
+			global::Plugin.Badge.Droid.Resource.Attribute.commitIcon = global::LyraWallet.Droid.Resource.Attribute.commitIcon;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentDescription = global::LyraWallet.Droid.Resource.Attribute.contentDescription;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentInsetEnd = global::LyraWallet.Droid.Resource.Attribute.contentInsetEnd;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentInsetEndWithActions = global::LyraWallet.Droid.Resource.Attribute.contentInsetEndWithActions;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentInsetLeft = global::LyraWallet.Droid.Resource.Attribute.contentInsetLeft;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentInsetRight = global::LyraWallet.Droid.Resource.Attribute.contentInsetRight;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentInsetStart = global::LyraWallet.Droid.Resource.Attribute.contentInsetStart;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentInsetStartWithNavigation = global::LyraWallet.Droid.Resource.Attribute.contentInsetStartWithNavigation;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentPadding = global::LyraWallet.Droid.Resource.Attribute.contentPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentPaddingBottom = global::LyraWallet.Droid.Resource.Attribute.contentPaddingBottom;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentPaddingLeft = global::LyraWallet.Droid.Resource.Attribute.contentPaddingLeft;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentPaddingRight = global::LyraWallet.Droid.Resource.Attribute.contentPaddingRight;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentPaddingTop = global::LyraWallet.Droid.Resource.Attribute.contentPaddingTop;
+			global::Plugin.Badge.Droid.Resource.Attribute.contentScrim = global::LyraWallet.Droid.Resource.Attribute.contentScrim;
+			global::Plugin.Badge.Droid.Resource.Attribute.controlBackground = global::LyraWallet.Droid.Resource.Attribute.controlBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.counterEnabled = global::LyraWallet.Droid.Resource.Attribute.counterEnabled;
+			global::Plugin.Badge.Droid.Resource.Attribute.counterMaxLength = global::LyraWallet.Droid.Resource.Attribute.counterMaxLength;
+			global::Plugin.Badge.Droid.Resource.Attribute.counterOverflowTextAppearance = global::LyraWallet.Droid.Resource.Attribute.counterOverflowTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.counterTextAppearance = global::LyraWallet.Droid.Resource.Attribute.counterTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.customNavigationLayout = global::LyraWallet.Droid.Resource.Attribute.customNavigationLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.defaultQueryHint = global::LyraWallet.Droid.Resource.Attribute.defaultQueryHint;
+			global::Plugin.Badge.Droid.Resource.Attribute.dialogPreferredPadding = global::LyraWallet.Droid.Resource.Attribute.dialogPreferredPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.dialogTheme = global::LyraWallet.Droid.Resource.Attribute.dialogTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.displayOptions = global::LyraWallet.Droid.Resource.Attribute.displayOptions;
+			global::Plugin.Badge.Droid.Resource.Attribute.divider = global::LyraWallet.Droid.Resource.Attribute.divider;
+			global::Plugin.Badge.Droid.Resource.Attribute.dividerHorizontal = global::LyraWallet.Droid.Resource.Attribute.dividerHorizontal;
+			global::Plugin.Badge.Droid.Resource.Attribute.dividerPadding = global::LyraWallet.Droid.Resource.Attribute.dividerPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.dividerVertical = global::LyraWallet.Droid.Resource.Attribute.dividerVertical;
+			global::Plugin.Badge.Droid.Resource.Attribute.drawableSize = global::LyraWallet.Droid.Resource.Attribute.drawableSize;
+			global::Plugin.Badge.Droid.Resource.Attribute.drawerArrowStyle = global::LyraWallet.Droid.Resource.Attribute.drawerArrowStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.dropDownListViewStyle = global::LyraWallet.Droid.Resource.Attribute.dropDownListViewStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.dropdownListPreferredItemHeight = global::LyraWallet.Droid.Resource.Attribute.dropdownListPreferredItemHeight;
+			global::Plugin.Badge.Droid.Resource.Attribute.editTextBackground = global::LyraWallet.Droid.Resource.Attribute.editTextBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.editTextColor = global::LyraWallet.Droid.Resource.Attribute.editTextColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.editTextStyle = global::LyraWallet.Droid.Resource.Attribute.editTextStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.elevation = global::LyraWallet.Droid.Resource.Attribute.elevation;
+			global::Plugin.Badge.Droid.Resource.Attribute.errorEnabled = global::LyraWallet.Droid.Resource.Attribute.errorEnabled;
+			global::Plugin.Badge.Droid.Resource.Attribute.errorTextAppearance = global::LyraWallet.Droid.Resource.Attribute.errorTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.expandActivityOverflowButtonDrawable = global::LyraWallet.Droid.Resource.Attribute.expandActivityOverflowButtonDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.expanded = global::LyraWallet.Droid.Resource.Attribute.expanded;
+			global::Plugin.Badge.Droid.Resource.Attribute.expandedTitleGravity = global::LyraWallet.Droid.Resource.Attribute.expandedTitleGravity;
+			global::Plugin.Badge.Droid.Resource.Attribute.expandedTitleMargin = global::LyraWallet.Droid.Resource.Attribute.expandedTitleMargin;
+			global::Plugin.Badge.Droid.Resource.Attribute.expandedTitleMarginBottom = global::LyraWallet.Droid.Resource.Attribute.expandedTitleMarginBottom;
+			global::Plugin.Badge.Droid.Resource.Attribute.expandedTitleMarginEnd = global::LyraWallet.Droid.Resource.Attribute.expandedTitleMarginEnd;
+			global::Plugin.Badge.Droid.Resource.Attribute.expandedTitleMarginStart = global::LyraWallet.Droid.Resource.Attribute.expandedTitleMarginStart;
+			global::Plugin.Badge.Droid.Resource.Attribute.expandedTitleMarginTop = global::LyraWallet.Droid.Resource.Attribute.expandedTitleMarginTop;
+			global::Plugin.Badge.Droid.Resource.Attribute.expandedTitleTextAppearance = global::LyraWallet.Droid.Resource.Attribute.expandedTitleTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.externalRouteEnabledDrawable = global::LyraWallet.Droid.Resource.Attribute.externalRouteEnabledDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.fabSize = global::LyraWallet.Droid.Resource.Attribute.fabSize;
+			global::Plugin.Badge.Droid.Resource.Attribute.fastScrollEnabled = global::LyraWallet.Droid.Resource.Attribute.fastScrollEnabled;
+			global::Plugin.Badge.Droid.Resource.Attribute.fastScrollHorizontalThumbDrawable = global::LyraWallet.Droid.Resource.Attribute.fastScrollHorizontalThumbDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.fastScrollHorizontalTrackDrawable = global::LyraWallet.Droid.Resource.Attribute.fastScrollHorizontalTrackDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.fastScrollVerticalThumbDrawable = global::LyraWallet.Droid.Resource.Attribute.fastScrollVerticalThumbDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.fastScrollVerticalTrackDrawable = global::LyraWallet.Droid.Resource.Attribute.fastScrollVerticalTrackDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.font = global::LyraWallet.Droid.Resource.Attribute.font;
+			global::Plugin.Badge.Droid.Resource.Attribute.fontFamily = global::LyraWallet.Droid.Resource.Attribute.fontFamily;
+			global::Plugin.Badge.Droid.Resource.Attribute.fontProviderAuthority = global::LyraWallet.Droid.Resource.Attribute.fontProviderAuthority;
+			global::Plugin.Badge.Droid.Resource.Attribute.fontProviderCerts = global::LyraWallet.Droid.Resource.Attribute.fontProviderCerts;
+			global::Plugin.Badge.Droid.Resource.Attribute.fontProviderFetchStrategy = global::LyraWallet.Droid.Resource.Attribute.fontProviderFetchStrategy;
+			global::Plugin.Badge.Droid.Resource.Attribute.fontProviderFetchTimeout = global::LyraWallet.Droid.Resource.Attribute.fontProviderFetchTimeout;
+			global::Plugin.Badge.Droid.Resource.Attribute.fontProviderPackage = global::LyraWallet.Droid.Resource.Attribute.fontProviderPackage;
+			global::Plugin.Badge.Droid.Resource.Attribute.fontProviderQuery = global::LyraWallet.Droid.Resource.Attribute.fontProviderQuery;
+			global::Plugin.Badge.Droid.Resource.Attribute.fontStyle = global::LyraWallet.Droid.Resource.Attribute.fontStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.fontWeight = global::LyraWallet.Droid.Resource.Attribute.fontWeight;
+			global::Plugin.Badge.Droid.Resource.Attribute.foregroundInsidePadding = global::LyraWallet.Droid.Resource.Attribute.foregroundInsidePadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.gapBetweenBars = global::LyraWallet.Droid.Resource.Attribute.gapBetweenBars;
+			global::Plugin.Badge.Droid.Resource.Attribute.goIcon = global::LyraWallet.Droid.Resource.Attribute.goIcon;
+			global::Plugin.Badge.Droid.Resource.Attribute.headerLayout = global::LyraWallet.Droid.Resource.Attribute.headerLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.height = global::LyraWallet.Droid.Resource.Attribute.height;
+			global::Plugin.Badge.Droid.Resource.Attribute.hideOnContentScroll = global::LyraWallet.Droid.Resource.Attribute.hideOnContentScroll;
+			global::Plugin.Badge.Droid.Resource.Attribute.hintAnimationEnabled = global::LyraWallet.Droid.Resource.Attribute.hintAnimationEnabled;
+			global::Plugin.Badge.Droid.Resource.Attribute.hintEnabled = global::LyraWallet.Droid.Resource.Attribute.hintEnabled;
+			global::Plugin.Badge.Droid.Resource.Attribute.hintTextAppearance = global::LyraWallet.Droid.Resource.Attribute.hintTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.homeAsUpIndicator = global::LyraWallet.Droid.Resource.Attribute.homeAsUpIndicator;
+			global::Plugin.Badge.Droid.Resource.Attribute.homeLayout = global::LyraWallet.Droid.Resource.Attribute.homeLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.icon = global::LyraWallet.Droid.Resource.Attribute.icon;
+			global::Plugin.Badge.Droid.Resource.Attribute.iconTint = global::LyraWallet.Droid.Resource.Attribute.iconTint;
+			global::Plugin.Badge.Droid.Resource.Attribute.iconTintMode = global::LyraWallet.Droid.Resource.Attribute.iconTintMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.iconifiedByDefault = global::LyraWallet.Droid.Resource.Attribute.iconifiedByDefault;
+			global::Plugin.Badge.Droid.Resource.Attribute.imageButtonStyle = global::LyraWallet.Droid.Resource.Attribute.imageButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.indeterminateProgressStyle = global::LyraWallet.Droid.Resource.Attribute.indeterminateProgressStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.initialActivityCount = global::LyraWallet.Droid.Resource.Attribute.initialActivityCount;
+			global::Plugin.Badge.Droid.Resource.Attribute.insetForeground = global::LyraWallet.Droid.Resource.Attribute.insetForeground;
+			global::Plugin.Badge.Droid.Resource.Attribute.isLightTheme = global::LyraWallet.Droid.Resource.Attribute.isLightTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.itemBackground = global::LyraWallet.Droid.Resource.Attribute.itemBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.itemIconTint = global::LyraWallet.Droid.Resource.Attribute.itemIconTint;
+			global::Plugin.Badge.Droid.Resource.Attribute.itemPadding = global::LyraWallet.Droid.Resource.Attribute.itemPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.itemTextAppearance = global::LyraWallet.Droid.Resource.Attribute.itemTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.itemTextColor = global::LyraWallet.Droid.Resource.Attribute.itemTextColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.keylines = global::LyraWallet.Droid.Resource.Attribute.keylines;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout = global::LyraWallet.Droid.Resource.Attribute.layout;
+			global::Plugin.Badge.Droid.Resource.Attribute.layoutManager = global::LyraWallet.Droid.Resource.Attribute.layoutManager;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_anchor = global::LyraWallet.Droid.Resource.Attribute.layout_anchor;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_anchorGravity = global::LyraWallet.Droid.Resource.Attribute.layout_anchorGravity;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_behavior = global::LyraWallet.Droid.Resource.Attribute.layout_behavior;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_collapseMode = global::LyraWallet.Droid.Resource.Attribute.layout_collapseMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_collapseParallaxMultiplier = global::LyraWallet.Droid.Resource.Attribute.layout_collapseParallaxMultiplier;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_dodgeInsetEdges = global::LyraWallet.Droid.Resource.Attribute.layout_dodgeInsetEdges;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_insetEdge = global::LyraWallet.Droid.Resource.Attribute.layout_insetEdge;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_keyline = global::LyraWallet.Droid.Resource.Attribute.layout_keyline;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_scrollFlags = global::LyraWallet.Droid.Resource.Attribute.layout_scrollFlags;
+			global::Plugin.Badge.Droid.Resource.Attribute.layout_scrollInterpolator = global::LyraWallet.Droid.Resource.Attribute.layout_scrollInterpolator;
+			global::Plugin.Badge.Droid.Resource.Attribute.listChoiceBackgroundIndicator = global::LyraWallet.Droid.Resource.Attribute.listChoiceBackgroundIndicator;
+			global::Plugin.Badge.Droid.Resource.Attribute.listDividerAlertDialog = global::LyraWallet.Droid.Resource.Attribute.listDividerAlertDialog;
+			global::Plugin.Badge.Droid.Resource.Attribute.listItemLayout = global::LyraWallet.Droid.Resource.Attribute.listItemLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.listLayout = global::LyraWallet.Droid.Resource.Attribute.listLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.listMenuViewStyle = global::LyraWallet.Droid.Resource.Attribute.listMenuViewStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.listPopupWindowStyle = global::LyraWallet.Droid.Resource.Attribute.listPopupWindowStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.listPreferredItemHeight = global::LyraWallet.Droid.Resource.Attribute.listPreferredItemHeight;
+			global::Plugin.Badge.Droid.Resource.Attribute.listPreferredItemHeightLarge = global::LyraWallet.Droid.Resource.Attribute.listPreferredItemHeightLarge;
+			global::Plugin.Badge.Droid.Resource.Attribute.listPreferredItemHeightSmall = global::LyraWallet.Droid.Resource.Attribute.listPreferredItemHeightSmall;
+			global::Plugin.Badge.Droid.Resource.Attribute.listPreferredItemPaddingLeft = global::LyraWallet.Droid.Resource.Attribute.listPreferredItemPaddingLeft;
+			global::Plugin.Badge.Droid.Resource.Attribute.listPreferredItemPaddingRight = global::LyraWallet.Droid.Resource.Attribute.listPreferredItemPaddingRight;
+			global::Plugin.Badge.Droid.Resource.Attribute.logo = global::LyraWallet.Droid.Resource.Attribute.logo;
+			global::Plugin.Badge.Droid.Resource.Attribute.logoDescription = global::LyraWallet.Droid.Resource.Attribute.logoDescription;
+			global::Plugin.Badge.Droid.Resource.Attribute.maxActionInlineWidth = global::LyraWallet.Droid.Resource.Attribute.maxActionInlineWidth;
+			global::Plugin.Badge.Droid.Resource.Attribute.maxButtonHeight = global::LyraWallet.Droid.Resource.Attribute.maxButtonHeight;
+			global::Plugin.Badge.Droid.Resource.Attribute.measureWithLargestChild = global::LyraWallet.Droid.Resource.Attribute.measureWithLargestChild;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteAudioTrackDrawable = global::LyraWallet.Droid.Resource.Attribute.mediaRouteAudioTrackDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteButtonStyle = global::LyraWallet.Droid.Resource.Attribute.mediaRouteButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteButtonTint = global::LyraWallet.Droid.Resource.Attribute.mediaRouteButtonTint;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteCloseDrawable = global::LyraWallet.Droid.Resource.Attribute.mediaRouteCloseDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteControlPanelThemeOverlay = global::LyraWallet.Droid.Resource.Attribute.mediaRouteControlPanelThemeOverlay;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteDefaultIconDrawable = global::LyraWallet.Droid.Resource.Attribute.mediaRouteDefaultIconDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRoutePauseDrawable = global::LyraWallet.Droid.Resource.Attribute.mediaRoutePauseDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRoutePlayDrawable = global::LyraWallet.Droid.Resource.Attribute.mediaRoutePlayDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteSpeakerGroupIconDrawable = global::LyraWallet.Droid.Resource.Attribute.mediaRouteSpeakerGroupIconDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteSpeakerIconDrawable = global::LyraWallet.Droid.Resource.Attribute.mediaRouteSpeakerIconDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteStopDrawable = global::LyraWallet.Droid.Resource.Attribute.mediaRouteStopDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteTheme = global::LyraWallet.Droid.Resource.Attribute.mediaRouteTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.mediaRouteTvIconDrawable = global::LyraWallet.Droid.Resource.Attribute.mediaRouteTvIconDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.menu = global::LyraWallet.Droid.Resource.Attribute.menu;
+			global::Plugin.Badge.Droid.Resource.Attribute.multiChoiceItemLayout = global::LyraWallet.Droid.Resource.Attribute.multiChoiceItemLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.navigationContentDescription = global::LyraWallet.Droid.Resource.Attribute.navigationContentDescription;
+			global::Plugin.Badge.Droid.Resource.Attribute.navigationIcon = global::LyraWallet.Droid.Resource.Attribute.navigationIcon;
+			global::Plugin.Badge.Droid.Resource.Attribute.navigationMode = global::LyraWallet.Droid.Resource.Attribute.navigationMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.numericModifiers = global::LyraWallet.Droid.Resource.Attribute.numericModifiers;
+			global::Plugin.Badge.Droid.Resource.Attribute.overlapAnchor = global::LyraWallet.Droid.Resource.Attribute.overlapAnchor;
+			global::Plugin.Badge.Droid.Resource.Attribute.paddingBottomNoButtons = global::LyraWallet.Droid.Resource.Attribute.paddingBottomNoButtons;
+			global::Plugin.Badge.Droid.Resource.Attribute.paddingEnd = global::LyraWallet.Droid.Resource.Attribute.paddingEnd;
+			global::Plugin.Badge.Droid.Resource.Attribute.paddingStart = global::LyraWallet.Droid.Resource.Attribute.paddingStart;
+			global::Plugin.Badge.Droid.Resource.Attribute.paddingTopNoTitle = global::LyraWallet.Droid.Resource.Attribute.paddingTopNoTitle;
+			global::Plugin.Badge.Droid.Resource.Attribute.panelBackground = global::LyraWallet.Droid.Resource.Attribute.panelBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.panelMenuListTheme = global::LyraWallet.Droid.Resource.Attribute.panelMenuListTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.panelMenuListWidth = global::LyraWallet.Droid.Resource.Attribute.panelMenuListWidth;
+			global::Plugin.Badge.Droid.Resource.Attribute.passwordToggleContentDescription = global::LyraWallet.Droid.Resource.Attribute.passwordToggleContentDescription;
+			global::Plugin.Badge.Droid.Resource.Attribute.passwordToggleDrawable = global::LyraWallet.Droid.Resource.Attribute.passwordToggleDrawable;
+			global::Plugin.Badge.Droid.Resource.Attribute.passwordToggleEnabled = global::LyraWallet.Droid.Resource.Attribute.passwordToggleEnabled;
+			global::Plugin.Badge.Droid.Resource.Attribute.passwordToggleTint = global::LyraWallet.Droid.Resource.Attribute.passwordToggleTint;
+			global::Plugin.Badge.Droid.Resource.Attribute.passwordToggleTintMode = global::LyraWallet.Droid.Resource.Attribute.passwordToggleTintMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.popupMenuStyle = global::LyraWallet.Droid.Resource.Attribute.popupMenuStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.popupTheme = global::LyraWallet.Droid.Resource.Attribute.popupTheme;
+			global::Plugin.Badge.Droid.Resource.Attribute.popupWindowStyle = global::LyraWallet.Droid.Resource.Attribute.popupWindowStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.preserveIconSpacing = global::LyraWallet.Droid.Resource.Attribute.preserveIconSpacing;
+			global::Plugin.Badge.Droid.Resource.Attribute.pressedTranslationZ = global::LyraWallet.Droid.Resource.Attribute.pressedTranslationZ;
+			global::Plugin.Badge.Droid.Resource.Attribute.progressBarPadding = global::LyraWallet.Droid.Resource.Attribute.progressBarPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.progressBarStyle = global::LyraWallet.Droid.Resource.Attribute.progressBarStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.queryBackground = global::LyraWallet.Droid.Resource.Attribute.queryBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.queryHint = global::LyraWallet.Droid.Resource.Attribute.queryHint;
+			global::Plugin.Badge.Droid.Resource.Attribute.radioButtonStyle = global::LyraWallet.Droid.Resource.Attribute.radioButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.ratingBarStyle = global::LyraWallet.Droid.Resource.Attribute.ratingBarStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.ratingBarStyleIndicator = global::LyraWallet.Droid.Resource.Attribute.ratingBarStyleIndicator;
+			global::Plugin.Badge.Droid.Resource.Attribute.ratingBarStyleSmall = global::LyraWallet.Droid.Resource.Attribute.ratingBarStyleSmall;
+			global::Plugin.Badge.Droid.Resource.Attribute.reverseLayout = global::LyraWallet.Droid.Resource.Attribute.reverseLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.rippleColor = global::LyraWallet.Droid.Resource.Attribute.rippleColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.scrimAnimationDuration = global::LyraWallet.Droid.Resource.Attribute.scrimAnimationDuration;
+			global::Plugin.Badge.Droid.Resource.Attribute.scrimVisibleHeightTrigger = global::LyraWallet.Droid.Resource.Attribute.scrimVisibleHeightTrigger;
+			global::Plugin.Badge.Droid.Resource.Attribute.searchHintIcon = global::LyraWallet.Droid.Resource.Attribute.searchHintIcon;
+			global::Plugin.Badge.Droid.Resource.Attribute.searchIcon = global::LyraWallet.Droid.Resource.Attribute.searchIcon;
+			global::Plugin.Badge.Droid.Resource.Attribute.searchViewStyle = global::LyraWallet.Droid.Resource.Attribute.searchViewStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.seekBarStyle = global::LyraWallet.Droid.Resource.Attribute.seekBarStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.selectableItemBackground = global::LyraWallet.Droid.Resource.Attribute.selectableItemBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.selectableItemBackgroundBorderless = global::LyraWallet.Droid.Resource.Attribute.selectableItemBackgroundBorderless;
+			global::Plugin.Badge.Droid.Resource.Attribute.showAsAction = global::LyraWallet.Droid.Resource.Attribute.showAsAction;
+			global::Plugin.Badge.Droid.Resource.Attribute.showDividers = global::LyraWallet.Droid.Resource.Attribute.showDividers;
+			global::Plugin.Badge.Droid.Resource.Attribute.showText = global::LyraWallet.Droid.Resource.Attribute.showText;
+			global::Plugin.Badge.Droid.Resource.Attribute.showTitle = global::LyraWallet.Droid.Resource.Attribute.showTitle;
+			global::Plugin.Badge.Droid.Resource.Attribute.singleChoiceItemLayout = global::LyraWallet.Droid.Resource.Attribute.singleChoiceItemLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.spanCount = global::LyraWallet.Droid.Resource.Attribute.spanCount;
+			global::Plugin.Badge.Droid.Resource.Attribute.spinBars = global::LyraWallet.Droid.Resource.Attribute.spinBars;
+			global::Plugin.Badge.Droid.Resource.Attribute.spinnerDropDownItemStyle = global::LyraWallet.Droid.Resource.Attribute.spinnerDropDownItemStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.spinnerStyle = global::LyraWallet.Droid.Resource.Attribute.spinnerStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.splitTrack = global::LyraWallet.Droid.Resource.Attribute.splitTrack;
+			global::Plugin.Badge.Droid.Resource.Attribute.srcCompat = global::LyraWallet.Droid.Resource.Attribute.srcCompat;
+			global::Plugin.Badge.Droid.Resource.Attribute.stackFromEnd = global::LyraWallet.Droid.Resource.Attribute.stackFromEnd;
+			global::Plugin.Badge.Droid.Resource.Attribute.state_above_anchor = global::LyraWallet.Droid.Resource.Attribute.state_above_anchor;
+			global::Plugin.Badge.Droid.Resource.Attribute.state_collapsed = global::LyraWallet.Droid.Resource.Attribute.state_collapsed;
+			global::Plugin.Badge.Droid.Resource.Attribute.state_collapsible = global::LyraWallet.Droid.Resource.Attribute.state_collapsible;
+			global::Plugin.Badge.Droid.Resource.Attribute.statusBarBackground = global::LyraWallet.Droid.Resource.Attribute.statusBarBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.statusBarScrim = global::LyraWallet.Droid.Resource.Attribute.statusBarScrim;
+			global::Plugin.Badge.Droid.Resource.Attribute.subMenuArrow = global::LyraWallet.Droid.Resource.Attribute.subMenuArrow;
+			global::Plugin.Badge.Droid.Resource.Attribute.submitBackground = global::LyraWallet.Droid.Resource.Attribute.submitBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.subtitle = global::LyraWallet.Droid.Resource.Attribute.subtitle;
+			global::Plugin.Badge.Droid.Resource.Attribute.subtitleTextAppearance = global::LyraWallet.Droid.Resource.Attribute.subtitleTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.subtitleTextColor = global::LyraWallet.Droid.Resource.Attribute.subtitleTextColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.subtitleTextStyle = global::LyraWallet.Droid.Resource.Attribute.subtitleTextStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.suggestionRowLayout = global::LyraWallet.Droid.Resource.Attribute.suggestionRowLayout;
+			global::Plugin.Badge.Droid.Resource.Attribute.switchMinWidth = global::LyraWallet.Droid.Resource.Attribute.switchMinWidth;
+			global::Plugin.Badge.Droid.Resource.Attribute.switchPadding = global::LyraWallet.Droid.Resource.Attribute.switchPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.switchStyle = global::LyraWallet.Droid.Resource.Attribute.switchStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.switchTextAppearance = global::LyraWallet.Droid.Resource.Attribute.switchTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabBackground = global::LyraWallet.Droid.Resource.Attribute.tabBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabContentStart = global::LyraWallet.Droid.Resource.Attribute.tabContentStart;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabGravity = global::LyraWallet.Droid.Resource.Attribute.tabGravity;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabIndicatorColor = global::LyraWallet.Droid.Resource.Attribute.tabIndicatorColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabIndicatorHeight = global::LyraWallet.Droid.Resource.Attribute.tabIndicatorHeight;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabMaxWidth = global::LyraWallet.Droid.Resource.Attribute.tabMaxWidth;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabMinWidth = global::LyraWallet.Droid.Resource.Attribute.tabMinWidth;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabMode = global::LyraWallet.Droid.Resource.Attribute.tabMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabPadding = global::LyraWallet.Droid.Resource.Attribute.tabPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabPaddingBottom = global::LyraWallet.Droid.Resource.Attribute.tabPaddingBottom;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabPaddingEnd = global::LyraWallet.Droid.Resource.Attribute.tabPaddingEnd;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabPaddingStart = global::LyraWallet.Droid.Resource.Attribute.tabPaddingStart;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabPaddingTop = global::LyraWallet.Droid.Resource.Attribute.tabPaddingTop;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabSelectedTextColor = global::LyraWallet.Droid.Resource.Attribute.tabSelectedTextColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabTextAppearance = global::LyraWallet.Droid.Resource.Attribute.tabTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.tabTextColor = global::LyraWallet.Droid.Resource.Attribute.tabTextColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.textAllCaps = global::LyraWallet.Droid.Resource.Attribute.textAllCaps;
+			global::Plugin.Badge.Droid.Resource.Attribute.textAppearanceLargePopupMenu = global::LyraWallet.Droid.Resource.Attribute.textAppearanceLargePopupMenu;
+			global::Plugin.Badge.Droid.Resource.Attribute.textAppearanceListItem = global::LyraWallet.Droid.Resource.Attribute.textAppearanceListItem;
+			global::Plugin.Badge.Droid.Resource.Attribute.textAppearanceListItemSecondary = global::LyraWallet.Droid.Resource.Attribute.textAppearanceListItemSecondary;
+			global::Plugin.Badge.Droid.Resource.Attribute.textAppearanceListItemSmall = global::LyraWallet.Droid.Resource.Attribute.textAppearanceListItemSmall;
+			global::Plugin.Badge.Droid.Resource.Attribute.textAppearancePopupMenuHeader = global::LyraWallet.Droid.Resource.Attribute.textAppearancePopupMenuHeader;
+			global::Plugin.Badge.Droid.Resource.Attribute.textAppearanceSearchResultSubtitle = global::LyraWallet.Droid.Resource.Attribute.textAppearanceSearchResultSubtitle;
+			global::Plugin.Badge.Droid.Resource.Attribute.textAppearanceSearchResultTitle = global::LyraWallet.Droid.Resource.Attribute.textAppearanceSearchResultTitle;
+			global::Plugin.Badge.Droid.Resource.Attribute.textAppearanceSmallPopupMenu = global::LyraWallet.Droid.Resource.Attribute.textAppearanceSmallPopupMenu;
+			global::Plugin.Badge.Droid.Resource.Attribute.textColorAlertDialogListItem = global::LyraWallet.Droid.Resource.Attribute.textColorAlertDialogListItem;
+			global::Plugin.Badge.Droid.Resource.Attribute.textColorSearchUrl = global::LyraWallet.Droid.Resource.Attribute.textColorSearchUrl;
+			global::Plugin.Badge.Droid.Resource.Attribute.theme = global::LyraWallet.Droid.Resource.Attribute.theme;
+			global::Plugin.Badge.Droid.Resource.Attribute.thickness = global::LyraWallet.Droid.Resource.Attribute.thickness;
+			global::Plugin.Badge.Droid.Resource.Attribute.thumbTextPadding = global::LyraWallet.Droid.Resource.Attribute.thumbTextPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.thumbTint = global::LyraWallet.Droid.Resource.Attribute.thumbTint;
+			global::Plugin.Badge.Droid.Resource.Attribute.thumbTintMode = global::LyraWallet.Droid.Resource.Attribute.thumbTintMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.tickMark = global::LyraWallet.Droid.Resource.Attribute.tickMark;
+			global::Plugin.Badge.Droid.Resource.Attribute.tickMarkTint = global::LyraWallet.Droid.Resource.Attribute.tickMarkTint;
+			global::Plugin.Badge.Droid.Resource.Attribute.tickMarkTintMode = global::LyraWallet.Droid.Resource.Attribute.tickMarkTintMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.tint = global::LyraWallet.Droid.Resource.Attribute.tint;
+			global::Plugin.Badge.Droid.Resource.Attribute.tintMode = global::LyraWallet.Droid.Resource.Attribute.tintMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.title = global::LyraWallet.Droid.Resource.Attribute.title;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleEnabled = global::LyraWallet.Droid.Resource.Attribute.titleEnabled;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleMargin = global::LyraWallet.Droid.Resource.Attribute.titleMargin;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleMarginBottom = global::LyraWallet.Droid.Resource.Attribute.titleMarginBottom;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleMarginEnd = global::LyraWallet.Droid.Resource.Attribute.titleMarginEnd;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleMarginStart = global::LyraWallet.Droid.Resource.Attribute.titleMarginStart;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleMarginTop = global::LyraWallet.Droid.Resource.Attribute.titleMarginTop;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleMargins = global::LyraWallet.Droid.Resource.Attribute.titleMargins;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleTextAppearance = global::LyraWallet.Droid.Resource.Attribute.titleTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleTextColor = global::LyraWallet.Droid.Resource.Attribute.titleTextColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.titleTextStyle = global::LyraWallet.Droid.Resource.Attribute.titleTextStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.toolbarId = global::LyraWallet.Droid.Resource.Attribute.toolbarId;
+			global::Plugin.Badge.Droid.Resource.Attribute.toolbarNavigationButtonStyle = global::LyraWallet.Droid.Resource.Attribute.toolbarNavigationButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.toolbarStyle = global::LyraWallet.Droid.Resource.Attribute.toolbarStyle;
+			global::Plugin.Badge.Droid.Resource.Attribute.tooltipForegroundColor = global::LyraWallet.Droid.Resource.Attribute.tooltipForegroundColor;
+			global::Plugin.Badge.Droid.Resource.Attribute.tooltipFrameBackground = global::LyraWallet.Droid.Resource.Attribute.tooltipFrameBackground;
+			global::Plugin.Badge.Droid.Resource.Attribute.tooltipText = global::LyraWallet.Droid.Resource.Attribute.tooltipText;
+			global::Plugin.Badge.Droid.Resource.Attribute.track = global::LyraWallet.Droid.Resource.Attribute.track;
+			global::Plugin.Badge.Droid.Resource.Attribute.trackTint = global::LyraWallet.Droid.Resource.Attribute.trackTint;
+			global::Plugin.Badge.Droid.Resource.Attribute.trackTintMode = global::LyraWallet.Droid.Resource.Attribute.trackTintMode;
+			global::Plugin.Badge.Droid.Resource.Attribute.useCompatPadding = global::LyraWallet.Droid.Resource.Attribute.useCompatPadding;
+			global::Plugin.Badge.Droid.Resource.Attribute.voiceIcon = global::LyraWallet.Droid.Resource.Attribute.voiceIcon;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowActionBar = global::LyraWallet.Droid.Resource.Attribute.windowActionBar;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowActionBarOverlay = global::LyraWallet.Droid.Resource.Attribute.windowActionBarOverlay;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowActionModeOverlay = global::LyraWallet.Droid.Resource.Attribute.windowActionModeOverlay;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowFixedHeightMajor = global::LyraWallet.Droid.Resource.Attribute.windowFixedHeightMajor;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowFixedHeightMinor = global::LyraWallet.Droid.Resource.Attribute.windowFixedHeightMinor;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowFixedWidthMajor = global::LyraWallet.Droid.Resource.Attribute.windowFixedWidthMajor;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowFixedWidthMinor = global::LyraWallet.Droid.Resource.Attribute.windowFixedWidthMinor;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowMinWidthMajor = global::LyraWallet.Droid.Resource.Attribute.windowMinWidthMajor;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowMinWidthMinor = global::LyraWallet.Droid.Resource.Attribute.windowMinWidthMinor;
+			global::Plugin.Badge.Droid.Resource.Attribute.windowNoTitle = global::LyraWallet.Droid.Resource.Attribute.windowNoTitle;
+			global::Plugin.Badge.Droid.Resource.Boolean.abc_action_bar_embed_tabs = global::LyraWallet.Droid.Resource.Boolean.abc_action_bar_embed_tabs;
+			global::Plugin.Badge.Droid.Resource.Boolean.abc_allow_stacked_button_bar = global::LyraWallet.Droid.Resource.Boolean.abc_allow_stacked_button_bar;
+			global::Plugin.Badge.Droid.Resource.Boolean.abc_config_actionMenuItemAllCaps = global::LyraWallet.Droid.Resource.Boolean.abc_config_actionMenuItemAllCaps;
+			global::Plugin.Badge.Droid.Resource.Color.abc_background_cache_hint_selector_material_dark = global::LyraWallet.Droid.Resource.Color.abc_background_cache_hint_selector_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.abc_background_cache_hint_selector_material_light = global::LyraWallet.Droid.Resource.Color.abc_background_cache_hint_selector_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.abc_btn_colored_borderless_text_material = global::LyraWallet.Droid.Resource.Color.abc_btn_colored_borderless_text_material;
+			global::Plugin.Badge.Droid.Resource.Color.abc_btn_colored_text_material = global::LyraWallet.Droid.Resource.Color.abc_btn_colored_text_material;
+			global::Plugin.Badge.Droid.Resource.Color.abc_color_highlight_material = global::LyraWallet.Droid.Resource.Color.abc_color_highlight_material;
+			global::Plugin.Badge.Droid.Resource.Color.abc_hint_foreground_material_dark = global::LyraWallet.Droid.Resource.Color.abc_hint_foreground_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.abc_hint_foreground_material_light = global::LyraWallet.Droid.Resource.Color.abc_hint_foreground_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.abc_input_method_navigation_guard = global::LyraWallet.Droid.Resource.Color.abc_input_method_navigation_guard;
+			global::Plugin.Badge.Droid.Resource.Color.abc_primary_text_disable_only_material_dark = global::LyraWallet.Droid.Resource.Color.abc_primary_text_disable_only_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.abc_primary_text_disable_only_material_light = global::LyraWallet.Droid.Resource.Color.abc_primary_text_disable_only_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.abc_primary_text_material_dark = global::LyraWallet.Droid.Resource.Color.abc_primary_text_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.abc_primary_text_material_light = global::LyraWallet.Droid.Resource.Color.abc_primary_text_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.abc_search_url_text = global::LyraWallet.Droid.Resource.Color.abc_search_url_text;
+			global::Plugin.Badge.Droid.Resource.Color.abc_search_url_text_normal = global::LyraWallet.Droid.Resource.Color.abc_search_url_text_normal;
+			global::Plugin.Badge.Droid.Resource.Color.abc_search_url_text_pressed = global::LyraWallet.Droid.Resource.Color.abc_search_url_text_pressed;
+			global::Plugin.Badge.Droid.Resource.Color.abc_search_url_text_selected = global::LyraWallet.Droid.Resource.Color.abc_search_url_text_selected;
+			global::Plugin.Badge.Droid.Resource.Color.abc_secondary_text_material_dark = global::LyraWallet.Droid.Resource.Color.abc_secondary_text_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.abc_secondary_text_material_light = global::LyraWallet.Droid.Resource.Color.abc_secondary_text_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.abc_tint_btn_checkable = global::LyraWallet.Droid.Resource.Color.abc_tint_btn_checkable;
+			global::Plugin.Badge.Droid.Resource.Color.abc_tint_default = global::LyraWallet.Droid.Resource.Color.abc_tint_default;
+			global::Plugin.Badge.Droid.Resource.Color.abc_tint_edittext = global::LyraWallet.Droid.Resource.Color.abc_tint_edittext;
+			global::Plugin.Badge.Droid.Resource.Color.abc_tint_seek_thumb = global::LyraWallet.Droid.Resource.Color.abc_tint_seek_thumb;
+			global::Plugin.Badge.Droid.Resource.Color.abc_tint_spinner = global::LyraWallet.Droid.Resource.Color.abc_tint_spinner;
+			global::Plugin.Badge.Droid.Resource.Color.abc_tint_switch_track = global::LyraWallet.Droid.Resource.Color.abc_tint_switch_track;
+			global::Plugin.Badge.Droid.Resource.Color.accent_material_dark = global::LyraWallet.Droid.Resource.Color.accent_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.accent_material_light = global::LyraWallet.Droid.Resource.Color.accent_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.background_floating_material_dark = global::LyraWallet.Droid.Resource.Color.background_floating_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.background_floating_material_light = global::LyraWallet.Droid.Resource.Color.background_floating_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.background_material_dark = global::LyraWallet.Droid.Resource.Color.background_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.background_material_light = global::LyraWallet.Droid.Resource.Color.background_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.bright_foreground_disabled_material_dark = global::LyraWallet.Droid.Resource.Color.bright_foreground_disabled_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.bright_foreground_disabled_material_light = global::LyraWallet.Droid.Resource.Color.bright_foreground_disabled_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.bright_foreground_inverse_material_dark = global::LyraWallet.Droid.Resource.Color.bright_foreground_inverse_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.bright_foreground_inverse_material_light = global::LyraWallet.Droid.Resource.Color.bright_foreground_inverse_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.bright_foreground_material_dark = global::LyraWallet.Droid.Resource.Color.bright_foreground_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.bright_foreground_material_light = global::LyraWallet.Droid.Resource.Color.bright_foreground_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.button_material_dark = global::LyraWallet.Droid.Resource.Color.button_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.button_material_light = global::LyraWallet.Droid.Resource.Color.button_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.cardview_dark_background = global::LyraWallet.Droid.Resource.Color.cardview_dark_background;
+			global::Plugin.Badge.Droid.Resource.Color.cardview_light_background = global::LyraWallet.Droid.Resource.Color.cardview_light_background;
+			global::Plugin.Badge.Droid.Resource.Color.cardview_shadow_end_color = global::LyraWallet.Droid.Resource.Color.cardview_shadow_end_color;
+			global::Plugin.Badge.Droid.Resource.Color.cardview_shadow_start_color = global::LyraWallet.Droid.Resource.Color.cardview_shadow_start_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_bottom_navigation_shadow_color = global::LyraWallet.Droid.Resource.Color.design_bottom_navigation_shadow_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_error = global::LyraWallet.Droid.Resource.Color.design_error;
+			global::Plugin.Badge.Droid.Resource.Color.design_fab_shadow_end_color = global::LyraWallet.Droid.Resource.Color.design_fab_shadow_end_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_fab_shadow_mid_color = global::LyraWallet.Droid.Resource.Color.design_fab_shadow_mid_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_fab_shadow_start_color = global::LyraWallet.Droid.Resource.Color.design_fab_shadow_start_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_fab_stroke_end_inner_color = global::LyraWallet.Droid.Resource.Color.design_fab_stroke_end_inner_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_fab_stroke_end_outer_color = global::LyraWallet.Droid.Resource.Color.design_fab_stroke_end_outer_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_fab_stroke_top_inner_color = global::LyraWallet.Droid.Resource.Color.design_fab_stroke_top_inner_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_fab_stroke_top_outer_color = global::LyraWallet.Droid.Resource.Color.design_fab_stroke_top_outer_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_snackbar_background_color = global::LyraWallet.Droid.Resource.Color.design_snackbar_background_color;
+			global::Plugin.Badge.Droid.Resource.Color.design_tint_password_toggle = global::LyraWallet.Droid.Resource.Color.design_tint_password_toggle;
+			global::Plugin.Badge.Droid.Resource.Color.dim_foreground_disabled_material_dark = global::LyraWallet.Droid.Resource.Color.dim_foreground_disabled_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.dim_foreground_disabled_material_light = global::LyraWallet.Droid.Resource.Color.dim_foreground_disabled_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.dim_foreground_material_dark = global::LyraWallet.Droid.Resource.Color.dim_foreground_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.dim_foreground_material_light = global::LyraWallet.Droid.Resource.Color.dim_foreground_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.foreground_material_dark = global::LyraWallet.Droid.Resource.Color.foreground_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.foreground_material_light = global::LyraWallet.Droid.Resource.Color.foreground_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.highlighted_text_material_dark = global::LyraWallet.Droid.Resource.Color.highlighted_text_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.highlighted_text_material_light = global::LyraWallet.Droid.Resource.Color.highlighted_text_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.material_blue_grey_800 = global::LyraWallet.Droid.Resource.Color.material_blue_grey_800;
+			global::Plugin.Badge.Droid.Resource.Color.material_blue_grey_900 = global::LyraWallet.Droid.Resource.Color.material_blue_grey_900;
+			global::Plugin.Badge.Droid.Resource.Color.material_blue_grey_950 = global::LyraWallet.Droid.Resource.Color.material_blue_grey_950;
+			global::Plugin.Badge.Droid.Resource.Color.material_deep_teal_200 = global::LyraWallet.Droid.Resource.Color.material_deep_teal_200;
+			global::Plugin.Badge.Droid.Resource.Color.material_deep_teal_500 = global::LyraWallet.Droid.Resource.Color.material_deep_teal_500;
+			global::Plugin.Badge.Droid.Resource.Color.material_grey_100 = global::LyraWallet.Droid.Resource.Color.material_grey_100;
+			global::Plugin.Badge.Droid.Resource.Color.material_grey_300 = global::LyraWallet.Droid.Resource.Color.material_grey_300;
+			global::Plugin.Badge.Droid.Resource.Color.material_grey_50 = global::LyraWallet.Droid.Resource.Color.material_grey_50;
+			global::Plugin.Badge.Droid.Resource.Color.material_grey_600 = global::LyraWallet.Droid.Resource.Color.material_grey_600;
+			global::Plugin.Badge.Droid.Resource.Color.material_grey_800 = global::LyraWallet.Droid.Resource.Color.material_grey_800;
+			global::Plugin.Badge.Droid.Resource.Color.material_grey_850 = global::LyraWallet.Droid.Resource.Color.material_grey_850;
+			global::Plugin.Badge.Droid.Resource.Color.material_grey_900 = global::LyraWallet.Droid.Resource.Color.material_grey_900;
+			global::Plugin.Badge.Droid.Resource.Color.notification_action_color_filter = global::LyraWallet.Droid.Resource.Color.notification_action_color_filter;
+			global::Plugin.Badge.Droid.Resource.Color.notification_icon_bg_color = global::LyraWallet.Droid.Resource.Color.notification_icon_bg_color;
+			global::Plugin.Badge.Droid.Resource.Color.notification_material_background_media_default_color = global::LyraWallet.Droid.Resource.Color.notification_material_background_media_default_color;
+			global::Plugin.Badge.Droid.Resource.Color.primary_dark_material_dark = global::LyraWallet.Droid.Resource.Color.primary_dark_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.primary_dark_material_light = global::LyraWallet.Droid.Resource.Color.primary_dark_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.primary_material_dark = global::LyraWallet.Droid.Resource.Color.primary_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.primary_material_light = global::LyraWallet.Droid.Resource.Color.primary_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.primary_text_default_material_dark = global::LyraWallet.Droid.Resource.Color.primary_text_default_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.primary_text_default_material_light = global::LyraWallet.Droid.Resource.Color.primary_text_default_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.primary_text_disabled_material_dark = global::LyraWallet.Droid.Resource.Color.primary_text_disabled_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.primary_text_disabled_material_light = global::LyraWallet.Droid.Resource.Color.primary_text_disabled_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.ripple_material_dark = global::LyraWallet.Droid.Resource.Color.ripple_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.ripple_material_light = global::LyraWallet.Droid.Resource.Color.ripple_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.secondary_text_default_material_dark = global::LyraWallet.Droid.Resource.Color.secondary_text_default_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.secondary_text_default_material_light = global::LyraWallet.Droid.Resource.Color.secondary_text_default_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.secondary_text_disabled_material_dark = global::LyraWallet.Droid.Resource.Color.secondary_text_disabled_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.secondary_text_disabled_material_light = global::LyraWallet.Droid.Resource.Color.secondary_text_disabled_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.switch_thumb_disabled_material_dark = global::LyraWallet.Droid.Resource.Color.switch_thumb_disabled_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.switch_thumb_disabled_material_light = global::LyraWallet.Droid.Resource.Color.switch_thumb_disabled_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.switch_thumb_material_dark = global::LyraWallet.Droid.Resource.Color.switch_thumb_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.switch_thumb_material_light = global::LyraWallet.Droid.Resource.Color.switch_thumb_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.switch_thumb_normal_material_dark = global::LyraWallet.Droid.Resource.Color.switch_thumb_normal_material_dark;
+			global::Plugin.Badge.Droid.Resource.Color.switch_thumb_normal_material_light = global::LyraWallet.Droid.Resource.Color.switch_thumb_normal_material_light;
+			global::Plugin.Badge.Droid.Resource.Color.tooltip_background_dark = global::LyraWallet.Droid.Resource.Color.tooltip_background_dark;
+			global::Plugin.Badge.Droid.Resource.Color.tooltip_background_light = global::LyraWallet.Droid.Resource.Color.tooltip_background_light;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_content_inset_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_content_inset_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_content_inset_with_nav = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_content_inset_with_nav;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_default_height_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_default_height_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_default_padding_end_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_default_padding_end_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_default_padding_start_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_default_padding_start_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_elevation_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_elevation_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_icon_vertical_padding_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_icon_vertical_padding_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_overflow_padding_end_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_overflow_padding_end_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_overflow_padding_start_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_overflow_padding_start_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_stacked_max_height = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_stacked_max_height;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_stacked_tab_max_width = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_stacked_tab_max_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_subtitle_bottom_margin_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_subtitle_bottom_margin_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_bar_subtitle_top_margin_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_bar_subtitle_top_margin_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_button_min_height_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_button_min_height_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_button_min_width_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_button_min_width_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_action_button_min_width_overflow_material = global::LyraWallet.Droid.Resource.Dimension.abc_action_button_min_width_overflow_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_alert_dialog_button_bar_height = global::LyraWallet.Droid.Resource.Dimension.abc_alert_dialog_button_bar_height;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_button_inset_horizontal_material = global::LyraWallet.Droid.Resource.Dimension.abc_button_inset_horizontal_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_button_inset_vertical_material = global::LyraWallet.Droid.Resource.Dimension.abc_button_inset_vertical_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_button_padding_horizontal_material = global::LyraWallet.Droid.Resource.Dimension.abc_button_padding_horizontal_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_button_padding_vertical_material = global::LyraWallet.Droid.Resource.Dimension.abc_button_padding_vertical_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_cascading_menus_min_smallest_width = global::LyraWallet.Droid.Resource.Dimension.abc_cascading_menus_min_smallest_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_config_prefDialogWidth = global::LyraWallet.Droid.Resource.Dimension.abc_config_prefDialogWidth;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_control_corner_material = global::LyraWallet.Droid.Resource.Dimension.abc_control_corner_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_control_inset_material = global::LyraWallet.Droid.Resource.Dimension.abc_control_inset_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_control_padding_material = global::LyraWallet.Droid.Resource.Dimension.abc_control_padding_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_fixed_height_major = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_fixed_height_major;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_fixed_height_minor = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_fixed_height_minor;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_fixed_width_major = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_fixed_width_major;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_fixed_width_minor = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_fixed_width_minor;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_list_padding_bottom_no_buttons = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_list_padding_bottom_no_buttons;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_list_padding_top_no_title = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_list_padding_top_no_title;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_min_width_major = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_min_width_major;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_min_width_minor = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_min_width_minor;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_padding_material = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_padding_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_padding_top_material = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_padding_top_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dialog_title_divider_material = global::LyraWallet.Droid.Resource.Dimension.abc_dialog_title_divider_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_disabled_alpha_material_dark = global::LyraWallet.Droid.Resource.Dimension.abc_disabled_alpha_material_dark;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_disabled_alpha_material_light = global::LyraWallet.Droid.Resource.Dimension.abc_disabled_alpha_material_light;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dropdownitem_icon_width = global::LyraWallet.Droid.Resource.Dimension.abc_dropdownitem_icon_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dropdownitem_text_padding_left = global::LyraWallet.Droid.Resource.Dimension.abc_dropdownitem_text_padding_left;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_dropdownitem_text_padding_right = global::LyraWallet.Droid.Resource.Dimension.abc_dropdownitem_text_padding_right;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_edit_text_inset_bottom_material = global::LyraWallet.Droid.Resource.Dimension.abc_edit_text_inset_bottom_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_edit_text_inset_horizontal_material = global::LyraWallet.Droid.Resource.Dimension.abc_edit_text_inset_horizontal_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_edit_text_inset_top_material = global::LyraWallet.Droid.Resource.Dimension.abc_edit_text_inset_top_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_floating_window_z = global::LyraWallet.Droid.Resource.Dimension.abc_floating_window_z;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_list_item_padding_horizontal_material = global::LyraWallet.Droid.Resource.Dimension.abc_list_item_padding_horizontal_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_panel_menu_list_width = global::LyraWallet.Droid.Resource.Dimension.abc_panel_menu_list_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_progress_bar_height_material = global::LyraWallet.Droid.Resource.Dimension.abc_progress_bar_height_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_search_view_preferred_height = global::LyraWallet.Droid.Resource.Dimension.abc_search_view_preferred_height;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_search_view_preferred_width = global::LyraWallet.Droid.Resource.Dimension.abc_search_view_preferred_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_seekbar_track_background_height_material = global::LyraWallet.Droid.Resource.Dimension.abc_seekbar_track_background_height_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_seekbar_track_progress_height_material = global::LyraWallet.Droid.Resource.Dimension.abc_seekbar_track_progress_height_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_select_dialog_padding_start_material = global::LyraWallet.Droid.Resource.Dimension.abc_select_dialog_padding_start_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_switch_padding = global::LyraWallet.Droid.Resource.Dimension.abc_switch_padding;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_body_1_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_body_1_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_body_2_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_body_2_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_button_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_button_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_caption_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_caption_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_display_1_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_display_1_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_display_2_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_display_2_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_display_3_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_display_3_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_display_4_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_display_4_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_headline_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_headline_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_large_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_large_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_medium_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_medium_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_menu_header_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_menu_header_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_menu_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_menu_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_small_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_small_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_subhead_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_subhead_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_subtitle_material_toolbar = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_subtitle_material_toolbar;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_title_material = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_title_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.abc_text_size_title_material_toolbar = global::LyraWallet.Droid.Resource.Dimension.abc_text_size_title_material_toolbar;
+			global::Plugin.Badge.Droid.Resource.Dimension.cardview_compat_inset_shadow = global::LyraWallet.Droid.Resource.Dimension.cardview_compat_inset_shadow;
+			global::Plugin.Badge.Droid.Resource.Dimension.cardview_default_elevation = global::LyraWallet.Droid.Resource.Dimension.cardview_default_elevation;
+			global::Plugin.Badge.Droid.Resource.Dimension.cardview_default_radius = global::LyraWallet.Droid.Resource.Dimension.cardview_default_radius;
+			global::Plugin.Badge.Droid.Resource.Dimension.compat_button_inset_horizontal_material = global::LyraWallet.Droid.Resource.Dimension.compat_button_inset_horizontal_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.compat_button_inset_vertical_material = global::LyraWallet.Droid.Resource.Dimension.compat_button_inset_vertical_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.compat_button_padding_horizontal_material = global::LyraWallet.Droid.Resource.Dimension.compat_button_padding_horizontal_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.compat_button_padding_vertical_material = global::LyraWallet.Droid.Resource.Dimension.compat_button_padding_vertical_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.compat_control_corner_material = global::LyraWallet.Droid.Resource.Dimension.compat_control_corner_material;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_appbar_elevation = global::LyraWallet.Droid.Resource.Dimension.design_appbar_elevation;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_navigation_active_item_max_width = global::LyraWallet.Droid.Resource.Dimension.design_bottom_navigation_active_item_max_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_navigation_active_text_size = global::LyraWallet.Droid.Resource.Dimension.design_bottom_navigation_active_text_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_navigation_elevation = global::LyraWallet.Droid.Resource.Dimension.design_bottom_navigation_elevation;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_navigation_height = global::LyraWallet.Droid.Resource.Dimension.design_bottom_navigation_height;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_navigation_item_max_width = global::LyraWallet.Droid.Resource.Dimension.design_bottom_navigation_item_max_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_navigation_item_min_width = global::LyraWallet.Droid.Resource.Dimension.design_bottom_navigation_item_min_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_navigation_margin = global::LyraWallet.Droid.Resource.Dimension.design_bottom_navigation_margin;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_navigation_shadow_height = global::LyraWallet.Droid.Resource.Dimension.design_bottom_navigation_shadow_height;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_navigation_text_size = global::LyraWallet.Droid.Resource.Dimension.design_bottom_navigation_text_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_sheet_modal_elevation = global::LyraWallet.Droid.Resource.Dimension.design_bottom_sheet_modal_elevation;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_bottom_sheet_peek_height_min = global::LyraWallet.Droid.Resource.Dimension.design_bottom_sheet_peek_height_min;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_fab_border_width = global::LyraWallet.Droid.Resource.Dimension.design_fab_border_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_fab_elevation = global::LyraWallet.Droid.Resource.Dimension.design_fab_elevation;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_fab_image_size = global::LyraWallet.Droid.Resource.Dimension.design_fab_image_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_fab_size_mini = global::LyraWallet.Droid.Resource.Dimension.design_fab_size_mini;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_fab_size_normal = global::LyraWallet.Droid.Resource.Dimension.design_fab_size_normal;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_fab_translation_z_pressed = global::LyraWallet.Droid.Resource.Dimension.design_fab_translation_z_pressed;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_navigation_elevation = global::LyraWallet.Droid.Resource.Dimension.design_navigation_elevation;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_navigation_icon_padding = global::LyraWallet.Droid.Resource.Dimension.design_navigation_icon_padding;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_navigation_icon_size = global::LyraWallet.Droid.Resource.Dimension.design_navigation_icon_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_navigation_max_width = global::LyraWallet.Droid.Resource.Dimension.design_navigation_max_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_navigation_padding_bottom = global::LyraWallet.Droid.Resource.Dimension.design_navigation_padding_bottom;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_navigation_separator_vertical_padding = global::LyraWallet.Droid.Resource.Dimension.design_navigation_separator_vertical_padding;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_action_inline_max_width = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_action_inline_max_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_background_corner_radius = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_background_corner_radius;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_elevation = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_elevation;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_extra_spacing_horizontal = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_extra_spacing_horizontal;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_max_width = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_max_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_min_width = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_min_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_padding_horizontal = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_padding_horizontal;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_padding_vertical = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_padding_vertical;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_padding_vertical_2lines = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_padding_vertical_2lines;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_snackbar_text_size = global::LyraWallet.Droid.Resource.Dimension.design_snackbar_text_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_tab_max_width = global::LyraWallet.Droid.Resource.Dimension.design_tab_max_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_tab_scrollable_min_width = global::LyraWallet.Droid.Resource.Dimension.design_tab_scrollable_min_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_tab_text_size = global::LyraWallet.Droid.Resource.Dimension.design_tab_text_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.design_tab_text_size_2line = global::LyraWallet.Droid.Resource.Dimension.design_tab_text_size_2line;
+			global::Plugin.Badge.Droid.Resource.Dimension.disabled_alpha_material_dark = global::LyraWallet.Droid.Resource.Dimension.disabled_alpha_material_dark;
+			global::Plugin.Badge.Droid.Resource.Dimension.disabled_alpha_material_light = global::LyraWallet.Droid.Resource.Dimension.disabled_alpha_material_light;
+			global::Plugin.Badge.Droid.Resource.Dimension.fastscroll_default_thickness = global::LyraWallet.Droid.Resource.Dimension.fastscroll_default_thickness;
+			global::Plugin.Badge.Droid.Resource.Dimension.fastscroll_margin = global::LyraWallet.Droid.Resource.Dimension.fastscroll_margin;
+			global::Plugin.Badge.Droid.Resource.Dimension.fastscroll_minimum_range = global::LyraWallet.Droid.Resource.Dimension.fastscroll_minimum_range;
+			global::Plugin.Badge.Droid.Resource.Dimension.highlight_alpha_material_colored = global::LyraWallet.Droid.Resource.Dimension.highlight_alpha_material_colored;
+			global::Plugin.Badge.Droid.Resource.Dimension.highlight_alpha_material_dark = global::LyraWallet.Droid.Resource.Dimension.highlight_alpha_material_dark;
+			global::Plugin.Badge.Droid.Resource.Dimension.highlight_alpha_material_light = global::LyraWallet.Droid.Resource.Dimension.highlight_alpha_material_light;
+			global::Plugin.Badge.Droid.Resource.Dimension.hint_alpha_material_dark = global::LyraWallet.Droid.Resource.Dimension.hint_alpha_material_dark;
+			global::Plugin.Badge.Droid.Resource.Dimension.hint_alpha_material_light = global::LyraWallet.Droid.Resource.Dimension.hint_alpha_material_light;
+			global::Plugin.Badge.Droid.Resource.Dimension.hint_pressed_alpha_material_dark = global::LyraWallet.Droid.Resource.Dimension.hint_pressed_alpha_material_dark;
+			global::Plugin.Badge.Droid.Resource.Dimension.hint_pressed_alpha_material_light = global::LyraWallet.Droid.Resource.Dimension.hint_pressed_alpha_material_light;
+			global::Plugin.Badge.Droid.Resource.Dimension.item_touch_helper_max_drag_scroll_per_frame = global::LyraWallet.Droid.Resource.Dimension.item_touch_helper_max_drag_scroll_per_frame;
+			global::Plugin.Badge.Droid.Resource.Dimension.item_touch_helper_swipe_escape_max_velocity = global::LyraWallet.Droid.Resource.Dimension.item_touch_helper_swipe_escape_max_velocity;
+			global::Plugin.Badge.Droid.Resource.Dimension.item_touch_helper_swipe_escape_velocity = global::LyraWallet.Droid.Resource.Dimension.item_touch_helper_swipe_escape_velocity;
+			global::Plugin.Badge.Droid.Resource.Dimension.mr_controller_volume_group_list_item_height = global::LyraWallet.Droid.Resource.Dimension.mr_controller_volume_group_list_item_height;
+			global::Plugin.Badge.Droid.Resource.Dimension.mr_controller_volume_group_list_item_icon_size = global::LyraWallet.Droid.Resource.Dimension.mr_controller_volume_group_list_item_icon_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.mr_controller_volume_group_list_max_height = global::LyraWallet.Droid.Resource.Dimension.mr_controller_volume_group_list_max_height;
+			global::Plugin.Badge.Droid.Resource.Dimension.mr_controller_volume_group_list_padding_top = global::LyraWallet.Droid.Resource.Dimension.mr_controller_volume_group_list_padding_top;
+			global::Plugin.Badge.Droid.Resource.Dimension.mr_dialog_fixed_width_major = global::LyraWallet.Droid.Resource.Dimension.mr_dialog_fixed_width_major;
+			global::Plugin.Badge.Droid.Resource.Dimension.mr_dialog_fixed_width_minor = global::LyraWallet.Droid.Resource.Dimension.mr_dialog_fixed_width_minor;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_action_icon_size = global::LyraWallet.Droid.Resource.Dimension.notification_action_icon_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_action_text_size = global::LyraWallet.Droid.Resource.Dimension.notification_action_text_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_big_circle_margin = global::LyraWallet.Droid.Resource.Dimension.notification_big_circle_margin;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_content_margin_start = global::LyraWallet.Droid.Resource.Dimension.notification_content_margin_start;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_large_icon_height = global::LyraWallet.Droid.Resource.Dimension.notification_large_icon_height;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_large_icon_width = global::LyraWallet.Droid.Resource.Dimension.notification_large_icon_width;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_main_column_padding_top = global::LyraWallet.Droid.Resource.Dimension.notification_main_column_padding_top;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_media_narrow_margin = global::LyraWallet.Droid.Resource.Dimension.notification_media_narrow_margin;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_right_icon_size = global::LyraWallet.Droid.Resource.Dimension.notification_right_icon_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_right_side_padding_top = global::LyraWallet.Droid.Resource.Dimension.notification_right_side_padding_top;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_small_icon_background_padding = global::LyraWallet.Droid.Resource.Dimension.notification_small_icon_background_padding;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_small_icon_size_as_large = global::LyraWallet.Droid.Resource.Dimension.notification_small_icon_size_as_large;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_subtext_size = global::LyraWallet.Droid.Resource.Dimension.notification_subtext_size;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_top_pad = global::LyraWallet.Droid.Resource.Dimension.notification_top_pad;
+			global::Plugin.Badge.Droid.Resource.Dimension.notification_top_pad_large_text = global::LyraWallet.Droid.Resource.Dimension.notification_top_pad_large_text;
+			global::Plugin.Badge.Droid.Resource.Dimension.tooltip_corner_radius = global::LyraWallet.Droid.Resource.Dimension.tooltip_corner_radius;
+			global::Plugin.Badge.Droid.Resource.Dimension.tooltip_horizontal_padding = global::LyraWallet.Droid.Resource.Dimension.tooltip_horizontal_padding;
+			global::Plugin.Badge.Droid.Resource.Dimension.tooltip_margin = global::LyraWallet.Droid.Resource.Dimension.tooltip_margin;
+			global::Plugin.Badge.Droid.Resource.Dimension.tooltip_precise_anchor_extra_offset = global::LyraWallet.Droid.Resource.Dimension.tooltip_precise_anchor_extra_offset;
+			global::Plugin.Badge.Droid.Resource.Dimension.tooltip_precise_anchor_threshold = global::LyraWallet.Droid.Resource.Dimension.tooltip_precise_anchor_threshold;
+			global::Plugin.Badge.Droid.Resource.Dimension.tooltip_vertical_padding = global::LyraWallet.Droid.Resource.Dimension.tooltip_vertical_padding;
+			global::Plugin.Badge.Droid.Resource.Dimension.tooltip_y_offset_non_touch = global::LyraWallet.Droid.Resource.Dimension.tooltip_y_offset_non_touch;
+			global::Plugin.Badge.Droid.Resource.Dimension.tooltip_y_offset_touch = global::LyraWallet.Droid.Resource.Dimension.tooltip_y_offset_touch;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ab_share_pack_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_ab_share_pack_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_action_bar_item_background_material = global::LyraWallet.Droid.Resource.Drawable.abc_action_bar_item_background_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_borderless_material = global::LyraWallet.Droid.Resource.Drawable.abc_btn_borderless_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_check_material = global::LyraWallet.Droid.Resource.Drawable.abc_btn_check_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_check_to_on_mtrl_000 = global::LyraWallet.Droid.Resource.Drawable.abc_btn_check_to_on_mtrl_000;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_check_to_on_mtrl_015 = global::LyraWallet.Droid.Resource.Drawable.abc_btn_check_to_on_mtrl_015;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_colored_material = global::LyraWallet.Droid.Resource.Drawable.abc_btn_colored_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_default_mtrl_shape = global::LyraWallet.Droid.Resource.Drawable.abc_btn_default_mtrl_shape;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_radio_material = global::LyraWallet.Droid.Resource.Drawable.abc_btn_radio_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_radio_to_on_mtrl_000 = global::LyraWallet.Droid.Resource.Drawable.abc_btn_radio_to_on_mtrl_000;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_radio_to_on_mtrl_015 = global::LyraWallet.Droid.Resource.Drawable.abc_btn_radio_to_on_mtrl_015;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_switch_to_on_mtrl_00001 = global::LyraWallet.Droid.Resource.Drawable.abc_btn_switch_to_on_mtrl_00001;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_btn_switch_to_on_mtrl_00012 = global::LyraWallet.Droid.Resource.Drawable.abc_btn_switch_to_on_mtrl_00012;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_cab_background_internal_bg = global::LyraWallet.Droid.Resource.Drawable.abc_cab_background_internal_bg;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_cab_background_top_material = global::LyraWallet.Droid.Resource.Drawable.abc_cab_background_top_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_cab_background_top_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_cab_background_top_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_control_background_material = global::LyraWallet.Droid.Resource.Drawable.abc_control_background_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_dialog_material_background = global::LyraWallet.Droid.Resource.Drawable.abc_dialog_material_background;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_edit_text_material = global::LyraWallet.Droid.Resource.Drawable.abc_edit_text_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_ab_back_material = global::LyraWallet.Droid.Resource.Drawable.abc_ic_ab_back_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_arrow_drop_right_black_24dp = global::LyraWallet.Droid.Resource.Drawable.abc_ic_arrow_drop_right_black_24dp;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_clear_material = global::LyraWallet.Droid.Resource.Drawable.abc_ic_clear_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_commit_search_api_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_ic_commit_search_api_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_go_search_api_material = global::LyraWallet.Droid.Resource.Drawable.abc_ic_go_search_api_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_menu_copy_mtrl_am_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_ic_menu_copy_mtrl_am_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_menu_cut_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_ic_menu_cut_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_menu_overflow_material = global::LyraWallet.Droid.Resource.Drawable.abc_ic_menu_overflow_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_menu_paste_mtrl_am_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_ic_menu_paste_mtrl_am_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_menu_selectall_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_ic_menu_selectall_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_menu_share_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_ic_menu_share_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_search_api_material = global::LyraWallet.Droid.Resource.Drawable.abc_ic_search_api_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_star_black_16dp = global::LyraWallet.Droid.Resource.Drawable.abc_ic_star_black_16dp;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_star_black_36dp = global::LyraWallet.Droid.Resource.Drawable.abc_ic_star_black_36dp;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_star_black_48dp = global::LyraWallet.Droid.Resource.Drawable.abc_ic_star_black_48dp;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_star_half_black_16dp = global::LyraWallet.Droid.Resource.Drawable.abc_ic_star_half_black_16dp;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_star_half_black_36dp = global::LyraWallet.Droid.Resource.Drawable.abc_ic_star_half_black_36dp;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_star_half_black_48dp = global::LyraWallet.Droid.Resource.Drawable.abc_ic_star_half_black_48dp;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ic_voice_search_api_material = global::LyraWallet.Droid.Resource.Drawable.abc_ic_voice_search_api_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_item_background_holo_dark = global::LyraWallet.Droid.Resource.Drawable.abc_item_background_holo_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_item_background_holo_light = global::LyraWallet.Droid.Resource.Drawable.abc_item_background_holo_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_divider_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_list_divider_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_focused_holo = global::LyraWallet.Droid.Resource.Drawable.abc_list_focused_holo;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_longpressed_holo = global::LyraWallet.Droid.Resource.Drawable.abc_list_longpressed_holo;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_pressed_holo_dark = global::LyraWallet.Droid.Resource.Drawable.abc_list_pressed_holo_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_pressed_holo_light = global::LyraWallet.Droid.Resource.Drawable.abc_list_pressed_holo_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_selector_background_transition_holo_dark = global::LyraWallet.Droid.Resource.Drawable.abc_list_selector_background_transition_holo_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_selector_background_transition_holo_light = global::LyraWallet.Droid.Resource.Drawable.abc_list_selector_background_transition_holo_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_selector_disabled_holo_dark = global::LyraWallet.Droid.Resource.Drawable.abc_list_selector_disabled_holo_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_selector_disabled_holo_light = global::LyraWallet.Droid.Resource.Drawable.abc_list_selector_disabled_holo_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_selector_holo_dark = global::LyraWallet.Droid.Resource.Drawable.abc_list_selector_holo_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_list_selector_holo_light = global::LyraWallet.Droid.Resource.Drawable.abc_list_selector_holo_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_menu_hardkey_panel_mtrl_mult = global::LyraWallet.Droid.Resource.Drawable.abc_menu_hardkey_panel_mtrl_mult;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_popup_background_mtrl_mult = global::LyraWallet.Droid.Resource.Drawable.abc_popup_background_mtrl_mult;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ratingbar_indicator_material = global::LyraWallet.Droid.Resource.Drawable.abc_ratingbar_indicator_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ratingbar_material = global::LyraWallet.Droid.Resource.Drawable.abc_ratingbar_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_ratingbar_small_material = global::LyraWallet.Droid.Resource.Drawable.abc_ratingbar_small_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_scrubber_control_off_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_scrubber_control_off_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_scrubber_control_to_pressed_mtrl_000 = global::LyraWallet.Droid.Resource.Drawable.abc_scrubber_control_to_pressed_mtrl_000;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_scrubber_control_to_pressed_mtrl_005 = global::LyraWallet.Droid.Resource.Drawable.abc_scrubber_control_to_pressed_mtrl_005;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_scrubber_primary_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_scrubber_primary_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_scrubber_track_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_scrubber_track_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_seekbar_thumb_material = global::LyraWallet.Droid.Resource.Drawable.abc_seekbar_thumb_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_seekbar_tick_mark_material = global::LyraWallet.Droid.Resource.Drawable.abc_seekbar_tick_mark_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_seekbar_track_material = global::LyraWallet.Droid.Resource.Drawable.abc_seekbar_track_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_spinner_mtrl_am_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_spinner_mtrl_am_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_spinner_textfield_background_material = global::LyraWallet.Droid.Resource.Drawable.abc_spinner_textfield_background_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_switch_thumb_material = global::LyraWallet.Droid.Resource.Drawable.abc_switch_thumb_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_switch_track_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_switch_track_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_tab_indicator_material = global::LyraWallet.Droid.Resource.Drawable.abc_tab_indicator_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_tab_indicator_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_tab_indicator_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_text_cursor_material = global::LyraWallet.Droid.Resource.Drawable.abc_text_cursor_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_text_select_handle_left_mtrl_dark = global::LyraWallet.Droid.Resource.Drawable.abc_text_select_handle_left_mtrl_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_text_select_handle_left_mtrl_light = global::LyraWallet.Droid.Resource.Drawable.abc_text_select_handle_left_mtrl_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_text_select_handle_middle_mtrl_dark = global::LyraWallet.Droid.Resource.Drawable.abc_text_select_handle_middle_mtrl_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_text_select_handle_middle_mtrl_light = global::LyraWallet.Droid.Resource.Drawable.abc_text_select_handle_middle_mtrl_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_text_select_handle_right_mtrl_dark = global::LyraWallet.Droid.Resource.Drawable.abc_text_select_handle_right_mtrl_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_text_select_handle_right_mtrl_light = global::LyraWallet.Droid.Resource.Drawable.abc_text_select_handle_right_mtrl_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_textfield_activated_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_textfield_activated_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_textfield_default_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_textfield_default_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_textfield_search_activated_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_textfield_search_activated_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_textfield_search_default_mtrl_alpha = global::LyraWallet.Droid.Resource.Drawable.abc_textfield_search_default_mtrl_alpha;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_textfield_search_material = global::LyraWallet.Droid.Resource.Drawable.abc_textfield_search_material;
+			global::Plugin.Badge.Droid.Resource.Drawable.abc_vector_test = global::LyraWallet.Droid.Resource.Drawable.abc_vector_test;
+			global::Plugin.Badge.Droid.Resource.Drawable.avd_hide_password = global::LyraWallet.Droid.Resource.Drawable.avd_hide_password;
+			global::Plugin.Badge.Droid.Resource.Drawable.avd_show_password = global::LyraWallet.Droid.Resource.Drawable.avd_show_password;
+			global::Plugin.Badge.Droid.Resource.Drawable.design_bottom_navigation_item_background = global::LyraWallet.Droid.Resource.Drawable.design_bottom_navigation_item_background;
+			global::Plugin.Badge.Droid.Resource.Drawable.design_fab_background = global::LyraWallet.Droid.Resource.Drawable.design_fab_background;
+			global::Plugin.Badge.Droid.Resource.Drawable.design_ic_visibility = global::LyraWallet.Droid.Resource.Drawable.design_ic_visibility;
+			global::Plugin.Badge.Droid.Resource.Drawable.design_ic_visibility_off = global::LyraWallet.Droid.Resource.Drawable.design_ic_visibility_off;
+			global::Plugin.Badge.Droid.Resource.Drawable.design_password_eye = global::LyraWallet.Droid.Resource.Drawable.design_password_eye;
+			global::Plugin.Badge.Droid.Resource.Drawable.design_snackbar_background = global::LyraWallet.Droid.Resource.Drawable.design_snackbar_background;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_audiotrack_dark = global::LyraWallet.Droid.Resource.Drawable.ic_audiotrack_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_audiotrack_light = global::LyraWallet.Droid.Resource.Drawable.ic_audiotrack_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_dialog_close_dark = global::LyraWallet.Droid.Resource.Drawable.ic_dialog_close_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_dialog_close_light = global::LyraWallet.Droid.Resource.Drawable.ic_dialog_close_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_00 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_00;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_01 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_01;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_02 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_02;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_03 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_03;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_04 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_04;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_05 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_05;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_06 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_06;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_07 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_07;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_08 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_08;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_09 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_09;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_10 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_10;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_11 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_11;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_12 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_12;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_13 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_13;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_14 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_14;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_collapse_15 = global::LyraWallet.Droid.Resource.Drawable.ic_group_collapse_15;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_00 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_00;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_01 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_01;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_02 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_02;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_03 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_03;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_04 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_04;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_05 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_05;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_06 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_06;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_07 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_07;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_08 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_08;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_09 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_09;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_10 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_10;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_11 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_11;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_12 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_12;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_13 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_13;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_14 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_14;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_group_expand_15 = global::LyraWallet.Droid.Resource.Drawable.ic_group_expand_15;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_media_pause_dark = global::LyraWallet.Droid.Resource.Drawable.ic_media_pause_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_media_pause_light = global::LyraWallet.Droid.Resource.Drawable.ic_media_pause_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_media_play_dark = global::LyraWallet.Droid.Resource.Drawable.ic_media_play_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_media_play_light = global::LyraWallet.Droid.Resource.Drawable.ic_media_play_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_media_stop_dark = global::LyraWallet.Droid.Resource.Drawable.ic_media_stop_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_media_stop_light = global::LyraWallet.Droid.Resource.Drawable.ic_media_stop_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_00_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_00_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_00_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_00_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_01_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_01_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_01_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_01_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_02_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_02_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_02_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_02_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_03_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_03_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_03_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_03_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_04_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_04_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_04_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_04_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_05_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_05_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_05_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_05_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_06_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_06_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_06_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_06_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_07_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_07_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_07_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_07_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_08_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_08_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_08_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_08_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_09_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_09_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_09_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_09_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_10_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_10_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_10_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_10_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_11_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_11_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_11_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_11_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_12_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_12_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_12_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_12_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_13_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_13_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_13_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_13_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_14_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_14_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_14_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_14_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_15_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_15_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_15_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_15_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_16_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_16_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_16_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_16_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_17_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_17_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_17_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_17_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_18_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_18_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_18_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_18_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_19_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_19_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_19_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_19_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_20_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_20_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_20_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_20_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_21_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_21_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_21_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_21_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_22_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_22_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_22_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_22_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_23_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_23_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_23_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_23_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_24_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_24_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_24_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_24_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_25_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_25_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_25_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_25_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_26_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_26_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_26_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_26_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_27_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_27_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_27_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_27_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_28_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_28_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_28_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_28_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_29_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_29_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_29_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_29_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_30_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_30_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connected_30_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connected_30_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_00_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_00_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_00_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_00_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_01_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_01_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_01_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_01_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_02_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_02_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_02_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_02_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_03_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_03_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_03_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_03_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_04_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_04_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_04_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_04_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_05_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_05_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_05_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_05_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_06_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_06_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_06_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_06_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_07_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_07_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_07_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_07_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_08_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_08_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_08_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_08_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_09_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_09_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_09_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_09_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_10_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_10_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_10_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_10_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_11_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_11_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_11_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_11_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_12_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_12_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_12_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_12_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_13_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_13_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_13_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_13_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_14_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_14_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_14_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_14_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_15_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_15_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_15_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_15_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_16_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_16_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_16_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_16_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_17_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_17_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_17_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_17_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_18_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_18_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_18_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_18_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_19_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_19_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_19_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_19_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_20_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_20_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_20_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_20_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_21_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_21_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_21_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_21_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_22_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_22_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_22_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_22_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_23_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_23_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_23_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_23_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_24_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_24_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_24_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_24_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_25_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_25_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_25_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_25_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_26_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_26_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_26_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_26_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_27_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_27_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_27_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_27_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_28_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_28_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_28_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_28_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_29_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_29_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_29_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_29_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_30_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_30_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_connecting_30_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_connecting_30_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_disabled_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_disabled_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_disabled_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_disabled_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_disconnected_dark = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_disconnected_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_disconnected_light = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_disconnected_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_mr_button_grey = global::LyraWallet.Droid.Resource.Drawable.ic_mr_button_grey;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_vol_type_speaker_dark = global::LyraWallet.Droid.Resource.Drawable.ic_vol_type_speaker_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_vol_type_speaker_group_dark = global::LyraWallet.Droid.Resource.Drawable.ic_vol_type_speaker_group_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_vol_type_speaker_group_light = global::LyraWallet.Droid.Resource.Drawable.ic_vol_type_speaker_group_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_vol_type_speaker_light = global::LyraWallet.Droid.Resource.Drawable.ic_vol_type_speaker_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_vol_type_tv_dark = global::LyraWallet.Droid.Resource.Drawable.ic_vol_type_tv_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.ic_vol_type_tv_light = global::LyraWallet.Droid.Resource.Drawable.ic_vol_type_tv_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_button_connected_dark = global::LyraWallet.Droid.Resource.Drawable.mr_button_connected_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_button_connected_light = global::LyraWallet.Droid.Resource.Drawable.mr_button_connected_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_button_connecting_dark = global::LyraWallet.Droid.Resource.Drawable.mr_button_connecting_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_button_connecting_light = global::LyraWallet.Droid.Resource.Drawable.mr_button_connecting_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_button_dark = global::LyraWallet.Droid.Resource.Drawable.mr_button_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_button_light = global::LyraWallet.Droid.Resource.Drawable.mr_button_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_dialog_close_dark = global::LyraWallet.Droid.Resource.Drawable.mr_dialog_close_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_dialog_close_light = global::LyraWallet.Droid.Resource.Drawable.mr_dialog_close_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_dialog_material_background_dark = global::LyraWallet.Droid.Resource.Drawable.mr_dialog_material_background_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_dialog_material_background_light = global::LyraWallet.Droid.Resource.Drawable.mr_dialog_material_background_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_group_collapse = global::LyraWallet.Droid.Resource.Drawable.mr_group_collapse;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_group_expand = global::LyraWallet.Droid.Resource.Drawable.mr_group_expand;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_media_pause_dark = global::LyraWallet.Droid.Resource.Drawable.mr_media_pause_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_media_pause_light = global::LyraWallet.Droid.Resource.Drawable.mr_media_pause_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_media_play_dark = global::LyraWallet.Droid.Resource.Drawable.mr_media_play_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_media_play_light = global::LyraWallet.Droid.Resource.Drawable.mr_media_play_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_media_stop_dark = global::LyraWallet.Droid.Resource.Drawable.mr_media_stop_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_media_stop_light = global::LyraWallet.Droid.Resource.Drawable.mr_media_stop_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_vol_type_audiotrack_dark = global::LyraWallet.Droid.Resource.Drawable.mr_vol_type_audiotrack_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.mr_vol_type_audiotrack_light = global::LyraWallet.Droid.Resource.Drawable.mr_vol_type_audiotrack_light;
+			global::Plugin.Badge.Droid.Resource.Drawable.navigation_empty_icon = global::LyraWallet.Droid.Resource.Drawable.navigation_empty_icon;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_action_background = global::LyraWallet.Droid.Resource.Drawable.notification_action_background;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_bg = global::LyraWallet.Droid.Resource.Drawable.notification_bg;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_bg_low = global::LyraWallet.Droid.Resource.Drawable.notification_bg_low;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_bg_low_normal = global::LyraWallet.Droid.Resource.Drawable.notification_bg_low_normal;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_bg_low_pressed = global::LyraWallet.Droid.Resource.Drawable.notification_bg_low_pressed;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_bg_normal = global::LyraWallet.Droid.Resource.Drawable.notification_bg_normal;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_bg_normal_pressed = global::LyraWallet.Droid.Resource.Drawable.notification_bg_normal_pressed;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_icon_background = global::LyraWallet.Droid.Resource.Drawable.notification_icon_background;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_template_icon_bg = global::LyraWallet.Droid.Resource.Drawable.notification_template_icon_bg;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_template_icon_low_bg = global::LyraWallet.Droid.Resource.Drawable.notification_template_icon_low_bg;
+			global::Plugin.Badge.Droid.Resource.Drawable.notification_tile_bg = global::LyraWallet.Droid.Resource.Drawable.notification_tile_bg;
+			global::Plugin.Badge.Droid.Resource.Drawable.notify_panel_notification_icon_bg = global::LyraWallet.Droid.Resource.Drawable.notify_panel_notification_icon_bg;
+			global::Plugin.Badge.Droid.Resource.Drawable.tooltip_frame_dark = global::LyraWallet.Droid.Resource.Drawable.tooltip_frame_dark;
+			global::Plugin.Badge.Droid.Resource.Drawable.tooltip_frame_light = global::LyraWallet.Droid.Resource.Drawable.tooltip_frame_light;
+			global::Plugin.Badge.Droid.Resource.Id.ALT = global::LyraWallet.Droid.Resource.Id.ALT;
+			global::Plugin.Badge.Droid.Resource.Id.CTRL = global::LyraWallet.Droid.Resource.Id.CTRL;
+			global::Plugin.Badge.Droid.Resource.Id.FUNCTION = global::LyraWallet.Droid.Resource.Id.FUNCTION;
+			global::Plugin.Badge.Droid.Resource.Id.META = global::LyraWallet.Droid.Resource.Id.META;
+			global::Plugin.Badge.Droid.Resource.Id.SHIFT = global::LyraWallet.Droid.Resource.Id.SHIFT;
+			global::Plugin.Badge.Droid.Resource.Id.SYM = global::LyraWallet.Droid.Resource.Id.SYM;
+			global::Plugin.Badge.Droid.Resource.Id.action0 = global::LyraWallet.Droid.Resource.Id.action0;
+			global::Plugin.Badge.Droid.Resource.Id.action_bar = global::LyraWallet.Droid.Resource.Id.action_bar;
+			global::Plugin.Badge.Droid.Resource.Id.action_bar_activity_content = global::LyraWallet.Droid.Resource.Id.action_bar_activity_content;
+			global::Plugin.Badge.Droid.Resource.Id.action_bar_container = global::LyraWallet.Droid.Resource.Id.action_bar_container;
+			global::Plugin.Badge.Droid.Resource.Id.action_bar_root = global::LyraWallet.Droid.Resource.Id.action_bar_root;
+			global::Plugin.Badge.Droid.Resource.Id.action_bar_spinner = global::LyraWallet.Droid.Resource.Id.action_bar_spinner;
+			global::Plugin.Badge.Droid.Resource.Id.action_bar_subtitle = global::LyraWallet.Droid.Resource.Id.action_bar_subtitle;
+			global::Plugin.Badge.Droid.Resource.Id.action_bar_title = global::LyraWallet.Droid.Resource.Id.action_bar_title;
+			global::Plugin.Badge.Droid.Resource.Id.action_container = global::LyraWallet.Droid.Resource.Id.action_container;
+			global::Plugin.Badge.Droid.Resource.Id.action_context_bar = global::LyraWallet.Droid.Resource.Id.action_context_bar;
+			global::Plugin.Badge.Droid.Resource.Id.action_divider = global::LyraWallet.Droid.Resource.Id.action_divider;
+			global::Plugin.Badge.Droid.Resource.Id.action_image = global::LyraWallet.Droid.Resource.Id.action_image;
+			global::Plugin.Badge.Droid.Resource.Id.action_menu_divider = global::LyraWallet.Droid.Resource.Id.action_menu_divider;
+			global::Plugin.Badge.Droid.Resource.Id.action_menu_presenter = global::LyraWallet.Droid.Resource.Id.action_menu_presenter;
+			global::Plugin.Badge.Droid.Resource.Id.action_mode_bar = global::LyraWallet.Droid.Resource.Id.action_mode_bar;
+			global::Plugin.Badge.Droid.Resource.Id.action_mode_bar_stub = global::LyraWallet.Droid.Resource.Id.action_mode_bar_stub;
+			global::Plugin.Badge.Droid.Resource.Id.action_mode_close_button = global::LyraWallet.Droid.Resource.Id.action_mode_close_button;
+			global::Plugin.Badge.Droid.Resource.Id.action_text = global::LyraWallet.Droid.Resource.Id.action_text;
+			global::Plugin.Badge.Droid.Resource.Id.actions = global::LyraWallet.Droid.Resource.Id.actions;
+			global::Plugin.Badge.Droid.Resource.Id.activity_chooser_view_content = global::LyraWallet.Droid.Resource.Id.activity_chooser_view_content;
+			global::Plugin.Badge.Droid.Resource.Id.add = global::LyraWallet.Droid.Resource.Id.add;
+			global::Plugin.Badge.Droid.Resource.Id.alertTitle = global::LyraWallet.Droid.Resource.Id.alertTitle;
+			global::Plugin.Badge.Droid.Resource.Id.all = global::LyraWallet.Droid.Resource.Id.all;
+			global::Plugin.Badge.Droid.Resource.Id.always = global::LyraWallet.Droid.Resource.Id.always;
+			global::Plugin.Badge.Droid.Resource.Id.async = global::LyraWallet.Droid.Resource.Id.async;
+			global::Plugin.Badge.Droid.Resource.Id.auto = global::LyraWallet.Droid.Resource.Id.auto;
+			global::Plugin.Badge.Droid.Resource.Id.beginning = global::LyraWallet.Droid.Resource.Id.beginning;
+			global::Plugin.Badge.Droid.Resource.Id.blocking = global::LyraWallet.Droid.Resource.Id.blocking;
+			global::Plugin.Badge.Droid.Resource.Id.bottom = global::LyraWallet.Droid.Resource.Id.bottom;
+			global::Plugin.Badge.Droid.Resource.Id.bottomtab_navarea = global::LyraWallet.Droid.Resource.Id.bottomtab_navarea;
+			global::Plugin.Badge.Droid.Resource.Id.bottomtab_tabbar = global::LyraWallet.Droid.Resource.Id.bottomtab_tabbar;
+			global::Plugin.Badge.Droid.Resource.Id.buttonPanel = global::LyraWallet.Droid.Resource.Id.buttonPanel;
+			global::Plugin.Badge.Droid.Resource.Id.cancel_action = global::LyraWallet.Droid.Resource.Id.cancel_action;
+			global::Plugin.Badge.Droid.Resource.Id.center = global::LyraWallet.Droid.Resource.Id.center;
+			global::Plugin.Badge.Droid.Resource.Id.center_horizontal = global::LyraWallet.Droid.Resource.Id.center_horizontal;
+			global::Plugin.Badge.Droid.Resource.Id.center_vertical = global::LyraWallet.Droid.Resource.Id.center_vertical;
+			global::Plugin.Badge.Droid.Resource.Id.checkbox = global::LyraWallet.Droid.Resource.Id.checkbox;
+			global::Plugin.Badge.Droid.Resource.Id.chronometer = global::LyraWallet.Droid.Resource.Id.chronometer;
+			global::Plugin.Badge.Droid.Resource.Id.clip_horizontal = global::LyraWallet.Droid.Resource.Id.clip_horizontal;
+			global::Plugin.Badge.Droid.Resource.Id.clip_vertical = global::LyraWallet.Droid.Resource.Id.clip_vertical;
+			global::Plugin.Badge.Droid.Resource.Id.collapseActionView = global::LyraWallet.Droid.Resource.Id.collapseActionView;
+			global::Plugin.Badge.Droid.Resource.Id.container = global::LyraWallet.Droid.Resource.Id.container;
+			global::Plugin.Badge.Droid.Resource.Id.contentPanel = global::LyraWallet.Droid.Resource.Id.contentPanel;
+			global::Plugin.Badge.Droid.Resource.Id.coordinator = global::LyraWallet.Droid.Resource.Id.coordinator;
+			global::Plugin.Badge.Droid.Resource.Id.custom = global::LyraWallet.Droid.Resource.Id.custom;
+			global::Plugin.Badge.Droid.Resource.Id.customPanel = global::LyraWallet.Droid.Resource.Id.customPanel;
+			global::Plugin.Badge.Droid.Resource.Id.decor_content_parent = global::LyraWallet.Droid.Resource.Id.decor_content_parent;
+			global::Plugin.Badge.Droid.Resource.Id.default_activity_button = global::LyraWallet.Droid.Resource.Id.default_activity_button;
+			global::Plugin.Badge.Droid.Resource.Id.design_bottom_sheet = global::LyraWallet.Droid.Resource.Id.design_bottom_sheet;
+			global::Plugin.Badge.Droid.Resource.Id.design_menu_item_action_area = global::LyraWallet.Droid.Resource.Id.design_menu_item_action_area;
+			global::Plugin.Badge.Droid.Resource.Id.design_menu_item_action_area_stub = global::LyraWallet.Droid.Resource.Id.design_menu_item_action_area_stub;
+			global::Plugin.Badge.Droid.Resource.Id.design_menu_item_text = global::LyraWallet.Droid.Resource.Id.design_menu_item_text;
+			global::Plugin.Badge.Droid.Resource.Id.design_navigation_view = global::LyraWallet.Droid.Resource.Id.design_navigation_view;
+			global::Plugin.Badge.Droid.Resource.Id.disableHome = global::LyraWallet.Droid.Resource.Id.disableHome;
+			global::Plugin.Badge.Droid.Resource.Id.edit_query = global::LyraWallet.Droid.Resource.Id.edit_query;
+			global::Plugin.Badge.Droid.Resource.Id.end = global::LyraWallet.Droid.Resource.Id.end;
+			global::Plugin.Badge.Droid.Resource.Id.end_padder = global::LyraWallet.Droid.Resource.Id.end_padder;
+			global::Plugin.Badge.Droid.Resource.Id.enterAlways = global::LyraWallet.Droid.Resource.Id.enterAlways;
+			global::Plugin.Badge.Droid.Resource.Id.enterAlwaysCollapsed = global::LyraWallet.Droid.Resource.Id.enterAlwaysCollapsed;
+			global::Plugin.Badge.Droid.Resource.Id.exitUntilCollapsed = global::LyraWallet.Droid.Resource.Id.exitUntilCollapsed;
+			global::Plugin.Badge.Droid.Resource.Id.expand_activities_button = global::LyraWallet.Droid.Resource.Id.expand_activities_button;
+			global::Plugin.Badge.Droid.Resource.Id.expanded_menu = global::LyraWallet.Droid.Resource.Id.expanded_menu;
+			global::Plugin.Badge.Droid.Resource.Id.fill = global::LyraWallet.Droid.Resource.Id.fill;
+			global::Plugin.Badge.Droid.Resource.Id.fill_horizontal = global::LyraWallet.Droid.Resource.Id.fill_horizontal;
+			global::Plugin.Badge.Droid.Resource.Id.fill_vertical = global::LyraWallet.Droid.Resource.Id.fill_vertical;
+			global::Plugin.Badge.Droid.Resource.Id.@fixed = global::LyraWallet.Droid.Resource.Id.@fixed;
+			global::Plugin.Badge.Droid.Resource.Id.flyoutcontent_appbar = global::LyraWallet.Droid.Resource.Id.flyoutcontent_appbar;
+			global::Plugin.Badge.Droid.Resource.Id.flyoutcontent_recycler = global::LyraWallet.Droid.Resource.Id.flyoutcontent_recycler;
+			global::Plugin.Badge.Droid.Resource.Id.forever = global::LyraWallet.Droid.Resource.Id.forever;
+			global::Plugin.Badge.Droid.Resource.Id.ghost_view = global::LyraWallet.Droid.Resource.Id.ghost_view;
+			global::Plugin.Badge.Droid.Resource.Id.home = global::LyraWallet.Droid.Resource.Id.home;
+			global::Plugin.Badge.Droid.Resource.Id.homeAsUp = global::LyraWallet.Droid.Resource.Id.homeAsUp;
+			global::Plugin.Badge.Droid.Resource.Id.icon = global::LyraWallet.Droid.Resource.Id.icon;
+			global::Plugin.Badge.Droid.Resource.Id.icon_group = global::LyraWallet.Droid.Resource.Id.icon_group;
+			global::Plugin.Badge.Droid.Resource.Id.ifRoom = global::LyraWallet.Droid.Resource.Id.ifRoom;
+			global::Plugin.Badge.Droid.Resource.Id.image = global::LyraWallet.Droid.Resource.Id.image;
+			global::Plugin.Badge.Droid.Resource.Id.info = global::LyraWallet.Droid.Resource.Id.info;
+			global::Plugin.Badge.Droid.Resource.Id.italic = global::LyraWallet.Droid.Resource.Id.italic;
+			global::Plugin.Badge.Droid.Resource.Id.item_touch_helper_previous_elevation = global::LyraWallet.Droid.Resource.Id.item_touch_helper_previous_elevation;
+			global::Plugin.Badge.Droid.Resource.Id.largeLabel = global::LyraWallet.Droid.Resource.Id.largeLabel;
+			global::Plugin.Badge.Droid.Resource.Id.left = global::LyraWallet.Droid.Resource.Id.left;
+			global::Plugin.Badge.Droid.Resource.Id.line1 = global::LyraWallet.Droid.Resource.Id.line1;
+			global::Plugin.Badge.Droid.Resource.Id.line3 = global::LyraWallet.Droid.Resource.Id.line3;
+			global::Plugin.Badge.Droid.Resource.Id.listMode = global::LyraWallet.Droid.Resource.Id.listMode;
+			global::Plugin.Badge.Droid.Resource.Id.list_item = global::LyraWallet.Droid.Resource.Id.list_item;
+			global::Plugin.Badge.Droid.Resource.Id.main_appbar = global::LyraWallet.Droid.Resource.Id.main_appbar;
+			global::Plugin.Badge.Droid.Resource.Id.main_tablayout = global::LyraWallet.Droid.Resource.Id.main_tablayout;
+			global::Plugin.Badge.Droid.Resource.Id.main_toolbar = global::LyraWallet.Droid.Resource.Id.main_toolbar;
+			global::Plugin.Badge.Droid.Resource.Id.masked = global::LyraWallet.Droid.Resource.Id.masked;
+			global::Plugin.Badge.Droid.Resource.Id.media_actions = global::LyraWallet.Droid.Resource.Id.media_actions;
+			global::Plugin.Badge.Droid.Resource.Id.message = global::LyraWallet.Droid.Resource.Id.message;
+			global::Plugin.Badge.Droid.Resource.Id.middle = global::LyraWallet.Droid.Resource.Id.middle;
+			global::Plugin.Badge.Droid.Resource.Id.mini = global::LyraWallet.Droid.Resource.Id.mini;
+			global::Plugin.Badge.Droid.Resource.Id.mr_art = global::LyraWallet.Droid.Resource.Id.mr_art;
+			global::Plugin.Badge.Droid.Resource.Id.mr_chooser_list = global::LyraWallet.Droid.Resource.Id.mr_chooser_list;
+			global::Plugin.Badge.Droid.Resource.Id.mr_chooser_route_desc = global::LyraWallet.Droid.Resource.Id.mr_chooser_route_desc;
+			global::Plugin.Badge.Droid.Resource.Id.mr_chooser_route_icon = global::LyraWallet.Droid.Resource.Id.mr_chooser_route_icon;
+			global::Plugin.Badge.Droid.Resource.Id.mr_chooser_route_name = global::LyraWallet.Droid.Resource.Id.mr_chooser_route_name;
+			global::Plugin.Badge.Droid.Resource.Id.mr_chooser_title = global::LyraWallet.Droid.Resource.Id.mr_chooser_title;
+			global::Plugin.Badge.Droid.Resource.Id.mr_close = global::LyraWallet.Droid.Resource.Id.mr_close;
+			global::Plugin.Badge.Droid.Resource.Id.mr_control_divider = global::LyraWallet.Droid.Resource.Id.mr_control_divider;
+			global::Plugin.Badge.Droid.Resource.Id.mr_control_playback_ctrl = global::LyraWallet.Droid.Resource.Id.mr_control_playback_ctrl;
+			global::Plugin.Badge.Droid.Resource.Id.mr_control_subtitle = global::LyraWallet.Droid.Resource.Id.mr_control_subtitle;
+			global::Plugin.Badge.Droid.Resource.Id.mr_control_title = global::LyraWallet.Droid.Resource.Id.mr_control_title;
+			global::Plugin.Badge.Droid.Resource.Id.mr_control_title_container = global::LyraWallet.Droid.Resource.Id.mr_control_title_container;
+			global::Plugin.Badge.Droid.Resource.Id.mr_custom_control = global::LyraWallet.Droid.Resource.Id.mr_custom_control;
+			global::Plugin.Badge.Droid.Resource.Id.mr_default_control = global::LyraWallet.Droid.Resource.Id.mr_default_control;
+			global::Plugin.Badge.Droid.Resource.Id.mr_dialog_area = global::LyraWallet.Droid.Resource.Id.mr_dialog_area;
+			global::Plugin.Badge.Droid.Resource.Id.mr_expandable_area = global::LyraWallet.Droid.Resource.Id.mr_expandable_area;
+			global::Plugin.Badge.Droid.Resource.Id.mr_group_expand_collapse = global::LyraWallet.Droid.Resource.Id.mr_group_expand_collapse;
+			global::Plugin.Badge.Droid.Resource.Id.mr_media_main_control = global::LyraWallet.Droid.Resource.Id.mr_media_main_control;
+			global::Plugin.Badge.Droid.Resource.Id.mr_name = global::LyraWallet.Droid.Resource.Id.mr_name;
+			global::Plugin.Badge.Droid.Resource.Id.mr_playback_control = global::LyraWallet.Droid.Resource.Id.mr_playback_control;
+			global::Plugin.Badge.Droid.Resource.Id.mr_title_bar = global::LyraWallet.Droid.Resource.Id.mr_title_bar;
+			global::Plugin.Badge.Droid.Resource.Id.mr_volume_control = global::LyraWallet.Droid.Resource.Id.mr_volume_control;
+			global::Plugin.Badge.Droid.Resource.Id.mr_volume_group_list = global::LyraWallet.Droid.Resource.Id.mr_volume_group_list;
+			global::Plugin.Badge.Droid.Resource.Id.mr_volume_item_icon = global::LyraWallet.Droid.Resource.Id.mr_volume_item_icon;
+			global::Plugin.Badge.Droid.Resource.Id.mr_volume_slider = global::LyraWallet.Droid.Resource.Id.mr_volume_slider;
+			global::Plugin.Badge.Droid.Resource.Id.multiply = global::LyraWallet.Droid.Resource.Id.multiply;
+			global::Plugin.Badge.Droid.Resource.Id.navigation_header_container = global::LyraWallet.Droid.Resource.Id.navigation_header_container;
+			global::Plugin.Badge.Droid.Resource.Id.never = global::LyraWallet.Droid.Resource.Id.never;
+			global::Plugin.Badge.Droid.Resource.Id.none = global::LyraWallet.Droid.Resource.Id.none;
+			global::Plugin.Badge.Droid.Resource.Id.normal = global::LyraWallet.Droid.Resource.Id.normal;
+			global::Plugin.Badge.Droid.Resource.Id.notification_background = global::LyraWallet.Droid.Resource.Id.notification_background;
+			global::Plugin.Badge.Droid.Resource.Id.notification_main_column = global::LyraWallet.Droid.Resource.Id.notification_main_column;
+			global::Plugin.Badge.Droid.Resource.Id.notification_main_column_container = global::LyraWallet.Droid.Resource.Id.notification_main_column_container;
+			global::Plugin.Badge.Droid.Resource.Id.parallax = global::LyraWallet.Droid.Resource.Id.parallax;
+			global::Plugin.Badge.Droid.Resource.Id.parentPanel = global::LyraWallet.Droid.Resource.Id.parentPanel;
+			global::Plugin.Badge.Droid.Resource.Id.parent_matrix = global::LyraWallet.Droid.Resource.Id.parent_matrix;
+			global::Plugin.Badge.Droid.Resource.Id.pin = global::LyraWallet.Droid.Resource.Id.pin;
+			global::Plugin.Badge.Droid.Resource.Id.progress_circular = global::LyraWallet.Droid.Resource.Id.progress_circular;
+			global::Plugin.Badge.Droid.Resource.Id.progress_horizontal = global::LyraWallet.Droid.Resource.Id.progress_horizontal;
+			global::Plugin.Badge.Droid.Resource.Id.radio = global::LyraWallet.Droid.Resource.Id.radio;
+			global::Plugin.Badge.Droid.Resource.Id.right = global::LyraWallet.Droid.Resource.Id.right;
+			global::Plugin.Badge.Droid.Resource.Id.right_icon = global::LyraWallet.Droid.Resource.Id.right_icon;
+			global::Plugin.Badge.Droid.Resource.Id.right_side = global::LyraWallet.Droid.Resource.Id.right_side;
+			global::Plugin.Badge.Droid.Resource.Id.save_image_matrix = global::LyraWallet.Droid.Resource.Id.save_image_matrix;
+			global::Plugin.Badge.Droid.Resource.Id.save_non_transition_alpha = global::LyraWallet.Droid.Resource.Id.save_non_transition_alpha;
+			global::Plugin.Badge.Droid.Resource.Id.save_scale_type = global::LyraWallet.Droid.Resource.Id.save_scale_type;
+			global::Plugin.Badge.Droid.Resource.Id.screen = global::LyraWallet.Droid.Resource.Id.screen;
+			global::Plugin.Badge.Droid.Resource.Id.scroll = global::LyraWallet.Droid.Resource.Id.scroll;
+			global::Plugin.Badge.Droid.Resource.Id.scrollIndicatorDown = global::LyraWallet.Droid.Resource.Id.scrollIndicatorDown;
+			global::Plugin.Badge.Droid.Resource.Id.scrollIndicatorUp = global::LyraWallet.Droid.Resource.Id.scrollIndicatorUp;
+			global::Plugin.Badge.Droid.Resource.Id.scrollView = global::LyraWallet.Droid.Resource.Id.scrollView;
+			global::Plugin.Badge.Droid.Resource.Id.scrollable = global::LyraWallet.Droid.Resource.Id.scrollable;
+			global::Plugin.Badge.Droid.Resource.Id.search_badge = global::LyraWallet.Droid.Resource.Id.search_badge;
+			global::Plugin.Badge.Droid.Resource.Id.search_bar = global::LyraWallet.Droid.Resource.Id.search_bar;
+			global::Plugin.Badge.Droid.Resource.Id.search_button = global::LyraWallet.Droid.Resource.Id.search_button;
+			global::Plugin.Badge.Droid.Resource.Id.search_close_btn = global::LyraWallet.Droid.Resource.Id.search_close_btn;
+			global::Plugin.Badge.Droid.Resource.Id.search_edit_frame = global::LyraWallet.Droid.Resource.Id.search_edit_frame;
+			global::Plugin.Badge.Droid.Resource.Id.search_go_btn = global::LyraWallet.Droid.Resource.Id.search_go_btn;
+			global::Plugin.Badge.Droid.Resource.Id.search_mag_icon = global::LyraWallet.Droid.Resource.Id.search_mag_icon;
+			global::Plugin.Badge.Droid.Resource.Id.search_plate = global::LyraWallet.Droid.Resource.Id.search_plate;
+			global::Plugin.Badge.Droid.Resource.Id.search_src_text = global::LyraWallet.Droid.Resource.Id.search_src_text;
+			global::Plugin.Badge.Droid.Resource.Id.search_voice_btn = global::LyraWallet.Droid.Resource.Id.search_voice_btn;
+			global::Plugin.Badge.Droid.Resource.Id.select_dialog_listview = global::LyraWallet.Droid.Resource.Id.select_dialog_listview;
+			global::Plugin.Badge.Droid.Resource.Id.shellcontent_appbar = global::LyraWallet.Droid.Resource.Id.shellcontent_appbar;
+			global::Plugin.Badge.Droid.Resource.Id.shellcontent_toolbar = global::LyraWallet.Droid.Resource.Id.shellcontent_toolbar;
+			global::Plugin.Badge.Droid.Resource.Id.shortcut = global::LyraWallet.Droid.Resource.Id.shortcut;
+			global::Plugin.Badge.Droid.Resource.Id.showCustom = global::LyraWallet.Droid.Resource.Id.showCustom;
+			global::Plugin.Badge.Droid.Resource.Id.showHome = global::LyraWallet.Droid.Resource.Id.showHome;
+			global::Plugin.Badge.Droid.Resource.Id.showTitle = global::LyraWallet.Droid.Resource.Id.showTitle;
+			global::Plugin.Badge.Droid.Resource.Id.smallLabel = global::LyraWallet.Droid.Resource.Id.smallLabel;
+			global::Plugin.Badge.Droid.Resource.Id.snackbar_action = global::LyraWallet.Droid.Resource.Id.snackbar_action;
+			global::Plugin.Badge.Droid.Resource.Id.snackbar_text = global::LyraWallet.Droid.Resource.Id.snackbar_text;
+			global::Plugin.Badge.Droid.Resource.Id.snap = global::LyraWallet.Droid.Resource.Id.snap;
+			global::Plugin.Badge.Droid.Resource.Id.spacer = global::LyraWallet.Droid.Resource.Id.spacer;
+			global::Plugin.Badge.Droid.Resource.Id.split_action_bar = global::LyraWallet.Droid.Resource.Id.split_action_bar;
+			global::Plugin.Badge.Droid.Resource.Id.src_atop = global::LyraWallet.Droid.Resource.Id.src_atop;
+			global::Plugin.Badge.Droid.Resource.Id.src_in = global::LyraWallet.Droid.Resource.Id.src_in;
+			global::Plugin.Badge.Droid.Resource.Id.src_over = global::LyraWallet.Droid.Resource.Id.src_over;
+			global::Plugin.Badge.Droid.Resource.Id.start = global::LyraWallet.Droid.Resource.Id.start;
+			global::Plugin.Badge.Droid.Resource.Id.status_bar_latest_event_content = global::LyraWallet.Droid.Resource.Id.status_bar_latest_event_content;
+			global::Plugin.Badge.Droid.Resource.Id.submenuarrow = global::LyraWallet.Droid.Resource.Id.submenuarrow;
+			global::Plugin.Badge.Droid.Resource.Id.submit_area = global::LyraWallet.Droid.Resource.Id.submit_area;
+			global::Plugin.Badge.Droid.Resource.Id.tabMode = global::LyraWallet.Droid.Resource.Id.tabMode;
+			global::Plugin.Badge.Droid.Resource.Id.tag_transition_group = global::LyraWallet.Droid.Resource.Id.tag_transition_group;
+			global::Plugin.Badge.Droid.Resource.Id.text = global::LyraWallet.Droid.Resource.Id.text;
+			global::Plugin.Badge.Droid.Resource.Id.text2 = global::LyraWallet.Droid.Resource.Id.text2;
+			global::Plugin.Badge.Droid.Resource.Id.textSpacerNoButtons = global::LyraWallet.Droid.Resource.Id.textSpacerNoButtons;
+			global::Plugin.Badge.Droid.Resource.Id.textSpacerNoTitle = global::LyraWallet.Droid.Resource.Id.textSpacerNoTitle;
+			global::Plugin.Badge.Droid.Resource.Id.text_input_password_toggle = global::LyraWallet.Droid.Resource.Id.text_input_password_toggle;
+			global::Plugin.Badge.Droid.Resource.Id.textinput_counter = global::LyraWallet.Droid.Resource.Id.textinput_counter;
+			global::Plugin.Badge.Droid.Resource.Id.textinput_error = global::LyraWallet.Droid.Resource.Id.textinput_error;
+			global::Plugin.Badge.Droid.Resource.Id.time = global::LyraWallet.Droid.Resource.Id.time;
+			global::Plugin.Badge.Droid.Resource.Id.title = global::LyraWallet.Droid.Resource.Id.title;
+			global::Plugin.Badge.Droid.Resource.Id.titleDividerNoCustom = global::LyraWallet.Droid.Resource.Id.titleDividerNoCustom;
+			global::Plugin.Badge.Droid.Resource.Id.title_template = global::LyraWallet.Droid.Resource.Id.title_template;
+			global::Plugin.Badge.Droid.Resource.Id.top = global::LyraWallet.Droid.Resource.Id.top;
+			global::Plugin.Badge.Droid.Resource.Id.topPanel = global::LyraWallet.Droid.Resource.Id.topPanel;
+			global::Plugin.Badge.Droid.Resource.Id.touch_outside = global::LyraWallet.Droid.Resource.Id.touch_outside;
+			global::Plugin.Badge.Droid.Resource.Id.transition_current_scene = global::LyraWallet.Droid.Resource.Id.transition_current_scene;
+			global::Plugin.Badge.Droid.Resource.Id.transition_layout_save = global::LyraWallet.Droid.Resource.Id.transition_layout_save;
+			global::Plugin.Badge.Droid.Resource.Id.transition_position = global::LyraWallet.Droid.Resource.Id.transition_position;
+			global::Plugin.Badge.Droid.Resource.Id.transition_scene_layoutid_cache = global::LyraWallet.Droid.Resource.Id.transition_scene_layoutid_cache;
+			global::Plugin.Badge.Droid.Resource.Id.transition_transform = global::LyraWallet.Droid.Resource.Id.transition_transform;
+			global::Plugin.Badge.Droid.Resource.Id.uniform = global::LyraWallet.Droid.Resource.Id.uniform;
+			global::Plugin.Badge.Droid.Resource.Id.up = global::LyraWallet.Droid.Resource.Id.up;
+			global::Plugin.Badge.Droid.Resource.Id.useLogo = global::LyraWallet.Droid.Resource.Id.useLogo;
+			global::Plugin.Badge.Droid.Resource.Id.view_offset_helper = global::LyraWallet.Droid.Resource.Id.view_offset_helper;
+			global::Plugin.Badge.Droid.Resource.Id.visible = global::LyraWallet.Droid.Resource.Id.visible;
+			global::Plugin.Badge.Droid.Resource.Id.volume_item_container = global::LyraWallet.Droid.Resource.Id.volume_item_container;
+			global::Plugin.Badge.Droid.Resource.Id.withText = global::LyraWallet.Droid.Resource.Id.withText;
+			global::Plugin.Badge.Droid.Resource.Id.wrap_content = global::LyraWallet.Droid.Resource.Id.wrap_content;
+			global::Plugin.Badge.Droid.Resource.Integer.abc_config_activityDefaultDur = global::LyraWallet.Droid.Resource.Integer.abc_config_activityDefaultDur;
+			global::Plugin.Badge.Droid.Resource.Integer.abc_config_activityShortDur = global::LyraWallet.Droid.Resource.Integer.abc_config_activityShortDur;
+			global::Plugin.Badge.Droid.Resource.Integer.app_bar_elevation_anim_duration = global::LyraWallet.Droid.Resource.Integer.app_bar_elevation_anim_duration;
+			global::Plugin.Badge.Droid.Resource.Integer.bottom_sheet_slide_duration = global::LyraWallet.Droid.Resource.Integer.bottom_sheet_slide_duration;
+			global::Plugin.Badge.Droid.Resource.Integer.cancel_button_image_alpha = global::LyraWallet.Droid.Resource.Integer.cancel_button_image_alpha;
+			global::Plugin.Badge.Droid.Resource.Integer.config_tooltipAnimTime = global::LyraWallet.Droid.Resource.Integer.config_tooltipAnimTime;
+			global::Plugin.Badge.Droid.Resource.Integer.design_snackbar_text_max_lines = global::LyraWallet.Droid.Resource.Integer.design_snackbar_text_max_lines;
+			global::Plugin.Badge.Droid.Resource.Integer.hide_password_duration = global::LyraWallet.Droid.Resource.Integer.hide_password_duration;
+			global::Plugin.Badge.Droid.Resource.Integer.mr_controller_volume_group_list_animation_duration_ms = global::LyraWallet.Droid.Resource.Integer.mr_controller_volume_group_list_animation_duration_ms;
+			global::Plugin.Badge.Droid.Resource.Integer.mr_controller_volume_group_list_fade_in_duration_ms = global::LyraWallet.Droid.Resource.Integer.mr_controller_volume_group_list_fade_in_duration_ms;
+			global::Plugin.Badge.Droid.Resource.Integer.mr_controller_volume_group_list_fade_out_duration_ms = global::LyraWallet.Droid.Resource.Integer.mr_controller_volume_group_list_fade_out_duration_ms;
+			global::Plugin.Badge.Droid.Resource.Integer.show_password_duration = global::LyraWallet.Droid.Resource.Integer.show_password_duration;
+			global::Plugin.Badge.Droid.Resource.Integer.status_bar_notification_info_maxnum = global::LyraWallet.Droid.Resource.Integer.status_bar_notification_info_maxnum;
+			global::Plugin.Badge.Droid.Resource.Interpolator.mr_fast_out_slow_in = global::LyraWallet.Droid.Resource.Interpolator.mr_fast_out_slow_in;
+			global::Plugin.Badge.Droid.Resource.Interpolator.mr_linear_out_slow_in = global::LyraWallet.Droid.Resource.Interpolator.mr_linear_out_slow_in;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_action_bar_title_item = global::LyraWallet.Droid.Resource.Layout.abc_action_bar_title_item;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_action_bar_up_container = global::LyraWallet.Droid.Resource.Layout.abc_action_bar_up_container;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_action_menu_item_layout = global::LyraWallet.Droid.Resource.Layout.abc_action_menu_item_layout;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_action_menu_layout = global::LyraWallet.Droid.Resource.Layout.abc_action_menu_layout;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_action_mode_bar = global::LyraWallet.Droid.Resource.Layout.abc_action_mode_bar;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_action_mode_close_item_material = global::LyraWallet.Droid.Resource.Layout.abc_action_mode_close_item_material;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_activity_chooser_view = global::LyraWallet.Droid.Resource.Layout.abc_activity_chooser_view;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_activity_chooser_view_list_item = global::LyraWallet.Droid.Resource.Layout.abc_activity_chooser_view_list_item;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_alert_dialog_button_bar_material = global::LyraWallet.Droid.Resource.Layout.abc_alert_dialog_button_bar_material;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_alert_dialog_material = global::LyraWallet.Droid.Resource.Layout.abc_alert_dialog_material;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_alert_dialog_title_material = global::LyraWallet.Droid.Resource.Layout.abc_alert_dialog_title_material;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_dialog_title_material = global::LyraWallet.Droid.Resource.Layout.abc_dialog_title_material;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_expanded_menu_layout = global::LyraWallet.Droid.Resource.Layout.abc_expanded_menu_layout;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_list_menu_item_checkbox = global::LyraWallet.Droid.Resource.Layout.abc_list_menu_item_checkbox;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_list_menu_item_icon = global::LyraWallet.Droid.Resource.Layout.abc_list_menu_item_icon;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_list_menu_item_layout = global::LyraWallet.Droid.Resource.Layout.abc_list_menu_item_layout;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_list_menu_item_radio = global::LyraWallet.Droid.Resource.Layout.abc_list_menu_item_radio;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_popup_menu_header_item_layout = global::LyraWallet.Droid.Resource.Layout.abc_popup_menu_header_item_layout;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_popup_menu_item_layout = global::LyraWallet.Droid.Resource.Layout.abc_popup_menu_item_layout;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_screen_content_include = global::LyraWallet.Droid.Resource.Layout.abc_screen_content_include;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_screen_simple = global::LyraWallet.Droid.Resource.Layout.abc_screen_simple;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_screen_simple_overlay_action_mode = global::LyraWallet.Droid.Resource.Layout.abc_screen_simple_overlay_action_mode;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_screen_toolbar = global::LyraWallet.Droid.Resource.Layout.abc_screen_toolbar;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_search_dropdown_item_icons_2line = global::LyraWallet.Droid.Resource.Layout.abc_search_dropdown_item_icons_2line;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_search_view = global::LyraWallet.Droid.Resource.Layout.abc_search_view;
+			global::Plugin.Badge.Droid.Resource.Layout.abc_select_dialog_material = global::LyraWallet.Droid.Resource.Layout.abc_select_dialog_material;
+			global::Plugin.Badge.Droid.Resource.Layout.BottomTabLayout = global::LyraWallet.Droid.Resource.Layout.BottomTabLayout;
+			global::Plugin.Badge.Droid.Resource.Layout.design_bottom_navigation_item = global::LyraWallet.Droid.Resource.Layout.design_bottom_navigation_item;
+			global::Plugin.Badge.Droid.Resource.Layout.design_bottom_sheet_dialog = global::LyraWallet.Droid.Resource.Layout.design_bottom_sheet_dialog;
+			global::Plugin.Badge.Droid.Resource.Layout.design_layout_snackbar = global::LyraWallet.Droid.Resource.Layout.design_layout_snackbar;
+			global::Plugin.Badge.Droid.Resource.Layout.design_layout_snackbar_include = global::LyraWallet.Droid.Resource.Layout.design_layout_snackbar_include;
+			global::Plugin.Badge.Droid.Resource.Layout.design_layout_tab_icon = global::LyraWallet.Droid.Resource.Layout.design_layout_tab_icon;
+			global::Plugin.Badge.Droid.Resource.Layout.design_layout_tab_text = global::LyraWallet.Droid.Resource.Layout.design_layout_tab_text;
+			global::Plugin.Badge.Droid.Resource.Layout.design_menu_item_action_area = global::LyraWallet.Droid.Resource.Layout.design_menu_item_action_area;
+			global::Plugin.Badge.Droid.Resource.Layout.design_navigation_item = global::LyraWallet.Droid.Resource.Layout.design_navigation_item;
+			global::Plugin.Badge.Droid.Resource.Layout.design_navigation_item_header = global::LyraWallet.Droid.Resource.Layout.design_navigation_item_header;
+			global::Plugin.Badge.Droid.Resource.Layout.design_navigation_item_separator = global::LyraWallet.Droid.Resource.Layout.design_navigation_item_separator;
+			global::Plugin.Badge.Droid.Resource.Layout.design_navigation_item_subheader = global::LyraWallet.Droid.Resource.Layout.design_navigation_item_subheader;
+			global::Plugin.Badge.Droid.Resource.Layout.design_navigation_menu = global::LyraWallet.Droid.Resource.Layout.design_navigation_menu;
+			global::Plugin.Badge.Droid.Resource.Layout.design_navigation_menu_item = global::LyraWallet.Droid.Resource.Layout.design_navigation_menu_item;
+			global::Plugin.Badge.Droid.Resource.Layout.design_text_input_password_icon = global::LyraWallet.Droid.Resource.Layout.design_text_input_password_icon;
+			global::Plugin.Badge.Droid.Resource.Layout.FlyoutContent = global::LyraWallet.Droid.Resource.Layout.FlyoutContent;
+			global::Plugin.Badge.Droid.Resource.Layout.mr_chooser_dialog = global::LyraWallet.Droid.Resource.Layout.mr_chooser_dialog;
+			global::Plugin.Badge.Droid.Resource.Layout.mr_chooser_list_item = global::LyraWallet.Droid.Resource.Layout.mr_chooser_list_item;
+			global::Plugin.Badge.Droid.Resource.Layout.mr_controller_material_dialog_b = global::LyraWallet.Droid.Resource.Layout.mr_controller_material_dialog_b;
+			global::Plugin.Badge.Droid.Resource.Layout.mr_controller_volume_item = global::LyraWallet.Droid.Resource.Layout.mr_controller_volume_item;
+			global::Plugin.Badge.Droid.Resource.Layout.mr_playback_control = global::LyraWallet.Droid.Resource.Layout.mr_playback_control;
+			global::Plugin.Badge.Droid.Resource.Layout.mr_volume_control = global::LyraWallet.Droid.Resource.Layout.mr_volume_control;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_action = global::LyraWallet.Droid.Resource.Layout.notification_action;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_action_tombstone = global::LyraWallet.Droid.Resource.Layout.notification_action_tombstone;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_media_action = global::LyraWallet.Droid.Resource.Layout.notification_media_action;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_media_cancel_action = global::LyraWallet.Droid.Resource.Layout.notification_media_cancel_action;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_big_media = global::LyraWallet.Droid.Resource.Layout.notification_template_big_media;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_big_media_custom = global::LyraWallet.Droid.Resource.Layout.notification_template_big_media_custom;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_big_media_narrow = global::LyraWallet.Droid.Resource.Layout.notification_template_big_media_narrow;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_big_media_narrow_custom = global::LyraWallet.Droid.Resource.Layout.notification_template_big_media_narrow_custom;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_custom_big = global::LyraWallet.Droid.Resource.Layout.notification_template_custom_big;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_icon_group = global::LyraWallet.Droid.Resource.Layout.notification_template_icon_group;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_lines_media = global::LyraWallet.Droid.Resource.Layout.notification_template_lines_media;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_media = global::LyraWallet.Droid.Resource.Layout.notification_template_media;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_media_custom = global::LyraWallet.Droid.Resource.Layout.notification_template_media_custom;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_part_chronometer = global::LyraWallet.Droid.Resource.Layout.notification_template_part_chronometer;
+			global::Plugin.Badge.Droid.Resource.Layout.notification_template_part_time = global::LyraWallet.Droid.Resource.Layout.notification_template_part_time;
+			global::Plugin.Badge.Droid.Resource.Layout.RootLayout = global::LyraWallet.Droid.Resource.Layout.RootLayout;
+			global::Plugin.Badge.Droid.Resource.Layout.select_dialog_item_material = global::LyraWallet.Droid.Resource.Layout.select_dialog_item_material;
+			global::Plugin.Badge.Droid.Resource.Layout.select_dialog_multichoice_material = global::LyraWallet.Droid.Resource.Layout.select_dialog_multichoice_material;
+			global::Plugin.Badge.Droid.Resource.Layout.select_dialog_singlechoice_material = global::LyraWallet.Droid.Resource.Layout.select_dialog_singlechoice_material;
+			global::Plugin.Badge.Droid.Resource.Layout.ShellContent = global::LyraWallet.Droid.Resource.Layout.ShellContent;
+			global::Plugin.Badge.Droid.Resource.Layout.support_simple_spinner_dropdown_item = global::LyraWallet.Droid.Resource.Layout.support_simple_spinner_dropdown_item;
+			global::Plugin.Badge.Droid.Resource.String.abc_action_bar_home_description = global::LyraWallet.Droid.Resource.String.abc_action_bar_home_description;
+			global::Plugin.Badge.Droid.Resource.String.abc_action_bar_up_description = global::LyraWallet.Droid.Resource.String.abc_action_bar_up_description;
+			global::Plugin.Badge.Droid.Resource.String.abc_action_menu_overflow_description = global::LyraWallet.Droid.Resource.String.abc_action_menu_overflow_description;
+			global::Plugin.Badge.Droid.Resource.String.abc_action_mode_done = global::LyraWallet.Droid.Resource.String.abc_action_mode_done;
+			global::Plugin.Badge.Droid.Resource.String.abc_activity_chooser_view_see_all = global::LyraWallet.Droid.Resource.String.abc_activity_chooser_view_see_all;
+			global::Plugin.Badge.Droid.Resource.String.abc_activitychooserview_choose_application = global::LyraWallet.Droid.Resource.String.abc_activitychooserview_choose_application;
+			global::Plugin.Badge.Droid.Resource.String.abc_capital_off = global::LyraWallet.Droid.Resource.String.abc_capital_off;
+			global::Plugin.Badge.Droid.Resource.String.abc_capital_on = global::LyraWallet.Droid.Resource.String.abc_capital_on;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_body_1_material = global::LyraWallet.Droid.Resource.String.abc_font_family_body_1_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_body_2_material = global::LyraWallet.Droid.Resource.String.abc_font_family_body_2_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_button_material = global::LyraWallet.Droid.Resource.String.abc_font_family_button_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_caption_material = global::LyraWallet.Droid.Resource.String.abc_font_family_caption_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_display_1_material = global::LyraWallet.Droid.Resource.String.abc_font_family_display_1_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_display_2_material = global::LyraWallet.Droid.Resource.String.abc_font_family_display_2_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_display_3_material = global::LyraWallet.Droid.Resource.String.abc_font_family_display_3_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_display_4_material = global::LyraWallet.Droid.Resource.String.abc_font_family_display_4_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_headline_material = global::LyraWallet.Droid.Resource.String.abc_font_family_headline_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_menu_material = global::LyraWallet.Droid.Resource.String.abc_font_family_menu_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_subhead_material = global::LyraWallet.Droid.Resource.String.abc_font_family_subhead_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_font_family_title_material = global::LyraWallet.Droid.Resource.String.abc_font_family_title_material;
+			global::Plugin.Badge.Droid.Resource.String.abc_search_hint = global::LyraWallet.Droid.Resource.String.abc_search_hint;
+			global::Plugin.Badge.Droid.Resource.String.abc_searchview_description_clear = global::LyraWallet.Droid.Resource.String.abc_searchview_description_clear;
+			global::Plugin.Badge.Droid.Resource.String.abc_searchview_description_query = global::LyraWallet.Droid.Resource.String.abc_searchview_description_query;
+			global::Plugin.Badge.Droid.Resource.String.abc_searchview_description_search = global::LyraWallet.Droid.Resource.String.abc_searchview_description_search;
+			global::Plugin.Badge.Droid.Resource.String.abc_searchview_description_submit = global::LyraWallet.Droid.Resource.String.abc_searchview_description_submit;
+			global::Plugin.Badge.Droid.Resource.String.abc_searchview_description_voice = global::LyraWallet.Droid.Resource.String.abc_searchview_description_voice;
+			global::Plugin.Badge.Droid.Resource.String.abc_shareactionprovider_share_with = global::LyraWallet.Droid.Resource.String.abc_shareactionprovider_share_with;
+			global::Plugin.Badge.Droid.Resource.String.abc_shareactionprovider_share_with_application = global::LyraWallet.Droid.Resource.String.abc_shareactionprovider_share_with_application;
+			global::Plugin.Badge.Droid.Resource.String.abc_toolbar_collapse_description = global::LyraWallet.Droid.Resource.String.abc_toolbar_collapse_description;
+			global::Plugin.Badge.Droid.Resource.String.appbar_scrolling_view_behavior = global::LyraWallet.Droid.Resource.String.appbar_scrolling_view_behavior;
+			global::Plugin.Badge.Droid.Resource.String.bottom_sheet_behavior = global::LyraWallet.Droid.Resource.String.bottom_sheet_behavior;
+			global::Plugin.Badge.Droid.Resource.String.character_counter_pattern = global::LyraWallet.Droid.Resource.String.character_counter_pattern;
+			global::Plugin.Badge.Droid.Resource.String.library_name = global::LyraWallet.Droid.Resource.String.library_name;
+			global::Plugin.Badge.Droid.Resource.String.mr_button_content_description = global::LyraWallet.Droid.Resource.String.mr_button_content_description;
+			global::Plugin.Badge.Droid.Resource.String.mr_cast_button_connected = global::LyraWallet.Droid.Resource.String.mr_cast_button_connected;
+			global::Plugin.Badge.Droid.Resource.String.mr_cast_button_connecting = global::LyraWallet.Droid.Resource.String.mr_cast_button_connecting;
+			global::Plugin.Badge.Droid.Resource.String.mr_cast_button_disconnected = global::LyraWallet.Droid.Resource.String.mr_cast_button_disconnected;
+			global::Plugin.Badge.Droid.Resource.String.mr_chooser_searching = global::LyraWallet.Droid.Resource.String.mr_chooser_searching;
+			global::Plugin.Badge.Droid.Resource.String.mr_chooser_title = global::LyraWallet.Droid.Resource.String.mr_chooser_title;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_album_art = global::LyraWallet.Droid.Resource.String.mr_controller_album_art;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_casting_screen = global::LyraWallet.Droid.Resource.String.mr_controller_casting_screen;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_close_description = global::LyraWallet.Droid.Resource.String.mr_controller_close_description;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_collapse_group = global::LyraWallet.Droid.Resource.String.mr_controller_collapse_group;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_disconnect = global::LyraWallet.Droid.Resource.String.mr_controller_disconnect;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_expand_group = global::LyraWallet.Droid.Resource.String.mr_controller_expand_group;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_no_info_available = global::LyraWallet.Droid.Resource.String.mr_controller_no_info_available;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_no_media_selected = global::LyraWallet.Droid.Resource.String.mr_controller_no_media_selected;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_pause = global::LyraWallet.Droid.Resource.String.mr_controller_pause;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_play = global::LyraWallet.Droid.Resource.String.mr_controller_play;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_stop = global::LyraWallet.Droid.Resource.String.mr_controller_stop;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_stop_casting = global::LyraWallet.Droid.Resource.String.mr_controller_stop_casting;
+			global::Plugin.Badge.Droid.Resource.String.mr_controller_volume_slider = global::LyraWallet.Droid.Resource.String.mr_controller_volume_slider;
+			global::Plugin.Badge.Droid.Resource.String.mr_system_route_name = global::LyraWallet.Droid.Resource.String.mr_system_route_name;
+			global::Plugin.Badge.Droid.Resource.String.mr_user_route_category_name = global::LyraWallet.Droid.Resource.String.mr_user_route_category_name;
+			global::Plugin.Badge.Droid.Resource.String.password_toggle_content_description = global::LyraWallet.Droid.Resource.String.password_toggle_content_description;
+			global::Plugin.Badge.Droid.Resource.String.path_password_eye = global::LyraWallet.Droid.Resource.String.path_password_eye;
+			global::Plugin.Badge.Droid.Resource.String.path_password_eye_mask_strike_through = global::LyraWallet.Droid.Resource.String.path_password_eye_mask_strike_through;
+			global::Plugin.Badge.Droid.Resource.String.path_password_eye_mask_visible = global::LyraWallet.Droid.Resource.String.path_password_eye_mask_visible;
+			global::Plugin.Badge.Droid.Resource.String.path_password_strike_through = global::LyraWallet.Droid.Resource.String.path_password_strike_through;
+			global::Plugin.Badge.Droid.Resource.String.search_menu_title = global::LyraWallet.Droid.Resource.String.search_menu_title;
+			global::Plugin.Badge.Droid.Resource.String.status_bar_notification_info_overflow = global::LyraWallet.Droid.Resource.String.status_bar_notification_info_overflow;
+			global::Plugin.Badge.Droid.Resource.Style.AlertDialog_AppCompat = global::LyraWallet.Droid.Resource.Style.AlertDialog_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.AlertDialog_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.AlertDialog_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Animation_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.Animation_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Animation_AppCompat_DropDownUp = global::LyraWallet.Droid.Resource.Style.Animation_AppCompat_DropDownUp;
+			global::Plugin.Badge.Droid.Resource.Style.Animation_AppCompat_Tooltip = global::LyraWallet.Droid.Resource.Style.Animation_AppCompat_Tooltip;
+			global::Plugin.Badge.Droid.Resource.Style.Animation_Design_BottomSheetDialog = global::LyraWallet.Droid.Resource.Style.Animation_Design_BottomSheetDialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_AlertDialog_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_AlertDialog_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_AlertDialog_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Base_AlertDialog_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Animation_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.Base_Animation_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Animation_AppCompat_DropDownUp = global::LyraWallet.Droid.Resource.Style.Base_Animation_AppCompat_DropDownUp;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Animation_AppCompat_Tooltip = global::LyraWallet.Droid.Resource.Style.Base_Animation_AppCompat_Tooltip;
+			global::Plugin.Badge.Droid.Resource.Style.Base_CardView = global::LyraWallet.Droid.Resource.Style.Base_CardView;
+			global::Plugin.Badge.Droid.Resource.Style.Base_DialogWindowTitle_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_DialogWindowTitle_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_DialogWindowTitleBackground_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_DialogWindowTitleBackground_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Body1 = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Body1;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Body2 = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Body2;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Button = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Button;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Caption = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Caption;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Display1 = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Display1;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Display2 = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Display2;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Display3 = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Display3;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Display4 = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Display4;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Headline = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Headline;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Inverse = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Large = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Large;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Large_Inverse = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Large_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Light_Widget_PopupMenu_Large = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Light_Widget_PopupMenu_Large;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Light_Widget_PopupMenu_Small = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Light_Widget_PopupMenu_Small;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Medium = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Medium;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Medium_Inverse = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Medium_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Menu = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Menu;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_SearchResult = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_SearchResult;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_SearchResult_Subtitle = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_SearchResult_Subtitle;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_SearchResult_Title = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_SearchResult_Title;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Small = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Small;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Small_Inverse = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Small_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Subhead = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Subhead;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Subhead_Inverse = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Subhead_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Title = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Title;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Title_Inverse = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Title_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Tooltip = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Tooltip;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Menu = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Menu;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Subtitle = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Subtitle;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Subtitle_Inverse = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Subtitle_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Title = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Title;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Title_Inverse = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionBar_Title_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionMode_Subtitle = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionMode_Subtitle;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionMode_Title = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_ActionMode_Title;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Button = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Button;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Button_Borderless_Colored = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Button_Borderless_Colored;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Button_Colored = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Button_Colored;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Button_Inverse = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Button_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_DropDownItem = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_DropDownItem;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_PopupMenu_Header = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_PopupMenu_Header;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_PopupMenu_Large = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_PopupMenu_Large;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_PopupMenu_Small = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_PopupMenu_Small;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Switch = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_Switch;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_TextView_SpinnerItem = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_AppCompat_Widget_TextView_SpinnerItem;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_Widget_AppCompat_ExpandedMenu_Item = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_Widget_AppCompat_ExpandedMenu_Item;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_Widget_AppCompat_Toolbar_Subtitle = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_Widget_AppCompat_Toolbar_Subtitle;
+			global::Plugin.Badge.Droid.Resource.Style.Base_TextAppearance_Widget_AppCompat_Toolbar_Title = global::LyraWallet.Droid.Resource.Style.Base_TextAppearance_Widget_AppCompat_Toolbar_Title;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_CompactMenu = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_CompactMenu;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Dialog_Alert = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Dialog_Alert;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Dialog_FixedSize = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Dialog_FixedSize;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Dialog_MinWidth = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Dialog_MinWidth;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_DialogWhenLarge = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_DialogWhenLarge;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Light_DarkActionBar = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Light_DarkActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Light_Dialog = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Light_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Light_Dialog_Alert = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Light_Dialog_Alert;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Light_Dialog_FixedSize = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Light_Dialog_FixedSize;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Light_Dialog_MinWidth = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Light_Dialog_MinWidth;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Theme_AppCompat_Light_DialogWhenLarge = global::LyraWallet.Droid.Resource.Style.Base_Theme_AppCompat_Light_DialogWhenLarge;
+			global::Plugin.Badge.Droid.Resource.Style.Base_ThemeOverlay_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_ThemeOverlay_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_ActionBar = global::LyraWallet.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Dark = global::LyraWallet.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Dark;
+			global::Plugin.Badge.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Dark_ActionBar = global::LyraWallet.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Dark_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Dialog_Alert = global::LyraWallet.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Dialog_Alert;
+			global::Plugin.Badge.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Base_ThemeOverlay_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V21_Theme_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_V21_Theme_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V21_Theme_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.Base_V21_Theme_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V21_Theme_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Base_V21_Theme_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V21_Theme_AppCompat_Light_Dialog = global::LyraWallet.Droid.Resource.Style.Base_V21_Theme_AppCompat_Light_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V21_ThemeOverlay_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.Base_V21_ThemeOverlay_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V22_Theme_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_V22_Theme_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V22_Theme_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Base_V22_Theme_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V23_Theme_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_V23_Theme_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V23_Theme_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Base_V23_Theme_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V26_Theme_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_V26_Theme_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V26_Theme_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Base_V26_Theme_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V26_Widget_AppCompat_Toolbar = global::LyraWallet.Droid.Resource.Style.Base_V26_Widget_AppCompat_Toolbar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V7_Theme_AppCompat = global::LyraWallet.Droid.Resource.Style.Base_V7_Theme_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V7_Theme_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.Base_V7_Theme_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V7_Theme_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Base_V7_Theme_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V7_Theme_AppCompat_Light_Dialog = global::LyraWallet.Droid.Resource.Style.Base_V7_Theme_AppCompat_Light_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V7_ThemeOverlay_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.Base_V7_ThemeOverlay_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V7_Widget_AppCompat_AutoCompleteTextView = global::LyraWallet.Droid.Resource.Style.Base_V7_Widget_AppCompat_AutoCompleteTextView;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V7_Widget_AppCompat_EditText = global::LyraWallet.Droid.Resource.Style.Base_V7_Widget_AppCompat_EditText;
+			global::Plugin.Badge.Droid.Resource.Style.Base_V7_Widget_AppCompat_Toolbar = global::LyraWallet.Droid.Resource.Style.Base_V7_Widget_AppCompat_Toolbar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar_Solid = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar_Solid;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar_TabBar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar_TabBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar_TabText = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar_TabText;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar_TabView = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActionBar_TabView;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActionButton = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActionButton;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActionButton_CloseMode = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActionButton_CloseMode;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActionButton_Overflow = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActionButton_Overflow;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActionMode = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActionMode;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ActivityChooserView = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ActivityChooserView;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_AutoCompleteTextView = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_AutoCompleteTextView;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Button = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Button;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Button_Borderless = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Button_Borderless;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Button_Borderless_Colored = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Button_Borderless_Colored;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Button_ButtonBar_AlertDialog = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Button_ButtonBar_AlertDialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Button_Colored = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Button_Colored;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Button_Small = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Button_Small;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ButtonBar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ButtonBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ButtonBar_AlertDialog = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ButtonBar_AlertDialog;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_CompoundButton_CheckBox = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_CompoundButton_CheckBox;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_CompoundButton_RadioButton = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_CompoundButton_RadioButton;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_CompoundButton_Switch = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_CompoundButton_Switch;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_DrawerArrowToggle = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_DrawerArrowToggle;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_DrawerArrowToggle_Common = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_DrawerArrowToggle_Common;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_DropDownItem_Spinner = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_DropDownItem_Spinner;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_EditText = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_EditText;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ImageButton = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ImageButton;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_Solid = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_Solid;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_TabBar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_TabBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_TabText = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_TabText;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_TabText_Inverse = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_TabText_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_TabView = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Light_ActionBar_TabView;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Light_PopupMenu = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Light_PopupMenu;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Light_PopupMenu_Overflow = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Light_PopupMenu_Overflow;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ListMenuView = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ListMenuView;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ListPopupWindow = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ListPopupWindow;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ListView = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ListView;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ListView_DropDown = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ListView_DropDown;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ListView_Menu = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ListView_Menu;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_PopupMenu = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_PopupMenu;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_PopupMenu_Overflow = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_PopupMenu_Overflow;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_PopupWindow = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_PopupWindow;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ProgressBar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ProgressBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_ProgressBar_Horizontal = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_ProgressBar_Horizontal;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_RatingBar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_RatingBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_RatingBar_Indicator = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_RatingBar_Indicator;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_RatingBar_Small = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_RatingBar_Small;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_SearchView = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_SearchView;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_SearchView_ActionBar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_SearchView_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_SeekBar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_SeekBar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_SeekBar_Discrete = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_SeekBar_Discrete;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Spinner = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Spinner;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Spinner_Underlined = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Spinner_Underlined;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_TextView_SpinnerItem = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_TextView_SpinnerItem;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Toolbar = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Toolbar;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_AppCompat_Toolbar_Button_Navigation = global::LyraWallet.Droid.Resource.Style.Base_Widget_AppCompat_Toolbar_Button_Navigation;
+			global::Plugin.Badge.Droid.Resource.Style.Base_Widget_Design_TabLayout = global::LyraWallet.Droid.Resource.Style.Base_Widget_Design_TabLayout;
+			global::Plugin.Badge.Droid.Resource.Style.CardView = global::LyraWallet.Droid.Resource.Style.CardView;
+			global::Plugin.Badge.Droid.Resource.Style.CardView_Dark = global::LyraWallet.Droid.Resource.Style.CardView_Dark;
+			global::Plugin.Badge.Droid.Resource.Style.CardView_Light = global::LyraWallet.Droid.Resource.Style.CardView_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_AppCompat = global::LyraWallet.Droid.Resource.Style.Platform_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Platform_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_ThemeOverlay_AppCompat = global::LyraWallet.Droid.Resource.Style.Platform_ThemeOverlay_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_ThemeOverlay_AppCompat_Dark = global::LyraWallet.Droid.Resource.Style.Platform_ThemeOverlay_AppCompat_Dark;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_ThemeOverlay_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Platform_ThemeOverlay_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_V21_AppCompat = global::LyraWallet.Droid.Resource.Style.Platform_V21_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_V21_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Platform_V21_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_V25_AppCompat = global::LyraWallet.Droid.Resource.Style.Platform_V25_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_V25_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Platform_V25_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Platform_Widget_AppCompat_Spinner = global::LyraWallet.Droid.Resource.Style.Platform_Widget_AppCompat_Spinner;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_DialogWindowTitle_AppCompat = global::LyraWallet.Droid.Resource.Style.RtlOverlay_DialogWindowTitle_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_ActionBar_TitleItem = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_ActionBar_TitleItem;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_DialogTitle_Icon = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_DialogTitle_Icon;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_PopupMenuItem = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_PopupMenuItem;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_PopupMenuItem_InternalGroup = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_PopupMenuItem_InternalGroup;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_PopupMenuItem_Text = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_PopupMenuItem_Text;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown_Icon1 = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown_Icon1;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown_Icon2 = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown_Icon2;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown_Query = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown_Query;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown_Text = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_Search_DropDown_Text;
+			global::Plugin.Badge.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_SearchView_MagIcon = global::LyraWallet.Droid.Resource.Style.RtlOverlay_Widget_AppCompat_SearchView_MagIcon;
+			global::Plugin.Badge.Droid.Resource.Style.RtlUnderlay_Widget_AppCompat_ActionButton = global::LyraWallet.Droid.Resource.Style.RtlUnderlay_Widget_AppCompat_ActionButton;
+			global::Plugin.Badge.Droid.Resource.Style.RtlUnderlay_Widget_AppCompat_ActionButton_Overflow = global::LyraWallet.Droid.Resource.Style.RtlUnderlay_Widget_AppCompat_ActionButton_Overflow;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Body1 = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Body1;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Body2 = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Body2;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Button = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Button;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Caption = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Caption;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Display1 = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Display1;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Display2 = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Display2;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Display3 = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Display3;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Display4 = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Display4;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Headline = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Headline;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Large = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Large;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Large_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Large_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Light_SearchResult_Subtitle = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Light_SearchResult_Subtitle;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Light_SearchResult_Title = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Light_SearchResult_Title;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Light_Widget_PopupMenu_Large = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Light_Widget_PopupMenu_Large;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Light_Widget_PopupMenu_Small = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Light_Widget_PopupMenu_Small;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Medium = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Medium;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Medium_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Medium_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Menu = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Menu;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_SearchResult_Subtitle = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_SearchResult_Subtitle;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_SearchResult_Title = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_SearchResult_Title;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Small = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Small;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Small_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Small_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Subhead = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Subhead;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Subhead_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Subhead_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Title = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Title;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Title_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Title_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Tooltip = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Tooltip;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Menu = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Menu;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Subtitle = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Subtitle;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Subtitle_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Subtitle_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Title = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Title;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Title_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionBar_Title_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionMode_Subtitle = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionMode_Subtitle;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionMode_Subtitle_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionMode_Subtitle_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionMode_Title = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionMode_Title;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionMode_Title_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_ActionMode_Title_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Button = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Button;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Button_Borderless_Colored = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Button_Borderless_Colored;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Button_Colored = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Button_Colored;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Button_Inverse = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Button_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_DropDownItem = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_DropDownItem;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_PopupMenu_Header = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_PopupMenu_Header;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_PopupMenu_Large = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_PopupMenu_Large;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_PopupMenu_Small = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_PopupMenu_Small;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Switch = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_Switch;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_AppCompat_Widget_TextView_SpinnerItem = global::LyraWallet.Droid.Resource.Style.TextAppearance_AppCompat_Widget_TextView_SpinnerItem;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification_Info = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification_Info;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification_Info_Media = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification_Info_Media;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification_Line2 = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification_Line2;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification_Line2_Media = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification_Line2_Media;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification_Media = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification_Media;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification_Time = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification_Time;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification_Time_Media = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification_Time_Media;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification_Title = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification_Title;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Compat_Notification_Title_Media = global::LyraWallet.Droid.Resource.Style.TextAppearance_Compat_Notification_Title_Media;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Design_CollapsingToolbar_Expanded = global::LyraWallet.Droid.Resource.Style.TextAppearance_Design_CollapsingToolbar_Expanded;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Design_Counter = global::LyraWallet.Droid.Resource.Style.TextAppearance_Design_Counter;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Design_Counter_Overflow = global::LyraWallet.Droid.Resource.Style.TextAppearance_Design_Counter_Overflow;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Design_Error = global::LyraWallet.Droid.Resource.Style.TextAppearance_Design_Error;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Design_Hint = global::LyraWallet.Droid.Resource.Style.TextAppearance_Design_Hint;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Design_Snackbar_Message = global::LyraWallet.Droid.Resource.Style.TextAppearance_Design_Snackbar_Message;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Design_Tab = global::LyraWallet.Droid.Resource.Style.TextAppearance_Design_Tab;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_MediaRouter_PrimaryText = global::LyraWallet.Droid.Resource.Style.TextAppearance_MediaRouter_PrimaryText;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_MediaRouter_SecondaryText = global::LyraWallet.Droid.Resource.Style.TextAppearance_MediaRouter_SecondaryText;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_MediaRouter_Title = global::LyraWallet.Droid.Resource.Style.TextAppearance_MediaRouter_Title;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Widget_AppCompat_ExpandedMenu_Item = global::LyraWallet.Droid.Resource.Style.TextAppearance_Widget_AppCompat_ExpandedMenu_Item;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Widget_AppCompat_Toolbar_Subtitle = global::LyraWallet.Droid.Resource.Style.TextAppearance_Widget_AppCompat_Toolbar_Subtitle;
+			global::Plugin.Badge.Droid.Resource.Style.TextAppearance_Widget_AppCompat_Toolbar_Title = global::LyraWallet.Droid.Resource.Style.TextAppearance_Widget_AppCompat_Toolbar_Title;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_CompactMenu = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_CompactMenu;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_DayNight = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_DayNight;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_DayNight_DarkActionBar = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_DayNight_DarkActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_DayNight_Dialog = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_DayNight_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_DayNight_Dialog_Alert = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_DayNight_Dialog_Alert;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_DayNight_Dialog_MinWidth = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_DayNight_Dialog_MinWidth;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_DayNight_DialogWhenLarge = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_DayNight_DialogWhenLarge;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_DayNight_NoActionBar = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_DayNight_NoActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Dialog_Alert = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Dialog_Alert;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Dialog_MinWidth = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Dialog_MinWidth;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_DialogWhenLarge = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_DialogWhenLarge;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Light_DarkActionBar = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Light_DarkActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Light_Dialog = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Light_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Light_Dialog_Alert = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Light_Dialog_Alert;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Light_Dialog_MinWidth = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Light_Dialog_MinWidth;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Light_DialogWhenLarge = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Light_DialogWhenLarge;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_Light_NoActionBar = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_Light_NoActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_AppCompat_NoActionBar = global::LyraWallet.Droid.Resource.Style.Theme_AppCompat_NoActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_Design = global::LyraWallet.Droid.Resource.Style.Theme_Design;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_Design_BottomSheetDialog = global::LyraWallet.Droid.Resource.Style.Theme_Design_BottomSheetDialog;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_Design_Light = global::LyraWallet.Droid.Resource.Style.Theme_Design_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_Design_Light_BottomSheetDialog = global::LyraWallet.Droid.Resource.Style.Theme_Design_Light_BottomSheetDialog;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_Design_Light_NoActionBar = global::LyraWallet.Droid.Resource.Style.Theme_Design_Light_NoActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_Design_NoActionBar = global::LyraWallet.Droid.Resource.Style.Theme_Design_NoActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_MediaRouter = global::LyraWallet.Droid.Resource.Style.Theme_MediaRouter;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_MediaRouter_Light = global::LyraWallet.Droid.Resource.Style.Theme_MediaRouter_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_MediaRouter_Light_DarkControlPanel = global::LyraWallet.Droid.Resource.Style.Theme_MediaRouter_Light_DarkControlPanel;
+			global::Plugin.Badge.Droid.Resource.Style.Theme_MediaRouter_LightControlPanel = global::LyraWallet.Droid.Resource.Style.Theme_MediaRouter_LightControlPanel;
+			global::Plugin.Badge.Droid.Resource.Style.ThemeOverlay_AppCompat = global::LyraWallet.Droid.Resource.Style.ThemeOverlay_AppCompat;
+			global::Plugin.Badge.Droid.Resource.Style.ThemeOverlay_AppCompat_ActionBar = global::LyraWallet.Droid.Resource.Style.ThemeOverlay_AppCompat_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.ThemeOverlay_AppCompat_Dark = global::LyraWallet.Droid.Resource.Style.ThemeOverlay_AppCompat_Dark;
+			global::Plugin.Badge.Droid.Resource.Style.ThemeOverlay_AppCompat_Dark_ActionBar = global::LyraWallet.Droid.Resource.Style.ThemeOverlay_AppCompat_Dark_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.ThemeOverlay_AppCompat_Dialog = global::LyraWallet.Droid.Resource.Style.ThemeOverlay_AppCompat_Dialog;
+			global::Plugin.Badge.Droid.Resource.Style.ThemeOverlay_AppCompat_Dialog_Alert = global::LyraWallet.Droid.Resource.Style.ThemeOverlay_AppCompat_Dialog_Alert;
+			global::Plugin.Badge.Droid.Resource.Style.ThemeOverlay_AppCompat_Light = global::LyraWallet.Droid.Resource.Style.ThemeOverlay_AppCompat_Light;
+			global::Plugin.Badge.Droid.Resource.Style.ThemeOverlay_MediaRouter_Dark = global::LyraWallet.Droid.Resource.Style.ThemeOverlay_MediaRouter_Dark;
+			global::Plugin.Badge.Droid.Resource.Style.ThemeOverlay_MediaRouter_Light = global::LyraWallet.Droid.Resource.Style.ThemeOverlay_MediaRouter_Light;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActionBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActionBar_Solid = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActionBar_Solid;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActionBar_TabBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActionBar_TabBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActionBar_TabText = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActionBar_TabText;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActionBar_TabView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActionBar_TabView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActionButton = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActionButton;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActionButton_CloseMode = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActionButton_CloseMode;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActionButton_Overflow = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActionButton_Overflow;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActionMode = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActionMode;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ActivityChooserView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ActivityChooserView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_AutoCompleteTextView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_AutoCompleteTextView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Button = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Button;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Button_Borderless = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Button_Borderless;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Button_Borderless_Colored = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Button_Borderless_Colored;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Button_ButtonBar_AlertDialog = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Button_ButtonBar_AlertDialog;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Button_Colored = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Button_Colored;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Button_Small = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Button_Small;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ButtonBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ButtonBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ButtonBar_AlertDialog = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ButtonBar_AlertDialog;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_CompoundButton_CheckBox = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_CompoundButton_CheckBox;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_CompoundButton_RadioButton = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_CompoundButton_RadioButton;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_CompoundButton_Switch = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_CompoundButton_Switch;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_DrawerArrowToggle = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_DrawerArrowToggle;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_DropDownItem_Spinner = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_DropDownItem_Spinner;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_EditText = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_EditText;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ImageButton = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ImageButton;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_Solid = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_Solid;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_Solid_Inverse = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_Solid_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabBar_Inverse = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabBar_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabText = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabText;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabText_Inverse = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabText_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabView_Inverse = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionBar_TabView_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionButton = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionButton;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionButton_CloseMode = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionButton_CloseMode;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionButton_Overflow = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionButton_Overflow;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActionMode_Inverse = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActionMode_Inverse;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ActivityChooserView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ActivityChooserView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_AutoCompleteTextView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_AutoCompleteTextView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_DropDownItem_Spinner = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_DropDownItem_Spinner;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ListPopupWindow = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ListPopupWindow;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_ListView_DropDown = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_ListView_DropDown;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_PopupMenu = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_PopupMenu;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_PopupMenu_Overflow = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_PopupMenu_Overflow;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_SearchView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_SearchView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Light_Spinner_DropDown_ActionBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Light_Spinner_DropDown_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ListMenuView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ListMenuView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ListPopupWindow = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ListPopupWindow;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ListView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ListView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ListView_DropDown = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ListView_DropDown;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ListView_Menu = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ListView_Menu;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_PopupMenu = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_PopupMenu;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_PopupMenu_Overflow = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_PopupMenu_Overflow;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_PopupWindow = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_PopupWindow;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ProgressBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ProgressBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_ProgressBar_Horizontal = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_ProgressBar_Horizontal;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_RatingBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_RatingBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_RatingBar_Indicator = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_RatingBar_Indicator;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_RatingBar_Small = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_RatingBar_Small;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_SearchView = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_SearchView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_SearchView_ActionBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_SearchView_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_SeekBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_SeekBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_SeekBar_Discrete = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_SeekBar_Discrete;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Spinner = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Spinner;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Spinner_DropDown = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Spinner_DropDown;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Spinner_DropDown_ActionBar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Spinner_DropDown_ActionBar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Spinner_Underlined = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Spinner_Underlined;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_TextView_SpinnerItem = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_TextView_SpinnerItem;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Toolbar = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Toolbar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_AppCompat_Toolbar_Button_Navigation = global::LyraWallet.Droid.Resource.Style.Widget_AppCompat_Toolbar_Button_Navigation;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Compat_NotificationActionContainer = global::LyraWallet.Droid.Resource.Style.Widget_Compat_NotificationActionContainer;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Compat_NotificationActionText = global::LyraWallet.Droid.Resource.Style.Widget_Compat_NotificationActionText;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_AppBarLayout = global::LyraWallet.Droid.Resource.Style.Widget_Design_AppBarLayout;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_BottomNavigationView = global::LyraWallet.Droid.Resource.Style.Widget_Design_BottomNavigationView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_BottomSheet_Modal = global::LyraWallet.Droid.Resource.Style.Widget_Design_BottomSheet_Modal;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_CollapsingToolbar = global::LyraWallet.Droid.Resource.Style.Widget_Design_CollapsingToolbar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_FloatingActionButton = global::LyraWallet.Droid.Resource.Style.Widget_Design_FloatingActionButton;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_NavigationView = global::LyraWallet.Droid.Resource.Style.Widget_Design_NavigationView;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_ScrimInsetsFrameLayout = global::LyraWallet.Droid.Resource.Style.Widget_Design_ScrimInsetsFrameLayout;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_Snackbar = global::LyraWallet.Droid.Resource.Style.Widget_Design_Snackbar;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_TabLayout = global::LyraWallet.Droid.Resource.Style.Widget_Design_TabLayout;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_Design_TextInputLayout = global::LyraWallet.Droid.Resource.Style.Widget_Design_TextInputLayout;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_MediaRouter_Light_MediaRouteButton = global::LyraWallet.Droid.Resource.Style.Widget_MediaRouter_Light_MediaRouteButton;
+			global::Plugin.Badge.Droid.Resource.Style.Widget_MediaRouter_MediaRouteButton = global::LyraWallet.Droid.Resource.Style.Widget_MediaRouter_MediaRouteButton;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar = global::LyraWallet.Droid.Resource.Styleable.ActionBar;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_background = global::LyraWallet.Droid.Resource.Styleable.ActionBar_background;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_backgroundSplit = global::LyraWallet.Droid.Resource.Styleable.ActionBar_backgroundSplit;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_backgroundStacked = global::LyraWallet.Droid.Resource.Styleable.ActionBar_backgroundStacked;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_contentInsetEnd = global::LyraWallet.Droid.Resource.Styleable.ActionBar_contentInsetEnd;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_contentInsetEndWithActions = global::LyraWallet.Droid.Resource.Styleable.ActionBar_contentInsetEndWithActions;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_contentInsetLeft = global::LyraWallet.Droid.Resource.Styleable.ActionBar_contentInsetLeft;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_contentInsetRight = global::LyraWallet.Droid.Resource.Styleable.ActionBar_contentInsetRight;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_contentInsetStart = global::LyraWallet.Droid.Resource.Styleable.ActionBar_contentInsetStart;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_contentInsetStartWithNavigation = global::LyraWallet.Droid.Resource.Styleable.ActionBar_contentInsetStartWithNavigation;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_customNavigationLayout = global::LyraWallet.Droid.Resource.Styleable.ActionBar_customNavigationLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_displayOptions = global::LyraWallet.Droid.Resource.Styleable.ActionBar_displayOptions;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_divider = global::LyraWallet.Droid.Resource.Styleable.ActionBar_divider;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_elevation = global::LyraWallet.Droid.Resource.Styleable.ActionBar_elevation;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_height = global::LyraWallet.Droid.Resource.Styleable.ActionBar_height;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_hideOnContentScroll = global::LyraWallet.Droid.Resource.Styleable.ActionBar_hideOnContentScroll;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_homeAsUpIndicator = global::LyraWallet.Droid.Resource.Styleable.ActionBar_homeAsUpIndicator;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_homeLayout = global::LyraWallet.Droid.Resource.Styleable.ActionBar_homeLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_icon = global::LyraWallet.Droid.Resource.Styleable.ActionBar_icon;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_indeterminateProgressStyle = global::LyraWallet.Droid.Resource.Styleable.ActionBar_indeterminateProgressStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_itemPadding = global::LyraWallet.Droid.Resource.Styleable.ActionBar_itemPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_logo = global::LyraWallet.Droid.Resource.Styleable.ActionBar_logo;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_navigationMode = global::LyraWallet.Droid.Resource.Styleable.ActionBar_navigationMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_popupTheme = global::LyraWallet.Droid.Resource.Styleable.ActionBar_popupTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_progressBarPadding = global::LyraWallet.Droid.Resource.Styleable.ActionBar_progressBarPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_progressBarStyle = global::LyraWallet.Droid.Resource.Styleable.ActionBar_progressBarStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_subtitle = global::LyraWallet.Droid.Resource.Styleable.ActionBar_subtitle;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_subtitleTextStyle = global::LyraWallet.Droid.Resource.Styleable.ActionBar_subtitleTextStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_title = global::LyraWallet.Droid.Resource.Styleable.ActionBar_title;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBar_titleTextStyle = global::LyraWallet.Droid.Resource.Styleable.ActionBar_titleTextStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBarLayout = global::LyraWallet.Droid.Resource.Styleable.ActionBarLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionBarLayout_android_layout_gravity = global::LyraWallet.Droid.Resource.Styleable.ActionBarLayout_android_layout_gravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMenuItemView = global::LyraWallet.Droid.Resource.Styleable.ActionMenuItemView;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMenuItemView_android_minWidth = global::LyraWallet.Droid.Resource.Styleable.ActionMenuItemView_android_minWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMenuView = global::LyraWallet.Droid.Resource.Styleable.ActionMenuView;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMode = global::LyraWallet.Droid.Resource.Styleable.ActionMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMode_background = global::LyraWallet.Droid.Resource.Styleable.ActionMode_background;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMode_backgroundSplit = global::LyraWallet.Droid.Resource.Styleable.ActionMode_backgroundSplit;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMode_closeItemLayout = global::LyraWallet.Droid.Resource.Styleable.ActionMode_closeItemLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMode_height = global::LyraWallet.Droid.Resource.Styleable.ActionMode_height;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMode_subtitleTextStyle = global::LyraWallet.Droid.Resource.Styleable.ActionMode_subtitleTextStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActionMode_titleTextStyle = global::LyraWallet.Droid.Resource.Styleable.ActionMode_titleTextStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActivityChooserView = global::LyraWallet.Droid.Resource.Styleable.ActivityChooserView;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActivityChooserView_expandActivityOverflowButtonDrawable = global::LyraWallet.Droid.Resource.Styleable.ActivityChooserView_expandActivityOverflowButtonDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.ActivityChooserView_initialActivityCount = global::LyraWallet.Droid.Resource.Styleable.ActivityChooserView_initialActivityCount;
+			global::Plugin.Badge.Droid.Resource.Styleable.AlertDialog = global::LyraWallet.Droid.Resource.Styleable.AlertDialog;
+			global::Plugin.Badge.Droid.Resource.Styleable.AlertDialog_android_layout = global::LyraWallet.Droid.Resource.Styleable.AlertDialog_android_layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.AlertDialog_buttonPanelSideLayout = global::LyraWallet.Droid.Resource.Styleable.AlertDialog_buttonPanelSideLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.AlertDialog_listItemLayout = global::LyraWallet.Droid.Resource.Styleable.AlertDialog_listItemLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.AlertDialog_listLayout = global::LyraWallet.Droid.Resource.Styleable.AlertDialog_listLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.AlertDialog_multiChoiceItemLayout = global::LyraWallet.Droid.Resource.Styleable.AlertDialog_multiChoiceItemLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.AlertDialog_showTitle = global::LyraWallet.Droid.Resource.Styleable.AlertDialog_showTitle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AlertDialog_singleChoiceItemLayout = global::LyraWallet.Droid.Resource.Styleable.AlertDialog_singleChoiceItemLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayout = global::LyraWallet.Droid.Resource.Styleable.AppBarLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayout_android_background = global::LyraWallet.Droid.Resource.Styleable.AppBarLayout_android_background;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayout_android_keyboardNavigationCluster = global::LyraWallet.Droid.Resource.Styleable.AppBarLayout_android_keyboardNavigationCluster;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayout_android_touchscreenBlocksFocus = global::LyraWallet.Droid.Resource.Styleable.AppBarLayout_android_touchscreenBlocksFocus;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayout_elevation = global::LyraWallet.Droid.Resource.Styleable.AppBarLayout_elevation;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayout_expanded = global::LyraWallet.Droid.Resource.Styleable.AppBarLayout_expanded;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayoutStates = global::LyraWallet.Droid.Resource.Styleable.AppBarLayoutStates;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayoutStates_state_collapsed = global::LyraWallet.Droid.Resource.Styleable.AppBarLayoutStates_state_collapsed;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayoutStates_state_collapsible = global::LyraWallet.Droid.Resource.Styleable.AppBarLayoutStates_state_collapsible;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayout_Layout = global::LyraWallet.Droid.Resource.Styleable.AppBarLayout_Layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayout_Layout_layout_scrollFlags = global::LyraWallet.Droid.Resource.Styleable.AppBarLayout_Layout_layout_scrollFlags;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppBarLayout_Layout_layout_scrollInterpolator = global::LyraWallet.Droid.Resource.Styleable.AppBarLayout_Layout_layout_scrollInterpolator;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatImageView = global::LyraWallet.Droid.Resource.Styleable.AppCompatImageView;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatImageView_android_src = global::LyraWallet.Droid.Resource.Styleable.AppCompatImageView_android_src;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatImageView_srcCompat = global::LyraWallet.Droid.Resource.Styleable.AppCompatImageView_srcCompat;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatImageView_tint = global::LyraWallet.Droid.Resource.Styleable.AppCompatImageView_tint;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatImageView_tintMode = global::LyraWallet.Droid.Resource.Styleable.AppCompatImageView_tintMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatSeekBar = global::LyraWallet.Droid.Resource.Styleable.AppCompatSeekBar;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatSeekBar_android_thumb = global::LyraWallet.Droid.Resource.Styleable.AppCompatSeekBar_android_thumb;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatSeekBar_tickMark = global::LyraWallet.Droid.Resource.Styleable.AppCompatSeekBar_tickMark;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatSeekBar_tickMarkTint = global::LyraWallet.Droid.Resource.Styleable.AppCompatSeekBar_tickMarkTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatSeekBar_tickMarkTintMode = global::LyraWallet.Droid.Resource.Styleable.AppCompatSeekBar_tickMarkTintMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextHelper = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextHelper;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableBottom = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableBottom;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableEnd = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableEnd;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableLeft = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableLeft;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableRight = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableRight;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableStart = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableStart;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableTop = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextHelper_android_drawableTop;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextHelper_android_textAppearance = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextHelper_android_textAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextView = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextView;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextView_android_textAppearance = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextView_android_textAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextView_autoSizeMaxTextSize = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextView_autoSizeMaxTextSize;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextView_autoSizeMinTextSize = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextView_autoSizeMinTextSize;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextView_autoSizePresetSizes = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextView_autoSizePresetSizes;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextView_autoSizeStepGranularity = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextView_autoSizeStepGranularity;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextView_autoSizeTextType = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextView_autoSizeTextType;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextView_fontFamily = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextView_fontFamily;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTextView_textAllCaps = global::LyraWallet.Droid.Resource.Styleable.AppCompatTextView_textAllCaps;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarDivider = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarDivider;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarItemBackground = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarItemBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarPopupTheme = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarPopupTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarSize = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarSize;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarSplitStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarSplitStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarTabBarStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarTabBarStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarTabStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarTabStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarTabTextStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarTabTextStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarTheme = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionBarWidgetTheme = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionBarWidgetTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionDropDownStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionDropDownStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionMenuTextAppearance = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionMenuTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionMenuTextColor = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionMenuTextColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeBackground = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeCloseButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeCloseButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeCloseDrawable = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeCloseDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeCopyDrawable = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeCopyDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeCutDrawable = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeCutDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeFindDrawable = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeFindDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModePasteDrawable = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModePasteDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModePopupWindowStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModePopupWindowStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeSelectAllDrawable = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeSelectAllDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeShareDrawable = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeShareDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeSplitBackground = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeSplitBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionModeWebSearchDrawable = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionModeWebSearchDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionOverflowButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionOverflowButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_actionOverflowMenuStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_actionOverflowMenuStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_activityChooserViewStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_activityChooserViewStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_alertDialogButtonGroupStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_alertDialogButtonGroupStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_alertDialogCenterButtons = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_alertDialogCenterButtons;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_alertDialogStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_alertDialogStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_alertDialogTheme = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_alertDialogTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_android_windowAnimationStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_android_windowAnimationStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_android_windowIsFloating = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_android_windowIsFloating;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_autoCompleteTextViewStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_autoCompleteTextViewStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_borderlessButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_borderlessButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_buttonBarButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_buttonBarButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_buttonBarNegativeButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_buttonBarNegativeButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_buttonBarNeutralButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_buttonBarNeutralButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_buttonBarPositiveButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_buttonBarPositiveButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_buttonBarStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_buttonBarStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_buttonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_buttonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_buttonStyleSmall = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_buttonStyleSmall;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_checkboxStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_checkboxStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_checkedTextViewStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_checkedTextViewStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorAccent = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorAccent;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorBackgroundFloating = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorBackgroundFloating;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorButtonNormal = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorButtonNormal;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorControlActivated = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorControlActivated;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorControlHighlight = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorControlHighlight;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorControlNormal = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorControlNormal;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorError = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorError;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorPrimary = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorPrimary;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorPrimaryDark = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorPrimaryDark;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_colorSwitchThumbNormal = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_colorSwitchThumbNormal;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_controlBackground = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_controlBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_dialogPreferredPadding = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_dialogPreferredPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_dialogTheme = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_dialogTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_dividerHorizontal = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_dividerHorizontal;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_dividerVertical = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_dividerVertical;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_dropDownListViewStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_dropDownListViewStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_dropdownListPreferredItemHeight = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_dropdownListPreferredItemHeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_editTextBackground = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_editTextBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_editTextColor = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_editTextColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_editTextStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_editTextStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_homeAsUpIndicator = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_homeAsUpIndicator;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_imageButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_imageButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_listChoiceBackgroundIndicator = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_listChoiceBackgroundIndicator;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_listDividerAlertDialog = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_listDividerAlertDialog;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_listMenuViewStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_listMenuViewStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_listPopupWindowStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_listPopupWindowStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemHeight = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemHeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemHeightLarge = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemHeightLarge;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemHeightSmall = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemHeightSmall;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemPaddingLeft = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemPaddingLeft;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemPaddingRight = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_listPreferredItemPaddingRight;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_panelBackground = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_panelBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_panelMenuListTheme = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_panelMenuListTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_panelMenuListWidth = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_panelMenuListWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_popupMenuStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_popupMenuStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_popupWindowStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_popupWindowStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_radioButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_radioButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_ratingBarStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_ratingBarStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_ratingBarStyleIndicator = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_ratingBarStyleIndicator;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_ratingBarStyleSmall = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_ratingBarStyleSmall;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_searchViewStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_searchViewStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_seekBarStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_seekBarStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_selectableItemBackground = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_selectableItemBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_selectableItemBackgroundBorderless = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_selectableItemBackgroundBorderless;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_spinnerDropDownItemStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_spinnerDropDownItemStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_spinnerStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_spinnerStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_switchStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_switchStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textAppearanceLargePopupMenu = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textAppearanceLargePopupMenu;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textAppearanceListItem = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textAppearanceListItem;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textAppearanceListItemSecondary = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textAppearanceListItemSecondary;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textAppearanceListItemSmall = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textAppearanceListItemSmall;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textAppearancePopupMenuHeader = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textAppearancePopupMenuHeader;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textAppearanceSearchResultSubtitle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textAppearanceSearchResultSubtitle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textAppearanceSearchResultTitle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textAppearanceSearchResultTitle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textAppearanceSmallPopupMenu = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textAppearanceSmallPopupMenu;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textColorAlertDialogListItem = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textColorAlertDialogListItem;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_textColorSearchUrl = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_textColorSearchUrl;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_toolbarNavigationButtonStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_toolbarNavigationButtonStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_toolbarStyle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_toolbarStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_tooltipForegroundColor = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_tooltipForegroundColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_tooltipFrameBackground = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_tooltipFrameBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowActionBar = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowActionBar;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowActionBarOverlay = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowActionBarOverlay;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowActionModeOverlay = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowActionModeOverlay;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowFixedHeightMajor = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowFixedHeightMajor;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowFixedHeightMinor = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowFixedHeightMinor;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowFixedWidthMajor = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowFixedWidthMajor;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowFixedWidthMinor = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowFixedWidthMinor;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowMinWidthMajor = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowMinWidthMajor;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowMinWidthMinor = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowMinWidthMinor;
+			global::Plugin.Badge.Droid.Resource.Styleable.AppCompatTheme_windowNoTitle = global::LyraWallet.Droid.Resource.Styleable.AppCompatTheme_windowNoTitle;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomNavigationView = global::LyraWallet.Droid.Resource.Styleable.BottomNavigationView;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomNavigationView_elevation = global::LyraWallet.Droid.Resource.Styleable.BottomNavigationView_elevation;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomNavigationView_itemBackground = global::LyraWallet.Droid.Resource.Styleable.BottomNavigationView_itemBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomNavigationView_itemIconTint = global::LyraWallet.Droid.Resource.Styleable.BottomNavigationView_itemIconTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomNavigationView_itemTextColor = global::LyraWallet.Droid.Resource.Styleable.BottomNavigationView_itemTextColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomNavigationView_menu = global::LyraWallet.Droid.Resource.Styleable.BottomNavigationView_menu;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomSheetBehavior_Layout = global::LyraWallet.Droid.Resource.Styleable.BottomSheetBehavior_Layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomSheetBehavior_Layout_behavior_hideable = global::LyraWallet.Droid.Resource.Styleable.BottomSheetBehavior_Layout_behavior_hideable;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomSheetBehavior_Layout_behavior_peekHeight = global::LyraWallet.Droid.Resource.Styleable.BottomSheetBehavior_Layout_behavior_peekHeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.BottomSheetBehavior_Layout_behavior_skipCollapsed = global::LyraWallet.Droid.Resource.Styleable.BottomSheetBehavior_Layout_behavior_skipCollapsed;
+			global::Plugin.Badge.Droid.Resource.Styleable.ButtonBarLayout = global::LyraWallet.Droid.Resource.Styleable.ButtonBarLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.ButtonBarLayout_allowStacking = global::LyraWallet.Droid.Resource.Styleable.ButtonBarLayout_allowStacking;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView = global::LyraWallet.Droid.Resource.Styleable.CardView;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_android_minHeight = global::LyraWallet.Droid.Resource.Styleable.CardView_android_minHeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_android_minWidth = global::LyraWallet.Droid.Resource.Styleable.CardView_android_minWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_cardBackgroundColor = global::LyraWallet.Droid.Resource.Styleable.CardView_cardBackgroundColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_cardCornerRadius = global::LyraWallet.Droid.Resource.Styleable.CardView_cardCornerRadius;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_cardElevation = global::LyraWallet.Droid.Resource.Styleable.CardView_cardElevation;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_cardMaxElevation = global::LyraWallet.Droid.Resource.Styleable.CardView_cardMaxElevation;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_cardPreventCornerOverlap = global::LyraWallet.Droid.Resource.Styleable.CardView_cardPreventCornerOverlap;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_cardUseCompatPadding = global::LyraWallet.Droid.Resource.Styleable.CardView_cardUseCompatPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_contentPadding = global::LyraWallet.Droid.Resource.Styleable.CardView_contentPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_contentPaddingBottom = global::LyraWallet.Droid.Resource.Styleable.CardView_contentPaddingBottom;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_contentPaddingLeft = global::LyraWallet.Droid.Resource.Styleable.CardView_contentPaddingLeft;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_contentPaddingRight = global::LyraWallet.Droid.Resource.Styleable.CardView_contentPaddingRight;
+			global::Plugin.Badge.Droid.Resource.Styleable.CardView_contentPaddingTop = global::LyraWallet.Droid.Resource.Styleable.CardView_contentPaddingTop;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_collapsedTitleGravity = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_collapsedTitleGravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_collapsedTitleTextAppearance = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_collapsedTitleTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_contentScrim = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_contentScrim;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleGravity = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleGravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMargin = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMargin;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMarginBottom = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMarginBottom;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMarginEnd = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMarginEnd;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMarginStart = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMarginStart;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMarginTop = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleMarginTop;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleTextAppearance = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_expandedTitleTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_scrimAnimationDuration = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_scrimAnimationDuration;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_scrimVisibleHeightTrigger = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_scrimVisibleHeightTrigger;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_statusBarScrim = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_statusBarScrim;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_title = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_title;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_titleEnabled = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_titleEnabled;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_toolbarId = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_toolbarId;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_Layout = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_Layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_Layout_layout_collapseMode = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_Layout_layout_collapseMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.CollapsingToolbarLayout_Layout_layout_collapseParallaxMultiplier = global::LyraWallet.Droid.Resource.Styleable.CollapsingToolbarLayout_Layout_layout_collapseParallaxMultiplier;
+			global::Plugin.Badge.Droid.Resource.Styleable.ColorStateListItem = global::LyraWallet.Droid.Resource.Styleable.ColorStateListItem;
+			global::Plugin.Badge.Droid.Resource.Styleable.ColorStateListItem_alpha = global::LyraWallet.Droid.Resource.Styleable.ColorStateListItem_alpha;
+			global::Plugin.Badge.Droid.Resource.Styleable.ColorStateListItem_android_alpha = global::LyraWallet.Droid.Resource.Styleable.ColorStateListItem_android_alpha;
+			global::Plugin.Badge.Droid.Resource.Styleable.ColorStateListItem_android_color = global::LyraWallet.Droid.Resource.Styleable.ColorStateListItem_android_color;
+			global::Plugin.Badge.Droid.Resource.Styleable.CompoundButton = global::LyraWallet.Droid.Resource.Styleable.CompoundButton;
+			global::Plugin.Badge.Droid.Resource.Styleable.CompoundButton_android_button = global::LyraWallet.Droid.Resource.Styleable.CompoundButton_android_button;
+			global::Plugin.Badge.Droid.Resource.Styleable.CompoundButton_buttonTint = global::LyraWallet.Droid.Resource.Styleable.CompoundButton_buttonTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.CompoundButton_buttonTintMode = global::LyraWallet.Droid.Resource.Styleable.CompoundButton_buttonTintMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_keylines = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_keylines;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_statusBarBackground = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_statusBarBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_Layout = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_Layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_Layout_android_layout_gravity = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_Layout_android_layout_gravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_anchor = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_anchor;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_anchorGravity = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_anchorGravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_behavior = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_behavior;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_dodgeInsetEdges = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_dodgeInsetEdges;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_insetEdge = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_insetEdge;
+			global::Plugin.Badge.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_keyline = global::LyraWallet.Droid.Resource.Styleable.CoordinatorLayout_Layout_layout_keyline;
+			global::Plugin.Badge.Droid.Resource.Styleable.DesignTheme = global::LyraWallet.Droid.Resource.Styleable.DesignTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.DesignTheme_bottomSheetDialogTheme = global::LyraWallet.Droid.Resource.Styleable.DesignTheme_bottomSheetDialogTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.DesignTheme_bottomSheetStyle = global::LyraWallet.Droid.Resource.Styleable.DesignTheme_bottomSheetStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.DrawerArrowToggle = global::LyraWallet.Droid.Resource.Styleable.DrawerArrowToggle;
+			global::Plugin.Badge.Droid.Resource.Styleable.DrawerArrowToggle_arrowHeadLength = global::LyraWallet.Droid.Resource.Styleable.DrawerArrowToggle_arrowHeadLength;
+			global::Plugin.Badge.Droid.Resource.Styleable.DrawerArrowToggle_arrowShaftLength = global::LyraWallet.Droid.Resource.Styleable.DrawerArrowToggle_arrowShaftLength;
+			global::Plugin.Badge.Droid.Resource.Styleable.DrawerArrowToggle_barLength = global::LyraWallet.Droid.Resource.Styleable.DrawerArrowToggle_barLength;
+			global::Plugin.Badge.Droid.Resource.Styleable.DrawerArrowToggle_color = global::LyraWallet.Droid.Resource.Styleable.DrawerArrowToggle_color;
+			global::Plugin.Badge.Droid.Resource.Styleable.DrawerArrowToggle_drawableSize = global::LyraWallet.Droid.Resource.Styleable.DrawerArrowToggle_drawableSize;
+			global::Plugin.Badge.Droid.Resource.Styleable.DrawerArrowToggle_gapBetweenBars = global::LyraWallet.Droid.Resource.Styleable.DrawerArrowToggle_gapBetweenBars;
+			global::Plugin.Badge.Droid.Resource.Styleable.DrawerArrowToggle_spinBars = global::LyraWallet.Droid.Resource.Styleable.DrawerArrowToggle_spinBars;
+			global::Plugin.Badge.Droid.Resource.Styleable.DrawerArrowToggle_thickness = global::LyraWallet.Droid.Resource.Styleable.DrawerArrowToggle_thickness;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_backgroundTint = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_backgroundTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_backgroundTintMode = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_backgroundTintMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_borderWidth = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_borderWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_elevation = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_elevation;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_fabSize = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_fabSize;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_pressedTranslationZ = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_pressedTranslationZ;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_rippleColor = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_rippleColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_useCompatPadding = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_useCompatPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_Behavior_Layout = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_Behavior_Layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.FloatingActionButton_Behavior_Layout_behavior_autoHide = global::LyraWallet.Droid.Resource.Styleable.FloatingActionButton_Behavior_Layout_behavior_autoHide;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamily = global::LyraWallet.Droid.Resource.Styleable.FontFamily;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamily_fontProviderAuthority = global::LyraWallet.Droid.Resource.Styleable.FontFamily_fontProviderAuthority;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamily_fontProviderCerts = global::LyraWallet.Droid.Resource.Styleable.FontFamily_fontProviderCerts;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamily_fontProviderFetchStrategy = global::LyraWallet.Droid.Resource.Styleable.FontFamily_fontProviderFetchStrategy;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamily_fontProviderFetchTimeout = global::LyraWallet.Droid.Resource.Styleable.FontFamily_fontProviderFetchTimeout;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamily_fontProviderPackage = global::LyraWallet.Droid.Resource.Styleable.FontFamily_fontProviderPackage;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamily_fontProviderQuery = global::LyraWallet.Droid.Resource.Styleable.FontFamily_fontProviderQuery;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamilyFont = global::LyraWallet.Droid.Resource.Styleable.FontFamilyFont;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamilyFont_android_font = global::LyraWallet.Droid.Resource.Styleable.FontFamilyFont_android_font;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamilyFont_android_fontStyle = global::LyraWallet.Droid.Resource.Styleable.FontFamilyFont_android_fontStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamilyFont_android_fontWeight = global::LyraWallet.Droid.Resource.Styleable.FontFamilyFont_android_fontWeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamilyFont_font = global::LyraWallet.Droid.Resource.Styleable.FontFamilyFont_font;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamilyFont_fontStyle = global::LyraWallet.Droid.Resource.Styleable.FontFamilyFont_fontStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.FontFamilyFont_fontWeight = global::LyraWallet.Droid.Resource.Styleable.FontFamilyFont_fontWeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.ForegroundLinearLayout = global::LyraWallet.Droid.Resource.Styleable.ForegroundLinearLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.ForegroundLinearLayout_android_foreground = global::LyraWallet.Droid.Resource.Styleable.ForegroundLinearLayout_android_foreground;
+			global::Plugin.Badge.Droid.Resource.Styleable.ForegroundLinearLayout_android_foregroundGravity = global::LyraWallet.Droid.Resource.Styleable.ForegroundLinearLayout_android_foregroundGravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.ForegroundLinearLayout_foregroundInsidePadding = global::LyraWallet.Droid.Resource.Styleable.ForegroundLinearLayout_foregroundInsidePadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_android_baselineAligned = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_android_baselineAligned;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_android_baselineAlignedChildIndex = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_android_baselineAlignedChildIndex;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_android_gravity = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_android_gravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_android_orientation = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_android_orientation;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_android_weightSum = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_android_weightSum;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_divider = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_divider;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_dividerPadding = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_dividerPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_measureWithLargestChild = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_measureWithLargestChild;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_showDividers = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_showDividers;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_Layout = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_Layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_Layout_android_layout_gravity = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_Layout_android_layout_gravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_Layout_android_layout_height = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_Layout_android_layout_height;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_Layout_android_layout_weight = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_Layout_android_layout_weight;
+			global::Plugin.Badge.Droid.Resource.Styleable.LinearLayoutCompat_Layout_android_layout_width = global::LyraWallet.Droid.Resource.Styleable.LinearLayoutCompat_Layout_android_layout_width;
+			global::Plugin.Badge.Droid.Resource.Styleable.ListPopupWindow = global::LyraWallet.Droid.Resource.Styleable.ListPopupWindow;
+			global::Plugin.Badge.Droid.Resource.Styleable.ListPopupWindow_android_dropDownHorizontalOffset = global::LyraWallet.Droid.Resource.Styleable.ListPopupWindow_android_dropDownHorizontalOffset;
+			global::Plugin.Badge.Droid.Resource.Styleable.ListPopupWindow_android_dropDownVerticalOffset = global::LyraWallet.Droid.Resource.Styleable.ListPopupWindow_android_dropDownVerticalOffset;
+			global::Plugin.Badge.Droid.Resource.Styleable.MediaRouteButton = global::LyraWallet.Droid.Resource.Styleable.MediaRouteButton;
+			global::Plugin.Badge.Droid.Resource.Styleable.MediaRouteButton_android_minHeight = global::LyraWallet.Droid.Resource.Styleable.MediaRouteButton_android_minHeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.MediaRouteButton_android_minWidth = global::LyraWallet.Droid.Resource.Styleable.MediaRouteButton_android_minWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.MediaRouteButton_externalRouteEnabledDrawable = global::LyraWallet.Droid.Resource.Styleable.MediaRouteButton_externalRouteEnabledDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.MediaRouteButton_mediaRouteButtonTint = global::LyraWallet.Droid.Resource.Styleable.MediaRouteButton_mediaRouteButtonTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuGroup = global::LyraWallet.Droid.Resource.Styleable.MenuGroup;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuGroup_android_checkableBehavior = global::LyraWallet.Droid.Resource.Styleable.MenuGroup_android_checkableBehavior;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuGroup_android_enabled = global::LyraWallet.Droid.Resource.Styleable.MenuGroup_android_enabled;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuGroup_android_id = global::LyraWallet.Droid.Resource.Styleable.MenuGroup_android_id;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuGroup_android_menuCategory = global::LyraWallet.Droid.Resource.Styleable.MenuGroup_android_menuCategory;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuGroup_android_orderInCategory = global::LyraWallet.Droid.Resource.Styleable.MenuGroup_android_orderInCategory;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuGroup_android_visible = global::LyraWallet.Droid.Resource.Styleable.MenuGroup_android_visible;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem = global::LyraWallet.Droid.Resource.Styleable.MenuItem;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_actionLayout = global::LyraWallet.Droid.Resource.Styleable.MenuItem_actionLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_actionProviderClass = global::LyraWallet.Droid.Resource.Styleable.MenuItem_actionProviderClass;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_actionViewClass = global::LyraWallet.Droid.Resource.Styleable.MenuItem_actionViewClass;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_alphabeticModifiers = global::LyraWallet.Droid.Resource.Styleable.MenuItem_alphabeticModifiers;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_alphabeticShortcut = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_alphabeticShortcut;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_checkable = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_checkable;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_checked = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_checked;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_enabled = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_enabled;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_icon = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_icon;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_id = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_id;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_menuCategory = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_menuCategory;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_numericShortcut = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_numericShortcut;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_onClick = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_onClick;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_orderInCategory = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_orderInCategory;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_title = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_title;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_titleCondensed = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_titleCondensed;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_android_visible = global::LyraWallet.Droid.Resource.Styleable.MenuItem_android_visible;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_contentDescription = global::LyraWallet.Droid.Resource.Styleable.MenuItem_contentDescription;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_iconTint = global::LyraWallet.Droid.Resource.Styleable.MenuItem_iconTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_iconTintMode = global::LyraWallet.Droid.Resource.Styleable.MenuItem_iconTintMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_numericModifiers = global::LyraWallet.Droid.Resource.Styleable.MenuItem_numericModifiers;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_showAsAction = global::LyraWallet.Droid.Resource.Styleable.MenuItem_showAsAction;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuItem_tooltipText = global::LyraWallet.Droid.Resource.Styleable.MenuItem_tooltipText;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView = global::LyraWallet.Droid.Resource.Styleable.MenuView;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView_android_headerBackground = global::LyraWallet.Droid.Resource.Styleable.MenuView_android_headerBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView_android_horizontalDivider = global::LyraWallet.Droid.Resource.Styleable.MenuView_android_horizontalDivider;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView_android_itemBackground = global::LyraWallet.Droid.Resource.Styleable.MenuView_android_itemBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView_android_itemIconDisabledAlpha = global::LyraWallet.Droid.Resource.Styleable.MenuView_android_itemIconDisabledAlpha;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView_android_itemTextAppearance = global::LyraWallet.Droid.Resource.Styleable.MenuView_android_itemTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView_android_verticalDivider = global::LyraWallet.Droid.Resource.Styleable.MenuView_android_verticalDivider;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView_android_windowAnimationStyle = global::LyraWallet.Droid.Resource.Styleable.MenuView_android_windowAnimationStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView_preserveIconSpacing = global::LyraWallet.Droid.Resource.Styleable.MenuView_preserveIconSpacing;
+			global::Plugin.Badge.Droid.Resource.Styleable.MenuView_subMenuArrow = global::LyraWallet.Droid.Resource.Styleable.MenuView_subMenuArrow;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView = global::LyraWallet.Droid.Resource.Styleable.NavigationView;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_android_background = global::LyraWallet.Droid.Resource.Styleable.NavigationView_android_background;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_android_fitsSystemWindows = global::LyraWallet.Droid.Resource.Styleable.NavigationView_android_fitsSystemWindows;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_android_maxWidth = global::LyraWallet.Droid.Resource.Styleable.NavigationView_android_maxWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_elevation = global::LyraWallet.Droid.Resource.Styleable.NavigationView_elevation;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_headerLayout = global::LyraWallet.Droid.Resource.Styleable.NavigationView_headerLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_itemBackground = global::LyraWallet.Droid.Resource.Styleable.NavigationView_itemBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_itemIconTint = global::LyraWallet.Droid.Resource.Styleable.NavigationView_itemIconTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_itemTextAppearance = global::LyraWallet.Droid.Resource.Styleable.NavigationView_itemTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_itemTextColor = global::LyraWallet.Droid.Resource.Styleable.NavigationView_itemTextColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.NavigationView_menu = global::LyraWallet.Droid.Resource.Styleable.NavigationView_menu;
+			global::Plugin.Badge.Droid.Resource.Styleable.PopupWindow = global::LyraWallet.Droid.Resource.Styleable.PopupWindow;
+			global::Plugin.Badge.Droid.Resource.Styleable.PopupWindow_android_popupAnimationStyle = global::LyraWallet.Droid.Resource.Styleable.PopupWindow_android_popupAnimationStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.PopupWindow_android_popupBackground = global::LyraWallet.Droid.Resource.Styleable.PopupWindow_android_popupBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.PopupWindow_overlapAnchor = global::LyraWallet.Droid.Resource.Styleable.PopupWindow_overlapAnchor;
+			global::Plugin.Badge.Droid.Resource.Styleable.PopupWindowBackgroundState = global::LyraWallet.Droid.Resource.Styleable.PopupWindowBackgroundState;
+			global::Plugin.Badge.Droid.Resource.Styleable.PopupWindowBackgroundState_state_above_anchor = global::LyraWallet.Droid.Resource.Styleable.PopupWindowBackgroundState_state_above_anchor;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecycleListView = global::LyraWallet.Droid.Resource.Styleable.RecycleListView;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecycleListView_paddingBottomNoButtons = global::LyraWallet.Droid.Resource.Styleable.RecycleListView_paddingBottomNoButtons;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecycleListView_paddingTopNoTitle = global::LyraWallet.Droid.Resource.Styleable.RecycleListView_paddingTopNoTitle;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView = global::LyraWallet.Droid.Resource.Styleable.RecyclerView;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_android_descendantFocusability = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_android_descendantFocusability;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_android_orientation = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_android_orientation;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_fastScrollEnabled = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_fastScrollEnabled;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_fastScrollHorizontalThumbDrawable = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_fastScrollHorizontalThumbDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_fastScrollHorizontalTrackDrawable = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_fastScrollHorizontalTrackDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_fastScrollVerticalThumbDrawable = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_fastScrollVerticalThumbDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_fastScrollVerticalTrackDrawable = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_fastScrollVerticalTrackDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_layoutManager = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_layoutManager;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_reverseLayout = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_reverseLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_spanCount = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_spanCount;
+			global::Plugin.Badge.Droid.Resource.Styleable.RecyclerView_stackFromEnd = global::LyraWallet.Droid.Resource.Styleable.RecyclerView_stackFromEnd;
+			global::Plugin.Badge.Droid.Resource.Styleable.ScrimInsetsFrameLayout = global::LyraWallet.Droid.Resource.Styleable.ScrimInsetsFrameLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.ScrimInsetsFrameLayout_insetForeground = global::LyraWallet.Droid.Resource.Styleable.ScrimInsetsFrameLayout_insetForeground;
+			global::Plugin.Badge.Droid.Resource.Styleable.ScrollingViewBehavior_Layout = global::LyraWallet.Droid.Resource.Styleable.ScrollingViewBehavior_Layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.ScrollingViewBehavior_Layout_behavior_overlapTop = global::LyraWallet.Droid.Resource.Styleable.ScrollingViewBehavior_Layout_behavior_overlapTop;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView = global::LyraWallet.Droid.Resource.Styleable.SearchView;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_android_focusable = global::LyraWallet.Droid.Resource.Styleable.SearchView_android_focusable;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_android_imeOptions = global::LyraWallet.Droid.Resource.Styleable.SearchView_android_imeOptions;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_android_inputType = global::LyraWallet.Droid.Resource.Styleable.SearchView_android_inputType;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_android_maxWidth = global::LyraWallet.Droid.Resource.Styleable.SearchView_android_maxWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_closeIcon = global::LyraWallet.Droid.Resource.Styleable.SearchView_closeIcon;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_commitIcon = global::LyraWallet.Droid.Resource.Styleable.SearchView_commitIcon;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_defaultQueryHint = global::LyraWallet.Droid.Resource.Styleable.SearchView_defaultQueryHint;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_goIcon = global::LyraWallet.Droid.Resource.Styleable.SearchView_goIcon;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_iconifiedByDefault = global::LyraWallet.Droid.Resource.Styleable.SearchView_iconifiedByDefault;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_layout = global::LyraWallet.Droid.Resource.Styleable.SearchView_layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_queryBackground = global::LyraWallet.Droid.Resource.Styleable.SearchView_queryBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_queryHint = global::LyraWallet.Droid.Resource.Styleable.SearchView_queryHint;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_searchHintIcon = global::LyraWallet.Droid.Resource.Styleable.SearchView_searchHintIcon;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_searchIcon = global::LyraWallet.Droid.Resource.Styleable.SearchView_searchIcon;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_submitBackground = global::LyraWallet.Droid.Resource.Styleable.SearchView_submitBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_suggestionRowLayout = global::LyraWallet.Droid.Resource.Styleable.SearchView_suggestionRowLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.SearchView_voiceIcon = global::LyraWallet.Droid.Resource.Styleable.SearchView_voiceIcon;
+			global::Plugin.Badge.Droid.Resource.Styleable.SnackbarLayout = global::LyraWallet.Droid.Resource.Styleable.SnackbarLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.SnackbarLayout_android_maxWidth = global::LyraWallet.Droid.Resource.Styleable.SnackbarLayout_android_maxWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.SnackbarLayout_elevation = global::LyraWallet.Droid.Resource.Styleable.SnackbarLayout_elevation;
+			global::Plugin.Badge.Droid.Resource.Styleable.SnackbarLayout_maxActionInlineWidth = global::LyraWallet.Droid.Resource.Styleable.SnackbarLayout_maxActionInlineWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.Spinner = global::LyraWallet.Droid.Resource.Styleable.Spinner;
+			global::Plugin.Badge.Droid.Resource.Styleable.Spinner_android_dropDownWidth = global::LyraWallet.Droid.Resource.Styleable.Spinner_android_dropDownWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.Spinner_android_entries = global::LyraWallet.Droid.Resource.Styleable.Spinner_android_entries;
+			global::Plugin.Badge.Droid.Resource.Styleable.Spinner_android_popupBackground = global::LyraWallet.Droid.Resource.Styleable.Spinner_android_popupBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.Spinner_android_prompt = global::LyraWallet.Droid.Resource.Styleable.Spinner_android_prompt;
+			global::Plugin.Badge.Droid.Resource.Styleable.Spinner_popupTheme = global::LyraWallet.Droid.Resource.Styleable.Spinner_popupTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_android_textOff = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_android_textOff;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_android_textOn = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_android_textOn;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_android_thumb = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_android_thumb;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_showText = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_showText;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_splitTrack = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_splitTrack;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_switchMinWidth = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_switchMinWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_switchPadding = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_switchPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_switchTextAppearance = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_switchTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_thumbTextPadding = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_thumbTextPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_thumbTint = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_thumbTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_thumbTintMode = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_thumbTintMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_track = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_track;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_trackTint = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_trackTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.SwitchCompat_trackTintMode = global::LyraWallet.Droid.Resource.Styleable.SwitchCompat_trackTintMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabItem = global::LyraWallet.Droid.Resource.Styleable.TabItem;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabItem_android_icon = global::LyraWallet.Droid.Resource.Styleable.TabItem_android_icon;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabItem_android_layout = global::LyraWallet.Droid.Resource.Styleable.TabItem_android_layout;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabItem_android_text = global::LyraWallet.Droid.Resource.Styleable.TabItem_android_text;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout = global::LyraWallet.Droid.Resource.Styleable.TabLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabBackground = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabBackground;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabContentStart = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabContentStart;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabGravity = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabGravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabIndicatorColor = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabIndicatorColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabIndicatorHeight = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabIndicatorHeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabMaxWidth = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabMaxWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabMinWidth = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabMinWidth;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabMode = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabPadding = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabPadding;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabPaddingBottom = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabPaddingBottom;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabPaddingEnd = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabPaddingEnd;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabPaddingStart = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabPaddingStart;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabPaddingTop = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabPaddingTop;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabSelectedTextColor = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabSelectedTextColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabTextAppearance = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.TabLayout_tabTextColor = global::LyraWallet.Droid.Resource.Styleable.TabLayout_tabTextColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance = global::LyraWallet.Droid.Resource.Styleable.TextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_fontFamily = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_fontFamily;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_shadowColor = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_shadowColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_shadowDx = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_shadowDx;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_shadowDy = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_shadowDy;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_shadowRadius = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_shadowRadius;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_textColor = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_textColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_textColorHint = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_textColorHint;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_textColorLink = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_textColorLink;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_textSize = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_textSize;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_textStyle = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_textStyle;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_android_typeface = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_android_typeface;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_fontFamily = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_fontFamily;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextAppearance_textAllCaps = global::LyraWallet.Droid.Resource.Styleable.TextAppearance_textAllCaps;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_android_hint = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_android_hint;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_android_textColorHint = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_android_textColorHint;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_counterEnabled = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_counterEnabled;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_counterMaxLength = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_counterMaxLength;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_counterOverflowTextAppearance = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_counterOverflowTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_counterTextAppearance = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_counterTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_errorEnabled = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_errorEnabled;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_errorTextAppearance = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_errorTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_hintAnimationEnabled = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_hintAnimationEnabled;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_hintEnabled = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_hintEnabled;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_hintTextAppearance = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_hintTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_passwordToggleContentDescription = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_passwordToggleContentDescription;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_passwordToggleDrawable = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_passwordToggleDrawable;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_passwordToggleEnabled = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_passwordToggleEnabled;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_passwordToggleTint = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_passwordToggleTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.TextInputLayout_passwordToggleTintMode = global::LyraWallet.Droid.Resource.Styleable.TextInputLayout_passwordToggleTintMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar = global::LyraWallet.Droid.Resource.Styleable.Toolbar;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_android_gravity = global::LyraWallet.Droid.Resource.Styleable.Toolbar_android_gravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_android_minHeight = global::LyraWallet.Droid.Resource.Styleable.Toolbar_android_minHeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_buttonGravity = global::LyraWallet.Droid.Resource.Styleable.Toolbar_buttonGravity;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_collapseContentDescription = global::LyraWallet.Droid.Resource.Styleable.Toolbar_collapseContentDescription;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_collapseIcon = global::LyraWallet.Droid.Resource.Styleable.Toolbar_collapseIcon;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_contentInsetEnd = global::LyraWallet.Droid.Resource.Styleable.Toolbar_contentInsetEnd;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_contentInsetEndWithActions = global::LyraWallet.Droid.Resource.Styleable.Toolbar_contentInsetEndWithActions;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_contentInsetLeft = global::LyraWallet.Droid.Resource.Styleable.Toolbar_contentInsetLeft;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_contentInsetRight = global::LyraWallet.Droid.Resource.Styleable.Toolbar_contentInsetRight;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_contentInsetStart = global::LyraWallet.Droid.Resource.Styleable.Toolbar_contentInsetStart;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_contentInsetStartWithNavigation = global::LyraWallet.Droid.Resource.Styleable.Toolbar_contentInsetStartWithNavigation;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_logo = global::LyraWallet.Droid.Resource.Styleable.Toolbar_logo;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_logoDescription = global::LyraWallet.Droid.Resource.Styleable.Toolbar_logoDescription;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_maxButtonHeight = global::LyraWallet.Droid.Resource.Styleable.Toolbar_maxButtonHeight;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_navigationContentDescription = global::LyraWallet.Droid.Resource.Styleable.Toolbar_navigationContentDescription;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_navigationIcon = global::LyraWallet.Droid.Resource.Styleable.Toolbar_navigationIcon;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_popupTheme = global::LyraWallet.Droid.Resource.Styleable.Toolbar_popupTheme;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_subtitle = global::LyraWallet.Droid.Resource.Styleable.Toolbar_subtitle;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_subtitleTextAppearance = global::LyraWallet.Droid.Resource.Styleable.Toolbar_subtitleTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_subtitleTextColor = global::LyraWallet.Droid.Resource.Styleable.Toolbar_subtitleTextColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_title = global::LyraWallet.Droid.Resource.Styleable.Toolbar_title;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_titleMargin = global::LyraWallet.Droid.Resource.Styleable.Toolbar_titleMargin;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_titleMarginBottom = global::LyraWallet.Droid.Resource.Styleable.Toolbar_titleMarginBottom;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_titleMarginEnd = global::LyraWallet.Droid.Resource.Styleable.Toolbar_titleMarginEnd;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_titleMarginStart = global::LyraWallet.Droid.Resource.Styleable.Toolbar_titleMarginStart;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_titleMarginTop = global::LyraWallet.Droid.Resource.Styleable.Toolbar_titleMarginTop;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_titleMargins = global::LyraWallet.Droid.Resource.Styleable.Toolbar_titleMargins;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_titleTextAppearance = global::LyraWallet.Droid.Resource.Styleable.Toolbar_titleTextAppearance;
+			global::Plugin.Badge.Droid.Resource.Styleable.Toolbar_titleTextColor = global::LyraWallet.Droid.Resource.Styleable.Toolbar_titleTextColor;
+			global::Plugin.Badge.Droid.Resource.Styleable.View = global::LyraWallet.Droid.Resource.Styleable.View;
+			global::Plugin.Badge.Droid.Resource.Styleable.View_android_focusable = global::LyraWallet.Droid.Resource.Styleable.View_android_focusable;
+			global::Plugin.Badge.Droid.Resource.Styleable.View_android_theme = global::LyraWallet.Droid.Resource.Styleable.View_android_theme;
+			global::Plugin.Badge.Droid.Resource.Styleable.View_paddingEnd = global::LyraWallet.Droid.Resource.Styleable.View_paddingEnd;
+			global::Plugin.Badge.Droid.Resource.Styleable.View_paddingStart = global::LyraWallet.Droid.Resource.Styleable.View_paddingStart;
+			global::Plugin.Badge.Droid.Resource.Styleable.View_theme = global::LyraWallet.Droid.Resource.Styleable.View_theme;
+			global::Plugin.Badge.Droid.Resource.Styleable.ViewBackgroundHelper = global::LyraWallet.Droid.Resource.Styleable.ViewBackgroundHelper;
+			global::Plugin.Badge.Droid.Resource.Styleable.ViewBackgroundHelper_android_background = global::LyraWallet.Droid.Resource.Styleable.ViewBackgroundHelper_android_background;
+			global::Plugin.Badge.Droid.Resource.Styleable.ViewBackgroundHelper_backgroundTint = global::LyraWallet.Droid.Resource.Styleable.ViewBackgroundHelper_backgroundTint;
+			global::Plugin.Badge.Droid.Resource.Styleable.ViewBackgroundHelper_backgroundTintMode = global::LyraWallet.Droid.Resource.Styleable.ViewBackgroundHelper_backgroundTintMode;
+			global::Plugin.Badge.Droid.Resource.Styleable.ViewStubCompat = global::LyraWallet.Droid.Resource.Styleable.ViewStubCompat;
+			global::Plugin.Badge.Droid.Resource.Styleable.ViewStubCompat_android_id = global::LyraWallet.Droid.Resource.Styleable.ViewStubCompat_android_id;
+			global::Plugin.Badge.Droid.Resource.Styleable.ViewStubCompat_android_inflatedId = global::LyraWallet.Droid.Resource.Styleable.ViewStubCompat_android_inflatedId;
+			global::Plugin.Badge.Droid.Resource.Styleable.ViewStubCompat_android_layout = global::LyraWallet.Droid.Resource.Styleable.ViewStubCompat_android_layout;
 			global::Xamarin.Essentials.Resource.Attribute.font = global::LyraWallet.Droid.Resource.Attribute.font;
 			global::Xamarin.Essentials.Resource.Attribute.fontProviderAuthority = global::LyraWallet.Droid.Resource.Attribute.fontProviderAuthority;
 			global::Xamarin.Essentials.Resource.Attribute.fontProviderCerts = global::LyraWallet.Droid.Resource.Attribute.fontProviderCerts;
@@ -4451,688 +6704,697 @@ namespace LyraWallet.Droid
 			public const int avd_show_password = 2131165274;
 			
 			// aapt resource value: 0x7F07005B
-			public const int consumergoods = 2131165275;
+			public const int cart = 2131165275;
 			
 			// aapt resource value: 0x7F07005C
-			public const int copy = 2131165276;
+			public const int consumergoods = 2131165276;
 			
 			// aapt resource value: 0x7F07005D
-			public const int design_bottom_navigation_item_background = 2131165277;
+			public const int copy = 2131165277;
 			
 			// aapt resource value: 0x7F07005E
-			public const int design_fab_background = 2131165278;
+			public const int design_bottom_navigation_item_background = 2131165278;
 			
 			// aapt resource value: 0x7F07005F
-			public const int design_ic_visibility = 2131165279;
+			public const int design_fab_background = 2131165279;
 			
 			// aapt resource value: 0x7F070060
-			public const int design_ic_visibility_off = 2131165280;
+			public const int design_ic_visibility = 2131165280;
 			
 			// aapt resource value: 0x7F070061
-			public const int design_password_eye = 2131165281;
+			public const int design_ic_visibility_off = 2131165281;
 			
 			// aapt resource value: 0x7F070062
-			public const int design_snackbar_background = 2131165282;
+			public const int design_password_eye = 2131165282;
 			
 			// aapt resource value: 0x7F070063
-			public const int discount = 2131165283;
+			public const int design_snackbar_background = 2131165283;
 			
 			// aapt resource value: 0x7F070064
-			public const int ic_audiotrack_dark = 2131165284;
+			public const int discount = 2131165284;
 			
 			// aapt resource value: 0x7F070065
-			public const int ic_audiotrack_light = 2131165285;
+			public const int ic_audiotrack_dark = 2131165285;
 			
 			// aapt resource value: 0x7F070066
-			public const int ic_dialog_close_dark = 2131165286;
+			public const int ic_audiotrack_light = 2131165286;
 			
 			// aapt resource value: 0x7F070067
-			public const int ic_dialog_close_light = 2131165287;
+			public const int ic_dialog_close_dark = 2131165287;
 			
 			// aapt resource value: 0x7F070068
-			public const int ic_group_collapse_00 = 2131165288;
+			public const int ic_dialog_close_light = 2131165288;
 			
 			// aapt resource value: 0x7F070069
-			public const int ic_group_collapse_01 = 2131165289;
+			public const int ic_group_collapse_00 = 2131165289;
 			
 			// aapt resource value: 0x7F07006A
-			public const int ic_group_collapse_02 = 2131165290;
+			public const int ic_group_collapse_01 = 2131165290;
 			
 			// aapt resource value: 0x7F07006B
-			public const int ic_group_collapse_03 = 2131165291;
+			public const int ic_group_collapse_02 = 2131165291;
 			
 			// aapt resource value: 0x7F07006C
-			public const int ic_group_collapse_04 = 2131165292;
+			public const int ic_group_collapse_03 = 2131165292;
 			
 			// aapt resource value: 0x7F07006D
-			public const int ic_group_collapse_05 = 2131165293;
+			public const int ic_group_collapse_04 = 2131165293;
 			
 			// aapt resource value: 0x7F07006E
-			public const int ic_group_collapse_06 = 2131165294;
+			public const int ic_group_collapse_05 = 2131165294;
 			
 			// aapt resource value: 0x7F07006F
-			public const int ic_group_collapse_07 = 2131165295;
+			public const int ic_group_collapse_06 = 2131165295;
 			
 			// aapt resource value: 0x7F070070
-			public const int ic_group_collapse_08 = 2131165296;
+			public const int ic_group_collapse_07 = 2131165296;
 			
 			// aapt resource value: 0x7F070071
-			public const int ic_group_collapse_09 = 2131165297;
+			public const int ic_group_collapse_08 = 2131165297;
 			
 			// aapt resource value: 0x7F070072
-			public const int ic_group_collapse_10 = 2131165298;
+			public const int ic_group_collapse_09 = 2131165298;
 			
 			// aapt resource value: 0x7F070073
-			public const int ic_group_collapse_11 = 2131165299;
+			public const int ic_group_collapse_10 = 2131165299;
 			
 			// aapt resource value: 0x7F070074
-			public const int ic_group_collapse_12 = 2131165300;
+			public const int ic_group_collapse_11 = 2131165300;
 			
 			// aapt resource value: 0x7F070075
-			public const int ic_group_collapse_13 = 2131165301;
+			public const int ic_group_collapse_12 = 2131165301;
 			
 			// aapt resource value: 0x7F070076
-			public const int ic_group_collapse_14 = 2131165302;
+			public const int ic_group_collapse_13 = 2131165302;
 			
 			// aapt resource value: 0x7F070077
-			public const int ic_group_collapse_15 = 2131165303;
+			public const int ic_group_collapse_14 = 2131165303;
 			
 			// aapt resource value: 0x7F070078
-			public const int ic_group_expand_00 = 2131165304;
+			public const int ic_group_collapse_15 = 2131165304;
 			
 			// aapt resource value: 0x7F070079
-			public const int ic_group_expand_01 = 2131165305;
+			public const int ic_group_expand_00 = 2131165305;
 			
 			// aapt resource value: 0x7F07007A
-			public const int ic_group_expand_02 = 2131165306;
+			public const int ic_group_expand_01 = 2131165306;
 			
 			// aapt resource value: 0x7F07007B
-			public const int ic_group_expand_03 = 2131165307;
+			public const int ic_group_expand_02 = 2131165307;
 			
 			// aapt resource value: 0x7F07007C
-			public const int ic_group_expand_04 = 2131165308;
+			public const int ic_group_expand_03 = 2131165308;
 			
 			// aapt resource value: 0x7F07007D
-			public const int ic_group_expand_05 = 2131165309;
+			public const int ic_group_expand_04 = 2131165309;
 			
 			// aapt resource value: 0x7F07007E
-			public const int ic_group_expand_06 = 2131165310;
+			public const int ic_group_expand_05 = 2131165310;
 			
 			// aapt resource value: 0x7F07007F
-			public const int ic_group_expand_07 = 2131165311;
+			public const int ic_group_expand_06 = 2131165311;
 			
 			// aapt resource value: 0x7F070080
-			public const int ic_group_expand_08 = 2131165312;
+			public const int ic_group_expand_07 = 2131165312;
 			
 			// aapt resource value: 0x7F070081
-			public const int ic_group_expand_09 = 2131165313;
+			public const int ic_group_expand_08 = 2131165313;
 			
 			// aapt resource value: 0x7F070082
-			public const int ic_group_expand_10 = 2131165314;
+			public const int ic_group_expand_09 = 2131165314;
 			
 			// aapt resource value: 0x7F070083
-			public const int ic_group_expand_11 = 2131165315;
+			public const int ic_group_expand_10 = 2131165315;
 			
 			// aapt resource value: 0x7F070084
-			public const int ic_group_expand_12 = 2131165316;
+			public const int ic_group_expand_11 = 2131165316;
 			
 			// aapt resource value: 0x7F070085
-			public const int ic_group_expand_13 = 2131165317;
+			public const int ic_group_expand_12 = 2131165317;
 			
 			// aapt resource value: 0x7F070086
-			public const int ic_group_expand_14 = 2131165318;
+			public const int ic_group_expand_13 = 2131165318;
 			
 			// aapt resource value: 0x7F070087
-			public const int ic_group_expand_15 = 2131165319;
+			public const int ic_group_expand_14 = 2131165319;
 			
 			// aapt resource value: 0x7F070088
-			public const int ic_media_pause_dark = 2131165320;
+			public const int ic_group_expand_15 = 2131165320;
 			
 			// aapt resource value: 0x7F070089
-			public const int ic_media_pause_light = 2131165321;
+			public const int ic_media_pause_dark = 2131165321;
 			
 			// aapt resource value: 0x7F07008A
-			public const int ic_media_play_dark = 2131165322;
+			public const int ic_media_pause_light = 2131165322;
 			
 			// aapt resource value: 0x7F07008B
-			public const int ic_media_play_light = 2131165323;
+			public const int ic_media_play_dark = 2131165323;
 			
 			// aapt resource value: 0x7F07008C
-			public const int ic_media_stop_dark = 2131165324;
+			public const int ic_media_play_light = 2131165324;
 			
 			// aapt resource value: 0x7F07008D
-			public const int ic_media_stop_light = 2131165325;
+			public const int ic_media_stop_dark = 2131165325;
 			
 			// aapt resource value: 0x7F07008E
-			public const int ic_mr_button_connected_00_dark = 2131165326;
+			public const int ic_media_stop_light = 2131165326;
 			
 			// aapt resource value: 0x7F07008F
-			public const int ic_mr_button_connected_00_light = 2131165327;
+			public const int ic_mr_button_connected_00_dark = 2131165327;
 			
 			// aapt resource value: 0x7F070090
-			public const int ic_mr_button_connected_01_dark = 2131165328;
+			public const int ic_mr_button_connected_00_light = 2131165328;
 			
 			// aapt resource value: 0x7F070091
-			public const int ic_mr_button_connected_01_light = 2131165329;
+			public const int ic_mr_button_connected_01_dark = 2131165329;
 			
 			// aapt resource value: 0x7F070092
-			public const int ic_mr_button_connected_02_dark = 2131165330;
+			public const int ic_mr_button_connected_01_light = 2131165330;
 			
 			// aapt resource value: 0x7F070093
-			public const int ic_mr_button_connected_02_light = 2131165331;
+			public const int ic_mr_button_connected_02_dark = 2131165331;
 			
 			// aapt resource value: 0x7F070094
-			public const int ic_mr_button_connected_03_dark = 2131165332;
+			public const int ic_mr_button_connected_02_light = 2131165332;
 			
 			// aapt resource value: 0x7F070095
-			public const int ic_mr_button_connected_03_light = 2131165333;
+			public const int ic_mr_button_connected_03_dark = 2131165333;
 			
 			// aapt resource value: 0x7F070096
-			public const int ic_mr_button_connected_04_dark = 2131165334;
+			public const int ic_mr_button_connected_03_light = 2131165334;
 			
 			// aapt resource value: 0x7F070097
-			public const int ic_mr_button_connected_04_light = 2131165335;
+			public const int ic_mr_button_connected_04_dark = 2131165335;
 			
 			// aapt resource value: 0x7F070098
-			public const int ic_mr_button_connected_05_dark = 2131165336;
+			public const int ic_mr_button_connected_04_light = 2131165336;
 			
 			// aapt resource value: 0x7F070099
-			public const int ic_mr_button_connected_05_light = 2131165337;
+			public const int ic_mr_button_connected_05_dark = 2131165337;
 			
 			// aapt resource value: 0x7F07009A
-			public const int ic_mr_button_connected_06_dark = 2131165338;
+			public const int ic_mr_button_connected_05_light = 2131165338;
 			
 			// aapt resource value: 0x7F07009B
-			public const int ic_mr_button_connected_06_light = 2131165339;
+			public const int ic_mr_button_connected_06_dark = 2131165339;
 			
 			// aapt resource value: 0x7F07009C
-			public const int ic_mr_button_connected_07_dark = 2131165340;
+			public const int ic_mr_button_connected_06_light = 2131165340;
 			
 			// aapt resource value: 0x7F07009D
-			public const int ic_mr_button_connected_07_light = 2131165341;
+			public const int ic_mr_button_connected_07_dark = 2131165341;
 			
 			// aapt resource value: 0x7F07009E
-			public const int ic_mr_button_connected_08_dark = 2131165342;
+			public const int ic_mr_button_connected_07_light = 2131165342;
 			
 			// aapt resource value: 0x7F07009F
-			public const int ic_mr_button_connected_08_light = 2131165343;
+			public const int ic_mr_button_connected_08_dark = 2131165343;
 			
 			// aapt resource value: 0x7F0700A0
-			public const int ic_mr_button_connected_09_dark = 2131165344;
+			public const int ic_mr_button_connected_08_light = 2131165344;
 			
 			// aapt resource value: 0x7F0700A1
-			public const int ic_mr_button_connected_09_light = 2131165345;
+			public const int ic_mr_button_connected_09_dark = 2131165345;
 			
 			// aapt resource value: 0x7F0700A2
-			public const int ic_mr_button_connected_10_dark = 2131165346;
+			public const int ic_mr_button_connected_09_light = 2131165346;
 			
 			// aapt resource value: 0x7F0700A3
-			public const int ic_mr_button_connected_10_light = 2131165347;
+			public const int ic_mr_button_connected_10_dark = 2131165347;
 			
 			// aapt resource value: 0x7F0700A4
-			public const int ic_mr_button_connected_11_dark = 2131165348;
+			public const int ic_mr_button_connected_10_light = 2131165348;
 			
 			// aapt resource value: 0x7F0700A5
-			public const int ic_mr_button_connected_11_light = 2131165349;
+			public const int ic_mr_button_connected_11_dark = 2131165349;
 			
 			// aapt resource value: 0x7F0700A6
-			public const int ic_mr_button_connected_12_dark = 2131165350;
+			public const int ic_mr_button_connected_11_light = 2131165350;
 			
 			// aapt resource value: 0x7F0700A7
-			public const int ic_mr_button_connected_12_light = 2131165351;
+			public const int ic_mr_button_connected_12_dark = 2131165351;
 			
 			// aapt resource value: 0x7F0700A8
-			public const int ic_mr_button_connected_13_dark = 2131165352;
+			public const int ic_mr_button_connected_12_light = 2131165352;
 			
 			// aapt resource value: 0x7F0700A9
-			public const int ic_mr_button_connected_13_light = 2131165353;
+			public const int ic_mr_button_connected_13_dark = 2131165353;
 			
 			// aapt resource value: 0x7F0700AA
-			public const int ic_mr_button_connected_14_dark = 2131165354;
+			public const int ic_mr_button_connected_13_light = 2131165354;
 			
 			// aapt resource value: 0x7F0700AB
-			public const int ic_mr_button_connected_14_light = 2131165355;
+			public const int ic_mr_button_connected_14_dark = 2131165355;
 			
 			// aapt resource value: 0x7F0700AC
-			public const int ic_mr_button_connected_15_dark = 2131165356;
+			public const int ic_mr_button_connected_14_light = 2131165356;
 			
 			// aapt resource value: 0x7F0700AD
-			public const int ic_mr_button_connected_15_light = 2131165357;
+			public const int ic_mr_button_connected_15_dark = 2131165357;
 			
 			// aapt resource value: 0x7F0700AE
-			public const int ic_mr_button_connected_16_dark = 2131165358;
+			public const int ic_mr_button_connected_15_light = 2131165358;
 			
 			// aapt resource value: 0x7F0700AF
-			public const int ic_mr_button_connected_16_light = 2131165359;
+			public const int ic_mr_button_connected_16_dark = 2131165359;
 			
 			// aapt resource value: 0x7F0700B0
-			public const int ic_mr_button_connected_17_dark = 2131165360;
+			public const int ic_mr_button_connected_16_light = 2131165360;
 			
 			// aapt resource value: 0x7F0700B1
-			public const int ic_mr_button_connected_17_light = 2131165361;
+			public const int ic_mr_button_connected_17_dark = 2131165361;
 			
 			// aapt resource value: 0x7F0700B2
-			public const int ic_mr_button_connected_18_dark = 2131165362;
+			public const int ic_mr_button_connected_17_light = 2131165362;
 			
 			// aapt resource value: 0x7F0700B3
-			public const int ic_mr_button_connected_18_light = 2131165363;
+			public const int ic_mr_button_connected_18_dark = 2131165363;
 			
 			// aapt resource value: 0x7F0700B4
-			public const int ic_mr_button_connected_19_dark = 2131165364;
+			public const int ic_mr_button_connected_18_light = 2131165364;
 			
 			// aapt resource value: 0x7F0700B5
-			public const int ic_mr_button_connected_19_light = 2131165365;
+			public const int ic_mr_button_connected_19_dark = 2131165365;
 			
 			// aapt resource value: 0x7F0700B6
-			public const int ic_mr_button_connected_20_dark = 2131165366;
+			public const int ic_mr_button_connected_19_light = 2131165366;
 			
 			// aapt resource value: 0x7F0700B7
-			public const int ic_mr_button_connected_20_light = 2131165367;
+			public const int ic_mr_button_connected_20_dark = 2131165367;
 			
 			// aapt resource value: 0x7F0700B8
-			public const int ic_mr_button_connected_21_dark = 2131165368;
+			public const int ic_mr_button_connected_20_light = 2131165368;
 			
 			// aapt resource value: 0x7F0700B9
-			public const int ic_mr_button_connected_21_light = 2131165369;
+			public const int ic_mr_button_connected_21_dark = 2131165369;
 			
 			// aapt resource value: 0x7F0700BA
-			public const int ic_mr_button_connected_22_dark = 2131165370;
+			public const int ic_mr_button_connected_21_light = 2131165370;
 			
 			// aapt resource value: 0x7F0700BB
-			public const int ic_mr_button_connected_22_light = 2131165371;
+			public const int ic_mr_button_connected_22_dark = 2131165371;
 			
 			// aapt resource value: 0x7F0700BC
-			public const int ic_mr_button_connected_23_dark = 2131165372;
+			public const int ic_mr_button_connected_22_light = 2131165372;
 			
 			// aapt resource value: 0x7F0700BD
-			public const int ic_mr_button_connected_23_light = 2131165373;
+			public const int ic_mr_button_connected_23_dark = 2131165373;
 			
 			// aapt resource value: 0x7F0700BE
-			public const int ic_mr_button_connected_24_dark = 2131165374;
+			public const int ic_mr_button_connected_23_light = 2131165374;
 			
 			// aapt resource value: 0x7F0700BF
-			public const int ic_mr_button_connected_24_light = 2131165375;
+			public const int ic_mr_button_connected_24_dark = 2131165375;
 			
 			// aapt resource value: 0x7F0700C0
-			public const int ic_mr_button_connected_25_dark = 2131165376;
+			public const int ic_mr_button_connected_24_light = 2131165376;
 			
 			// aapt resource value: 0x7F0700C1
-			public const int ic_mr_button_connected_25_light = 2131165377;
+			public const int ic_mr_button_connected_25_dark = 2131165377;
 			
 			// aapt resource value: 0x7F0700C2
-			public const int ic_mr_button_connected_26_dark = 2131165378;
+			public const int ic_mr_button_connected_25_light = 2131165378;
 			
 			// aapt resource value: 0x7F0700C3
-			public const int ic_mr_button_connected_26_light = 2131165379;
+			public const int ic_mr_button_connected_26_dark = 2131165379;
 			
 			// aapt resource value: 0x7F0700C4
-			public const int ic_mr_button_connected_27_dark = 2131165380;
+			public const int ic_mr_button_connected_26_light = 2131165380;
 			
 			// aapt resource value: 0x7F0700C5
-			public const int ic_mr_button_connected_27_light = 2131165381;
+			public const int ic_mr_button_connected_27_dark = 2131165381;
 			
 			// aapt resource value: 0x7F0700C6
-			public const int ic_mr_button_connected_28_dark = 2131165382;
+			public const int ic_mr_button_connected_27_light = 2131165382;
 			
 			// aapt resource value: 0x7F0700C7
-			public const int ic_mr_button_connected_28_light = 2131165383;
+			public const int ic_mr_button_connected_28_dark = 2131165383;
 			
 			// aapt resource value: 0x7F0700C8
-			public const int ic_mr_button_connected_29_dark = 2131165384;
+			public const int ic_mr_button_connected_28_light = 2131165384;
 			
 			// aapt resource value: 0x7F0700C9
-			public const int ic_mr_button_connected_29_light = 2131165385;
+			public const int ic_mr_button_connected_29_dark = 2131165385;
 			
 			// aapt resource value: 0x7F0700CA
-			public const int ic_mr_button_connected_30_dark = 2131165386;
+			public const int ic_mr_button_connected_29_light = 2131165386;
 			
 			// aapt resource value: 0x7F0700CB
-			public const int ic_mr_button_connected_30_light = 2131165387;
+			public const int ic_mr_button_connected_30_dark = 2131165387;
 			
 			// aapt resource value: 0x7F0700CC
-			public const int ic_mr_button_connecting_00_dark = 2131165388;
+			public const int ic_mr_button_connected_30_light = 2131165388;
 			
 			// aapt resource value: 0x7F0700CD
-			public const int ic_mr_button_connecting_00_light = 2131165389;
+			public const int ic_mr_button_connecting_00_dark = 2131165389;
 			
 			// aapt resource value: 0x7F0700CE
-			public const int ic_mr_button_connecting_01_dark = 2131165390;
+			public const int ic_mr_button_connecting_00_light = 2131165390;
 			
 			// aapt resource value: 0x7F0700CF
-			public const int ic_mr_button_connecting_01_light = 2131165391;
+			public const int ic_mr_button_connecting_01_dark = 2131165391;
 			
 			// aapt resource value: 0x7F0700D0
-			public const int ic_mr_button_connecting_02_dark = 2131165392;
+			public const int ic_mr_button_connecting_01_light = 2131165392;
 			
 			// aapt resource value: 0x7F0700D1
-			public const int ic_mr_button_connecting_02_light = 2131165393;
+			public const int ic_mr_button_connecting_02_dark = 2131165393;
 			
 			// aapt resource value: 0x7F0700D2
-			public const int ic_mr_button_connecting_03_dark = 2131165394;
+			public const int ic_mr_button_connecting_02_light = 2131165394;
 			
 			// aapt resource value: 0x7F0700D3
-			public const int ic_mr_button_connecting_03_light = 2131165395;
+			public const int ic_mr_button_connecting_03_dark = 2131165395;
 			
 			// aapt resource value: 0x7F0700D4
-			public const int ic_mr_button_connecting_04_dark = 2131165396;
+			public const int ic_mr_button_connecting_03_light = 2131165396;
 			
 			// aapt resource value: 0x7F0700D5
-			public const int ic_mr_button_connecting_04_light = 2131165397;
+			public const int ic_mr_button_connecting_04_dark = 2131165397;
 			
 			// aapt resource value: 0x7F0700D6
-			public const int ic_mr_button_connecting_05_dark = 2131165398;
+			public const int ic_mr_button_connecting_04_light = 2131165398;
 			
 			// aapt resource value: 0x7F0700D7
-			public const int ic_mr_button_connecting_05_light = 2131165399;
+			public const int ic_mr_button_connecting_05_dark = 2131165399;
 			
 			// aapt resource value: 0x7F0700D8
-			public const int ic_mr_button_connecting_06_dark = 2131165400;
+			public const int ic_mr_button_connecting_05_light = 2131165400;
 			
 			// aapt resource value: 0x7F0700D9
-			public const int ic_mr_button_connecting_06_light = 2131165401;
+			public const int ic_mr_button_connecting_06_dark = 2131165401;
 			
 			// aapt resource value: 0x7F0700DA
-			public const int ic_mr_button_connecting_07_dark = 2131165402;
+			public const int ic_mr_button_connecting_06_light = 2131165402;
 			
 			// aapt resource value: 0x7F0700DB
-			public const int ic_mr_button_connecting_07_light = 2131165403;
+			public const int ic_mr_button_connecting_07_dark = 2131165403;
 			
 			// aapt resource value: 0x7F0700DC
-			public const int ic_mr_button_connecting_08_dark = 2131165404;
+			public const int ic_mr_button_connecting_07_light = 2131165404;
 			
 			// aapt resource value: 0x7F0700DD
-			public const int ic_mr_button_connecting_08_light = 2131165405;
+			public const int ic_mr_button_connecting_08_dark = 2131165405;
 			
 			// aapt resource value: 0x7F0700DE
-			public const int ic_mr_button_connecting_09_dark = 2131165406;
+			public const int ic_mr_button_connecting_08_light = 2131165406;
 			
 			// aapt resource value: 0x7F0700DF
-			public const int ic_mr_button_connecting_09_light = 2131165407;
+			public const int ic_mr_button_connecting_09_dark = 2131165407;
 			
 			// aapt resource value: 0x7F0700E0
-			public const int ic_mr_button_connecting_10_dark = 2131165408;
+			public const int ic_mr_button_connecting_09_light = 2131165408;
 			
 			// aapt resource value: 0x7F0700E1
-			public const int ic_mr_button_connecting_10_light = 2131165409;
+			public const int ic_mr_button_connecting_10_dark = 2131165409;
 			
 			// aapt resource value: 0x7F0700E2
-			public const int ic_mr_button_connecting_11_dark = 2131165410;
+			public const int ic_mr_button_connecting_10_light = 2131165410;
 			
 			// aapt resource value: 0x7F0700E3
-			public const int ic_mr_button_connecting_11_light = 2131165411;
+			public const int ic_mr_button_connecting_11_dark = 2131165411;
 			
 			// aapt resource value: 0x7F0700E4
-			public const int ic_mr_button_connecting_12_dark = 2131165412;
+			public const int ic_mr_button_connecting_11_light = 2131165412;
 			
 			// aapt resource value: 0x7F0700E5
-			public const int ic_mr_button_connecting_12_light = 2131165413;
+			public const int ic_mr_button_connecting_12_dark = 2131165413;
 			
 			// aapt resource value: 0x7F0700E6
-			public const int ic_mr_button_connecting_13_dark = 2131165414;
+			public const int ic_mr_button_connecting_12_light = 2131165414;
 			
 			// aapt resource value: 0x7F0700E7
-			public const int ic_mr_button_connecting_13_light = 2131165415;
+			public const int ic_mr_button_connecting_13_dark = 2131165415;
 			
 			// aapt resource value: 0x7F0700E8
-			public const int ic_mr_button_connecting_14_dark = 2131165416;
+			public const int ic_mr_button_connecting_13_light = 2131165416;
 			
 			// aapt resource value: 0x7F0700E9
-			public const int ic_mr_button_connecting_14_light = 2131165417;
+			public const int ic_mr_button_connecting_14_dark = 2131165417;
 			
 			// aapt resource value: 0x7F0700EA
-			public const int ic_mr_button_connecting_15_dark = 2131165418;
+			public const int ic_mr_button_connecting_14_light = 2131165418;
 			
 			// aapt resource value: 0x7F0700EB
-			public const int ic_mr_button_connecting_15_light = 2131165419;
+			public const int ic_mr_button_connecting_15_dark = 2131165419;
 			
 			// aapt resource value: 0x7F0700EC
-			public const int ic_mr_button_connecting_16_dark = 2131165420;
+			public const int ic_mr_button_connecting_15_light = 2131165420;
 			
 			// aapt resource value: 0x7F0700ED
-			public const int ic_mr_button_connecting_16_light = 2131165421;
+			public const int ic_mr_button_connecting_16_dark = 2131165421;
 			
 			// aapt resource value: 0x7F0700EE
-			public const int ic_mr_button_connecting_17_dark = 2131165422;
+			public const int ic_mr_button_connecting_16_light = 2131165422;
 			
 			// aapt resource value: 0x7F0700EF
-			public const int ic_mr_button_connecting_17_light = 2131165423;
+			public const int ic_mr_button_connecting_17_dark = 2131165423;
 			
 			// aapt resource value: 0x7F0700F0
-			public const int ic_mr_button_connecting_18_dark = 2131165424;
+			public const int ic_mr_button_connecting_17_light = 2131165424;
 			
 			// aapt resource value: 0x7F0700F1
-			public const int ic_mr_button_connecting_18_light = 2131165425;
+			public const int ic_mr_button_connecting_18_dark = 2131165425;
 			
 			// aapt resource value: 0x7F0700F2
-			public const int ic_mr_button_connecting_19_dark = 2131165426;
+			public const int ic_mr_button_connecting_18_light = 2131165426;
 			
 			// aapt resource value: 0x7F0700F3
-			public const int ic_mr_button_connecting_19_light = 2131165427;
+			public const int ic_mr_button_connecting_19_dark = 2131165427;
 			
 			// aapt resource value: 0x7F0700F4
-			public const int ic_mr_button_connecting_20_dark = 2131165428;
+			public const int ic_mr_button_connecting_19_light = 2131165428;
 			
 			// aapt resource value: 0x7F0700F5
-			public const int ic_mr_button_connecting_20_light = 2131165429;
+			public const int ic_mr_button_connecting_20_dark = 2131165429;
 			
 			// aapt resource value: 0x7F0700F6
-			public const int ic_mr_button_connecting_21_dark = 2131165430;
+			public const int ic_mr_button_connecting_20_light = 2131165430;
 			
 			// aapt resource value: 0x7F0700F7
-			public const int ic_mr_button_connecting_21_light = 2131165431;
+			public const int ic_mr_button_connecting_21_dark = 2131165431;
 			
 			// aapt resource value: 0x7F0700F8
-			public const int ic_mr_button_connecting_22_dark = 2131165432;
+			public const int ic_mr_button_connecting_21_light = 2131165432;
 			
 			// aapt resource value: 0x7F0700F9
-			public const int ic_mr_button_connecting_22_light = 2131165433;
+			public const int ic_mr_button_connecting_22_dark = 2131165433;
 			
 			// aapt resource value: 0x7F0700FA
-			public const int ic_mr_button_connecting_23_dark = 2131165434;
+			public const int ic_mr_button_connecting_22_light = 2131165434;
 			
 			// aapt resource value: 0x7F0700FB
-			public const int ic_mr_button_connecting_23_light = 2131165435;
+			public const int ic_mr_button_connecting_23_dark = 2131165435;
 			
 			// aapt resource value: 0x7F0700FC
-			public const int ic_mr_button_connecting_24_dark = 2131165436;
+			public const int ic_mr_button_connecting_23_light = 2131165436;
 			
 			// aapt resource value: 0x7F0700FD
-			public const int ic_mr_button_connecting_24_light = 2131165437;
+			public const int ic_mr_button_connecting_24_dark = 2131165437;
 			
 			// aapt resource value: 0x7F0700FE
-			public const int ic_mr_button_connecting_25_dark = 2131165438;
+			public const int ic_mr_button_connecting_24_light = 2131165438;
 			
 			// aapt resource value: 0x7F0700FF
-			public const int ic_mr_button_connecting_25_light = 2131165439;
+			public const int ic_mr_button_connecting_25_dark = 2131165439;
 			
 			// aapt resource value: 0x7F070100
-			public const int ic_mr_button_connecting_26_dark = 2131165440;
+			public const int ic_mr_button_connecting_25_light = 2131165440;
 			
 			// aapt resource value: 0x7F070101
-			public const int ic_mr_button_connecting_26_light = 2131165441;
+			public const int ic_mr_button_connecting_26_dark = 2131165441;
 			
 			// aapt resource value: 0x7F070102
-			public const int ic_mr_button_connecting_27_dark = 2131165442;
+			public const int ic_mr_button_connecting_26_light = 2131165442;
 			
 			// aapt resource value: 0x7F070103
-			public const int ic_mr_button_connecting_27_light = 2131165443;
+			public const int ic_mr_button_connecting_27_dark = 2131165443;
 			
 			// aapt resource value: 0x7F070104
-			public const int ic_mr_button_connecting_28_dark = 2131165444;
+			public const int ic_mr_button_connecting_27_light = 2131165444;
 			
 			// aapt resource value: 0x7F070105
-			public const int ic_mr_button_connecting_28_light = 2131165445;
+			public const int ic_mr_button_connecting_28_dark = 2131165445;
 			
 			// aapt resource value: 0x7F070106
-			public const int ic_mr_button_connecting_29_dark = 2131165446;
+			public const int ic_mr_button_connecting_28_light = 2131165446;
 			
 			// aapt resource value: 0x7F070107
-			public const int ic_mr_button_connecting_29_light = 2131165447;
+			public const int ic_mr_button_connecting_29_dark = 2131165447;
 			
 			// aapt resource value: 0x7F070108
-			public const int ic_mr_button_connecting_30_dark = 2131165448;
+			public const int ic_mr_button_connecting_29_light = 2131165448;
 			
 			// aapt resource value: 0x7F070109
-			public const int ic_mr_button_connecting_30_light = 2131165449;
+			public const int ic_mr_button_connecting_30_dark = 2131165449;
 			
 			// aapt resource value: 0x7F07010A
-			public const int ic_mr_button_disabled_dark = 2131165450;
+			public const int ic_mr_button_connecting_30_light = 2131165450;
 			
 			// aapt resource value: 0x7F07010B
-			public const int ic_mr_button_disabled_light = 2131165451;
+			public const int ic_mr_button_disabled_dark = 2131165451;
 			
 			// aapt resource value: 0x7F07010C
-			public const int ic_mr_button_disconnected_dark = 2131165452;
+			public const int ic_mr_button_disabled_light = 2131165452;
 			
 			// aapt resource value: 0x7F07010D
-			public const int ic_mr_button_disconnected_light = 2131165453;
+			public const int ic_mr_button_disconnected_dark = 2131165453;
 			
 			// aapt resource value: 0x7F07010E
-			public const int ic_mr_button_grey = 2131165454;
+			public const int ic_mr_button_disconnected_light = 2131165454;
 			
 			// aapt resource value: 0x7F07010F
-			public const int ic_vol_type_speaker_dark = 2131165455;
+			public const int ic_mr_button_grey = 2131165455;
 			
 			// aapt resource value: 0x7F070110
-			public const int ic_vol_type_speaker_group_dark = 2131165456;
+			public const int ic_vol_type_speaker_dark = 2131165456;
 			
 			// aapt resource value: 0x7F070111
-			public const int ic_vol_type_speaker_group_light = 2131165457;
+			public const int ic_vol_type_speaker_group_dark = 2131165457;
 			
 			// aapt resource value: 0x7F070112
-			public const int ic_vol_type_speaker_light = 2131165458;
+			public const int ic_vol_type_speaker_group_light = 2131165458;
 			
 			// aapt resource value: 0x7F070113
-			public const int ic_vol_type_tv_dark = 2131165459;
+			public const int ic_vol_type_speaker_light = 2131165459;
 			
 			// aapt resource value: 0x7F070114
-			public const int ic_vol_type_tv_light = 2131165460;
+			public const int ic_vol_type_tv_dark = 2131165460;
 			
 			// aapt resource value: 0x7F070115
-			public const int lyracoins = 2131165461;
+			public const int ic_vol_type_tv_light = 2131165461;
 			
 			// aapt resource value: 0x7F070116
-			public const int lyraiconround = 2131165462;
+			public const int lyracoins = 2131165462;
 			
 			// aapt resource value: 0x7F070117
-			public const int lyralogo = 2131165463;
+			public const int lyraiconround = 2131165463;
 			
 			// aapt resource value: 0x7F070118
-			public const int lyralogosmall = 2131165464;
+			public const int lyralogo = 2131165464;
 			
 			// aapt resource value: 0x7F070119
-			public const int mr_button_connected_dark = 2131165465;
+			public const int lyralogosmall = 2131165465;
 			
 			// aapt resource value: 0x7F07011A
-			public const int mr_button_connected_light = 2131165466;
+			public const int minus = 2131165466;
 			
 			// aapt resource value: 0x7F07011B
-			public const int mr_button_connecting_dark = 2131165467;
+			public const int mr_button_connected_dark = 2131165467;
 			
 			// aapt resource value: 0x7F07011C
-			public const int mr_button_connecting_light = 2131165468;
+			public const int mr_button_connected_light = 2131165468;
 			
 			// aapt resource value: 0x7F07011D
-			public const int mr_button_dark = 2131165469;
+			public const int mr_button_connecting_dark = 2131165469;
 			
 			// aapt resource value: 0x7F07011E
-			public const int mr_button_light = 2131165470;
+			public const int mr_button_connecting_light = 2131165470;
 			
 			// aapt resource value: 0x7F07011F
-			public const int mr_dialog_close_dark = 2131165471;
+			public const int mr_button_dark = 2131165471;
 			
 			// aapt resource value: 0x7F070120
-			public const int mr_dialog_close_light = 2131165472;
+			public const int mr_button_light = 2131165472;
 			
 			// aapt resource value: 0x7F070121
-			public const int mr_dialog_material_background_dark = 2131165473;
+			public const int mr_dialog_close_dark = 2131165473;
 			
 			// aapt resource value: 0x7F070122
-			public const int mr_dialog_material_background_light = 2131165474;
+			public const int mr_dialog_close_light = 2131165474;
 			
 			// aapt resource value: 0x7F070123
-			public const int mr_group_collapse = 2131165475;
+			public const int mr_dialog_material_background_dark = 2131165475;
 			
 			// aapt resource value: 0x7F070124
-			public const int mr_group_expand = 2131165476;
+			public const int mr_dialog_material_background_light = 2131165476;
 			
 			// aapt resource value: 0x7F070125
-			public const int mr_media_pause_dark = 2131165477;
+			public const int mr_group_collapse = 2131165477;
 			
 			// aapt resource value: 0x7F070126
-			public const int mr_media_pause_light = 2131165478;
+			public const int mr_group_expand = 2131165478;
 			
 			// aapt resource value: 0x7F070127
-			public const int mr_media_play_dark = 2131165479;
+			public const int mr_media_pause_dark = 2131165479;
 			
 			// aapt resource value: 0x7F070128
-			public const int mr_media_play_light = 2131165480;
+			public const int mr_media_pause_light = 2131165480;
 			
 			// aapt resource value: 0x7F070129
-			public const int mr_media_stop_dark = 2131165481;
+			public const int mr_media_play_dark = 2131165481;
 			
 			// aapt resource value: 0x7F07012A
-			public const int mr_media_stop_light = 2131165482;
+			public const int mr_media_play_light = 2131165482;
 			
 			// aapt resource value: 0x7F07012B
-			public const int mr_vol_type_audiotrack_dark = 2131165483;
+			public const int mr_media_stop_dark = 2131165483;
 			
 			// aapt resource value: 0x7F07012C
-			public const int mr_vol_type_audiotrack_light = 2131165484;
+			public const int mr_media_stop_light = 2131165484;
 			
 			// aapt resource value: 0x7F07012D
-			public const int navigation_empty_icon = 2131165485;
+			public const int mr_vol_type_audiotrack_dark = 2131165485;
 			
 			// aapt resource value: 0x7F07012E
-			public const int notification_action_background = 2131165486;
+			public const int mr_vol_type_audiotrack_light = 2131165486;
 			
 			// aapt resource value: 0x7F07012F
-			public const int notification_bg = 2131165487;
+			public const int navigation_empty_icon = 2131165487;
 			
 			// aapt resource value: 0x7F070130
-			public const int notification_bg_low = 2131165488;
+			public const int notification_action_background = 2131165488;
 			
 			// aapt resource value: 0x7F070131
-			public const int notification_bg_low_normal = 2131165489;
+			public const int notification_bg = 2131165489;
 			
 			// aapt resource value: 0x7F070132
-			public const int notification_bg_low_pressed = 2131165490;
+			public const int notification_bg_low = 2131165490;
 			
 			// aapt resource value: 0x7F070133
-			public const int notification_bg_normal = 2131165491;
+			public const int notification_bg_low_normal = 2131165491;
 			
 			// aapt resource value: 0x7F070134
-			public const int notification_bg_normal_pressed = 2131165492;
+			public const int notification_bg_low_pressed = 2131165492;
 			
 			// aapt resource value: 0x7F070135
-			public const int notification_icon_background = 2131165493;
+			public const int notification_bg_normal = 2131165493;
 			
 			// aapt resource value: 0x7F070136
-			public const int notification_template_icon_bg = 2131165494;
+			public const int notification_bg_normal_pressed = 2131165494;
 			
 			// aapt resource value: 0x7F070137
-			public const int notification_template_icon_low_bg = 2131165495;
+			public const int notification_icon_background = 2131165495;
 			
 			// aapt resource value: 0x7F070138
-			public const int notification_tile_bg = 2131165496;
+			public const int notification_template_icon_bg = 2131165496;
 			
 			// aapt resource value: 0x7F070139
-			public const int notify_panel_notification_icon_bg = 2131165497;
+			public const int notification_template_icon_low_bg = 2131165497;
 			
 			// aapt resource value: 0x7F07013A
-			public const int paste = 2131165498;
+			public const int notification_tile_bg = 2131165498;
 			
 			// aapt resource value: 0x7F07013B
-			public const int splash_background = 2131165499;
+			public const int notify_panel_notification_icon_bg = 2131165499;
 			
 			// aapt resource value: 0x7F07013C
-			public const int tooltip_frame_dark = 2131165500;
+			public const int paste = 2131165500;
 			
 			// aapt resource value: 0x7F07013D
-			public const int tooltip_frame_light = 2131165501;
+			public const int plus = 2131165501;
 			
 			// aapt resource value: 0x7F07013E
-			public const int xamarin_logo = 2131165502;
+			public const int splash_background = 2131165502;
+			
+			// aapt resource value: 0x7F07013F
+			public const int tooltip_frame_dark = 2131165503;
+			
+			// aapt resource value: 0x7F070140
+			public const int tooltip_frame_light = 2131165504;
+			
+			// aapt resource value: 0x7F070141
+			public const int xamarin_logo = 2131165505;
 			
 			static Drawable()
 			{

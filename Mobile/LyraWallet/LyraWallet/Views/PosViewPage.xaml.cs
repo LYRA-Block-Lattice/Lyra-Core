@@ -13,25 +13,41 @@ namespace LyraWallet.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class PosViewPage : ContentPage
     {
-        PosViewModel viewModel;
         public PosViewPage()
         {
             InitializeComponent();
-            BindingContext = viewModel = new PosViewModel();
         }
 
         protected override void OnAppearing()
         {
             base.OnAppearing();
 
-            if (viewModel.Products.Count == 0)
-                viewModel.LoadItemsCommand.Execute(null);
+            model.ThePage = this;
+            if (model.CartItems.Count == 0)
+                model.LoadItemsCommand.Execute(null);
         }
 
         public void DeleteClicked(object sender, EventArgs e)
         {
             var item = (Xamarin.Forms.Button)sender;
-            viewModel.RemoveProductCommand.Execute((int)item.CommandParameter);
+            model.RemoveProductCommand.Execute((int)item.CommandParameter);
+        }
+
+        async void EditProduct_Clicked(object sender, EventArgs e)
+        {
+            model.ProductEditMode = !model.ProductEditMode;
+            model.AddCartMode = !model.ProductEditMode;
+            if (model.ProductEditMode)
+            {
+                tbEdit.Text = "X";
+                model.EditorSize = 80;
+            }
+            else
+            {
+                tbEdit.Text = "+";
+                model.EditorSize = 0;
+            }
+            model.LoadItemsCommand.Execute(null);
         }
     }
 }
