@@ -3,15 +3,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:d="http://xamarin.com/schemas/2014/forms/design"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:zxing="clr-namespace:ZXing.Net.Mobile.Forms;assembly=ZXing.Net.Mobile.Forms" xmlns:zxcm="clr-namespace:ZXing.Common;assembly=zxing.portable"
              mc:Ignorable="d"
              x:Class="LyraWallet.Views.PosCheckoutPage"
-             Title="Checkout by Lyra"
+             Title="Lyra Checkout"
              BackgroundColor="White">
     <ContentPage.Content>
-        <StackLayout>
-            <Label Text="POS Checkout"
-                VerticalOptions="CenterAndExpand" 
-                HorizontalOptions="CenterAndExpand" />
+        <StackLayout BackgroundColor="White" VerticalOptions="CenterAndExpand">
+            <Label Text="Please Confirm Total Payments:" HorizontalOptions="Center" VerticalOptions="Center" />
+            <Label x:Name="txtTotalPayment" Text="{Binding TotalPayment}" HorizontalOptions="Center" VerticalOptions="Center" />
+            <Label x:Name="txtTokenName" Text="{Binding PaymentToken}" HorizontalOptions="Center" VerticalOptions="Center" />
+            <zxing:ZXingBarcodeImageView WidthRequest="250" HeightRequest="250"
+                                         VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand"
+                x:Name="BarcodeImageView" BarcodeFormat="QR_CODE" IsVisible="False" BarcodeValue="aaaaaaa">
+                <zxing:ZXingBarcodeImageView.BarcodeOptions>
+                    <zxcm:EncodingOptions Width="250" Height="250" />
+                </zxing:ZXingBarcodeImageView.BarcodeOptions>
+            </zxing:ZXingBarcodeImageView>
+            <Label Text="Scan by Lyra Wallet App to Pay" 
+                   FontSize="Title"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

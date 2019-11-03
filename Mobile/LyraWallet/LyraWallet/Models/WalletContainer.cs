@@ -125,7 +125,7 @@ namespace LyraWallet.Models
             var result = await wallet.Send(amount, targetAccount, tokeyName);
             if (result.ResultCode != APIResultCodes.Success)
             {
-                throw new Exception(result.ResultMessage);
+                throw new Exception(result.ResultCode.ToString());
             }
         }
 

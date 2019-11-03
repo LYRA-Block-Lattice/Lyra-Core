@@ -33,6 +33,7 @@ namespace LyraWallet.ViewModels
             get => new Command(async () =>
             {
                 App.Container.CurrentNetwork = SelectedNetwork;
+                await App.Container.CloseWallet();
                 var nextPage = new CreateAccountPage(SelectedNetwork);
                 await Application.Current.MainPage.Navigation.PushAsync(nextPage);
             });

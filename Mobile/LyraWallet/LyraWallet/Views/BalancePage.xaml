@@ -47,6 +47,8 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+            <Button BackgroundColor="LightGreen" 
+                            Text="Scan to Pay" Command="{Binding ScanCommand}" />
             <Button x:Name="btnRefresh" Margin="0,10,0,0" Text="Refresh" Command="{Binding RefreshCommand}">
             </Button>
         </StackLayout>

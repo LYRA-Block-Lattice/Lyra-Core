@@ -53,6 +53,7 @@ namespace LyraWallet.ViewModels
         {
             _thePage = (TransferPage) page;
             IsWorking = false;
+            TokenNames = App.Container.TokenList;
 
             MessagingCenter.Subscribe<BalanceViewModel>(
                 this, MessengerKeys.BalanceRefreshed, (sender) =>
@@ -88,7 +89,19 @@ namespace LyraWallet.ViewModels
                     Device.BeginInvokeOnMainThread(() =>
                     {
                         _thePage.Navigation.PopAsync();
-                        TargetAccount = result.Text;
+                        try
+                        {
+                            var lyraUri = new Uri(result.Text);
+                            var queryDictionary = System.Web.HttpUtility.ParseQueryString(lyraUri.Query);
+                            if (lyraUri.PathAndQuery.StartsWith("/payme"))
+                            {
+                                TargetAccount = queryDictionary["AccountID"];
+                            }
+                        }               
+                        catch(Exception ex)
+                        {
+
+                        }
                     });
                 };
                 await _thePage.Navigation.PushAsync(scanPage);

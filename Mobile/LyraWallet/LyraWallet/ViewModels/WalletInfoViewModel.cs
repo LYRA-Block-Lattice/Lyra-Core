@@ -34,7 +34,7 @@ namespace LyraWallet.ViewModels
 
             BarcodeGenCommand = new Command(async () =>
             {
-                var nextPage = new BarcodeGenPage(AccountID);
+                var nextPage = new BarcodeGenPage($"lyra://localhost/payme?AccountID={AccountID}");
                 await _thePage.Navigation.PushAsync(nextPage);
             });
 
