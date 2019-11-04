@@ -13,12 +13,12 @@ namespace LyraWallet.Views
 	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class BarcodeGenPage : ContentPage
 	{
-		public BarcodeGenPage (string txtToGen)
+		public BarcodeGenPage (string txtToGen, string txtToShow)
 		{
 			InitializeComponent ();
 
             BindingContext = new BarcodeGenViewModel(txtToGen);
-            txtAddress.Text = txtToGen;
+            txtAddress.Text = txtToShow;
             BarcodeImageView.BarcodeValue = txtToGen;
             BarcodeImageView.IsVisible = false;
             BarcodeImageView.IsVisible = true;

@@ -8,7 +8,6 @@ namespace LyraWallet.ViewModels
 {
     public class PosCheckoutViewModel : BaseViewModel
     {
-        // lyra://localhost/cart/checkout/?AccountID=[xxxxxx]&&Shop=[shop name]&&Token=Lyra.LeX&&Total=123.3
         private List<CartItem> itemsToCheckout;
 
         public Decimal TotalPayment
@@ -35,7 +34,7 @@ namespace LyraWallet.ViewModels
         {
             get
             {
-                return $"lyra://localhost/cart/checkout/?AccountID={App.Container.AccountID}&&Shop=[shop name]&&Token={PaymentToken}&&Total={TotalPayment}";
+                return $"lyra://localhost/cart/checkout?AccountID={App.Container.AccountID}&&Shop=[shop name]&&Token={PaymentToken}&&Total={TotalPayment}";
             }
         }
     }

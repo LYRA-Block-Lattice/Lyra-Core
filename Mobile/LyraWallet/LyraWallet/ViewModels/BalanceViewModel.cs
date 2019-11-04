@@ -91,26 +91,25 @@ namespace LyraWallet.ViewModels
                             if (string.IsNullOrWhiteSpace(result.Text))
                                 throw new Exception("Scan QR Code failed.");
 
-                            var lyraUri = new Uri(result.Text);
-                            var queryDictionary = System.Web.HttpUtility.ParseQueryString(lyraUri.Query);
+                            var lyraUri = new LyraUri(result.Text);
 
                             var msg = "";
-                            if (lyraUri.PathAndQuery.StartsWith("/cart/checkout"))
+                            if (lyraUri.Method.Equals("/cart/checkout"))
                             {
                                 Decimal total = 0;
                                 // check parameters is exists
-                                if (string.IsNullOrWhiteSpace(queryDictionary["Token"])
-                                    || string.IsNullOrWhiteSpace(queryDictionary["AccountID"])
-                                    || string.IsNullOrWhiteSpace(queryDictionary["Total"])
-                                    || !Decimal.TryParse(queryDictionary["Total"], out total))
+                                if (string.IsNullOrWhiteSpace(lyraUri.Token)
+                                    || string.IsNullOrWhiteSpace(lyraUri.AccountID)
+                                    || string.IsNullOrWhiteSpace(lyraUri.Total)
+                                    || !Decimal.TryParse(lyraUri.Total, out total))
                                     throw new Exception("Unknown QR Code: " + result.Text);
 
-                                msg = $"Store {queryDictionary["Shop"]} Checkout, Total to Pay:\n";
-                                msg += $"{total} {queryDictionary["Token"]}";
+                                msg = $"Store {lyraUri.Shop} Checkout, Total to Pay:\n";
+                                msg += $"{total} {lyraUri.Token}";
                                 var isOK = await _thePage.DisplayAlert("Alert", msg, "Confirm", "Canel");
                                 if (isOK)
                                 {
-                                    await App.Container.Transfer(queryDictionary["Token"], queryDictionary["AccountID"], total);
+                                    await App.Container.Transfer(lyraUri.Token, lyraUri.AccountID, total);
                                     await _thePage.DisplayAlert("Info", "Success!", "OK");
                                 }
                                 return;
@@ -118,7 +117,7 @@ namespace LyraWallet.ViewModels
                             else if (lyraUri.PathAndQuery.StartsWith("/payme"))
                             {
                                 var transPage = new TransferPage(TokenGenesisBlock.LYRA_TICKER_CODE,
-                                    queryDictionary["AccountID"]);
+                                    lyraUri.AccountID);
                                 await _thePage.Navigation.PushAsync(transPage);
                                 return;
                             }
@@ -151,6 +150,7 @@ namespace LyraWallet.ViewModels
             {
                 IsRefreshing = true;
                 await App.Container.RefreshBalance();
+                IsRefreshing = false;
                 MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
             }
             catch (Exception ex)

@@ -91,11 +91,10 @@ namespace LyraWallet.ViewModels
                         _thePage.Navigation.PopAsync();
                         try
                         {
-                            var lyraUri = new Uri(result.Text);
-                            var queryDictionary = System.Web.HttpUtility.ParseQueryString(lyraUri.Query);
-                            if (lyraUri.PathAndQuery.StartsWith("/payme"))
+                            var lyraUri = new LyraUri(result.Text);
+                            if (lyraUri.Method.Equals("/payme"))
                             {
-                                TargetAccount = queryDictionary["AccountID"];
+                                TargetAccount = lyraUri.AccountID;
                             }
                         }               
                         catch(Exception ex)
