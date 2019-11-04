@@ -15,7 +15,7 @@
             </x:Arguments>
         </NavigationPage>
         
-        <NavigationPage Title="POS">
+        <NavigationPage Title="My Shop">
             <NavigationPage.Icon>
                 <OnPlatform x:TypeArguments="FileImageSource">
                     <On Platform="iOS" Value="tab_feed.png"/>

@@ -150,7 +150,7 @@ namespace LyraWallet.ViewModels
             try
             {
                 IsRefreshing = true;
-                await App.Container.RefreshBalance().ContinueWith((t) => IsRefreshing = false);
+                await App.Container.RefreshBalance();
                 MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
             }
             catch (Exception ex)
