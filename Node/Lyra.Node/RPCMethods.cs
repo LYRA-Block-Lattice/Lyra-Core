@@ -543,6 +543,14 @@ namespace Lyra.Node
         {
             var result = new AuthorizationAPIResult();
 
+            //// filter the names
+            //if (tokenBlock.DomainName.ToLower().StartsWith("lyra")
+            //    || tokenBlock.Ticker.ToLower().StartsWith("lyra"))
+            //{
+            //    result.ResultCode = APIResultCodes.NameUnavailable;
+            //    return result;
+            //}
+
             try
             {
                 var authorizer = new NewTokenAuthorizer(_serviceAccount, _accountCollection);

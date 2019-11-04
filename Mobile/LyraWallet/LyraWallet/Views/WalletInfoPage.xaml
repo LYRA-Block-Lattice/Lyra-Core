@@ -42,6 +42,10 @@
                 <Button Margin="0,0,0,0" Text="Show Blocks" Command="{Binding ShowBlocksCommand}" />
                 <Button Margin="0,0,0,0" Text="Create Token" Command="{Binding CreateTokenCommand}" />
                 <Button IsVisible="False" Margin="0,0,0,0" Text="Redeem Code" Command="{Binding RedeemCodeCommand}" />
+                <StackLayout IsVisible="False" Orientation="Horizontal">
+                    <Switch IsToggled="true" OnColor="Orange" ThumbColor="Green"/>
+                    <Label Text="Host my shop at community site" />
+                </StackLayout>                
                 <Label Text="Or even (Please backup private key first):" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />

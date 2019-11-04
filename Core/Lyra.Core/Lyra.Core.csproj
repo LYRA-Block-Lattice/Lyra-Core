@@ -22,6 +22,5 @@
     <Folder Include="Accounts\" />
     <Folder Include="Authorizations\" />
     <Folder Include="Cryptography\" />
-    <Folder Include="API\" />
   </ItemGroup>
 </Project>

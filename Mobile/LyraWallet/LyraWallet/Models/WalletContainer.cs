@@ -136,7 +136,7 @@ namespace LyraWallet.Models
                 true, ownerName ?? "", ownerAddress ?? "", null, Lyra.Core.Blocks.Transactions.ContractTypes.Default, null);
             if (result.ResultCode != APIResultCodes.Success)
             {
-                throw new Exception(result.ResultMessage);
+                throw new Exception(result.ResultCode.ToString());
             }
         }
 
@@ -185,27 +185,20 @@ namespace LyraWallet.Models
 
         string SelectNode(string network_id)
         {
-            //INodeAPI rpcClient = new WebAPIClient("http://localhost:5002/api/");
-            //INodeAPI rpcClient = new WebAPIClient("https://lyranode.ngrok.io/api/");
-
             switch (network_id)
             {
+#if DEBUG
+                case "lexdev":
+                    return "http://lex.lyratokens.com:5492/api/";
+#endif
                 case "lexnet":
                     return "http://lex.lyratokens.com:5392/api/";
-                case "local":
-                    return "http://localhost:3932/api/";
-                case "devnet0":
-                    return "https://node.lyra.live/api/";
-                case "devnet1":
-                    return "https://node1.lyra.live/api/";
                 case "testnet":
-                    return "";
-                case "stagenet":
-                    return "";
+                    return "http://testnet.lyratokens.com/api/";
                 case "mainnet":
-                    return "";
+                    return "http://mainnet.lyratokens.com/api/";
                 default:
-                    return "";
+                    throw new Exception("Unsupported network ID");
             }
         }
     }

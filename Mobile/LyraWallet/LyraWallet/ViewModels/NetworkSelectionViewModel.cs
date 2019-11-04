@@ -1,4 +1,5 @@
-﻿using LyraWallet.Views;
+﻿using Lyra.Core.API;
+using LyraWallet.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,11 +11,7 @@ namespace LyraWallet.ViewModels
 {
 	public class NetworkSelectionViewModel : BaseViewModel
     {
-        private readonly IList<string> _networks = new [] { "mainnet", "testnet",
-            "stagenet", "devnet0", "devnet1", "local", "lexnet"
-        };
-
-        public IList<string> LyraNetworks => _networks;
+        public IList<string> LyraNetworks => LyraGlobal.Networks;
 
         private string _selectedNetwork;
         public string SelectedNetwork

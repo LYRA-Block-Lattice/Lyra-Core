@@ -9,8 +9,8 @@ using Lyra.Core.Cryptography;
 using Lyra.Core.API;
 using Lyra.Core.Accounts;
 using Lyra.Core.Accounts.Node;
-using Lyra.Node.LiteDB;
-using Lyra.Node.MongoDB;
+using Lyra.Core.LiteDB;
+using Lyra.Core.MongoDB;
 using System;
 using System.Collections.Generic;
 

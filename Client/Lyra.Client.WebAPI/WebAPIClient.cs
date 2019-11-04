@@ -51,11 +51,15 @@ namespace Lyra.Client.WebAPI
             {
                 //BaseAddress = new Uri("https://localhost:5001/api/")
                 BaseAddress = new Uri(BaseAddress),
-                Timeout = new TimeSpan(0, 0, 30)        // for debug. but 10 sec is too short for real env
+#if DEBUG
+                Timeout = new TimeSpan(0, 30, 0)        // for debug. but 10 sec is too short for real env
+#else
+                Timeout = new TimeSpan(0, 0, 30)
+#endif
             };
         }
 
-        #region INodeAPI implementation
+#region INodeAPI implementation
 
         public async Task<AccountHeightAPIResult> GetSyncHeight()
         {
@@ -210,7 +214,7 @@ namespace Lyra.Client.WebAPI
             }
         }
 
-        #region Authorization methods 
+#region Authorization methods 
 
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock SendBlock)
         {
@@ -420,14 +424,14 @@ namespace Lyra.Client.WebAPI
             }
         }
 
-        #endregion // Authorization methods
+#endregion // Authorization methods
 
-        #endregion // INodeAPI implementation
+#endregion // INodeAPI implementation
 
-        #region private methods
+#region private methods
 
 
-        #endregion // private methods
+#endregion // private methods
 
 
 

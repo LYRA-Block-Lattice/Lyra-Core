@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using Lyra.Core.LiteDB;
 using Lyra.Core.Accounts;
 using Lyra.Core.Accounts.Node;
-using Lyra.Node.LiteDB;
-using Lyra.Node.MongoDB;
+using Lyra.Core.LiteDB;
+using Lyra.Core.MongoDB;
 
 //[assembly: FileVersion("0.0.1")]
 //[assembly: AssemblyFileVersion("1.0.2000.0")]

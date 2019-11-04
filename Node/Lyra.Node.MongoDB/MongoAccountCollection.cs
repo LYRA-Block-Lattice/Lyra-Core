@@ -15,7 +15,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization.Options;
 
-namespace Lyra.Node.MongoDB
+namespace Lyra.Core.MongoDB
 {
     // this is account collection (collection of block chains) used on the node side only
     // 

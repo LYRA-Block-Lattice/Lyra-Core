@@ -92,5 +92,7 @@ namespace Lyra.Core.API
 
         TokenExpired = -201,
 
+        NameUnavailable = -202
+
     }
 }

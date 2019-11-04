@@ -26,7 +26,6 @@
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
     <ProjectReference Include="..\..\Core\Lyra.Core.LiteDB\Lyra.Core.LiteDB.csproj" />
     <ProjectReference Include="..\..\Core\Lyra.Core.TcpLib\Lyra.Core.TcpLib.csproj" />
-    <ProjectReference Include="..\Lyra.Node.LiteDB\Lyra.Node.LiteDB.csproj" />
-    <ProjectReference Include="..\Lyra.Node.MongoDB\Lyra.Node.MongoDB.csproj" />
+    <ProjectReference Include="..\Lyra.Node.MongoDB\Lyra.Core.MongoDB.csproj" />
   </ItemGroup>
 </Project>
