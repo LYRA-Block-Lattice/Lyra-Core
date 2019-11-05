@@ -26,6 +26,7 @@ namespace LyraWallet.ViewModels
         public ICommand RedeemCodeCommand { get; }
         public ICommand ShowBlocksCommand { get; }
         public ICommand RemoveAccountCommand { get; }
+        public ICommand VisitCommunityCommand { get;  }
         public WalletInfoViewModel (Page page)
 		{
             _thePage = page;
@@ -35,6 +36,12 @@ namespace LyraWallet.ViewModels
             BarcodeGenCommand = new Command(async () =>
             {
                 var nextPage = new BarcodeGenPage($"lyra://localhost/payme?AccountID={AccountID}", AccountID);
+                await _thePage.Navigation.PushAsync(nextPage);
+            });
+
+            VisitCommunityCommand = new Command(async () =>
+            {
+                var nextPage = new LexCommunityPage();
                 await _thePage.Navigation.PushAsync(nextPage);
             });
 

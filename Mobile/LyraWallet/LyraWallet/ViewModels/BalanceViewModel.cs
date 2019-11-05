@@ -37,11 +37,11 @@ namespace LyraWallet.ViewModels
             //}
         }
 
-        private string _balanceTxt;
-        public string BalanceText
+        private bool _getLex;
+        public bool GetLEX
         {
-            get => _balanceTxt;
-            set => SetProperty(ref _balanceTxt, value);
+            get => _getLex;
+            set => SetProperty(ref _getLex, value);
         }
 
         private bool _isRefreshing;
@@ -68,7 +68,7 @@ namespace LyraWallet.ViewModels
             App.Container.PropertyChanged += (o, e) => OnPropertyChanged(e.PropertyName);
 
             Title = "Balance";
-            BalanceText = "Lyra: 0";
+            GetLEX = false;
             
             RefreshCommand = new Command(async () =>
             {
@@ -139,6 +139,11 @@ namespace LyraWallet.ViewModels
             {
                 await App.Container.OpenWalletFile();
                 await App.Container.GetBalance();
+                if(App.Container.Balances == null || App.Container.Balances.Count == 0)
+                {
+                    GetLEX = true;
+                }
+
                 MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
                 await Refresh();
             });
@@ -150,6 +155,14 @@ namespace LyraWallet.ViewModels
             {
                 IsRefreshing = true;
                 await App.Container.RefreshBalance();
+                if (App.Container.Balances == null || App.Container.Balances.Count == 0)
+                {
+                    GetLEX = true;
+                }
+                else
+                {
+                    GetLEX = false;
+                }
                 IsRefreshing = false;
                 MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
             }

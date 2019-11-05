@@ -22,7 +22,7 @@
                                  Clicked="CopyAccountID_Clicked"/>
                 </Grid>
                 <Editor x:Name="txtAccountID" Text="{Binding AccountID}" IsReadOnly="True" FontSize="Small" AutoSize="TextChanges"/>
-                <Button Margin="0,0,0,0" Text="Generate QR Code" Command="{Binding BarcodeGenCommand}" />
+                <Button Margin="0,0,0,0" Text="Generate QR Code for public address" Command="{Binding BarcodeGenCommand}" />
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -45,7 +45,8 @@
                 <StackLayout IsVisible="False" Orientation="Horizontal">
                     <Switch IsToggled="true" OnColor="Orange" ThumbColor="Green"/>
                     <Label Text="Host my shop at community site" />
-                </StackLayout>                
+                </StackLayout>
+                <Button Margin="0,0,0,0" Text="Visit Lyra LeX Online Community" Command="{Binding VisitCommunityCommand}" />
                 <Label Text="Or even (Please backup private key first):" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />

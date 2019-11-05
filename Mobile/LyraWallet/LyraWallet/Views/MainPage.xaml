@@ -26,14 +26,14 @@
             </x:Arguments>
         </NavigationPage>
 
-        <!--<NavigationPage Title="LeX World">
+        <!--<NavigationPage Title="Community">
             <NavigationPage.Icon>
                 <OnPlatform x:TypeArguments="FileImageSource">
                     <On Platform="iOS" Value="tab_about.png"/>
                 </OnPlatform>
             </NavigationPage.Icon>
             <x:Arguments>
-                <views:LexWorldPage />
+                <views:LexCommunityPage />
             </x:Arguments>
         </NavigationPage>
 
