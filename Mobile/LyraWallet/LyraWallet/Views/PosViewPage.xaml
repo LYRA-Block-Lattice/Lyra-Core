@@ -88,10 +88,10 @@
             <Frame IsVisible="{Binding AddCartMode}" HeightRequest="40">
                 <Grid HorizontalOptions="Fill" VerticalOptions="Fill">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="40" />
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="120"/>
                     </Grid.ColumnDefinitions>
                     <ImageButton BackgroundColor="White" Grid.Column="0" Source="cart.png" Command="{Binding ViewCartCommand}"/>
                     <Label Grid.Column="1" Text="{Binding CartTotal}"
@@ -104,7 +104,7 @@
                            LineBreakMode="NoWrap"
                            VerticalOptions="End" HorizontalOptions="EndAndExpand"/>
                     <Button Grid.Column="3" BackgroundColor="LightGreen" 
-                            Text="Check Out" Command="{Binding CheckoutCommand}" />
+                            Text="Check Out" MinimumWidthRequest="100" Command="{Binding CheckoutCommand}" />
                     <views:Badge Grid.Column="0"
                              BadgeText="{Binding CartCount}"
                              BadgeFontAttributes="{Binding FontAttributes}"

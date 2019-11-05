@@ -67,6 +67,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyraWallet.iOS", "Mobile\Ly
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lyra.Misc.Test", "Lyra.Misc.Test\Lyra.Misc.Test.csproj", "{F48A0899-C09F-4E6C-98D3-2958B4EB2BA5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyraLexWeb", "Mobile\LyraLexWeb\LyraLexWeb.csproj", "{2EA63B39-E70E-49BB-AF77-26C27DB90574}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -329,6 +331,18 @@ Global
 		{F48A0899-C09F-4E6C-98D3-2958B4EB2BA5}.Release|iPhone.Build.0 = Release|Any CPU
 		{F48A0899-C09F-4E6C-98D3-2958B4EB2BA5}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{F48A0899-C09F-4E6C-98D3-2958B4EB2BA5}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Release|iPhone.Build.0 = Release|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -356,6 +370,7 @@ Global
 		{3BA640B8-A0C1-4496-9077-F6E3F1A71145} = {42DF8DE3-27FB-4A1F-847D-FEA30B0C3CFD}
 		{664F238D-4109-492B-9AED-B14BE4C9AE75} = {42DF8DE3-27FB-4A1F-847D-FEA30B0C3CFD}
 		{F48A0899-C09F-4E6C-98D3-2958B4EB2BA5} = {6ACF6636-E68C-40CD-8AB8-1EBFCC3F9F9E}
+		{2EA63B39-E70E-49BB-AF77-26C27DB90574} = {497A1841-5B07-434C-B988-AD7EAF77BC55}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0ACEE4A-2985-4B4A-BD25-73DB7B8102AC}
