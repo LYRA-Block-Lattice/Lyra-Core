@@ -13,10 +13,10 @@
                      Navigated="webviewNavigated" Navigating="webviewNavigating"
                      />
             <StackLayout Orientation="Horizontal" BackgroundColor="LightGray">
-                <Button HeightRequest="30" FontSize="Micro" FontAttributes="None" Text="Back" HorizontalOptions="StartAndExpand" Clicked="OnBackButtonClicked" />
-                <Button HeightRequest="30" FontSize="Micro" FontAttributes="None" Text="Forward" HorizontalOptions="StartAndExpand" Clicked="OnForwardButtonClicked" />
-                <Button HeightRequest="30" FontSize="Micro" FontAttributes="None" Text="Home" HorizontalOptions="Center" Clicked="OnHomeButtonClicked" />
-                <Button HeightRequest="30" FontSize="Micro" FontAttributes="None" Text="Refresh" HorizontalOptions="EndAndExpand" Clicked="OnRefreshButtonClicked" />
+                <Button HeightRequest="36" FontSize="Micro" FontAttributes="None" Text="Back" HorizontalOptions="StartAndExpand" Clicked="OnBackButtonClicked" />
+                <Button HeightRequest="36" FontSize="Micro" FontAttributes="None" Text="Forward" HorizontalOptions="StartAndExpand" Clicked="OnForwardButtonClicked" />
+                <Button HeightRequest="36" FontSize="Micro" FontAttributes="None" Text="Home" HorizontalOptions="Center" Clicked="OnHomeButtonClicked" />
+                <Button HeightRequest="36" FontSize="Micro" FontAttributes="None" Text="Refresh" HorizontalOptions="EndAndExpand" Clicked="OnRefreshButtonClicked" />
             </StackLayout>
         </StackLayout>
     </ContentPage.Content>
