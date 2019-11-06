@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Mobile\LyraLexWeb\Models\FreeLeXRequest.cs" Link="FreeLeXRequest.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.9.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Lyra.Core.LiteDB\Lyra.Core.LiteDB.csproj" />
+    <ProjectReference Include="..\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
+    <ProjectReference Include="..\Lyra.Client.WebAPI\Lyra.Client.WebAPI.csproj" />
+  </ItemGroup>
+
+</Project>

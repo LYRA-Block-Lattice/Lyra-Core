@@ -65,9 +65,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyraWallet.Android", "Mobil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyraWallet.iOS", "Mobile\LyraWallet\LyraWallet.iOS\LyraWallet.iOS.csproj", "{664F238D-4109-492B-9AED-B14BE4C9AE75}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lyra.Misc.Test", "Lyra.Misc.Test\Lyra.Misc.Test.csproj", "{F48A0899-C09F-4E6C-98D3-2958B4EB2BA5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lyra.Misc.Test", "Lyra.Misc.Test\Lyra.Misc.Test.csproj", "{F48A0899-C09F-4E6C-98D3-2958B4EB2BA5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LyraLexWeb", "Mobile\LyraLexWeb\LyraLexWeb.csproj", "{2EA63B39-E70E-49BB-AF77-26C27DB90574}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LyraLexWeb", "Mobile\LyraLexWeb\LyraLexWeb.csproj", "{2EA63B39-E70E-49BB-AF77-26C27DB90574}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoSender", "Client\AutoSender\AutoSender.csproj", "{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -343,6 +345,18 @@ Global
 		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Release|iPhone.Build.0 = Release|Any CPU
 		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{2EA63B39-E70E-49BB-AF77-26C27DB90574}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Release|iPhone.Build.0 = Release|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -371,6 +385,7 @@ Global
 		{664F238D-4109-492B-9AED-B14BE4C9AE75} = {42DF8DE3-27FB-4A1F-847D-FEA30B0C3CFD}
 		{F48A0899-C09F-4E6C-98D3-2958B4EB2BA5} = {6ACF6636-E68C-40CD-8AB8-1EBFCC3F9F9E}
 		{2EA63B39-E70E-49BB-AF77-26C27DB90574} = {497A1841-5B07-434C-B988-AD7EAF77BC55}
+		{018175AE-CD5A-4DDA-A1B3-09407A07A7C0} = {9CF1BE73-6CB1-4EDB-9A3D-A4BF5335EE4F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A0ACEE4A-2985-4B4A-BD25-73DB7B8102AC}

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AutoSender": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Users\\Administrator\\Lyra-CLI-lexnet\\ \"my account\" lexnet http://lex.lyratokens.com:5392/api/ mongodb://lexweb:j2CsADf4@localhost/lexweb"
+    }
+  }
+}

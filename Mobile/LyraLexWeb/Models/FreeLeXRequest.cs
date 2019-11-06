@@ -12,6 +12,7 @@ namespace LyraLexWeb.Models
     {
         [BsonId]
         public ObjectId ID { get; set; }
+        public int State { get; set; }
         public DateTime TimeRequested => DateTime.Now;
         public DateTime SentTime;
         [Required]

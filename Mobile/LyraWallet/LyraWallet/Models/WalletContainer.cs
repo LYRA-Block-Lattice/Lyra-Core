@@ -104,9 +104,11 @@ namespace LyraWallet.Models
             App.Container.Balances = latestBlock?.Balances;
             App.Container.TokenList = App.Container.Balances?.Keys.ToList();
         }
-        public async Task RefreshBalance()
+        public async Task RefreshBalance(string webApiUrl = null)
         {
             var node_address = SelectNode(wallet.NetworkId);
+            if (webApiUrl != null)
+                node_address = webApiUrl;
             var rpcClient = new WebAPIClient(node_address);
             var result = await wallet.Sync(rpcClient);
             if (result == APIResultCodes.Success)

@@ -49,7 +49,7 @@ namespace LyraLexWeb.Pages
                 if (resultList.Any())
                 {
                     var result = resultList.First();
-                    if (result.SentTime != null && result.SentTime > result.TimeRequested)
+                    if (result.State == 1)
                     {
                         msg = "already sent";
                     }
@@ -65,7 +65,8 @@ namespace LyraLexWeb.Pages
                     {
                         AccountID = req.AccountID,
                         Email = req.Email,
-                        UserName = req.UserName
+                        UserName = req.UserName,
+                        State = 0
                     };
                     await lexReqs.InsertOneAsync(queueReq);
                     msg = "ok, will send";
