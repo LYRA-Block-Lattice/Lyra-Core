@@ -41,9 +41,9 @@ namespace LyraLexWeb.Pages
             {
                 // write data to log
                 var lexReqs = _ctx.Context.GetCollection<FreeLeXRequest>("lexreq");
-                var filter1 = Builders<FreeLeXRequest>.Filter.Eq("Email", req.Email);
+                //var filter1 = Builders<FreeLeXRequest>.Filter.Eq("Email", req.Email);
                 var filter2 = Builders<FreeLeXRequest>.Filter.Eq("AccountID", req.AccountID);
-                var filter = filter1 | filter2;
+                var filter = filter2;
                 var findResult = await lexReqs.FindAsync(filter);
                 var resultList = findResult.ToList();
                 if (resultList.Any())

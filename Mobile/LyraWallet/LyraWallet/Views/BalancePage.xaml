@@ -6,14 +6,6 @@
              x:Class="LyraWallet.Views.BalancePage">
     <ContentPage.Content>
         <StackLayout x:Name="haveBalance" Padding="5" BackgroundColor="White">
-            <Frame VerticalOptions="Center" Padding="25" IsVisible="{Binding GetLEX}" CornerRadius="30">
-                <StackLayout>
-                <Label x:Name="getLex" FontSize="Medium"
-                            Text="You need Lyra.LeX to creat everything here. Goto &quot;Settings&quot; -> &quot;Visit Lyra LeX Online Community&quot; to get free Lyra.LeX to play with." LineBreakMode="WordWrap" />
-                <Label FontSize="Medium"
-                            Text="After you got Lyra.LeX, pull-down to refresh to see the balance." LineBreakMode="WordWrap" />
-                </StackLayout>
-            </Frame>
             <ListView x:Name="lvBalance" ItemsSource="{Binding Balances}" 
                       BackgroundColor="White"
                       SeparatorVisibility="None"
@@ -55,6 +47,14 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+            <Frame VerticalOptions="EndAndExpand" Padding="25" IsVisible="{Binding GetLEX}" CornerRadius="30">
+                <StackLayout>
+                    <Label x:Name="getLex" FontSize="Small"
+                            Text="You need Lyra.LeX to creat everything here. Goto &quot;Settings&quot; -> &quot;Visit Lyra LeX Online Community&quot; to get free Lyra.LeX to play with." LineBreakMode="WordWrap" />
+                    <Label FontSize="Small"
+                            Text="After you got Lyra.LeX, pull-down to refresh to see the balance." LineBreakMode="WordWrap" />
+                </StackLayout>
+            </Frame>
             <Button BackgroundColor="LightGreen" 
                             Text="Scan to Pay" Command="{Binding ScanCommand}" />
             <Button x:Name="btnRefresh" Margin="0,10,0,0" Text="Refresh" Command="{Binding RefreshCommand}">

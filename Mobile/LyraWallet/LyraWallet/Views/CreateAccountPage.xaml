@@ -16,7 +16,9 @@
             <BoxView BackgroundColor="Silver" HeightRequest="1" HorizontalOptions="FillAndExpand"/>
             <Frame>
                 <StackLayout>
-                    <Editor Text="{Binding PrivateKey}" AutoSize="TextChanges" />
+                    <Editor Text="{Binding PrivateKey}"
+                            Placeholder="Paste your private key here"
+                            AutoSize="TextChanges" />
                     <Button Text="Create/Restore by Private Key" Command="{Binding CreateByKeyCommand}" TextColor="White"  BackgroundColor="Gray" HorizontalOptions="Fill" />
                 </StackLayout>
             </Frame>    

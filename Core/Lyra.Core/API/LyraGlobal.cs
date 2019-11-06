@@ -11,9 +11,7 @@ namespace Lyra.Core.API
             "lexnet", "lexdev"
         };
 #else
-        public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
-            "lexnet"
-        };
+        public static readonly IList<string> Networks = new[] { "lexnet" };
 #endif
     }
 }
