@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace LyraWallet.ViewModels
@@ -41,8 +42,9 @@ namespace LyraWallet.ViewModels
 
             VisitCommunityCommand = new Command(async () =>
             {
-                var nextPage = new LexCommunityPage();
-                await _thePage.Navigation.PushAsync(nextPage);
+                await Browser.OpenAsync("http://lex.lyratokens.com/", BrowserLaunchMode.SystemPreferred);
+                //var nextPage = new LexCommunityPage();
+                //await _thePage.Navigation.PushAsync(nextPage);
             });
 
             CreateTokenCommand = new Command(async () =>
