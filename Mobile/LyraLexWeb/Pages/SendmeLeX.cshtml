@@ -1,0 +1,32 @@
+﻿@page
+@model LyraLexWeb.Pages.SendmeLeXModel
+@{
+    ViewData["Title"] = "SendmeLeX";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Fill the form and get your free 200 Lyra.LeX!</h1>
+</div>
+<div class="text-body">
+    <form method="post">
+        <div class="form-group">
+            <Label class="control-label">User Name:</Label>
+            <input asp-for="userName" size="20" class="form-control" />
+        </div>
+        <div class="form-group">
+            <Label class="control-label">Email Address:</Label>
+            <input asp-for="email" size="20" class="form-control" />
+        </div>
+        <div class="form-group">
+            <Label class="control-label">Your Lyra Account ID (or Public Address):</Label>
+            <input asp-for="accountid" size="100" class="form-control" />
+        </div>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary" />
+        </div>
+
+    </form>
+    
+
+</div>
