@@ -24,8 +24,6 @@
 	<string>8.0</string>
 	<key>CFBundleDisplayName</key>
 	<string>LyraWallet</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.companyname.LyraWallet</string>
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
 	<key>UILaunchStoryboardName</key>
@@ -36,7 +34,9 @@
 	<string>Assets.xcassets/AppIcon.appiconset</string>
 	<key>XSLaunchImageAssets</key>
 	<string>Assets.xcassets/LaunchImages.launchimage</string>
-  <key>NSCameraUsageDescription</key>
-  <string>Please allow the camera to be used for scanning barcodes</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Please allow the camera to be used for scanning barcodes</string>
+	<key>CFBundleIdentifier</key>
+	<string>live.lyra.LyraWallet.LeX</string>
 </dict>
 </plist>
