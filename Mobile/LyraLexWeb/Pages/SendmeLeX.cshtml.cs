@@ -5,30 +5,52 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.IO;
+using LyraLexWeb.Models;
+using LyraLexWeb.Common;
+using LiteDB;
 
 namespace LyraLexWeb.Pages
 {
     [BindProperties]
     public class SendmeLeXModel : PageModel
     {
-        public string userName { get; set; }
-        public string email { get; set; }
-        public string accountid { get; set; }
-        
+        public FreeLeXRequest req { get; set; }
+
+        public string msg { get; set; }
+
+        private readonly LiteDbContext _db;
+
+        public SendmeLeXModel(LiteDbContext db)
+        {
+            _db = db;
+        }
         public void OnGet()
         {
 
         }
 
-        public void OnPost()
+        public IActionResult OnPost()
         {
-            // write data to txt log
-            if(!string.IsNullOrWhiteSpace(Request.Form["accountid"]))
+            if (!ModelState.IsValid)
             {
-                var log = $"{DateTime.Now}|{Request.Form["userName"]}|{Request.Form["email"]}|{Request.Form["accountid"]}";
-                
+                return Page();
             }
-            // send LeX
+            // write data to log
+            var lexReqs = _db.Context.GetCollection<FreeLeXRequest>("FreeLeXRequest");
+            if(lexReqs.Exists(Query.EQ("Email", req.Email)))
+            {
+                msg = "already sent";
+            }
+            else
+            {
+                // send LeX
+                msg = "ok, will send";
+            }
+
+            return Page();
+
+            //msg = $"{DateTime.Now}|{Request.Form["userName"]}|{Request.Form["email"]}|{Request.Form["accountid"]}";
+            
         }
     }
 }

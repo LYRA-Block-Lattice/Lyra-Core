@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LyraLexWeb.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -24,6 +25,8 @@ namespace LyraLexWeb
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+            //services.AddMvc();
+            services.AddLiteDb(@"bug.db");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,7 +43,7 @@ namespace LyraLexWeb
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();  //temp. uncomment after get ssl certification
             app.UseStaticFiles();
 
             app.UseRouting();

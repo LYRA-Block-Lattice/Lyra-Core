@@ -12,21 +12,29 @@
     <form method="post">
         <div class="form-group">
             <Label class="control-label">User Name:</Label>
-            <input asp-for="userName" size="20" class="form-control" />
+            <input asp-for="req.UserName" size="20" class="form-control" />
+            <span asp-validation-for="req.UserName"></span>
         </div>
         <div class="form-group">
             <Label class="control-label">Email Address:</Label>
-            <input asp-for="email" size="20" class="form-control" />
+            <input asp-for="req.Email" size="20" class="form-control" />
+            <span asp-validation-for="req.Email"></span>
         </div>
         <div class="form-group">
             <Label class="control-label">Your Lyra Account ID (or Public Address):</Label>
-            <input asp-for="accountid" size="100" class="form-control" />
+            <input asp-for="req.AccountID" size="100" class="form-control" />
+            <span asp-validation-for="req.AccountID"></span>
         </div>
         <div class="form-group">
             <input type="submit" class="btn btn-primary" />
         </div>
 
     </form>
-    
 
+    <p>
+        @Model.msg
+    </p>
 </div>
+@section scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
