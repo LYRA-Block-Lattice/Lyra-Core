@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -8,7 +10,10 @@ namespace LyraLexWeb.Models
 {
     public class FreeLeXRequest
     {
+        [BsonId]
+        public ObjectId ID { get; set; }
         public DateTime TimeRequested => DateTime.Now;
+        public DateTime SentTime;
         [Required]
         [MinLength(6)]
         public string UserName { get; set; }
@@ -16,7 +21,7 @@ namespace LyraLexWeb.Models
         [MinLength(6)]
         public string Email { get; set; }
         [Required]
-        [StringLength(95)]
+        [MinLength(95), MaxLength(95)]
         public string AccountID { get; set; }
     }
 }

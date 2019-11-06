@@ -13,17 +13,17 @@
         <div class="form-group">
             <Label class="control-label">User Name:</Label>
             <input asp-for="req.UserName" size="20" class="form-control" />
-            <span asp-validation-for="req.UserName"></span>
+            <span class="alert-danger" asp-validation-for="req.UserName"></span>
         </div>
         <div class="form-group">
             <Label class="control-label">Email Address:</Label>
             <input asp-for="req.Email" size="20" class="form-control" />
-            <span asp-validation-for="req.Email"></span>
+            <span class="alert-danger" asp-validation-for="req.Email"></span>
         </div>
         <div class="form-group">
             <Label class="control-label">Your Lyra Account ID (or Public Address):</Label>
             <input asp-for="req.AccountID" size="100" class="form-control" />
-            <span asp-validation-for="req.AccountID"></span>
+            <span class="alert-danger" asp-validation-for="req.AccountID"></span>
         </div>
         <div class="form-group">
             <input type="submit" class="btn btn-primary" />

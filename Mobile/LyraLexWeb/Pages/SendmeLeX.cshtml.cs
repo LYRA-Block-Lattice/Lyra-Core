@@ -8,6 +8,7 @@ using System.IO;
 using LyraLexWeb.Models;
 using LyraLexWeb.Common;
 using LiteDB;
+using MongoDB.Driver;
 
 namespace LyraLexWeb.Pages
 {
@@ -18,39 +19,65 @@ namespace LyraLexWeb.Pages
 
         public string msg { get; set; }
 
-        private readonly LiteDbContext _db;
+        private readonly MongodbContext _ctx;
 
-        public SendmeLeXModel(LiteDbContext db)
+        public SendmeLeXModel(MongodbContext db)
         {
-            _db = db;
+            _ctx = db;
         }
         public void OnGet()
         {
 
         }
 
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
             {
                 return Page();
             }
-            // write data to log
-            var lexReqs = _db.Context.GetCollection<FreeLeXRequest>("FreeLeXRequest");
-            if(lexReqs.Exists(Query.EQ("Email", req.Email)))
+            // filter user input at server side
+            if(req.Email?.Length >= 6 && req.UserName?.Length >= 6 && req.AccountID?.Length == 95)
             {
-                msg = "already sent";
+                // write data to log
+                var lexReqs = _ctx.Context.GetCollection<FreeLeXRequest>("lexreq");
+                var filter1 = Builders<FreeLeXRequest>.Filter.Eq("Email", req.Email);
+                var filter2 = Builders<FreeLeXRequest>.Filter.Eq("AccountID", req.AccountID);
+                var filter = filter1 | filter2;
+                var findResult = await lexReqs.FindAsync(filter);
+                var resultList = findResult.ToList();
+                if (resultList.Any())
+                {
+                    var result = resultList.First();
+                    if (result.SentTime != null && result.SentTime > result.TimeRequested)
+                    {
+                        msg = "already sent";
+                    }
+                    else
+                    {
+                        msg = "in queue, please be patient.";
+                    }
+                }
+                else
+                {
+                    // add to database queue. send by other daemon
+                    var queueReq = new FreeLeXRequest
+                    {
+                        AccountID = req.AccountID,
+                        Email = req.Email,
+                        UserName = req.UserName
+                    };
+                    await lexReqs.InsertOneAsync(queueReq);
+                    msg = "ok, will send";
+                }                
             }
             else
             {
-                // send LeX
-                msg = "ok, will send";
+                msg = "invalid user input data";
             }
 
-            return Page();
-
             //msg = $"{DateTime.Now}|{Request.Form["userName"]}|{Request.Form["email"]}|{Request.Form["accountid"]}";
-            
+            return Page();
         }
     }
 }

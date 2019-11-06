@@ -26,7 +26,7 @@ namespace LyraLexWeb
         {
             services.AddRazorPages();
             //services.AddMvc();
-            services.AddLiteDb(@"bug.db");
+            services.AddMongodb("mongodb://lexweb:j2CsADf4@localhost/lexweb");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
