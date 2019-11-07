@@ -38,5 +38,10 @@
 	<string>Please allow the camera to be used for scanning barcodes</string>
 	<key>CFBundleIdentifier</key>
 	<string>live.lyra.LyraWallet.LeX</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
