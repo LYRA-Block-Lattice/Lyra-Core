@@ -15,7 +15,11 @@ namespace LyraLexWeb.Models
         public int State { get; set; }
         public DateTime TimeRequested => DateTime.Now;
         public DateTime SentTime;
+        [Required]
+        [MinLength(3)]
         public string UserName { get; set; }
+        [Required]
+        [MinLength(6)]
         public string Email { get; set; }
         [Required]
         [MinLength(95), MaxLength(95)]

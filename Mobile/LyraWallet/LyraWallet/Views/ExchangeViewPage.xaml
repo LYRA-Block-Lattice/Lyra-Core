@@ -7,10 +7,97 @@
              x:Class="LyraWallet.Views.ExchangeViewPage"
              BackgroundColor="White">
     <ContentPage.Content>
-        <StackLayout>
-            <Label Text="Welcome to LeX Exchange!"
-                VerticalOptions="CenterAndExpand" 
-                HorizontalOptions="CenterAndExpand" />
-        </StackLayout>
+        <Grid VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand"
+              BackgroundColor="Black" RowSpacing="1" ColumnSpacing="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="200" />
+                <RowDefinition Height="200" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="140"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackLayout Orientation="Horizontal" BackgroundColor="White"
+                         Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                <Label Text="My.Token &lt;==&gt; Lyra.LeX" HorizontalOptions="Start" />
+                <Label Text="Volume: 300 My.Token" HorizontalOptions="End" />
+            </StackLayout>
+            <ScrollView Grid.Row="1" Grid.Column="0"
+                        BackgroundColor="White">
+                <StackLayout VerticalOptions="End">
+                    <Label Text="0.001    30"/>
+                    <Label Text="0.001    30"/>
+                    <Label Text="0.001    30"/>
+                    <Label Text="0.001    30"/>
+                    <Label Text="0.001    30"/>
+                </StackLayout>
+            </ScrollView>
+            <ScrollView Grid.Row="2" Grid.Column="0"
+                        BackgroundColor="White">
+                <StackLayout VerticalOptions="Start">
+                    <Label Text="0.001    30"/>
+                    <Label Text="0.001    30"/>
+                    <Label Text="0.001    30"/>
+                    <Label Text="0.001    30"/>
+                    <Label Text="0.001    30"/>
+                </StackLayout>
+            </ScrollView>
+            <StackLayout BackgroundColor="White"
+                         Grid.Row="1" Grid.Column="1" >
+                <Grid 
+                  VerticalOptions="EndAndExpand" 
+                  HorizontalOptions="FillAndExpand"
+                  BackgroundColor="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50" />
+                        <RowDefinition Height="50" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Editor Grid.Row="0" Grid.Column="0" Placeholder="Price" />
+                    <Editor Grid.Row="1" Grid.Column="0" Placeholder="Count" />
+                    <Label Text="Hold My.Token: 10000"
+                       Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" />
+                    <Button Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                        Text="Sell" BackgroundColor="PaleVioletRed" />
+                </Grid>
+            </StackLayout>
+            <StackLayout Grid.Row="2" Grid.Column="1"
+                         BackgroundColor="White">
+                <Grid  
+                  VerticalOptions="StartAndExpand" 
+                  HorizontalOptions="FillAndExpand"
+                  BackgroundColor="White">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="50" />
+                    <RowDefinition Height="50" />                    
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Text="Hold Lyra.LeX: 10000"
+                       Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" />
+                <Editor Grid.Row="1" Grid.Column="0" Placeholder="Price" />
+                <Editor Grid.Row="2" Grid.Column="0" Placeholder="Count" />
+                <Button Grid.Row="1" Grid.Column="1" Grid.RowSpan="2"
+                        Text="Buy" BackgroundColor="LightGreen"/>
+            </Grid>
+            </StackLayout>
+            <ScrollView Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                        BackgroundColor="White">
+                <StackLayout>
+                    <Label Text="Sell My.Token Price 1111 Count 1111" />
+                    <Label Text="Sell My.Token Price 1111 Count 1111" />
+                    <Label Text="Sell My.Token Price 1111 Count 1111" />
+                </StackLayout>
+            </ScrollView>
+        </Grid>
     </ContentPage.Content>
 </ContentPage>

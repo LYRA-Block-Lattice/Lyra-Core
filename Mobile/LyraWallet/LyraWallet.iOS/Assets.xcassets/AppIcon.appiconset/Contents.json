@@ -1,12 +1,6 @@
 {
   "images": [
     {
-      "scale": "3x",
-      "size": "60x60",
-      "idiom": "iphone",
-      "filename": "Icon180.png"
-    },
-    {
       "scale": "2x",
       "size": "20x20",
       "idiom": "iphone",
@@ -107,6 +101,12 @@
       "size": "1024x1024",
       "idiom": "ios-marketing",
       "filename": "Lyra1k.png"
+    },
+    {
+      "scale": "3x",
+      "size": "60x60",
+      "idiom": "iphone",
+      "filename": "Icon-App-60x60@3x.png"
     }
   ],
   "properties": {},

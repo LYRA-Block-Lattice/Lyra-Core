@@ -35,9 +35,9 @@
             <x:Arguments>
                 <views:LexCommunityPage />
             </x:Arguments>
-        </NavigationPage>
+        </NavigationPage>-->
 
-        <NavigationPage Title="Market">
+        <NavigationPage Title="Exchange">
             <NavigationPage.Icon>
                 <OnPlatform x:TypeArguments="FileImageSource">
                     <On Platform="iOS" Value="tab_about.png"/>
@@ -46,7 +46,7 @@
             <x:Arguments>
                 <views:ExchangeViewPage />
             </x:Arguments>
-        </NavigationPage>-->
+        </NavigationPage>
         
         <NavigationPage Title="Settings">
             <NavigationPage.Icon>

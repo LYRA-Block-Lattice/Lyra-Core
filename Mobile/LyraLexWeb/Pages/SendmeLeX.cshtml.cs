@@ -37,25 +37,30 @@ namespace LyraLexWeb.Pages
                 return Page();
             }
             // filter user input at server side
-            if(req.Email?.Length >= 6 && req.UserName?.Length >= 6 && req.AccountID?.Length == 95)
+            if(req.Email?.Length >= 6 && req.UserName?.Length >= 3 && req.AccountID?.Length == 95)
             {
                 // write data to log
                 var lexReqs = _ctx.Context.GetCollection<FreeLeXRequest>("lexreq");
-                //var filter1 = Builders<FreeLeXRequest>.Filter.Eq("Email", req.Email);
+                var filter1 = Builders<FreeLeXRequest>.Filter.Eq("Email", req.Email);
                 var filter2 = Builders<FreeLeXRequest>.Filter.Eq("AccountID", req.AccountID);
-                var filter = filter2;
+                var filter = filter1 & filter2;
                 var findResult = await lexReqs.FindAsync(filter);
                 var resultList = findResult.ToList();
                 if (resultList.Any())
                 {
                     var result = resultList.First();
+                    // send result: 1=success; 2=InvalidDestinationAccountId; 3=unknown error
                     if (result.State == 1)
                     {
-                        msg = "already sent";
+                        msg = $"Free LeX has already sent to {req.Email} [{req.AccountID}]";
+                    }
+                    else if(result.State == 0)
+                    {
+                        msg = "Your request is now in sending queue, please be patient.";
                     }
                     else
                     {
-                        msg = "in queue, please be patient.";
+                        msg = $"Something wrong sending LeX to {req.Email} [{req.AccountID}]";
                     }
                 }
                 else
@@ -69,7 +74,7 @@ namespace LyraLexWeb.Pages
                         State = 0
                     };
                     await lexReqs.InsertOneAsync(queueReq);
-                    msg = "ok, will send";
+                    msg = "Your request is now in sending queue, it will be processed soon.";
                 }                
             }
             else

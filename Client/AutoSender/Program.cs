@@ -31,8 +31,8 @@ namespace AutoSender
             var db = client.GetDatabase("LexWeb");
             var lexReqs = db.GetCollection<FreeLeXRequest>("lexreq");
             var filter = Builders<FreeLeXRequest>.Filter.Eq("State", 0);
-            var updateDef = Builders<FreeLeXRequest>.Update.Set(o => o.SentTime, DateTime.Now)
-                                .Set(o => o.State, 1);
+            var updateDef = Builders<FreeLeXRequest>.Update.Set(o => o.SentTime, DateTime.Now);
+                                
             while (true)
             {
                 try
@@ -48,7 +48,23 @@ namespace AutoSender
                         if (cb > 202)
                         {
                             Console.Write($"Sending to {queuedReq.UserName} <{queuedReq.Email}>");
-                            await wc.Transfer("Lyra.LeX", queuedReq.AccountID, 200);
+                            try
+                            {
+                                await wc.Transfer("Lyra.LeX", queuedReq.AccountID, 200);
+                                updateDef = updateDef.Set(o => o.State, 1);
+                            }
+                            catch (Exception tex)
+                            {
+                                if (tex.Message == "InvalidDestinationAccountId")
+                                {
+                                    updateDef = updateDef.Set(o => o.State, 2);
+                                }
+                                else
+                                {
+                                    updateDef = updateDef.Set(o => o.State, 3);
+                                }
+                            }
+                            // send result: 1=success; 2=InvalidDestinationAccountId; 3=unknown error
                             queuedReq.SentTime = DateTime.Now;
                             var tgtReqFilter = Builders<FreeLeXRequest>.Filter.Eq(x => x.AccountID, queuedReq.AccountID);
                             await lexReqs.UpdateOneAsync(tgtReqFilter, updateDef);
@@ -67,7 +83,7 @@ namespace AutoSender
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                    Task.Delay(30000);
+                    await Task.Delay(30000);
                 }
             }
         }
