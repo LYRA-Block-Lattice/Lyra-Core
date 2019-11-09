@@ -19,4 +19,8 @@
     <ProjectReference Include="..\..\Externals\LiteDB\LiteDB.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\css\" />
+  </ItemGroup>
+
 </Project>
