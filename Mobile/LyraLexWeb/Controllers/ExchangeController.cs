@@ -41,9 +41,9 @@ namespace LyraLexWeb
             return "value";
         }
 
-        // POST api/<controller>
-        [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody]TokenTradeOrder value)
+        // POST api/<controller>/submit
+        [HttpPost("submit")]
+        public async Task<IActionResult> SubmitOrder([FromBody]TokenTradeOrder value)
         {
             CancelKey key;
             if (!value.VerifySignature(value.AccountID))

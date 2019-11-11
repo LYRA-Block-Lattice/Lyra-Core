@@ -69,12 +69,13 @@
                         <ColumnDefinition Width="180"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Editor Grid.Row="0" Grid.Column="0" Placeholder="Price" />
-                    <Editor Grid.Row="1" Grid.Column="0" Placeholder="Count" />
+                    <Editor Text="{Binding SellPrice}" Grid.Row="0" Grid.Column="0" Placeholder="Price" />
+                    <Editor Text="{Binding SellAmount}" Grid.Row="1" Grid.Column="0" Placeholder="Count" />
                     <Label Text="{Binding TargetTokenBalance}"
                        Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" />
                     <Button Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
-                        Text="Sell" BackgroundColor="PaleVioletRed" />
+                        Text="Sell" BackgroundColor="PaleVioletRed"
+                            Command="{Binding SellCommand}" />
                 </Grid>
             </StackLayout>
             <StackLayout Grid.Row="2" Grid.Column="1"
@@ -94,10 +95,11 @@
                 </Grid.ColumnDefinitions>
                     <Label Text="{Binding LeXBalance}"
                        Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" />
-                <Editor Grid.Row="1" Grid.Column="0" Placeholder="Price" />
-                <Editor Grid.Row="2" Grid.Column="0" Placeholder="Count" />
+                <Editor Text="{Binding BuyPrice}" Grid.Row="1" Grid.Column="0" Placeholder="Price" />
+                <Editor Text="{Binding BuyAmount}" Grid.Row="2" Grid.Column="0" Placeholder="Count" />
                 <Button Grid.Row="1" Grid.Column="1" Grid.RowSpan="2"
-                        Text="Buy" BackgroundColor="LightGreen"/>
+                        Text="Buy" BackgroundColor="LightGreen" 
+                        Command="{Binding BuyCommand}"/>
             </Grid>
             </StackLayout>
             <ScrollView Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"

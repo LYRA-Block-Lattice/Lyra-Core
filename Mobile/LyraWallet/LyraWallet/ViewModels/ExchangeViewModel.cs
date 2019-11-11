@@ -1,10 +1,12 @@
-﻿using LyraWallet.Models;
+﻿using Lyra.Exchange;
+using LyraWallet.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using Xamarin.Forms;
 
 namespace LyraWallet.ViewModels
@@ -39,16 +41,76 @@ namespace LyraWallet.ViewModels
         private string _targetTokenBalance;
         private string _lexBalance;
 
+        private string _buyPrice;
+        private string _buyAmount;
+        private string _sellPrice;
+        private string _sellAmount;
+
+        public ICommand BuyCommand { get; }
+        public ICommand SellCommand { get; }
+        public string BuyPrice { get => _buyPrice; set => SetProperty(ref _buyPrice, value); }
+        public string BuyAmount { get => _buyAmount; set => SetProperty(ref _buyAmount, value); }
+        public string SellPrice { get => _sellPrice; set => SetProperty(ref _sellPrice, value); }
+        public string SellAmount { get => _sellAmount; set => SetProperty(ref _sellAmount, value); }
+
+        HttpClient _client;
         public ExchangeViewModel()
         {
+            _client = new HttpClient
+            {
+                //BaseAddress = new Uri("https://localhost:5001/api/")
+                BaseAddress = new Uri("http://lex.lyratokens.com:5493/api/"),
+#if DEBUG
+                Timeout = new TimeSpan(0, 30, 0)        // for debug. but 10 sec is too short for real env
+#else
+                Timeout = new TimeSpan(0, 0, 30)
+#endif
+            };
+
             MessagingCenter.Subscribe<BalanceViewModel>(
                 this, MessengerKeys.BalanceRefreshed, async (sender) =>
                 {
                     await Touch();
                     UpdateHoldings();
                 });
+
+            BuyCommand = new Command(async () =>
+            {
+                await SubmitOrder(true);
+            });
+
+            SellCommand = new Command(async () =>
+            {
+                await SubmitOrder(false);
+            });
         }
 
+        private async Task SubmitOrder(bool IsBuy)
+        {
+            try
+            {
+                TokenTradeOrder order = new TokenTradeOrder()
+                {
+                    CreatedTime = DateTime.Now,
+                    AccountID = App.Container.AccountID,
+                    NetworkID = App.Container.CurrentNetwork,
+                    BuySellType = IsBuy ? OrderType.Buy : OrderType.Sell,
+                    TokenName = SelectedToken,
+                    Price = Decimal.Parse(IsBuy ? BuyPrice : SellPrice),
+                    Amount = decimal.Parse(IsBuy ? BuyAmount : SellAmount)
+                };
+                order.Sign(App.Container.PrivateKey);
+                var reqStr = JsonConvert.SerializeObject(order);
+                var reqContent = new StringContent(reqStr, Encoding.UTF8, "application/json");
+                var resp = await _client.PostAsync("exchange/submit", reqContent);
+
+                var txt = resp.Content;
+            }
+            catch (Exception)
+            {
+
+            }
+        }
         private void UpdateHoldings()
         {
             if(App.Container.Balances == null)
@@ -85,7 +147,7 @@ namespace LyraWallet.ViewModels
             }
             catch(Exception ex)
             {
-                TokenList = new List<string>() { ex.Message };
+                //TokenList = new List<string>() { ex.Message };
             }
         }
     }

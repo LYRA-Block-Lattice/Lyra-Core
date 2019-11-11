@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Blocks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using Newtonsoft.Json;
 using System;
 
 namespace Lyra.Exchange
@@ -18,7 +19,7 @@ namespace Lyra.Exchange
 
         public override string GetHashInput()
         {
-            return $"{NetworkID} {AccountID} {BuySellType} {TokenName} {Price} {Amount} {DateTimeToString(CreatedTime)}";
+            return $"{NetworkID} {AccountID} {BuySellType} {TokenName} {JsonConvert.SerializeObject(Price)} {JsonConvert.SerializeObject(Amount)} {DateTimeToString(CreatedTime)}";
         }
 
         protected override string GetExtraData()
