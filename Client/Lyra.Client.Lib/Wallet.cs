@@ -82,6 +82,15 @@ namespace Lyra.Client.Lib
             return Signatures.GetSignature(PrivateKey, SyncHash);
         }
 
+        public async Task<List<string>> GetTokenNames(string keyword)
+        {
+            var result = await _rpcClient.GetTokenNames(AccountId, SignAPICall(), keyword);
+            if (result.ResultCode == APIResultCodes.Success)
+                return result.TokenNames;
+            else
+                throw new Exception("Error get Token names: " + result.ResultCode.ToString());
+        }
+
         private async Task<APIResultCodes> SyncServiceChain()
         {
             try

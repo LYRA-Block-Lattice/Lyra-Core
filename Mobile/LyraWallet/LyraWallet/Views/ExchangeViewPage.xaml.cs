@@ -23,7 +23,7 @@ namespace LyraWallet.Views
         {
             base.OnAppearing();
 
-            await (BindingContext as ExchangeViewModel).Touch();
+            //await (BindingContext as ExchangeViewModel).Touch();
         }
     }
 }

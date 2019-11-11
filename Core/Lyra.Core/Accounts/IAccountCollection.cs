@@ -12,6 +12,7 @@ namespace Lyra.Core.Accounts.Node
         bool AccountExists(string AccountId);
         TransactionBlock FindLatestBlock(string AccountId);
         TokenGenesisBlock FindTokenGenesisBlock(string Hash, string Ticker);
+        List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword);
         TransactionBlock FindBlockByHash(string hash);
         TransactionBlock FindBlockByHash(string AccountId, string hash);
         ReceiveTransferBlock FindBlockBySourceHash(string hash);

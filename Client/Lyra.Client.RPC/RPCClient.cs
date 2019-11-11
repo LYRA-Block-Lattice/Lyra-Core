@@ -256,6 +256,19 @@ namespace Lyra.Client.RPC
             return JsonConvert.DeserializeObject<BlockAPIResult>(apiresult.CallResult);
         }
 
+        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        {
+            if (!IsConnected)
+                return new GetTokenNamesAPIResult() { ResultCode = APIResultCodes.NoRPCServerConnection };
+
+            string callId = SetuUpCallID();
+            ProcessingResult request = new ProcessingResult();
+            request.BytesToSendBack = Proxy.ToJson(RPCResult.PROC_GET_TOKEN_NAMES, callId, AccountId, Signature, keyword).ToBytes();
+            var apiresult = await SendAndReceiveAsync(callId, request);
+            //return ParseBlock(apiresult) as TokenGenesisBlock;
+            return JsonConvert.DeserializeObject<GetTokenNamesAPIResult>(apiresult.CallResult);
+        }
+
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
             if (!IsConnected)

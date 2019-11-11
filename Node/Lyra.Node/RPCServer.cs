@@ -56,6 +56,37 @@ namespace Lyra.Node
                 };
             _methods.Add(RPCResult.PROC_GET_SYNC_HEIGHT);
 
+            _caller[RPCResult.PROC_GET_TOKEN_NAMES] =
+     rpi =>
+     {
+         try
+         {
+             var p = rpi.Params;
+             var accountid = p[0] as string;
+             var signature = p[1] as string;
+             var keyword = p[2] as string;
+
+             ProcessingResult pr = new ProcessingResult
+             {
+                 StringToSendBack = new RPCResult
+                 {
+                     ProcedureName = RPCResult.PROC_GET_TOKEN_NAMES,
+
+                     CallId = rpi.CallId,
+                     //CallResult = JsonConvert.SerializeObject(await _rpc.GetSyncHeightAsync())
+                     CallResult = JsonConvert.SerializeObject(_rpc.GetTokenNames(accountid, signature, keyword).Result)
+                 }.ToJson()
+             };
+             return pr;
+         }
+         catch (Exception e)
+         {
+             Console.WriteLine("Exception in PROC_GET_TOKEN_NAMES: " + e.Message);
+             return null;
+         }
+     };
+            _methods.Add(RPCResult.PROC_GET_TOKEN_NAMES);
+
 
             _caller[RPCResult.PROC_GET_ACCOUNT_HEIGHT] =
                  rpi =>

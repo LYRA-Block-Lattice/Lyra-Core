@@ -22,7 +22,7 @@
             </Grid.ColumnDefinitions>
             <StackLayout Orientation="Horizontal" BackgroundColor="White"
                          Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-                <Label Text="Trade on:" />
+                <Label Text="Trade on:" HorizontalOptions="Start" VerticalOptions="Center" />
                 <Picker Title="Select a Token" 
                     TextColor="Blue"
                     ItemsSource="{Binding TokenList}" 
@@ -71,7 +71,7 @@
                     </Grid.ColumnDefinitions>
                     <Editor Grid.Row="0" Grid.Column="0" Placeholder="Price" />
                     <Editor Grid.Row="1" Grid.Column="0" Placeholder="Count" />
-                    <Label Text="Hold My.Token: 10000"
+                    <Label Text="{Binding TargetTokenBalance}"
                        Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" />
                     <Button Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
                         Text="Sell" BackgroundColor="PaleVioletRed" />
@@ -92,7 +92,7 @@
                     <ColumnDefinition Width="180"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Label Text="Hold Lyra.LeX: 10000"
+                    <Label Text="{Binding LeXBalance}"
                        Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" />
                 <Editor Grid.Row="1" Grid.Column="0" Placeholder="Price" />
                 <Editor Grid.Row="2" Grid.Column="0" Placeholder="Count" />

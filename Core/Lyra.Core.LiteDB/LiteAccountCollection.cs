@@ -6,6 +6,7 @@ using LiteDB;
 using System.IO;
 
 using Lyra.Core.Accounts.Node;
+using System.Linq;
 
 namespace Lyra.Core.LiteDB
 {
@@ -103,6 +104,21 @@ namespace Lyra.Core.LiteDB
             }
 
             return null;
+        }
+
+        public List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword)
+        {
+            var result = _blocks.Find(Query.EQ("_t", "TokenGenesisBlock"));
+            var genBlocks = result.Cast<TokenGenesisBlock>();
+
+            if (string.IsNullOrEmpty(keyword))
+            {
+                return genBlocks.ToList();
+            }
+            else
+            {
+                return genBlocks.Where(a => a.Ticker.Contains(keyword)).ToList();
+            }
         }
 
         public TransactionBlock FindBlockByHash(string hash)

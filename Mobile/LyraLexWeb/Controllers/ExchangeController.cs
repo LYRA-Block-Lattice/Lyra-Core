@@ -22,9 +22,16 @@ namespace LyraLexWeb
 
         // GET: api/<controller>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IActionResult> Get()
         {
-            return new string[] { "Debug.Test", "Wizard.Coin" };
+            return Json("Lyra DEX Online");
+        }
+
+        [HttpGet("tokens/{key}")]
+        [HttpGet("tokens")]
+        public IEnumerable<string> SearchToken(string key)
+        {
+            return new string[] { "Debug.Test", "Wizard.Coin", $"keyis {key}" };
         }
 
         // GET api/<controller>/5

@@ -152,6 +152,22 @@ namespace Lyra.Client.WebAPI
             }
         }
 
+        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        {
+            try
+            {
+                var path = "gettokennames/" + AccountId + "/"
+                    + (Signature == null ? "(null)" : Signature) + "/"
+                    + (keyword == null ? "(null)" : keyword);
+                string responseBody = await _client.GetStringAsync(path);
+                return JsonConvert.DeserializeObject<GetTokenNamesAPIResult>(responseBody);
+            }
+            catch (HttpRequestException e)
+            {
+                return new GetTokenNamesAPIResult() { ResultCode = APIResultCodes.NoRPCServerConnection, ResultMessage = e.Message };
+            }
+        }
+
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellTokenCode, string BuyTokenCode, TradeOrderListTypes OrderType, string Signature)
         {
             try

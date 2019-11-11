@@ -171,6 +171,12 @@ namespace LyraWallet.Models
             return blocks;
         }
 
+        public async Task<List<string>> GetTokens(string keyword)
+        {
+            var result = await wallet.GetTokenNames(keyword);
+            return result;
+        }
+
         public async Task CloseWallet()
         {
             await Task.Run(() => {

@@ -6,6 +6,7 @@ namespace TcpHelperLib
     public class RPCResult
     {
         public const string PROC_GET_SYNC_HEIGHT = "GetSyncHeight";
+        public const string PROC_GET_TOKEN_NAMES = "GetTokenNames";
         public const string PROC_GET_ACCOUNT_HEIGHT = "GetAccountHeight";
         public const string PROC_GET_BLOCK_BY_INDEX = "GetBlockByIndex";
         public const string PROC_GET_BLOCK_BY_HASH = "GetBlockByHash";
