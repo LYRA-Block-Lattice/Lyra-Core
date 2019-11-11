@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Authorizers\" />
+    <Folder Include="Coordinator\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Externals\CommandLine\CommandLine.csproj" />

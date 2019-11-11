@@ -122,23 +122,23 @@ namespace Lyra.Client.CLI
                         Console.WriteLine("Sync Result: " + sync_result.ToString());
                         break;
                     case COMMAND_TRADE_ORDER:
-                        Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-                        //ProcessTradeOrder();
+                        //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+                        ProcessTradeOrder();
                         break;
                     case COMMAND_REDEEM_REWARDS:
                         ProcessRedeemRewardsTradeOrder();
                         break;
                     case COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST:
-                        Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-                        //Console.WriteLine(_wallet.PrintActiveTradeOrders());
+                        //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+                        Console.WriteLine(_wallet.PrintActiveTradeOrders());
                         break;
                     case COMMAND_TRADE_ORDER_SELL_TEST:
-                        Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-  //                      TradeOrderSellTest();
+                        //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+  //                    TradeOrderSellTest();
                         break;
                     case COMMAND_TRADE_ORDER_BUY_TEST:
-                        //TradeOrderBuyTest();
-                        Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+                        TradeOrderBuyTest();
+                        //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
                         break;
                     case COMMAND_PAY:
                     case COMMAND_SELL:

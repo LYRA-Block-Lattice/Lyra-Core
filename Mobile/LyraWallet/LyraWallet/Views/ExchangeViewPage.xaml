@@ -4,13 +4,14 @@
              xmlns:d="http://xamarin.com/schemas/2014/forms/design"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
+             Title="In-Wallet Exchange"
              x:Class="LyraWallet.Views.ExchangeViewPage"
              BackgroundColor="White">
     <ContentPage.Content>
         <Grid VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand"
               BackgroundColor="Black" RowSpacing="1" ColumnSpacing="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="30" />
+                <RowDefinition Height="50" />
                 <RowDefinition Height="200" />
                 <RowDefinition Height="200" />
                 <RowDefinition Height="*" />
@@ -21,8 +22,17 @@
             </Grid.ColumnDefinitions>
             <StackLayout Orientation="Horizontal" BackgroundColor="White"
                          Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-                <Label Text="My.Token &lt;==&gt; Lyra.LeX" HorizontalOptions="Start" />
-                <Label Text="Volume: 300 My.Token" HorizontalOptions="End" />
+                <Label Text="Trade on:" />
+                <Picker Title="Select a Token" 
+                    TextColor="Blue"
+                    ItemsSource="{Binding TokenList}" 
+                    ItemDisplayBinding="{Binding .}"
+                    SelectedItem="{Binding SelectedToken}"
+                        HorizontalOptions="Start" />
+                <Editor Text="{Binding FilterKeyword}"
+                            Placeholder="Search Token"
+                            AutoSize="TextChanges" />
+                <Label Text="" HorizontalOptions="End" />
             </StackLayout>
             <ScrollView Grid.Row="1" Grid.Column="0"
                         BackgroundColor="White">

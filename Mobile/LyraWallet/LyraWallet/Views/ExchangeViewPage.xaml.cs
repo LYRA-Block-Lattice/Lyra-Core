@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LyraWallet.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,14 @@ namespace LyraWallet.Views
         public ExchangeViewPage()
         {
             InitializeComponent();
+            BindingContext = new ExchangeViewModel();
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+
+            await (BindingContext as ExchangeViewModel).Touch();
         }
     }
 }

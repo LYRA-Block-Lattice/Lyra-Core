@@ -2,7 +2,7 @@
   "profiles": {
     "Lyra.Client.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "-database litedb --networkid lexnet --protocol rpc --node localhost:11511",
+      "commandLineArgs": "--database litedb --networkid lexdev --protocol rpc --node localhost:11511",
       "workingDirectory": "E:\\Repositories\\graft-project\\LyraNetwork\\Client\\Lyra.Client.CLI\\bin\\Debug\\netcoreapp2.1\\netcoreapp2.1"
     }
   }

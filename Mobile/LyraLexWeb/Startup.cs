@@ -26,8 +26,9 @@ namespace LyraLexWeb
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-            //services.AddMvc();
+            services.AddMvc();
             services.AddMongodb("mongodb://lexweb:j2CsADf4@localhost/lexweb");
+            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,6 +60,7 @@ namespace LyraLexWeb
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
+                endpoints.MapControllers();
             });
         }
     }

@@ -459,7 +459,11 @@ namespace Lyra.Client.RPC
 
         RPCResult WaitForCallResult(string callId)
         {
+#if DEBUG
+            _semaphors[callId].WaitOne(10000000);
+#else
             _semaphors[callId].WaitOne(10000);
+#endif
             _semaphors.TryRemove(callId, out AutoResetEvent semaphore);
 
             _call_results.TryRemove(callId, out RPCResult result);
@@ -517,7 +521,7 @@ namespace Lyra.Client.RPC
         //    return apiresult;
         //}
 
-        #endregion // call result processing
+#endregion // call result processing
 
 
 
@@ -579,7 +583,7 @@ namespace Lyra.Client.RPC
         //    Send(request);
         //}
 
-        #region private methods
+#region private methods
 
         //private void Send(ProcessingResult request)
         //{
@@ -634,7 +638,7 @@ namespace Lyra.Client.RPC
         //    return block;
         //}
 
-        #endregion // private methods
+#endregion // private methods
 
         public void ResponseHandler(string name, DateTime timestamp, TcpHelper clientHelper,
                                   TcpClientWrapper clientWrapper, List<byte> lstByte)

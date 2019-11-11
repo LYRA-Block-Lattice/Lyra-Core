@@ -8,13 +8,10 @@ using Microsoft.Extensions.Logging;
 
 namespace LyraLexWeb.Pages
 {
-    public class PrivacyModel : PageModel
+    public class OpenSourceModel : PageModel
     {
-        private readonly ILogger<PrivacyModel> _logger;
-
-        public PrivacyModel(ILogger<PrivacyModel> logger)
+        public OpenSourceModel()
         {
-            _logger = logger;
         }
 
         public void OnGet()

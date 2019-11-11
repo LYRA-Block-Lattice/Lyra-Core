@@ -13,9 +13,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Plugin.Badge" Version="2.2.1" />
-    <PackageReference Include="Portable.BouncyCastle" Version="1.8.5" />
     <PackageReference Include="ReactiveUI" Version="10.5.7" />
     <PackageReference Include="ReactiveUI.XamForms" Version="10.5.7" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" />
@@ -30,7 +29,6 @@
     <ProjectReference Include="..\..\..\Client\Lyra.Client.WebAPI\Lyra.Client.WebAPI.csproj" />
     <ProjectReference Include="..\..\..\Core\Lyra.Core.LiteDB\Lyra.Core.LiteDB.csproj" />
     <ProjectReference Include="..\..\..\Core\Lyra.Core.TcpLib\Lyra.Core.TcpLib.csproj" />
-    <ProjectReference Include="..\..\..\Core\Lyra.Core\Lyra.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
