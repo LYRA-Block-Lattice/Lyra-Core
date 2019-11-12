@@ -1,8 +1,10 @@
 ﻿using Lyra.Exchange;
 using LyraWallet.Models;
+using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +29,8 @@ namespace LyraWallet.ViewModels
                 SelectedToken = st;
             }
         }
+
+        public ObservableCollection<KeyValuePair<Decimal, Decimal>> SellOrders { get; } = new ObservableCollection<KeyValuePair<decimal, decimal>>();
 
         public string FilterKeyword { get; set; }
         public string TargetTokenBalance { get => _targetTokenBalance; set => SetProperty(ref _targetTokenBalance, value); }
@@ -54,8 +58,27 @@ namespace LyraWallet.ViewModels
         public string SellAmount { get => _sellAmount; set => SetProperty(ref _sellAmount, value); }
 
         HttpClient _client;
+        HubConnection _exchangeHub;
         public ExchangeViewModel()
         {
+            _exchangeHub = new HubConnectionBuilder()
+                .WithUrl("http://lex.lyratokens.com:5493/ExchangeHub")
+                .Build();
+
+            _exchangeHub.On<Decimal, Decimal, bool>("OrderCreated", (price, amount, isBuy) =>
+            {
+                if(isBuy)
+                {
+
+                }
+                else
+                {
+                    SellOrders.Add(new KeyValuePair<Decimal, Decimal>(price, amount));
+                }
+            });
+
+            Task.Run(async () => await Connect() );
+
             _client = new HttpClient
             {
                 //BaseAddress = new Uri("https://localhost:5001/api/")
@@ -83,6 +106,30 @@ namespace LyraWallet.ViewModels
             {
                 await SubmitOrder(false);
             });
+        }
+
+        async Task Connect()
+        {
+            try
+            {
+                await _exchangeHub.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                // Something has gone wrong
+            }
+        }
+
+        async Task SendMessage(string user, string message)
+        {
+            try
+            {
+                await _exchangeHub.InvokeAsync("SendMessage", user, message);
+            }
+            catch (Exception ex)
+            {
+                // send failed
+            }
         }
 
         private async Task SubmitOrder(bool IsBuy)

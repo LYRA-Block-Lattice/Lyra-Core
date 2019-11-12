@@ -17,7 +17,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="140"/>
+                <ColumnDefinition Width="180"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <StackLayout Orientation="Horizontal" BackgroundColor="White"
@@ -36,13 +36,23 @@
             </StackLayout>
             <ScrollView Grid.Row="1" Grid.Column="0"
                         BackgroundColor="White">
-                <StackLayout VerticalOptions="End">
-                    <Label Text="0.001    30"/>
-                    <Label Text="0.001    30"/>
-                    <Label Text="0.001    30"/>
-                    <Label Text="0.001    30"/>
-                    <Label Text="0.001    30"/>
-                </StackLayout>
+                <ListView x:Name="lvBalance" ItemsSource="{Binding SellOrders}" 
+                      BackgroundColor="White"
+                      SeparatorVisibility="None"
+                      SeparatorColor="PaleVioletRed"
+                      IsPullToRefreshEnabled="True"
+                      VerticalOptions="End">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <StackLayout Orientation="Horizontal">
+                                    <Label Text="{Binding Path=Key}" HorizontalOptions="StartAndExpand" />
+                                    <Label Text="{Binding Path=Value}" HorizontalOptions="EndAndExpand" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
             </ScrollView>
             <ScrollView Grid.Row="2" Grid.Column="0"
                         BackgroundColor="White">

@@ -84,6 +84,9 @@ namespace Lyra.Client.Lib
 
         public async Task<List<string>> GetTokenNames(string keyword)
         {
+            if (_rpcClient == null)
+                return new List<string>();
+
             var result = await _rpcClient.GetTokenNames(AccountId, SignAPICall(), keyword);
             if (result.ResultCode == APIResultCodes.Success)
                 return result.TokenNames;

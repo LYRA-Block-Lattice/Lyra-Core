@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Lyra.Exchange;
 using LyraLexWeb.Common;
+using LyraLexWeb.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -13,11 +15,11 @@ namespace LyraLexWeb
     [Route("api/[controller]")]
     public class ExchangeController : Controller
     {
-        private readonly MongodbContext _ctx;
+        private readonly IHubContext<ExchangeHub> _hubContext;
 
-        public ExchangeController(MongodbContext ctx)
+        public ExchangeController(IHubContext<ExchangeHub> hubContext)
         {
-            _ctx = ctx;
+            _hubContext = hubContext;
         }
 
         // GET: api/<controller>
@@ -52,7 +54,10 @@ namespace LyraLexWeb
             }
             else
             {
-                key = await _ctx.AddOrder(Request, value);
+                var dbCtx = new MongoUtils();
+                key = await dbCtx.AddOrder(Request, value);
+
+                await _hubContext.Clients.All.SendAsync("OrderCreated", value.Price, value.Amount, value.BuySellType == OrderType.Buy);
             }
             return Json(key);
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LyraLexWeb.Common;
+using LyraLexWeb.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -29,6 +30,7 @@ namespace LyraLexWeb
             services.AddMvc();
             services.AddMongodb("mongodb://lexweb:j2CsADf4@localhost/lexweb");
             services.AddControllers();
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,6 +58,11 @@ namespace LyraLexWeb
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseSignalR(routes =>
+            {
+                routes.MapHub<ExchangeHub>("/ExchangeHub");
+            });
 
             app.UseEndpoints(endpoints =>
             {
