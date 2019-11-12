@@ -57,7 +57,10 @@ namespace LyraLexWeb
                 var dbCtx = new MongoUtils();
                 key = await dbCtx.AddOrder(Request, value);
 
-                await _hubContext.Clients.All.SendAsync("OrderCreated", value.Price, value.Amount, value.BuySellType == OrderType.Buy);
+                var excOrders = await dbCtx.GetActiveOrders();
+                var simpleOrders = excOrders.Select(a => new KeyValuePair<Decimal, Decimal>(a.Order.Price, a.Order.Amount)).ToList();
+                await _hubContext.Clients.All.SendAsync("ActiveOrders", Json(simpleOrders));
+                //await _hubContext.Clients.All.SendAsync("OrderCreated", value.Price, value.Amount, value.BuySellType == OrderType.Buy);
             }
             return Json(key);
         }

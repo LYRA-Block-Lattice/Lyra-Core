@@ -6,6 +6,7 @@ using LyraLexWeb.Common;
 using LyraLexWeb.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
@@ -59,15 +60,17 @@ namespace LyraLexWeb
 
             app.UseAuthorization();
 
-            app.UseSignalR(routes =>
-            {
-                routes.MapHub<ExchangeHub>("/ExchangeHub");
-            });
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
+
+                endpoints.MapHub<ExchangeHub>("/ExchangeHub", options =>
+                {
+                    options.Transports =
+                        HttpTransportType.WebSockets |
+                        HttpTransportType.LongPolling;
+                });
             });
         }
     }

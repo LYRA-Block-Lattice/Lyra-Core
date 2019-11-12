@@ -1,10 +1,14 @@
 ﻿using Lyra.Exchange;
 using LyraWallet.Models;
+using LyraWallet.Views;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,6 +35,7 @@ namespace LyraWallet.ViewModels
         }
 
         public ObservableCollection<KeyValuePair<Decimal, Decimal>> SellOrders { get; } = new ObservableCollection<KeyValuePair<decimal, decimal>>();
+        public ObservableCollection<KeyValuePair<Decimal, Decimal>> BuyOrders { get; } = new ObservableCollection<KeyValuePair<decimal, decimal>>();
 
         public string FilterKeyword { get; set; }
         public string TargetTokenBalance { get => _targetTokenBalance; set => SetProperty(ref _targetTokenBalance, value); }
@@ -59,21 +64,38 @@ namespace LyraWallet.ViewModels
 
         HttpClient _client;
         HubConnection _exchangeHub;
-        public ExchangeViewModel()
+        ExchangeViewPage _thePage;
+        public ExchangeViewModel(ExchangeViewPage page)
         {
+            _thePage = page;
             _exchangeHub = new HubConnectionBuilder()
-                .WithUrl("http://lex.lyratokens.com:5493/ExchangeHub")
+                .WithUrl("http://lex.lyratokens.com:5493/ExchangeHub", HttpTransportType.WebSockets | HttpTransportType.LongPolling)
+                .AddJsonProtocol(options => {
+                    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
+                })
                 .Build();
 
-            _exchangeHub.On<Decimal, Decimal, bool>("OrderCreated", (price, amount, isBuy) =>
+            _exchangeHub.On<string>("SellOrders", (ordersJson) =>
             {
-                if(isBuy)
+                SellOrders.Clear();
+                var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(ordersJson);
+                foreach (var order in orders)
                 {
-
+                    SellOrders.Add(new KeyValuePair<Decimal, Decimal>(order.Key, order.Value));
                 }
-                else
+                Device.BeginInvokeOnMainThread(() =>
                 {
-                    SellOrders.Add(new KeyValuePair<Decimal, Decimal>(price, amount));
+                    _thePage.Scroll(orders.Last());
+                });
+            });
+
+            _exchangeHub.On<string>("BuyOrders", (ordersJson) =>
+            {
+                BuyOrders.Clear();
+                var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(ordersJson);
+                foreach (var order in orders)
+                {
+                    BuyOrders.Add(new KeyValuePair<Decimal, Decimal>(order.Key, order.Value));
                 }
             });
 
@@ -148,10 +170,20 @@ namespace LyraWallet.ViewModels
                 };
                 order.Sign(App.Container.PrivateKey);
                 var reqStr = JsonConvert.SerializeObject(order);
-                var reqContent = new StringContent(reqStr, Encoding.UTF8, "application/json");
-                var resp = await _client.PostAsync("exchange/submit", reqContent);
+                try
+                {
+                    await _exchangeHub.SendAsync("SendOrder", reqStr);
+                }
+                catch(Exception ex)
+                {
+                    await Connect();
+                    await _exchangeHub.SendAsync("SendOrder", reqStr);
+                }
+                
+                //var reqContent = new StringContent(reqStr, Encoding.UTF8, "application/json");
+                //var resp = await _client.PostAsync("exchange/submit", reqContent);
 
-                var txt = resp.Content;
+                //var txt = resp.Content;
             }
             catch (Exception)
             {

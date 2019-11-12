@@ -16,14 +16,18 @@ namespace LyraWallet.Views
         public ExchangeViewPage()
         {
             InitializeComponent();
-            BindingContext = new ExchangeViewModel();
+            BindingContext = new ExchangeViewModel(this);
         }
 
-        protected override async void OnAppearing()
+        public void Scroll(object item)
         {
-            base.OnAppearing();
-
-            //await (BindingContext as ExchangeViewModel).Touch();
+            lvSell.ScrollTo(item, ScrollToPosition.MakeVisible, false);
         }
+        //protected override async void OnAppearing()
+        //{
+        //    base.OnAppearing();
+
+        //    //await (BindingContext as ExchangeViewModel).Touch();
+        //}
     }
 }

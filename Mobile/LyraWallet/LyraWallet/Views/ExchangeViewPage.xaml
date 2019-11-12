@@ -34,14 +34,12 @@
                             AutoSize="TextChanges" />
                 <Label Text="" HorizontalOptions="End" />
             </StackLayout>
-            <ScrollView Grid.Row="1" Grid.Column="0"
-                        BackgroundColor="White">
-                <ListView x:Name="lvBalance" ItemsSource="{Binding SellOrders}" 
+                <ListView Grid.Row="1" Grid.Column="0" ItemsSource="{Binding SellOrders}" 
+                          x:Name="lvSell"
                       BackgroundColor="White"
-                      SeparatorVisibility="None"
+                      SeparatorVisibility="Default"                          
                       SeparatorColor="PaleVioletRed"
-                      IsPullToRefreshEnabled="True"
-                      VerticalOptions="End">
+                          HasUnevenRows="True">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <ViewCell>
@@ -53,17 +51,22 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-            </ScrollView>
-            <ScrollView Grid.Row="2" Grid.Column="0"
-                        BackgroundColor="White">
-                <StackLayout VerticalOptions="Start">
-                    <Label Text="0.001    30"/>
-                    <Label Text="0.001    30"/>
-                    <Label Text="0.001    30"/>
-                    <Label Text="0.001    30"/>
-                    <Label Text="0.001    30"/>
-                </StackLayout>
-            </ScrollView>
+            <ListView Grid.Row="2" Grid.Column="0" ItemsSource="{Binding BuyOrders}" 
+                      BackgroundColor="White"
+                      SeparatorVisibility="Default"                          
+                      SeparatorColor="LightGreen"
+                          HasUnevenRows="True">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Orientation="Horizontal">
+                                <Label Text="{Binding Path=Key}" HorizontalOptions="StartAndExpand" />
+                                <Label Text="{Binding Path=Value}" HorizontalOptions="EndAndExpand" />
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
             <StackLayout BackgroundColor="White"
                          Grid.Row="1" Grid.Column="1" >
                 <Grid 
