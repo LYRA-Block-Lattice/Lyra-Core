@@ -32,6 +32,8 @@ namespace LyraLexWeb
             services.AddMongodb("mongodb://lexweb:j2CsADf4@localhost/lexweb");
             services.AddControllers();
             services.AddSignalR();
+
+            services.AddHostedService<LyraDealEngine>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

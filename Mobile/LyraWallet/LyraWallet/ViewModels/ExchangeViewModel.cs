@@ -97,7 +97,7 @@ namespace LyraWallet.ViewModels
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        _thePage.Scroll(orders.Last());
+                        _thePage.Scroll(SellOrders.Last());
                     });
                 }
             });
@@ -221,11 +221,11 @@ namespace LyraWallet.ViewModels
             if(App.Container.Balances == null)
             {
                 LeXBalance = $"Hold Lyra.LeX: 0";
-                TargetTokenBalance = $"Hold {SelectedToken}: 0";
+                TargetTokenBalance = $"Holding {SelectedToken}: 0";
             }
             else
             {
-                LeXBalance = $"Hold Lyra.LeX: {App.Container.Balances["Lyra.LeX"]}";
+                LeXBalance = $"Holdding Lyra.LeX: {App.Container.Balances["Lyra.LeX"]}";
                 if(SelectedToken == null)
                 {
                     TargetTokenBalance = "";
@@ -234,11 +234,11 @@ namespace LyraWallet.ViewModels
                 {
                     if (App.Container.Balances.ContainsKey(SelectedToken))
                     {
-                        TargetTokenBalance = $"Hold {SelectedToken}: {App.Container.Balances[SelectedToken]}";
+                        TargetTokenBalance = $"Holdding {SelectedToken}: {App.Container.Balances[SelectedToken]}";
                     }
                     else
                     {
-                        TargetTokenBalance = $"Hold {SelectedToken}: 0";
+                        TargetTokenBalance = $"Holdding {SelectedToken}: 0";
                     }
                 }
             }
