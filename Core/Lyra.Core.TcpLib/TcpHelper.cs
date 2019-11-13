@@ -128,6 +128,9 @@ namespace TcpHelperLib
             else
                 LogError("Connection failed after reties.");
 
+#if DEBUG
+            server.ReceiveTimeout = server.SendTimeout = 30 * 60 * 1000;
+#endif
             return new TcpClientWrapper(Delim, DelimRepeated) { Peer = server };
         }
 

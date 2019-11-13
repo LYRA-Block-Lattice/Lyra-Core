@@ -8,8 +8,7 @@ using System.Collections.Generic;
 using Lyra.Core.LiteDB;
 using Lyra.Core.Accounts;
 using Lyra.Core.Accounts.Node;
-using Lyra.Node.LiteDB;
-using Lyra.Node.MongoDB;
+using Lyra.Core.MongoDB;
 
 //[assembly: FileVersion("0.0.1")]
 //[assembly: AssemblyFileVersion("1.0.2000.0")]
@@ -154,6 +153,7 @@ namespace Lyra.Node
         public const string DEV_NETWORK = "devnet";
         public const string TEST_NETWORK = "testnet";
         public const string MAIN_NETWORK = "mainnet";
+        public const string LEX_NETWORK = "lexnet";
 
         public const string MONGODB_DATABASE = "mongodb";
         public const string LITEDB_DATABASE = "litedb";

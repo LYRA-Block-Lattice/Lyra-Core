@@ -82,6 +82,18 @@ namespace Lyra.Client.Lib
             return Signatures.GetSignature(PrivateKey, SyncHash);
         }
 
+        public async Task<List<string>> GetTokenNames(string keyword)
+        {
+            if (_rpcClient == null)
+                return new List<string>();
+
+            var result = await _rpcClient.GetTokenNames(AccountId, SignAPICall(), keyword);
+            if (result.ResultCode == APIResultCodes.Success)
+                return result.TokenNames;
+            else
+                throw new Exception("Error get Token names: " + result.ResultCode.ToString());
+        }
+
         private async Task<APIResultCodes> SyncServiceChain()
         {
             try
@@ -543,7 +555,7 @@ namespace Lyra.Client.Lib
 
             // see if we have enough LYR to pay the transfer fee
             if (ticker != TokenGenesisBlock.LYRA_TICKER_CODE)
-                if (previousBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] < TransferFee)
+                if (!previousBlock.Balances.ContainsKey(TokenGenesisBlock.LYRA_TICKER_CODE) || previousBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] < TransferFee)
                 {
                     //throw new ApplicationException("Insufficient funds to pay transfer fee");
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
@@ -1066,8 +1078,8 @@ namespace Lyra.Client.Lib
                 RenewalDate = DateTime.MaxValue,
         };
             // TO DO - set service hash
-            //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 1800000000 };
-            var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
+            var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 1800000000 };
+            //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
 
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
             //openTokenGenesisBlock.Transaction = transaction;

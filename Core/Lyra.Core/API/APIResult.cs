@@ -186,5 +186,8 @@ namespace Lyra.Core.API
         public NonFungibleToken NonFungibleToken { get; set; }
     }
 
-    
+    public class GetTokenNamesAPIResult : APIResult
+    {
+        public List<string> TokenNames { get; set; }
+    }
 }

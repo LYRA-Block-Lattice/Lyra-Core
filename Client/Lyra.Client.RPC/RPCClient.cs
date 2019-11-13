@@ -256,6 +256,19 @@ namespace Lyra.Client.RPC
             return JsonConvert.DeserializeObject<BlockAPIResult>(apiresult.CallResult);
         }
 
+        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        {
+            if (!IsConnected)
+                return new GetTokenNamesAPIResult() { ResultCode = APIResultCodes.NoRPCServerConnection };
+
+            string callId = SetuUpCallID();
+            ProcessingResult request = new ProcessingResult();
+            request.BytesToSendBack = Proxy.ToJson(RPCResult.PROC_GET_TOKEN_NAMES, callId, AccountId, Signature, keyword).ToBytes();
+            var apiresult = await SendAndReceiveAsync(callId, request);
+            //return ParseBlock(apiresult) as TokenGenesisBlock;
+            return JsonConvert.DeserializeObject<GetTokenNamesAPIResult>(apiresult.CallResult);
+        }
+
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
             if (!IsConnected)
@@ -459,7 +472,11 @@ namespace Lyra.Client.RPC
 
         RPCResult WaitForCallResult(string callId)
         {
+#if DEBUG
+            _semaphors[callId].WaitOne(10000000);
+#else
             _semaphors[callId].WaitOne(10000);
+#endif
             _semaphors.TryRemove(callId, out AutoResetEvent semaphore);
 
             _call_results.TryRemove(callId, out RPCResult result);
@@ -517,7 +534,7 @@ namespace Lyra.Client.RPC
         //    return apiresult;
         //}
 
-        #endregion // call result processing
+#endregion // call result processing
 
 
 
@@ -579,7 +596,7 @@ namespace Lyra.Client.RPC
         //    Send(request);
         //}
 
-        #region private methods
+#region private methods
 
         //private void Send(ProcessingResult request)
         //{
@@ -634,7 +651,7 @@ namespace Lyra.Client.RPC
         //    return block;
         //}
 
-        #endregion // private methods
+#endregion // private methods
 
         public void ResponseHandler(string name, DateTime timestamp, TcpHelper clientHelper,
                                   TcpClientWrapper clientWrapper, List<byte> lstByte)

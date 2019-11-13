@@ -8,7 +8,7 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 
-namespace Lyra.Node.MongoDB
+namespace Lyra.Core.MongoDB
 {
 
   

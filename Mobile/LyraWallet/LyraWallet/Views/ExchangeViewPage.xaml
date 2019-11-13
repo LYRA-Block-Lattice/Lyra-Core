@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             Title="In-Wallet Exchange"
+             x:Class="LyraWallet.Views.ExchangeViewPage"
+             BackgroundColor="White">
+    <ContentPage.Content>
+        <Grid VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand"
+              BackgroundColor="Black" RowSpacing="1" ColumnSpacing="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50" />
+                <RowDefinition Height="192" />
+                <RowDefinition Height="28" />
+                <RowDefinition Height="192" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackLayout Orientation="Horizontal" BackgroundColor="White"
+                         Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                <Label Text="Trade on:" HorizontalOptions="Start" VerticalOptions="Center" />
+                <Picker Title="Select a Token" 
+                    TextColor="Blue"
+                    ItemsSource="{Binding TokenList}" 
+                    ItemDisplayBinding="{Binding .}"
+                    SelectedItem="{Binding SelectedToken}"
+                        SelectedIndexChanged="Picker_SelectedIndexChanged"
+                        HorizontalOptions="Start" />
+                <Editor Text="{Binding FilterKeyword}"
+                            Placeholder="Search Token"
+                            AutoSize="TextChanges" />
+                <Label Text="" HorizontalOptions="End" />
+            </StackLayout>
+                <ListView Grid.Row="1" Grid.Column="0" ItemsSource="{Binding SellOrders}" 
+                          x:Name="lvSell"
+                      BackgroundColor="White"
+                      SeparatorVisibility="Default"                          
+                      SeparatorColor="PaleVioletRed"
+                          HasUnevenRows="True">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <StackLayout Orientation="Horizontal" Padding="5">
+                                    <Label Text="{Binding Path=Key}" HorizontalOptions="StartAndExpand" />
+                                    <Label Text="{Binding Path=Value}" HorizontalOptions="End" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+            <StackLayout Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
+                         BackgroundColor="LightGray" Padding="5">
+                <Label Text="Price" HorizontalOptions="StartAndExpand" />
+                <Label Text="Amount" HorizontalOptions="End" />
+            </StackLayout>
+                <ListView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding BuyOrders}" 
+                      BackgroundColor="White"
+                      SeparatorVisibility="Default"                          
+                      SeparatorColor="LightGreen"
+                          HasUnevenRows="True"
+                      VerticalOptions="End">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <StackLayout Orientation="Horizontal" Padding="5">
+                                    <Label Text="{Binding Path=Key}" HorizontalOptions="StartAndExpand" />
+                                    <Label Text="{Binding Path=Value}" HorizontalOptions="End" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            <StackLayout BackgroundColor="White" Padding="5"
+                         Grid.Row="1" Grid.Column="1" >
+                <Grid 
+                  VerticalOptions="EndAndExpand" 
+                  HorizontalOptions="FillAndExpand"
+                  BackgroundColor="White">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="50" />
+                        <RowDefinition Height="50" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="180"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Editor Text="{Binding SellPrice}" Grid.Row="0" Grid.Column="0" Placeholder="Price" />
+                    <Editor Text="{Binding SellAmount}" Grid.Row="1" Grid.Column="0" Placeholder="Count" />
+                    <Label Text="{Binding TargetTokenBalance}"
+                       Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" />
+                    <Button Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                        Text="Sell" BackgroundColor="PaleVioletRed"
+                            Command="{Binding SellCommand}" />
+                </Grid>
+            </StackLayout>
+            <StackLayout Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
+                         BackgroundColor="LightGray">
+            </StackLayout>
+            <StackLayout Grid.Row="3" Grid.Column="1" Padding="5"
+                         BackgroundColor="White">
+                <Grid  
+                  VerticalOptions="StartAndExpand" 
+                  HorizontalOptions="FillAndExpand"
+                  BackgroundColor="White">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="50" />
+                    <RowDefinition Height="50" />                    
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                    <Label Text="{Binding LeXBalance}"
+                       Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" />
+                <Editor Text="{Binding BuyPrice}" Grid.Row="1" Grid.Column="0" Placeholder="Price" />
+                <Editor Text="{Binding BuyAmount}" Grid.Row="2" Grid.Column="0" Placeholder="Count" />
+                <Button Grid.Row="1" Grid.Column="1" Grid.RowSpan="2"
+                        Text="Buy" BackgroundColor="LightGreen" 
+                        Command="{Binding BuyCommand}"/>
+            </Grid>
+            </StackLayout>
+            <StackLayout Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" BackgroundColor="White" >
+                <StackLayout Orientation="Horizontal" BackgroundColor="LightGray" >
+                    <Label Text="Order" WidthRequest="50"/>
+                    <Label Text="Token" WidthRequest="120"/>
+                    <Label Text="Price" WidthRequest="80"/>
+                    <Label Text="Amont" WidthRequest="80"/>
+                    <Label Text="Status" />
+                </StackLayout>
+                <ListView ItemsSource="{Binding MyOrders}" 
+                      BackgroundColor="White"
+                      SeparatorVisibility="Default"                          
+                      SeparatorColor="Yellow"
+                          HasUnevenRows="True"
+                      VerticalOptions="End">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <StackLayout Orientation="Horizontal">
+                                    <Label Text="{Binding Item1}" WidthRequest="50"/>
+                                    <Label Text="{Binding Item2}" WidthRequest="120"/>
+                                    <Label Text="{Binding Item3}" WidthRequest="80"/>
+                                    <Label Text="{Binding Item4}" WidthRequest="80"/>
+                                    <Label Text="{Binding Item5}" />
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackLayout>
+
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

@@ -19,7 +19,6 @@ namespace Lyra.Node.API
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .UseIISIntegration();
+                .UseStartup<Startup>();
     }
 }

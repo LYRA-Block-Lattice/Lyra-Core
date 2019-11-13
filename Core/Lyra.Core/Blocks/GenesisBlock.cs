@@ -28,7 +28,7 @@ namespace Lyra.Core.Blocks.Transactions
     // Creates a new token type
     public class TokenGenesisBlock : ReceiveTransferBlock//, IFeebleBlock
     {
-        public const string LYRA_TICKER_CODE = "Lyra.LYPE";
+        public const string LYRA_TICKER_CODE = "Lyra.LeX";
         public const int LYRA_PRECISION = 8;
 
         // This is the unique token ID, cannot be used twice in the network

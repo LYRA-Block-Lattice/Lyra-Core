@@ -14,8 +14,9 @@ using Lyra.Core.Accounts.Node;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization.Options;
+using System.Linq;
 
-namespace Lyra.Node.MongoDB
+namespace Lyra.Core.MongoDB
 {
     // this is account collection (collection of block chains) used on the node side only
     // 
@@ -164,6 +165,22 @@ namespace Lyra.Node.MongoDB
             }
 
             return null;
+        }
+
+        public List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword)
+        {
+            var builder = Builders<TransactionBlock>.Filter;
+            var filterDefinition = builder.Eq("_t", "TokenGenesisBlock");
+            var result = _blocks.Find(filterDefinition);
+
+            if (string.IsNullOrEmpty(keyword))
+            {
+                return result.ToList().Cast<TokenGenesisBlock>().ToList();
+            }
+            else
+            {
+                return result.ToList().Cast<TokenGenesisBlock>().Where(a => a.Ticker.Contains(keyword)).ToList();
+            }
         }
 
         public TransactionBlock FindBlockByHash(string hash)

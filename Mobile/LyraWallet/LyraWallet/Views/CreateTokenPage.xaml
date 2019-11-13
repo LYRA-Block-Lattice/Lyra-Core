@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="LyraWallet.Views.CreateTokenPage"
+             Title="Create your own Token">
+    <ContentPage.Content>
+        <ScrollView BackgroundColor="White">
+            <StackLayout Padding="5">
+                <Label Text="Token Name:" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding TokenName}" />
+                <Label Text="The Domain of the Token (optional):" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding DomainName}" />
+                <Label Text="Token Description (optional):" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding Description}" AutoSize="TextChanges" />
+                <Label Text="Total Supply (0 - 100,000,000,000,000):" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding TotalSupply}" />
+                <Label Text="Precision (0 - 8):" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding Precision}" />
+                <Label Text="Owner Name (optional):" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding OwnerName}" />
+                <Label Text="Owner Address (optional):" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding OwnerAddress}" AutoSize="TextChanges" />
+                <Button Margin="0,10,0,0" Text="Create" Command="{Binding CreateTokenCommand}" />
+            </StackLayout>
+        </ScrollView>
+    </ContentPage.Content>
+</ContentPage>

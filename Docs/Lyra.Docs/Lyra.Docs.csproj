@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{AF24BE37-B28C-4859-BF3F-D034024B08A7}</ProjectGuid>
@@ -31,7 +31,10 @@
     <None Include="Trade Order Flow.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Running Client.txt" />
+    <None Include="Running Client.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="SignalR.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

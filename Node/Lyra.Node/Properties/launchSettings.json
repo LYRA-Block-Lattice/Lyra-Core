@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Lyra.Node": {
+      "commandName": "Project",
+      "commandLineArgs": "--database mongodb --networkid lexdev --seed self --connectionstring \"mongodb://lexuser:Xejg03sjd@localhost/\""
+    }
+  }
+}

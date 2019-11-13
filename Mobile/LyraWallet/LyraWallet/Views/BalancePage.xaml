@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LyraWallet.ViewModels"
+             Title="{Binding Title}"
+             x:Class="LyraWallet.Views.BalancePage">
+    <ContentPage.Content>
+        <StackLayout x:Name="haveBalance" Padding="5" BackgroundColor="White">
+            <ListView x:Name="lvBalance" ItemsSource="{Binding Balances}" 
+                      BackgroundColor="White"
+                      SeparatorVisibility="None"
+                      SeparatorColor="White"
+                      IsPullToRefreshEnabled="True"
+                      RefreshCommand="{Binding RefreshCommand}"
+                      IsRefreshing="{Binding IsRefreshing}"
+                      RowHeight="80">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                                <Frame
+                               CornerRadius="0"
+                               Padding="5"
+                               HasShadow="False"
+                               BackgroundColor="White">
+                                    <Grid VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition Width="80"/>
+                                    </Grid.ColumnDefinitions>
+                                        <Image Grid.Column="0" WidthRequest="60">
+                                            <Image.Source>
+                                                <FileImageSource File="lyracoins.png" />
+                                            </Image.Source>
+                                        </Image>
+                                        <StackLayout Padding="10" Grid.Column="1">
+                                            <Label 
+                                                Text="{Binding Key}"
+                                                FontAttributes="Bold"
+                                                TextColor="DeepPink"
+                                                />
+                                            <Label Text="{Binding Value}" />
+                                        </StackLayout>
+                                </Grid>
+                                </Frame>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <Frame VerticalOptions="EndAndExpand" Padding="25" IsVisible="{Binding GetLEX}" CornerRadius="30">
+                <StackLayout>
+                    <Label x:Name="getLex" FontSize="Small"
+                            Text="You need Lyra.LeX to creat everything here. Goto &quot;Settings&quot; -> &quot;Visit Lyra LeX Online Community&quot; to get free Lyra.LeX to play with." LineBreakMode="WordWrap" />
+                    <Label FontSize="Small"
+                            Text="After you got Lyra.LeX, pull-down to refresh to see the balance." LineBreakMode="WordWrap" />
+                </StackLayout>
+            </Frame>
+            <Button BackgroundColor="LightGreen" IsVisible="{Binding NotGetLEX}" 
+                            Text="Scan to Pay" Command="{Binding ScanCommand}" />
+            <Button x:Name="btnRefresh" Margin="0,10,0,0" Text="Refresh" Command="{Binding RefreshCommand}">
+            </Button>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

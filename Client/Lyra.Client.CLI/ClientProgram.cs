@@ -53,6 +53,7 @@ namespace Lyra.Client.CLI
         public const string TEST_NETWORK = "testnet";
         public const string STAGE_NETWORK = "stagenet";
         public const string MAIN_NETWORK = "mainnet";
+        public const string LEX_NETWORK = "lexnet";
 
         public const string RPC_PROTOCOL = "rpc";
         public const string WEBAPI_PROTOCOL = "webapi";

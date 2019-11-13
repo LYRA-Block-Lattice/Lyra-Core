@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:zxing="clr-namespace:ZXing.Net.Mobile.Forms;assembly=ZXing.Net.Mobile.Forms"
+             x:Class="LyraWallet.Views.TransferPage"
+             Title="Transfer Funds">
+    <ContentPage.Content>
+        <ScrollView BackgroundColor="White">            
+            <StackLayout Padding="5">
+                <ActivityIndicator x:Name="busyIndicator" IsVisible="{Binding IsWorking}" IsRunning="{Binding IsWorking}" />
+                <Label Text="The Token you want to transfer:" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <!--<Label x:Name="lblTokenName" Text="{Binding SelectedTokenName}"
+                       FontAttributes="Bold"
+                       TextColor="DeepPink"/>-->
+                <Picker Title="Select Token" 
+                    TextColor="Blue"
+                    ItemsSource="{Binding TokenNames}" 
+                    ItemDisplayBinding="{Binding .}"
+                    SelectedItem="{Binding SelectedTokenName}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Label Text="To Account:" Grid.Column="0"
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                    <ImageButton Source="paste.png" Grid.Column="1" WidthRequest="20" HeightRequest="20" HorizontalOptions="Start"
+                                 Clicked="Paste_Clicked"/>
+                </Grid>
+                <Editor x:Name="txtAddress" Text="{Binding TargetAccount}" AutoSize="TextChanges" />
+                <Button Margin="0,10,0,0" x:Name="btnScan" Text="Scan for Address" Command="{Binding ScanCommand}" />
+                <Label Text="Amount:" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding Amount}" />
+                <Button Margin="0,10,0,0" Text="Transfer" Command="{Binding TransferCommand}" />
+            </StackLayout>
+        </ScrollView>
+    </ContentPage.Content>
+</ContentPage>

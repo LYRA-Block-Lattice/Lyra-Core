@@ -51,11 +51,15 @@ namespace Lyra.Client.WebAPI
             {
                 //BaseAddress = new Uri("https://localhost:5001/api/")
                 BaseAddress = new Uri(BaseAddress),
-                Timeout = new TimeSpan(0, 0, 10)
+#if DEBUG
+                Timeout = new TimeSpan(0, 30, 0)        // for debug. but 10 sec is too short for real env
+#else
+                Timeout = new TimeSpan(0, 0, 30)
+#endif
             };
         }
 
-        #region INodeAPI implementation
+#region INodeAPI implementation
 
         public async Task<AccountHeightAPIResult> GetSyncHeight()
         {
@@ -148,6 +152,22 @@ namespace Lyra.Client.WebAPI
             }
         }
 
+        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        {
+            try
+            {
+                var path = "gettokennames/" + AccountId + "/"
+                    + (Signature == null ? "(null)" : Signature) + "/"
+                    + (keyword == null ? "(null)" : keyword);
+                string responseBody = await _client.GetStringAsync(path);
+                return JsonConvert.DeserializeObject<GetTokenNamesAPIResult>(responseBody);
+            }
+            catch (HttpRequestException e)
+            {
+                return new GetTokenNamesAPIResult() { ResultCode = APIResultCodes.NoRPCServerConnection, ResultMessage = e.Message };
+            }
+        }
+
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellTokenCode, string BuyTokenCode, TradeOrderListTypes OrderType, string Signature)
         {
             try
@@ -210,7 +230,7 @@ namespace Lyra.Client.WebAPI
             }
         }
 
-        #region Authorization methods 
+#region Authorization methods 
 
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock SendBlock)
         {
@@ -420,14 +440,14 @@ namespace Lyra.Client.WebAPI
             }
         }
 
-        #endregion // Authorization methods
+#endregion // Authorization methods
 
-        #endregion // INodeAPI implementation
+#endregion // INodeAPI implementation
 
-        #region private methods
+#region private methods
 
 
-        #endregion // private methods
+#endregion // private methods
 
 
 

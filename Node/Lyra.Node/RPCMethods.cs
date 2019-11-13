@@ -10,7 +10,7 @@ using Lyra.Core.API;
 
 using Newtonsoft.Json;
 using Lyra.Node.Authorizers;
-
+using System.Linq;
 
 namespace Lyra.Node
 {
@@ -45,6 +45,34 @@ namespace Lyra.Node
                 result.ResultCode = APIResultCodes.UnknownError;
                 result.ResultMessage = e.Message;
             }
+            return result;
+        }
+
+        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountID, string Signature, string keyword)
+        {
+            var result = new GetTokenNamesAPIResult();
+
+            try
+            {
+                //if (!_accountCollection.AccountExists(AccountId))
+                //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
+
+                var blocks = _accountCollection.FindTokenGenesisBlocks(keyword == "(null)" ? null : keyword);
+                if (blocks != null)
+                {
+                    result.TokenNames = blocks.Select(a => a.Ticker).ToList();
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.TokenGenesisBlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetTokenNames: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = e.Message;
+            }
+
             return result;
         }
 
@@ -542,6 +570,14 @@ namespace Lyra.Node
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
         {
             var result = new AuthorizationAPIResult();
+
+            //// filter the names
+            //if (tokenBlock.DomainName.ToLower().StartsWith("lyra")
+            //    || tokenBlock.Ticker.ToLower().StartsWith("lyra"))
+            //{
+            //    result.ResultCode = APIResultCodes.NameUnavailable;
+            //    return result;
+            //}
 
             try
             {

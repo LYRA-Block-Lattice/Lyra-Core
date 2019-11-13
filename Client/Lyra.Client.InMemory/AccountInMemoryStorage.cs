@@ -99,7 +99,7 @@ namespace Lyra.Client.InMemory
                 if (_tokeninfo.Count == 0)
                     return null;
 
-                return _tokeninfo.Find(x => x.Ticker.Equals(Ticker));
+                return _tokeninfo.Find(x => x.Ticker.Equals(Ticker, StringComparison.InvariantCultureIgnoreCase));
             }
 
             return null;
