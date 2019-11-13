@@ -11,7 +11,7 @@ namespace LyraLexWeb.Services
 {
     public class ExchangeHub : Hub
     {
-        public async Task SendOrder(string orderJson)
+        public async Task<CancelKey> SendOrder(string orderJson)
         {
             //Console.WriteLine(orderJson);
             var order = JsonConvert.DeserializeObject<TokenTradeOrder>(orderJson);
@@ -27,13 +27,26 @@ namespace LyraLexWeb.Services
                 
                 key = await dbCtx.AddOrder(Context.GetHttpContext().Request, order);
 
-                var excOrders = (await dbCtx.GetActiveOrders()).OrderByDescending(a => a.Order.Price);
-                var sellOrders = excOrders.Where(a => a.Order.BuySellType == OrderType.Sell).Select(a => new KeyValuePair<Decimal, Decimal>(a.Order.Price, a.Order.Amount)).ToList();
-                await Clients.All.SendAsync("SellOrders", JsonConvert.SerializeObject(sellOrders));
-
-                var buyOrders = excOrders.Where(a => a.Order.BuySellType == OrderType.Buy).Select(a => new KeyValuePair<Decimal, Decimal>(a.Order.Price, a.Order.Amount)).ToList();
-                await Clients.All.SendAsync("BuyOrders", JsonConvert.SerializeObject(buyOrders));
+                await FetchOrders(order.TokenName);
             }
+
+            return key;
+        }
+
+        public async Task FetchOrders(string tokenName)
+        {
+            var dbCtx = new MongoUtils();
+
+            var excOrders = (await dbCtx.GetActiveOrders(tokenName)).OrderByDescending(a => a.Order.Price);
+            var sellOrders = excOrders.Where(a => a.Order.BuySellType == OrderType.Sell)
+                .GroupBy(a => a.Order.Price)
+                .Select(a => new KeyValuePair<Decimal, Decimal>(a.Key, a.Sum(x => x.Order.Amount))).ToList();
+            await Clients.All.SendAsync("SellOrders", JsonConvert.SerializeObject(sellOrders));
+
+            var buyOrders = excOrders.Where(a => a.Order.BuySellType == OrderType.Buy)
+                .GroupBy(a => a.Order.Price)
+                .Select(a => new KeyValuePair<Decimal, Decimal>(a.Key, a.Sum(x => x.Order.Amount))).ToList();
+            await Clients.All.SendAsync("BuyOrders", JsonConvert.SerializeObject(buyOrders));
         }
     }
 }

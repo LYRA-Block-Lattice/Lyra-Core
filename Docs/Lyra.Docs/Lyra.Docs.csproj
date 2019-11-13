@@ -33,5 +33,8 @@
   <ItemGroup>
     <None Include="Running Client.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="SignalR.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

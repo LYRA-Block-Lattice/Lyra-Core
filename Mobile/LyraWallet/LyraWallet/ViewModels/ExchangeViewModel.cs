@@ -34,8 +34,8 @@ namespace LyraWallet.ViewModels
             }
         }
 
-        public ObservableCollection<KeyValuePair<Decimal, Decimal>> SellOrders { get; } = new ObservableCollection<KeyValuePair<decimal, decimal>>();
-        public ObservableCollection<KeyValuePair<Decimal, Decimal>> BuyOrders { get; } = new ObservableCollection<KeyValuePair<decimal, decimal>>();
+        public ObservableCollection<KeyValuePair<String, String>> SellOrders { get; } = new ObservableCollection<KeyValuePair<String, String>>();
+        public ObservableCollection<KeyValuePair<String, String>> BuyOrders { get; } = new ObservableCollection<KeyValuePair<String, String>>();
 
         public string FilterKeyword { get; set; }
         public string TargetTokenBalance { get => _targetTokenBalance; set => SetProperty(ref _targetTokenBalance, value); }
@@ -57,6 +57,7 @@ namespace LyraWallet.ViewModels
 
         public ICommand BuyCommand { get; }
         public ICommand SellCommand { get; }
+        public ICommand TokenChangedCommand { get;  }
         public string BuyPrice { get => _buyPrice; set => SetProperty(ref _buyPrice, value); }
         public string BuyAmount { get => _buyAmount; set => SetProperty(ref _buyAmount, value); }
         public string SellPrice { get => _sellPrice; set => SetProperty(ref _sellPrice, value); }
@@ -79,14 +80,24 @@ namespace LyraWallet.ViewModels
             {
                 SellOrders.Clear();
                 var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(ordersJson);
+                if(orders.Count < 10)
+                {
+                    for(int i = 0; i < 10 - orders.Count; i++)
+                    {
+                        SellOrders.Add(new KeyValuePair<String, String>("", ""));   // force alight to bottom
+                    }
+                }
                 foreach (var order in orders)
                 {
-                    SellOrders.Add(new KeyValuePair<Decimal, Decimal>(order.Key, order.Value));
+                    SellOrders.Add(new KeyValuePair<String, String>(order.Key.ToString(), order.Value.ToString()));
                 }
-                Device.BeginInvokeOnMainThread(() =>
+                if(orders.Count > 0)
                 {
-                    _thePage.Scroll(orders.Last());
-                });
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        _thePage.Scroll(orders.Last());
+                    });
+                }
             });
 
             _exchangeHub.On<string>("BuyOrders", (ordersJson) =>
@@ -95,7 +106,14 @@ namespace LyraWallet.ViewModels
                 var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(ordersJson);
                 foreach (var order in orders)
                 {
-                    BuyOrders.Add(new KeyValuePair<Decimal, Decimal>(order.Key, order.Value));
+                    BuyOrders.Add(new KeyValuePair<String, String>(order.Key.ToString(), order.Value.ToString()));
+                }
+                if (orders.Count < 10)
+                {
+                    for (int i = 0; i < 10 - orders.Count; i++)
+                    {
+                        BuyOrders.Add(new KeyValuePair<String, String>("", ""));   // force alight to bottom
+                    }
                 }
             });
 
@@ -128,13 +146,15 @@ namespace LyraWallet.ViewModels
             {
                 await SubmitOrder(false);
             });
+
         }
 
         async Task Connect()
         {
             try
             {
-                await _exchangeHub.StartAsync();
+                if(_exchangeHub.State == HubConnectionState.Disconnected)
+                    await _exchangeHub.StartAsync();
             }
             catch (Exception ex)
             {
@@ -142,11 +162,12 @@ namespace LyraWallet.ViewModels
             }
         }
 
-        async Task SendMessage(string user, string message)
+        public async Task FetchOrders(string tokenName)
         {
             try
             {
-                await _exchangeHub.InvokeAsync("SendMessage", user, message);
+                await Connect();
+                await _exchangeHub.InvokeAsync("FetchOrders", tokenName);
             }
             catch (Exception ex)
             {

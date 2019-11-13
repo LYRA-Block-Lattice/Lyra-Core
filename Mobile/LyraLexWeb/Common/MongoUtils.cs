@@ -47,9 +47,9 @@ namespace LyraLexWeb.Common
             };
         }
 
-        public async Task<List<ExchangeOrder>> GetActiveOrders()
+        public async Task<List<ExchangeOrder>> GetActiveOrders(string tokenName)
         {
-            return await _orders.Find(a => a.CanDeal).ToListAsync();
+            return await _orders.Find(a => a.CanDeal && a.Order.TokenName == tokenName).ToListAsync();
         }
 
         private async Task<bool> LookforExecution(ExchangeOrder order)

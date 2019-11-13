@@ -12,12 +12,13 @@
               BackgroundColor="Black" RowSpacing="1" ColumnSpacing="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="50" />
-                <RowDefinition Height="200" />
-                <RowDefinition Height="200" />
+                <RowDefinition Height="192" />
+                <RowDefinition Height="25" />
+                <RowDefinition Height="192" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="150"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <StackLayout Orientation="Horizontal" BackgroundColor="White"
@@ -28,34 +29,45 @@
                     ItemsSource="{Binding TokenList}" 
                     ItemDisplayBinding="{Binding .}"
                     SelectedItem="{Binding SelectedToken}"
+                        SelectedIndexChanged="Picker_SelectedIndexChanged"
                         HorizontalOptions="Start" />
                 <Editor Text="{Binding FilterKeyword}"
                             Placeholder="Search Token"
                             AutoSize="TextChanges" />
                 <Label Text="" HorizontalOptions="End" />
             </StackLayout>
-                <ListView Grid.Row="1" Grid.Column="0" ItemsSource="{Binding SellOrders}" 
+            <RelativeLayout Grid.Row="1" Grid.Column="0">
+                <StackLayout Orientation="Vertical" VerticalOptions="End">
+                    <ListView ItemsSource="{Binding SellOrders}" 
                           x:Name="lvSell"
                       BackgroundColor="White"
                       SeparatorVisibility="Default"                          
                       SeparatorColor="PaleVioletRed"
                           HasUnevenRows="True">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <ViewCell>
-                                <StackLayout Orientation="Horizontal">
-                                    <Label Text="{Binding Path=Key}" HorizontalOptions="StartAndExpand" />
-                                    <Label Text="{Binding Path=Value}" HorizontalOptions="EndAndExpand" />
-                                </StackLayout>
-                            </ViewCell>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            <ListView Grid.Row="2" Grid.Column="0" ItemsSource="{Binding BuyOrders}" 
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ViewCell>
+                                    <StackLayout Orientation="Horizontal">
+                                        <Label Text="{Binding Path=Key}" HorizontalOptions="StartAndExpand" />
+                                        <Label Text="{Binding Path=Value}" HorizontalOptions="EndAndExpand" />
+                                    </StackLayout>
+                                </ViewCell>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackLayout>
+            </RelativeLayout>
+            <StackLayout Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
+                         BackgroundColor="White">
+                <Label Text="Price" HorizontalOptions="StartAndExpand" />
+                <Label Text="Amount" HorizontalOptions="EndAndExpand" />
+            </StackLayout>
+            <ListView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding BuyOrders}" 
                       BackgroundColor="White"
                       SeparatorVisibility="Default"                          
                       SeparatorColor="LightGreen"
-                          HasUnevenRows="True">
+                          HasUnevenRows="True"
+                      VerticalOptions="End">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
@@ -91,7 +103,10 @@
                             Command="{Binding SellCommand}" />
                 </Grid>
             </StackLayout>
-            <StackLayout Grid.Row="2" Grid.Column="1"
+            <StackLayout Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
+                         BackgroundColor="White">
+            </StackLayout>
+            <StackLayout Grid.Row="3" Grid.Column="1"
                          BackgroundColor="White">
                 <Grid  
                   VerticalOptions="StartAndExpand" 
@@ -115,7 +130,7 @@
                         Command="{Binding BuyCommand}"/>
             </Grid>
             </StackLayout>
-            <ScrollView Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+            <ScrollView Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
                         BackgroundColor="White">
                 <StackLayout>
                     <Label Text="Sell My.Token Price 1111 Count 1111" />
