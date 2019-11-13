@@ -43,7 +43,8 @@ namespace LyraLexWeb.Common
             {
                 State = result ?
                 OrderState.Executed : OrderState.Placed,
-                Key = item.Id.ToString()
+                Key = item.Id.ToString(),
+                Order = reqOrder
             };
         }
 

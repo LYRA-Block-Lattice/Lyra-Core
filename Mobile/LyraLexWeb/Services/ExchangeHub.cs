@@ -11,7 +11,7 @@ namespace LyraLexWeb.Services
 {
     public class ExchangeHub : Hub
     {
-        public async Task<CancelKey> SendOrder(string orderJson)
+        public async Task SendOrder(string orderJson)
         {
             //Console.WriteLine(orderJson);
             var order = JsonConvert.DeserializeObject<TokenTradeOrder>(orderJson);
@@ -28,9 +28,9 @@ namespace LyraLexWeb.Services
                 key = await dbCtx.AddOrder(Context.GetHttpContext().Request, order);
 
                 await FetchOrders(order.TokenName);
-            }
 
-            return key;
+            }
+            await Clients.All.SendAsync("UserOrder", JsonConvert.SerializeObject(key));
         }
 
         public async Task FetchOrders(string tokenName)

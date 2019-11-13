@@ -36,9 +36,7 @@
                             AutoSize="TextChanges" />
                 <Label Text="" HorizontalOptions="End" />
             </StackLayout>
-            <RelativeLayout Grid.Row="1" Grid.Column="0">
-                <StackLayout Orientation="Vertical" VerticalOptions="End">
-                    <ListView ItemsSource="{Binding SellOrders}" 
+                <ListView Grid.Row="1" Grid.Column="0"  ItemsSource="{Binding SellOrders}" 
                           x:Name="lvSell"
                       BackgroundColor="White"
                       SeparatorVisibility="Default"                          
@@ -49,18 +47,16 @@
                                 <ViewCell>
                                     <StackLayout Orientation="Horizontal">
                                         <Label Text="{Binding Path=Key}" HorizontalOptions="StartAndExpand" />
-                                        <Label Text="{Binding Path=Value}" HorizontalOptions="EndAndExpand" />
+                                        <Label Text="{Binding Path=Value}" HorizontalOptions="End" />
                                     </StackLayout>
                                 </ViewCell>
                             </DataTemplate>
                         </ListView.ItemTemplate>
                     </ListView>
-                </StackLayout>
-            </RelativeLayout>
             <StackLayout Grid.Row="2" Grid.Column="0" Orientation="Horizontal"
                          BackgroundColor="White">
                 <Label Text="Price" HorizontalOptions="StartAndExpand" />
-                <Label Text="Amount" HorizontalOptions="EndAndExpand" />
+                <Label Text="Amount" HorizontalOptions="End" />
             </StackLayout>
             <ListView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding BuyOrders}" 
                       BackgroundColor="White"
@@ -73,7 +69,7 @@
                         <ViewCell>
                             <StackLayout Orientation="Horizontal">
                                 <Label Text="{Binding Path=Key}" HorizontalOptions="StartAndExpand" />
-                                <Label Text="{Binding Path=Value}" HorizontalOptions="EndAndExpand" />
+                                <Label Text="{Binding Path=Value}" HorizontalOptions="End" />
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>
@@ -130,14 +126,36 @@
                         Command="{Binding BuyCommand}"/>
             </Grid>
             </StackLayout>
-            <ScrollView Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
-                        BackgroundColor="White">
-                <StackLayout>
-                    <Label Text="Sell My.Token Price 1111 Count 1111" />
-                    <Label Text="Sell My.Token Price 1111 Count 1111" />
-                    <Label Text="Sell My.Token Price 1111 Count 1111" />
+            <StackLayout Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" BackgroundColor="White" >
+                <StackLayout Orientation="Horizontal">
+                    <Label Text="Order" WidthRequest="50"/>
+                    <Label Text="Token" />
+                    <Label Text="Price" WidthRequest="80"/>
+                    <Label Text="Amont" WidthRequest="80"/>
+                    <Label Text="Status" WidthRequest="80"/>
                 </StackLayout>
-            </ScrollView>
+                <ListView ItemsSource="{Binding MyOrders}" 
+                      BackgroundColor="White"
+                      SeparatorVisibility="Default"                          
+                      SeparatorColor="Yellow"
+                          HasUnevenRows="True"
+                      VerticalOptions="End">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ViewCell>
+                                <StackLayout Orientation="Horizontal">
+                                    <Label Text="{Binding Item1}" WidthRequest="50"/>
+                                    <Label Text="{Binding Item2}" />
+                                    <Label Text="{Binding Item3}" WidthRequest="80"/>
+                                    <Label Text="{Binding Item4}" WidthRequest="80"/>
+                                    <Label Text="{Binding Item5}" WidthRequest="80"/>
+                                </StackLayout>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackLayout>
+
         </Grid>
     </ContentPage.Content>
 </ContentPage>

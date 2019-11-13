@@ -6,5 +6,6 @@ namespace Lyra.Exchange
     {
         public OrderState State { get; set; }
         public string Key { get; set; }
+        public TokenTradeOrder Order {get; set;}
     }
 }

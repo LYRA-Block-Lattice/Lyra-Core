@@ -36,6 +36,8 @@ namespace LyraWallet.ViewModels
 
         public ObservableCollection<KeyValuePair<String, String>> SellOrders { get; } = new ObservableCollection<KeyValuePair<String, String>>();
         public ObservableCollection<KeyValuePair<String, String>> BuyOrders { get; } = new ObservableCollection<KeyValuePair<String, String>>();
+        // buy/sell token price amount state
+        public ObservableCollection<Tuple<string, string, string, string, string>> MyOrders { get; } = new ObservableCollection<Tuple<string, string, string, string, string>>();
 
         public string FilterKeyword { get; set; }
         public string TargetTokenBalance { get => _targetTokenBalance; set => SetProperty(ref _targetTokenBalance, value); }
@@ -112,9 +114,16 @@ namespace LyraWallet.ViewModels
                 {
                     for (int i = 0; i < 10 - orders.Count; i++)
                     {
-                        BuyOrders.Add(new KeyValuePair<String, String>("", ""));   // force alight to bottom
+                        BuyOrders.Add(new KeyValuePair<String, String>("", ""));   // force align to bottom
                     }
                 }
+            });
+
+            _exchangeHub.On<string>("UserOrder", (orderJson) =>
+            {
+                var key = JsonConvert.DeserializeObject<CancelKey>(orderJson);
+                MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
+                    key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
             });
 
             Task.Run(async () => await Connect() );
@@ -201,10 +210,6 @@ namespace LyraWallet.ViewModels
                     await _exchangeHub.SendAsync("SendOrder", reqStr);
                 }
                 
-                //var reqContent = new StringContent(reqStr, Encoding.UTF8, "application/json");
-                //var resp = await _client.PostAsync("exchange/submit", reqContent);
-
-                //var txt = resp.Content;
             }
             catch (Exception)
             {
