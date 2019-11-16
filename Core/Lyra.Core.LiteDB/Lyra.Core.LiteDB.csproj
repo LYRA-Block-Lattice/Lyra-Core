@@ -4,9 +4,4 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <ReleaseVersion>0.5.1</ReleaseVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Externals\LiteDB\LiteDB.csproj" />
-    <ProjectReference Include="..\Lyra.Core\Lyra.Core.csproj" />
-  </ItemGroup>
 </Project>

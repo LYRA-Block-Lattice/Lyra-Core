@@ -1,4 +1,6 @@
-﻿using Lyra.Client.RPC;
+﻿using Grpc.Net.Client;
+using Lyra.Client.Lib;
+using Lyra.Core.Protos;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -9,13 +11,14 @@ namespace LyraLexWeb.Services
 {
     public class LyraRpcContext
     {
-        RPCClient _rpc;
+        LyraRpcClient _rpc;
         public LyraRpcContext(IOptions<MongodbConfig> configs)
         {
             // the rpcclient only connect to localhost now.
             try
             {
-                _rpc = new RPCClient(Guid.NewGuid().ToString());
+                var channel = GrpcChannel.ForAddress("https://localhost:5001");
+                _rpc = new LyraRpcClient(channel);
             }
             catch(Exception ex)
             {
@@ -25,11 +28,11 @@ namespace LyraLexWeb.Services
 
         public async Task<int> GetHeight()
         {
-            var ret = await _rpc.GetSyncHeight();
-            if (ret.ResultCode == Lyra.Core.API.APIResultCodes.Success)
+            var ret = await _rpc.GetSyncHeightAsync(new Lyra.Core.Protos.SyncHeightRequest());
+            if (ret.ResultCode == APIResultCodes.Success)
                 return ret.Height;
             else
-                throw new Exception(ret.ResultMessage);
+                throw new Exception(ret.ResultCode.ToString());
         }
     }
 }

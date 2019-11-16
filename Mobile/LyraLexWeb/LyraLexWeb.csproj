@@ -16,12 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Client\Lyra.Client.RPC\Lyra.Client.RPC.csproj" />
-    <ProjectReference Include="..\..\Externals\LiteDB\LiteDB.csproj" />
+    <Folder Include="wwwroot\css\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\css\" />
+    <ProjectReference Include="..\..\Client\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "Lyra.Node2.Protos";
+option csharp_namespace = "Lyra.Core.Protos";
 
 package Lyra;
 
@@ -75,8 +75,7 @@ message GetBlockByIndexRequest
 message GetBlockReply
 {
 	APIResultCodes ResultCode = 1;
-	BlockTypes ResultBlockType = 2;
-	string BlockData = 3;	
+	string BlockData = 2;	
 }
 
 // GetBlockByHash

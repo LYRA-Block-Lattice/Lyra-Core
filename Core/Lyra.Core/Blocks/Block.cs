@@ -6,6 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 
 using Lyra.Core.Cryptography;
+using Lyra.Core.Protos;
 
 namespace Lyra.Core.Blocks
 {

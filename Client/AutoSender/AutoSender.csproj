@@ -10,13 +10,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.10.1" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.25.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.25.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="MongoDB.Driver" Version="2.9.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Lyra.Core.LiteDB\Lyra.Core.LiteDB.csproj" />
     <ProjectReference Include="..\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
-    <ProjectReference Include="..\Lyra.Client.WebAPI\Lyra.Client.WebAPI.csproj" />
   </ItemGroup>
 
 </Project>

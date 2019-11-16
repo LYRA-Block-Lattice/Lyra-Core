@@ -1,4 +1,6 @@
 ﻿
+using Lyra.Core.Protos;
+
 namespace Lyra.Core.Blocks.Transactions
 {
     public class ReceiveTransferBlock : TransactionBlock

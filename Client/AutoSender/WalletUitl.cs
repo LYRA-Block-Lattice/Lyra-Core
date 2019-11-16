@@ -1,7 +1,7 @@
-﻿using Lyra.Client.Lib;
-using Lyra.Client.WebAPI;
-using Lyra.Core.API;
+﻿using Grpc.Net.Client;
+using Lyra.Client.Lib;
 using Lyra.Core.LiteDB;
+using Lyra.Core.Protos;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -27,7 +27,9 @@ namespace AutoSender
         public async Task<Dictionary<string, Decimal>> RefreshBalance(string webApiUrl)
         {
             var node_address = webApiUrl;
-            var rpcClient = new WebAPIClient(node_address);
+            var channel = GrpcChannel.ForAddress("https://localhost:5001");
+            var rpcClient = new LyraRpcClient(channel);
+
             var result = await wallet.Sync(rpcClient);
             if (result == APIResultCodes.Success)
             {
@@ -49,9 +51,9 @@ namespace AutoSender
             //}
 
             var result = await wallet.Send(amount, targetAccount, tokenName);
-            if (result.ResultCode != APIResultCodes.Success)
+            if (result != APIResultCodes.Success)
             {
-                throw new Exception(result.ResultCode.ToString());
+                throw new Exception(result.ToString());
             }
         }
     }

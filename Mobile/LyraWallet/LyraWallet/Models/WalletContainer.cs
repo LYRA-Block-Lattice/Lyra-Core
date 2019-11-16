@@ -1,8 +1,9 @@
-﻿using Lyra.Client.Lib;
-using Lyra.Client.WebAPI;
+﻿using Grpc.Net.Client;
+using Lyra.Client.Lib;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.LiteDB;
+using Lyra.Core.Protos;
 using LyraWallet.Services;
 using LyraWallet.ViewModels;
 using System;
@@ -109,7 +110,10 @@ namespace LyraWallet.Models
             var node_address = SelectNode(wallet.NetworkId);
             if (webApiUrl != null)
                 node_address = webApiUrl;
-            var rpcClient = new WebAPIClient(node_address);
+
+            var channel = GrpcChannel.ForAddress("https://localhost:5001");
+            var rpcClient = new LyraRpcClient(channel);
+
             var result = await wallet.Sync(rpcClient);
             if (result == APIResultCodes.Success)
             {
@@ -132,9 +136,9 @@ namespace LyraWallet.Models
             }
 
             var result = await wallet.Send(amount, targetAccount, tokenName);
-            if (result.ResultCode != APIResultCodes.Success)
+            if (result != APIResultCodes.Success)
             {
-                throw new Exception(result.ResultCode.ToString());
+                throw new Exception(result.ToString());
             }
         }
 
@@ -143,9 +147,9 @@ namespace LyraWallet.Models
         {
             var result = await wallet.CreateToken(tokenName, tokenDomain ?? "", description ?? "", Convert.ToSByte(precision), totalSupply,
                 true, ownerName ?? "", ownerAddress ?? "", null, Lyra.Core.Blocks.Transactions.ContractTypes.Default, null);
-            if (result.ResultCode != APIResultCodes.Success)
+            if (result != APIResultCodes.Success)
             {
-                throw new Exception(result.ResultCode.ToString());
+                throw new Exception(result.ToString());
             }
         }
 
