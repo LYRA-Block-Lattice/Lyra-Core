@@ -7,7 +7,7 @@ using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.API;
 
 using System.Threading.Tasks;
-
+using Lyra.Core.Protos;
 
 namespace Lyra.Client.CLI
 {
@@ -86,7 +86,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(_wallet.AccountId);
                         break;
                     case COMMAND_BALANCE:
-                        Console.WriteLine(_wallet.GetDisplayBalances());
+                        Console.WriteLine(await _wallet.GetDisplayBalancesAsync());
                         break;
                     case COMMAND_COUNT:
                         Console.WriteLine(_wallet.GetLocalAccountHeight());
@@ -95,19 +95,19 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format("Network Id: {0}", _wallet.NetworkId));
                         Console.WriteLine(string.Format("Account Id: {0}", _wallet.AccountId));
                         Console.WriteLine(string.Format("Number of Blocks: {0}", _wallet.GetLocalAccountHeight()));
-                        Console.WriteLine(              "Balance: " + _wallet.GetDisplayBalances());
+                        Console.WriteLine(              "Balance: " + await _wallet.GetDisplayBalancesAsync());
                         break;
                     case COMMAND_PRIVATE_KEY:
                         Console.WriteLine(string.Format(_wallet.PrivateKey));
                         break;
                     case COMMAND_TOKEN:
-                        ProcessNewToken();
+                        ProcessNewTokenAsync();
                         break;
                     case COMMAND_SEND:
-                        ProcessSend();
+                        ProcessSendAsync();
                         break;
                     case COMMAND_GEN_NOTE:
-                        _wallet.CreateGenesisForCoreToken();
+                        await _wallet.CreateGenesisForCoreTokenAsync();
                         break;
                     case COMMAND_PRINT_LAST_BLOCK:
                         Console.WriteLine(_wallet.PrintLastBlock());
@@ -121,25 +121,25 @@ namespace Lyra.Client.CLI
                         var sync_result = await _wallet.Sync(null);
                         Console.WriteLine("Sync Result: " + sync_result.ToString());
                         break;
-                    case COMMAND_TRADE_ORDER:
-                        //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-                        ProcessTradeOrder();
-                        break;
-                    case COMMAND_REDEEM_REWARDS:
-                        ProcessRedeemRewardsTradeOrder();
-                        break;
-                    case COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST:
-                        //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-                        Console.WriteLine(_wallet.PrintActiveTradeOrders());
-                        break;
-                    case COMMAND_TRADE_ORDER_SELL_TEST:
-                        //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-  //                    TradeOrderSellTest();
-                        break;
-                    case COMMAND_TRADE_ORDER_BUY_TEST:
-                        TradeOrderBuyTest();
-                        //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-                        break;
+                    //case COMMAND_TRADE_ORDER:
+                    //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+                    //    ProcessTradeOrder();
+                    //    break;
+                    //case COMMAND_REDEEM_REWARDS:
+                    //    ProcessRedeemRewardsTradeOrder();
+                    //    break;
+                    //case COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST:
+                    //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+                    //    Console.WriteLine(_wallet.PrintActiveTradeOrders());
+                    //    break;
+  //                  case COMMAND_TRADE_ORDER_SELL_TEST:
+  //                      //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+  ////                    TradeOrderSellTest();
+  //                      break;
+  //                  case COMMAND_TRADE_ORDER_BUY_TEST:
+  //                      TradeOrderBuyTest();
+  //                      //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+  //                      break;
                     case COMMAND_PAY:
                     case COMMAND_SELL:
                     case COMMAND_CANCEL_TRADE_ORDER:
@@ -157,7 +157,7 @@ namespace Lyra.Client.CLI
             return 0;
         }
 
-        void TradeOrderSellTest()
+/*        void TradeOrderSellTest()
         {
             var orderType = TradeOrderTypes.Sell;
             var sell_token = "USD";
@@ -272,8 +272,8 @@ namespace Lyra.Client.CLI
                     Console.WriteLine("Redemption failed:" + result.ResultMessage);
             }
         }
-
-        void ProcessSend()
+        */
+        async Task ProcessSendAsync()
         {
             Console.WriteLine("Please enter destination account id: ");
             string destination = Console.ReadLine();
@@ -289,27 +289,26 @@ namespace Lyra.Client.CLI
 
             }
 
-            AuthorizationAPIResult send_result;
+            APIResultCodes send_result;
             if (string.IsNullOrEmpty(ticker))
                 send_result = _wallet.Send(amount, destination).Result;
             else
                 send_result = _wallet.Send(amount, destination, ticker).Result;
 
-            if (send_result.ResultCode != APIResultCodes.Success)
+            if (send_result != APIResultCodes.Success)
             {
-                Console.WriteLine($"Failed to add send transfer block with error code: {send_result.ResultCode}");
-                Console.WriteLine("Error Message: " + send_result.ResultMessage);
+                Console.WriteLine($"Failed to add send transfer block with error code: {send_result}");
             }
             else
             {
                 Console.WriteLine($"Send Transfer block has been authorized successfully");
-                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
+                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
 
         }
 
-        void ProcessNewToken()
+        async Task ProcessNewTokenAsync()
         {
             Console.WriteLine("Please enter token name: ");
             string tokenname = Console.ReadLine();
@@ -361,15 +360,14 @@ namespace Lyra.Client.CLI
 
             var result = _wallet.CreateToken(tokenname, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, Core.Blocks.Transactions.ContractTypes.Custom, tags).Result;
 
-            if (result.ResultCode != APIResultCodes.Success)
+            if (result != APIResultCodes.Success)
             {
-                Console.WriteLine("Token generation failed with code: " + result.ResultCode.ToString());
-                Console.WriteLine("Error Message: " + result.ResultMessage);
+                Console.WriteLine("Token generation failed with code: " + result.ToString());
             }
             else
             {
                 Console.WriteLine($"Token generation has been authorized successfully");
-                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
+                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
 
