@@ -220,7 +220,7 @@ namespace LyraWallet.ViewModels
         {
             if(App.Container.Balances == null)
             {
-                LeXBalance = $"Hold Lyra.LeX: 0";
+                LeXBalance = $"Holding Lyra.LeX: 0";
                 TargetTokenBalance = $"Holding {SelectedToken}: 0";
             }
             else

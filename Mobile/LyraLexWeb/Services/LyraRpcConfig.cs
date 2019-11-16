@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace LyraLexWeb.Services
 {
-    public class MongodbConfig
+    public class LyraRpcConfig
     {
-        public string DatabasePath { get; set; }
+        public string nodeHost { get; set; }
+        public int nodePort { get; set; }
     }
 }

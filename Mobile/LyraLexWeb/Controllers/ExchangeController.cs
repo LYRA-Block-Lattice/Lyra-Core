@@ -16,10 +16,12 @@ namespace LyraLexWeb
     public class ExchangeController : Controller
     {
         private readonly IHubContext<ExchangeHub> _hubContext;
+        MongodbContext dbCtx;
 
-        public ExchangeController(IHubContext<ExchangeHub> hubContext)
+        public ExchangeController(IHubContext<ExchangeHub> hubContext, MongodbContext ctx)
         {
             _hubContext = hubContext;
+            dbCtx = ctx;
         }
 
         // GET: api/<controller>
@@ -54,13 +56,9 @@ namespace LyraLexWeb
             }
             else
             {
-                var dbCtx = new MongoUtils();
                 key = await dbCtx.AddOrder(Request, value);
+                // signal the dealing engine
 
-                var excOrders = await dbCtx.GetActiveOrders(value.TokenName);
-                var simpleOrders = excOrders.Select(a => new KeyValuePair<Decimal, Decimal>(a.Order.Price, a.Order.Amount)).ToList();
-                await _hubContext.Clients.All.SendAsync("ActiveOrders", Json(simpleOrders));
-                //await _hubContext.Clients.All.SendAsync("OrderCreated", value.Price, value.Amount, value.BuySellType == OrderType.Buy);
             }
             return Json(key);
         }

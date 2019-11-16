@@ -9,26 +9,29 @@ using Lyra.Exchange;
 using LyraLexWeb.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace LyraLexWeb.Common
+namespace LyraLexWeb.Services
 {
     public class MongodbContext
     {
+        public MongoClient client { get; }
         public readonly IMongoDatabase Context;
         private static IMongoDatabase _db;
 
+        private IMongoCollection<ExchangeOrder> _queue;
         private IMongoCollection<ExchangeOrder> _orders;
-
+        
         public MongodbContext(IOptions<MongodbConfig> configs)
         {
             try
             {
                 if(_db == null)
                 {
-                    var client = new MongoClient(configs.Value.DatabasePath);
+                    client = new MongoClient(configs.Value.DatabasePath);
                     _db = client.GetDatabase("LexWeb");
                 }
                 Context = _db;
 
+                _queue = _db.GetCollection<ExchangeOrder>("queuedOrders");
                 _orders = _db.GetCollection<ExchangeOrder>("exchangeOrders");
             }
             catch (Exception ex)
@@ -44,6 +47,7 @@ namespace LyraLexWeb.Common
                 reqOrder.Price <= 0 || reqOrder.Amount <= 0)
                 return new CancelKey() { State = OrderState.BadOrder };
 
+            reqOrder.CreatedTime = DateTime.Now;
             var item = new ExchangeOrder()
             {
                 Order = reqOrder,
@@ -51,18 +55,33 @@ namespace LyraLexWeb.Common
                 State = DealState.Placed,
                 ClientIP = req.HttpContext.Connection.RemoteIpAddress
             };
-            await _orders.InsertOneAsync(item);
+            await _queue.InsertOneAsync(item);
 
-            var result = await LookforExecution(item);
             return new CancelKey()
             {
-                State = result ?
-                OrderState.Executed : OrderState.Placed,
+                State = OrderState.Placed,
                 Key = item.Id.ToString()
             };
         }
 
-        private async Task<bool> LookforExecution(ExchangeOrder order)
+        public async Task<List<ExchangeOrder>> GetQueuedOrders()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<ExchangeOrder>> GetActiveOrders(string tokenName)
+        {
+            return await _orders.Find(a => a.CanDeal && a.Order.TokenName == tokenName).ToListAsync();
+        }
+
+        public async Task<ExchangeOrder[]> GetQueuedOrdersAsync()
+        {
+            var finds = await _orders.FindAsync(a => a.CanDeal);
+            var fl = await finds.ToListAsync();
+            return fl.OrderBy(a => a.Order.CreatedTime).ToArray();
+        }
+
+        public async Task<bool> LookforExecution(ExchangeOrder order)
         {
             var builder = Builders<ExchangeOrder>.Filter;
             var filter = builder.Eq("ToToken", order.Order.TokenName)

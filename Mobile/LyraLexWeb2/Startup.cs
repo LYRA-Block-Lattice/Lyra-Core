@@ -2,18 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LyraLexWeb.Common;
-using LyraLexWeb.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using LyraLexWeb2.Areas.Identity;
+using LyraLexWeb2.Data;
 
-namespace LyraLexWeb
+namespace LyraLexWeb2
 {
     public class Startup
     {
@@ -25,18 +28,18 @@ namespace LyraLexWeb
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
+        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(
+                    Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDefaultIdentity<IdentityUser>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddRazorPages();
-            services.AddMvc();
-
-            services.AddControllers();
-            services.AddSignalR();
-
-            services.AddMongodb("mongodb://lexweb:j2CsADf4@localhost/lexweb");
-            services.AddLyraRpc("localhost", 11511);
-
-            services.AddHostedService<LyraDealEngine>();
+            services.AddServerSideBlazor();
+            services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+            services.AddSingleton<WeatherForecastService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -45,6 +48,7 @@ namespace LyraLexWeb
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseDatabaseErrorPage();
             }
             else
             {
@@ -53,29 +57,19 @@ namespace LyraLexWeb
                 app.UseHsts();
             }
 
-            //app.UseHttpsRedirection();  //temp. uncomment after get ssl certification
-            var provider = new FileExtensionContentTypeProvider();
-            provider.Mappings.Add(".apk", "application/vnd.android.package-archive"); //file ext, ContentType
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                ContentTypeProvider = provider
-            });
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapRazorPages();
                 endpoints.MapControllers();
-
-                endpoints.MapHub<ExchangeHub>("/ExchangeHub", options =>
-                {
-                    options.Transports =
-                        HttpTransportType.WebSockets |
-                        HttpTransportType.LongPolling;
-                });
+                endpoints.MapBlazorHub();
+                endpoints.MapFallbackToPage("/_Host");
             });
         }
     }
