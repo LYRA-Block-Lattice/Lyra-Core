@@ -118,7 +118,7 @@ namespace Lyra.Client.CLI
                         wallet.OpenAccount(full_path, wallet.AccountName);
                 }
 
-                var channel = GrpcChannel.ForAddress("https://localhost:5001");
+                var channel = GrpcChannel.ForAddress("http://lyratokens.com:5492/");
                 var rpcClient = new LyraRpcClient(channel);
                 //if (WEB)
                 //{
@@ -155,7 +155,7 @@ namespace Lyra.Client.CLI
                         timer_busy1 = false;
                     }
                 },
-                null, 2000, 10000);
+                null, 2000, 30000);
 
 
                 input = CommandProcessor.COMMAND_STATUS;

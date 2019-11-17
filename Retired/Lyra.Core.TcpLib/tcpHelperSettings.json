@@ -1,0 +1,10 @@
+﻿{
+  "TcpHelper": {
+    "maxConnectionAttempts": 30,
+    "intervalBetweenConnectionAttemptsInMs": 1000,
+    "receiveBufferSize": 1024,
+    "logLevel": -1,
+    "delim": "|",
+    "delimRepeated": 3
+  }
+}
