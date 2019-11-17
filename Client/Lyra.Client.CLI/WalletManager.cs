@@ -10,6 +10,7 @@ using Lyra.Core.Accounts;
 
 using Lyra.Core.LiteDB;
 using Grpc.Net.Client;
+using System.Net.Http;
 
 namespace Lyra.Client.CLI
 {
@@ -118,8 +119,16 @@ namespace Lyra.Client.CLI
                         wallet.OpenAccount(full_path, wallet.AccountName);
                 }
 
-                var channel = GrpcChannel.ForAddress("http://lyratokens.com:5492/");
+                var httpClientHandler = new HttpClientHandler();
+                // Return `true` to allow certificates that are untrusted/invalid
+                httpClientHandler.ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                var httpClient = new HttpClient(httpClientHandler);
+
+                var channel = GrpcChannel.ForAddress("https://34.80.72.244:5492/",
+                    new GrpcChannelOptions { HttpClient = httpClient });
                 var rpcClient = new LyraRpcClient(channel);
+
                 //if (WEB)
                 //{
                 //    string node_address;
