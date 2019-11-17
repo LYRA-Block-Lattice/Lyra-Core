@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lyra.Core.API;
+using Lyra.Node2.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -27,8 +29,13 @@ namespace Lyra.Node2
             OptionsConfigurationServiceCollectionExtensions.Configure<Services.LyraConfig>(services, Configuration.GetSection("Lyra"));
 
             //services.AddHostedService<Services.NodeService>();
+            services.AddSingleton<INodeAPI, ApiService>();
 
             services.AddGrpc();
+
+            services.AddMvc();
+
+            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,7 +51,7 @@ namespace Lyra.Node2
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<Services.ApiService>();
-
+                endpoints.MapControllers();
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");

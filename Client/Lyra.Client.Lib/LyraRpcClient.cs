@@ -13,14 +13,14 @@ using System.Threading.Tasks;
 
 namespace Lyra.Client.Lib
 {
-    public class LyraRpcClient : Core.Protos.LyraApi.LyraApiClient, INodeAPI
+    public class LyraRpcClient : LyraApi.LyraApiClient, INodeAPI
     {
         public LyraRpcClient(GrpcChannel channel) : base(channel)
         {
 
         }
 
-        public static LyraRpcClient Create(string networkId, string rpcUrl = null)
+        public static LyraRpcClient Create(string networkId)
         {
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
@@ -28,27 +28,27 @@ namespace Lyra.Client.Lib
                 HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
             var httpClient = new HttpClient(httpClientHandler);
 
-            var url = rpcUrl == null ? SelectNode(networkId) : rpcUrl;
+            var url = SelectNode(networkId).Item1;
             var channel = GrpcChannel.ForAddress(url,
                 new GrpcChannelOptions { HttpClient = httpClient });
             var rpcClient = new LyraRpcClient(channel);
             return rpcClient;
         }
 
-        private static string SelectNode(string networkID)
+        public static (string, string) SelectNode(string networkID)
         {
             switch (networkID)
             {
 #if DEBUG
                 case "lexdev":
-                    return "https://34.80.72.244:5492/";
+                    return ("https://34.80.72.244:5492/", "http://34.80.72.244/lyrarpc/");
 #endif
                 case "lexnet":
-                    return "https://34.80.72.244:5392/";
+                    return ("https://34.80.72.244:5392/", "http://34.80.72.244/lyrarpc/");
                 case "testnet":
-                    return "https://testnet.lyratokens.com:5392/";
+                    return ("https://testnet.lyratokens.com:5392/", "");
                 case "mainnet":
-                    return "https://mainnet.lyratokens.com:5392/";
+                    return ("https://mainnet.lyratokens.com:5392/", "");
                 default:
                     throw new Exception("Unsupported network ID");
             }

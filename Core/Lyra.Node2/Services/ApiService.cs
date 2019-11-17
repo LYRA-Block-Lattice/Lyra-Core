@@ -11,6 +11,7 @@ using Lyra.Node2.Authorizers;
 using Lyra.Core.Protos;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Lyra.Core.API;
 
 namespace Lyra.Node2.Services
 {
@@ -20,7 +21,7 @@ namespace Lyra.Node2.Services
         public string NetworkId { get; set; }
     }
 
-    public class ApiService : LyraApi.LyraApiBase
+    public class ApiService : LyraApi.LyraApiBase, INodeAPI
     {
         private readonly ILogger<ApiService> _logger;
         static ServiceAccount _serviceAccount;
@@ -36,9 +37,9 @@ namespace Lyra.Node2.Services
                 InitializeNode();
         }
 
-        public override Task<AccountHeightReply> GetSyncHeight(SyncHeightRequest request, ServerCallContext context)
+        public Task<AccountHeightAPIResult> GetSyncHeight()
         {
-            var result = new AccountHeightReply();
+            var result = new AccountHeightAPIResult();
             try
             {
                 var last_sync_block = _serviceAccount.GetLatestBlock();
@@ -54,19 +55,32 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<GetTokenNamesReply> GetTokenNames(GetTokenNamesRequest request, ServerCallContext context)
+        public override async Task<AccountHeightReply> GetSyncHeight(SyncHeightRequest request, ServerCallContext context)
         {
-            var result = new GetTokenNamesReply();
+            var cr = await GetSyncHeight();
+            var result = new AccountHeightReply()
+            {
+                ResultCode = cr.ResultCode,
+                NetworkId = cr.NetworkId,
+                Height = cr.Height,
+                SyncHash = cr.SyncHash
+            };            
+            return result;
+        }
+
+        public Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        {
+            var result = new GetTokenNamesAPIResult();
 
             try
             {
                 //if (!_accountCollection.AccountExists(AccountId))
                 //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var blocks = _accountCollection.FindTokenGenesisBlocks(request.Keyword == "(null)" ? null : request.Keyword);
+                var blocks = _accountCollection.FindTokenGenesisBlocks(keyword == "(null)" ? null : keyword);
                 if (blocks != null)
                 {
-                    result.TokenNames.AddRange(blocks.Select(a => a.Ticker).ToList());
+                    result.TokenNames = blocks.Select(a => a.Ticker).ToList();
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else
@@ -81,14 +95,26 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<GetAccountHeightReply> GetAccountHeight(GetAccountHeightRequest request, ServerCallContext context)
+        public override async Task<GetTokenNamesReply> GetTokenNames(GetTokenNamesRequest request, ServerCallContext context)
         {
-            var result = new GetAccountHeightReply();
+            var cr = await GetTokenNames(request.AccountId, request.Signature, request.Keyword);
+            var result = new GetTokenNamesReply()
+            {
+                ResultCode = cr.ResultCode                
+            };           
+            result.TokenNames.AddRange(cr.TokenNames);
+
+            return result;
+        }
+
+        public Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
+        {
+            var result = new AccountHeightAPIResult();
             try
             {
-                if (_accountCollection.AccountExists(request.AccountId))
+                if (_accountCollection.AccountExists(AccountId))
                 {
-                    result.Height = _accountCollection.FindLatestBlock(request.AccountId).Index;
+                    result.Height = _accountCollection.FindLatestBlock(AccountId).Index;
                     result.NetworkId = NodeGlobalParameters.Network_Id;
                     result.SyncHash = _serviceAccount.GetLatestBlock().Hash;
                     result.ResultCode = APIResultCodes.Success;
@@ -103,6 +129,19 @@ namespace Lyra.Node2.Services
                 result.ResultCode = APIResultCodes.UnknownError;
             }
             return Task.FromResult(result);
+        }
+
+        public override async Task<GetAccountHeightReply> GetAccountHeight(GetAccountHeightRequest request, ServerCallContext context)
+        {
+            var cr = await GetAccountHeight(request.AccountId, request.Signature);
+            var result = new GetAccountHeightReply()
+            {
+                ResultCode = cr.ResultCode,
+                Height = cr.Height,
+                SyncHash = cr.SyncHash,
+                NetworkId = cr.NetworkId
+            };
+            return result;
         }
 
         public override Task<GetBlockReply> GetBlockByIndex(GetBlockByIndexRequest request, ServerCallContext context)
@@ -575,6 +614,106 @@ namespace Lyra.Node2.Services
 
             _serviceAccount.StartSingleNodeTestnet(null);
 
+        }
+
+
+
+
+
+        public Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> Trade(TradeBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
+        {
+            throw new NotImplementedException();
         }
     }
 }

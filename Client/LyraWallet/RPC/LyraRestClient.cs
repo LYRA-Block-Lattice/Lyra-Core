@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Lyra.Client.Lib;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using System;
@@ -10,6 +11,17 @@ namespace LyraWallet.RPC
 {
     public class LyraRestClient : INodeAPI
     {
+        private string _url;
+        public LyraRestClient(string url)
+        {
+            _url = url;
+        }
+
+        public static LyraRestClient Create(string networkId)
+        {
+            var url = LyraRpcClient.SelectNode(networkId).Item2;
+            return new LyraRestClient(url);
+        }
         Task<AuthorizationAPIResult> INodeAPI.CancelTradeOrder(CancelTradeOrderBlock block)
         {
             throw new NotImplementedException();
