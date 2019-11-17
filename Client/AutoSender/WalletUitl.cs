@@ -51,7 +51,7 @@ namespace AutoSender
             //}
 
             var result = await wallet.Send(amount, targetAccount, tokenName);
-            if (result != APIResultCodes.Success)
+            if (result.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception(result.ToString());
             }

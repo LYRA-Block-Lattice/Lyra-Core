@@ -10,9 +10,9 @@ using Lyra.Core.Blocks.Service;
 
 using Lyra.Core.Cryptography;
 using Lyra.Core.API;
-using System.Linq;
-using Lyra.Core.Protos;
+
 using Newtonsoft.Json;
+using Lyra.Core.Protos;
 
 namespace Lyra.Client.Lib
 {
@@ -22,7 +22,7 @@ namespace Lyra.Client.Lib
         // 1) move rpcclient to CLI
         // 2) create interface and reference rpcclient by interface here, use the same interface in server and REST API client (Shopify app)  
         //private RPCClient _rpcClient = null;
-        private LyraRpcClient _rpcClient = null;
+        private INodeAPI _rpcClient = null;
 
         private int SyncHeight = -1;
         private string SyncHash = string.Empty;
@@ -55,7 +55,7 @@ namespace Lyra.Client.Lib
         { }
 
         // one-time "manual" sync up with the node 
-        public async Task<APIResultCodes> Sync(LyraRpcClient RPCClient)
+        public async Task<APIResultCodes> Sync(INodeAPI RPCClient)
         {
             if (RPCClient != null)
                 _rpcClient = RPCClient;
@@ -88,15 +88,9 @@ namespace Lyra.Client.Lib
             if (_rpcClient == null)
                 return new List<string>();
 
-            var request = new GetTokenNamesRequest()
-            {
-                AccountId = AccountId,
-                Signature = SignAPICall(),
-                Keyword = keyword
-            };
-            var result = await _rpcClient.GetTokenNamesAsync(request);
+            var result = await _rpcClient.GetTokenNames(AccountId, SignAPICall(), keyword);
             if (result.ResultCode == APIResultCodes.Success)
-                return result.TokenNames.ToList();
+                return result.TokenNames;
             else
                 throw new Exception("Error get Token names: " + result.ResultCode.ToString());
         }
@@ -105,8 +99,7 @@ namespace Lyra.Client.Lib
         {
             try
             {
-                var request = new SyncHeightRequest();
-                var result = await _rpcClient.GetSyncHeightAsync(request);
+                var result = await _rpcClient.GetSyncHeight();
                 if (result.ResultCode != APIResultCodes.Success)
                     return result.ResultCode;
 
@@ -118,17 +111,11 @@ namespace Lyra.Client.Lib
 
                 if (TransferFee == 0 || TokenGenerationFee == 0 || TradeFee == 0)
                 {
-                    var reqGetLSB = new GetLastServiceBlockRequest()
-                    {
-                        AccountId = AccountId,
-                        Signature = SignAPICall()
-                    };
-
-                    var blockresult = await _rpcClient.GetLastServiceBlockAsync(reqGetLSB);
+                    var blockresult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICall());
 
                     if (blockresult.ResultCode != APIResultCodes.Success)
                         return blockresult.ResultCode;
-                    ServiceBlock lastServiceBlock = FromJson<ServiceBlock>(blockresult.BlockData);
+                    ServiceBlock lastServiceBlock = blockresult.GetBlock() as ServiceBlock;
                     TransferFee = lastServiceBlock.TransferFee;
                     TokenGenerationFee = lastServiceBlock.TokenGenerationFee;
                     TradeFee = lastServiceBlock.TradeFee;
@@ -151,12 +138,7 @@ namespace Lyra.Client.Lib
         {
             try
             {
-                var request = new GetAccountHeightRequest()
-                {
-                    AccountId = AccountId,
-                    Signature = SignAPICall()
-                };
-                var result = await _rpcClient.GetAccountHeightAsync(request);
+                var result = await _rpcClient.GetAccountHeight(AccountId, SignAPICall());
                 if (result.ResultCode != APIResultCodes.Success)
                     return result.ResultCode;
 
@@ -185,26 +167,20 @@ namespace Lyra.Client.Lib
         {
             try
             {
-                var request = new LookForNewTransferRequest()
-                {
-                    AccountId = AccountId,
-                    Signature = SignAPICall()
-                };
-
-                var lookup_result = await _rpcClient.LookForNewTransferAsync(request);
+                var lookup_result = await _rpcClient.LookForNewTransfer(AccountId, SignAPICall());
                 int max_counter = 0;
 
-                while (lookup_result.ResultCode == APIResultCodes.Success && max_counter < 100) // we don't want to enter an endless loop...
+                while (lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
                 {
                     max_counter++;
 
                     Console.WriteLine($"Received new transaction, sending request for settlement...");
 
                     var receive_result = await ReceiveTransfer(lookup_result);
-                    if (receive_result != APIResultCodes.Success)
-                        return receive_result;
+                    if (!receive_result.Successful())
+                        return receive_result.ResultCode;
 
-                    lookup_result = await _rpcClient.LookForNewTransferAsync(request);
+                    lookup_result = await _rpcClient.LookForNewTransfer(AccountId, SignAPICall());
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -220,22 +196,22 @@ namespace Lyra.Client.Lib
             }
         }
 
-        //public async Task<TradeAPIResult> LookForNewTrade(string BuyTokenCode, string SellTokenCode)
-        //{
-        //    try
-        //    {
-        //        var lookup_result = await _rpcClient.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, SignAPICall());
+        public async Task<TradeAPIResult> LookForNewTrade(string BuyTokenCode, string SellTokenCode)
+        {
+            try
+            {
+                var lookup_result = await _rpcClient.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, SignAPICall());
 
-        //        return lookup_result;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Console.WriteLine("Exception in LookForNewTrade(): " + e.Message);
-        //        return new TradeAPIResult() { ResultCode = APIResultCodes.UnknownError, ResultMessage = e.Message };
-        //    }
-        //}
+                return lookup_result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in LookForNewTrade(): " + e.Message);
+                return new TradeAPIResult() { ResultCode = APIResultCodes.UnknownError, ResultMessage = e.Message };
+            }
+        }
 
- /*       public async Task<AuthorizationAPIResult> RedeemRewards(string reward_token_code, decimal discount_amount)
+        public async Task<AuthorizationAPIResult> RedeemRewards(string reward_token_code, decimal discount_amount)
         {
             var trade_orders = await GetActiveTradeOrders("*", reward_token_code, TradeOrderListTypes.SellOnly);
             if (trade_orders.ResultCode != APIResultCodes.Success)
@@ -417,7 +393,7 @@ namespace Lyra.Client.Lib
 
 
 
-        //}*/
+        //}
 
 
         public async Task<string> GetDisplayBalancesAsync()
@@ -436,16 +412,10 @@ namespace Lyra.Client.Lib
                 }
                 if (lastBlock.NonFungibleToken != null)
                 {
-                    var request = new GetTokenGenesisBlockRequest()
-                    {
-                        AccountId = AccountId,
-                        Signature = SignAPICall(),
-                        TokenTicker = lastBlock.NonFungibleToken.TokenCode
-                    };
-                    var discount_token_genesis = await _rpcClient.GetTokenGenesisBlockAsync(request);
+                    var discount_token_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, lastBlock.NonFungibleToken.TokenCode, SignAPICall());
                     if (discount_token_genesis != null)
                     {
-                        var issuer_account_id = FromJson<TokenGenesisBlock>(discount_token_genesis.BlockData).AccountID;
+                        var issuer_account_id = (discount_token_genesis.GetBlock() as TokenGenesisBlock).AccountID;
                         var decryptor = new ECC_DHA_AES_Encryptor();
                         string decrypted_redemption_code = decryptor.Decrypt(PrivateKey, issuer_account_id, lastBlock.NonFungibleToken.SerialNumber, lastBlock.NonFungibleToken.RedemptionCode);
 
@@ -501,16 +471,10 @@ namespace Lyra.Client.Lib
             var block = _storage.FindBlockByIndex(Index) as TransactionBlock;
             if (block == null)
             {
-                var request = new GetBlockByIndexRequest()
-                {
-                    AccountId = AccountId,
-                    Signature = SignAPICall(),
-                    Index = Index
-                };
-                var result = await _rpcClient.GetBlockByIndexAsync(request);
+                var result = await _rpcClient.GetBlockByIndex(AccountId, Index, SignAPICall());
                 if (result.ResultCode == APIResultCodes.Success)
                 {
-                    block = FromJson<TransactionBlock>(result.BlockData);
+                    block = result.GetBlock() as TransactionBlock;
                     AddBlock(block);
                 }
             }
@@ -522,16 +486,10 @@ namespace Lyra.Client.Lib
             var block = _storage.FindBlockByHash(Hash) as TransactionBlock;
             if (block == null)
             {
-                var request = new GetBlockByHashRequest()
-                {
-                    AccountId = AccountId,
-                    Signature = SignAPICall(),
-                    Hash = Hash
-                };
-                var result = await _rpcClient.GetBlockByHashAsync(request);
+                var result = await _rpcClient.GetBlockByHash(AccountId, Hash, SignAPICall());
                 if (result.ResultCode == APIResultCodes.Success)
                 {
-                    block = FromJson<TransactionBlock>(result.BlockData);
+                    block = result.GetBlock() as TransactionBlock;
                     AddBlock(block);
                 }
             }
@@ -565,13 +523,13 @@ namespace Lyra.Client.Lib
 
         //}
 
-        public async Task<APIResultCodes> Send(decimal Amount, string DestinationAccountId, string ticker = TokenGenesisBlock.LYRA_TICKER_CODE)
+        public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = TokenGenesisBlock.LYRA_TICKER_CODE)
         {
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
             {
                 //throw new ApplicationException("Previous block not found");
-                return APIResultCodes.PreviousBlockNotFound;
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
             }
 
             //int precision = await FindTokenPrecision(ticker);
@@ -592,7 +550,7 @@ namespace Lyra.Client.Lib
             // see if we have enough tokens
             if (previousBlock.Balances[ticker] < balance_change)
             {
-                return APIResultCodes.InsufficientFunds;
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
                 //throw new ApplicationException("Insufficient funds");
             }
 
@@ -601,7 +559,7 @@ namespace Lyra.Client.Lib
                 if (!previousBlock.Balances.ContainsKey(TokenGenesisBlock.LYRA_TICKER_CODE) || previousBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] < TransferFee)
                 {
                     //throw new ApplicationException("Insufficient funds to pay transfer fee");
-                    return APIResultCodes.InsufficientFunds;
+                    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
                 }
 
             SendTransferBlock sendBlock = new SendTransferBlock
@@ -632,34 +590,32 @@ namespace Lyra.Client.Lib
 
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
-                return APIResultCodes.SendTransactionValidationFailed;
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
                 //throw new ApplicationException("ValidateTransaction failed");
             }
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
 
-            var request = new SendTransferRequest()
-            {
-                SendBlockJson = Json(sendBlock)
-            };
-            var result = await _rpcClient.SendTransferAsync(request);
+            var result = await _rpcClient.SendTransfer(sendBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
             {
-                sendBlock.Authorizations = FromJson<List<AuthorizationSignature>>(result.AuthorizationsJson);
+                sendBlock.Authorizations = result.Authorizations;
                 sendBlock.ServiceHash = result.ServiceHash;
                 AddBlock(sendBlock);
             }
             else
             {
                 Console.WriteLine($"BlockSignatureValidationFailed");
+                Console.WriteLine("Error Message: ");
+                Console.WriteLine(result.ResultMessage);
                 Console.WriteLine("Local Block: ");
                 Console.WriteLine(sendBlock.Print());
             }
-            return result.ResultCode;
+            return result;
         }
 
- /*       public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(
             TradeOrderTypes orderType, string SellToken, string BuyToken, decimal MaxAmount, decimal MinAmount, decimal Price, bool CoverAnotherTradersFee, bool AnotherTraderWillCoverFee)
         {
             TransactionBlock previousBlock = GetLatestBlock();
@@ -933,7 +889,7 @@ namespace Lyra.Client.Lib
 
             return result;
         }
-        */
+
 
         private async Task<int> FindTokenPrecision(string token)
         {
@@ -943,16 +899,10 @@ namespace Lyra.Client.Lib
             var genesisBlock = _storage.GetTokenInfo(token);
             if (genesisBlock == null)
             {
-                var request = new GetTokenGenesisBlockRequest()
-                {
-                    AccountId = AccountId,
-                    Signature = SignAPICall(),
-                    TokenTicker = token
-                };
-                var result = await _rpcClient.GetTokenGenesisBlockAsync(request);
+                var result = await _rpcClient.GetTokenGenesisBlock(AccountId, token, SignAPICall());
                 if (result.ResultCode == APIResultCodes.Success)
                 {
-                    genesisBlock = FromJson<TokenGenesisBlock>(result.BlockData);// result.GetBlock() as TokenGenesisBlock;
+                    genesisBlock = result.GetBlock() as TokenGenesisBlock;
                     SaveTokenInfoBlock(genesisBlock);
 
                     //Console.WriteLine($"Found Token Genesis Block for {genesisBlock.Ticker}");
@@ -972,7 +922,7 @@ namespace Lyra.Client.Lib
             _storage.SaveTokenInfo(block);
         }
 
-        private async Task<APIResultCodes> OpenStandardAccountWithReceiveBlock(LookForNewTransferReply new_transfer_info)
+        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult new_transfer_info)
         {
             var openReceiveBlock = new OpenWithReceiveTransferBlock
             {
@@ -983,23 +933,21 @@ namespace Lyra.Client.Lib
                 Balances = new Dictionary<string, decimal>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                NonFungibleToken = FromJson<NonFungibleToken>(new_transfer_info.NonFungibleTokenJson)
+                NonFungibleToken = new_transfer_info.NonFungibleToken
             };
-            var tinfox = FromJson<TransactionInfoEx>(new_transfer_info.TransferJson);
-            openReceiveBlock.Balances.Add(tinfox.TokenCode, tinfox.Amount);
+
+            openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount);
             openReceiveBlock.InitializeBlock(null, PrivateKey, NetworkId);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 
-            var request = new ReceiveTransferAndOpenAccountRequest()
-            {
-                OpenReceiveBlockJson = Json(openReceiveBlock)
-            };
-            var result = await _rpcClient.ReceiveTransferAndOpenAccountAsync(request);
+            var result = await _rpcClient.ReceiveTransferAndOpenAccount(openReceiveBlock);
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
                 Console.WriteLine($"BlockSignatureValidationFailed");
+                Console.WriteLine("Error Message: ");
+                Console.WriteLine(result.ResultMessage);
                 Console.WriteLine("Local Block: ");
                 Console.WriteLine(openReceiveBlock.Print());
             }
@@ -1007,29 +955,28 @@ namespace Lyra.Client.Lib
             if (result.ResultCode != APIResultCodes.Success)
             {
                 Console.WriteLine($"ReceiveTransferAndOpenAccount: Failed to authorize receive transfer block with error code: {result.ResultCode}");
+                Console.WriteLine("Error Message: " + result.ResultMessage);
             }
             else
             {
                 Console.WriteLine($"Receive transfer block has been authorized successfully");
                 // request the authorized block and save it locally 
-                openReceiveBlock.Authorizations = FromJson<List<AuthorizationSignature>>(result.AuthorizationsJson);
+                openReceiveBlock.Authorizations = result.Authorizations;
                 openReceiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openReceiveBlock);
-                Console.WriteLine("Balance: " + GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             Console.Write(string.Format("{0}> ", AccountName));
-            return result.ResultCode;
+            return result;
         }
 
-        private async Task<APIResultCodes> ReceiveTransfer(LookForNewTransferReply new_transfer_info)
+        private async Task<AuthorizationAPIResult> ReceiveTransfer(NewTransferAPIResult new_transfer_info)
         {
-            var tinfox = FromJson<TransactionInfoEx>(new_transfer_info.TransferJson);
-            await FindTokenPrecision(tinfox.TokenCode);
+
+            await FindTokenPrecision(new_transfer_info.Transfer.TokenCode);
 
             if (GetLocalAccountHeight() == 0) // if this is new account with no blocks
-            {
                 return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
-            }                
 
             var receiveBlock = new ReceiveTransferBlock
             {
@@ -1039,16 +986,17 @@ namespace Lyra.Client.Lib
                 Balances = new Dictionary<string, decimal>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                NonFungibleToken = FromJson<NonFungibleToken>(new_transfer_info.NonFungibleTokenJson)
+                NonFungibleToken = new_transfer_info.NonFungibleToken
             };
 
             TransactionBlock latestBlock = GetLatestBlock();
-            var newBalance = tinfox.Amount;
-            // if the recipient's account has this token already, add the transaction amount to the existing balance
-            if (latestBlock.Balances.ContainsKey(tinfox.TokenCode))
-                newBalance += latestBlock.Balances[tinfox.TokenCode];
 
-            receiveBlock.Balances.Add(tinfox.TokenCode, newBalance);
+            var newBalance = new_transfer_info.Transfer.Amount;
+            // if the recipient's account has this token already, add the transaction amount to the existing balance
+            if (latestBlock.Balances.ContainsKey(new_transfer_info.Transfer.TokenCode))
+                newBalance += latestBlock.Balances[new_transfer_info.Transfer.TokenCode];
+
+            receiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, newBalance);
 
             // transfer unchanged token balances from the previous block
             foreach (var balance in latestBlock.Balances)
@@ -1061,15 +1009,14 @@ namespace Lyra.Client.Lib
                 throw new ApplicationException("ValidateTransaction failed");
 
             //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
-            var reqRecTrans = new ReceiveTransferRequest()
-            {
-                ReceiveBlockJson = Json(receiveBlock)
-            };
-            var result = await _rpcClient.ReceiveTransferAsync(reqRecTrans);
+
+            var result = await _rpcClient.ReceiveTransfer(receiveBlock);
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
                 Console.WriteLine($"BlockSignatureValidationFailed");
+                Console.WriteLine("Error Message: ");
+                Console.WriteLine(result.ResultMessage);
                 Console.WriteLine("Local Block: ");
                 Console.WriteLine(receiveBlock.Print());
             }
@@ -1077,19 +1024,21 @@ namespace Lyra.Client.Lib
             if (result.ResultCode != APIResultCodes.Success)
             {
                 Console.WriteLine($"Failed to authorize receive transfer block with error code: {result.ResultCode}");
+                Console.WriteLine("Error Message: " + result.ResultMessage);
+
             }
             else
             {
                 Console.WriteLine($"Receive transfer block has been authorized successfully");
                 //// request the authorized block and save it locally 
                 //GetBlock(receiveBlock.Index);
-                receiveBlock.Authorizations = FromJson<List<AuthorizationSignature>>(result.AuthorizationsJson);
+                receiveBlock.Authorizations = result.Authorizations;
                 receiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(receiveBlock);
-                Console.WriteLine("Balance: " + GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             Console.Write(string.Format("{0}> ", AccountName));
-            return result.ResultCode;
+            return result;
         }
 
         //long IntPow(long x, uint pow)
@@ -1128,7 +1077,7 @@ namespace Lyra.Client.Lib
                 Icon = "https://i.imgur.com/L3h0J1K.png",
                 Image = "https://i.imgur.com/B8l4ZG5.png",
                 RenewalDate = DateTime.MaxValue,
-        };
+            };
             // TO DO - set service hash
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 1800000000 };
             //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
@@ -1139,15 +1088,15 @@ namespace Lyra.Client.Lib
 
             //openTokenGenesisBlock.Signature = Signatures.GetSignature(PrivateKey, openTokenGenesisBlock.Hash);
 
-            var genReq = new OpenAccountWithGenesisRequest()
-            {
-                OpenTokenGenesisBlockJson = Json(openTokenGenesisBlock)
-            };
-            var result = await _rpcClient.OpenAccountWithGenesisAsync(genReq);
+
+
+            var result = await _rpcClient.OpenAccountWithGenesis(openTokenGenesisBlock);
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
                 Console.WriteLine($"BlockSignatureValidationFailed");
+                Console.WriteLine("Error Message: ");
+                Console.WriteLine(result.ResultMessage);
                 Console.WriteLine("Local Block: ");
                 Console.WriteLine(openTokenGenesisBlock.Print());
             }
@@ -1155,17 +1104,19 @@ namespace Lyra.Client.Lib
             if (result.ResultCode != APIResultCodes.Success)
             {
                 Console.WriteLine($"Failed to add genesis block with error code: {result.ResultCode}");
+                Console.WriteLine("Error Message: " + result.ResultMessage);
                 Console.WriteLine(openTokenGenesisBlock.Print());
+
             }
             else
             {
                 Console.WriteLine($"Genesis block has been authorized successfully");
                 // request the authorized block and save it locally 
                 //GetBlock(1);
-                openTokenGenesisBlock.Authorizations = FromJson<List<AuthorizationSignature>>(result.AuthorizationsJson);
+                openTokenGenesisBlock.Authorizations = result.Authorizations;
                 openTokenGenesisBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openTokenGenesisBlock);
-                Console.WriteLine("Balance: " + GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", AccountName));
             return result.ResultCode;
@@ -1173,7 +1124,7 @@ namespace Lyra.Client.Lib
 
 
 
-        public async Task<APIResultCodes> CreateToken(
+        public async Task<AuthorizationAPIResult> CreateToken(
             string tokenName,
             string domainName,
             string description,
@@ -1195,7 +1146,7 @@ namespace Lyra.Client.Lib
             if (latestBlock == null || latestBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] < TokenGenerationFee)
             {
                 //throw new ApplicationException("Insufficent funds");
-                return APIResultCodes.InsufficientFunds;
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
             }
 
             // initiate test coins
@@ -1237,26 +1188,24 @@ namespace Lyra.Client.Lib
 
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
 
-            var request = new CreateTokenRequest()
-            {
-                CreateTokenJson = Json(tokenBlock)
-            };
-            var result = await _rpcClient.CreateTokenAsync(request);
+            var result = await _rpcClient.CreateToken(tokenBlock);
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
                 Console.WriteLine($"BlockSignatureValidationFailed");
+                Console.WriteLine("Error Message: ");
+                Console.WriteLine(result.ResultMessage);
                 Console.WriteLine("Local Block: ");
                 Console.WriteLine(tokenBlock.Print());
             }
             else
             if (result.ResultCode == APIResultCodes.Success)
             {
-                tokenBlock.Authorizations = FromJson<List<AuthorizationSignature>>(result.AuthorizationsJson);
+                tokenBlock.Authorizations = result.Authorizations;
                 tokenBlock.ServiceHash = result.ServiceHash;
                 AddBlock(tokenBlock);
             }
-            return result.ResultCode;
+            return result;
         }
 
         public string PrintLastBlock()
@@ -1332,16 +1281,6 @@ namespace Lyra.Client.Lib
             base.Dispose();
             //if (_rpcClient != null)
             //_rpcClient.Dispose();
-        }
-
-        // util 
-        private T FromJson<T>(string json)
-        {
-            return JsonConvert.DeserializeObject<T>(json);
-        }
-        private string Json(object o)
-        {
-            return JsonConvert.SerializeObject(o);
         }
     }
 

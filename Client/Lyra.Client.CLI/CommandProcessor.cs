@@ -291,9 +291,9 @@ namespace Lyra.Client.CLI
 
             APIResultCodes send_result;
             if (string.IsNullOrEmpty(ticker))
-                send_result = _wallet.Send(amount, destination).Result;
+                send_result = (await _wallet.Send(amount, destination)).ResultCode;
             else
-                send_result = _wallet.Send(amount, destination, ticker).Result;
+                send_result = (await _wallet.Send(amount, destination, ticker)).ResultCode;
 
             if (send_result != APIResultCodes.Success)
             {
@@ -360,7 +360,7 @@ namespace Lyra.Client.CLI
 
             var result = _wallet.CreateToken(tokenname, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, Core.Blocks.Transactions.ContractTypes.Custom, tags).Result;
 
-            if (result != APIResultCodes.Success)
+            if (result.ResultCode != APIResultCodes.Success)
             {
                 Console.WriteLine("Token generation failed with code: " + result.ToString());
             }

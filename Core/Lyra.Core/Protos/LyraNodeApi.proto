@@ -75,7 +75,8 @@ message GetBlockByIndexRequest
 message GetBlockReply
 {
 	APIResultCodes ResultCode = 1;
-	string BlockData = 2;	
+	BlockTypes ResultBlockType = 2;
+	string BlockData = 3;	
 }
 
 // GetBlockByHash

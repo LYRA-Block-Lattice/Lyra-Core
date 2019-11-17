@@ -107,12 +107,7 @@ namespace LyraWallet.Models
         }
         public async Task RefreshBalance(string webApiUrl = null)
         {
-            var node_address = SelectNode(wallet.NetworkId);
-            if (webApiUrl != null)
-                node_address = webApiUrl;
-
-            var channel = GrpcChannel.ForAddress("https://localhost:5001");
-            var rpcClient = new LyraRpcClient(channel);
+            var rpcClient = LyraRpcClient.Create(CurrentNetwork);
 
             var result = await wallet.Sync(rpcClient);
             if (result == APIResultCodes.Success)
@@ -136,7 +131,7 @@ namespace LyraWallet.Models
             }
 
             var result = await wallet.Send(amount, targetAccount, tokenName);
-            if (result != APIResultCodes.Success)
+            if (result.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception(result.ToString());
             }
@@ -147,7 +142,7 @@ namespace LyraWallet.Models
         {
             var result = await wallet.CreateToken(tokenName, tokenDomain ?? "", description ?? "", Convert.ToSByte(precision), totalSupply,
                 true, ownerName ?? "", ownerAddress ?? "", null, Lyra.Core.Blocks.Transactions.ContractTypes.Default, null);
-            if (result != APIResultCodes.Success)
+            if (result.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception(result.ToString());
             }
@@ -202,23 +197,6 @@ namespace LyraWallet.Models
             });
         }
 
-        string SelectNode(string network_id)
-        {
-            switch (network_id)
-            {
-#if DEBUG
-                case "lexdev":
-                    return "http://lex.lyratokens.com:5492/api/";
-#endif
-                case "lexnet":
-                    return "http://lex.lyratokens.com:5392/api/";
-                case "testnet":
-                    return "http://testnet.lyratokens.com/api/";
-                case "mainnet":
-                    return "http://mainnet.lyratokens.com/api/";
-                default:
-                    throw new Exception("Unsupported network ID");
-            }
-        }
+
     }
 }

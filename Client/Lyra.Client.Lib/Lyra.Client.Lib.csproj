@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Compile Remove="Client.cs" />
+    <Compile Remove="Wallet - Copy.cs" />
   </ItemGroup>
 
   <ItemGroup>
