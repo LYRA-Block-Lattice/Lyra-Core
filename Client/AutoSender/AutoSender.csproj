@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Mobile\LyraLexWeb\Models\FreeLeXRequest.cs" Link="FreeLeXRequest.cs" />
+    <Compile Include="..\..\Retired\LyraLexWeb\Models\FreeLeXRequest.cs" Link="FreeLeXRequest.cs" />
   </ItemGroup>
 
   <ItemGroup>
