@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Client.Lib
+namespace Lyra.Core.API
 {
     public class LyraRpcClient : LyraApi.LyraApiClient, INodeAPI
     {
@@ -35,13 +35,14 @@ namespace Lyra.Client.Lib
             return rpcClient;
         }
 
+        // get api for (rpcurl, resturl)
         public static (string, string) SelectNode(string networkID)
         {
             switch (networkID)
             {
 #if DEBUG
                 case "lexdev":
-                    return ("https://34.80.72.244:5492/", "http://34.80.72.244/lyrarpc/");
+                    return ("https://34.80.72.244:5492/", "https://34.80.72.244:5492/api/LyraNode/");
 #endif
                 case "lexnet":
                     return ("https://34.80.72.244:5392/", "http://34.80.72.244/lyrarpc/");

@@ -4,7 +4,6 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.LiteDB;
 using Lyra.Core.Protos;
-using LyraWallet.RPC;
 using LyraWallet.Services;
 using LyraWallet.ViewModels;
 using System;

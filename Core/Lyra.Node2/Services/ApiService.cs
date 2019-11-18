@@ -144,18 +144,19 @@ namespace Lyra.Node2.Services
             return result;
         }
 
-        public override Task<GetBlockReply> GetBlockByIndex(GetBlockByIndexRequest request, ServerCallContext context)
+        public Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
         {
-            var result = new GetBlockReply();
+            var result = new BlockAPIResult();
 
             try
             {
-                if (_accountCollection.AccountExists(request.AccountId))
+                if (_accountCollection.AccountExists(AccountId))
                 {
-                    var block = _accountCollection.FindBlockByIndex(request.AccountId, request.Index);
+                    var block = _accountCollection.FindBlockByIndex(AccountId, Index);
                     if (block != null)
                     {
                         result.BlockData = Json(block);
+                        result.ResultBlockType = block.BlockType;
                         result.ResultCode = APIResultCodes.Success;
                     }
                     else
@@ -173,19 +174,33 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<GetBlockReply> GetBlockByHash(GetBlockByHashRequest request, ServerCallContext context)
+        public override async Task<GetBlockReply> GetBlockByIndex(GetBlockByIndexRequest request, ServerCallContext context)
         {
-            var result = new GetBlockReply();
+            var cr = await GetBlockByIndex(request.AccountId, request.Index, request.Signature);
+            var result = new GetBlockReply()
+            {
+                ResultCode = cr.ResultCode,
+                BlockData = cr.BlockData,
+                ResultBlockType = cr.ResultBlockType
+            };
+                        
+            return result;
+        }
+
+        public Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        {
+            var result = new BlockAPIResult();
 
             try
             {
-                if (!_accountCollection.AccountExists(request.AccountId))
+                if (!_accountCollection.AccountExists(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = _accountCollection.FindBlockByHash(request.AccountId, request.Hash);
+                var block = _accountCollection.FindBlockByHash(AccountId, Hash);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else
@@ -200,16 +215,29 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<GetNonFungibleTokensReply> GetNonFungibleTokens(GetNonFungibleTokensRequest request, ServerCallContext context)
+        public override async Task<GetBlockReply> GetBlockByHash(GetBlockByHashRequest request, ServerCallContext context)
         {
-            var result = new GetNonFungibleTokensReply();
+            var cr = await GetBlockByHash(request.AccountId, request.Hash, request.Signature);
+            var result = new GetBlockReply()
+            {
+                ResultCode = cr.ResultCode,
+                BlockData = cr.BlockData,
+                ResultBlockType = cr.ResultBlockType
+            };
+
+            return result;
+        }
+
+        public Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
+        {
+            var result = new NonFungibleListAPIResult();
 
             try
             {
-                if (!_accountCollection.AccountExists(request.AccountId))
+                if (!_accountCollection.AccountExists(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var list = _accountCollection.GetNonFungibleTokens(request.AccountId);
+                var list = _accountCollection.GetNonFungibleTokens(AccountId);
                 if (list != null)
                 {
                     result.ListDataSerialized = Json(list);
@@ -227,19 +255,31 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<GetBlockReply> GetTokenGenesisBlock(GetTokenGenesisBlockRequest request, ServerCallContext context)
+        public override async Task<GetNonFungibleTokensReply> GetNonFungibleTokens(GetNonFungibleTokensRequest request, ServerCallContext context)
         {
-            var result = new GetBlockReply();
+            var cr = await GetNonFungibleTokens(request.AccountId, request.Signature);
+            var result = new GetNonFungibleTokensReply()
+            {
+                ResultCode = cr.ResultCode,
+                ListDataSerialized = cr.ListDataSerialized
+            };
+            return result;
+        }
+
+        public Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
+        {
+            var result = new BlockAPIResult();
 
             try
             {
                 //if (!_accountCollection.AccountExists(AccountId))
                 //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = _accountCollection.FindTokenGenesisBlock(null, request.TokenTicker);
+                var block = _accountCollection.FindTokenGenesisBlock(null, TokenTicker);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else
@@ -254,19 +294,32 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<GetBlockReply> GetLastServiceBlock(GetLastServiceBlockRequest request, ServerCallContext context)
+        public override async Task<GetBlockReply> GetTokenGenesisBlock(GetTokenGenesisBlockRequest request, ServerCallContext context)
         {
-            var result = new GetBlockReply();
+            var cr = await GetTokenGenesisBlock(request.AccountId, request.TokenTicker, request.Signature);
+            var result = new GetBlockReply()
+            {
+                ResultCode = cr.ResultCode,
+                BlockData = cr.BlockData,
+                ResultBlockType = cr.ResultBlockType
+            };
+            return result;
+        }
+
+        public Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
+        {
+            var result = new BlockAPIResult();
 
             try
             {
-                if (!_accountCollection.AccountExists(request.AccountId))
+                if (!_accountCollection.AccountExists(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
                 var block = _serviceAccount.GetLastServiceBlock();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else
@@ -281,12 +334,24 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<LookForNewTransferReply> LookForNewTransfer(LookForNewTransferRequest request, ServerCallContext context)
+        public override async Task<GetBlockReply> GetLastServiceBlock(GetLastServiceBlockRequest request, ServerCallContext context)
         {
-            LookForNewTransferReply transfer_info = new LookForNewTransferReply();
+            var cr = await GetLastServiceBlock(request.AccountId, request.Signature);
+            var result = new GetBlockReply()
+            {
+                ResultCode = cr.ResultCode,
+                BlockData = cr.BlockData,
+                ResultBlockType = cr.ResultBlockType
+            };
+            return result;
+        }
+
+        public Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
+        {
+            NewTransferAPIResult transfer_info = new NewTransferAPIResult();
             try
             {
-                SendTransferBlock sendBlock = _accountCollection.FindUnsettledSendBlock(request.AccountId);
+                SendTransferBlock sendBlock = _accountCollection.FindUnsettledSendBlock(AccountId);
 
                 if (sendBlock != null)
                 {
@@ -295,9 +360,9 @@ namespace Lyra.Node2.Services
                         transfer_info.ResultCode = APIResultCodes.CouldNotTraceSendBlockChain;
                     else
                     {
-                        transfer_info.TransferJson = Json(sendBlock.GetTransaction(previousBlock)); //CalculateTransaction(sendBlock, previousSendBlock);
+                        transfer_info.Transfer = sendBlock.GetTransaction(previousBlock); //CalculateTransaction(sendBlock, previousSendBlock);
                         transfer_info.SourceHash = sendBlock.Hash;
-                        transfer_info.NonFungibleTokenJson = Json(sendBlock.NonFungibleToken);
+                        transfer_info.NonFungibleToken = sendBlock.NonFungibleToken;
                         transfer_info.ResultCode = APIResultCodes.Success;
                     }
                 }
@@ -311,23 +376,39 @@ namespace Lyra.Node2.Services
             return Task.FromResult(transfer_info);
         }
 
-        public override Task<AuthorizationsReply> OpenAccountWithGenesis(OpenAccountWithGenesisRequest request, ServerCallContext context)
+        public override async Task<LookForNewTransferReply> LookForNewTransfer(LookForNewTransferRequest request, ServerCallContext context)
+        {
+            var cr = await LookForNewTransfer(request.AccountId, request.Signature);
+            LookForNewTransferReply transfer_info = new LookForNewTransferReply()
+            {
+                ResultCode = cr.ResultCode
+            };
+            if(cr.ResultCode != APIResultCodes.NoNewTransferFound)
+            {
+                transfer_info.NonFungibleTokenJson = Json(cr.NonFungibleToken);
+                transfer_info.SourceHash = cr.SourceHash;
+                transfer_info.TransferJson = Json(cr.Transfer);
+            }
+            return transfer_info;
+        }
+
+        public Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
             // Send to the authorizations sample - TO DO
             // For now, implementation for single-node testnet only
             // ***
             // to do - sign by authorizer and send to the outgoing queue
-            var result = new AuthorizationsReply();
+            var result = new AuthorizationAPIResult();
 
             try
             {
                 var authorizer = new GenesisAuthorizer(_serviceAccount, _accountCollection);
 
-                var openBlock = FromJson<LyraTokenGenesisBlock>(request.OpenTokenGenesisBlockJson);
+                var openBlock = block;
                 result.ResultCode = authorizer.Authorize(ref openBlock);
                 if (result.ResultCode == APIResultCodes.Success)
                 {
-                    result.AuthorizationsJson = Json(openBlock.Authorizations);
+                    result.Authorizations = openBlock.Authorizations;
                     result.ServiceHash = openBlock.ServiceHash;
                 }
                 else
@@ -344,23 +425,35 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<AuthorizationsReply> ReceiveTransferAndOpenAccount(ReceiveTransferAndOpenAccountRequest request, ServerCallContext context)
+        public override async Task<AuthorizationsReply> OpenAccountWithGenesis(OpenAccountWithGenesisRequest request, ServerCallContext context)
+        {
+            var openBlock = FromJson<LyraTokenGenesisBlock>(request.OpenTokenGenesisBlockJson);
+            var cr = await OpenAccountWithGenesis(openBlock);
+            var result = new AuthorizationsReply()
+            {
+                ResultCode = cr.ResultCode,
+                ServiceHash = cr.ServiceHash,
+                AuthorizationsJson = Json(cr.Authorizations)
+            };
+            return result;
+        }
+
+        public Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
         {
             // Send to the authorizations sample - TO DO
             // For now, implementation for single-node testnet only
             // ***
             // to do - sign by authorizer and send to the outgoing queue
-            var result = new AuthorizationsReply();
+            var result = new AuthorizationAPIResult();
 
             try
             {
                 var authorizer = new NewAccountAuthorizer(_serviceAccount, _accountCollection);
-                var openReceiveBlock = FromJson<OpenWithReceiveTransferBlock>(request.OpenReceiveBlockJson);
                 result.ResultCode = authorizer.Authorize(ref openReceiveBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                     return Task.FromResult(result);
 
-                result.AuthorizationsJson = Json(openReceiveBlock.Authorizations);
+                result.Authorizations = openReceiveBlock.Authorizations;
                 result.ServiceHash = openReceiveBlock.ServiceHash;
                 result.ResultCode = APIResultCodes.Success;
             }
@@ -372,19 +465,31 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<AuthorizationsReply> OpenAccountWithImport(OpenAccountWithImportRequest request, ServerCallContext context)
+        public override async Task<AuthorizationsReply> ReceiveTransferAndOpenAccount(ReceiveTransferAndOpenAccountRequest request, ServerCallContext context)
         {
-            var result = new AuthorizationsReply();
+            var openReceiveBlock = FromJson<OpenWithReceiveTransferBlock>(request.OpenReceiveBlockJson);
+            var cr = await ReceiveTransferAndOpenAccount(openReceiveBlock);
+            var result = new AuthorizationsReply()
+            {
+                ResultCode = cr.ResultCode,
+                ServiceHash = cr.ServiceHash,
+                AuthorizationsJson = Json(cr.Authorizations)
+            };
+            return result;
+        }
+
+        public Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
+        {
+            var result = new AuthorizationAPIResult();
 
             try
             {
                 var authorizer = new NewAccountWithImportAuthorizer(_serviceAccount, _accountCollection);
-                var block = FromJson<OpenAccountWithImportBlock>(request.BlockJson);
                 result.ResultCode = authorizer.Authorize(ref block);
                 if (result.ResultCode != APIResultCodes.Success)
                     return Task.FromResult(result);
 
-                result.AuthorizationsJson = Json(block.Authorizations);
+                result.Authorizations = block.Authorizations;
                 result.ServiceHash = block.ServiceHash;
                 result.ResultCode = APIResultCodes.Success;
             }
@@ -396,33 +501,46 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<AuthorizationsReply> SendTransfer(SendTransferRequest request, ServerCallContext context)
+        public override async Task<AuthorizationsReply> OpenAccountWithImport(OpenAccountWithImportRequest request, ServerCallContext context)
+        {
+            var block = FromJson<OpenAccountWithImportBlock>(request.BlockJson);
+            var cr = await OpenAccountWithImport(block);
+            var result = new AuthorizationsReply()
+            {
+                ResultCode = cr.ResultCode,
+                ServiceHash = cr.ServiceHash,
+                AuthorizationsJson = Json(cr.Authorizations)
+            };
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
             // Send to the authorizations sample - TO DO
             // For now, implementation for single-node testnet only
             // ***
             // to do - sign by authorizer and send to the outgoing queue
 
-            var result = new AuthorizationsReply();
+            var result = new AuthorizationAPIResult();
 
             try
             {
                 var authorizer = new SendTransferAuthorizer(_serviceAccount, _accountCollection);
-                var sendBlock = FromJson<SendTransferBlock>(request.SendBlockJson);
+
                 result.ResultCode = authorizer.Authorize(ref sendBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                 {
                     Console.WriteLine("Authorization failed" + result.ResultCode.ToString());
                     //Console.WriteLine(JsonConvert.SerializeObject(sendBlock));
                     //Console.WriteLine(sendBlock.CalculateHash());
-                    return await Task.FromResult(result);
+                    return result;
                 }
 
                 var r = await ProcessTransferFee(sendBlock);
                 if (r != APIResultCodes.Success)
                     Console.WriteLine("Error in SendTransfer->ProcessTransferFee: " + r.ToString());
 
-                result.AuthorizationsJson = Json(sendBlock.Authorizations);
+                result.Authorizations = sendBlock.Authorizations;
                 result.ServiceHash = sendBlock.ServiceHash;
                 result.ResultCode = APIResultCodes.Success;
             }
@@ -432,21 +550,35 @@ namespace Lyra.Node2.Services
                 result.ResultCode = APIResultCodes.ExceptionInSendTransfer;
             }
             return await Task.FromResult(result);
+
         }
 
-        public override Task<AuthorizationsReply> ReceiveTransfer(ReceiveTransferRequest request, ServerCallContext context)
+        public override async Task<AuthorizationsReply> SendTransfer(SendTransferRequest request, ServerCallContext context)
+        {
+            var sendBlock = FromJson<SendTransferBlock>(request.SendBlockJson);
+            var cr = await SendTransfer(sendBlock);
+            var result = new AuthorizationsReply()
+            {
+                ResultCode = cr.ResultCode,
+                ServiceHash = cr.ServiceHash,
+                AuthorizationsJson = Json(cr.Authorizations)
+            };
+            return result;
+        }
+
+        public Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
             // Send to the authorizations sample - TO DO
             // For now, implementation for single-node testnet only
             // ***
             // to do - sign by authorizer and send to the outgoing queue
 
-            var result = new AuthorizationsReply();
+            var result = new AuthorizationAPIResult();
 
             try
             {
                 var authorizer = new ReceiveTransferAuthorizer(_serviceAccount, _accountCollection);
-                var receiveBlock = FromJson<ReceiveTransferBlock>(request.ReceiveBlockJson);
+                
                 result.ResultCode = authorizer.Authorize(ref receiveBlock);
 
                 if (result.ResultCode != APIResultCodes.Success)
@@ -454,7 +586,7 @@ namespace Lyra.Node2.Services
                     return Task.FromResult(result);
                 }
 
-                result.AuthorizationsJson = Json(receiveBlock.Authorizations);
+                result.Authorizations = receiveBlock.Authorizations;
                 result.ServiceHash = receiveBlock.ServiceHash;
                 result.ResultCode = APIResultCodes.Success;
 
@@ -467,20 +599,33 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override Task<AuthorizationsReply> ImportAccount(ImportAccountRequest request, ServerCallContext context)
+        public override async Task<AuthorizationsReply> ReceiveTransfer(ReceiveTransferRequest request, ServerCallContext context)
+        {
+            var receiveBlock = FromJson<ReceiveTransferBlock>(request.ReceiveBlockJson);
+            var cr = await ReceiveTransfer(receiveBlock);
+            var result = new AuthorizationsReply()
+            {
+                ResultCode = cr.ResultCode,
+                ServiceHash = cr.ServiceHash,
+                AuthorizationsJson = Json(cr.Authorizations)
+            };
+            return result;
+        }
+
+        public Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
             // Send to the authorizations sample - TO DO
             // For now, implementation for single-node testnet only
             // ***
             // to do - sign by authorizer and send to the outgoing queue
 
-            var result = new AuthorizationsReply();
+            var result = new AuthorizationAPIResult();
 
             try
             {
 
                 var authorizer = new ImportAccountAuthorizer(_serviceAccount, _accountCollection);
-                var block = FromJson<ImportAccountBlock>(request.ImportBlockJson);
+                
                 result.ResultCode = authorizer.Authorize(ref block);
 
                 if (result.ResultCode != APIResultCodes.Success)
@@ -488,7 +633,7 @@ namespace Lyra.Node2.Services
                     return Task.FromResult(result);
                 }
 
-                result.AuthorizationsJson = Json(block.Authorizations);
+                result.Authorizations = block.Authorizations;
                 result.ServiceHash = block.ServiceHash;
                 result.ResultCode = APIResultCodes.Success;
 
@@ -501,9 +646,22 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<AuthorizationsReply> CreateToken(CreateTokenRequest request, ServerCallContext context)
+        public override async Task<AuthorizationsReply> ImportAccount(ImportAccountRequest request, ServerCallContext context)
         {
-            var result = new AuthorizationsReply();
+            var block = FromJson<ImportAccountBlock>(request.ImportBlockJson);
+            var cr = await ImportAccount(block);
+            var result = new AuthorizationsReply()
+            {
+                ResultCode = cr.ResultCode,
+                ServiceHash = cr.ServiceHash,
+                AuthorizationsJson = Json(cr.Authorizations)
+            };
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
+        {
+            var result = new AuthorizationAPIResult();
 
             //// filter the names
             //if (tokenBlock.DomainName.ToLower().StartsWith("lyra")
@@ -516,18 +674,18 @@ namespace Lyra.Node2.Services
             try
             {
                 var authorizer = new NewTokenAuthorizer(_serviceAccount, _accountCollection);
-                var tokenBlock = FromJson<TokenGenesisBlock>(request.CreateTokenJson);
+                
                 result.ResultCode = authorizer.Authorize(ref tokenBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                 {
-                    return await Task.FromResult(result);
+                    return result;
                 }
 
                 var r = await ProcessTokenGenerationFee(tokenBlock);
                 if (r != APIResultCodes.Success)
                     Console.WriteLine("Error in CreateToken->ProcessTokenGenerationFee: " + r.ToString());
 
-                result.AuthorizationsJson = Json(tokenBlock.Authorizations);
+                result.Authorizations = tokenBlock.Authorizations;
                 result.ServiceHash = tokenBlock.ServiceHash;
                 result.ResultCode = APIResultCodes.Success;
             }
@@ -538,6 +696,19 @@ namespace Lyra.Node2.Services
             }
 
             return await Task.FromResult(result);
+        }
+
+        public override async Task<AuthorizationsReply> CreateToken(CreateTokenRequest request, ServerCallContext context)
+        {
+            var tokenBlock = FromJson<TokenGenesisBlock>(request.CreateTokenJson);
+            var cr = await CreateToken(tokenBlock);
+            var result = new AuthorizationsReply()
+            {
+                ResultCode = cr.ResultCode,
+                ServiceHash = cr.ServiceHash,
+                AuthorizationsJson = Json(cr.Authorizations)
+            };
+            return result;
         }
 
         #region Fee processing private methods
@@ -585,7 +756,7 @@ namespace Lyra.Node2.Services
             return callresult;
         }
 
-        #endregion
+#endregion
 
         // util 
         private T FromJson<T>(string json)
@@ -620,81 +791,42 @@ namespace Lyra.Node2.Services
 
 
 
-        public Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
-        {
-            throw new NotImplementedException();
-        }
 
 
-        public Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
-        {
-            throw new NotImplementedException();
-        }
+
+
+
+
+
+
 
         public Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
             throw new NotImplementedException();
         }
 
-        public Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
-        {
-            throw new NotImplementedException();
-        }
+
 
         public Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
             throw new NotImplementedException();
         }
 
-        public Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
-        {
-            throw new NotImplementedException();
-        }
+
+
+
+
+
+
+
 
         public Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
         {

@@ -126,7 +126,7 @@ namespace LyraWallet.ViewModels
                     key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
             });
 
-            Task.Run(async () => await Connect() );
+            //Task.Run(async () => await Connect() );
 
             _client = new HttpClient
             {
