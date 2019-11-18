@@ -5,6 +5,7 @@ using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Blocks.Fees;
 using Lyra.Core.Blocks.Service;
 using Newtonsoft.Json;
+using Lyra.Core.Protos;
 
 namespace Lyra.Core.API
 {
@@ -189,5 +190,13 @@ namespace Lyra.Core.API
     public class GetTokenNamesAPIResult : APIResult
     {
         public List<string> TokenNames { get; set; }
+    }
+
+    public class GetVersionAPIResult : APIResult
+    {
+        public int ApiVersion { get; set; }
+        public string NodeVersion { get; set; }
+        public bool UpgradeNeeded { get; set; }
+        public bool MustUpgradeToConnect { get; set; }        
     }
 }

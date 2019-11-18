@@ -8,19 +8,10 @@ using Lyra.Client.Lib;
 using Lyra.Core.Blocks;
 using Lyra.Core.Accounts;
 
-//#if INMEMORY
-using Lyra.Client.InMemory;
-//#else
 using Lyra.Core.LiteDB;
-//#endif
-
+using Grpc.Net.Client;
+using System.Net.Http;
 using Lyra.Core.API;
-
-//#if WEB
-using Lyra.Client.WebAPI;
-//#else
-using Lyra.Client.RPC;
-//#endif
 
 namespace Lyra.Client.CLI
 {
@@ -44,15 +35,15 @@ namespace Lyra.Client.CLI
             bool WEB = options.Protocol == Options.WEBAPI_PROTOCOL;
 
             Wallet wallet;
-            if (INMEMORY)
-            {
-                var inmemory_storage = new AccountInMemoryStorage();
-                wallet = new Wallet(inmemory_storage, network_id);
-            }
-            else
-            {
+            //if (INMEMORY)
+            //{
+            //    var inmemory_storage = new AccountInMemoryStorage();
+            //    wallet = new Wallet(inmemory_storage, network_id);
+            //}
+            //else
+            //{
                 wallet = new Wallet(new LiteAccountDatabase(), network_id);
-            }
+            //}
 
             string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + network_id);
             if (!Directory.Exists(lyra_folder))
@@ -129,20 +120,21 @@ namespace Lyra.Client.CLI
                         wallet.OpenAccount(full_path, wallet.AccountName);
                 }
 
-                INodeAPI rpcClient;
-                if (WEB)
-                {
-                    string node_address;
-                    if (!string.IsNullOrWhiteSpace(options.Node))
-                        node_address = options.Node;
-                    else
-                        node_address = SelectNode(network_id);
-                    rpcClient = new WebAPIClient(node_address);
-                }
-                else
-                {
-                    rpcClient = new RPCClient(wallet.AccountId);
-                }
+                var rpcClient = await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
+
+                //if (WEB)
+                //{
+                //    string node_address;
+                //    if (!string.IsNullOrWhiteSpace(options.Node))
+                //        node_address = options.Node;
+                //    else
+                //        node_address = SelectNode(network_id);
+                //    rpcClient = new WebAPIClient(node_address);
+                //}
+                //else
+                //{
+                //    rpcClient = new RPCClient(wallet.AccountId);
+                //}
 
                 //var sync_result = await wallet.Sync(rpcClient);
                 //Console.WriteLine("Sync Result: " + sync_result.ToString());
@@ -165,7 +157,7 @@ namespace Lyra.Client.CLI
                         timer_busy1 = false;
                     }
                 },
-                null, 2000, 10000);
+                null, 2000, 30000);
 
 
                 input = CommandProcessor.COMMAND_STATUS;

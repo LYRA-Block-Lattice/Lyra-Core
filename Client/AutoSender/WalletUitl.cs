@@ -1,7 +1,8 @@
-﻿using Lyra.Client.Lib;
-using Lyra.Client.WebAPI;
+﻿using Grpc.Net.Client;
+using Lyra.Client.Lib;
 using Lyra.Core.API;
 using Lyra.Core.LiteDB;
+using Lyra.Core.Protos;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,10 +25,10 @@ namespace AutoSender
             var PrivateKey = wallet.PrivateKey;
         }
 
-        public async Task<Dictionary<string, Decimal>> RefreshBalance(string webApiUrl)
+        public async Task<Dictionary<string, Decimal>> RefreshBalance(string networkId)
         {
-            var node_address = webApiUrl;
-            var rpcClient = new WebAPIClient(node_address);
+            var rpcClient = await LyraRpcClient.CreateAsync(networkId, "AutoSender", "0.1");
+
             var result = await wallet.Sync(rpcClient);
             if (result == APIResultCodes.Success)
             {
@@ -51,7 +52,7 @@ namespace AutoSender
             var result = await wallet.Send(amount, targetAccount, tokenName);
             if (result.ResultCode != APIResultCodes.Success)
             {
-                throw new Exception(result.ResultCode.ToString());
+                throw new Exception(result.ToString());
             }
         }
     }

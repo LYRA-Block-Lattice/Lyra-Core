@@ -12,6 +12,7 @@ using Lyra.Core.Cryptography;
 using Lyra.Core.API;
 
 using Newtonsoft.Json;
+using Lyra.Core.Protos;
 
 namespace Lyra.Client.Lib
 {
@@ -73,7 +74,7 @@ namespace Lyra.Client.Lib
                 return result;
             }
             else
-                return APIResultCodes.NoRPCServerConnection;
+                return APIResultCodes.NoRpcserverConnection;
 
         }
 
@@ -395,7 +396,7 @@ namespace Lyra.Client.Lib
         //}
 
 
-        public string GetDisplayBalances()
+        public async Task<string> GetDisplayBalancesAsync()
         {
             string res = "0";
             TransactionBlock lastBlock = GetLatestBlock();
@@ -411,7 +412,7 @@ namespace Lyra.Client.Lib
                 }
                 if (lastBlock.NonFungibleToken != null)
                 {
-                    var discount_token_genesis = _rpcClient.GetTokenGenesisBlock(AccountId, lastBlock.NonFungibleToken.TokenCode, SignAPICall()).Result;
+                    var discount_token_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, lastBlock.NonFungibleToken.TokenCode, SignAPICall());
                     if (discount_token_genesis != null)
                     {
                         var issuer_account_id = (discount_token_genesis.GetBlock() as TokenGenesisBlock).AccountID;
@@ -963,7 +964,7 @@ namespace Lyra.Client.Lib
                 openReceiveBlock.Authorizations = result.Authorizations;
                 openReceiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openReceiveBlock);
-                Console.WriteLine("Balance: " + GetDisplayBalances());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             Console.Write(string.Format("{0}> ", AccountName));
             return result;
@@ -1034,7 +1035,7 @@ namespace Lyra.Client.Lib
                 receiveBlock.Authorizations = result.Authorizations;
                 receiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(receiveBlock);
-                Console.WriteLine("Balance: " + GetDisplayBalances());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             Console.Write(string.Format("{0}> ", AccountName));
             return result;
@@ -1053,7 +1054,7 @@ namespace Lyra.Client.Lib
         //    return ret;
         //}
 
-        public APIResultCodes CreateGenesisForCoreToken()
+        public async Task<APIResultCodes> CreateGenesisForCoreTokenAsync()
         {
             // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
@@ -1076,7 +1077,7 @@ namespace Lyra.Client.Lib
                 Icon = "https://i.imgur.com/L3h0J1K.png",
                 Image = "https://i.imgur.com/B8l4ZG5.png",
                 RenewalDate = DateTime.MaxValue,
-        };
+            };
             // TO DO - set service hash
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 1800000000 };
             //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
@@ -1089,7 +1090,7 @@ namespace Lyra.Client.Lib
 
 
 
-            var result = _rpcClient.OpenAccountWithGenesis(openTokenGenesisBlock).Result;
+            var result = await _rpcClient.OpenAccountWithGenesis(openTokenGenesisBlock);
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
@@ -1115,7 +1116,7 @@ namespace Lyra.Client.Lib
                 openTokenGenesisBlock.Authorizations = result.Authorizations;
                 openTokenGenesisBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openTokenGenesisBlock);
-                Console.WriteLine("Balance: " + GetDisplayBalances());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", AccountName));
             return result.ResultCode;

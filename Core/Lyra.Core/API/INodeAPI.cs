@@ -6,8 +6,9 @@ namespace Lyra.Core.API
 {
     public interface INodeAPI
     {
-        #region Blocklist information methods
+        Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion);
 
+        #region Blocklist information methods
         // this one can be cached for a few milliseconds
         Task<AccountHeightAPIResult> GetSyncHeight();
 

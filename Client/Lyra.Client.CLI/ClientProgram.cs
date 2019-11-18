@@ -64,10 +64,10 @@ namespace Lyra.Client.CLI
         [Option('n', "networkid", HelpText = "Network Id", Required = true)]
         public string NetworkId { get; set; }
 
-        [Option('d', "database", HelpText = "Local data storage type", Required = true)]
+        [Option('d', "database", HelpText = "Local data storage type", Required = false)]
         public string Database { get; set; }
 
-        [Option('p', "protocol", HelpText = "Communication protocol with the node", Required = true)]
+        [Option('p', "protocol", HelpText = "Communication protocol with the node", Required = false)]
         public string Protocol { get; set; }
 
         [Option('n', "node", HelpText = "Node API URL", Required = false)]
