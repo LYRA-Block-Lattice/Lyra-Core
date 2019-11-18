@@ -31,33 +31,13 @@ namespace Lyra.Core.API
                 HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
             var httpClient = new HttpClient(httpClientHandler);
 
-            var url = SelectNode(networkId).Item1;
+            var url = LyraGlobal.SelectNode(networkId).rpcUrl;
             var channel = GrpcChannel.ForAddress(url,
                 new GrpcChannelOptions { HttpClient = httpClient });
             var rpcClient = new LyraRpcClient(appName, appVersion, channel);
             if (!await rpcClient.CheckApiVersion())
                 throw new Exception("Unable to use API. Must upgrade your App.");
             return rpcClient;
-        }
-
-        // get api for (rpcurl, resturl)
-        public static (string, string) SelectNode(string networkID)
-        {
-            switch (networkID)
-            {
-#if DEBUG
-                case "lexdev":
-                    return ("https://34.80.72.244:5492/", "https://34.80.72.244:5492/api/LyraNode/");
-#endif
-                case "lexnet":
-                    return ("https://34.80.72.244:5392/", "http://34.80.72.244/lyrarpc/");
-                case "testnet":
-                    return ("https://testnet.lyratokens.com:5392/", "");
-                case "mainnet":
-                    return ("https://mainnet.lyratokens.com:5392/", "");
-                default:
-                    throw new Exception("Unsupported network ID");
-            }
         }
 
         // util 

@@ -108,7 +108,7 @@ namespace LyraWallet.Models
         }
         public async Task RefreshBalance(string webApiUrl = null)
         {
-            var rpcClient = await LyraRestClient.CreateAsync(CurrentNetwork, AppInfo.Name, AppInfo.Version.ToString());
+            var rpcClient = await LyraRestClient.CreateAsync(CurrentNetwork, AppInfo.Name, AppInfo.VersionString);
 
             var result = await wallet.Sync(rpcClient);
             if (result == APIResultCodes.Success)
