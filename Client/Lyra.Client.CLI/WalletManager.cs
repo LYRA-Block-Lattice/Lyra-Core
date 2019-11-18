@@ -120,7 +120,7 @@ namespace Lyra.Client.CLI
                         wallet.OpenAccount(full_path, wallet.AccountName);
                 }
 
-                var rpcClient = LyraRpcClient.Create(network_id);
+                var rpcClient = await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
 
                 //if (WEB)
                 //{

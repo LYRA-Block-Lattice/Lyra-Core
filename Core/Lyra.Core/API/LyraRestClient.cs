@@ -12,11 +12,15 @@ namespace Lyra.Core.API
 {
     public class LyraRestClient : INodeAPI
     {
+        private string _appName;
+        private string _appVersion;
         private string _url;
         private HttpClient _client;
-        public LyraRestClient(string url)
+        public LyraRestClient(string appName, string appVersion, string url)
         {
             _url = url;
+            _appName = appName;
+            _appVersion = appVersion;
 
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
@@ -29,10 +33,14 @@ namespace Lyra.Core.API
                 new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public static LyraRestClient Create(string networkId)
+        public static async Task<LyraRestClient> CreateAsync(string networkId, string appName, string appVersion)
         {
             var url = LyraRpcClient.SelectNode(networkId).Item2;
-            return new LyraRestClient(url);
+            var restClient = new LyraRestClient(appName, appVersion, url);
+            if (!await restClient.CheckApiVersion())
+                throw new Exception("Unable to use API. Must upgrade your App.");
+            else
+                return restClient;
         }
 
         private async Task<AuthorizationAPIResult> PostBlock(string action, Block block)
@@ -43,6 +51,27 @@ namespace Lyra.Core.API
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<AuthorizationAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        private async Task<bool> CheckApiVersion()
+        {
+            var ret = await GetVersion(LyraGlobal.APIVERSION, _appName, _appVersion);
+            if (ret.MustUpgradeToConnect)
+                return false;
+            else
+                return true;
+        }
+
+        public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<GetVersionAPIResult>();
                 return result;
             }
             else

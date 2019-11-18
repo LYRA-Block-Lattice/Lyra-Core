@@ -5,6 +5,7 @@ option csharp_namespace = "Lyra.Core.Protos";
 package Lyra;
 
 service LyraApi {
+  rpc GetVersion (GetVersionRequest) returns (GetVersionReply);
   rpc GetSyncHeight (SyncHeightRequest) returns (AccountHeightReply);
   rpc GetTokenNames (GetTokenNamesRequest) returns (GetTokenNamesReply);
   rpc GetAccountHeight (GetAccountHeightRequest) returns (GetAccountHeightReply);
@@ -21,6 +22,22 @@ service LyraApi {
   rpc ReceiveTransfer (ReceiveTransferRequest) returns (AuthorizationsReply);
   rpc ImportAccount (ImportAccountRequest) returns (AuthorizationsReply);
   rpc CreateToken (CreateTokenRequest) returns (AuthorizationsReply);
+}
+
+message GetVersionRequest
+{
+	int32 ApiVersion = 1;
+	string AppName = 2;
+	string Appversion = 3;
+}
+
+message GetVersionReply
+{
+	APIResultCodes ResultCode = 1;
+	int32 ApiVersion = 2;
+	string NodeVersion = 3;
+	bool UpgradeNeeded = 4;
+	bool MustUpgradeToConnect = 5;
 }
 
 // GetSyncHeight

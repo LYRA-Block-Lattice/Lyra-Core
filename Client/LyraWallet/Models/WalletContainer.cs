@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using Xamarin.Essentials;
 
 namespace LyraWallet.Models
 {
@@ -107,7 +108,7 @@ namespace LyraWallet.Models
         }
         public async Task RefreshBalance(string webApiUrl = null)
         {
-            var rpcClient = LyraRestClient.Create(CurrentNetwork);
+            var rpcClient = await LyraRestClient.CreateAsync(CurrentNetwork, AppInfo.Name, AppInfo.Version.ToString());
 
             var result = await wallet.Sync(rpcClient);
             if (result == APIResultCodes.Success)

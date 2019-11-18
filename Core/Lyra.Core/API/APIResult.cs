@@ -191,4 +191,12 @@ namespace Lyra.Core.API
     {
         public List<string> TokenNames { get; set; }
     }
+
+    public class GetVersionAPIResult : APIResult
+    {
+        public int ApiVersion { get; set; }
+        public string NodeVersion { get; set; }
+        public bool UpgradeNeeded { get; set; }
+        public bool MustUpgradeToConnect { get; set; }        
+    }
 }

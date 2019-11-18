@@ -37,6 +37,33 @@ namespace Lyra.Node2.Services
                 InitializeNode();
         }
 
+        public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
+        {
+            var result = new GetVersionAPIResult()
+            {
+                ResultCode = APIResultCodes.Success,
+                ApiVersion = LyraGlobal.APIVERSION,
+                NodeVersion = LyraGlobal.NodeVersion,
+                UpgradeNeeded = false,
+                MustUpgradeToConnect = apiVersion < LyraGlobal.APIVERSION
+            };
+            return Task.FromResult(result);
+        }
+
+        public override async Task<GetVersionReply> GetVersion(GetVersionRequest request, ServerCallContext context)
+        {
+            var cr = await GetVersion(request.ApiVersion, request.AppName, request.Appversion);
+            var result = new GetVersionReply()
+            {
+                ApiVersion = cr.ApiVersion,
+                NodeVersion = cr.NodeVersion,
+                ResultCode = cr.ResultCode,
+                UpgradeNeeded = cr.UpgradeNeeded,
+                MustUpgradeToConnect = cr.MustUpgradeToConnect
+            };
+            return result;
+        }
+
         public Task<AccountHeightAPIResult> GetSyncHeight()
         {
             var result = new AccountHeightAPIResult();
@@ -847,5 +874,7 @@ namespace Lyra.Node2.Services
         {
             throw new NotImplementedException();
         }
+
+
     }
 }

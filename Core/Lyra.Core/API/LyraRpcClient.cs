@@ -15,12 +15,15 @@ namespace Lyra.Core.API
 {
     public class LyraRpcClient : LyraApi.LyraApiClient, INodeAPI
     {
-        public LyraRpcClient(GrpcChannel channel) : base(channel)
+        private string _appName;
+        private string _appVersion;
+        public LyraRpcClient(string appName, string appVersion, GrpcChannel channel) : base(channel)
         {
-
+            _appName = appName;
+            _appVersion = appVersion;
         }
 
-        public static LyraRpcClient Create(string networkId)
+        public static async Task<LyraRpcClient> CreateAsync(string networkId, string appName, string appVersion)
         {
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
@@ -31,7 +34,9 @@ namespace Lyra.Core.API
             var url = SelectNode(networkId).Item1;
             var channel = GrpcChannel.ForAddress(url,
                 new GrpcChannelOptions { HttpClient = httpClient });
-            var rpcClient = new LyraRpcClient(channel);
+            var rpcClient = new LyraRpcClient(appName, appVersion, channel);
+            if (!await rpcClient.CheckApiVersion())
+                throw new Exception("Unable to use API. Must upgrade your App.");
             return rpcClient;
         }
 
@@ -63,6 +68,35 @@ namespace Lyra.Core.API
         private string Json(object o)
         {
             return JsonConvert.SerializeObject(o);
+        }
+
+        private async Task<bool> CheckApiVersion()
+        {
+            var ret = await GetVersion(LyraGlobal.APIVERSION, _appName, _appVersion);
+            if (ret.MustUpgradeToConnect)
+                return false;
+            else
+                return true;
+        }
+
+        public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
+        {
+            var request = new GetVersionRequest()
+            {
+                ApiVersion = apiVersion,
+                AppName = appName,
+                Appversion = appVersion
+            };
+            var result = await GetVersionAsync(request);
+            var ret = new GetVersionAPIResult()
+            {
+                ApiVersion = result.ApiVersion,
+                NodeVersion = result.NodeVersion,
+                ResultCode = result.ResultCode,
+                MustUpgradeToConnect = result.MustUpgradeToConnect,
+                UpgradeNeeded = result.UpgradeNeeded
+            };
+            return ret;
         }
 
         Task<AuthorizationAPIResult> INodeAPI.CancelTradeOrder(CancelTradeOrderBlock block)

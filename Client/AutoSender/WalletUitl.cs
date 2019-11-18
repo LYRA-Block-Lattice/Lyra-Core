@@ -25,11 +25,9 @@ namespace AutoSender
             var PrivateKey = wallet.PrivateKey;
         }
 
-        public async Task<Dictionary<string, Decimal>> RefreshBalance(string webApiUrl)
+        public async Task<Dictionary<string, Decimal>> RefreshBalance(string networkId)
         {
-            var node_address = webApiUrl;
-            var channel = GrpcChannel.ForAddress("https://localhost:5001");
-            var rpcClient = new LyraRpcClient(channel);
+            var rpcClient = await LyraRpcClient.CreateAsync(networkId, "AutoSender", "0.1");
 
             var result = await wallet.Sync(rpcClient);
             if (result == APIResultCodes.Success)

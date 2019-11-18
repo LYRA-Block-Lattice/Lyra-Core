@@ -25,6 +25,12 @@ namespace LyraLexWeb2
             return await _node.GetSyncHeight();
         }
 
+        [Route("GetVersion")]
+        public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
+        {
+            return await _node.GetVersion(apiVersion, appName, appVersion);
+        }
+
         [Route("GetSyncHeight")]
         public async Task<AccountHeightAPIResult> GetSyncHeightAsync() {
             return await _node.GetSyncHeight();

@@ -18,8 +18,8 @@ namespace LyraLexWeb.Services
             // the rpcclient only connect to localhost now.
             try
             {
-                var channel = GrpcChannel.ForAddress("https://localhost:5001");
-                _rpc = new LyraRpcClient(channel);
+                //var channel = GrpcChannel.ForAddress("https://localhost:5001");
+                //_rpc = new LyraRpcClient(channel);
             }
             catch(Exception ex)
             {

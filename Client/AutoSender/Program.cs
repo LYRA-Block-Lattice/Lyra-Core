@@ -42,7 +42,7 @@ namespace AutoSender
                     int sentBatchCount = 0;
                     foreach (var queuedReq in resultList)
                     {
-                        var balance = await wc.RefreshBalance(webapiUrl);
+                        var balance = await wc.RefreshBalance(netName);
                         var cb = balance["Lyra.LeX"];
                         Console.WriteLine($"Current Lyra.LeX Balance: {cb}");
                         if (cb > 202)
