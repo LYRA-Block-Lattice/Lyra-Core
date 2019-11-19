@@ -16,10 +16,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 using Xamarin.Essentials;
+using Lyra.Exchange;
 
 namespace LyraWallet.Models
 {
-    public delegate void NodeNotifyMessage(string extInfo);
+    public delegate void NodeNotifyMessage(string catalog, string extInfo);
     public class WalletContainer : BaseViewModel
     {
         private string dataStoragePath;
@@ -36,7 +37,7 @@ namespace LyraWallet.Models
         // working status
         private string busyMessage;
 
-        private LyraRestClient _nodeApiClient;
+        private INodeAPI _nodeApiClient;
         private LyraRestNotify _notifyApiClient;
 
         public string DataStoragePath { get => dataStoragePath; set => SetProperty(ref dataStoragePath, value); }
@@ -71,14 +72,14 @@ namespace LyraWallet.Models
             _notifyApiClient = new LyraRestNotify(LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
 
             _cancel = new CancellationTokenSource();
-            await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, extInfo) => { 
+            await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, catalog, extInfo) => { 
                 switch(source)
                 {
                     case NotifySource.Balance:
-                        OnBalanceChanged?.Invoke(extInfo);
+                        OnBalanceChanged?.Invoke(catalog, extInfo);
                         break;
                     case NotifySource.Dex:
-                        OnExchangeOrderChanged?.Invoke(extInfo);
+                        OnExchangeOrderChanged?.Invoke(catalog, extInfo);
                         break;
                     default:
                         break;
@@ -223,6 +224,9 @@ namespace LyraWallet.Models
             });
         }
 
-
+        public async Task<CancelKey> SubmitExchangeOrderAsync(TokenTradeOrder order)
+        {
+            return await _nodeApiClient.SubmitExchangeOrder(order);
+        }
     }
 }

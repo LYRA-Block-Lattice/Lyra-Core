@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.IO;
-using LyraLexWeb.Models;
 using LyraLexWeb.Services;
 using LiteDB;
 using MongoDB.Driver;
+using Lyra.Exchange;
 
 namespace LyraLexWeb.Pages
 {

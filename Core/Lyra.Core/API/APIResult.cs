@@ -205,6 +205,7 @@ namespace Lyra.Core.API
     {
         public bool HasEvent { get; set; }
         public NotifySource Source { get; set; }
+        public string Catalog { get; set; }
         public string ExtraInfo { get; set; }
     }
 }

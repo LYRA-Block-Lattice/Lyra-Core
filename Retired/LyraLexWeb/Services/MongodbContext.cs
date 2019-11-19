@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Lyra.Exchange;
-using LyraLexWeb.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace LyraLexWeb.Services

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Lyra.Core.API;
 using Lyra.Core.Blocks.Transactions;
+using Lyra.Exchange;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -131,6 +132,13 @@ namespace LyraLexWeb2
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
         {
             return await _node.CreateToken(tokenBlock);
+        }
+
+        [Route("SubmitExchangeOrder")]
+        [HttpPost]
+        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
+        {
+            return await _node.SubmitExchangeOrder(order);
         }
 
         //[HttpPost]

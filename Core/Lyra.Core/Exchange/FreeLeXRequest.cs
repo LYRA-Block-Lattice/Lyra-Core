@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LyraLexWeb.Models
+namespace Lyra.Exchange
 {
     public class FreeLeXRequest
     {

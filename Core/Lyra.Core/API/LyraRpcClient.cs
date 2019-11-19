@@ -3,6 +3,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Protos;
+using Lyra.Exchange;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -323,6 +324,21 @@ namespace Lyra.Core.API
                 ServiceHash = result.ServiceHash
             };
             return ret;
+        }
+
+        Task<GetVersionAPIResult> INodeAPI.GetVersion(int apiVersion, string appName, string appVersion)
+        {
+            throw new NotImplementedException();
+        }
+
+        async Task<CancelKey> INodeAPI.SubmitExchangeOrder(TokenTradeOrder order)
+        {
+            var request = new SubmitExchangeOrderRequest()
+            {
+              TokenTradeOrderJson = Json(order)
+            };
+            var result = await SubmitExchangeOrderAsync(request);
+            return FromJson<CancelKey>(result.CancelKeyJson);
         }
     }
 }

@@ -65,78 +65,65 @@ namespace LyraWallet.ViewModels
         public string SellPrice { get => _sellPrice; set => SetProperty(ref _sellPrice, value); }
         public string SellAmount { get => _sellAmount; set => SetProperty(ref _sellAmount, value); }
 
-        HttpClient _client;
-        HubConnection _exchangeHub;
         ExchangeViewPage _thePage;
         public ExchangeViewModel(ExchangeViewPage page)
         {
             _thePage = page;
-            _exchangeHub = new HubConnectionBuilder()
-                .WithUrl("http://lex.lyratokens.com:5493/ExchangeHub", HttpTransportType.WebSockets | HttpTransportType.LongPolling)
-                .AddJsonProtocol(options => {
-                    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
-                })
-                .Build();
 
-            _exchangeHub.On<string>("SellOrders", (ordersJson) =>
-            {
-                SellOrders.Clear();
-                var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(ordersJson);
-                if(orders.Count < 10)
+            App.Container.OnExchangeOrderChanged += (catalog, extInfo) => { 
+                switch(catalog)
                 {
-                    for(int i = 0; i < 10 - orders.Count; i++)
-                    {
-                        SellOrders.Add(new KeyValuePair<String, String>("", ""));   // force alight to bottom
-                    }
+                    case "SellOrders":
+                        {
+                            SellOrders.Clear();
+                            var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(extInfo);
+                            if (orders.Count < 10)
+                            {
+                                for (int i = 0; i < 10 - orders.Count; i++)
+                                {
+                                    SellOrders.Add(new KeyValuePair<String, String>("", ""));   // force alight to bottom
+                                }
+                            }
+                            foreach (var order in orders)
+                            {
+                                SellOrders.Add(new KeyValuePair<String, String>(order.Key.ToString(), order.Value.ToString()));
+                            }
+                            if (orders.Count > 0)
+                            {
+                                Device.BeginInvokeOnMainThread(() =>
+                                {
+                                    _thePage.Scroll(SellOrders.Last());
+                                });
+                            }
+                        }
+                        break;
+                    case "BuyOrders":
+                        {
+                            BuyOrders.Clear();
+                            var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(extInfo);
+                            foreach (var order in orders)
+                            {
+                                BuyOrders.Add(new KeyValuePair<String, String>(order.Key.ToString(), order.Value.ToString()));
+                            }
+                            if (orders.Count < 10)
+                            {
+                                for (int i = 0; i < 10 - orders.Count; i++)
+                                {
+                                    BuyOrders.Add(new KeyValuePair<String, String>("", ""));   // force align to bottom
+                                }
+                            }
+                        }
+                        break;
+                    case "UserOrder":
+                        {
+                            var key = JsonConvert.DeserializeObject<CancelKey>(extInfo);
+                            MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
+                                key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
+                        }
+                        break;
+                    default:
+                        break;
                 }
-                foreach (var order in orders)
-                {
-                    SellOrders.Add(new KeyValuePair<String, String>(order.Key.ToString(), order.Value.ToString()));
-                }
-                if(orders.Count > 0)
-                {
-                    Device.BeginInvokeOnMainThread(() =>
-                    {
-                        _thePage.Scroll(SellOrders.Last());
-                    });
-                }
-            });
-
-            _exchangeHub.On<string>("BuyOrders", (ordersJson) =>
-            {
-                BuyOrders.Clear();
-                var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(ordersJson);
-                foreach (var order in orders)
-                {
-                    BuyOrders.Add(new KeyValuePair<String, String>(order.Key.ToString(), order.Value.ToString()));
-                }
-                if (orders.Count < 10)
-                {
-                    for (int i = 0; i < 10 - orders.Count; i++)
-                    {
-                        BuyOrders.Add(new KeyValuePair<String, String>("", ""));   // force align to bottom
-                    }
-                }
-            });
-
-            _exchangeHub.On<string>("UserOrder", (orderJson) =>
-            {
-                var key = JsonConvert.DeserializeObject<CancelKey>(orderJson);
-                MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
-                    key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
-            });
-
-            //Task.Run(async () => await Connect() );
-
-            _client = new HttpClient
-            {
-                //BaseAddress = new Uri("https://localhost:5001/api/")
-                BaseAddress = new Uri("http://lex.lyratokens.com:5493/api/"),
-#if DEBUG
-                Timeout = new TimeSpan(0, 30, 0)        // for debug. but 10 sec is too short for real env
-#else
-                Timeout = new TimeSpan(0, 0, 30)
-#endif
             };
 
             MessagingCenter.Subscribe<BalanceViewModel>(
@@ -158,32 +145,6 @@ namespace LyraWallet.ViewModels
 
         }
 
-        async Task Connect()
-        {
-            try
-            {
-                if(_exchangeHub.State == HubConnectionState.Disconnected)
-                    await _exchangeHub.StartAsync();
-            }
-            catch (Exception ex)
-            {
-                // Something has gone wrong
-            }
-        }
-
-        public async Task FetchOrders(string tokenName)
-        {
-            try
-            {
-                await Connect();
-                await _exchangeHub.InvokeAsync("FetchOrders", tokenName);
-            }
-            catch (Exception ex)
-            {
-                // send failed
-            }
-        }
-
         private async Task SubmitOrder(bool IsBuy)
         {
             try
@@ -199,17 +160,9 @@ namespace LyraWallet.ViewModels
                     Amount = decimal.Parse(IsBuy ? BuyAmount : SellAmount)
                 };
                 order.Sign(App.Container.PrivateKey);
-                var reqStr = JsonConvert.SerializeObject(order);
-                try
-                {
-                    await _exchangeHub.SendAsync("SendOrder", reqStr);
-                }
-                catch(Exception ex)
-                {
-                    await Connect();
-                    await _exchangeHub.SendAsync("SendOrder", reqStr);
-                }
-                
+                var key = await App.Container.SubmitExchangeOrderAsync(order);
+                MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
+                        key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
             }
             catch (Exception)
             {

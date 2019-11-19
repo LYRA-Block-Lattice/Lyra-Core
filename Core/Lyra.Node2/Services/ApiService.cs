@@ -12,6 +12,9 @@ using Lyra.Core.Protos;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Lyra.Core.API;
+using Lyra.Exchange;
+using Microsoft.AspNetCore.Http;
+using MongoDB.Driver;
 
 namespace Lyra.Node2.Services
 {
@@ -572,8 +575,8 @@ namespace Lyra.Node2.Services
                 result.ResultCode = APIResultCodes.Success;
 
                 // test. send notify
-                NotifyService.Notify(sendBlock.AccountID, NotifySource.Balance, "");
-                NotifyService.Notify(sendBlock.DestinationAccountId, NotifySource.Balance, "");
+                NotifyService.Notify(sendBlock.AccountID, NotifySource.Balance, "", "");
+                NotifyService.Notify(sendBlock.DestinationAccountId, NotifySource.Balance, "", "");
             }
             catch (Exception e)
             {
@@ -686,6 +689,36 @@ namespace Lyra.Node2.Services
                 ResultCode = cr.ResultCode,
                 ServiceHash = cr.ServiceHash,
                 AuthorizationsJson = Json(cr.Authorizations)
+            };
+            return result;
+        }
+
+        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder reqOrder)
+        {
+            CancelKey key;
+            if (!reqOrder.VerifySignature(reqOrder.AccountID))
+            {
+                key = new CancelKey() { Key = string.Empty, State = OrderState.BadOrder };
+            }
+            else
+            {
+                // check order validation
+                if (reqOrder.TokenName == null ||
+                    reqOrder.Price <= 0 || reqOrder.Amount <= 0)
+                    return new CancelKey() { State = OrderState.BadOrder };
+
+                key = await NodeService.AddOrderAsync(reqOrder);
+            }
+            return key;
+        }
+
+        public override async Task<SubmitExchangeOrderReply> SubmitExchangeOrder(SubmitExchangeOrderRequest request, ServerCallContext context)
+        {
+            var order = FromJson<TokenTradeOrder>(request.TokenTradeOrderJson);
+            var cr = await SubmitExchangeOrder(order);
+            var result = new SubmitExchangeOrderReply()
+            {
+                CancelKeyJson = Json(cr)
             };
             return result;
         }
@@ -846,23 +879,11 @@ namespace Lyra.Node2.Services
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
         public Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
         {
             throw new NotImplementedException();
         }
+
 
         public Task<AuthorizationAPIResult> Trade(TradeBlock block)
         {

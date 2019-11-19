@@ -13,18 +13,20 @@ namespace Lyra.Node2.Services
         {
             public string AccountID { get; set; }
             public NotifySource Source { get; set; }
+            public string Catalog { get; set; }
             public string ExtInfo { get; set; }
             public TaskCompletionSource<bool> tcs { get; set; }
         }
 
         private static readonly Dictionary<string, NotifyClient> _peers = new Dictionary<string, NotifyClient>();
 
-        public static void Notify(string AccountID, NotifySource Source, string extraInfo)
+        public static void Notify(string AccountID, NotifySource Source, string catalog, string extraInfo)
         {
             if(_peers.ContainsKey(AccountID))
             {
                 var nc = _peers[AccountID];
                 nc.Source = Source;
+                nc.Catalog = catalog;
                 nc.ExtInfo = extraInfo;
                 nc.tcs.TrySetResult(true);
             }
@@ -60,6 +62,7 @@ namespace Lyra.Node2.Services
                     {
                         ResultCode = Core.Protos.APIResultCodes.Success,
                         HasEvent = true,
+                        Catalog = nc.Catalog,
                         ExtraInfo = nc.ExtInfo,
                         Source = nc.Source
                     };

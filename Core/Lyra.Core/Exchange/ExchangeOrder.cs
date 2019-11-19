@@ -8,7 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace LyraLexWeb.Models
+namespace Lyra.Exchange
 {
     public enum DealState { Invalid, Placed, Executed, PartialExecuted, Canceled };
     public class ExchangeOrder

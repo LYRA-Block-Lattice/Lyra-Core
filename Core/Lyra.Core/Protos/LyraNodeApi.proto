@@ -22,6 +22,7 @@ service LyraApi {
   rpc ReceiveTransfer (ReceiveTransferRequest) returns (AuthorizationsReply);
   rpc ImportAccount (ImportAccountRequest) returns (AuthorizationsReply);
   rpc CreateToken (CreateTokenRequest) returns (AuthorizationsReply);
+  rpc SubmitExchangeOrder (SubmitExchangeOrderRequest) returns (SubmitExchangeOrderReply);
 }
 
 message GetVersionRequest
@@ -194,6 +195,17 @@ message ImportAccountRequest
 message CreateTokenRequest
 {
 	string CreateTokenJson = 1;
+}
+
+// SubmitExchangeOrder(TokenTradeOrder order)
+message SubmitExchangeOrderRequest
+{
+	string TokenTradeOrderJson = 1;
+}
+
+message SubmitExchangeOrderReply
+{
+	string CancelKeyJson = 1;
 }
 
 // shared

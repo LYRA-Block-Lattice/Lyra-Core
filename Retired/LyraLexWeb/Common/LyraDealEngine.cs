@@ -1,5 +1,4 @@
 ﻿using LyraLexWeb.Services;
-using LyraLexWeb.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;

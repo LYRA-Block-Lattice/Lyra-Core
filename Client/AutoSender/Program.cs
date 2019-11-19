@@ -1,4 +1,4 @@
-﻿using LyraLexWeb.Models;
+﻿using Lyra.Exchange;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;

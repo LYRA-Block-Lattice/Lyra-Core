@@ -26,7 +26,7 @@ namespace LyraWallet.Views
 
         private async void Picker_SelectedIndexChanged(object sender, EventArgs e)
         {
-            await (BindingContext as ExchangeViewModel).FetchOrders((sender as Picker).SelectedItem.ToString());
+            //await (BindingContext as ExchangeViewModel).FetchOrders((sender as Picker).SelectedItem.ToString());
         }
         //protected override async void OnAppearing()
         //{

@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
+using Lyra.Exchange;
 using System.Threading.Tasks;
 
 namespace Lyra.Core.API
@@ -75,5 +76,9 @@ namespace Lyra.Core.API
         Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block);
 
         #endregion Authorization methods
+
+        #region Exchange, DEX
+        Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order);
+        #endregion
     }
 }

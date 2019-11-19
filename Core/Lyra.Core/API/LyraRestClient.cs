@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
+using Lyra.Exchange;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -45,12 +46,17 @@ namespace Lyra.Core.API
 
         private async Task<AuthorizationAPIResult> PostBlock(string action, Block block)
         {
+            return await PostBlock<AuthorizationAPIResult>(action, block);
+        }
+
+        private async Task<T> PostBlock<T>(string action, object obj)
+        {
             HttpResponseMessage response = await _client.PostAsJsonAsync(
-                    action, block);
+                    action, obj);
             response.EnsureSuccessStatusCode();
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsAsync<AuthorizationAPIResult>();
+                var result = await response.Content.ReadAsAsync<T>();
                 return result;
             }
             else
@@ -249,6 +255,11 @@ namespace Lyra.Core.API
         Task<TradeOrderAuthorizationAPIResult> INodeAPI.TradeOrder(TradeOrderBlock block)
         {
             throw new NotImplementedException();
+        }
+
+        async Task<CancelKey> INodeAPI.SubmitExchangeOrder(TokenTradeOrder order)
+        {
+            return await PostBlock<CancelKey>("SubmitExchangeOrder", order);
         }
     }
 }
