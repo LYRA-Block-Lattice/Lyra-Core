@@ -19,6 +19,7 @@ using Xamarin.Essentials;
 
 namespace LyraWallet.Models
 {
+    public delegate void NodeNotifyMessage(string extInfo);
     public class WalletContainer : BaseViewModel
     {
         private string dataStoragePath;
@@ -35,6 +36,9 @@ namespace LyraWallet.Models
         // working status
         private string busyMessage;
 
+        private LyraRestClient _nodeApiClient;
+        private LyraRestNotify _notifyApiClient;
+
         public string DataStoragePath { get => dataStoragePath; set => SetProperty(ref dataStoragePath, value); }
         public string WalletFn { get => walletFn; set => SetProperty(ref walletFn, value); }
         public string CurrentNetwork { get => currentNetwork; set => SetProperty(ref currentNetwork, value); }
@@ -47,6 +51,9 @@ namespace LyraWallet.Models
         public List<string> TokenList { get => tokenList; set => SetProperty(ref tokenList, value); }
         public string BusyMessage { get => busyMessage; set => SetProperty(ref busyMessage, value); }
 
+        private CancellationTokenSource _cancel;
+        public event NodeNotifyMessage OnBalanceChanged;
+        public event NodeNotifyMessage OnExchangeOrderChanged;
         public async Task OpenWalletFile()
         {
             if (wallet != null)
@@ -58,6 +65,25 @@ namespace LyraWallet.Models
 
             AccountID = wallet.AccountId;
             PrivateKey = wallet.PrivateKey;
+
+            // setup API clients
+            _nodeApiClient = await LyraRestClient.CreateAsync(CurrentNetwork, AppInfo.Name, AppInfo.VersionString);
+            _notifyApiClient = new LyraRestNotify(LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
+
+            _cancel = new CancellationTokenSource();
+            await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, extInfo) => { 
+                switch(source)
+                {
+                    case NotifySource.Balance:
+                        OnBalanceChanged?.Invoke(extInfo);
+                        break;
+                    case NotifySource.Dex:
+                        OnExchangeOrderChanged?.Invoke(extInfo);
+                        break;
+                    default:
+                        break;
+                }
+            }, _cancel.Token);
         }
 
         public async Task CreateNew(string network_id)
@@ -108,9 +134,7 @@ namespace LyraWallet.Models
         }
         public async Task RefreshBalance(string webApiUrl = null)
         {
-            var rpcClient = await LyraRestClient.CreateAsync(CurrentNetwork, AppInfo.Name, AppInfo.VersionString);
-
-            var result = await wallet.Sync(rpcClient);
+            var result = await wallet.Sync(_nodeApiClient);
             if (result == APIResultCodes.Success)
             {
                 App.Container.Balances = wallet.GetLatestBlock()?.Balances;
@@ -180,6 +204,7 @@ namespace LyraWallet.Models
         public async Task CloseWallet()
         {
             await Task.Run(() => {
+                _cancel.Cancel();
                 if (wallet != null)
                     wallet.Dispose();
                 wallet = null;

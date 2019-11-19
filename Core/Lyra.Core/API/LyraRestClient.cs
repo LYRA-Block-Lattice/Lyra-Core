@@ -35,7 +35,7 @@ namespace Lyra.Core.API
 
         public static async Task<LyraRestClient> CreateAsync(string networkId, string appName, string appVersion)
         {
-            var url = LyraGlobal.SelectNode(networkId).restUrl;
+            var url = LyraGlobal.SelectNode(networkId).restUrl + "LyraNode/";
             var restClient = new LyraRestClient(appName, appVersion, url);
             if (!await restClient.CheckApiVersion())
                 throw new Exception("Unable to use API. Must upgrade your App.");

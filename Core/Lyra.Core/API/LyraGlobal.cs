@@ -22,10 +22,10 @@ namespace Lyra.Core.API
             {
 #if DEBUG
                 case "lexdev":
-                    return ("https://34.80.72.244:5492/", "https://34.80.72.244:5492/api/LyraNode/");
+                    return ("https://34.80.72.244:5492/", "https://34.80.72.244:5492/api/");
 #endif
                 case "lexnet":
-                    return ("https://34.80.72.244:5392/", "https://34.80.72.244:5392/api/LyraNode/");
+                    return ("https://34.80.72.244:5392/", "https://34.80.72.244:5392/api/");
                 case "testnet":
                     return ("https://testnet.lyratokens.com:5392/", "");
                 case "mainnet":

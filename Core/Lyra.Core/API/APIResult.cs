@@ -199,4 +199,12 @@ namespace Lyra.Core.API
         public bool UpgradeNeeded { get; set; }
         public bool MustUpgradeToConnect { get; set; }        
     }
+
+    public enum NotifySource { None, System, Balance, Dex, DShop, DPay };
+    public class GetNotificationAPIResult : APIResult
+    {
+        public bool HasEvent { get; set; }
+        public NotifySource Source { get; set; }
+        public string ExtraInfo { get; set; }
+    }
 }

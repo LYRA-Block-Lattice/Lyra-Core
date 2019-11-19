@@ -570,6 +570,10 @@ namespace Lyra.Node2.Services
                 result.Authorizations = sendBlock.Authorizations;
                 result.ServiceHash = sendBlock.ServiceHash;
                 result.ResultCode = APIResultCodes.Success;
+
+                // test. send notify
+                NotifyService.Notify(sendBlock.AccountID, NotifySource.Balance, "");
+                NotifyService.Notify(sendBlock.DestinationAccountId, NotifySource.Balance, "");
             }
             catch (Exception e)
             {

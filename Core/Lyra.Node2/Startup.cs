@@ -30,6 +30,7 @@ namespace Lyra.Node2
 
             //services.AddHostedService<Services.NodeService>();
             services.AddSingleton<INodeAPI, ApiService>();
+            services.AddSingleton<INotifyAPI, NotifyService>();
 
             services.AddGrpc();
 
