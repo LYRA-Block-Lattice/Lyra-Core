@@ -26,6 +26,11 @@ namespace Lyra.Core.API
         }
     }
 
+    public class SimpleJsonAPIResult : APIResult
+    {
+        public string JsonString { get; set; }
+    }
+
     public class AccountHeightAPIResult : APIResult
     {
         public int Height { get; set; }

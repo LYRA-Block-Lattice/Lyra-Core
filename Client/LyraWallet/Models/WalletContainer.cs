@@ -233,5 +233,10 @@ namespace LyraWallet.Models
         {
             return await _nodeApiClient.RequestMarket(tokenName);
         }
+
+        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId)
+        {
+            return await _nodeApiClient.GetOrdersForAccount(AccountId, wallet.SignAPICall());
+        }
     }
 }

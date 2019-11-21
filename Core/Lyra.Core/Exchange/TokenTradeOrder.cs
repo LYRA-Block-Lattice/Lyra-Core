@@ -14,15 +14,15 @@ namespace Lyra.Exchange
         public OrderType BuySellType { get; set; }
         public string TokenName { get; set; }
         public string NetworkID { get; set; }
-        public Decimal Price { get; set; }
-        public Decimal Amount { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)]
+        public decimal Price { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)]
+        public decimal Amount { get; set; }
 
         public override string GetHashInput()
         {
             return $"{NetworkID} {AccountID} {BuySellType} {TokenName} {JsonConvert.SerializeObject(Price)} {JsonConvert.SerializeObject(Amount)} {DateTimeToString(CreatedTime)}";
         }
-
-        public OrderType InversedOrderType { get => BuySellType == OrderType.Buy ? OrderType.Sell : OrderType.Buy; }
 
         protected override string GetExtraData()
         {

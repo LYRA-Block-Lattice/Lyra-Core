@@ -24,7 +24,9 @@ service LyraApi {
   rpc CreateToken (CreateTokenRequest) returns (AuthorizationsReply);
   rpc SubmitExchangeOrder (SubmitExchangeOrderRequest) returns (SubmitExchangeOrderReply);
   rpc RequestMarket (RequestMarketRequest) returns (SimpleAPIReply);
+  rpc GetOrdersForAccount (GetOrdersForAccountRequest) returns (SimpleJsonAPIReply);
   rpc CustomizeNotifySettings (CustomizeNotifySettingsRequest) returns (CustomizeNotifySettingsReply);
+
 }
 
 message GetVersionRequest
@@ -222,6 +224,19 @@ message SimpleAPIReply
 	APIResultCodes ResultCode = 1;
 }
 
+// GetOrdersForAccount
+message GetOrdersForAccountRequest
+{
+	string AccountId = 1;
+	string Signature = 2;
+}
+
+message SimpleJsonAPIReply
+{
+	APIResultCodes ResultCode = 1;
+	string JsonStr = 2;
+}
+
 message CustomizeNotifySettingsRequest
 {
 	string settingsJson = 1;
@@ -231,6 +246,7 @@ message CustomizeNotifySettingsReply
 {
 	APIResultCodes ResultCode = 1;
 }
+
 
 // shared
 	enum BlockTypes 

@@ -43,9 +43,13 @@ namespace LyraWallet.ViewModels
         public string TargetTokenBalance { get => _targetTokenBalance; set => SetProperty(ref _targetTokenBalance, value); }
         public string LeXBalance { get => _lexBalance; set => SetProperty(ref _lexBalance, value); }
         public string SelectedToken { get => _selectedToken; set {
-                SetProperty(ref _selectedToken, value);
-                UpdateHoldings();
-                Task.Run(async () => await App.Container.RequestMarket(value));            
+                SetProperty(ref _selectedToken, value);                
+                Task.Run(async () =>
+                {
+                    UpdateHoldings();
+                    await GetMyOrders();
+                    await App.Container.RequestMarket(value);
+                });
             }
         }
 
@@ -71,7 +75,7 @@ namespace LyraWallet.ViewModels
         {
             _thePage = page;
 
-            App.Container.OnExchangeOrderChanged += (act, catalog, extInfo) => {
+            App.Container.OnExchangeOrderChanged += async (act, catalog, extInfo) => {
                 if (catalog != SelectedToken)  // only show current token's order
                     return;
 
@@ -117,12 +121,9 @@ namespace LyraWallet.ViewModels
                             }
                         }
                         break;
-                    case "UserOrder":
-                        {
-                            var key = JsonConvert.DeserializeObject<CancelKey>(extInfo);
-                            MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
-                                key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
-                        }
+                    case "Deal":
+                        // at lease some order is (partially) executed
+                        await GetMyOrders();
                         break;
                     default:
                         break;
@@ -148,6 +149,16 @@ namespace LyraWallet.ViewModels
 
         }
 
+        private async Task GetMyOrders()
+        {
+            var myorders = await App.Container.GetOrdersForAccount(App.Container.AccountID);
+            MyOrders.Clear();
+            foreach (var key in myorders.Where(a => a.Order.TokenName == SelectedToken))
+            {
+                MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
+                    key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
+            }
+        }
         private async Task SubmitOrder(bool IsBuy)
         {
             try
@@ -164,8 +175,10 @@ namespace LyraWallet.ViewModels
                 };
                 order.Sign(App.Container.PrivateKey);
                 var key = await App.Container.SubmitExchangeOrderAsync(order);
+                // this is fake. just make a illusion.
                 MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
                         key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
+                await GetMyOrders();
             }
             catch (Exception)
             {

@@ -910,5 +910,10 @@ namespace Lyra.Node2.Services
                 await NodeService.SendMarket(tokenName);
             return new APIResult() { ResultCode = APIResultCodes.Success };
         }
+
+        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
+        {
+            return await NodeService.GetOrdersForAccount(AccountId);
+        }
     }
 }

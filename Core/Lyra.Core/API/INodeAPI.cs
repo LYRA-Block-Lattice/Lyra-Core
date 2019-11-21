@@ -81,6 +81,7 @@ namespace Lyra.Core.API
         #region Exchange, DEX
         Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order);
         Task<APIResult> RequestMarket(string tokenName);
+        Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature);
         //Task<APIResult> CustomizeNotifySettings(NotifySettings settings);
         #endregion
     }

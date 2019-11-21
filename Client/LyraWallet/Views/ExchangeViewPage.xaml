@@ -129,10 +129,10 @@
             </StackLayout>
             <StackLayout Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" BackgroundColor="White" >
                 <StackLayout Orientation="Horizontal" BackgroundColor="LightGray" >
-                    <Label Text="Order" WidthRequest="50"/>
-                    <Label Text="Token" WidthRequest="120"/>
+                    <Label Text="Order" WidthRequest="40"/>
+                    <Label Text="Token" WidthRequest="110"/>
                     <Label Text="Price" WidthRequest="80"/>
-                    <Label Text="Amont" WidthRequest="80"/>
+                    <Label Text="Amont" WidthRequest="60"/>
                     <Label Text="Status" />
                 </StackLayout>
                 <ListView ItemsSource="{Binding MyOrders}" 
@@ -144,12 +144,12 @@
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <ViewCell>
-                                <StackLayout Orientation="Horizontal">
-                                    <Label Text="{Binding Item1}" WidthRequest="50"/>
-                                    <Label Text="{Binding Item2}" WidthRequest="120"/>
-                                    <Label Text="{Binding Item3}" WidthRequest="80"/>
-                                    <Label Text="{Binding Item4}" WidthRequest="80"/>
-                                    <Label Text="{Binding Item5}" />
+                                <StackLayout Orientation="Horizontal" HorizontalOptions="StartAndExpand">
+                                    <Label Text="{Binding Item1}" FontSize="Small" WidthRequest="40"/>
+                                    <Label Text="{Binding Item2}" FontSize="Small" WidthRequest="110"/>
+                                    <Label Text="{Binding Item3}" FontSize="Small" WidthRequest="80"/>
+                                    <Label Text="{Binding Item4}" FontSize="Small" WidthRequest="60"/>
+                                    <Label Text="{Binding Item5}" FontSize="Small" />
                                 </StackLayout>
                             </ViewCell>
                         </DataTemplate>

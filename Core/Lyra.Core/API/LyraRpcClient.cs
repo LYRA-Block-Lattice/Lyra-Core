@@ -351,5 +351,16 @@ namespace Lyra.Core.API
             var result = await RequestMarketAsync(request);
             return new APIResult() { ResultCode = result.ResultCode };
         }
+
+        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
+        {
+            var request = new GetOrdersForAccountRequest()
+            {
+                AccountId = AccountId,
+                Signature = Signature
+            };
+            var result = await GetOrdersForAccountAsync(request);
+            return FromJson<List<ExchangeOrder>>(result.JsonStr);
+        }
     }
 }

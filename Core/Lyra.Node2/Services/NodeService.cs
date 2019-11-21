@@ -1,5 +1,8 @@
 ﻿using Lyra.Exchange;
 using Microsoft.Extensions.Hosting;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using System;
@@ -54,6 +57,9 @@ namespace Lyra.Node2.Services
             {
                 if (_db == null)
                 {
+                    BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
+                    BsonSerializer.RegisterSerializer(typeof(decimal?), new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
+
                     client = new MongoClient(_config.DBConnect);
                     _db = client.GetDatabase("Dex");
 
@@ -74,6 +80,7 @@ namespace Lyra.Node2.Services
                     _waitOrder.Reset();
                     // has new order. do trade
                     var changedTokens = new List<string>();
+                    var changedAccount = new List<string>();
 
                     var placed = await GetNewlyPlacedOrdersAsync();
                     for (int i = 0; i < placed.Length; i++)
@@ -99,6 +106,11 @@ namespace Lyra.Node2.Services
                                     curOrder.State = DealState.PartialExecuted;
                                     curOrder.Order.Amount -= matchedOrder.Order.Amount;
 
+                                    if (!changedAccount.Contains(matchedOrder.Order.AccountID))
+                                        changedAccount.Add(matchedOrder.Order.AccountID);
+                                    if (!changedAccount.Contains(matchedOrder.Order.AccountID))
+                                        changedAccount.Add(matchedOrder.Order.AccountID);
+
                                     continue;
                                 }
                                 else if (matchedOrder.Order.Amount == curOrder.Order.Amount)
@@ -111,6 +123,11 @@ namespace Lyra.Node2.Services
                                     curOrder.State = DealState.Executed;
                                     await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, curOrder.Id));
                                     await _finished.InsertOneAsync(curOrder);
+
+                                    if (!changedAccount.Contains(matchedOrder.Order.AccountID))
+                                        changedAccount.Add(matchedOrder.Order.AccountID);
+                                    if (!changedAccount.Contains(matchedOrder.Order.AccountID))
+                                        changedAccount.Add(matchedOrder.Order.AccountID);
 
                                     break;
                                 }
@@ -125,27 +142,38 @@ namespace Lyra.Node2.Services
                                     await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, curOrder.Id));
                                     await _finished.InsertOneAsync(curOrder);
 
+                                    if (!changedAccount.Contains(matchedOrder.Order.AccountID))
+                                        changedAccount.Add(matchedOrder.Order.AccountID);
+                                    if (!changedAccount.Contains(matchedOrder.Order.AccountID))
+                                        changedAccount.Add(matchedOrder.Order.AccountID);
+
                                     break;
                                 }
                             }
                         }
-                        else
-                        {
-                            // change placed to queued
-                            var update = Builders<ExchangeOrder>.Update.Set(s => s.State, DealState.Queued);
+
+                        // all matched. update database                        
+                        // change state from placed to queued, update amount also.
+                        var update = Builders<ExchangeOrder>.Update.Set(o => o.Order.Amount, curOrder.Order.Amount);
+                        if (curOrder.State == DealState.Placed)
+                            update = update.Set(s => s.State, DealState.Queued);
+                        if(curOrder.State == DealState.Placed || curOrder.State == DealState.PartialExecuted)
                             await _queue.UpdateOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, curOrder.Id), update);
-                        }
                     }
                     foreach (var tokenName in changedTokens)
                     {
                         // the update the client
                         await SendMarket(tokenName);
                     }
+                    foreach(var account in changedAccount)
+                    {
+                        // client must refresh by itself
+                        NotifyService.Notify(account, Core.API.NotifySource.Dex, "Deal", "", "");
+                    }
                 }
                 else
                 {
                     // no new order. do house keeping.
-
                 }
             }
         }
@@ -166,17 +194,38 @@ namespace Lyra.Node2.Services
 
         public async Task<IOrderedEnumerable<ExchangeOrder>> LookforExecution(ExchangeOrder order)
         {
-            var builder = Builders<ExchangeOrder>.Filter;
-            var filter = builder.Eq("Order.TokenName", order.Order.TokenName)
-                & builder.Ne("State", DealState.Placed)
-                & builder.Eq("Order.BuySellType", order.Order.InversedOrderType);
+            //var builder = Builders<ExchangeOrder>.Filter;
+            //var filter = builder.Eq("Order.TokenName", order.Order.TokenName)
+            //    & builder.Ne("State", DealState.Placed);
 
+            //if (order.Order.BuySellType == OrderType.Buy)
+            //{
+            //    filter &= builder.Eq("Order.BuySellType", OrderType.Sell);
+            //    filter &= builder.Lte("Order.Price", order.Order.Price);
+            //}
+            //else
+            //{
+            //    filter &= builder.Eq("Order.BuySellType", OrderType.Buy);
+            //    filter &= builder.Gte("Order.Price", order.Order.Price);
+            //}
+
+            IAsyncCursor<ExchangeOrder> found;
             if (order.Order.BuySellType == OrderType.Buy)
-                filter &= builder.Lte("Order.Price", order.Order.Price);
+            {
+                found = await _queue.FindAsync(a => a.Order.TokenName == order.Order.TokenName
+                                && a.State != DealState.Placed
+                                && a.Order.BuySellType == OrderType.Sell
+                                && a.Order.Price <= order.Order.Price);
+            }
             else
-                filter &= builder.Gte("Order.Price", order.Order.Price);
+            {
+                found = await _queue.FindAsync(a => a.Order.TokenName == order.Order.TokenName
+                && a.State != DealState.Placed
+                && a.Order.BuySellType == OrderType.Buy
+                && a.Order.Price >= order.Order.Price);
+            }
 
-            var matches0 = await _queue.Find<ExchangeOrder>(filter).ToListAsync();
+            var matches0 = await found.ToListAsync();
 
             if (order.Order.BuySellType == OrderType.Buy)
             {
@@ -232,6 +281,11 @@ namespace Lyra.Node2.Services
             orders.Add("BuyOrders", buyOrders);
 
             NotifyService.Notify("", Core.API.NotifySource.Dex, "Orders", tokenName, JsonConvert.SerializeObject(orders));
+        }
+
+        internal static async Task<List<ExchangeOrder>> GetOrdersForAccount(string accountId)
+        {
+            return await _queue.Find(a => a.Order.AccountID == accountId).ToListAsync();
         }
     }
 }

@@ -285,5 +285,13 @@ namespace Lyra.Core.API
             args.Add("TokenName", tokenName);
             return await Get<APIResult>("RequestMarket", args);
         }
+
+        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
+        {
+            var args = new Dictionary<string, string>();
+            args.Add("AccountId", AccountId);
+            args.Add("Signature", Signature);
+            return await Get<List<ExchangeOrder>>("GetOrdersForAccount", args);
+        }
     }
 }

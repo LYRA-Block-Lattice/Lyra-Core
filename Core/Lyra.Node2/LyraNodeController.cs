@@ -147,6 +147,12 @@ namespace LyraLexWeb2
             return await _node.RequestMarket(TokenName);
         }
 
+        [Route("GetOrdersForAccount")]
+        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
+        {
+            return await _node.GetOrdersForAccount(AccountId, Signature);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 
