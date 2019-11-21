@@ -20,7 +20,7 @@ using Lyra.Exchange;
 
 namespace LyraWallet.Models
 {
-    public delegate void NodeNotifyMessage(string catalog, string extInfo);
+    public delegate void NodeNotifyMessage(string action, string catalog, string extInfo);
     public class WalletContainer : BaseViewModel
     {
         private string dataStoragePath;
@@ -72,14 +72,14 @@ namespace LyraWallet.Models
             _notifyApiClient = new LyraRestNotify(LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
 
             _cancel = new CancellationTokenSource();
-            await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, catalog, extInfo) => { 
+            await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, action, catalog, extInfo) => { 
                 switch(source)
                 {
                     case NotifySource.Balance:
-                        OnBalanceChanged?.Invoke(catalog, extInfo);
+                        OnBalanceChanged?.Invoke(action, catalog, extInfo);
                         break;
                     case NotifySource.Dex:
-                        OnExchangeOrderChanged?.Invoke(catalog, extInfo);
+                        OnExchangeOrderChanged?.Invoke(action, catalog, extInfo);
                         break;
                     default:
                         break;
@@ -227,6 +227,11 @@ namespace LyraWallet.Models
         public async Task<CancelKey> SubmitExchangeOrderAsync(TokenTradeOrder order)
         {
             return await _nodeApiClient.SubmitExchangeOrder(order);
+        }
+
+        public async Task<APIResult> RequestMarket(string tokenName)
+        {
+            return await _nodeApiClient.RequestMarket(tokenName);
         }
     }
 }

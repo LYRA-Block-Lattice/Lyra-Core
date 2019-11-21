@@ -28,7 +28,6 @@ namespace Lyra.Node2
         {
             OptionsConfigurationServiceCollectionExtensions.Configure<Services.LyraConfig>(services, Configuration.GetSection("Lyra"));
 
-            //services.AddHostedService<Services.NodeService>();
             services.AddSingleton<INodeAPI, ApiService>();
             services.AddSingleton<INotifyAPI, NotifyService>();
 

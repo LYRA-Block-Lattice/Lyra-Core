@@ -22,6 +22,8 @@ namespace Lyra.Exchange
             return $"{NetworkID} {AccountID} {BuySellType} {TokenName} {JsonConvert.SerializeObject(Price)} {JsonConvert.SerializeObject(Amount)} {DateTimeToString(CreatedTime)}";
         }
 
+        public OrderType InversedOrderType { get => BuySellType == OrderType.Buy ? OrderType.Sell : OrderType.Buy; }
+
         protected override string GetExtraData()
         {
             return "";

@@ -4,6 +4,7 @@ using Lyra.Core.Blocks.Transactions;
 using Lyra.Exchange;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -54,6 +55,22 @@ namespace Lyra.Core.API
             HttpResponseMessage response = await _client.PostAsJsonAsync(
                     action, obj);
             response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<T>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        private async Task<T> Get<T>(string action, Dictionary<string, string> args)
+        {
+            var url = $"{action}/?" + args?.Aggregate(new StringBuilder(),
+                          (sb, kvp) => sb.AppendFormat("{0}{1}={2}",
+                                       sb.Length > 0 ? "&" : "", kvp.Key, kvp.Value),
+                          sb => sb.ToString());
+            HttpResponseMessage response = await _client.GetAsync(url);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<T>();
@@ -260,6 +277,13 @@ namespace Lyra.Core.API
         async Task<CancelKey> INodeAPI.SubmitExchangeOrder(TokenTradeOrder order)
         {
             return await PostBlock<CancelKey>("SubmitExchangeOrder", order);
+        }
+
+        public async Task<APIResult> RequestMarket(string tokenName)
+        {
+            var args = new Dictionary<string, string>();
+            args.Add("TokenName", tokenName);
+            return await Get<APIResult>("RequestMarket", args);
         }
     }
 }

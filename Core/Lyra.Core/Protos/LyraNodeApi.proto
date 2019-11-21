@@ -23,6 +23,8 @@ service LyraApi {
   rpc ImportAccount (ImportAccountRequest) returns (AuthorizationsReply);
   rpc CreateToken (CreateTokenRequest) returns (AuthorizationsReply);
   rpc SubmitExchangeOrder (SubmitExchangeOrderRequest) returns (SubmitExchangeOrderReply);
+  rpc RequestMarket (RequestMarketRequest) returns (SimpleAPIReply);
+  rpc CustomizeNotifySettings (CustomizeNotifySettingsRequest) returns (CustomizeNotifySettingsReply);
 }
 
 message GetVersionRequest
@@ -205,7 +207,29 @@ message SubmitExchangeOrderRequest
 
 message SubmitExchangeOrderReply
 {
-	string CancelKeyJson = 1;
+	APIResultCodes ResultCode = 1;
+	string CancelKeyJson = 2;
+}
+
+// RequestMarket
+message RequestMarketRequest
+{
+	string TokenNames = 1;
+}
+
+message SimpleAPIReply
+{
+	APIResultCodes ResultCode = 1;
+}
+
+message CustomizeNotifySettingsRequest
+{
+	string settingsJson = 1;
+}
+
+message CustomizeNotifySettingsReply
+{
+	APIResultCodes ResultCode = 1;
 }
 
 // shared

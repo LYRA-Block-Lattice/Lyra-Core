@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Exchange;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Lyra.Core.API
@@ -79,6 +80,15 @@ namespace Lyra.Core.API
 
         #region Exchange, DEX
         Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order);
+        Task<APIResult> RequestMarket(string tokenName);
+        //Task<APIResult> CustomizeNotifySettings(NotifySettings settings);
         #endregion
+    }
+
+    public class NotifySettings
+    {
+        public string AccountID { get; set; }
+        public string Signature { get; set; }
+        Dictionary<NotifySource, string> SourceConfig { get; set; }
     }
 }

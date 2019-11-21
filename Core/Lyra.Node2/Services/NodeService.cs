@@ -18,26 +18,12 @@ namespace Lyra.Node2.Services
         public static MongoClient client;
         private static IMongoDatabase _db;
         private static IMongoCollection<ExchangeOrder> _queue;
+        private static IMongoCollection<ExchangeOrder> _finished;
         static AutoResetEvent _waitOrder;
 
         public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config)
         {
             _config = config.Value;
-            _waitOrder = new AutoResetEvent(false);
-            try
-            {
-                if (_db == null)
-                {
-                    client = new MongoClient(_config.DBConnect);
-                    _db = client.GetDatabase("Lyra");
-                }
-
-                _queue = _db.GetCollection<ExchangeOrder>("queuedDexOrders");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Can find or create mongo database.", ex);
-            }
         }
 
         public static async Task<CancelKey> AddOrderAsync(TokenTradeOrder order)
@@ -56,44 +42,119 @@ namespace Lyra.Node2.Services
             var key = new CancelKey()
             {
                 State = OrderState.Placed,
-                Key = item.Id.ToString()
+                Key = item.Id.ToString(),
+                Order = order
             };
             return key;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {     
+        {
+            _waitOrder = new AutoResetEvent(false);
+            try
+            {
+                if (_db == null)
+                {
+                    client = new MongoClient(_config.DBConnect);
+                    _db = client.GetDatabase("Dex");
+
+                    _queue = _db.GetCollection<ExchangeOrder>("queuedDexOrders");
+                    _finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Can find or create mongo database.", ex);
+            }
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 // do work
-                if(_waitOrder.WaitOne(1000))
+                if (_waitOrder.WaitOne(1000))
                 {
+                    _waitOrder.Reset();
                     // has new order. do trade
+                    var changedTokens = new List<string>();
+
+                    var placed = await GetNewlyPlacedOrdersAsync();
+                    for (int i = 0; i < placed.Length; i++)
+                    {
+                        var curOrder = placed[i];
+
+                        if (!changedTokens.Contains(curOrder.Order.TokenName))
+                            changedTokens.Add(curOrder.Order.TokenName);
+
+                        var matchedOrders = await LookforExecution(curOrder);
+                        if (matchedOrders.Count() > 0)
+                        {
+                            foreach (var matchedOrder in matchedOrders)
+                            {
+                                // three conditions
+                                if (matchedOrder.Order.Amount < curOrder.Order.Amount)
+                                {
+                                    //matched -> archive, cur -> partial
+                                    matchedOrder.State = DealState.Executed;
+                                    await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, matchedOrder.Id));
+                                    await _finished.InsertOneAsync(matchedOrder);
+
+                                    curOrder.State = DealState.PartialExecuted;
+                                    curOrder.Order.Amount -= matchedOrder.Order.Amount;
+
+                                    continue;
+                                }
+                                else if (matchedOrder.Order.Amount == curOrder.Order.Amount)
+                                {
+                                    // matched -> archive, cur -> archive
+                                    matchedOrder.State = DealState.Executed;
+                                    await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, matchedOrder.Id));
+                                    await _finished.InsertOneAsync(matchedOrder);
+
+                                    curOrder.State = DealState.Executed;
+                                    await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, curOrder.Id));
+                                    await _finished.InsertOneAsync(curOrder);
+
+                                    break;
+                                }
+                                else // matchedOrder.Order.Amount > curOrder.Order.Amount
+                                {
+                                    // matched -> partial, cur -> archive
+                                    matchedOrder.State = DealState.PartialExecuted;
+                                    matchedOrder.Order.Amount -= curOrder.Order.Amount;
+                                    await _queue.ReplaceOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, matchedOrder.Id), matchedOrder);
+
+                                    curOrder.State = DealState.Executed;
+                                    await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, curOrder.Id));
+                                    await _finished.InsertOneAsync(curOrder);
+
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // change placed to queued
+                            var update = Builders<ExchangeOrder>.Update.Set(s => s.State, DealState.Queued);
+                            await _queue.UpdateOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, curOrder.Id), update);
+                        }
+                    }
+                    foreach (var tokenName in changedTokens)
+                    {
+                        // the update the client
+                        await SendMarket(tokenName);
+                    }
                 }
                 else
                 {
                     // no new order. do house keeping.
 
                 }
-                //if(_orders.Count > 0)
-                //{
-                //    TokenTradeOrder order;
-                //    var ret = _orders.TryDequeue(out order);
-                //    if(ret)
-                //    {
-                //        // trade? 
-                        
-                //    }
-                //    continue;
-                //}
-
-                //_logger.LogCritical("Lyra Deal Engine: Trade, deal, make, take");
-                await Task.Delay(1000);
             }
         }
 
-        public async Task<List<ExchangeOrder>> GetActiveOrders(string tokenName)
+        public async Task<ExchangeOrder[]> GetNewlyPlacedOrdersAsync()
         {
-            return await _queue.Find(a => a.CanDeal && a.Order.TokenName == tokenName).ToListAsync();
+            var finds = await _queue.FindAsync(a => a.State == DealState.Placed);
+            var fl = await finds.ToListAsync();
+            return fl.OrderBy(a => a.Order.CreatedTime).ToArray();
         }
 
         public async Task<ExchangeOrder[]> GetQueuedOrdersAsync()
@@ -103,20 +164,29 @@ namespace Lyra.Node2.Services
             return fl.OrderBy(a => a.Order.CreatedTime).ToArray();
         }
 
-        public async Task<bool> LookforExecution(ExchangeOrder order)
+        public async Task<IOrderedEnumerable<ExchangeOrder>> LookforExecution(ExchangeOrder order)
         {
             var builder = Builders<ExchangeOrder>.Filter;
-            var filter = builder.Eq("ToToken", order.Order.TokenName)
-                & builder.Gte("Price", (Decimal)(1 / order.Order.Price));
-            var matches = await _queue.Find<ExchangeOrder>(filter).ToListAsync();
-            if (matches.Any())
+            var filter = builder.Eq("Order.TokenName", order.Order.TokenName)
+                & builder.Ne("State", DealState.Placed)
+                & builder.Eq("Order.BuySellType", order.Order.InversedOrderType);
+
+            if (order.Order.BuySellType == OrderType.Buy)
+                filter &= builder.Lte("Order.Price", order.Order.Price);
+            else
+                filter &= builder.Gte("Order.Price", order.Order.Price);
+
+            var matches0 = await _queue.Find<ExchangeOrder>(filter).ToListAsync();
+
+            if (order.Order.BuySellType == OrderType.Buy)
             {
-                // we can make a deal
-                return true;
+                var matches = matches0.OrderBy(a => a.Order.Price);
+                return matches;
             }
             else
             {
-                return false;
+                var matches = matches0.OrderByDescending(a => a.Order.Price);
+                return matches;
             }
         }
 
@@ -141,19 +211,27 @@ namespace Lyra.Node2.Services
             //}
         }
 
-        private async Task send(string tokenName)
+        public static async Task<List<ExchangeOrder>> GetActiveOrders(string tokenName)
+        {
+            return await _queue.Find(a => a.CanDeal && a.Order.TokenName == tokenName).ToListAsync();
+        }
+
+        public static async Task SendMarket(string tokenName)
         {
             var excOrders = (await GetActiveOrders(tokenName)).OrderByDescending(a => a.Order.Price);
             var sellOrders = excOrders.Where(a => a.Order.BuySellType == OrderType.Sell)
                 .GroupBy(a => a.Order.Price)
                 .Select(a => new KeyValuePair<Decimal, Decimal>(a.Key, a.Sum(x => x.Order.Amount))).ToList();
-            NotifyService.Notify("", Core.API.NotifySource.Dex, "SellOrders", JsonConvert.SerializeObject(sellOrders));
 
             var buyOrders = excOrders.Where(a => a.Order.BuySellType == OrderType.Buy)
                 .GroupBy(a => a.Order.Price)
                 .Select(a => new KeyValuePair<Decimal, Decimal>(a.Key, a.Sum(x => x.Order.Amount))).ToList();
-            NotifyService.Notify("", Core.API.NotifySource.Dex, "BuyOrders", JsonConvert.SerializeObject(buyOrders));
 
+            var orders = new Dictionary<string, List<KeyValuePair<Decimal, Decimal>>>();
+            orders.Add("SellOrders", sellOrders);
+            orders.Add("BuyOrders", buyOrders);
+
+            NotifyService.Notify("", Core.API.NotifySource.Dex, "Orders", tokenName, JsonConvert.SerializeObject(orders));
         }
     }
 }

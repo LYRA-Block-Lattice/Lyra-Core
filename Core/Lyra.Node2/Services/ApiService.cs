@@ -1,20 +1,19 @@
+using Grpc.Core;
+using Lyra.Core.Accounts.Node;
+using Lyra.Core.API;
+using Lyra.Core.Blocks;
+using Lyra.Core.Blocks.Fees;
+using Lyra.Core.Blocks.Transactions;
+using Lyra.Core.Protos;
+using Lyra.Exchange;
+using Lyra.Node2.Authorizers;
+using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Grpc.Core;
-using Lyra.Core.Accounts.Node;
-using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Fees;
-using Lyra.Core.Blocks.Transactions;
-using Lyra.Node2.Authorizers;
-using Lyra.Core.Protos;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Lyra.Core.API;
-using Lyra.Exchange;
-using Microsoft.AspNetCore.Http;
-using MongoDB.Driver;
 
 namespace Lyra.Node2.Services
 {
@@ -36,7 +35,7 @@ namespace Lyra.Node2.Services
             _logger = logger;
             _config = config.Value;
 
-            if(_serviceAccount == null)
+            if (_serviceAccount == null)
                 InitializeNode();
         }
 
@@ -94,7 +93,7 @@ namespace Lyra.Node2.Services
                 NetworkId = cr.NetworkId,
                 Height = cr.Height,
                 SyncHash = cr.SyncHash
-            };            
+            };
             return result;
         }
 
@@ -130,8 +129,8 @@ namespace Lyra.Node2.Services
             var cr = await GetTokenNames(request.AccountId, request.Signature, request.Keyword);
             var result = new GetTokenNamesReply()
             {
-                ResultCode = cr.ResultCode                
-            };           
+                ResultCode = cr.ResultCode
+            };
             result.TokenNames.AddRange(cr.TokenNames);
 
             return result;
@@ -213,7 +212,7 @@ namespace Lyra.Node2.Services
                 BlockData = cr.BlockData,
                 ResultBlockType = cr.ResultBlockType
             };
-                        
+
             return result;
         }
 
@@ -413,7 +412,7 @@ namespace Lyra.Node2.Services
             {
                 ResultCode = cr.ResultCode
             };
-            if(cr.ResultCode != APIResultCodes.NoNewTransferFound)
+            if (cr.ResultCode != APIResultCodes.NoNewTransferFound)
             {
                 transfer_info.NonFungibleTokenJson = Json(cr.NonFungibleToken);
                 transfer_info.SourceHash = cr.SourceHash;
@@ -575,8 +574,8 @@ namespace Lyra.Node2.Services
                 result.ResultCode = APIResultCodes.Success;
 
                 // test. send notify
-                NotifyService.Notify(sendBlock.AccountID, NotifySource.Balance, "", "");
-                NotifyService.Notify(sendBlock.DestinationAccountId, NotifySource.Balance, "", "");
+                NotifyService.Notify(sendBlock.AccountID, NotifySource.Balance, "", "", "");
+                NotifyService.Notify(sendBlock.DestinationAccountId, NotifySource.Balance, "", "", "");
             }
             catch (Exception e)
             {
@@ -612,7 +611,7 @@ namespace Lyra.Node2.Services
             try
             {
                 var authorizer = new ReceiveTransferAuthorizer(_serviceAccount, _accountCollection);
-                
+
                 result.ResultCode = authorizer.Authorize(ref receiveBlock);
 
                 if (result.ResultCode != APIResultCodes.Success)
@@ -659,7 +658,7 @@ namespace Lyra.Node2.Services
             {
 
                 var authorizer = new ImportAccountAuthorizer(_serviceAccount, _accountCollection);
-                
+
                 result.ResultCode = authorizer.Authorize(ref block);
 
                 if (result.ResultCode != APIResultCodes.Success)
@@ -738,7 +737,7 @@ namespace Lyra.Node2.Services
             try
             {
                 var authorizer = new NewTokenAuthorizer(_serviceAccount, _accountCollection);
-                
+
                 result.ResultCode = authorizer.Authorize(ref tokenBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                 {
@@ -773,6 +772,11 @@ namespace Lyra.Node2.Services
                 AuthorizationsJson = Json(cr.Authorizations)
             };
             return result;
+        }
+
+        Task<APIResult> CustomizeNotifySettings(NotifySettings settings)
+        {
+            throw new NotImplementedException();
         }
 
         #region Fee processing private methods
@@ -820,7 +824,7 @@ namespace Lyra.Node2.Services
             return callresult;
         }
 
-#endregion
+        #endregion
 
         // util 
         private T FromJson<T>(string json)
@@ -900,6 +904,11 @@ namespace Lyra.Node2.Services
             throw new NotImplementedException();
         }
 
-
+        public async Task<APIResult> RequestMarket(string tokenName)
+        {
+            if(tokenName != null)
+                await NodeService.SendMarket(tokenName);
+            return new APIResult() { ResultCode = APIResultCodes.Success };
+        }
     }
 }

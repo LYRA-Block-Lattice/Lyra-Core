@@ -43,7 +43,7 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task BeginReceiveNotifyAsync(string AccountID, string Signature, Action<NotifySource, string, string> action, CancellationToken cancel)
+        public async Task BeginReceiveNotifyAsync(string AccountID, string Signature, Action<NotifySource, string, string, string> action, CancellationToken cancel)
         {
             await Task.Factory.StartNew(async () => {
                 while(true)
@@ -56,7 +56,7 @@ namespace Lyra.Core.API
                         var result = await GetNotification(AccountID, Signature);
                         if (result.ResultCode == Protos.APIResultCodes.Success && result.HasEvent)
                         {
-                            action(result.Source, result.Catalog, result.ExtraInfo);
+                            Task.Run(() => action(result.Source, result.Action, result.Catalog, result.ExtraInfo));
                         }
                     }
                     catch(Exception ex)

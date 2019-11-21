@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Exchange
 {
-    public enum DealState { Invalid, Placed, Executed, PartialExecuted, Canceled };
+    public enum DealState { Invalid, Placed, Queued, Executed, PartialExecuted, Canceled };
     public class ExchangeOrder
     {
         [BsonId]

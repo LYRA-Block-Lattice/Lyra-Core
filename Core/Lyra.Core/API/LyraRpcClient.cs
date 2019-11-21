@@ -1,4 +1,5 @@
-﻿using Grpc.Net.Client;
+﻿using Grpc.Core;
+using Grpc.Net.Client;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
@@ -339,6 +340,16 @@ namespace Lyra.Core.API
             };
             var result = await SubmitExchangeOrderAsync(request);
             return FromJson<CancelKey>(result.CancelKeyJson);
+        }
+
+        public async Task<APIResult> RequestMarket(string tokenName)
+        {
+            var request = new RequestMarketRequest()
+            {
+                TokenNames = tokenName
+            };
+            var result = await RequestMarketAsync(request);
+            return new APIResult() { ResultCode = result.ResultCode };
         }
     }
 }

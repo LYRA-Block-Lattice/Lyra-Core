@@ -141,6 +141,12 @@ namespace LyraLexWeb2
             return await _node.SubmitExchangeOrder(order);
         }
 
+        [Route("RequestMarket")]
+        public async Task<APIResult> RequestMarket(string TokenName)
+        {
+            return await _node.RequestMarket(TokenName);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

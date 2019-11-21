@@ -45,6 +45,7 @@ namespace LyraWallet.ViewModels
         public string SelectedToken { get => _selectedToken; set {
                 SetProperty(ref _selectedToken, value);
                 UpdateHoldings();
+                Task.Run(async () => await App.Container.RequestMarket(value));            
             }
         }
 
@@ -70,25 +71,30 @@ namespace LyraWallet.ViewModels
         {
             _thePage = page;
 
-            App.Container.OnExchangeOrderChanged += (catalog, extInfo) => { 
-                switch(catalog)
+            App.Container.OnExchangeOrderChanged += (act, catalog, extInfo) => {
+                if (catalog != SelectedToken)  // only show current token's order
+                    return;
+
+                switch(act)
                 {
-                    case "SellOrders":
+                    case "Orders":
+                        var orders = JsonConvert.DeserializeObject<Dictionary<string, List<KeyValuePair<Decimal, Decimal>>>>(extInfo);
+                        var sellos = orders["SellOrders"];
+                        var buyos = orders["BuyOrders"];
                         {
                             SellOrders.Clear();
-                            var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(extInfo);
-                            if (orders.Count < 10)
+                            if (sellos.Count < 10)
                             {
-                                for (int i = 0; i < 10 - orders.Count; i++)
+                                for (int i = 0; i < 10 - sellos.Count; i++)
                                 {
                                     SellOrders.Add(new KeyValuePair<String, String>("", ""));   // force alight to bottom
                                 }
                             }
-                            foreach (var order in orders)
+                            foreach (var order in sellos)
                             {
                                 SellOrders.Add(new KeyValuePair<String, String>(order.Key.ToString(), order.Value.ToString()));
                             }
-                            if (orders.Count > 0)
+                            if (sellos.Count > 0)
                             {
                                 Device.BeginInvokeOnMainThread(() =>
                                 {
@@ -96,18 +102,15 @@ namespace LyraWallet.ViewModels
                                 });
                             }
                         }
-                        break;
-                    case "BuyOrders":
                         {
                             BuyOrders.Clear();
-                            var orders = JsonConvert.DeserializeObject<List<KeyValuePair<Decimal, Decimal>>>(extInfo);
-                            foreach (var order in orders)
+                            foreach (var order in buyos)
                             {
                                 BuyOrders.Add(new KeyValuePair<String, String>(order.Key.ToString(), order.Value.ToString()));
                             }
-                            if (orders.Count < 10)
+                            if (buyos.Count < 10)
                             {
-                                for (int i = 0; i < 10 - orders.Count; i++)
+                                for (int i = 0; i < 10 - buyos.Count; i++)
                                 {
                                     BuyOrders.Add(new KeyValuePair<String, String>("", ""));   // force align to bottom
                                 }

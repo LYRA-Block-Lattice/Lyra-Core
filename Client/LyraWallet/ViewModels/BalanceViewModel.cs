@@ -77,7 +77,7 @@ namespace LyraWallet.ViewModels
         {
             _thePage = page;
             App.Container.PropertyChanged += (o, e) => OnPropertyChanged(e.PropertyName);
-            App.Container.OnBalanceChanged += async (cat, info) => await Refresh();
+            App.Container.OnBalanceChanged += async (act, cat, info) => await Refresh();
 
             Title = "Balance";
             GetLEX = false;
