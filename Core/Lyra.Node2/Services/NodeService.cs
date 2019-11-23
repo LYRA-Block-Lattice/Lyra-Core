@@ -96,6 +96,11 @@ namespace Lyra.Node2.Services
 
         public static async Task<ExchangeAccount> AddExchangeAccount(string assocaitedAccountId, string privateKey, string publicKey)
         {
+            var findResult = await _exchangeAccounts.FindAsync(a => a.AssociatedToAccountId == assocaitedAccountId);
+            var findAccount = await findResult.FirstOrDefaultAsync();
+            if (findAccount != null)
+                return findAccount;
+
             var account = new ExchangeAccount()
             {
                 AssociatedToAccountId = assocaitedAccountId,
@@ -174,6 +179,34 @@ namespace Lyra.Node2.Services
                         {
                             foreach (var matchedOrder in matchedOrders)
                             {
+                                var tradedAmount = Math.Min(matchedOrder.Order.Amount, curOrder.Order.Amount);
+                                var tradedPrice = matchedOrder.Order.Price;
+                                var lyraAmount = tradedAmount * tradedPrice;
+
+                                bool b1, b2;
+                                if (matchedOrder.Order.BuySellType == OrderType.Sell)
+                                {
+                                    b1 = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
+                                        curOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
+                                        tradedAmount);
+                                    b2 = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
+                                        matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
+                                        lyraAmount);
+                                }
+                                else   // matched order buy
+                                {
+                                    b1 = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
+                                        curOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
+                                        lyraAmount);
+                                    b2 = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
+                                        matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
+                                        tradedAmount);
+                                }
+
+                                if(!b1 || !b2)
+                                {
+                                    throw new Exception("Exchange Deal Engin Fatal Error");
+                                }
                                 // three conditions
                                 if (matchedOrder.Order.Amount < curOrder.Order.Amount)
                                 {
@@ -257,10 +290,31 @@ namespace Lyra.Node2.Services
             }
         }
 
-        private async Task DoExchange(string accounIdSellToken, Decimal tokenAmount, 
-            string accountIdBuyToken, decimal lypeAmount)
+        private async Task<bool> SendFromExchangeAccountToAnotherAsync(string fromId, string toId, string tokenName, decimal amount)
         {
-            
+            var fromResult = await _exchangeAccounts.FindAsync(a => a.Id == fromId);
+            var fromAcct = await fromResult.FirstOrDefaultAsync();
+
+            var toResult = await _exchangeAccounts.FindAsync(a => a.Id == toId);
+            var toAcct = await toResult.FirstOrDefaultAsync();
+
+            // create wallet and update balance
+            var memStor = new AccountInMemoryStorage();
+            var fromWallet = new Wallet(memStor, _config.NetworkId);
+            fromWallet.AccountName = "tmpAcct";
+            fromWallet.RestoreAccount("", fromAcct.PrivateKey);
+            fromWallet.OpenAccount("", fromWallet.AccountName);
+            var result = await fromWallet.Sync(_node);
+            if (result == APIResultCodes.Success)
+            {
+                var transb = fromWallet.GetLatestBlock();
+                if (transb != null && transb.Balances[tokenName] > amount)
+                {
+                    var ret = await fromWallet.Send(amount, toAcct.AccountId, tokenName);
+                    return ret.ResultCode == APIResultCodes.Success;
+                }
+            }
+            return false;
         }
 
         public async Task<ExchangeOrder[]> GetNewlyPlacedOrdersAsync()

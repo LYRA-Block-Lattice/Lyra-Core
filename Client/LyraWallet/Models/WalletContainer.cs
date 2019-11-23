@@ -62,7 +62,7 @@ namespace LyraWallet.Models
 
             wallet = new Wallet(new LiteAccountDatabase(), CurrentNetwork);
             wallet.AccountName = "My Account";
-            await Task.Run(() => wallet.OpenAccount(App.Container.DataStoragePath, wallet.AccountName));
+            wallet.OpenAccount(App.Container.DataStoragePath, wallet.AccountName);
 
             AccountID = wallet.AccountId;
             PrivateKey = wallet.PrivateKey;
@@ -205,7 +205,8 @@ namespace LyraWallet.Models
         public async Task CloseWallet()
         {
             await Task.Run(() => {
-                _cancel.Cancel();
+                if(_cancel != null)
+                    _cancel.Cancel();
                 if (wallet != null)
                     wallet.Dispose();
                 wallet = null;

@@ -16,7 +16,6 @@
     <AllowUnsafeBlocks></AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
     <ProjectReference Include="..\..\Externals\CommandLine\CommandLine.csproj" />
   </ItemGroup>

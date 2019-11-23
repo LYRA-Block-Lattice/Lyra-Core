@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Xamarin.Essentials;
 
 namespace Lyra.Core.API
 {
@@ -19,10 +20,15 @@ namespace Lyra.Core.API
         {
             _url = url;
 
+            var platform = DeviceInfo.Platform;
+
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
-            httpClientHandler.ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            if (platform == DevicePlatform.Android)
+            {
+                httpClientHandler.ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+            }
             _client = new HttpClient(httpClientHandler);
             _client.Timeout = new TimeSpan(0, 5, 0);        // the api will hung. long-poll
             _client.BaseAddress = new Uri(url);

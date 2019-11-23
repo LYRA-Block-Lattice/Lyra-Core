@@ -206,11 +206,19 @@ namespace LyraWallet.ViewModels
                     Price = Decimal.Parse(IsBuy ? BuyPrice : SellPrice),
                     Amount = decimal.Parse(IsBuy ? BuyAmount : SellAmount)
                 };
-                var transferToken = IsBuy ? LyraGlobal.LYRA_TICKER_CODE : order.TokenName;
-                var transferTotal = IsBuy ? order.Price * order.Amount : order.Amount;
+
+                Dictionary<string, decimal> fundsToTransfer = new Dictionary<string, decimal>();
+                if (!IsBuy)
+                {
+                    fundsToTransfer.Add(order.TokenName, order.Amount);
+                }
+                var lyraTotal = IsBuy ? order.Price * order.Amount + 1 : 1;     // fee is high
+                fundsToTransfer.Add(LyraGlobal.LYRA_TICKER_CODE, lyraTotal);
+                
                 try
                 {
-                    await App.Container.Transfer(transferToken, _exchangeAccountId, transferTotal);
+                    foreach(var kvp in fundsToTransfer)
+                        await App.Container.Transfer(kvp.Key, _exchangeAccountId, kvp.Value);
                 }
                 catch(Exception ex)
                 {

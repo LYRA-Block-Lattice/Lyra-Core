@@ -462,7 +462,7 @@ namespace Lyra.Node2.Services
             var result = new AuthorizationsReply()
             {
                 ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash,
+                ServiceHash = cr.ServiceHash ?? string.Empty,
                 AuthorizationsJson = Json(cr.Authorizations)
             };
             return result;
@@ -504,7 +504,7 @@ namespace Lyra.Node2.Services
                 var result = new AuthorizationsReply()
                 {
                     ResultCode = cr.ResultCode,
-                    ServiceHash = cr.ServiceHash,
+                    ServiceHash = cr.ServiceHash ?? string.Empty,
                     AuthorizationsJson = Json(cr.Authorizations)
                 };
                 return result;
@@ -547,7 +547,7 @@ namespace Lyra.Node2.Services
             var result = new AuthorizationsReply()
             {
                 ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash,
+                ServiceHash = cr.ServiceHash ?? string.Empty,
                 AuthorizationsJson = Json(cr.Authorizations)
             };
             return result;
@@ -603,7 +603,7 @@ namespace Lyra.Node2.Services
             var result = new AuthorizationsReply()
             {
                 ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash,
+                ServiceHash = cr.ServiceHash ?? string.Empty,
                 AuthorizationsJson = Json(cr.Authorizations)
             };
             return result;
@@ -649,7 +649,7 @@ namespace Lyra.Node2.Services
             var result = new AuthorizationsReply()
             {
                 ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash,
+                ServiceHash = cr.ServiceHash ?? string.Empty,
                 AuthorizationsJson = Json(cr.Authorizations)
             };
             return result;
@@ -696,7 +696,7 @@ namespace Lyra.Node2.Services
             var result = new AuthorizationsReply()
             {
                 ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash,
+                ServiceHash = cr.ServiceHash ?? string.Empty,
                 AuthorizationsJson = Json(cr.Authorizations)
             };
             return result;
@@ -749,7 +749,7 @@ namespace Lyra.Node2.Services
             var result = new AuthorizationsReply()
             {
                 ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash,
+                ServiceHash = cr.ServiceHash ?? string.Empty,
                 AuthorizationsJson = Json(cr.Authorizations)
             };
             return result;

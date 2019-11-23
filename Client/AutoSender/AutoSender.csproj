@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
+    <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
   </ItemGroup>
 
 </Project>
