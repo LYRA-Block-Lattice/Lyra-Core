@@ -24,7 +24,7 @@ namespace Lyra.Node2.Authorizers
 
             var block = tblock as LyraTokenGenesisBlock;
 
-            if ((block as LyraTokenGenesisBlock).Ticker != TokenGenesisBlock.LYRA_TICKER_CODE)
+            if ((block as LyraTokenGenesisBlock).Ticker != LyraGlobal.LYRA_TICKER_CODE)
                 return APIResultCodes.InvalidBlockType;
 
             // Local node validations - before it sends it out to the authorization sample:
@@ -40,7 +40,7 @@ namespace Lyra.Node2.Authorizers
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
             //if (genesis_blocks.FindTokenGenesisBlock(testTokenGenesisBlock) != null)
-            if (_accountCollection.FindTokenGenesisBlock(block.Hash, TokenGenesisBlock.LYRA_TICKER_CODE) != null)
+            if (_accountCollection.FindTokenGenesisBlock(block.Hash, LyraGlobal.LYRA_TICKER_CODE) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
             // sign with the authorizer key
@@ -48,7 +48,7 @@ namespace Lyra.Node2.Authorizers
 
             _accountCollection.AddBlock(block);
 
-            return APIResultCodes.Success;
+            return base.Authorize(ref tblock);
         }
 
         protected override APIResultCodes ValidateFee(TransactionBlock block)

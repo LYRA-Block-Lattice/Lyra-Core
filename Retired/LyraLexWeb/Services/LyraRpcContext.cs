@@ -1,5 +1,4 @@
 ﻿using Grpc.Net.Client;
-using Lyra.Client.Lib;
 using Lyra.Core.API;
 using Lyra.Core.Protos;
 using Microsoft.Extensions.Options;
@@ -29,7 +28,7 @@ namespace LyraLexWeb.Services
 
         public async Task<int> GetHeight()
         {
-            var ret = await _rpc.GetSyncHeightAsync(new Lyra.Core.Protos.SyncHeightRequest());
+            var ret = await _rpc.GetSyncHeightAsync(new SimpleRequest());
             if (ret.ResultCode == APIResultCodes.Success)
                 return ret.Height;
             else

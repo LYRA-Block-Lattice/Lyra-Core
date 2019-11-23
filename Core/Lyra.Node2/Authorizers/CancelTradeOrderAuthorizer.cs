@@ -54,7 +54,7 @@ namespace Lyra.Node2.Authorizers
 
             _TradeMatchEngine.RemoveOrder(original_order);
 
-            return APIResultCodes.Success;
+            return base.Authorize(ref tblock);
         }
 
         // The cancellation should restore the balance that was locked by the trade order.

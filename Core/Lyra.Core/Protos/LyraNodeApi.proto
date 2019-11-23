@@ -6,15 +6,15 @@ package Lyra;
 
 service LyraApi {
   rpc GetVersion (GetVersionRequest) returns (GetVersionReply);
-  rpc GetSyncHeight (SyncHeightRequest) returns (AccountHeightReply);
+  rpc GetSyncHeight (SimpleRequest) returns (AccountHeightReply);
   rpc GetTokenNames (GetTokenNamesRequest) returns (GetTokenNamesReply);
-  rpc GetAccountHeight (GetAccountHeightRequest) returns (GetAccountHeightReply);
+  rpc GetAccountHeight (StandardWalletRequest) returns (GetAccountHeightReply);
   rpc GetBlockByIndex (GetBlockByIndexRequest) returns (GetBlockReply);
   rpc GetBlockByHash (GetBlockByHashRequest) returns (GetBlockReply);
-  rpc GetNonFungibleTokens (GetNonFungibleTokensRequest) returns (GetNonFungibleTokensReply);
+  rpc GetNonFungibleTokens (StandardWalletRequest) returns (GetNonFungibleTokensReply);
   rpc GetTokenGenesisBlock (GetTokenGenesisBlockRequest) returns (GetBlockReply);
-  rpc GetLastServiceBlock (GetLastServiceBlockRequest) returns (GetBlockReply);
-  rpc LookForNewTransfer (LookForNewTransferRequest) returns (LookForNewTransferReply);
+  rpc GetLastServiceBlock (StandardWalletRequest) returns (GetBlockReply);
+  rpc LookForNewTransfer (StandardWalletRequest) returns (LookForNewTransferReply);
   rpc OpenAccountWithGenesis (OpenAccountWithGenesisRequest) returns (AuthorizationsReply);
   rpc ReceiveTransferAndOpenAccount (ReceiveTransferAndOpenAccountRequest) returns (AuthorizationsReply);
   rpc OpenAccountWithImport (OpenAccountWithImportRequest) returns (AuthorizationsReply);
@@ -22,22 +22,48 @@ service LyraApi {
   rpc ReceiveTransfer (ReceiveTransferRequest) returns (AuthorizationsReply);
   rpc ImportAccount (ImportAccountRequest) returns (AuthorizationsReply);
   rpc CreateToken (CreateTokenRequest) returns (AuthorizationsReply);
+  rpc CreateExchangeAccount (StandardWalletRequest) returns (ExchangeAccountReply);
+  rpc CloseExchangeAccount (StandardWalletRequest) returns (ExchangeAccountReply);
   rpc SubmitExchangeOrder (SubmitExchangeOrderRequest) returns (SubmitExchangeOrderReply);
+  rpc CancelExchangeOrder (CancelExchangeOrderRequest) returns (SimpleAPIReply);
   rpc RequestMarket (RequestMarketRequest) returns (SimpleAPIReply);
-  rpc GetOrdersForAccount (GetOrdersForAccountRequest) returns (SimpleJsonAPIReply);
+  rpc GetOrdersForAccount (StandardWalletRequest) returns (SimpleJsonAPIReply);
   rpc CustomizeNotifySettings (CustomizeNotifySettingsRequest) returns (CustomizeNotifySettingsReply);
 
 }
 
-message GetVersionRequest
-{
+// generic req/resp
+message SimpleRequest {
+
+}
+
+message SimpleAPIReply {
+	APIResultCodes ResultCode = 1;
+}
+
+message StandardWalletRequest {
+	string AccountId = 1;
+	string Signature = 2;
+}
+
+message SimpleJsonRequest{
+	string JsonStr = 1;
+}
+
+message SimpleJsonAPIReply {
+	APIResultCodes ResultCode = 1;
+	string JsonStr = 2;
+}
+
+
+// GetVersion
+message GetVersionRequest{
 	int32 ApiVersion = 1;
 	string AppName = 2;
 	string Appversion = 3;
 }
 
-message GetVersionReply
-{
+message GetVersionReply{
 	APIResultCodes ResultCode = 1;
 	int32 ApiVersion = 2;
 	string NodeVersion = 3;
@@ -46,10 +72,6 @@ message GetVersionReply
 }
 
 // GetSyncHeight
-message SyncHeightRequest {
-  
-}
-
 message AccountHeightReply {
 	APIResultCodes ResultCode = 1;
 	int32 Height = 2;
@@ -58,28 +80,19 @@ message AccountHeightReply {
 }
 
 // GetTokenNames
-message GetTokenNamesRequest
-{
+message GetTokenNamesRequest{
 	string AccountId = 1;
 	string Signature = 2;
 	string Keyword = 3;
 }
 
-message GetTokenNamesReply
-{
+message GetTokenNamesReply{
 	APIResultCodes ResultCode = 1;
 	repeated string TokenNames = 2;
 }
 
 // GetAccountHeight
-message GetAccountHeightRequest
-{
-	string AccountId = 1;
-	string Signature = 2;
-}
-
-message GetAccountHeightReply
-{
+message GetAccountHeightReply{
 	APIResultCodes ResultCode = 1;
 	int32 Height = 2;
 	string NetworkId = 3;
@@ -87,65 +100,42 @@ message GetAccountHeightReply
 }
 
 // GetBlockByIndex
-message GetBlockByIndexRequest
-{
+message GetBlockByIndexRequest{
 	string AccountId = 1;
 	string Signature = 2;
 	int32 Index = 3;
 }
 
-message GetBlockReply
-{
+message GetBlockReply{
 	APIResultCodes ResultCode = 1;
 	BlockTypes ResultBlockType = 2;
 	string BlockData = 3;	
 }
 
 // GetBlockByHash
-message GetBlockByHashRequest
-{
+message GetBlockByHashRequest{
 	string AccountId = 1;
 	string Signature = 2;
 	string Hash = 3;
 }
 
 // GetNonFungibleTokens
-message GetNonFungibleTokensRequest
-{
-	string AccountId = 1;
-	string Signature = 2;
-}
-
-message GetNonFungibleTokensReply
-{
+message GetNonFungibleTokensReply{
 	APIResultCodes ResultCode = 1;
 	string ListDataSerialized = 2;
 }
 
 // GetTokenGenesisBlock
-message GetTokenGenesisBlockRequest
-{
+message GetTokenGenesisBlockRequest{
 	string AccountId = 1;
 	string Signature = 2;
 	string TokenTicker = 3;
 }
 
 // GetLastServiceBlock
-message GetLastServiceBlockRequest
-{
-	string AccountId = 1;
-	string Signature = 2;
-}
-
 // LookForNewTransfer
-message LookForNewTransferRequest
-{
-	string AccountId = 1;
-	string Signature = 2;
-}
 
-message LookForNewTransferReply
-{
+message LookForNewTransferReply{
 	APIResultCodes ResultCode = 1;
 	string TransferJson = 2;
 	string SourceHash = 3;
@@ -153,97 +143,84 @@ message LookForNewTransferReply
 }
 
 // OpenAccountWithGenesis
-message OpenAccountWithGenesisRequest
-{
+message OpenAccountWithGenesisRequest{
 	string OpenTokenGenesisBlockJson = 1;
 }
 
-message AuthorizationsReply
-{
+message AuthorizationsReply{
 	APIResultCodes ResultCode = 1;
 	string ServiceHash = 2;
 	string AuthorizationsJson = 3; 
 }
 
 // ReceiveTransferAndOpenAccount
-message ReceiveTransferAndOpenAccountRequest
-{
+message ReceiveTransferAndOpenAccountRequest{
 	string OpenReceiveBlockJson = 1;
 }
 
 // OpenAccountWithImport
-message OpenAccountWithImportRequest
-{
+message OpenAccountWithImportRequest{
 	string BlockJson = 1;
 }
 
 // SendTransfer
-message SendTransferRequest
-{
+message SendTransferRequest{
 	string SendBlockJson = 1;
 }
 
 // ReceiveTransfer
-message ReceiveTransferRequest
-{
+message ReceiveTransferRequest{
 	string ReceiveBlockJson = 1;
 }
 
 // ImportAccount
-message ImportAccountRequest
-{
+message ImportAccountRequest{
 	string ImportBlockJson = 1;
 }
 
 // CreateToken
-message CreateTokenRequest
-{
+message CreateTokenRequest{
 	string CreateTokenJson = 1;
 }
 
+// DEX
+// CreateExchangeAccount
+message ExchangeAccountReply{
+	APIResultCodes ResultCode = 1;
+	string AccountId = 2;
+}
+// CloseExchangeAccount
+
 // SubmitExchangeOrder(TokenTradeOrder order)
-message SubmitExchangeOrderRequest
-{
+message SubmitExchangeOrderRequest{
 	string TokenTradeOrderJson = 1;
 }
 
-message SubmitExchangeOrderReply
-{
+message SubmitExchangeOrderReply{
 	APIResultCodes ResultCode = 1;
 	string CancelKeyJson = 2;
 }
 
+// CancelExchangeOrder
+message CancelExchangeOrderRequest{
+	string AccountId = 1;
+	string Signature = 2;
+	string CancelKey = 3;
+}
+
 // RequestMarket
-message RequestMarketRequest
-{
+message RequestMarketRequest{
 	string TokenNames = 1;
 }
 
-message SimpleAPIReply
-{
-	APIResultCodes ResultCode = 1;
-}
+
 
 // GetOrdersForAccount
-message GetOrdersForAccountRequest
-{
-	string AccountId = 1;
-	string Signature = 2;
-}
-
-message SimpleJsonAPIReply
-{
-	APIResultCodes ResultCode = 1;
-	string JsonStr = 2;
-}
-
-message CustomizeNotifySettingsRequest
-{
+message CustomizeNotifySettingsRequest{
 	string settingsJson = 1;
 }
 
-message CustomizeNotifySettingsReply
-{
+message CustomizeNotifySettingsReply{
 	APIResultCodes ResultCode = 1;
 }
 

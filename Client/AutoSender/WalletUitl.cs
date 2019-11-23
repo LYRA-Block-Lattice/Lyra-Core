@@ -1,5 +1,5 @@
 ﻿using Grpc.Net.Client;
-using Lyra.Client.Lib;
+using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.LiteDB;
 using Lyra.Core.Protos;

@@ -1,7 +1,7 @@
 ﻿
 namespace Lyra.Exchange
 {
-    public enum OrderState { Placed, Executed, PartialExecuted, BadOrder }
+    public enum OrderState { Placed, Executed, PartialExecuted, InsufficientFunds, BadOrder }
     public class CancelKey
     {
         public OrderState State { get; set; }

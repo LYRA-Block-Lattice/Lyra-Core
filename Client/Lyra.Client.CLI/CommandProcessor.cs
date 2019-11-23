@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Lyra.Client.Lib;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 
@@ -8,6 +7,7 @@ using Lyra.Core.API;
 
 using System.Threading.Tasks;
 using Lyra.Core.Protos;
+using Lyra.Core.Accounts;
 
 namespace Lyra.Client.CLI
 {
@@ -161,7 +161,7 @@ namespace Lyra.Client.CLI
         {
             var orderType = TradeOrderTypes.Sell;
             var sell_token = "USD";
-            var buy_token = TokenGenesisBlock.LYRA_TICKER_CODE;
+            var buy_token = LyraGlobal.LYRA_TICKER_CODE;
             var max_amount = 5;
             var price = 10;
             var result = _wallet.TradeOrder(orderType, sell_token, buy_token, max_amount, 0, price, true, true).Result;
@@ -173,7 +173,7 @@ namespace Lyra.Client.CLI
         {
             var orderType = TradeOrderTypes.Buy;
             var buy_token = "USD";
-            var sell_token = TokenGenesisBlock.LYRA_TICKER_CODE;
+            var sell_token = LyraGlobal.LYRA_TICKER_CODE;
             var max_amount = 5;
             var price = 10;
             var result = _wallet.TradeOrder(orderType, sell_token, buy_token, max_amount, 0, price, false, false).Result;
@@ -284,7 +284,7 @@ namespace Lyra.Client.CLI
             string ticker = null;
             if (_wallet.NumberOfNonZeroBalances > 1)
             {
-                Console.WriteLine(string.Format("Please select token to send, or press Enter for {0}: ", TokenGenesisBlock.LYRA_TICKER_CODE));
+                Console.WriteLine(string.Format("Please select token to send, or press Enter for {0}: ", LyraGlobal.LYRA_TICKER_CODE));
                 ticker = Console.ReadLine();
 
             }

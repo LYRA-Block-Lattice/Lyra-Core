@@ -44,7 +44,7 @@ namespace Lyra.Node2.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            //if (lastBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] <= block.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] + block.Fee)
+            //if (lastBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] <= block.Balances[LyraGlobal.LYRA_TICKER_CODE] + block.Fee)
             //    return AuthorizationResultCodes.NegativeTransactionAmount;
 
             // Validate the destination account id (should be empty)
@@ -85,8 +85,7 @@ namespace Lyra.Node2.Authorizers
 
             _TradeMatchEngine.AddOrder(block);
 
-            return APIResultCodes.Success;
-
+            return base.Authorize(ref tblock);
         }
 
         protected override APIResultCodes ValidateFee(TransactionBlock block)
@@ -115,7 +114,7 @@ namespace Lyra.Node2.Authorizers
                 if (block.AnotherTraderWillCoverFee)
                     reference_fee = 0;
 
-            if (block.SellTokenCode == TokenGenesisBlock.LYRA_TICKER_CODE)
+            if (block.SellTokenCode == LyraGlobal.LYRA_TICKER_CODE)
                 balance_change += reference_fee;
 
             if (transaction.Amount != balance_change)
@@ -151,7 +150,7 @@ namespace Lyra.Node2.Authorizers
             if (block.AnotherTraderWillCoverFee)
                 reference_fee = 0;
 
-            if (block.SellTokenCode == TokenGenesisBlock.LYRA_TICKER_CODE)
+            if (block.SellTokenCode == LyraGlobal.LYRA_TICKER_CODE)
                 balance_change += reference_fee;
 
             if (transaction.TotalBalanceChange != balance_change)

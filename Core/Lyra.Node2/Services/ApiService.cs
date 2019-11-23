@@ -4,6 +4,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
 using Lyra.Core.Blocks.Transactions;
+using Lyra.Core.Cryptography;
 using Lyra.Core.Protos;
 using Lyra.Exchange;
 using Lyra.Node2.Authorizers;
@@ -84,7 +85,7 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<AccountHeightReply> GetSyncHeight(SyncHeightRequest request, ServerCallContext context)
+        public override async Task<AccountHeightReply> GetSyncHeight(SimpleRequest request, ServerCallContext context)
         {
             var cr = await GetSyncHeight();
             var result = new AccountHeightReply()
@@ -160,7 +161,7 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetAccountHeightReply> GetAccountHeight(GetAccountHeightRequest request, ServerCallContext context)
+        public override async Task<GetAccountHeightReply> GetAccountHeight(StandardWalletRequest request, ServerCallContext context)
         {
             var cr = await GetAccountHeight(request.AccountId, request.Signature);
             var result = new GetAccountHeightReply()
@@ -284,7 +285,7 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetNonFungibleTokensReply> GetNonFungibleTokens(GetNonFungibleTokensRequest request, ServerCallContext context)
+        public override async Task<GetNonFungibleTokensReply> GetNonFungibleTokens(StandardWalletRequest request, ServerCallContext context)
         {
             var cr = await GetNonFungibleTokens(request.AccountId, request.Signature);
             var result = new GetNonFungibleTokensReply()
@@ -363,7 +364,7 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetBlockReply> GetLastServiceBlock(GetLastServiceBlockRequest request, ServerCallContext context)
+        public override async Task<GetBlockReply> GetLastServiceBlock(StandardWalletRequest request, ServerCallContext context)
         {
             var cr = await GetLastServiceBlock(request.AccountId, request.Signature);
             var result = new GetBlockReply()
@@ -405,7 +406,7 @@ namespace Lyra.Node2.Services
             return Task.FromResult(transfer_info);
         }
 
-        public override async Task<LookForNewTransferReply> LookForNewTransfer(LookForNewTransferRequest request, ServerCallContext context)
+        public override async Task<LookForNewTransferReply> LookForNewTransfer(StandardWalletRequest request, ServerCallContext context)
         {
             var cr = await LookForNewTransfer(request.AccountId, request.Signature);
             LookForNewTransferReply transfer_info = new LookForNewTransferReply()
@@ -692,35 +693,6 @@ namespace Lyra.Node2.Services
             return result;
         }
 
-        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder reqOrder)
-        {
-            CancelKey key;
-            if (!reqOrder.VerifySignature(reqOrder.AccountID))
-            {
-                key = new CancelKey() { Key = string.Empty, State = OrderState.BadOrder };
-            }
-            else
-            {
-                // check order validation
-                if (reqOrder.TokenName == null ||
-                    reqOrder.Price <= 0 || reqOrder.Amount <= 0)
-                    return new CancelKey() { State = OrderState.BadOrder };
-
-                key = await NodeService.AddOrderAsync(reqOrder);
-            }
-            return key;
-        }
-
-        public override async Task<SubmitExchangeOrderReply> SubmitExchangeOrder(SubmitExchangeOrderRequest request, ServerCallContext context)
-        {
-            var order = FromJson<TokenTradeOrder>(request.TokenTradeOrderJson);
-            var cr = await SubmitExchangeOrder(order);
-            var result = new SubmitExchangeOrderReply()
-            {
-                CancelKeyJson = Json(cr)
-            };
-            return result;
-        }
 
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
         {
@@ -774,6 +746,87 @@ namespace Lyra.Node2.Services
             return result;
         }
 
+        public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
+        {
+            var walletPrivateKey = Signatures.GeneratePrivateKey();
+            var walletAccountId = Signatures.GetAccountIdFromPrivateKey(walletPrivateKey);
+            // store to database
+            await NodeService.AddExchangeAccount(AccountId, walletPrivateKey, walletAccountId);
+
+            var result = new ExchangeAccountAPIResult()
+            {
+                ResultCode = APIResultCodes.Success,
+                AccountId = walletAccountId
+            };
+            return result;            
+        }
+
+        public override async Task<ExchangeAccountReply> CreateExchangeAccount(StandardWalletRequest request, ServerCallContext context)
+        {
+            var cr = await CreateExchangeAccount(request.AccountId, request.Signature);
+            var result = new ExchangeAccountReply()
+            {
+                ResultCode = cr.ResultCode,
+                AccountId = cr.AccountId
+            };
+            return result;
+        }
+
+        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder reqOrder)
+        {
+            CancelKey key;
+            if (!reqOrder.VerifySignature(reqOrder.AccountID)
+                || reqOrder.TokenName == null 
+                || reqOrder.Price <= 0 
+                || reqOrder.Amount <= 0)
+            {
+                key = new CancelKey() { Key = string.Empty, State = OrderState.BadOrder };
+                return key;
+            }
+
+            // verify the balance. 
+            var acct = await NodeService.GetExchangeAccount(reqOrder.AccountID, true);
+            if(acct == null)
+            {
+                return new CancelKey() { Key = string.Empty, State = OrderState.BadOrder };
+            }
+
+            if (reqOrder.BuySellType == OrderType.Sell)
+            {                
+                if(acct.Balance.ContainsKey(reqOrder.TokenName) && acct.Balance[reqOrder.TokenName] < reqOrder.Amount)
+                    return new CancelKey() { Key = string.Empty, State = OrderState.InsufficientFunds };
+            }
+            else
+            {
+                // buy order
+                if(acct.Balance.ContainsKey(LyraGlobal.LYRA_TICKER_CODE) && acct.Balance[LyraGlobal.LYRA_TICKER_CODE] < reqOrder.Amount * reqOrder.Price)
+                    return new CancelKey() { Key = string.Empty, State = OrderState.InsufficientFunds };
+            }
+                
+            return await NodeService.AddOrderAsync(acct, reqOrder);
+        }
+
+        public override async Task<SubmitExchangeOrderReply> SubmitExchangeOrder(SubmitExchangeOrderRequest request, ServerCallContext context)
+        {
+            var order = FromJson<TokenTradeOrder>(request.TokenTradeOrderJson);
+            var cr = await SubmitExchangeOrder(order);
+            var result = new SubmitExchangeOrderReply()
+            {
+                CancelKeyJson = Json(cr)
+            };
+            return result;
+        }
+
+        public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
         Task<APIResult> CustomizeNotifySettings(NotifySettings settings)
         {
             throw new NotImplementedException();
@@ -812,8 +865,8 @@ namespace Lyra.Node2.Services
             };
 
             TransactionBlock latestBlock = _accountCollection.FindLatestBlock(_serviceAccount.AccountId);
-            decimal newBalance = latestBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] + fee;
-            receiveBlock.Balances.Add(TokenGenesisBlock.LYRA_TICKER_CODE, newBalance);
+            decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
+            receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
             receiveBlock.InitializeBlock(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
 
             //receiveBlock.Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, receiveBlock.Hash);
@@ -915,5 +968,7 @@ namespace Lyra.Node2.Services
         {
             return await NodeService.GetOrdersForAccount(AccountId);
         }
+
+
     }
 }

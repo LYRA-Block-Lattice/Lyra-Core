@@ -4,7 +4,6 @@ using System.Windows.Input;
 using Xamarin.Forms;
 using LyraWallet.Services;
 
-using Lyra.Client.Lib;
 using LyraWallet.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,6 +12,7 @@ using System.Linq;
 using System.IO;
 using ZXing.Net.Mobile.Forms;
 using Lyra.Core.Blocks.Transactions;
+using Lyra.Core.API;
 
 namespace LyraWallet.ViewModels
 {
@@ -128,7 +128,7 @@ namespace LyraWallet.ViewModels
                             }
                             else if (lyraUri.PathAndQuery.StartsWith("/payme"))
                             {
-                                var transPage = new TransferPage(TokenGenesisBlock.LYRA_TICKER_CODE,
+                                var transPage = new TransferPage(LyraGlobal.LYRA_TICKER_CODE,
                                     lyraUri.AccountID);
                                 await _thePage.Navigation.PushAsync(transPage);
                                 return;

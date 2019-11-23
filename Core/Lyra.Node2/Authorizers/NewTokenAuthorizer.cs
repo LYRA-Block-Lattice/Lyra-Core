@@ -44,7 +44,7 @@ namespace Lyra.Node2.Authorizers
                 return result;
 
             // check LYR balance
-            if (lastBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] != block.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] + block.Fee)
+            if (lastBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] != block.Balances[LyraGlobal.LYRA_TICKER_CODE] + block.Fee)
                 return APIResultCodes.InvalidNewAccountBalance;
 
             // check if this token already exists
@@ -70,7 +70,7 @@ namespace Lyra.Node2.Authorizers
 
             _accountCollection.AddBlock(block);
 
-            return APIResultCodes.Success;
+            return base.Authorize(ref tblock);
 
 
         }

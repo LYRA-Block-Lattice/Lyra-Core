@@ -46,6 +46,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
-    <ProjectReference Include="..\..\Node\Lyra.Node\Lyra.Node.csproj" />
+    <ProjectReference Include="..\..\Core\Lyra.Node2\Lyra.Node2.csproj" />
   </ItemGroup>
 </Project>

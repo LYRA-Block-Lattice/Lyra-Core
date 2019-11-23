@@ -60,7 +60,7 @@ namespace Lyra.Node2.Authorizers
 
             _accountCollection.AddBlock(block);
 
-            return APIResultCodes.Success;
+            return base.Authorize(ref tblock);
         }
 
         protected override APIResultCodes ValidateFee(TransactionBlock block)
@@ -102,12 +102,12 @@ namespace Lyra.Node2.Authorizers
                     return APIResultCodes.SendTransactionValidationFailed;
                 //originallySentAmount = sendTransaction.Amount;
                 //originallySentAmount = 
-                //    prevToSendBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] - sourceBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] - (sourceBlock as IFeebleBlock).Fee;
+                //    prevToSendBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - sourceBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - (sourceBlock as IFeebleBlock).Fee;
             }
             else
             if (block.BlockType == BlockTypes.ReceiveFee || block.BlockType == BlockTypes.OpenAccountWithReceiveFee)
             {
-                sendTransaction = new TransactionInfo() { TokenCode = TokenGenesisBlock.LYRA_TICKER_CODE, Amount = sourceBlock.Fee };
+                sendTransaction = new TransactionInfo() { TokenCode = LyraGlobal.LYRA_TICKER_CODE, Amount = sourceBlock.Fee };
             }
             else
                 return APIResultCodes.InvalidBlockType;

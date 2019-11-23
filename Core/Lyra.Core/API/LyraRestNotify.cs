@@ -49,7 +49,7 @@ namespace Lyra.Core.API
                 while(true)
                 {
                     if (cancel.IsCancellationRequested)
-                        return;
+                        break;
 
                     try
                     {
@@ -61,7 +61,7 @@ namespace Lyra.Core.API
                     }
                     catch(Exception ex)
                     {
-                        await Task.Delay(5000);
+                        //await Task.Delay(5000);
                     }
                 }
             }, cancel);

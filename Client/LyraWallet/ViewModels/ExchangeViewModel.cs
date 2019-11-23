@@ -1,4 +1,5 @@
-﻿using Lyra.Exchange;
+﻿using Lyra.Core.API;
+using Lyra.Exchange;
 using LyraWallet.Models;
 using LyraWallet.Views;
 using Microsoft.AspNetCore.Http.Connections;
@@ -43,13 +44,16 @@ namespace LyraWallet.ViewModels
         public string TargetTokenBalance { get => _targetTokenBalance; set => SetProperty(ref _targetTokenBalance, value); }
         public string LeXBalance { get => _lexBalance; set => SetProperty(ref _lexBalance, value); }
         public string SelectedToken { get => _selectedToken; set {
-                SetProperty(ref _selectedToken, value);                
-                Task.Run(async () =>
+                if(_selectedToken != value)
                 {
-                    UpdateHoldings();
-                    await GetMyOrders();
-                    await App.Container.RequestMarket(value);
-                });
+                    SetProperty(ref _selectedToken, value);
+                    Task.Run(async () =>
+                    {
+                        UpdateHoldings();
+                        await GetMyOrders();
+                        await App.Container.RequestMarket(value);
+                    });
+                }
             }
         }
 
@@ -71,6 +75,9 @@ namespace LyraWallet.ViewModels
         public string SellAmount { get => _sellAmount; set => SetProperty(ref _sellAmount, value); }
 
         ExchangeViewPage _thePage;
+
+        private string _exchangeAccountId;
+
         public ExchangeViewModel(ExchangeViewPage page)
         {
             _thePage = page;
@@ -133,7 +140,8 @@ namespace LyraWallet.ViewModels
             MessagingCenter.Subscribe<BalanceViewModel>(
                 this, MessengerKeys.BalanceRefreshed, async (sender) =>
                 {
-                    await Touch();
+                    if(TokenList == null || TokenList.Count == 0)
+                        TokenList = await App.Container.GetTokens(FilterKeyword);
                     UpdateHoldings();
                 });
 
@@ -151,18 +159,43 @@ namespace LyraWallet.ViewModels
 
         private async Task GetMyOrders()
         {
-            var myorders = await App.Container.GetOrdersForAccount(App.Container.AccountID);
-            MyOrders.Clear();
-            foreach (var key in myorders.Where(a => a.Order.TokenName == SelectedToken))
+            try
             {
-                MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
-                    key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
+                var myorders = await App.Container.GetOrdersForAccount(App.Container.AccountID);
+                MyOrders.Clear();
+                foreach (var key in myorders.Where(a => a.Order.TokenName == SelectedToken))
+                {
+                    MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
+                        key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
+                }
+            }
+            catch(Exception ex)
+            {
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    _thePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: {ex.Message}", "OK");
+                });
             }
         }
         private async Task SubmitOrder(bool IsBuy)
         {
             try
             {
+                // first check exchange account
+                if(_exchangeAccountId == null)
+                {
+                    _exchangeAccountId = await App.Container.GetExchangeAccountId();
+                }
+
+                if (_exchangeAccountId == null)
+                {
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        _thePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: Can't create exchange account.", "OK");
+                    });
+                    return;
+                }
+
                 TokenTradeOrder order = new TokenTradeOrder()
                 {
                     CreatedTime = DateTime.Now,
@@ -173,6 +206,21 @@ namespace LyraWallet.ViewModels
                     Price = Decimal.Parse(IsBuy ? BuyPrice : SellPrice),
                     Amount = decimal.Parse(IsBuy ? BuyAmount : SellAmount)
                 };
+                var transferToken = IsBuy ? LyraGlobal.LYRA_TICKER_CODE : order.TokenName;
+                var transferTotal = IsBuy ? order.Price * order.Amount : order.Amount;
+                try
+                {
+                    await App.Container.Transfer(transferToken, _exchangeAccountId, transferTotal);
+                }
+                catch(Exception ex)
+                {
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        _thePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: Can't transfer funds to exchange account: {ex.Message}", "OK");
+                    });
+                    return;
+                }
+
                 order.Sign(App.Container.PrivateKey);
                 var key = await App.Container.SubmitExchangeOrderAsync(order);
                 // this is fake. just make a illusion.
@@ -210,18 +258,6 @@ namespace LyraWallet.ViewModels
                         TargetTokenBalance = $"Holdding {SelectedToken}: 0";
                     }
                 }
-            }
-        }
-
-        internal async Task Touch()
-        {
-            try
-            {
-                TokenList = await App.Container.GetTokens(FilterKeyword);
-            }
-            catch(Exception ex)
-            {
-                //TokenList = new List<string>() { ex.Message };
             }
         }
     }

@@ -36,7 +36,7 @@ namespace Lyra.Node2.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            //if (lastBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] <= block.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] + block.Fee)
+            //if (lastBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] <= block.Balances[LyraGlobal.LYRA_TICKER_CODE] + block.Fee)
             //    return AuthorizationResultCodes.NegativeTransactionAmount;
 
             // Validate the destination account id
@@ -58,7 +58,7 @@ namespace Lyra.Node2.Authorizers
 
             _accountCollection.AddBlock(block);
 
-            return APIResultCodes.Success;
+            return base.Authorize(ref tblock);
         }
 
         protected override APIResultCodes ValidateFee(TransactionBlock block)

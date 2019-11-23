@@ -6,6 +6,9 @@ namespace Lyra.Core.API
 {
     public class LyraGlobal
     {
+        public const string LYRA_TICKER_CODE = "Lyra.LeX";
+        public const int LYRA_PRECISION = 8;
+
         public static readonly int APIVERSION = 2;
         public static readonly string NodeVersion = "LyraLex 1.0";
 #if DEBUG

@@ -134,6 +134,12 @@ namespace LyraLexWeb2
             return await _node.CreateToken(tokenBlock);
         }
 
+        [Route("CreateExchangeAccount")]
+        public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
+        {
+            return await _node.CreateExchangeAccount(AccountId, Signature);
+        }
+
         [Route("SubmitExchangeOrder")]
         [HttpPost]
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)

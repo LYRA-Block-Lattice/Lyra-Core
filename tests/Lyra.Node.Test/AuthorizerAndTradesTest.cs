@@ -1,16 +1,14 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Lyra.Node.Authorizers;
-using Lyra.Core.LiteDB;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 
 using Lyra.Core.Cryptography;
-using Lyra.Core.API;
 using Lyra.Core.Accounts;
 using Lyra.Core.Accounts.Node;
 using System;
 using System.Collections.Generic;
+using Lyra.Core.Protos;
+using Lyra.Node2.Authorizers;
 
 
 // The test script:

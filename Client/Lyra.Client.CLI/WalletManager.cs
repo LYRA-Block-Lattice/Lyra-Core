@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Lyra.Client.Lib;
 using Lyra.Core.Blocks;
 using Lyra.Core.Accounts;
 
@@ -35,15 +34,15 @@ namespace Lyra.Client.CLI
             bool WEB = options.Protocol == Options.WEBAPI_PROTOCOL;
 
             Wallet wallet;
-            //if (INMEMORY)
-            //{
-            //    var inmemory_storage = new AccountInMemoryStorage();
-            //    wallet = new Wallet(inmemory_storage, network_id);
-            //}
-            //else
-            //{
+            if (INMEMORY)
+            {
+                var inmemory_storage = new AccountInMemoryStorage();
+                wallet = new Wallet(inmemory_storage, network_id);
+            }
+            else
+            {
                 wallet = new Wallet(new LiteAccountDatabase(), network_id);
-            //}
+            }
 
             string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + network_id);
             if (!Directory.Exists(lyra_folder))

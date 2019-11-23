@@ -68,7 +68,7 @@
 //                return result;
 
 //            // check LYR balance
-//            if (lastBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] != tokenBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] + tokenBlock.Fee)
+//            if (lastBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] != tokenBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + tokenBlock.Fee)
 //                return APIResultCodes.InvalidNewAccountBalance;
 
 //            // check if this token already exists
@@ -100,7 +100,7 @@
 //            if (result != APIResultCodes.Success)
 //                return result;
 
-//            //if (lastBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] <= block.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] + block.Fee)
+//            //if (lastBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] <= block.Balances[LyraGlobal.LYRA_TICKER_CODE] + block.Fee)
 //            //    return AuthorizationResultCodes.NegativeTransactionAmount;
 
 //            // Validate the destination account id
@@ -164,7 +164,7 @@
 //            if (result != APIResultCodes.Success)
 //                return result;
 
-//            //if (lastBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] > block.Balances[TokenGenesisBlock.LYRA_TICKER_CODE])
+//            //if (lastBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] > block.Balances[LyraGlobal.LYRA_TICKER_CODE])
 //            //    return AuthorizationResultCodes.NegativeTransactionAmount;
 
 //            result = VerifyTransactionBlock(block);
@@ -211,12 +211,12 @@
 //                    return APIResultCodes.SendTransactionValidationFailed;
 //                //originallySentAmount = sendTransaction.Amount;
 //                //originallySentAmount = 
-//                //    prevToSendBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] - sourceBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] - (sourceBlock as IFeebleBlock).Fee;
+//                //    prevToSendBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - sourceBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - (sourceBlock as IFeebleBlock).Fee;
 //            }
 //            else
 //            if (block.BlockType == BlockTypes.ReceiveFee || block.BlockType == BlockTypes.OpenWithReceiveFee)
 //            {
-//                sendTransaction = new TransactionInfo() { TokenCode = TokenGenesisBlock.LYRA_TICKER_CODE, Amount = (sourceBlock as IFeebleBlock).Fee };
+//                sendTransaction = new TransactionInfo() { TokenCode = LyraGlobal.LYRA_TICKER_CODE, Amount = (sourceBlock as IFeebleBlock).Fee };
 //            }
 //            else
 //                return APIResultCodes.InvalidBlockType;

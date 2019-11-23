@@ -103,7 +103,7 @@ namespace Lyra.Core.API
 
         async Task<AccountHeightAPIResult> INodeAPI.GetAccountHeight(string AccountId, string Signature)
         {
-            var request = new GetAccountHeightRequest()
+            var request = new StandardWalletRequest()
             {
                 AccountId = AccountId,
                 Signature = Signature
@@ -162,7 +162,7 @@ namespace Lyra.Core.API
 
         async Task<BlockAPIResult> INodeAPI.GetLastServiceBlock(string AccountId, string Signature)
         {
-            var reqGetLSB = new GetLastServiceBlockRequest()
+            var reqGetLSB = new StandardWalletRequest()
             {
                 AccountId = AccountId,
                 Signature = Signature
@@ -185,7 +185,7 @@ namespace Lyra.Core.API
 
         async Task<AccountHeightAPIResult> INodeAPI.GetSyncHeight()
         {
-            var request = new SyncHeightRequest();
+            var request = new SimpleRequest();
             var result = await GetSyncHeightAsync(request);
             var ret = new AccountHeightAPIResult()
             {
@@ -244,7 +244,7 @@ namespace Lyra.Core.API
 
         async Task<NewTransferAPIResult> INodeAPI.LookForNewTransfer(string AccountId, string Signature)
         {
-            var request = new LookForNewTransferRequest()
+            var request = new StandardWalletRequest()
             {
                 AccountId = AccountId,
                 Signature = Signature
@@ -354,13 +354,28 @@ namespace Lyra.Core.API
 
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
-            var request = new GetOrdersForAccountRequest()
+            var request = new StandardWalletRequest()
             {
                 AccountId = AccountId,
                 Signature = Signature
             };
             var result = await GetOrdersForAccountAsync(request);
             return FromJson<List<ExchangeOrder>>(result.JsonStr);
+        }
+
+        public Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
         }
     }
 }

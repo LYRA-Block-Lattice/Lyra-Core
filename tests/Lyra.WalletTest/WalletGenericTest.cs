@@ -5,7 +5,6 @@ using System;
 using Lyra.Client.Lib;
 using Lyra.Client.InMemory;
 using Lyra.Core.API;
-using Lyra.Client.RPC;
 using Lyra.Core.Blocks;
 
 

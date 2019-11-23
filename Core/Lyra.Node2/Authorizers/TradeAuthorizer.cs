@@ -39,7 +39,7 @@ namespace Lyra.Node2.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            //if (lastBlock.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] <= block.Balances[TokenGenesisBlock.LYRA_TICKER_CODE] + block.Fee)
+            //if (lastBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] <= block.Balances[LyraGlobal.LYRA_TICKER_CODE] + block.Fee)
             //    return AuthorizationResultCodes.NegativeTransactionAmount;
 
             // Validate the destination account id
@@ -74,7 +74,7 @@ namespace Lyra.Node2.Authorizers
             if (original_order.MaxQuantity == 1)
                 _TradeMatchEngine.RemoveOrder(original_order);
 
-            return APIResultCodes.Success;
+            return base.Authorize(ref tblock);
 
         }
 

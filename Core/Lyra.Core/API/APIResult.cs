@@ -205,6 +205,11 @@ namespace Lyra.Core.API
         public bool MustUpgradeToConnect { get; set; }        
     }
 
+    public class ExchangeAccountAPIResult : APIResult
+    {
+        public string AccountId { get; set; }
+    }
+
     public enum NotifySource { None, System, Balance, Dex, DShop, DPay };
     public class GetNotificationAPIResult : APIResult
     {

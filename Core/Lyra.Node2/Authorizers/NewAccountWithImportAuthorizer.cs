@@ -48,7 +48,7 @@ namespace Lyra.Node2.Authorizers
 
             _accountCollection.AddBlock(block);
 
-            return APIResultCodes.Success;
+            return base.Authorize(ref tblock);
         }
     }
 }

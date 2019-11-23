@@ -82,7 +82,7 @@ namespace Lyra.Node2.Authorizers
             //if (trade_order.MaxQuantity == 1)
             //    _TradeMatchEngine.RemoveOrder(trade_order);
 
-            return APIResultCodes.Success;
+            return base.Authorize(ref tblock);
 
         }
 

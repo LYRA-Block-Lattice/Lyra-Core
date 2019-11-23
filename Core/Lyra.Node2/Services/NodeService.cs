@@ -1,4 +1,10 @@
-﻿using Lyra.Exchange;
+﻿using Lyra.Core;
+using Lyra.Core.Accounts;
+using Lyra.Core.API;
+using Lyra.Core.Blocks.Transactions;
+using Lyra.Core.Protos;
+using Lyra.Exchange;
+using Lyra.Node2.Authorizers;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -9,6 +15,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,24 +23,95 @@ namespace Lyra.Node2.Services
 {
     public class NodeService : BackgroundService
     {
-        private LyraConfig _config;
+        private static LyraConfig _config;
 
+        private static INodeAPI _node;
         public static MongoClient client;
         private static IMongoDatabase _db;
+        private static IMongoCollection<ExchangeAccount> _exchangeAccounts;
         private static IMongoCollection<ExchangeOrder> _queue;
         private static IMongoCollection<ExchangeOrder> _finished;
         static AutoResetEvent _waitOrder;
 
-        public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config)
+        public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config,
+            INodeAPI node)
         {
             _config = config.Value;
+            _node = node;
+
+            //BaseAuthorizer.OnAuthorized += (s, e) => { 
+            //    if(e.Result is SendTransferBlock)
+            //    {
+            //        var block = e.Result as SendTransferBlock;
+
+            //    }
+            //};
         }
 
-        public static async Task<CancelKey> AddOrderAsync(TokenTradeOrder order)
+        internal async static Task<ExchangeAccount> GetExchangeAccount(string accountID, bool refreshBalance = false)
+        {
+            var findResult = await _exchangeAccounts.FindAsync(a => a.AssociatedToAccountId == accountID);
+            var acct = await findResult.FirstOrDefaultAsync();
+            if(!refreshBalance)
+                return acct;
+
+            if (acct != null)
+            {
+                // create wallet and update balance
+                var memStor = new AccountInMemoryStorage();
+                var acctWallet = new Wallet(memStor, _config.NetworkId);
+                acctWallet.AccountName = "tmpAcct";
+                acctWallet.RestoreAccount("", acct.PrivateKey);
+                acctWallet.OpenAccount("", acctWallet.AccountName);
+                var result = await acctWallet.Sync(_node);
+                if (result == APIResultCodes.Success)
+                {
+                    var transb = acctWallet.GetLatestBlock();
+                    if (transb != null)
+                    {
+                        if (acct.Balance == null)
+                            acct.Balance = new Dictionary<string, decimal>();
+                        else
+                            acct.Balance.Clear();
+                        foreach (var b in transb.Balances)
+                        {
+                            acct.Balance.Add(b.Key, b.Value);
+                        }
+                        _exchangeAccounts.ReplaceOne(a => a.AssociatedToAccountId == accountID, acct);
+                    }
+                }
+            }
+            return acct;
+        }
+        internal async static Task<decimal> GetExchangeAccountBalance(string accountID, string tokenName)
+        {
+            var findResult = await _exchangeAccounts.FindAsync(a => a.AssociatedToAccountId == accountID);
+            var acct = await findResult.FirstOrDefaultAsync();
+            if (acct == null)
+                return 0;
+            if (!acct.Balance.ContainsKey(tokenName))
+                return 0;
+            return acct.Balance[tokenName];
+        }
+
+        public static async Task<ExchangeAccount> AddExchangeAccount(string assocaitedAccountId, string privateKey, string publicKey)
+        {
+            var account = new ExchangeAccount()
+            {
+                AssociatedToAccountId = assocaitedAccountId,
+                AccountId = publicKey,
+                PrivateKey = privateKey
+            };
+            await _exchangeAccounts.InsertOneAsync(account);
+            return account;
+        }
+
+        public static async Task<CancelKey> AddOrderAsync(ExchangeAccount acct, TokenTradeOrder order)
         {
             order.CreatedTime = DateTime.Now;
             var item = new ExchangeOrder()
             {
+                ExchangeAccountId = acct.Id,
                 Order = order,
                 CanDeal = true,
                 State = DealState.Placed,
@@ -63,6 +141,7 @@ namespace Lyra.Node2.Services
                     client = new MongoClient(_config.DBConnect);
                     _db = client.GetDatabase("Dex");
 
+                    _exchangeAccounts = _db.GetCollection<ExchangeAccount>("exchangeAccounts");
                     _queue = _db.GetCollection<ExchangeOrder>("queuedDexOrders");
                     _finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
                 }
@@ -178,6 +257,12 @@ namespace Lyra.Node2.Services
             }
         }
 
+        private async Task DoExchange(string accounIdSellToken, Decimal tokenAmount, 
+            string accountIdBuyToken, decimal lypeAmount)
+        {
+            
+        }
+
         public async Task<ExchangeOrder[]> GetNewlyPlacedOrdersAsync()
         {
             var finds = await _queue.FindAsync(a => a.State == DealState.Placed);
@@ -287,5 +372,7 @@ namespace Lyra.Node2.Services
         {
             return await _queue.Find(a => a.Order.AccountID == accountId).ToListAsync();
         }
+
+
     }
 }

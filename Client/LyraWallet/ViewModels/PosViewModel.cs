@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks.Transactions;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks.Transactions;
 using LyraWallet.Models;
 using LyraWallet.Services;
 using LyraWallet.Views;
@@ -127,7 +128,7 @@ namespace LyraWallet.ViewModels
                     {
                         for(int i = 0; i < TokenNames.Count; i++)
                         {
-                            if (TokenNames[i] == TokenGenesisBlock.LYRA_TICKER_CODE)
+                            if (TokenNames[i] == LyraGlobal.LYRA_TICKER_CODE)
                                 SelectedIndex = i;
                         }
                     }

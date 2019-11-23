@@ -9,13 +9,27 @@ using Lyra.Core.Accounts.Node;
 using System;
 using Lyra.Node2.Services;
 using Lyra.Core.Protos;
+using Lyra.Core.Utils;
+using System.Threading.Tasks;
 
 namespace Lyra.Node2.Authorizers
 {
+    public delegate void AuthorizeCompleteEventHandler(object sender, AuthorizeCompletedEventArgs e);
+
+    public class AuthorizeCompletedEventArgs : EventArgs
+    {
+        public Block Result { get; }
+        public AuthorizeCompletedEventArgs(Block block)
+        {
+            Result = block;
+        }
+    }
     public abstract class BaseAuthorizer
     {
         protected readonly ServiceAccount _serviceAccount;
         protected readonly IAccountCollection _accountCollection;
+
+        public static event AuthorizeCompleteEventHandler OnAuthorized;
 
         //public Authorizer(ServiceAccount serviceAccount, AccountCollection accountCollection)
         public BaseAuthorizer(ServiceAccount serviceAccount, IAccountCollection accountCollection)
@@ -24,7 +38,12 @@ namespace Lyra.Node2.Authorizers
             _accountCollection = accountCollection;
         }
 
-        public abstract APIResultCodes Authorize<T>(ref T tblock);
+        public virtual APIResultCodes Authorize<T>(ref T tblock)
+        {
+            OnAuthorized?.Invoke(this, new AuthorizeCompletedEventArgs(tblock as Block));
+
+            return APIResultCodes.Success;
+        }
 
         protected APIResultCodes VerifyBlock(TransactionBlock block, TransactionBlock previousBlock)
         {
@@ -148,7 +167,7 @@ namespace Lyra.Node2.Authorizers
         {
             TransactionInfoEx transaction = send_or_receice_block.GetTransaction(previousBlock);
 
-            if (transaction.TokenCode == TokenGenesisBlock.LYRA_TICKER_CODE)
+            if (transaction.TokenCode == LyraGlobal.LYRA_TICKER_CODE)
                 return APIResultCodes.Success;
 
             var token_block = _accountCollection.FindTokenGenesisBlock(null, transaction.TokenCode);

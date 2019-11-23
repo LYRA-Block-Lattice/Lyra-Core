@@ -7,7 +7,7 @@ using Lyra.Client.InMemory;
 using Lyra.Core.API;
 using Lyra.Client.RPC;
 using Lyra.Core.Blocks;
-
+using Lyra.Core.Protos;
 
 namespace Lyra.WalletTest
 {

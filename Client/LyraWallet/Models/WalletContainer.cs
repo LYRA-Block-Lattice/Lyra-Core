@@ -1,5 +1,4 @@
 ﻿using Grpc.Net.Client;
-using Lyra.Client.Lib;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.LiteDB;
@@ -17,6 +16,7 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using Xamarin.Essentials;
 using Lyra.Exchange;
+using Lyra.Core.Accounts;
 
 namespace LyraWallet.Models
 {
@@ -222,6 +222,15 @@ namespace LyraWallet.Models
                 if (File.Exists(App.Container.WalletFn))
                     File.Delete(App.Container.WalletFn);
             });
+        }
+
+        public async Task<string> GetExchangeAccountId()
+        {
+            var result = await _nodeApiClient.CreateExchangeAccount(AccountID, wallet.SignAPICall());
+            if (result.ResultCode == APIResultCodes.Success)
+                return result.AccountId;
+            else
+                return null;
         }
 
         public async Task<CancelKey> SubmitExchangeOrderAsync(TokenTradeOrder order)

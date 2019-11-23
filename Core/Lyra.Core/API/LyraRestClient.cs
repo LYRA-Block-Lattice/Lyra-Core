@@ -293,5 +293,23 @@ namespace Lyra.Core.API
             args.Add("Signature", Signature);
             return await Get<List<ExchangeOrder>>("GetOrdersForAccount", args);
         }
+
+        public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
+        {
+            var args = new Dictionary<string, string>();
+            args.Add("AccountId", AccountId);
+            args.Add("Signature", Signature);
+            return await Get<ExchangeAccountAPIResult>("CreateExchangeAccount", args);
+        }
+
+        public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
