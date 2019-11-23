@@ -324,27 +324,6 @@ namespace Lyra.Node2.Services
             }
         }
 
-        private async Task DealAsync()
-        {
-            //// for each order
-            //// start mongodb session/transaction
-            //// verify balance
-            //// lookfor dealer
-            //// make changes
-            //// commit transaction
-            //var orders = await _dbCtx.GetQueuedOrdersAsync();
-            //if(orders.Length > 1)    // must have at least two orders
-            //{
-            //    for(int i = 1; i < orders.Length; i++)
-            //    {
-            //        for(int j = 0; j < i; j++)
-            //        {
-            //            if(orders[j].Order.BuySellType != )
-            //        }
-            //    }
-            //}
-        }
-
         public static async Task<List<ExchangeOrder>> GetActiveOrders(string tokenName)
         {
             return await _queue.Find(a => a.CanDeal && a.Order.TokenName == tokenName).ToListAsync();

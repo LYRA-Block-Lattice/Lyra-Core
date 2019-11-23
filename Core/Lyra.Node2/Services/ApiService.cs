@@ -499,13 +499,22 @@ namespace Lyra.Node2.Services
         {
             var openReceiveBlock = FromJson<OpenWithReceiveTransferBlock>(request.OpenReceiveBlockJson);
             var cr = await ReceiveTransferAndOpenAccount(openReceiveBlock);
-            var result = new AuthorizationsReply()
+            if(cr.ResultCode == APIResultCodes.Success)
             {
-                ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash,
-                AuthorizationsJson = Json(cr.Authorizations)
-            };
-            return result;
+                var result = new AuthorizationsReply()
+                {
+                    ResultCode = cr.ResultCode,
+                    ServiceHash = cr.ServiceHash,
+                    AuthorizationsJson = Json(cr.Authorizations)
+                };
+                return result;
+            }
+            else
+            {
+                var result = new AuthorizationsReply() { ResultCode = cr.ResultCode };
+                return result;
+            }
+
         }
 
         public Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)

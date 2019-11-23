@@ -278,11 +278,11 @@ namespace Lyra.Core.API
 
         async Task<AuthorizationAPIResult> INodeAPI.ReceiveTransfer(ReceiveTransferBlock block)
         {
-            var request = new ReceiveTransferAndOpenAccountRequest()
+            var request = new ReceiveTransferRequest()
             {
-                OpenReceiveBlockJson = Json(block)
+                ReceiveBlockJson = Json(block)
             };
-            var result = await ReceiveTransferAndOpenAccountAsync(request);
+            var result = await ReceiveTransferAsync(request);
             return ToAAR(result);
         }
 
