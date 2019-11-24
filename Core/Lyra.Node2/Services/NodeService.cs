@@ -2,10 +2,12 @@
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks.Transactions;
+using Lyra.Core.Cryptography;
 using Lyra.Core.Protos;
 using Lyra.Exchange;
 using Lyra.Node2.Authorizers;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
@@ -32,20 +34,23 @@ namespace Lyra.Node2.Services
         private static IMongoCollection<ExchangeOrder> _queue;
         private static IMongoCollection<ExchangeOrder> _finished;
         static AutoResetEvent _waitOrder;
+        static ILogger _log;
 
         public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config,
-            INodeAPI node)
+            INodeAPI node, ILogger<ApiService> logger)
         {
             _config = config.Value;
             _node = node;
+            _log = logger;
 
-            //BaseAuthorizer.OnAuthorized += (s, e) => { 
-            //    if(e.Result is SendTransferBlock)
-            //    {
-            //        var block = e.Result as SendTransferBlock;
-
-            //    }
-            //};
+            BaseAuthorizer.OnAuthorized += (s, e) =>
+            {
+                if (e.Result is SendTransferBlock)
+                {
+                    var block = e.Result as SendTransferBlock;
+                    _log.LogWarning("Transfer {0} from {1} to {2}", block.Index, block.AccountID, block.DestinationAccountId);
+                }
+            };
         }
 
         internal async static Task<ExchangeAccount> GetExchangeAccount(string accountID, bool refreshBalance = false)
@@ -94,18 +99,23 @@ namespace Lyra.Node2.Services
             return acct.Balance[tokenName];
         }
 
-        public static async Task<ExchangeAccount> AddExchangeAccount(string assocaitedAccountId, string privateKey, string publicKey)
+        public static async Task<ExchangeAccount> AddExchangeAccount(string assocaitedAccountId)
         {
             var findResult = await _exchangeAccounts.FindAsync(a => a.AssociatedToAccountId == assocaitedAccountId);
             var findAccount = await findResult.FirstOrDefaultAsync();
             if (findAccount != null)
+            {
                 return findAccount;
+            }
+
+            var walletPrivateKey = Signatures.GeneratePrivateKey();
+            var walletAccountId = Signatures.GetAccountIdFromPrivateKey(walletPrivateKey);
 
             var account = new ExchangeAccount()
             {
                 AssociatedToAccountId = assocaitedAccountId,
-                AccountId = publicKey,
-                PrivateKey = privateKey
+                AccountId = walletAccountId,
+                PrivateKey = walletPrivateKey
             };
             await _exchangeAccounts.InsertOneAsync(account);
             return account;
@@ -174,6 +184,8 @@ namespace Lyra.Node2.Services
                         if (!changedTokens.Contains(curOrder.Order.TokenName))
                             changedTokens.Add(curOrder.Order.TokenName);
 
+                        (bool IsSuccess, decimal balance) mtrans, ctrans;
+
                         var matchedOrders = await LookforExecution(curOrder);
                         if (matchedOrders.Count() > 0)
                         {
@@ -183,27 +195,27 @@ namespace Lyra.Node2.Services
                                 var tradedPrice = matchedOrder.Order.Price;
                                 var lyraAmount = tradedAmount * tradedPrice;
 
-                                bool b1, b2;
+                                
                                 if (matchedOrder.Order.BuySellType == OrderType.Sell)
                                 {
-                                    b1 = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
+                                    mtrans = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
                                         curOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
                                         tradedAmount);
-                                    b2 = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
+                                    ctrans = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
                                         matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
                                         lyraAmount);
                                 }
                                 else   // matched order buy
                                 {
-                                    b1 = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
+                                    mtrans = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
                                         curOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
                                         lyraAmount);
-                                    b2 = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
+                                    ctrans = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
                                         matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
                                         tradedAmount);
                                 }
 
-                                if(!b1 || !b2)
+                                if(!mtrans.IsSuccess || !ctrans.IsSuccess)
                                 {
                                     throw new Exception("Exchange Deal Engin Fatal Error");
                                 }
@@ -290,7 +302,7 @@ namespace Lyra.Node2.Services
             }
         }
 
-        private async Task<bool> SendFromExchangeAccountToAnotherAsync(string fromId, string toId, string tokenName, decimal amount)
+        private async Task<(bool IsSuccess, decimal balance)> SendFromExchangeAccountToAnotherAsync(string fromId, string toId, string tokenName, decimal amount)
         {
             var fromResult = await _exchangeAccounts.FindAsync(a => a.Id == fromId);
             var fromAcct = await fromResult.FirstOrDefaultAsync();
@@ -310,11 +322,12 @@ namespace Lyra.Node2.Services
                 var transb = fromWallet.GetLatestBlock();
                 if (transb != null && transb.Balances[tokenName] > amount)
                 {
+                    var bLast = transb.Balances[tokenName] - amount;
                     var ret = await fromWallet.Send(amount, toAcct.AccountId, tokenName);
-                    return ret.ResultCode == APIResultCodes.Success;
+                    return (ret.ResultCode == APIResultCodes.Success, bLast);
                 }
             }
-            return false;
+            return (false, 0);
         }
 
         public async Task<ExchangeOrder[]> GetNewlyPlacedOrdersAsync()

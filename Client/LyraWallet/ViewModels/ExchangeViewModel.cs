@@ -49,7 +49,7 @@ namespace LyraWallet.ViewModels
                     SetProperty(ref _selectedToken, value);
                     Task.Run(async () =>
                     {
-                        UpdateHoldings();
+                        await UpdateHoldings();
                         await GetMyOrders();
                         await App.Container.RequestMarket(value);
                     });
@@ -131,6 +131,7 @@ namespace LyraWallet.ViewModels
                     case "Deal":
                         // at lease some order is (partially) executed
                         await GetMyOrders();
+                        await UpdateHoldings();
                         break;
                     default:
                         break;
@@ -142,7 +143,7 @@ namespace LyraWallet.ViewModels
                 {
                     if(TokenList == null || TokenList.Count == 0)
                         TokenList = await App.Container.GetTokens(FilterKeyword);
-                    UpdateHoldings();
+                    await UpdateHoldings();
                 });
 
             BuyCommand = new Command(async () =>
@@ -241,7 +242,7 @@ namespace LyraWallet.ViewModels
 
             }
         }
-        private void UpdateHoldings()
+        private async Task UpdateHoldings()
         {
             if(App.Container.Balances == null)
             {
@@ -250,20 +251,28 @@ namespace LyraWallet.ViewModels
             }
             else
             {
-                LeXBalance = $"Holdding Lyra.LeX: {App.Container.Balances["Lyra.LeX"]}";
+                var exchBalance = await App.Container.GetExchangeBalance();
+                string exchLyraBstr = "0";
+                if (exchBalance != null)
+                    exchLyraBstr = exchBalance["Lyra.LeX"].ToString();
+                LeXBalance = $"Holdding Lyra.LeX: {App.Container.Balances["Lyra.LeX"]} ({exchLyraBstr})";
                 if(SelectedToken == null)
                 {
                     TargetTokenBalance = "";
                 }
                 else
                 {
+                    string exchBstr = "0";
+                    if (exchBalance != null && exchBalance.ContainsKey(SelectedToken))
+                        exchBstr = exchBalance[SelectedToken].ToString();
+
                     if (App.Container.Balances.ContainsKey(SelectedToken))
                     {
-                        TargetTokenBalance = $"Holdding {SelectedToken}: {App.Container.Balances[SelectedToken]}";
+                        TargetTokenBalance = $"Holdding {SelectedToken}: {App.Container.Balances[SelectedToken]} ({exchBstr})";
                     }
                     else
                     {
-                        TargetTokenBalance = $"Holdding {SelectedToken}: 0";
+                        TargetTokenBalance = $"Holdding {SelectedToken}: 0 ({exchBstr})";
                     }
                 }
             }

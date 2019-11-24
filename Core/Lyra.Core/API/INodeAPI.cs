@@ -82,6 +82,7 @@ namespace Lyra.Core.API
         Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature);
         Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order);
         Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey);
+        Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature);
         Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature);
         Task<APIResult> RequestMarket(string tokenName);
         Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature);

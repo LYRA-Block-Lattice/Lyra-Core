@@ -140,6 +140,12 @@ namespace LyraLexWeb2
             return await _node.CreateExchangeAccount(AccountId, Signature);
         }
 
+        [Route("GetExchangeBalance")]
+        public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
+        {
+            return await _node.GetExchangeBalance(AccountId, Signature);
+        }
+
         [Route("SubmitExchangeOrder")]
         [HttpPost]
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)

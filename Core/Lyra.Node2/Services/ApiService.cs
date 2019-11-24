@@ -757,15 +757,15 @@ namespace Lyra.Node2.Services
 
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
-            var walletPrivateKey = Signatures.GeneratePrivateKey();
-            var walletAccountId = Signatures.GetAccountIdFromPrivateKey(walletPrivateKey);
+            // TODO verify signature first
+
             // store to database
-            await NodeService.AddExchangeAccount(AccountId, walletPrivateKey, walletAccountId);
+            var acct = await NodeService.AddExchangeAccount(AccountId);
 
             var result = new ExchangeAccountAPIResult()
             {
                 ResultCode = APIResultCodes.Success,
-                AccountId = walletAccountId
+                AccountId = acct.AccountId
             };
             return result;            
         }
@@ -781,6 +781,32 @@ namespace Lyra.Node2.Services
             return result;
         }
 
+        public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
+        {
+            var acct = await NodeService.GetExchangeAccount(AccountId, true);
+            var result = new ExchangeBalanceAPIResult()
+            {
+                ResultCode = APIResultCodes.Success
+            };
+            if(acct != null)
+            {
+                acct.AccountId = acct.AccountId;
+                acct.Balance = acct.Balance;
+            }
+            return result;
+        }
+
+        public override async Task<GetExchangeBalanceReply> GetExchangeBalance(StandardWalletRequest request, ServerCallContext context)
+        {
+            var cr = await GetExchangeBalance(request.AccountId, request.Signature);
+            var result = new GetExchangeBalanceReply()
+            {
+                AccountId = cr.AccountId,
+                ResultCode = cr.ResultCode,
+                BalanceJson = Json(cr.Balance)
+            };
+            return result;
+        }
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder reqOrder)
         {
             CancelKey key;

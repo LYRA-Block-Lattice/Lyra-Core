@@ -368,6 +368,11 @@ namespace Lyra.Core.API
             throw new NotImplementedException();
         }
 
+        public Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
             throw new NotImplementedException();
@@ -377,5 +382,7 @@ namespace Lyra.Core.API
         {
             throw new NotImplementedException();
         }
+
+
     }
 }

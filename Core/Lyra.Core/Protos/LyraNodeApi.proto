@@ -23,6 +23,7 @@ service LyraApi {
   rpc ImportAccount (ImportAccountRequest) returns (AuthorizationsReply);
   rpc CreateToken (CreateTokenRequest) returns (AuthorizationsReply);
   rpc CreateExchangeAccount (StandardWalletRequest) returns (ExchangeAccountReply);
+  rpc GetExchangeBalance (StandardWalletRequest) returns (GetExchangeBalanceReply);
   rpc CloseExchangeAccount (StandardWalletRequest) returns (ExchangeAccountReply);
   rpc SubmitExchangeOrder (SubmitExchangeOrderRequest) returns (SubmitExchangeOrderReply);
   rpc CancelExchangeOrder (CancelExchangeOrderRequest) returns (SimpleAPIReply);
@@ -206,6 +207,13 @@ message CancelExchangeOrderRequest{
 	string AccountId = 1;
 	string Signature = 2;
 	string CancelKey = 3;
+}
+
+// GetExchangeBalance
+message GetExchangeBalanceReply{
+	APIResultCodes ResultCode = 1;
+	string AccountId = 2;
+	string BalanceJson = 3;
 }
 
 // RequestMarket

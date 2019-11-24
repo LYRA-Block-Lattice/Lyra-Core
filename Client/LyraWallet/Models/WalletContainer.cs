@@ -72,18 +72,21 @@ namespace LyraWallet.Models
             _notifyApiClient = new LyraRestNotify(LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
 
             _cancel = new CancellationTokenSource();
-            await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, action, catalog, extInfo) => { 
-                switch(source)
+            await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, action, catalog, extInfo) => {
+                Device.BeginInvokeOnMainThread(() =>
                 {
-                    case NotifySource.Balance:
-                        OnBalanceChanged?.Invoke(action, catalog, extInfo);
-                        break;
-                    case NotifySource.Dex:
-                        OnExchangeOrderChanged?.Invoke(action, catalog, extInfo);
-                        break;
-                    default:
-                        break;
-                }
+                    switch (source)
+                    {
+                        case NotifySource.Balance:
+                            OnBalanceChanged?.Invoke(action, catalog, extInfo);
+                            break;
+                        case NotifySource.Dex:
+                            OnExchangeOrderChanged?.Invoke(action, catalog, extInfo);
+                            break;
+                        default:
+                            break;
+                    }
+                });
             }, _cancel.Token);
         }
 
@@ -247,6 +250,12 @@ namespace LyraWallet.Models
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId)
         {
             return await _nodeApiClient.GetOrdersForAccount(AccountId, wallet.SignAPICall());
+        }
+
+        public async Task<Dictionary<string, decimal>> GetExchangeBalance()
+        {
+            var result = await _nodeApiClient.GetExchangeBalance(AccountID, wallet.SignAPICall());
+            return result.Balance;
         }
     }
 }

@@ -210,6 +210,11 @@ namespace Lyra.Core.API
         public string AccountId { get; set; }
     }
 
+    public class ExchangeBalanceAPIResult : ExchangeAccountAPIResult
+    {
+        public Dictionary<string, decimal> Balance { get; set; }
+    }
+
     public enum NotifySource { None, System, Balance, Dex, DShop, DPay };
     public class GetNotificationAPIResult : APIResult
     {
