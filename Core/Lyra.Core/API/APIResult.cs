@@ -173,6 +173,9 @@ namespace Lyra.Core.API
                 case BlockTypes.ExecuteTradeOrder:
                     block = JsonConvert.DeserializeObject<ExecuteTradeOrderBlock>(BlockData);
                     break;
+                case BlockTypes.ExchangingTransfer:
+                    block = JsonConvert.DeserializeObject<ExchangingBlock>(BlockData);
+                    break;
                 case BlockTypes.Null:
                     block = null;
                     break;

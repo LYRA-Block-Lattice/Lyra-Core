@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Exchange;
 using Microsoft.AspNetCore.Http;
@@ -111,6 +112,13 @@ namespace LyraLexWeb2
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
             return await _node.SendTransfer(sendBlock);
+        }
+
+        [Route("SendExchangeTransfer")]
+        [HttpPost]
+        public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock sendBlock)
+        {
+            return await _node.SendExchangeTransfer(sendBlock);
         }
 
         [Route("ReceiveTransfer")]

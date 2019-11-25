@@ -20,7 +20,7 @@ namespace AutoSender
 
             wallet = new Wallet(new LiteAccountDatabase(), netName);
             wallet.AccountName = walletName;
-            await Task.Run(() => wallet.OpenAccount(dataPath, wallet.AccountName));
+            wallet.OpenAccount(dataPath, wallet.AccountName);
             var AccountID = wallet.AccountId;
             var PrivateKey = wallet.PrivateKey;
         }

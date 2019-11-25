@@ -8,6 +8,7 @@
              x:Class="LyraWallet.Views.ExchangeViewPage"
              BackgroundColor="White">
     <ContentPage.Content>
+        <ScrollView BackgroundColor="White">
         <Grid VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand"
               BackgroundColor="Black" RowSpacing="1" ColumnSpacing="1">
             <Grid.RowDefinitions>
@@ -76,47 +77,53 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-            <StackLayout BackgroundColor="White" Padding="5"
-                         Grid.Row="1" Grid.Column="1" >
+                <StackLayout Grid.Row="1" Grid.Column="1"
+                    BackgroundColor="White" HorizontalOptions="Fill" VerticalOptions="Fill">
                 <Grid 
                   VerticalOptions="EndAndExpand" 
-                  HorizontalOptions="FillAndExpand"
+                  HorizontalOptions="Start"
                   BackgroundColor="White">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="50" />
-                        <RowDefinition Height="50" />
-                        <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="40" />
+                            <RowDefinition Height="40" />
+                            <RowDefinition Height="20" />                        
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="180"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="100"/>
                     </Grid.ColumnDefinitions>
-                    <Editor Text="{Binding SellPrice}" Grid.Row="0" Grid.Column="0" Placeholder="Price" />
-                    <Editor Text="{Binding SellAmount}" Grid.Row="1" Grid.Column="0" Placeholder="Count" />
+                    <Editor Text="{Binding SellPrice}" Grid.Row="1" Grid.Column="0" Placeholder="Price" />
+                    <Editor Text="{Binding SellAmount}" Grid.Row="2" Grid.Column="0" Placeholder="Count" />
                     <Label Text="{Binding TargetTokenBalance}"
-                       Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" />
-                    <Button Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                           FontSize="Small"
+                       Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" />
+                    <Button Grid.Row="1" Grid.Column="1" Grid.RowSpan="2"
+                            Padding="10"
                         Text="Sell" BackgroundColor="PaleVioletRed"
                             Command="{Binding SellCommand}" />
                 </Grid>
-            </StackLayout>
-            <StackLayout Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
+                </StackLayout>
+                <StackLayout Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
                          BackgroundColor="LightGray">
             </StackLayout>
-            <StackLayout Grid.Row="3" Grid.Column="1" Padding="5"
-                         BackgroundColor="White">
-                <Grid  
-                  VerticalOptions="StartAndExpand" 
-                  HorizontalOptions="FillAndExpand"
+                <StackLayout  Grid.Row="3" Grid.Column="1"
+                    BackgroundColor="White" HorizontalOptions="Fill" VerticalOptions="Fill">
+                    
+                
+                    <Grid 
+                  VerticalOptions="Start" 
+                  HorizontalOptions="Start"
                   BackgroundColor="White">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="50" />
-                    <RowDefinition Height="50" />                    
-                </Grid.RowDefinitions>
+                    <RowDefinition Height="20" />
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="40" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="180"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
                 </Grid.ColumnDefinitions>
                     <Label Text="{Binding LeXBalance}"
                        Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" />
@@ -126,10 +133,10 @@
                         Text="Buy" BackgroundColor="LightGreen" 
                         Command="{Binding BuyCommand}"/>
             </Grid>
-            </StackLayout>
-            <StackLayout Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" BackgroundColor="White" >
+                </StackLayout>
+                <StackLayout Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" BackgroundColor="White" >
                 <StackLayout Orientation="Horizontal" BackgroundColor="LightGray" >
-                    <Label Text="Order" WidthRequest="40"/>
+                    <Label Text="Order" WidthRequest="50"/>
                     <Label Text="Token" WidthRequest="110"/>
                     <Label Text="Price" WidthRequest="80"/>
                     <Label Text="Amont" WidthRequest="60"/>
@@ -145,7 +152,7 @@
                         <DataTemplate>
                             <ViewCell>
                                 <StackLayout Orientation="Horizontal" HorizontalOptions="StartAndExpand">
-                                    <Label Text="{Binding Item1}" FontSize="Small" WidthRequest="40"/>
+                                    <Label Text="{Binding Item1}" FontSize="Small" WidthRequest="50"/>
                                     <Label Text="{Binding Item2}" FontSize="Small" WidthRequest="110"/>
                                     <Label Text="{Binding Item3}" FontSize="Small" WidthRequest="80"/>
                                     <Label Text="{Binding Item4}" FontSize="Small" WidthRequest="60"/>
@@ -158,5 +165,6 @@
             </StackLayout>
 
         </Grid>
+        </ScrollView>
     </ContentPage.Content>
 </ContentPage>

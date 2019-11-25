@@ -306,6 +306,16 @@ namespace Lyra.Core.API
             return ToAAR(result);
         }
 
+        public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
+        {
+            var request = new SendTransferRequest()
+            {
+                SendBlockJson = Json(block)
+            };
+            var result = await SendTransferAsync(request);
+            return ToAAR(result);
+        }
+
         Task<AuthorizationAPIResult> INodeAPI.Trade(TradeBlock block)
         {
             throw new NotImplementedException();

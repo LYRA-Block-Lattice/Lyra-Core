@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Exchange;
 using LyraWallet.Models;
 using LyraWallet.Views;
@@ -213,13 +214,13 @@ namespace LyraWallet.ViewModels
                 {
                     fundsToTransfer.Add(order.TokenName, order.Amount);
                 }
-                var lyraTotal = IsBuy ? order.Price * order.Amount + 1 : 1;     // fee is high
+                var lyraTotal = IsBuy ? order.Price * order.Amount + 2 * ExchangingBlock.FEE : 2 * ExchangingBlock.FEE;     // fee is high
                 fundsToTransfer.Add(LyraGlobal.LYRA_TICKER_CODE, lyraTotal);
                 
                 try
                 {
                     foreach(var kvp in fundsToTransfer)
-                        await App.Container.Transfer(kvp.Key, _exchangeAccountId, kvp.Value);
+                        await App.Container.Transfer(kvp.Key, _exchangeAccountId, kvp.Value, true);
                 }
                 catch(Exception ex)
                 {
@@ -232,10 +233,13 @@ namespace LyraWallet.ViewModels
 
                 order.Sign(App.Container.PrivateKey);
                 var key = await App.Container.SubmitExchangeOrderAsync(order);
-                // this is fake. just make a illusion.
-                MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
-                        key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
-                await GetMyOrders();
+                if(key.State == OrderState.Placed)
+                {
+                    // this is fake. just make a illusion.
+                    MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
+                            key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
+                    await GetMyOrders();
+                }
             }
             catch (Exception)
             {

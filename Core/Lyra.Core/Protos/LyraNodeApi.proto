@@ -19,6 +19,7 @@ service LyraApi {
   rpc ReceiveTransferAndOpenAccount (ReceiveTransferAndOpenAccountRequest) returns (AuthorizationsReply);
   rpc OpenAccountWithImport (OpenAccountWithImportRequest) returns (AuthorizationsReply);
   rpc SendTransfer (SendTransferRequest) returns (AuthorizationsReply);
+  rpc SendExchangeTransfer (SendTransferRequest) returns (AuthorizationsReply);
   rpc ReceiveTransfer (ReceiveTransferRequest) returns (AuthorizationsReply);
   rpc ImportAccount (ImportAccountRequest) returns (AuthorizationsReply);
   rpc CreateToken (CreateTokenRequest) returns (AuthorizationsReply);
@@ -291,6 +292,9 @@ message CustomizeNotifySettingsReply{
 
         // Cancels the order and frees up the locked funds
         CancelTradeOrder = 43;
+
+		// to/from exchange
+		ExchangingTransfer = 50;
 	}
 
   enum APIResultCodes {

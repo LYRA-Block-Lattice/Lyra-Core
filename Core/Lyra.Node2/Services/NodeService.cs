@@ -5,6 +5,7 @@ using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Protos;
 using Lyra.Exchange;
+using Lyra.Node2.Accounts;
 using Lyra.Node2.Authorizers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -64,7 +65,7 @@ namespace Lyra.Node2.Services
             {
                 // create wallet and update balance
                 var memStor = new AccountInMemoryStorage();
-                var acctWallet = new Wallet(memStor, _config.NetworkId);
+                var acctWallet = new ExchangeAccountWallet(memStor, _config.NetworkId);
                 acctWallet.AccountName = "tmpAcct";
                 acctWallet.RestoreAccount("", acct.PrivateKey);
                 acctWallet.OpenAccount("", acctWallet.AccountName);
@@ -191,13 +192,13 @@ namespace Lyra.Node2.Services
                         {
                             foreach (var matchedOrder in matchedOrders)
                             {
-                                var tradedAmount = Math.Min(matchedOrder.Order.Amount, curOrder.Order.Amount);
-                                var tradedPrice = matchedOrder.Order.Price;
-                                var lyraAmount = tradedAmount * tradedPrice;
-
+                                var tradedAmount = Math.Min(matchedOrder.Order.Amount, curOrder.Order.Amount);                             
                                 
-                                if (matchedOrder.Order.BuySellType == OrderType.Sell)
+                                // taker profit first
+                                if (curOrder.Order.BuySellType == OrderType.Buy)
                                 {
+                                    var tradedPrice = Math.Min(matchedOrder.Order.Price, curOrder.Order.Price);
+                                    var lyraAmount = tradedAmount * tradedPrice;
                                     mtrans = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
                                         curOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
                                         tradedAmount);
@@ -205,8 +206,10 @@ namespace Lyra.Node2.Services
                                         matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
                                         lyraAmount);
                                 }
-                                else   // matched order buy
+                                else   // currentOrder sell
                                 {
+                                    var tradedPrice = Math.Max(matchedOrder.Order.Price, curOrder.Order.Price);
+                                    var lyraAmount = tradedAmount * tradedPrice;
                                     mtrans = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
                                         curOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
                                         lyraAmount);
@@ -323,7 +326,7 @@ namespace Lyra.Node2.Services
                 if (transb != null && transb.Balances[tokenName] > amount)
                 {
                     var bLast = transb.Balances[tokenName] - amount;
-                    var ret = await fromWallet.Send(amount, toAcct.AccountId, tokenName);
+                    var ret = await fromWallet.Send(amount, toAcct.AccountId, tokenName, true);
                     return (ret.ResultCode == APIResultCodes.Success, bLast);
                 }
             }

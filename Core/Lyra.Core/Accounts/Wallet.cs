@@ -30,10 +30,6 @@ namespace Lyra.Core.Accounts
         public decimal TokenGenerationFee = 0; // in atomic units
         public decimal TradeFee = 0; // in atomic units
 
-        //Timer timer1, timer2, timer3;
-
-        //Boolean timer_busy1, timer_busy2, timer_busy3 = false;
-
         //public readonly Dictionary<string, int> TokenPrecision = new Dictionary<string, int>();
 
         public new TransactionBlock GetLatestBlock()
@@ -522,7 +518,7 @@ namespace Lyra.Core.Accounts
 
         //}
 
-        public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.LYRA_TICKER_CODE)
+        public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.LYRA_TICKER_CODE, bool ToExchange = false)
         {
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
@@ -543,8 +539,10 @@ namespace Lyra.Core.Accounts
 
             //var transaction = new TransactionInfo() { TokenCode = ticker, Amount = atomicamount };
 
+            var fee = ToExchange ? ExchangingBlock.FEE : TransferFee;
+
             if (ticker == LyraGlobal.LYRA_TICKER_CODE)
-                balance_change += TransferFee;
+                balance_change += fee;
 
             // see if we have enough tokens
             if (previousBlock.Balances[ticker] < balance_change)
@@ -555,22 +553,40 @@ namespace Lyra.Core.Accounts
 
             // see if we have enough LYR to pay the transfer fee
             if (ticker != LyraGlobal.LYRA_TICKER_CODE)
-                if (!previousBlock.Balances.ContainsKey(LyraGlobal.LYRA_TICKER_CODE) || previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] < TransferFee)
+                if (!previousBlock.Balances.ContainsKey(LyraGlobal.LYRA_TICKER_CODE) || previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] < fee)
                 {
                     //throw new ApplicationException("Insufficient funds to pay transfer fee");
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
                 }
 
-            SendTransferBlock sendBlock = new SendTransferBlock
+            SendTransferBlock sendBlock;
+            if (ToExchange)
             {
-                AccountID = AccountId,
-                ServiceHash = string.Empty,
-                DestinationAccountId = DestinationAccountId,
-                Balances = new Dictionary<string, decimal>(),
-                //PaymentID = string.Empty,
-                Fee = TransferFee,
-                FeeCode = LyraGlobal.LYRA_TICKER_CODE,
-                FeeType = AuthorizationFeeTypes.Regular
+                sendBlock = new ExchangingBlock()
+                {
+                    AccountID = AccountId,
+                    ServiceHash = string.Empty,
+                    DestinationAccountId = DestinationAccountId,
+                    Balances = new Dictionary<string, decimal>(),
+                    //PaymentID = string.Empty,
+                    Fee = fee,
+                    FeeCode = LyraGlobal.LYRA_TICKER_CODE,
+                    FeeType = AuthorizationFeeTypes.Regular
+                };
+            }
+            else
+            {
+                sendBlock = new SendTransferBlock()
+                {
+                    AccountID = AccountId,
+                    ServiceHash = string.Empty,
+                    DestinationAccountId = DestinationAccountId,
+                    Balances = new Dictionary<string, decimal>(),
+                    //PaymentID = string.Empty,
+                    Fee = fee,
+                    FeeCode = LyraGlobal.LYRA_TICKER_CODE,
+                    FeeType = AuthorizationFeeTypes.Regular
+                };
             };
 
             sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change);
@@ -578,7 +594,7 @@ namespace Lyra.Core.Accounts
 
             // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
             if (ticker != LyraGlobal.LYRA_TICKER_CODE)
-                sendBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - TransferFee);
+                sendBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - fee);
 
             // transfer unchanged token balances from the previous block
             foreach (var balance in previousBlock.Balances)
@@ -594,8 +610,11 @@ namespace Lyra.Core.Accounts
             }
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
-
-            var result = await _rpcClient.SendTransfer(sendBlock);
+            AuthorizationAPIResult result;
+            if(ToExchange)
+                result = await _rpcClient.SendExchangeTransfer((ExchangingBlock)sendBlock);
+            else
+                result = await _rpcClient.SendTransfer(sendBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
             {

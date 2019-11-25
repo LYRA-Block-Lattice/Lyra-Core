@@ -150,7 +150,7 @@ namespace LyraWallet.Models
             }
         }
 
-        public async Task Transfer(string tokenName, string targetAccount, decimal amount)
+        public async Task Transfer(string tokenName, string targetAccount, decimal amount, bool ToExchange = false)
         {
             // refresh balance before send. other wise Null Ex
             await RefreshBalance();
@@ -159,7 +159,7 @@ namespace LyraWallet.Models
                 throw new Exception("Not enough funds for " + tokenName);
             }
 
-            var result = await wallet.Send(amount, targetAccount, tokenName);
+            var result = await wallet.Send(amount, targetAccount, tokenName, ToExchange);
             if (result.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception(result.ToString());

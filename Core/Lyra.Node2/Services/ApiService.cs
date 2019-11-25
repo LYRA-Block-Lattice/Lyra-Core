@@ -564,7 +564,7 @@ namespace Lyra.Node2.Services
 
             try
             {
-                var authorizer = new SendTransferAuthorizer(_serviceAccount, _accountCollection);
+                var authorizer = (sendBlock is ExchangingBlock) ? new ExchangingAuthorizer(_serviceAccount, _accountCollection) : new SendTransferAuthorizer(_serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(ref sendBlock);
                 if (result.ResultCode != APIResultCodes.Success)
@@ -599,6 +599,24 @@ namespace Lyra.Node2.Services
         public override async Task<AuthorizationsReply> SendTransfer(SendTransferRequest request, ServerCallContext context)
         {
             var sendBlock = FromJson<SendTransferBlock>(request.SendBlockJson);
+            var cr = await SendTransfer(sendBlock);
+            var result = new AuthorizationsReply()
+            {
+                ResultCode = cr.ResultCode,
+                ServiceHash = cr.ServiceHash ?? string.Empty,
+                AuthorizationsJson = Json(cr.Authorizations)
+            };
+            return result;
+        }
+
+        public Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
+        {
+            return SendTransfer(block);
+        }
+
+        public override async Task<AuthorizationsReply> SendExchangeTransfer(SendTransferRequest request, ServerCallContext context)
+        {
+            var sendBlock = FromJson<ExchangingBlock>(request.SendBlockJson);
             var cr = await SendTransfer(sendBlock);
             var result = new AuthorizationsReply()
             {

@@ -35,7 +35,6 @@
     <None Remove="Protos\LyraNodeApi.proto" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Blocks\" />
     <Folder Include="Authorizations\" />
     <Folder Include="Cryptography\" />
   </ItemGroup>
