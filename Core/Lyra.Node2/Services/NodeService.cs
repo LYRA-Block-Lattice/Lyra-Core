@@ -1,6 +1,7 @@
 ﻿using Lyra.Core;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Protos;
@@ -160,6 +161,7 @@ namespace Lyra.Node2.Services
             {
                 await _queue.DeleteOneAsync(a => a.Id == order.Id);
                 await SendMarket(order.Order.TokenName);
+                await ExchangeAccountLiquidation(order.Order.AccountID);
             }
         }
 
@@ -332,11 +334,53 @@ namespace Lyra.Node2.Services
                     {
                         // client must refresh by itself
                         NotifyService.Notify(account, Core.API.NotifySource.Dex, "Deal", "", "");
+                        await ExchangeAccountLiquidation(account);
                     }
                 }
                 else
                 {
                     // no new order. do house keeping.
+                }
+            }
+        }
+
+        private static async Task ExchangeAccountLiquidation(string associatedAccountId)
+        {
+            var ordersFind = await _queue.FindAsync(a => a.Order.AccountID == associatedAccountId);
+            if (await ordersFind.AnyAsync())
+                return;
+
+            var fromResult = await _exchangeAccounts.FindAsync(a => a.AssociatedToAccountId == associatedAccountId);
+            var fromAcct = await fromResult.FirstOrDefaultAsync();
+            if(fromAcct != null)
+            {
+                // create wallet and update balance
+                var memStor = new AccountInMemoryStorage();
+                var fromWallet = new Wallet(memStor, _config.NetworkId);
+                fromWallet.AccountName = "tmpAcct";
+                fromWallet.RestoreAccount("", fromAcct.PrivateKey);
+                fromWallet.OpenAccount("", fromWallet.AccountName);
+                for (int i = 0; i < 300; i++)
+                {
+                    var result = await fromWallet.Sync(_node);
+                    if (result == APIResultCodes.Success)
+                        break;
+                }
+
+                {
+                    var transb = fromWallet.GetLatestBlock();
+                    if (transb != null) 
+                    {
+                        foreach(var kvp in transb.Balances)
+                        {
+                            if(kvp.Value > 0 && kvp.Key != LyraGlobal.LYRA_TICKER_CODE)
+                            {
+                                await fromWallet.Send(kvp.Value, associatedAccountId, kvp.Key, true);
+                            }
+                        }
+                        
+                        await fromWallet.Send(transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - ExchangingBlock.FEE, associatedAccountId, LyraGlobal.LYRA_TICKER_CODE, true);
+                    }
                 }
             }
         }

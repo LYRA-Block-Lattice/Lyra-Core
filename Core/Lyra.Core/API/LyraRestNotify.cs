@@ -52,6 +52,7 @@ namespace Lyra.Core.API
         public async Task BeginReceiveNotifyAsync(string AccountID, string Signature, Action<NotifySource, string, string, string> action, CancellationToken cancel)
         {
             await Task.Factory.StartNew(async () => {
+                int errorCount = 0;
                 while(true)
                 {
                     if (cancel.IsCancellationRequested)
@@ -64,10 +65,13 @@ namespace Lyra.Core.API
                         {
                             Task.Run(() => action(result.Source, result.Action, result.Catalog, result.ExtraInfo));
                         }
+                        errorCount = 0;
                     }
                     catch(Exception ex)
                     {
-                        //await Task.Delay(5000);
+                        errorCount++;       // we don't want a dead loop
+                        if(errorCount > 5)
+                            await Task.Delay(5000);
                     }
                 }
             }, cancel);
