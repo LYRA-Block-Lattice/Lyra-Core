@@ -17,7 +17,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
-    <ProjectReference Include="..\..\Externals\CommandLine\CommandLine.csproj" />
+    <ProjectReference Include="..\CommandLine\CommandLine.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="My Account.db" />
