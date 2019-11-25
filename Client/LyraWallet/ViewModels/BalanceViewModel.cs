@@ -150,15 +150,32 @@ namespace LyraWallet.ViewModels
 
         public async Task Open()
         {
-            await App.Container.OpenWalletFile();
-            await App.Container.GetBalance();
-            if (App.Container.Balances == null || App.Container.Balances.Count == 0)
+            int times = 0;
+            while(times < 30)
             {
-                GetLEX = true;
+                try
+                {
+                    Title = "Opening Wallet...";
+                    await App.Container.CloseWallet();
+                    await App.Container.OpenWalletFile();
+                    await App.Container.GetBalance();
+                    if (App.Container.Balances == null || App.Container.Balances.Count == 0)
+                    {
+                        GetLEX = true;
+                    }
+
+                    MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
+                    await Refresh();
+                    break;
+                }
+                catch (Exception)
+                {
+                    times++;
+                    await Task.Delay(2000 * times);
+                    Title = $"Retry #{times} Opening Wallet...";
+                }
             }
 
-            MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
-            await Refresh();
         }
 
         private async Task Refresh()

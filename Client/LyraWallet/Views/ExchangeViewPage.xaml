@@ -35,7 +35,6 @@
                     ItemsSource="{Binding TokenList}" 
                     ItemDisplayBinding="{Binding .}"
                     SelectedItem="{Binding SelectedToken}"
-                        SelectedIndexChanged="Picker_SelectedIndexChanged"
                         HorizontalOptions="Start" />
                 <Editor Text="{Binding FilterKeyword}"
                             Placeholder="Search Token"
@@ -161,7 +160,8 @@
                                         <Label Text="{Binding Item2}" FontSize="Micro" WidthRequest="90"/>
                                         <Label Text="{Binding Item3}" FontSize="Micro" WidthRequest="70"/>
                                         <Label Text="{Binding Item4}" FontSize="Micro" WidthRequest="60"/>
-                                        <Button Text="{Binding Item5}" FontSize="Micro"                                              
+                                        <Button Text="{Binding Item5}" FontSize="Micro" HeightRequest="15"   
+                                                BorderWidth="0" Padding="0"
                                                 CommandParameter="{Binding Item6}"
                                                Command="{Binding Path=CancelOrderCommand, Source={x:Reference model}}"
                                                 />                                    
