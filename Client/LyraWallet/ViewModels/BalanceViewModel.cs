@@ -146,19 +146,19 @@ namespace LyraWallet.ViewModels
                 };
                 await _thePage.Navigation.PushAsync(scanPage);
             });
+        }
 
-            Task.Run(async () =>
+        public async Task Open()
+        {
+            await App.Container.OpenWalletFile();
+            await App.Container.GetBalance();
+            if (App.Container.Balances == null || App.Container.Balances.Count == 0)
             {
-                await App.Container.OpenWalletFile();
-                await App.Container.GetBalance();
-                if(App.Container.Balances == null || App.Container.Balances.Count == 0)
-                {
-                    GetLEX = true;
-                }
+                GetLEX = true;
+            }
 
-                MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
-                await Refresh();
-            });
+            MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
+            await Refresh();
         }
 
         private async Task Refresh()

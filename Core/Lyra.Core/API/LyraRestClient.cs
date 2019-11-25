@@ -334,9 +334,13 @@ namespace Lyra.Core.API
             return await Get<ExchangeBalanceAPIResult>("GetExchangeBalance", args);
         }
 
-        public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
+        public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            throw new NotImplementedException();
+            var args = new Dictionary<string, string>();
+            args.Add("AccountId", AccountId);
+            args.Add("Signature", Signature);
+            args.Add("cancelKey", cancelKey);
+            return await Get<APIResult>("CancelExchangeOrder", args);
         }
 
         public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)

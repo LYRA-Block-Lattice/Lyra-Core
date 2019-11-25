@@ -70,8 +70,13 @@ namespace Lyra.Node2.Services
                 acctWallet.AccountName = "tmpAcct";
                 acctWallet.RestoreAccount("", acct.PrivateKey);
                 acctWallet.OpenAccount("", acctWallet.AccountName);
-                var result = await acctWallet.Sync(_node);
-                if (result == APIResultCodes.Success)
+                for(int i = 0; i < 300; i++)
+                {
+                    var result = await acctWallet.Sync(_node);
+                    if (result == APIResultCodes.Success)
+                        break;
+                }
+                
                 {
                     var transb = acctWallet.GetLatestBlock();
                     if (transb != null)
@@ -145,6 +150,19 @@ namespace Lyra.Node2.Services
             };
             return key;
         }
+
+        public static async Task RemoveOrderAsync(string key)
+        {
+            var finds = await _queue.FindAsync(a => a.Id == key);
+            var order = await finds.FirstOrDefaultAsync();
+
+            if(order != null)
+            {
+                await _queue.DeleteOneAsync(a => a.Id == order.Id);
+                await SendMarket(order.Order.TokenName);
+            }
+        }
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _waitOrder = new AutoResetEvent(false);
@@ -337,8 +355,13 @@ namespace Lyra.Node2.Services
             fromWallet.AccountName = "tmpAcct";
             fromWallet.RestoreAccount("", fromAcct.PrivateKey);
             fromWallet.OpenAccount("", fromWallet.AccountName);
-            var result = await fromWallet.Sync(_node);
-            if (result == APIResultCodes.Success)
+            for (int i = 0; i < 300; i++)
+            {
+                var result = await fromWallet.Sync(_node);
+                if (result == APIResultCodes.Success)
+                    break;
+            }
+
             {
                 var transb = fromWallet.GetLatestBlock();
                 if (transb != null && transb.Balances[tokenName] > amount)

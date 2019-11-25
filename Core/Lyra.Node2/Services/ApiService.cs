@@ -870,9 +870,10 @@ namespace Lyra.Node2.Services
             return result;
         }
 
-        public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
+        public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            throw new NotImplementedException();
+            await NodeService.RemoveOrderAsync(cancelKey);
+            return new APIResult() { ResultCode = APIResultCodes.Success };
         }
 
         public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)

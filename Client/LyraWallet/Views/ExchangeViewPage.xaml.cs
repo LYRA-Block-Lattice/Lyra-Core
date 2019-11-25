@@ -16,7 +16,6 @@ namespace LyraWallet.Views
         public ExchangeViewPage()
         {
             InitializeComponent();
-            BindingContext = new ExchangeViewModel(this);
         }
 
         public void Scroll(object item)
@@ -28,11 +27,11 @@ namespace LyraWallet.Views
         {
             //await (BindingContext as ExchangeViewModel).FetchOrders((sender as Picker).SelectedItem.ToString());
         }
-        //protected override async void OnAppearing()
-        //{
-        //    base.OnAppearing();
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
 
-        //    //await (BindingContext as ExchangeViewModel).Touch();
-        //}
+            model.ThePage = this;
+        }
     }
 }

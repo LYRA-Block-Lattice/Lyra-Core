@@ -161,6 +161,12 @@ namespace LyraLexWeb2
             return await _node.SubmitExchangeOrder(order);
         }
 
+        [Route("CancelExchangeOrder")]
+        public async Task<APIResult> SubmitExchangeOrder(string AccountId, string Signature, string cancelKey)
+        {
+            return await _node.CancelExchangeOrder(AccountId, Signature, cancelKey);
+        }
+
         [Route("RequestMarket")]
         public async Task<APIResult> RequestMarket(string TokenName)
         {

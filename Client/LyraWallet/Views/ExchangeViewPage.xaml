@@ -4,9 +4,14 @@
              xmlns:d="http://xamarin.com/schemas/2014/forms/design"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             Title="In-Wallet Exchange"
+             Title="{Binding Title}"
+             xmlns:vm="clr-namespace:LyraWallet.ViewModels"
              x:Class="LyraWallet.Views.ExchangeViewPage"
              BackgroundColor="White">
+    <ContentPage.BindingContext>
+        <vm:ExchangeViewModel x:Name="model" />
+    </ContentPage.BindingContext>
+    
     <ContentPage.Content>
         <ScrollView BackgroundColor="White">
         <Grid VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand"
@@ -136,11 +141,11 @@
                 </StackLayout>
                 <StackLayout Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" BackgroundColor="White" >
                 <StackLayout Orientation="Horizontal" BackgroundColor="LightGray" >
-                    <Label Text="Order" WidthRequest="50"/>
-                    <Label Text="Token" WidthRequest="110"/>
-                    <Label Text="Price" WidthRequest="80"/>
-                    <Label Text="Amont" WidthRequest="60"/>
-                    <Label Text="Status" />
+                        <Label Text="Order" FontSize="Small" WidthRequest="50"/>
+                        <Label Text="Token" FontSize="Small" WidthRequest="90"/>
+                        <Label Text="Price" FontSize="Small" WidthRequest="70"/>
+                        <Label Text="Amont" FontSize="Small" WidthRequest="60"/>
+                        <Label Text="Status" FontSize="Small" />
                 </StackLayout>
                 <ListView ItemsSource="{Binding MyOrders}" 
                       BackgroundColor="White"
@@ -152,11 +157,14 @@
                         <DataTemplate>
                             <ViewCell>
                                 <StackLayout Orientation="Horizontal" HorizontalOptions="StartAndExpand">
-                                    <Label Text="{Binding Item1}" FontSize="Small" WidthRequest="50"/>
-                                    <Label Text="{Binding Item2}" FontSize="Small" WidthRequest="110"/>
-                                    <Label Text="{Binding Item3}" FontSize="Small" WidthRequest="80"/>
-                                    <Label Text="{Binding Item4}" FontSize="Small" WidthRequest="60"/>
-                                    <Label Text="{Binding Item5}" FontSize="Small" />
+                                    <Label Text="{Binding Item1}" FontSize="Micro" WidthRequest="50"/>
+                                        <Label Text="{Binding Item2}" FontSize="Micro" WidthRequest="90"/>
+                                        <Label Text="{Binding Item3}" FontSize="Micro" WidthRequest="70"/>
+                                        <Label Text="{Binding Item4}" FontSize="Micro" WidthRequest="60"/>
+                                        <Button Text="{Binding Item5}" FontSize="Micro"                                              
+                                                CommandParameter="{Binding Item6}"
+                                               Command="{Binding Path=CancelOrderCommand, Source={x:Reference model}}"
+                                                />                                    
                                 </StackLayout>
                             </ViewCell>
                         </DataTemplate>

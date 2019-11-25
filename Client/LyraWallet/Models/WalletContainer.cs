@@ -242,6 +242,11 @@ namespace LyraWallet.Models
             return await _nodeApiClient.SubmitExchangeOrder(order);
         }
 
+        public async Task<APIResult> CancelExchangeOrder(string key)
+        {
+            return await _nodeApiClient.CancelExchangeOrder(AccountID, wallet.SignAPICall(), key);
+        }
+
         public async Task<APIResult> RequestMarket(string tokenName)
         {
             return await _nodeApiClient.RequestMarket(tokenName);

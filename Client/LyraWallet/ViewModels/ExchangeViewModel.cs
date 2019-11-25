@@ -21,6 +21,7 @@ namespace LyraWallet.ViewModels
 {
     public class ExchangeViewModel : BaseViewModel
     {
+        private string _title;
         private List<string> _tokenList;
         public List<string> TokenList
         {
@@ -39,7 +40,7 @@ namespace LyraWallet.ViewModels
         public ObservableCollection<KeyValuePair<String, String>> SellOrders { get; } = new ObservableCollection<KeyValuePair<String, String>>();
         public ObservableCollection<KeyValuePair<String, String>> BuyOrders { get; } = new ObservableCollection<KeyValuePair<String, String>>();
         // buy/sell token price amount state
-        public ObservableCollection<Tuple<string, string, string, string, string>> MyOrders { get; } = new ObservableCollection<Tuple<string, string, string, string, string>>();
+        public ObservableCollection<Tuple<string, string, string, string, string, string>> MyOrders { get; } = new ObservableCollection<Tuple<string, string, string, string, string, string>>();
 
         public string FilterKeyword { get; set; }
         public string TargetTokenBalance { get => _targetTokenBalance; set => SetProperty(ref _targetTokenBalance, value); }
@@ -48,12 +49,7 @@ namespace LyraWallet.ViewModels
                 if(_selectedToken != value)
                 {
                     SetProperty(ref _selectedToken, value);
-                    Task.Run(async () =>
-                    {
-                        await UpdateHoldings();
-                        await GetMyOrders();
-                        await App.Container.RequestMarket(value);
-                    });
+                    Task.Run(() => SwitchMarket(value));
                 }
             }
         }
@@ -70,18 +66,20 @@ namespace LyraWallet.ViewModels
         public ICommand BuyCommand { get; }
         public ICommand SellCommand { get; }
         public ICommand TokenChangedCommand { get;  }
+        public ICommand CancelOrderCommand { get; }
         public string BuyPrice { get => _buyPrice; set => SetProperty(ref _buyPrice, value); }
         public string BuyAmount { get => _buyAmount; set => SetProperty(ref _buyAmount, value); }
         public string SellPrice { get => _sellPrice; set => SetProperty(ref _sellPrice, value); }
         public string SellAmount { get => _sellAmount; set => SetProperty(ref _sellAmount, value); }
+        public string Title1 { get => _title; set => SetProperty(ref _title, value); }
 
-        ExchangeViewPage _thePage;
+        public ExchangeViewPage ThePage;
 
         private string _exchangeAccountId;
 
-        public ExchangeViewModel(ExchangeViewPage page)
+        public ExchangeViewModel()
         {
-            _thePage = page;
+            Title = "Lyra Exchange";
 
             App.Container.OnExchangeOrderChanged += async (act, catalog, extInfo) => {
                 if (catalog != SelectedToken)  // only show current token's order
@@ -99,7 +97,7 @@ namespace LyraWallet.ViewModels
                             {
                                 for (int i = 0; i < 10 - sellos.Count; i++)
                                 {
-                                    SellOrders.Add(new KeyValuePair<String, String>("", ""));   // force alight to bottom
+                                    SellOrders.Add(new KeyValuePair<String, String>(" ", " "));   // force alight to bottom
                                 }
                             }
                             foreach (var order in sellos)
@@ -110,7 +108,7 @@ namespace LyraWallet.ViewModels
                             {
                                 Device.BeginInvokeOnMainThread(() =>
                                 {
-                                    _thePage.Scroll(SellOrders.Last());
+                                    ThePage.Scroll(SellOrders.Last());
                                 });
                             }
                         }
@@ -124,7 +122,7 @@ namespace LyraWallet.ViewModels
                             {
                                 for (int i = 0; i < 10 - buyos.Count; i++)
                                 {
-                                    BuyOrders.Add(new KeyValuePair<String, String>("", ""));   // force align to bottom
+                                    BuyOrders.Add(new KeyValuePair<String, String>(" ", " "));   // force align to bottom
                                 }
                             }
                         }
@@ -157,6 +155,31 @@ namespace LyraWallet.ViewModels
                 await SubmitOrder(false);
             });
 
+            CancelOrderCommand = new Command<string>(async (key) =>
+            {
+                var oldTitle = Title;
+                try
+                {
+                    Title = "Canceling order...";
+                    await App.Container.CancelExchangeOrder(key);
+                    await GetMyOrders();
+                }
+                catch(Exception ex)
+                {
+                    await ThePage.DisplayAlert("Error Canceling Order", $"Network: {App.Container.CurrentNetwork}\nError Message: {ex.Message}", "OK");
+                }
+                finally
+                {
+                    Title = oldTitle;
+                }
+            });
+        }
+
+        private async Task SwitchMarket(string token)
+        {
+            await UpdateHoldings();
+            await GetMyOrders();
+            await App.Container.RequestMarket(token);
         }
 
         private async Task GetMyOrders()
@@ -167,15 +190,15 @@ namespace LyraWallet.ViewModels
                 MyOrders.Clear();
                 foreach (var key in myorders.Where(a => a.Order.TokenName == SelectedToken))
                 {
-                    MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
-                        key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
+                    MyOrders.Add(new Tuple<string, string, string, string, string, string>(key.Order?.BuySellType.ToString(),
+                        key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString(), key.Id));
                 }
             }
             catch(Exception ex)
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    _thePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: {ex.Message}", "OK");
+                    ThePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: {ex.Message}", "OK");
                 });
             }
         }
@@ -183,6 +206,7 @@ namespace LyraWallet.ViewModels
         {
             try
             {
+                Title = "Submiting order...";
                 // first check exchange account
                 if(_exchangeAccountId == null)
                 {
@@ -193,7 +217,7 @@ namespace LyraWallet.ViewModels
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        _thePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: Can't create exchange account.", "OK");
+                        ThePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: Can't create exchange account.", "OK");
                     });
                     return;
                 }
@@ -226,7 +250,7 @@ namespace LyraWallet.ViewModels
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        _thePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: Can't transfer funds to exchange account: {ex.Message}", "OK");
+                        ThePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: Can't transfer funds to exchange account: {ex.Message}", "OK");
                     });
                     return;
                 }
@@ -236,14 +260,18 @@ namespace LyraWallet.ViewModels
                 if(key.State == OrderState.Placed)
                 {
                     // this is fake. just make a illusion.
-                    MyOrders.Add(new Tuple<string, string, string, string, string>(key.Order?.BuySellType.ToString(),
-                            key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString()));
+                    MyOrders.Add(new Tuple<string, string, string, string, string, string>(key.Order?.BuySellType.ToString(),
+                            key?.Order.TokenName, key.Order?.Price.ToString(), key.Order?.Amount.ToString(), key.State.ToString(), key.Key));
                     await GetMyOrders();
                 }
             }
             catch (Exception)
             {
 
+            }
+            finally
+            {
+                Title = "Exchange Ready.";
             }
         }
         private async Task UpdateHoldings()

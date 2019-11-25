@@ -31,7 +31,13 @@ namespace LyraWallet.Views
                 var nextPage = new TransferPage(kvp.Key);
                 Navigation.PushAsync(nextPage);
             }
+        }
 
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+
+            await (BindingContext as BalanceViewModel).Open();
         }
     }
 }
