@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -192,8 +193,15 @@ namespace Lyra.Node2.Services
                         {
                             foreach (var matchedOrder in matchedOrders)
                             {
-                                var tradedAmount = Math.Min(matchedOrder.Order.Amount, curOrder.Order.Amount);                             
-                                
+                                var tradedAmount = Math.Min(matchedOrder.Order.Amount, curOrder.Order.Amount);
+
+                                // lets sync exchange wallet first to prevent any error from happening
+                                //Wallet mwallet, cwallet;
+                                //try
+                                //{
+
+                                //}
+
                                 // taker profit first
                                 if (curOrder.Order.BuySellType == OrderType.Buy)
                                 {
@@ -205,6 +213,11 @@ namespace Lyra.Node2.Services
                                     ctrans = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
                                         matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
                                         lyraAmount);
+
+                                    // transfer back the result to user wallet
+                                    var tb1 = await SendFromExchangeAccountBackToUserAsync(curOrder.ExchangeAccountId, matchedOrder.Order.TokenName, tradedAmount);
+                                    var tb2 = await SendFromExchangeAccountBackToUserAsync(matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE, lyraAmount);
+                                    Trace.Assert(tb1.IsSuccess && tb2.IsSuccess);
                                 }
                                 else   // currentOrder sell
                                 {
@@ -216,6 +229,11 @@ namespace Lyra.Node2.Services
                                     ctrans = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
                                         matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
                                         tradedAmount);
+
+                                    // transfer back to user
+                                    var tb1 = await SendFromExchangeAccountBackToUserAsync(curOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE, lyraAmount);
+                                    var tb2 = await SendFromExchangeAccountBackToUserAsync(matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName, tradedAmount);
+                                    Trace.Assert(tb1.IsSuccess && tb2.IsSuccess);
                                 }
 
                                 if(!mtrans.IsSuccess || !ctrans.IsSuccess)
@@ -327,6 +345,31 @@ namespace Lyra.Node2.Services
                 {
                     var bLast = transb.Balances[tokenName] - amount;
                     var ret = await fromWallet.Send(amount, toAcct.AccountId, tokenName, true);
+                    return (ret.ResultCode == APIResultCodes.Success, bLast);
+                }
+            }
+            return (false, 0);
+        }
+
+        private async Task<(bool IsSuccess, decimal balance)> SendFromExchangeAccountBackToUserAsync(string fromId, string tokenName, decimal amount)
+        {
+            var fromResult = await _exchangeAccounts.FindAsync(a => a.Id == fromId);
+            var fromAcct = await fromResult.FirstOrDefaultAsync();
+
+            // create wallet and update balance
+            var memStor = new AccountInMemoryStorage();
+            var fromWallet = new Wallet(memStor, _config.NetworkId);
+            fromWallet.AccountName = "tmpAcct";
+            fromWallet.RestoreAccount("", fromAcct.PrivateKey);
+            fromWallet.OpenAccount("", fromWallet.AccountName);
+            var result = await fromWallet.Sync(_node);
+            if (result == APIResultCodes.Success)
+            {
+                var transb = fromWallet.GetLatestBlock();
+                if (transb != null && transb.Balances[tokenName] > amount)
+                {
+                    var bLast = transb.Balances[tokenName] - amount;
+                    var ret = await fromWallet.Send(amount, fromAcct.AssociatedToAccountId, tokenName, true);
                     return (ret.ResultCode == APIResultCodes.Success, bLast);
                 }
             }

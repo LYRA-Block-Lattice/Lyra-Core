@@ -52,6 +52,7 @@ namespace Lyra.Node2
             });
 
             BsonClassMap.RegisterClassMap<SendTransferBlock>();
+            BsonClassMap.RegisterClassMap<ExchangingBlock>();
             BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
             BsonClassMap.RegisterClassMap<OpenWithReceiveTransferBlock>();
             BsonClassMap.RegisterClassMap<LyraTokenGenesisBlock>();

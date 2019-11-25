@@ -890,7 +890,12 @@ namespace Lyra.Node2.Services
         async Task<APIResultCodes> ProcessTransferFee(SendTransferBlock sendBlock)
         {
             // TO DO: handle all token balances, not just LYRA
-            if (sendBlock.Fee != _serviceAccount.GetLastServiceBlock().TransferFee)
+            if(sendBlock is ExchangingBlock)
+            {
+                if(sendBlock.Fee != ExchangingBlock.FEE)
+                    return APIResultCodes.InvalidFeeAmount;
+            }
+            else if (sendBlock.Fee != _serviceAccount.GetLastServiceBlock().TransferFee)
                 return APIResultCodes.InvalidFeeAmount;
 
             return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
