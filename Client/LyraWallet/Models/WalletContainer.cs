@@ -67,6 +67,9 @@ namespace LyraWallet.Models
             AccountID = wallet.AccountId;
             PrivateKey = wallet.PrivateKey;
 
+            if (AccountID == null || PrivateKey == null)
+                throw new Exception("no private key");
+
             // setup API clients
             _nodeApiClient = await LyraRestClient.CreateAsync(CurrentNetwork, AppInfo.Name, AppInfo.VersionString);
             _notifyApiClient = new LyraRestNotify(LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
@@ -232,14 +235,16 @@ namespace LyraWallet.Models
 
         public async Task Remove()
         {
-            await Task.Run(() => {
-                if (wallet != null)
-                    wallet.Dispose();
-                wallet = null;
+            if (wallet != null)
+            {
+                await CloseWallet();
+            }
 
-                if (File.Exists(App.Container.WalletFn))
-                    File.Delete(App.Container.WalletFn);
-            });
+            wallet = null;
+            Balances = null;
+
+            if (File.Exists(App.Container.WalletFn))
+                File.Delete(App.Container.WalletFn);
         }
 
         public async Task<string> GetExchangeAccountId()

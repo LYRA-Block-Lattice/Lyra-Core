@@ -12,6 +12,7 @@ using Lyra.Core.API;
 
 using Newtonsoft.Json;
 using Lyra.Core.Protos;
+using System.Diagnostics;
 
 namespace Lyra.Core.Accounts
 {
@@ -520,6 +521,10 @@ namespace Lyra.Core.Accounts
 
         public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.LYRA_TICKER_CODE, bool ToExchange = false)
         {
+            Trace.Assert(Amount > 0);
+            if (Amount <= 0)
+                throw new Exception("Amount must > 0");
+
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
             {

@@ -154,8 +154,8 @@ namespace LyraWallet.ViewModels
                 return;
 
             int times = 0;
-            while(times < 30)
-            {
+            //while(times < 30)
+            //{
                 try
                 {
                     Title = "Opening Wallet...";
@@ -169,7 +169,7 @@ namespace LyraWallet.ViewModels
 
                     MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
                     await Refresh();
-                    break;
+                    //break;
                 }
                 catch (Exception)
                 {
@@ -177,7 +177,7 @@ namespace LyraWallet.ViewModels
                     await Task.Delay(2000 * times);
                     Title = $"Retry #{times} Opening Wallet...";
                 }
-            }
+            //}
 
         }
 

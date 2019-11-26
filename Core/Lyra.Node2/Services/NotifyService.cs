@@ -27,7 +27,7 @@ namespace Lyra.Node2.Services
             if(string.IsNullOrEmpty(AccountID))
             {
                 // broadcast to every connected client
-                foreach(var nc in _peers.Values)
+                foreach(var nc in _peers.Values.ToList())
                 {
                     nc.Source = Source;
                     nc.Action = action;

@@ -198,7 +198,7 @@ namespace LyraWallet.ViewModels
             {
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    ThePage.DisplayAlert("Error Submiting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: {ex.Message}", "OK");
+                    ThePage.DisplayAlert("Error Getting Order", $"Network: {App.Container.CurrentNetwork}\nError Message: {ex.Message}", "OK");
                 });
             }
         }
@@ -247,7 +247,12 @@ namespace LyraWallet.ViewModels
                 try
                 {
                     foreach(var kvp in fundsToTransfer)
-                        await App.Container.Transfer(kvp.Key, _exchangeAccountId, kvp.Value, true);
+                    {
+                        if(kvp.Value > 0)
+                        {
+                            await App.Container.Transfer(kvp.Key, _exchangeAccountId, kvp.Value, true);
+                        }
+                    }                        
                 }
                 catch(Exception ex)
                 {
@@ -288,8 +293,8 @@ namespace LyraWallet.ViewModels
             {
                 var exchBalance = await App.Container.GetExchangeBalance();
                 string exchLyraBstr = "0";
-                if (exchBalance != null)
-                    exchLyraBstr = exchBalance["Lyra.LeX"].ToString();
+                if (exchBalance != null && exchBalance.ContainsKey(LyraGlobal.LYRA_TICKER_CODE))
+                    exchLyraBstr = exchBalance[LyraGlobal.LYRA_TICKER_CODE].ToString();
                 LeXBalance = $"Lyra.LeX: {App.Container.Balances["Lyra.LeX"]} ({exchLyraBstr})";
                 if(SelectedToken == null)
                 {

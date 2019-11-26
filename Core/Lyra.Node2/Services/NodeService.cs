@@ -234,10 +234,10 @@ namespace Lyra.Node2.Services
                                         matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
                                         lyraAmount);
 
-                                    // transfer back the result to user wallet
-                                    var tb1 = await SendFromExchangeAccountBackToUserAsync(curOrder.ExchangeAccountId, matchedOrder.Order.TokenName, tradedAmount);
-                                    var tb2 = await SendFromExchangeAccountBackToUserAsync(matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE, lyraAmount);
-                                    Trace.Assert(tb1.IsSuccess && tb2.IsSuccess);
+                                    //// transfer back the result to user wallet
+                                    //var tb1 = await SendFromExchangeAccountBackToUserAsync(curOrder.ExchangeAccountId, matchedOrder.Order.TokenName, tradedAmount);
+                                    //var tb2 = await SendFromExchangeAccountBackToUserAsync(matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE, lyraAmount);
+                                    //Trace.Assert(tb1.IsSuccess && tb2.IsSuccess);
                                 }
                                 else   // currentOrder sell
                                 {
@@ -250,10 +250,10 @@ namespace Lyra.Node2.Services
                                         matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
                                         tradedAmount);
 
-                                    // transfer back to user
-                                    var tb1 = await SendFromExchangeAccountBackToUserAsync(curOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE, lyraAmount);
-                                    var tb2 = await SendFromExchangeAccountBackToUserAsync(matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName, tradedAmount);
-                                    Trace.Assert(tb1.IsSuccess && tb2.IsSuccess);
+                                    //// transfer back to user
+                                    //var tb1 = await SendFromExchangeAccountBackToUserAsync(curOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE, lyraAmount);
+                                    //var tb2 = await SendFromExchangeAccountBackToUserAsync(matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName, tradedAmount);
+                                    //Trace.Assert(tb1.IsSuccess && tb2.IsSuccess);
                                 }
 
                                 if(!mtrans.IsSuccess || !ctrans.IsSuccess)
@@ -273,8 +273,8 @@ namespace Lyra.Node2.Services
 
                                     if (!changedAccount.Contains(matchedOrder.Order.AccountID))
                                         changedAccount.Add(matchedOrder.Order.AccountID);
-                                    if (!changedAccount.Contains(matchedOrder.Order.AccountID))
-                                        changedAccount.Add(matchedOrder.Order.AccountID);
+                                    if (!changedAccount.Contains(curOrder.Order.AccountID))
+                                        changedAccount.Add(curOrder.Order.AccountID);
 
                                     continue;
                                 }
@@ -291,8 +291,8 @@ namespace Lyra.Node2.Services
 
                                     if (!changedAccount.Contains(matchedOrder.Order.AccountID))
                                         changedAccount.Add(matchedOrder.Order.AccountID);
-                                    if (!changedAccount.Contains(matchedOrder.Order.AccountID))
-                                        changedAccount.Add(matchedOrder.Order.AccountID);
+                                    if (!changedAccount.Contains(curOrder.Order.AccountID))
+                                        changedAccount.Add(curOrder.Order.AccountID);
 
                                     break;
                                 }
@@ -309,8 +309,8 @@ namespace Lyra.Node2.Services
 
                                     if (!changedAccount.Contains(matchedOrder.Order.AccountID))
                                         changedAccount.Add(matchedOrder.Order.AccountID);
-                                    if (!changedAccount.Contains(matchedOrder.Order.AccountID))
-                                        changedAccount.Add(matchedOrder.Order.AccountID);
+                                    if (!changedAccount.Contains(curOrder.Order.AccountID))
+                                        changedAccount.Add(curOrder.Order.AccountID);
 
                                     break;
                                 }
@@ -354,18 +354,7 @@ namespace Lyra.Node2.Services
             var fromAcct = await fromResult.FirstOrDefaultAsync();
             if(fromAcct != null)
             {
-                // create wallet and update balance
-                var memStor = new AccountInMemoryStorage();
-                var fromWallet = new Wallet(memStor, _config.NetworkId);
-                fromWallet.AccountName = "tmpAcct";
-                fromWallet.RestoreAccount("", fromAcct.PrivateKey);
-                fromWallet.OpenAccount("", fromWallet.AccountName);
-                for (int i = 0; i < 300; i++)
-                {
-                    var result = await fromWallet.Sync(_node);
-                    if (result == APIResultCodes.Success)
-                        break;
-                }
+                var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
 
                 {
                     var transb = fromWallet.GetLatestBlock();
@@ -383,8 +372,12 @@ namespace Lyra.Node2.Services
                         }
 
                         sendCount++;
-                        var ret2 = await fromWallet.Send(transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - sendCount * ExchangingBlock.FEE, associatedAccountId, LyraGlobal.LYRA_TICKER_CODE, true);
-                        Trace.Assert(ret2.ResultCode == APIResultCodes.Success);
+
+                        if(transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - sendCount * ExchangingBlock.FEE > 0)
+                        {
+                            var ret2 = await fromWallet.Send(transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - sendCount * ExchangingBlock.FEE, associatedAccountId, LyraGlobal.LYRA_TICKER_CODE, true);
+                            Trace.Assert(ret2.ResultCode == APIResultCodes.Success);
+                        }
                     }
                 }
             }
@@ -398,29 +391,19 @@ namespace Lyra.Node2.Services
             var toResult = await _exchangeAccounts.FindAsync(a => a.Id == toId);
             var toAcct = await toResult.FirstOrDefaultAsync();
 
-            // create wallet and update balance
-            var memStor = new AccountInMemoryStorage();
-            var fromWallet = new Wallet(memStor, _config.NetworkId);
-            fromWallet.AccountName = "tmpAcct";
-            fromWallet.RestoreAccount("", fromAcct.PrivateKey);
-            fromWallet.OpenAccount("", fromWallet.AccountName);
-            for (int i = 0; i < 300; i++)
-            {
-                var result = await fromWallet.Sync(_node);
-                if (result == APIResultCodes.Success)
-                    break;
-            }
+            var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
 
+            var transb = fromWallet.GetLatestBlock();
+            if (transb != null && transb.Balances[tokenName] >= amount)
             {
-                var transb = fromWallet.GetLatestBlock();
-                if (transb != null && transb.Balances[tokenName] > amount)
-                {
-                    var bLast = transb.Balances[tokenName] - amount;
-                    var ret = await fromWallet.Send(amount, toAcct.AccountId, tokenName, true);
-                    return (ret.ResultCode == APIResultCodes.Success, bLast);
-                }
+                var bLast = transb.Balances[tokenName] - amount;
+                var ret = await fromWallet.Send(amount, toAcct.AccountId, tokenName, true);
+                return (ret.ResultCode == APIResultCodes.Success, bLast);
             }
-            return (false, 0);
+            else
+            {
+                return (false, 0);
+            }
         }
 
         private async Task<(bool IsSuccess, decimal balance)> SendFromExchangeAccountBackToUserAsync(string fromId, string tokenName, decimal amount)
@@ -428,24 +411,37 @@ namespace Lyra.Node2.Services
             var fromResult = await _exchangeAccounts.FindAsync(a => a.Id == fromId);
             var fromAcct = await fromResult.FirstOrDefaultAsync();
 
+            var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
+            var transb = fromWallet.GetLatestBlock();
+            if (transb != null && transb.Balances[tokenName] >= amount)
+            {
+                var bLast = transb.Balances[tokenName] - amount;
+                var ret = await fromWallet.Send(amount, fromAcct.AssociatedToAccountId, tokenName, true);
+                return (ret.ResultCode == APIResultCodes.Success, bLast);
+            }
+            else
+            {
+                return (false, 0);
+            }            
+        }
+
+        private static async Task<Wallet> GetExchangeAccountWallet(string privateKey)
+        {
             // create wallet and update balance
             var memStor = new AccountInMemoryStorage();
             var fromWallet = new Wallet(memStor, _config.NetworkId);
             fromWallet.AccountName = "tmpAcct";
-            fromWallet.RestoreAccount("", fromAcct.PrivateKey);
+            fromWallet.RestoreAccount("", privateKey);
             fromWallet.OpenAccount("", fromWallet.AccountName);
-            var result = await fromWallet.Sync(_node);
-            if (result == APIResultCodes.Success)
+            APIResultCodes result = APIResultCodes.UnknownError;
+            for (int i = 0; i < 300; i++)
             {
-                var transb = fromWallet.GetLatestBlock();
-                if (transb != null && transb.Balances[tokenName] > amount)
-                {
-                    var bLast = transb.Balances[tokenName] - amount;
-                    var ret = await fromWallet.Send(amount, fromAcct.AssociatedToAccountId, tokenName, true);
-                    return (ret.ResultCode == APIResultCodes.Success, bLast);
-                }
+                result = await fromWallet.Sync(_node);
+                if (result == APIResultCodes.Success)
+                    break;
             }
-            return (false, 0);
+            Trace.Assert(result == APIResultCodes.Success);
+            return fromWallet;
         }
 
         public async Task<ExchangeOrder[]> GetNewlyPlacedOrdersAsync()
