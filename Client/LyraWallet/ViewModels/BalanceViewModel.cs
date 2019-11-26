@@ -150,6 +150,9 @@ namespace LyraWallet.ViewModels
 
         public async Task Open()
         {
+            if (App.Container.Balances != null)     // don't reopen
+                return;
+
             int times = 0;
             while(times < 30)
             {

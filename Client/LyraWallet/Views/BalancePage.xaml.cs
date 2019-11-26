@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -18,7 +18,10 @@ namespace LyraWallet.Views
 			InitializeComponent ();
             BindingContext = new BalanceViewModel(this);
 
-            btnRefresh.IsVisible = Device.OnPlatform<bool>(false, false, true);
+            if (DeviceInfo.Platform == DevicePlatform.UWP)
+                btnRefresh.IsVisible = true;
+            else
+                btnRefresh.IsVisible = false;
 
             lvBalance.ItemTapped += LvBalance_ItemTapped;
         }

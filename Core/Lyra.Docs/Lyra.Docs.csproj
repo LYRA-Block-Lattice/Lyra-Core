@@ -37,5 +37,8 @@
     <Content Include="DEX.txt" />
     <Content Include="SignalR.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Class1.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

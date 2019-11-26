@@ -204,6 +204,9 @@ namespace LyraWallet.ViewModels
         }
         private async Task SubmitOrder(bool IsBuy)
         {
+            if (string.IsNullOrWhiteSpace(SelectedToken))
+                return;
+
             try
             {
                 Title = "Submiting order...";
@@ -278,8 +281,8 @@ namespace LyraWallet.ViewModels
         {
             if(App.Container.Balances == null)
             {
-                LeXBalance = $"Holding Lyra.LeX: 0";
-                TargetTokenBalance = $"Holding {SelectedToken}: 0";
+                LeXBalance = $"Lyra.LeX: 0";
+                TargetTokenBalance = $"{SelectedToken}: 0";
             }
             else
             {
@@ -287,7 +290,7 @@ namespace LyraWallet.ViewModels
                 string exchLyraBstr = "0";
                 if (exchBalance != null)
                     exchLyraBstr = exchBalance["Lyra.LeX"].ToString();
-                LeXBalance = $"Holdding Lyra.LeX: {App.Container.Balances["Lyra.LeX"]} ({exchLyraBstr})";
+                LeXBalance = $"Lyra.LeX: {App.Container.Balances["Lyra.LeX"]} ({exchLyraBstr})";
                 if(SelectedToken == null)
                 {
                     TargetTokenBalance = "";
@@ -300,11 +303,11 @@ namespace LyraWallet.ViewModels
 
                     if (App.Container.Balances.ContainsKey(SelectedToken))
                     {
-                        TargetTokenBalance = $"Holdding {SelectedToken}: {App.Container.Balances[SelectedToken]} ({exchBstr})";
+                        TargetTokenBalance = $"{SelectedToken}: {App.Container.Balances[SelectedToken]} ({exchBstr})";
                     }
                     else
                     {
-                        TargetTokenBalance = $"Holdding {SelectedToken}: 0 ({exchBstr})";
+                        TargetTokenBalance = $"{SelectedToken}: 0 ({exchBstr})";
                     }
                 }
             }

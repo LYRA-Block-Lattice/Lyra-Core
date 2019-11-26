@@ -138,7 +138,21 @@ namespace LyraWallet.Models
         }
         public async Task RefreshBalance(string webApiUrl = null)
         {
-            var result = await wallet.Sync(_nodeApiClient);
+            APIResultCodes result = APIResultCodes.UndefinedError;
+            int retryCount = 0;
+            while(retryCount < 5)
+            {
+                try
+                {
+                    result = await wallet.Sync(_nodeApiClient);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    retryCount++;
+                }
+            }
+
             if (result == APIResultCodes.Success)
             {
                 App.Container.Balances = wallet.GetLatestBlock()?.Balances;

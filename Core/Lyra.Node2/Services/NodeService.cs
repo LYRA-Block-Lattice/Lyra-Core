@@ -371,15 +371,20 @@ namespace Lyra.Node2.Services
                     var transb = fromWallet.GetLatestBlock();
                     if (transb != null) 
                     {
+                        int sendCount = 0;
                         foreach(var kvp in transb.Balances)
                         {
                             if(kvp.Value > 0 && kvp.Key != LyraGlobal.LYRA_TICKER_CODE)
                             {
-                                await fromWallet.Send(kvp.Value, associatedAccountId, kvp.Key, true);
+                                var ret = await fromWallet.Send(kvp.Value, associatedAccountId, kvp.Key, true);
+                                Trace.Assert(ret.ResultCode == APIResultCodes.Success);
+                                sendCount++;
                             }
                         }
-                        
-                        await fromWallet.Send(transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - ExchangingBlock.FEE, associatedAccountId, LyraGlobal.LYRA_TICKER_CODE, true);
+
+                        sendCount++;
+                        var ret2 = await fromWallet.Send(transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - sendCount * ExchangingBlock.FEE, associatedAccountId, LyraGlobal.LYRA_TICKER_CODE, true);
+                        Trace.Assert(ret2.ResultCode == APIResultCodes.Success);
                     }
                 }
             }

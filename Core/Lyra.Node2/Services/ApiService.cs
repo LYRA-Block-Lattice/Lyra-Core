@@ -808,8 +808,8 @@ namespace Lyra.Node2.Services
             };
             if(acct != null)
             {
-                acct.AccountId = acct.AccountId;
-                acct.Balance = acct.Balance;
+                result.AccountId = acct.AccountId;
+                result.Balance = acct.Balance;
             }
             return result;
         }
