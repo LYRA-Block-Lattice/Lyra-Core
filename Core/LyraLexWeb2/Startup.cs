@@ -15,6 +15,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using LyraLexWeb2.Areas.Identity;
 using LyraLexWeb2.Data;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using LyraLexWeb2.Services;
 
 namespace LyraLexWeb2
 {
@@ -36,6 +38,10 @@ namespace LyraLexWeb2
                     Configuration.GetConnectionString("DefaultConnection")));
             services.AddDefaultIdentity<IdentityUser>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddTransient<IEmailSender, EmailSender>();
+            services.Configure<AuthMessageSenderOptions>(Configuration);
+
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
