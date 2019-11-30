@@ -10,6 +10,8 @@ namespace LyraWallet.States
     {
         public string Network { get; set; }
 
+        public string apiUrl { get; set; }
+
         public HoldingState walletState {get; set;}
 
         public ShopState shopState { get; set; }

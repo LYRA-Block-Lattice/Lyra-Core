@@ -9,9 +9,18 @@ namespace LyraWallet.States.Holding
             (RootState state) => state.walletState
         );
 
-        public static ISelectorWithoutProps<RootState, Lyra.Core.Accounts.Wallet> SelectWallet = CreateSelector(
+        public static ISelectorWithoutProps<RootState, string> SelectAccountId = CreateSelector(
             SelectWalletState,
-            state => state.lyraWallet
+            state => state.AccountID
+        );
+
+        public static ISelectorWithoutProps<RootState, string> SelectPrivateKey = CreateSelector(
+            SelectWalletState,
+            state => state.PrivateKey
+        );
+        public static ISelectorWithoutProps<RootState, BalanceEntityState> SelectBalanceEntityState = CreateSelector(
+            SelectWalletState,
+            state => state.Balances
         );
     }
 }

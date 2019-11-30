@@ -78,10 +78,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="RPC\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
   </ItemGroup>
 </Project>

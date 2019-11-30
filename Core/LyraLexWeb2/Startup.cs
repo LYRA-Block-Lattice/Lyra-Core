@@ -67,7 +67,7 @@ namespace LyraLexWeb2
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection(); // only if we got a cert
             app.UseStaticFiles();
 
             app.UseRouting();

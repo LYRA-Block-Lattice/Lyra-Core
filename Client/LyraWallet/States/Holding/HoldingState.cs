@@ -9,19 +9,17 @@ namespace LyraWallet.States.Holding
 {
     public class HoldingState
     {
-        public Wallet lyraWallet { get; set; }
-        public string apiUrl { get; set; }
-        public LyraRestClient restClient {get; set;}
-        public LyraRestNotify notifyClient { get; set; }
+        public string AccountID { get; set; }
+        public string PrivateKey { get; set; }
 
-        public CancellationTokenSource cancel { get; set; }
+        public BalanceEntityState Balances { get; set; }
 
         public static HoldingState InitialState =>
             new HoldingState
             {
-                lyraWallet = null,
-                restClient = null,
-                notifyClient = null
+                Balances = new BalanceEntityState(),
+                AccountID = null,
+                PrivateKey = null
             };
     }
 }
