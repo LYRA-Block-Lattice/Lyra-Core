@@ -5,12 +5,17 @@ using LyraWallet.Views;
 using LyraWallet.Services;
 using System.IO;
 using LyraWallet.Models;
+using ReduxSimple;
+using LyraWallet.States;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace LyraWallet
 {
     public partial class App : Application
     {
+        public static readonly ReduxStore<RootState> Store =
+            new ReduxStore<RootState>(States.Reducers.CreateReducers(), RootState.InitialState, true);
+
         public static WalletContainer Container;
 
         public App()
