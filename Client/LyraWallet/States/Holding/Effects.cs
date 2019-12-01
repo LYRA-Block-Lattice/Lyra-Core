@@ -17,7 +17,7 @@ namespace LyraWallet.States.Holding
                 () => App.Store.ObserveAction<GetApiVersionAction>()
                     .Select(vers => 
                     {
-                        _apiClient = new LyraRestClient(vers.AppName, vers.AppVersion, LyraGlobal.SelectNode(vers.Network).restUrl);
+                        _apiClient = new LyraRestClient(vers.Platform, vers.AppName, vers.AppVersion, LyraGlobal.SelectNode(vers.Network).restUrl);
                         return Observable.FromAsync(async () => await _apiClient.GetVersion(LyraGlobal.APIVERSION, vers.AppName, vers.AppVersion));
                     })
                     .Switch()

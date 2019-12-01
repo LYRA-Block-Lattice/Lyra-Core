@@ -71,8 +71,9 @@ namespace LyraWallet.Models
                 throw new Exception("no private key");
 
             // setup API clients
-            _nodeApiClient = await LyraRestClient.CreateAsync(CurrentNetwork, AppInfo.Name, AppInfo.VersionString);
-            _notifyApiClient = new LyraRestNotify(LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
+            var platform = DeviceInfo.Platform.ToString();
+            _nodeApiClient = await LyraRestClient.CreateAsync(CurrentNetwork, platform, AppInfo.Name, AppInfo.VersionString);
+            _notifyApiClient = new LyraRestNotify(platform, LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
 
             _cancel = new CancellationTokenSource();
             await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, action, catalog, extInfo) => {

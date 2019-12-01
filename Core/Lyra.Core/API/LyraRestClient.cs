@@ -9,8 +9,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Xamarin.Essentials;
-using static Android.Bluetooth.BluetoothClass;
 
 namespace Lyra.Core.API
 {
@@ -20,15 +18,13 @@ namespace Lyra.Core.API
         private string _appVersion;
         private string _url;
         private HttpClient _client;
-        public LyraRestClient(string appName, string appVersion, string url)
+        public LyraRestClient(string platform, string appName, string appVersion, string url)
         {
             _url = url;
             _appName = appName;
             _appVersion = appVersion;
 
-            var platform = DeviceInfo.Platform;
-
-            if(platform == DevicePlatform.iOS)
+            if(platform == "iOS")
             {
                 System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) =>
                 {
@@ -41,7 +37,7 @@ namespace Lyra.Core.API
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
 
-            if(platform == DevicePlatform.Android)
+            if(platform =="Android")
             {
                 httpClientHandler.ServerCertificateCustomValidationCallback =
                     HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
@@ -54,10 +50,10 @@ namespace Lyra.Core.API
                 new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public static async Task<LyraRestClient> CreateAsync(string networkId, string appName, string appVersion)
+        public static async Task<LyraRestClient> CreateAsync(string networkId, string platform, string appName, string appVersion)
         {
             var url = LyraGlobal.SelectNode(networkId).restUrl + "LyraNode/";
-            var restClient = new LyraRestClient(appName, appVersion, url);
+            var restClient = new LyraRestClient(platform, appName, appVersion, url);
             if (!await restClient.CheckApiVersion())
                 throw new Exception("Unable to use API. Must upgrade your App.");
             else

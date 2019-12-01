@@ -8,7 +8,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xamarin.Essentials;
 
 namespace Lyra.Core.API
 {
@@ -16,15 +15,13 @@ namespace Lyra.Core.API
     {
         private string _url;
         private HttpClient _client;
-        public LyraRestNotify(string url)
+        public LyraRestNotify(string platform, string url)
         {
             _url = url;
 
-            var platform = DeviceInfo.Platform;
-
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
-            if (platform == DevicePlatform.Android)
+            if (platform == "Android")
             {
                 httpClientHandler.ServerCertificateCustomValidationCallback =
                     HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
