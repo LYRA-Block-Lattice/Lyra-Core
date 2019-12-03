@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Lyra.Node2
+namespace Lyra.Authorizer.Services
 {
     public static class NodeGlobalParameters
     {

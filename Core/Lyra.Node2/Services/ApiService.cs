@@ -1,4 +1,7 @@
 using Grpc.Core;
+using Lyra.Authorizer;
+using Lyra.Authorizer.Authorizers;
+using Lyra.Authorizer.Services;
 using Lyra.Core.Accounts.Node;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
@@ -7,7 +10,6 @@ using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Protos;
 using Lyra.Exchange;
-using Lyra.Node2.Authorizers;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Newtonsoft.Json;

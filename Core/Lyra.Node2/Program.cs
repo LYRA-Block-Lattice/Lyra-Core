@@ -1,17 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Lyra.Authorizer.Decentralize;
 using Lyra.Core.API;
-using Lyra.Node2.Decentralize;
 using Lyra.Node2.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Orleans.Configuration;
 using Orleans.Hosting;
+using Orleans;
 
 namespace Lyra.Node2
 {
@@ -40,8 +37,8 @@ namespace Lyra.Node2
                         options.ClusterId = "dev";
                         options.ServiceId = "LyraAuthorizerNode";
                     })
-                    .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
-                    //.ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(DAGGrain).Assembly).WithReferences())
+                    .ConfigureEndpoints(siloPort: 11111, gatewayPort: 30000)
+                    .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(DAGGrain).Assembly).WithReferences())
                     .AddMemoryGrainStorage(name: "ArchiveStorage")
                     .AddStartupTask((sp, token) =>
                     {

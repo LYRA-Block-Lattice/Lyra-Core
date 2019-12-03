@@ -9,7 +9,7 @@ using Lyra.Core.Protos;
 
 //using Lyra.Core.Cryptography;
 
-namespace Lyra.Node2.Services
+namespace Lyra.Authorizer.Services
 {
     public class ServiceAccount : BaseAccount
     {

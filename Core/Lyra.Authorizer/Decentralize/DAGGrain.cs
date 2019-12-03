@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Lyra.Node2.Decentralize
+namespace Lyra.Authorizer.Decentralize
 {
     public class DAGGrain : Orleans.Grain, IDAGNode
     {

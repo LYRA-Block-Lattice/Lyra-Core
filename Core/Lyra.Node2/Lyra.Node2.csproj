@@ -5,9 +5,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Accounts\**" />
+    <Compile Remove="Authorizers\**" />
     <Compile Remove="Protos\**" />
+    <Content Remove="Accounts\**" />
+    <Content Remove="Authorizers\**" />
     <Content Remove="Protos\**" />
+    <EmbeddedResource Remove="Accounts\**" />
+    <EmbeddedResource Remove="Authorizers\**" />
     <EmbeddedResource Remove="Protos\**" />
+    <None Remove="Accounts\**" />
+    <None Remove="Authorizers\**" />
     <None Remove="Protos\**" />
   </ItemGroup>
 
@@ -20,6 +28,11 @@
     <PackageReference Include="Grpc.AspNetCore" Version="2.25.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Orleans.Core" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="3.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Orleans.Server" Version="3.0.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.9.3" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
@@ -30,6 +43,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
+    <ProjectReference Include="..\Lyra.Authorizer\Lyra.Authorizer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
