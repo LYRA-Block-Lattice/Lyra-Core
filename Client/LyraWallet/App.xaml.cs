@@ -13,6 +13,8 @@ namespace LyraWallet
 {
     public partial class App : Application
     {
+        public static IServiceProvider ServiceProvider { get; set; }
+
         public static readonly ReduxStore<RootState> Store =
             new ReduxStore<RootState>(States.Reducers.CreateReducers(), RootState.InitialState, true);
 
