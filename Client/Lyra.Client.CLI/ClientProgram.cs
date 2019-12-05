@@ -7,8 +7,11 @@ using System;
 using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
-
-
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Lyra.Client.Lib;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 namespace Lyra.Client.CLI
 
@@ -17,21 +20,27 @@ namespace Lyra.Client.CLI
     {
  
 
-        static void Main(string[] args)
+        static Task Main(string[] args)
         {
             Console.WriteLine("LYRA Command Line Client");
             Console.WriteLine("Version: " + "0.5.3");
 
             ParserResult<Options> result = Parser.Default.ParseArguments<Options>(args);
 
-            int mapresult = result.MapResult((Options options) => WalletManager.RunWallet(options).Result, _ => CommandLineError());
+            var host = CreateHost();
+            host.Start();
+
+            var client = host.Services.GetService<IHostedService>();
+
+            var wm = new WalletManager();
+            int mapresult = result.MapResult((Options options) => wm.RunWallet((DAGClientHostedService)client, options).Result, _ => CommandLineError());
 
             if (mapresult != 0)
             {
                 if (mapresult == -2)
-                    Console.WriteLine("Unsupported parameters");
-                return;
+                    Console.WriteLine("Unsupported parameters");                
             }
+            return Task.CompletedTask;
         }
 
         static int CommandLineError()
@@ -40,9 +49,29 @@ namespace Lyra.Client.CLI
             return -1;
         }
 
-        
+        private static IHost CreateHost()
+        {
+            return new HostBuilder()
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton<ClusterClientHostedService>();
+                    services.AddSingleton<IHostedService>(_ => _.GetService<ClusterClientHostedService>());
+                    services.AddSingleton(_ => _.GetService<ClusterClientHostedService>().Client);
 
-       
+                    services.AddHostedService<DAGClientHostedService>();
+
+                    services.Configure<ConsoleLifetimeOptions>(options =>
+                    {
+                        options.SuppressStatusMessages = true;
+                    });
+                })
+                .ConfigureLogging(builder =>
+                {
+                    builder.AddConsole();
+                })
+                .Build();
+        }
+
     }
     
     public class Options
@@ -72,6 +101,8 @@ namespace Lyra.Client.CLI
 
         [Option('n', "node", HelpText = "Node API URL", Required = false)]
         public string Node { get; set; }
+
+        public IHost Host { get; set; }
 
         [Usage(ApplicationAlias = "dotnet lyracli.dll")]
         public static IEnumerable<Example> Examples

@@ -1,4 +1,5 @@
-﻿using LyraWallet.States;
+﻿using Lyra.Client.Lib;
+using LyraWallet.States;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

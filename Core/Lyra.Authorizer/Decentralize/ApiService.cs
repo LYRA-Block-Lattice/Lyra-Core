@@ -1,5 +1,4 @@
 using Grpc.Core;
-using Lyra.Authorizer;
 using Lyra.Authorizer.Authorizers;
 using Lyra.Authorizer.Services;
 using Lyra.Core.Accounts.Node;
@@ -10,6 +9,7 @@ using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Protos;
 using Lyra.Exchange;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Newtonsoft.Json;
@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Lyra.Node2.Services
+namespace Lyra.Authorizer.Decentralize
 {
     public class LyraConfig
     {
@@ -26,14 +26,15 @@ namespace Lyra.Node2.Services
         public string NetworkId { get; set; }
     }
 
-    public class ApiService : LyraApi.LyraApiBase, INodeAPI
+    public class ApiService : Orleans.Grain, INodeAPI
     {
         private readonly ILogger<ApiService> _logger;
         static ServiceAccount _serviceAccount;
         static IAccountCollection _accountCollection;
         private LyraConfig _config;
 
-        public ApiService(ILogger<ApiService> logger, Microsoft.Extensions.Options.IOptions<LyraConfig> config)
+        public ApiService(ILogger<ApiService> logger, 
+            Microsoft.Extensions.Options.IOptions<LyraConfig> config)
         {
             _logger = logger;
             _config = config.Value;
@@ -55,19 +56,19 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetVersionReply> GetVersion(GetVersionRequest request, ServerCallContext context)
-        {
-            var cr = await GetVersion(request.ApiVersion, request.AppName, request.Appversion);
-            var result = new GetVersionReply()
-            {
-                ApiVersion = cr.ApiVersion,
-                NodeVersion = cr.NodeVersion,
-                ResultCode = cr.ResultCode,
-                UpgradeNeeded = cr.UpgradeNeeded,
-                MustUpgradeToConnect = cr.MustUpgradeToConnect
-            };
-            return result;
-        }
+        //public override async Task<GetVersionReply> GetVersion(GetVersionRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetVersion(request.ApiVersion, request.AppName, request.Appversion);
+        //    var result = new GetVersionReply()
+        //    {
+        //        ApiVersion = cr.ApiVersion,
+        //        NodeVersion = cr.NodeVersion,
+        //        ResultCode = cr.ResultCode,
+        //        UpgradeNeeded = cr.UpgradeNeeded,
+        //        MustUpgradeToConnect = cr.MustUpgradeToConnect
+        //    };
+        //    return result;
+        //}
 
         public Task<AccountHeightAPIResult> GetSyncHeight()
         {
@@ -87,18 +88,18 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<AccountHeightReply> GetSyncHeight(SimpleRequest request, ServerCallContext context)
-        {
-            var cr = await GetSyncHeight();
-            var result = new AccountHeightReply()
-            {
-                ResultCode = cr.ResultCode,
-                NetworkId = cr.NetworkId,
-                Height = cr.Height,
-                SyncHash = cr.SyncHash
-            };
-            return result;
-        }
+        //public override async Task<AccountHeightReply> GetSyncHeight(SimpleRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetSyncHeight();
+        //    var result = new AccountHeightReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        NetworkId = cr.NetworkId,
+        //        Height = cr.Height,
+        //        SyncHash = cr.SyncHash
+        //    };
+        //    return result;
+        //}
 
         public Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
@@ -127,17 +128,17 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetTokenNamesReply> GetTokenNames(GetTokenNamesRequest request, ServerCallContext context)
-        {
-            var cr = await GetTokenNames(request.AccountId, request.Signature, request.Keyword);
-            var result = new GetTokenNamesReply()
-            {
-                ResultCode = cr.ResultCode
-            };
-            result.TokenNames.AddRange(cr.TokenNames);
+        //public override async Task<GetTokenNamesReply> GetTokenNames(GetTokenNamesRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetTokenNames(request.AccountId, request.Signature, request.Keyword);
+        //    var result = new GetTokenNamesReply()
+        //    {
+        //        ResultCode = cr.ResultCode
+        //    };
+        //    result.TokenNames.AddRange(cr.TokenNames);
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
         {
@@ -163,18 +164,18 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetAccountHeightReply> GetAccountHeight(StandardWalletRequest request, ServerCallContext context)
-        {
-            var cr = await GetAccountHeight(request.AccountId, request.Signature);
-            var result = new GetAccountHeightReply()
-            {
-                ResultCode = cr.ResultCode,
-                Height = cr.Height,
-                SyncHash = cr.SyncHash,
-                NetworkId = cr.NetworkId
-            };
-            return result;
-        }
+        //public override async Task<GetAccountHeightReply> GetAccountHeight(StandardWalletRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetAccountHeight(request.AccountId, request.Signature);
+        //    var result = new GetAccountHeightReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        Height = cr.Height,
+        //        SyncHash = cr.SyncHash,
+        //        NetworkId = cr.NetworkId
+        //    };
+        //    return result;
+        //}
 
         public Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
         {
@@ -206,18 +207,18 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetBlockReply> GetBlockByIndex(GetBlockByIndexRequest request, ServerCallContext context)
-        {
-            var cr = await GetBlockByIndex(request.AccountId, request.Index, request.Signature);
-            var result = new GetBlockReply()
-            {
-                ResultCode = cr.ResultCode,
-                BlockData = cr.BlockData,
-                ResultBlockType = cr.ResultBlockType
-            };
+        //public override async Task<GetBlockReply> GetBlockByIndex(GetBlockByIndexRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetBlockByIndex(request.AccountId, request.Index, request.Signature);
+        //    var result = new GetBlockReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        BlockData = cr.BlockData,
+        //        ResultBlockType = cr.ResultBlockType
+        //    };
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
@@ -247,18 +248,18 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetBlockReply> GetBlockByHash(GetBlockByHashRequest request, ServerCallContext context)
-        {
-            var cr = await GetBlockByHash(request.AccountId, request.Hash, request.Signature);
-            var result = new GetBlockReply()
-            {
-                ResultCode = cr.ResultCode,
-                BlockData = cr.BlockData,
-                ResultBlockType = cr.ResultBlockType
-            };
+        //public override async Task<GetBlockReply> GetBlockByHash(GetBlockByHashRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetBlockByHash(request.AccountId, request.Hash, request.Signature);
+        //    var result = new GetBlockReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        BlockData = cr.BlockData,
+        //        ResultBlockType = cr.ResultBlockType
+        //    };
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
@@ -287,16 +288,16 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetNonFungibleTokensReply> GetNonFungibleTokens(StandardWalletRequest request, ServerCallContext context)
-        {
-            var cr = await GetNonFungibleTokens(request.AccountId, request.Signature);
-            var result = new GetNonFungibleTokensReply()
-            {
-                ResultCode = cr.ResultCode,
-                ListDataSerialized = cr.ListDataSerialized
-            };
-            return result;
-        }
+        //public override async Task<GetNonFungibleTokensReply> GetNonFungibleTokens(StandardWalletRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetNonFungibleTokens(request.AccountId, request.Signature);
+        //    var result = new GetNonFungibleTokensReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        ListDataSerialized = cr.ListDataSerialized
+        //    };
+        //    return result;
+        //}
 
         public Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
@@ -326,17 +327,17 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetBlockReply> GetTokenGenesisBlock(GetTokenGenesisBlockRequest request, ServerCallContext context)
-        {
-            var cr = await GetTokenGenesisBlock(request.AccountId, request.TokenTicker, request.Signature);
-            var result = new GetBlockReply()
-            {
-                ResultCode = cr.ResultCode,
-                BlockData = cr.BlockData,
-                ResultBlockType = cr.ResultBlockType
-            };
-            return result;
-        }
+        //public override async Task<GetBlockReply> GetTokenGenesisBlock(GetTokenGenesisBlockRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetTokenGenesisBlock(request.AccountId, request.TokenTicker, request.Signature);
+        //    var result = new GetBlockReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        BlockData = cr.BlockData,
+        //        ResultBlockType = cr.ResultBlockType
+        //    };
+        //    return result;
+        //}
 
         public Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
         {
@@ -366,17 +367,17 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<GetBlockReply> GetLastServiceBlock(StandardWalletRequest request, ServerCallContext context)
-        {
-            var cr = await GetLastServiceBlock(request.AccountId, request.Signature);
-            var result = new GetBlockReply()
-            {
-                ResultCode = cr.ResultCode,
-                BlockData = cr.BlockData,
-                ResultBlockType = cr.ResultBlockType
-            };
-            return result;
-        }
+        //public override async Task<GetBlockReply> GetLastServiceBlock(StandardWalletRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetLastServiceBlock(request.AccountId, request.Signature);
+        //    var result = new GetBlockReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        BlockData = cr.BlockData,
+        //        ResultBlockType = cr.ResultBlockType
+        //    };
+        //    return result;
+        //}
 
         public Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
@@ -408,21 +409,21 @@ namespace Lyra.Node2.Services
             return Task.FromResult(transfer_info);
         }
 
-        public override async Task<LookForNewTransferReply> LookForNewTransfer(StandardWalletRequest request, ServerCallContext context)
-        {
-            var cr = await LookForNewTransfer(request.AccountId, request.Signature);
-            LookForNewTransferReply transfer_info = new LookForNewTransferReply()
-            {
-                ResultCode = cr.ResultCode
-            };
-            if (cr.ResultCode != APIResultCodes.NoNewTransferFound)
-            {
-                transfer_info.NonFungibleTokenJson = Json(cr.NonFungibleToken);
-                transfer_info.SourceHash = cr.SourceHash;
-                transfer_info.TransferJson = Json(cr.Transfer);
-            }
-            return transfer_info;
-        }
+        //public override async Task<LookForNewTransferReply> LookForNewTransfer(StandardWalletRequest request, ServerCallContext context)
+        //{
+        //    var cr = await LookForNewTransfer(request.AccountId, request.Signature);
+        //    LookForNewTransferReply transfer_info = new LookForNewTransferReply()
+        //    {
+        //        ResultCode = cr.ResultCode
+        //    };
+        //    if (cr.ResultCode != APIResultCodes.NoNewTransferFound)
+        //    {
+        //        transfer_info.NonFungibleTokenJson = Json(cr.NonFungibleToken);
+        //        transfer_info.SourceHash = cr.SourceHash;
+        //        transfer_info.TransferJson = Json(cr.Transfer);
+        //    }
+        //    return transfer_info;
+        //}
 
         public Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
@@ -457,18 +458,18 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<AuthorizationsReply> OpenAccountWithGenesis(OpenAccountWithGenesisRequest request, ServerCallContext context)
-        {
-            var openBlock = FromJson<LyraTokenGenesisBlock>(request.OpenTokenGenesisBlockJson);
-            var cr = await OpenAccountWithGenesis(openBlock);
-            var result = new AuthorizationsReply()
-            {
-                ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash ?? string.Empty,
-                AuthorizationsJson = Json(cr.Authorizations)
-            };
-            return result;
-        }
+        //public override async Task<AuthorizationsReply> OpenAccountWithGenesis(OpenAccountWithGenesisRequest request, ServerCallContext context)
+        //{
+        //    var openBlock = FromJson<LyraTokenGenesisBlock>(request.OpenTokenGenesisBlockJson);
+        //    var cr = await OpenAccountWithGenesis(openBlock);
+        //    var result = new AuthorizationsReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        ServiceHash = cr.ServiceHash ?? string.Empty,
+        //        AuthorizationsJson = Json(cr.Authorizations)
+        //    };
+        //    return result;
+        //}
 
         public Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
         {
@@ -497,27 +498,27 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<AuthorizationsReply> ReceiveTransferAndOpenAccount(ReceiveTransferAndOpenAccountRequest request, ServerCallContext context)
-        {
-            var openReceiveBlock = FromJson<OpenWithReceiveTransferBlock>(request.OpenReceiveBlockJson);
-            var cr = await ReceiveTransferAndOpenAccount(openReceiveBlock);
-            if(cr.ResultCode == APIResultCodes.Success)
-            {
-                var result = new AuthorizationsReply()
-                {
-                    ResultCode = cr.ResultCode,
-                    ServiceHash = cr.ServiceHash ?? string.Empty,
-                    AuthorizationsJson = Json(cr.Authorizations)
-                };
-                return result;
-            }
-            else
-            {
-                var result = new AuthorizationsReply() { ResultCode = cr.ResultCode };
-                return result;
-            }
+        //public override async Task<AuthorizationsReply> ReceiveTransferAndOpenAccount(ReceiveTransferAndOpenAccountRequest request, ServerCallContext context)
+        //{
+        //    var openReceiveBlock = FromJson<OpenWithReceiveTransferBlock>(request.OpenReceiveBlockJson);
+        //    var cr = await ReceiveTransferAndOpenAccount(openReceiveBlock);
+        //    if(cr.ResultCode == APIResultCodes.Success)
+        //    {
+        //        var result = new AuthorizationsReply()
+        //        {
+        //            ResultCode = cr.ResultCode,
+        //            ServiceHash = cr.ServiceHash ?? string.Empty,
+        //            AuthorizationsJson = Json(cr.Authorizations)
+        //        };
+        //        return result;
+        //    }
+        //    else
+        //    {
+        //        var result = new AuthorizationsReply() { ResultCode = cr.ResultCode };
+        //        return result;
+        //    }
 
-        }
+        //}
 
         public Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
         {
@@ -542,18 +543,18 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<AuthorizationsReply> OpenAccountWithImport(OpenAccountWithImportRequest request, ServerCallContext context)
-        {
-            var block = FromJson<OpenAccountWithImportBlock>(request.BlockJson);
-            var cr = await OpenAccountWithImport(block);
-            var result = new AuthorizationsReply()
-            {
-                ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash ?? string.Empty,
-                AuthorizationsJson = Json(cr.Authorizations)
-            };
-            return result;
-        }
+        //public override async Task<AuthorizationsReply> OpenAccountWithImport(OpenAccountWithImportRequest request, ServerCallContext context)
+        //{
+        //    var block = FromJson<OpenAccountWithImportBlock>(request.BlockJson);
+        //    var cr = await OpenAccountWithImport(block);
+        //    var result = new AuthorizationsReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        ServiceHash = cr.ServiceHash ?? string.Empty,
+        //        AuthorizationsJson = Json(cr.Authorizations)
+        //    };
+        //    return result;
+        //}
 
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
@@ -585,9 +586,9 @@ namespace Lyra.Node2.Services
                 result.ServiceHash = sendBlock.ServiceHash;
                 result.ResultCode = APIResultCodes.Success;
 
-                // test. send notify
-                NotifyService.Notify(sendBlock.AccountID, NotifySource.Balance, "", "", "");
-                NotifyService.Notify(sendBlock.DestinationAccountId, NotifySource.Balance, "", "", "");
+                //// test. send notify
+                //NotifyService.Notify(sendBlock.AccountID, NotifySource.Balance, "", "", "");
+                //NotifyService.Notify(sendBlock.DestinationAccountId, NotifySource.Balance, "", "", "");
             }
             catch (Exception e)
             {
@@ -598,36 +599,36 @@ namespace Lyra.Node2.Services
 
         }
 
-        public override async Task<AuthorizationsReply> SendTransfer(SendTransferRequest request, ServerCallContext context)
-        {
-            var sendBlock = FromJson<SendTransferBlock>(request.SendBlockJson);
-            var cr = await SendTransfer(sendBlock);
-            var result = new AuthorizationsReply()
-            {
-                ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash ?? string.Empty,
-                AuthorizationsJson = Json(cr.Authorizations)
-            };
-            return result;
-        }
+        //public override async Task<AuthorizationsReply> SendTransfer(SendTransferRequest request, ServerCallContext context)
+        //{
+        //    var sendBlock = FromJson<SendTransferBlock>(request.SendBlockJson);
+        //    var cr = await SendTransfer(sendBlock);
+        //    var result = new AuthorizationsReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        ServiceHash = cr.ServiceHash ?? string.Empty,
+        //        AuthorizationsJson = Json(cr.Authorizations)
+        //    };
+        //    return result;
+        //}
 
         public Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
         {
             return SendTransfer(block);
         }
 
-        public override async Task<AuthorizationsReply> SendExchangeTransfer(SendTransferRequest request, ServerCallContext context)
-        {
-            var sendBlock = FromJson<ExchangingBlock>(request.SendBlockJson);
-            var cr = await SendTransfer(sendBlock);
-            var result = new AuthorizationsReply()
-            {
-                ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash ?? string.Empty,
-                AuthorizationsJson = Json(cr.Authorizations)
-            };
-            return result;
-        }
+        //public override async Task<AuthorizationsReply> SendExchangeTransfer(SendTransferRequest request, ServerCallContext context)
+        //{
+        //    var sendBlock = FromJson<ExchangingBlock>(request.SendBlockJson);
+        //    var cr = await SendTransfer(sendBlock);
+        //    var result = new AuthorizationsReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        ServiceHash = cr.ServiceHash ?? string.Empty,
+        //        AuthorizationsJson = Json(cr.Authorizations)
+        //    };
+        //    return result;
+        //}
 
         public Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
@@ -662,18 +663,18 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<AuthorizationsReply> ReceiveTransfer(ReceiveTransferRequest request, ServerCallContext context)
-        {
-            var receiveBlock = FromJson<ReceiveTransferBlock>(request.ReceiveBlockJson);
-            var cr = await ReceiveTransfer(receiveBlock);
-            var result = new AuthorizationsReply()
-            {
-                ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash ?? string.Empty,
-                AuthorizationsJson = Json(cr.Authorizations)
-            };
-            return result;
-        }
+        //public override async Task<AuthorizationsReply> ReceiveTransfer(ReceiveTransferRequest request, ServerCallContext context)
+        //{
+        //    var receiveBlock = FromJson<ReceiveTransferBlock>(request.ReceiveBlockJson);
+        //    var cr = await ReceiveTransfer(receiveBlock);
+        //    var result = new AuthorizationsReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        ServiceHash = cr.ServiceHash ?? string.Empty,
+        //        AuthorizationsJson = Json(cr.Authorizations)
+        //    };
+        //    return result;
+        //}
 
         public Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
@@ -709,18 +710,18 @@ namespace Lyra.Node2.Services
             return Task.FromResult(result);
         }
 
-        public override async Task<AuthorizationsReply> ImportAccount(ImportAccountRequest request, ServerCallContext context)
-        {
-            var block = FromJson<ImportAccountBlock>(request.ImportBlockJson);
-            var cr = await ImportAccount(block);
-            var result = new AuthorizationsReply()
-            {
-                ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash ?? string.Empty,
-                AuthorizationsJson = Json(cr.Authorizations)
-            };
-            return result;
-        }
+        //public override async Task<AuthorizationsReply> ImportAccount(ImportAccountRequest request, ServerCallContext context)
+        //{
+        //    var block = FromJson<ImportAccountBlock>(request.ImportBlockJson);
+        //    var cr = await ImportAccount(block);
+        //    var result = new AuthorizationsReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        ServiceHash = cr.ServiceHash ?? string.Empty,
+        //        AuthorizationsJson = Json(cr.Authorizations)
+        //    };
+        //    return result;
+        //}
 
 
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
@@ -762,18 +763,18 @@ namespace Lyra.Node2.Services
             return await Task.FromResult(result);
         }
 
-        public override async Task<AuthorizationsReply> CreateToken(CreateTokenRequest request, ServerCallContext context)
-        {
-            var tokenBlock = FromJson<TokenGenesisBlock>(request.CreateTokenJson);
-            var cr = await CreateToken(tokenBlock);
-            var result = new AuthorizationsReply()
-            {
-                ResultCode = cr.ResultCode,
-                ServiceHash = cr.ServiceHash ?? string.Empty,
-                AuthorizationsJson = Json(cr.Authorizations)
-            };
-            return result;
-        }
+        //public override async Task<AuthorizationsReply> CreateToken(CreateTokenRequest request, ServerCallContext context)
+        //{
+        //    var tokenBlock = FromJson<TokenGenesisBlock>(request.CreateTokenJson);
+        //    var cr = await CreateToken(tokenBlock);
+        //    var result = new AuthorizationsReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        ServiceHash = cr.ServiceHash ?? string.Empty,
+        //        AuthorizationsJson = Json(cr.Authorizations)
+        //    };
+        //    return result;
+        //}
 
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
@@ -790,16 +791,16 @@ namespace Lyra.Node2.Services
             return result;            
         }
 
-        public override async Task<ExchangeAccountReply> CreateExchangeAccount(StandardWalletRequest request, ServerCallContext context)
-        {
-            var cr = await CreateExchangeAccount(request.AccountId, request.Signature);
-            var result = new ExchangeAccountReply()
-            {
-                ResultCode = cr.ResultCode,
-                AccountId = cr.AccountId
-            };
-            return result;
-        }
+        //public override async Task<ExchangeAccountReply> CreateExchangeAccount(StandardWalletRequest request, ServerCallContext context)
+        //{
+        //    var cr = await CreateExchangeAccount(request.AccountId, request.Signature);
+        //    var result = new ExchangeAccountReply()
+        //    {
+        //        ResultCode = cr.ResultCode,
+        //        AccountId = cr.AccountId
+        //    };
+        //    return result;
+        //}
 
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
@@ -816,17 +817,17 @@ namespace Lyra.Node2.Services
             return result;
         }
 
-        public override async Task<GetExchangeBalanceReply> GetExchangeBalance(StandardWalletRequest request, ServerCallContext context)
-        {
-            var cr = await GetExchangeBalance(request.AccountId, request.Signature);
-            var result = new GetExchangeBalanceReply()
-            {
-                AccountId = cr.AccountId,
-                ResultCode = cr.ResultCode,
-                BalanceJson = Json(cr.Balance)
-            };
-            return result;
-        }
+        //public override async Task<GetExchangeBalanceReply> GetExchangeBalance(StandardWalletRequest request, ServerCallContext context)
+        //{
+        //    var cr = await GetExchangeBalance(request.AccountId, request.Signature);
+        //    var result = new GetExchangeBalanceReply()
+        //    {
+        //        AccountId = cr.AccountId,
+        //        ResultCode = cr.ResultCode,
+        //        BalanceJson = Json(cr.Balance)
+        //    };
+        //    return result;
+        //}
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder reqOrder)
         {
             CancelKey key;
@@ -861,16 +862,16 @@ namespace Lyra.Node2.Services
             return await NodeService.AddOrderAsync(acct, reqOrder);
         }
 
-        public override async Task<SubmitExchangeOrderReply> SubmitExchangeOrder(SubmitExchangeOrderRequest request, ServerCallContext context)
-        {
-            var order = FromJson<TokenTradeOrder>(request.TokenTradeOrderJson);
-            var cr = await SubmitExchangeOrder(order);
-            var result = new SubmitExchangeOrderReply()
-            {
-                CancelKeyJson = Json(cr)
-            };
-            return result;
-        }
+        //public override async Task<SubmitExchangeOrderReply> SubmitExchangeOrder(SubmitExchangeOrderRequest request, ServerCallContext context)
+        //{
+        //    var order = FromJson<TokenTradeOrder>(request.TokenTradeOrderJson);
+        //    var cr = await SubmitExchangeOrder(order);
+        //    var result = new SubmitExchangeOrderReply()
+        //    {
+        //        CancelKeyJson = Json(cr)
+        //    };
+        //    return result;
+        //}
 
         public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {

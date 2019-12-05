@@ -7,13 +7,14 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xamarin.Essentials;
 
-namespace LyraWallet.States
+namespace Lyra.Client.Lib
 {
     public class DAGClientHostedService : IHostedService
     {
         private readonly IClusterClient _client;
+
+        public INodeAPI Node { get; set; }
 
         public DAGClientHostedService(IClusterClient client)
         {
@@ -22,8 +23,8 @@ namespace LyraWallet.States
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var node = _client.GetGrain<IDAGNode>(0);
-            var result = await node.GetVersion(3, DeviceInfo.Name, DeviceInfo.VersionString);
+            Node = _client.GetGrain<INodeAPI>(0);
+            var result = await Node.GetVersion(3, "client", "1.0a");
             Trace.Assert(result.ResultCode == Lyra.Core.Protos.APIResultCodes.Success);
         }
 

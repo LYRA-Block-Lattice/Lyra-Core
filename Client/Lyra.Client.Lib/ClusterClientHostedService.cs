@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Runtime;
 
-namespace LyraWallet.States
+namespace Lyra.Client.Lib
 {
     public class ClusterClientHostedService : IHostedService
     {

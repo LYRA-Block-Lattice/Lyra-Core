@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.API
 {
-    public interface INodeAPI
+    public interface INodeAPI : Orleans.IGrainWithIntegerKey
     {
         Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion);
 

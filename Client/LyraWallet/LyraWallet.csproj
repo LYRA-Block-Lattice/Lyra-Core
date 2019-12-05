@@ -89,5 +89,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
+    <ProjectReference Include="..\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
   </ItemGroup>
 </Project>

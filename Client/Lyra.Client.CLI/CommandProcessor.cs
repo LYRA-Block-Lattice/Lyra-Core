@@ -101,10 +101,10 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(_wallet.PrivateKey));
                         break;
                     case COMMAND_TOKEN:
-                        ProcessNewTokenAsync();
+                        await ProcessNewTokenAsync();
                         break;
                     case COMMAND_SEND:
-                        ProcessSendAsync();
+                        await ProcessSendAsync();
                         break;
                     case COMMAND_GEN_NOTE:
                         await _wallet.CreateGenesisForCoreTokenAsync();

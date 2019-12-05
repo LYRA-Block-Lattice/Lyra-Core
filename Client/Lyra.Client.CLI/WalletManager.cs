@@ -11,16 +11,18 @@ using Lyra.Core.LiteDB;
 using Grpc.Net.Client;
 using System.Net.Http;
 using Lyra.Core.API;
+using Microsoft.Extensions.Hosting;
+using Lyra.Client.Lib;
 
 namespace Lyra.Client.CLI
 {
-    public static class WalletManager
+    public class WalletManager
     {
-        static Boolean timer_busy1;
+        Boolean timer_busy1;
 
-        static Timer timer1;
+        Timer timer1;
 
-        static public async Task<int> RunWallet(Options options)
+        public async Task<int> RunWallet(DAGClientHostedService client, Options options)
         {
             Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
             Console.WriteLine("");
@@ -119,7 +121,11 @@ namespace Lyra.Client.CLI
                         wallet.OpenAccount(full_path, wallet.AccountName);
                 }
 
-                var rpcClient = await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
+                INodeAPI rpcClient;
+                if (client == null)
+                    rpcClient = await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
+                else
+                    rpcClient = new DAGAPIClient(client);
 
                 //if (WEB)
                 //{
@@ -185,7 +191,7 @@ namespace Lyra.Client.CLI
             return 0;
         }
 
-        static string SelectNode(string network_id)
+        string SelectNode(string network_id)
         {
             //INodeAPI rpcClient = new WebAPIClient("http://localhost:5002/api/");
             //INodeAPI rpcClient = new WebAPIClient("https://lyranode.ngrok.io/api/");

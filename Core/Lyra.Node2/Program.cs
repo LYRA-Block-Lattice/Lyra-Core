@@ -37,12 +37,12 @@ namespace Lyra.Node2
                         options.ClusterId = "dev";
                         options.ServiceId = "LyraAuthorizerNode";
                     })
-                    .ConfigureEndpoints(siloPort: 11111, gatewayPort: 30000)
-                    .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(DAGNode).Assembly).WithReferences())
+                    .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Loopback)
+                    .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ApiService).Assembly).WithReferences())
                     .AddMemoryGrainStorage(name: "ArchiveStorage")
                     .AddStartupTask((sp, token) =>
                     {
-                        IDAGNode localNode = sp.GetRequiredService<IDAGNode>();
+                        INodeAPI localNode = sp.GetRequiredService<INodeAPI>();
 
                         return Task.CompletedTask;
                     });
@@ -50,7 +50,7 @@ namespace Lyra.Node2
                 .ConfigureServices(services =>
                 {
                     services.AddHostedService<NodeService>();
-                    services.AddSingleton<IDAGNode, DAGNode>();
+                    services.AddSingleton<INodeAPI, ApiService>();
                 });
     }
 }

@@ -24,7 +24,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Lyra.Node2.Services
+namespace Lyra.Authorizer.Decentralize
 {
     public class NodeService : BackgroundService
     {
@@ -333,7 +333,7 @@ namespace Lyra.Node2.Services
                     foreach(var account in changedAccount)
                     {
                         // client must refresh by itself
-                        NotifyService.Notify(account, Core.API.NotifySource.Dex, "Deal", "", "");
+                        //NotifyService.Notify(account, Core.API.NotifySource.Dex, "Deal", "", "");
                         await ExchangeAccountLiquidation(account);
                     }
                 }
@@ -525,7 +525,7 @@ namespace Lyra.Node2.Services
             orders.Add("SellOrders", sellOrders);
             orders.Add("BuyOrders", buyOrders);
 
-            NotifyService.Notify("", Core.API.NotifySource.Dex, "Orders", tokenName, JsonConvert.SerializeObject(orders));
+            //NotifyService.Notify("", Core.API.NotifySource.Dex, "Orders", tokenName, JsonConvert.SerializeObject(orders));
         }
 
         internal static async Task<List<ExchangeOrder>> GetOrdersForAccount(string accountId)

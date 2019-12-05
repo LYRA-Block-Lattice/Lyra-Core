@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lyra.Authorizer.Decentralize;
 using Lyra.Core.API;
 using Lyra.Node2.Services;
 using Microsoft.AspNetCore.Builder;
@@ -26,7 +27,7 @@ namespace Lyra.Node2
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            OptionsConfigurationServiceCollectionExtensions.Configure<Services.LyraConfig>(services, Configuration.GetSection("Lyra"));
+            OptionsConfigurationServiceCollectionExtensions.Configure<LyraConfig>(services, Configuration.GetSection("Lyra"));
 
             services.AddSingleton<INodeAPI, ApiService>();
             services.AddSingleton<INotifyAPI, NotifyService>();
@@ -50,7 +51,7 @@ namespace Lyra.Node2
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<Services.ApiService>();
+                endpoints.MapGrpcService<ApiService>();
                 endpoints.MapControllers();
                 endpoints.MapGet("/", async context =>
                 {
