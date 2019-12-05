@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    public class DAGGrain : Orleans.Grain, IDAGNode
+    public class DAGNode : Orleans.Grain, IDAGNode
     {
         public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {

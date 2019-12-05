@@ -38,7 +38,7 @@ namespace Lyra.Node2
                         options.ServiceId = "LyraAuthorizerNode";
                     })
                     .ConfigureEndpoints(siloPort: 11111, gatewayPort: 30000)
-                    .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(DAGGrain).Assembly).WithReferences())
+                    .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(DAGNode).Assembly).WithReferences())
                     .AddMemoryGrainStorage(name: "ArchiveStorage")
                     .AddStartupTask((sp, token) =>
                     {
@@ -50,7 +50,7 @@ namespace Lyra.Node2
                 .ConfigureServices(services =>
                 {
                     services.AddHostedService<NodeService>();
-                    services.AddSingleton<IDAGNode, DAGGrain>();
+                    services.AddSingleton<IDAGNode, DAGNode>();
                 });
     }
 }
