@@ -158,6 +158,8 @@ namespace LyraWallet.ViewModels
             //{
                 try
                 {
+                    // check orleans ready state
+
                     Title = "Opening Wallet...";
                     await App.Container.CloseWallet();
                     await App.Container.OpenWalletFile();

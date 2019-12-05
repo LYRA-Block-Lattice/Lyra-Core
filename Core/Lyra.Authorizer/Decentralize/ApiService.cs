@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Newtonsoft.Json;
+using Orleans.Providers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace Lyra.Authorizer.Decentralize
         public string NetworkId { get; set; }
     }
 
+    [StorageProvider(ProviderName = "OrleansStorage")]
     public class ApiService : Orleans.Grain, INodeAPI
     {
         private readonly ILogger<ApiService> _logger;

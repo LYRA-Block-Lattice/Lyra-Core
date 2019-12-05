@@ -17,6 +17,8 @@ using Xamarin.Forms;
 using Xamarin.Essentials;
 using Lyra.Exchange;
 using Lyra.Core.Accounts;
+using Lyra.Client.Lib;
+using Microsoft.Extensions.Hosting;
 
 namespace LyraWallet.Models
 {
@@ -72,26 +74,32 @@ namespace LyraWallet.Models
 
             // setup API clients
             var platform = DeviceInfo.Platform.ToString();
-            _nodeApiClient = await LyraRestClient.CreateAsync(CurrentNetwork, platform, AppInfo.Name, AppInfo.VersionString);
-            _notifyApiClient = new LyraRestNotify(platform, LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
 
-            _cancel = new CancellationTokenSource();
-            await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, action, catalog, extInfo) => {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    switch (source)
-                    {
-                        case NotifySource.Balance:
-                            OnBalanceChanged?.Invoke(action, catalog, extInfo);
-                            break;
-                        case NotifySource.Dex:
-                            OnExchangeOrderChanged?.Invoke(action, catalog, extInfo);
-                            break;
-                        default:
-                            break;
-                    }
-                });
-            }, _cancel.Token);
+            var client = App.ServiceProvider.GetService(typeof(IHostedService));
+
+            //_nodeApiClient = new DAGAPIClient((DAGClientHostedService)client);
+            //while ((client as DAGClientHostedService).Node == null)
+            //    await Task.Delay(100);
+            _nodeApiClient = await LyraRestClient.CreateAsync(CurrentNetwork, platform, AppInfo.Name, AppInfo.VersionString);
+            //_notifyApiClient = new LyraRestNotify(platform, LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
+
+            //_cancel = new CancellationTokenSource();
+            //await _notifyApiClient.BeginReceiveNotifyAsync(AccountID, wallet.SignAPICall(), (source, action, catalog, extInfo) => {
+            //    Device.BeginInvokeOnMainThread(() =>
+            //    {
+            //        switch (source)
+            //        {
+            //            case NotifySource.Balance:
+            //                OnBalanceChanged?.Invoke(action, catalog, extInfo);
+            //                break;
+            //            case NotifySource.Dex:
+            //                OnExchangeOrderChanged?.Invoke(action, catalog, extInfo);
+            //                break;
+            //            default:
+            //                break;
+            //        }
+            //    });
+            //}, _cancel.Token);
         }
 
         public async Task CreateNew(string network_id)

@@ -6,6 +6,9 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using LyraWallet.Services;
 
 namespace LyraWallet.Droid
 {
@@ -22,7 +25,14 @@ namespace LyraWallet.Droid
 
             ZXing.Net.Mobile.Forms.Android.Platform.Init();
 
+            Startup.Init(ConfigureServices);
+
             LoadApplication(new App());
+        }
+
+        void ConfigureServices(HostBuilderContext ctx, IServiceCollection services)
+        {
+            services.AddSingleton<IPlatformSvc, AndroidPlatformSvc>();
         }
 
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, Permission[] grantResults)

@@ -1,23 +1,31 @@
 using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans;
+using Orleans.Configuration;
 using Orleans.Runtime;
 
 namespace Lyra.Client.Lib
 {
     public class ClusterClientHostedService : IHostedService
     {
-        private readonly ILogger<ClusterClientHostedService> _logger;
+        //private readonly ILogger<ClusterClientHostedService> _logger;
 
-        public ClusterClientHostedService(ILogger<ClusterClientHostedService> logger, ILoggerProvider loggerProvider)
+        public ClusterClientHostedService(/*ILogger<ClusterClientHostedService> logger, ILoggerProvider loggerProvider*/)
         {
-            _logger = logger;
+            //_logger = logger;
             Client = new ClientBuilder()
-                .UseLocalhostClustering()
-                .ConfigureLogging(builder => builder.AddProvider(loggerProvider))
+                .Configure<ClusterOptions>(options =>
+                {
+                    options.ClusterId = "dev";
+                    options.ServiceId = "LyraAuthorizerNode";
+                })
+                //.UseLocalhostClustering()
+                .UseStaticClustering(new IPEndPoint(IPAddress.Parse("192.168.3.91"), 30000))
+                //.ConfigureLogging(builder => builder.AddProvider(loggerProvider))
                 .Build();
         }
 
@@ -35,9 +43,9 @@ namespace Lyra.Client.Lib
 
                 if (++attempt < maxAttempts)
                 {
-                    _logger.LogWarning(error,
-                        "Failed to connect to Orleans cluster on attempt {@Attempt} of {@MaxAttempts}.",
-                        attempt, maxAttempts);
+                    //_logger.LogWarning(error,
+                    //    "Failed to connect to Orleans cluster on attempt {@Attempt} of {@MaxAttempts}.",
+                    //    attempt, maxAttempts);
 
                     try
                     {
@@ -52,9 +60,9 @@ namespace Lyra.Client.Lib
                 }
                 else
                 {
-                    _logger.LogError(error,
-                        "Failed to connect to Orleans cluster on attempt {@Attempt} of {@MaxAttempts}.",
-                        attempt, maxAttempts);
+                    //_logger.LogError(error,
+                    //    "Failed to connect to Orleans cluster on attempt {@Attempt} of {@MaxAttempts}.",
+                    //    attempt, maxAttempts);
 
                     return false;
                 }
@@ -69,7 +77,7 @@ namespace Lyra.Client.Lib
             }
             catch (OrleansException error)
             {
-                _logger.LogWarning(error, "Error while gracefully disconnecting from Orleans cluster. Will ignore and continue to shutdown.");
+                //_logger.LogWarning(error, "Error while gracefully disconnecting from Orleans cluster. Will ignore and continue to shutdown.");
             }
         }
 

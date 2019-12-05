@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using Xamarin.Essentials;
 
 namespace LyraWallet
@@ -22,35 +23,38 @@ namespace LyraWallet
             var fullConfig = Path.Combine(systemDir, "LyraWallet.appsettings.json");
 
             var host = new HostBuilder()
-                            .ConfigureHostConfiguration(c =>
-                            {
-                                c.AddCommandLine(new string[] { $"ContentRoot={FileSystem.AppDataDirectory}" });
-                                c.AddJsonFile(fullConfig);
-                            })
-                            .ConfigureServices((c, x) =>
-                            {
-                                nativeConfigureServices(c, x);
-                                ConfigureServices(c, x);
-                            })
-                            .ConfigureServices(services =>
-                            {
-                                services.AddSingleton<ClusterClientHostedService>();
-                                services.AddSingleton<IHostedService>(_ => _.GetService<ClusterClientHostedService>());
-                                services.AddSingleton(_ => _.GetService<ClusterClientHostedService>().Client);
+                .ConfigureHostConfiguration(c =>
+                {
+                    c.AddCommandLine(new string[] { $"ContentRoot={FileSystem.AppDataDirectory}" });
+                    c.AddJsonFile(fullConfig);
+                })
+                .ConfigureServices((c, x) =>
+                {
+                    nativeConfigureServices(c, x);
+                    ConfigureServices(c, x);
+                })
+                .ConfigureServices(services =>
+                {
+                    services.AddSingleton<ClusterClientHostedService>();
+                    services.AddSingleton<IHostedService>(_ => _.GetService<ClusterClientHostedService>());
+                    services.AddSingleton(_ => _.GetService<ClusterClientHostedService>().Client);
 
-                                services.AddHostedService<DAGClientHostedService>();
+                    services.AddHostedService<DAGClientHostedService>();
 
-                                services.Configure<ConsoleLifetimeOptions>(options =>
-                                {
-                                    options.SuppressStatusMessages = true;
-                                });
-                            })
-                            .ConfigureLogging(l => l.AddConsole(o =>
-                            {
-                                o.DisableColors = true;
-                            }))
-                            .Build();
+                    services.Configure<ConsoleLifetimeOptions>(options =>
+                    {
+                        options.SuppressStatusMessages = true;
+                    });
+                })
+                //.ConfigureLogging(l => l.AddConsole(o =>
+                //{
+                //    o.DisableColors = true;
+                //}))
+                .Build();
 
+            //host.Run();
+            //var src = new CancellationTokenSource();
+            //host.RunAsync(src.Token).Wait();
             App.ServiceProvider = host.Services;
 
             return App.ServiceProvider.GetService<App>();

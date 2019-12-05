@@ -12,12 +12,12 @@ namespace LyraWallet.States
         public static IEnumerable<On<RootState>> CreateReducers()
         {
             var walletReducers = Holding.Reducers.CreateReducers();
-            var shopReducers = Shop.Reducers.CreateReducers();
-            var exchangeReducers = Exchange.Reducers.CreateReducers();
+            //var shopReducers = Shop.Reducers.CreateReducers();
+            //var exchangeReducers = Exchange.Reducers.CreateReducers();
 
-            return ReduxSimple.Reducers.CreateSubReducers(walletReducers.ToArray(), Holding.Selectors.SelectWalletState)
-                .Concat(CreateSubReducers(shopReducers.ToArray(), Shop.Selectors.SelectShopState))
-                .Concat(CreateSubReducers(exchangeReducers.ToArray(), Exchange.Selectors.SelectExchangeState));
+            return ReduxSimple.Reducers.CreateSubReducers(walletReducers.ToArray(), Holding.Selectors.SelectWalletState);
+                //.Concat(CreateSubReducers(shopReducers.ToArray(), Shop.Selectors.SelectShopState))
+                //.Concat(CreateSubReducers(exchangeReducers.ToArray(), Exchange.Selectors.SelectExchangeState));
         }
     }
 }

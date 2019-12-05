@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Foundation;
+using LyraWallet.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using UIKit;
 
 namespace LyraWallet.iOS
@@ -23,11 +26,19 @@ namespace LyraWallet.iOS
         public override bool FinishedLaunching(UIApplication app, NSDictionary options)
         {
             global::Xamarin.Forms.Forms.Init();
+
+            Startup.Init(ConfigureServices);
+
             LoadApplication(new App());
 
             ZXing.Net.Mobile.Forms.iOS.Platform.Init();
 
             return base.FinishedLaunching(app, options);
+        }
+
+        void ConfigureServices(HostBuilderContext ctx, IServiceCollection services)
+        {
+            services.AddSingleton<IPlatformSvc, IOSPlatformSvc>();
         }
     }
 }

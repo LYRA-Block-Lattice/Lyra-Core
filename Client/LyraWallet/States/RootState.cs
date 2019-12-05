@@ -14,7 +14,7 @@ namespace LyraWallet.States
 
         public HoldingState walletState {get; set;}
 
-        public ShopState shopState { get; set; }
+        //public ShopState shopState { get; set; }
 
         public ExchangeState exchangeState { get; set; }
 
@@ -22,7 +22,7 @@ namespace LyraWallet.States
             new RootState
             {
                 walletState = HoldingState.InitialState,
-                shopState = ShopState.InitialState,
+                //shopState = ShopState.InitialState,
                 exchangeState = ExchangeState.InitialState,
             };
     }
