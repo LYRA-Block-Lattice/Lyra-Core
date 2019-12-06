@@ -29,7 +29,6 @@ namespace Lyra.Node2
         {
             OptionsConfigurationServiceCollectionExtensions.Configure<LyraConfig>(services, Configuration.GetSection("Lyra"));
 
-            services.AddSingleton<INodeAPI, ApiService>();
             services.AddSingleton<INotifyAPI, NotifyService>();
 
             services.AddGrpc();
