@@ -2,10 +2,12 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Lyra.Core.Utils;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Configuration;
+using Orleans.Hosting;
 using Orleans.Runtime;
 
 namespace Lyra.Client.Lib
@@ -18,13 +20,22 @@ namespace Lyra.Client.Lib
         {
             //_logger = logger;
             Client = new ClientBuilder()
+                .UseZooKeeperClustering((options) =>
+                {
+                    options.ConnectionString = OrleansSettings.AppSetting["ZooKeeperClusteringSilo:ConnectionString"];
+                })
                 .Configure<ClusterOptions>(options =>
                 {
-                    options.ClusterId = "dev";
-                    options.ServiceId = "LyraAuthorizerNode";
+                    options.ClusterId = OrleansSettings.AppSetting["Cluster:ClusterId"];
+                    options.ServiceId = OrleansSettings.AppSetting["Cluster:ServiceId"];
                 })
+                //.Configure<ClusterOptions>(options =>
+                //{
+                //    options.ClusterId = "dev";
+                //    options.ServiceId = "LyraAuthorizerNode";
+                //})
                 //.UseLocalhostClustering()
-                .UseStaticClustering(new IPEndPoint(IPAddress.Parse("192.168.3.91"), 30000))
+                //.UseStaticClustering(new IPEndPoint(IPAddress.Parse("192.168.3.91"), 30000))
                 //.ConfigureLogging(builder => builder.AddProvider(loggerProvider))
                 .Build();
         }

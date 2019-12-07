@@ -668,6 +668,11 @@
     <None Remove="lyracli-mac-0.5.2\CommandLine.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\..\Core\Lyra.Node2\Orleans.json" Link="Orleans.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.0" />
     <PackageReference Include="Microsoft.Orleans.Core" Version="3.0.1" />

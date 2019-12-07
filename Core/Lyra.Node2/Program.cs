@@ -11,14 +11,25 @@ using Orleans.Hosting;
 using Orleans;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using System;
+using System.Threading;
 
 namespace Lyra.Node2
 {
     public class Program
     {
-        public static void Main(string[] args)
+        static CancellationTokenSource _cancel;
+        public static async Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+            var host = CreateHostBuilder(args).Build();
+            _cancel = new CancellationTokenSource();
+            await host.RunAsync(_cancel.Token);
+        }
+
+        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            _cancel.Cancel();
         }
 
         // Additional configuration is required to successfully run gRPC on macOS.
@@ -39,7 +50,7 @@ namespace Lyra.Node2
                     //    options.Invariant = "System.Data.SqlClient";
                     //    options.ConnectionString = "Data Source=ZION;Initial Catalog=Orleans;Persist Security Info=True;User ID=orleans;Password=orleans";
                     //})
-                    .UseZooKeeperClustering((ZooKeeperClusteringSiloOptions options) =>
+                    .UseZooKeeperClustering((options) =>
                     {
                         options.ConnectionString = OrleansSettings.AppSetting["ZooKeeperClusteringSilo:ConnectionString"];
                     })
@@ -70,17 +81,5 @@ namespace Lyra.Node2
                     services.AddHostedService<NodeService>();
                     services.AddSingleton<INodeAPI, ApiService>();
                 });
-    }
-
-    static class OrleansSettings
-    {
-        public static IConfiguration AppSetting { get; }
-        static OrleansSettings()
-        {
-            AppSetting = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("Orleans.json")
-                    .Build();
-        }
     }
 }

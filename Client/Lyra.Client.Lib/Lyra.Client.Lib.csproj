@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="LiteDB" Version="4.1.4" />
+    <PackageReference Include="Microsoft.Orleans.OrleansZooKeeperUtils" Version="3.0.1" />
   </ItemGroup>
 
   <ItemGroup>

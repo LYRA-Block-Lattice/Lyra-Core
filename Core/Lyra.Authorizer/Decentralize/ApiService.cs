@@ -13,7 +13,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Newtonsoft.Json;
+using Orleans;
+using Orleans.Configuration;
 using Orleans.Providers;
+using Orleans.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +37,7 @@ namespace Lyra.Authorizer.Decentralize
         static ServiceAccount _serviceAccount;
         static IAccountCollection _accountCollection;
         private LyraConfig _config;
+        IClusterClient _clusterClient;
 
         public ApiService(ILogger<ApiService> logger, 
             Microsoft.Extensions.Options.IOptions<LyraConfig> config)
@@ -42,7 +46,28 @@ namespace Lyra.Authorizer.Decentralize
             _config = config.Value;
 
             if (_serviceAccount == null)
-                InitializeNode();
+                InitializeNodeAsync().Wait();
+        }
+
+        // main
+        async Task InitializeNodeAsync()
+        {
+            Console.WriteLine("Starting single-node network: " + NodeGlobalParameters.Network_Id);
+            NodeGlobalParameters.IsSingleNodeTestnet = true;
+            NodeGlobalParameters.Network_Id = _config.NetworkId;
+
+            var service_database = new MongoServiceAccountDatabase(_config.DBConnect, NodeGlobalParameters.DEFAULT_DATABASE_NAME, ServiceAccount.SERVICE_ACCOUNT_NAME, NodeGlobalParameters.Network_Id);
+            _serviceAccount = new ServiceAccount(service_database, NodeGlobalParameters.Network_Id);
+
+            _accountCollection = new MongoAccountCollection(_config.DBConnect, NodeGlobalParameters.DEFAULT_DATABASE_NAME, NodeGlobalParameters.Network_Id);
+            Console.WriteLine("Database Location: mongodb " + (_accountCollection as MongoAccountCollection).Cluster);
+
+            //tradeMatchEngine = new TradeMatchEngine(accountCollection, serviceAccount);
+            Console.WriteLine("Node is starting");
+
+            //_clusterClient = await DAGNode.ConnectClient();
+
+            _serviceAccount.StartSingleNodeTestnet(null);
         }
 
         public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
@@ -105,6 +130,15 @@ namespace Lyra.Authorizer.Decentralize
 
         public Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
         {
+            // look for other nodes
+            var mgr = GrainFactory.GetGrain<IManagementGrain>(0);
+            var grains = mgr.GetDetailedGrainStatistics().Result;
+            foreach (var g in grains)
+            {
+                var node = GrainFactory.GetGrain<INodeAPI>(g.GrainIdentity.PrimaryKeyLong);
+                node.GetAccountHeight(AccountId, Signature);
+            }
+
             var result = new AccountHeightAPIResult();
             try
             {
@@ -676,25 +710,7 @@ namespace Lyra.Authorizer.Decentralize
         {
             return JsonConvert.SerializeObject(o);
         }
-        // main
-        void InitializeNode()
-        {
-            Console.WriteLine("Starting single-node network: " + NodeGlobalParameters.Network_Id);
-            NodeGlobalParameters.IsSingleNodeTestnet = true;
-            NodeGlobalParameters.Network_Id = _config.NetworkId;
 
-            var service_database = new MongoServiceAccountDatabase(_config.DBConnect, NodeGlobalParameters.DEFAULT_DATABASE_NAME, ServiceAccount.SERVICE_ACCOUNT_NAME, NodeGlobalParameters.Network_Id);
-            _serviceAccount = new ServiceAccount(service_database, NodeGlobalParameters.Network_Id);
-
-            _accountCollection = new MongoAccountCollection(_config.DBConnect, NodeGlobalParameters.DEFAULT_DATABASE_NAME, NodeGlobalParameters.Network_Id);
-            Console.WriteLine("Database Location: mongodb " + (_accountCollection as MongoAccountCollection).Cluster);
-
-            //tradeMatchEngine = new TradeMatchEngine(accountCollection, serviceAccount);
-            Console.WriteLine("Node is starting");
-
-            _serviceAccount.StartSingleNodeTestnet(null);
-
-        }
 
         public Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
