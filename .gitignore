@@ -262,3 +262,6 @@ __pycache__/
 
 # Mac OSx System Files
 .DS_Store
+
+# zookeeper auto gen log
+ZK.*.log

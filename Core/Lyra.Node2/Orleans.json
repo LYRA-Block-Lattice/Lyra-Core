@@ -1,0 +1,12 @@
+{
+  "ZooKeeperClusteringSilo": {
+    "ConnectionString": "zk.dev.lex.lyrashops.com"
+  },
+  "Cluster": {
+    "ClusterId": "dev",
+    "ServiceId": "Lex"
+  },
+  "EndPoint": {
+    "AdvertisedIPAddress": "192.168.3.91"
+  }
+}

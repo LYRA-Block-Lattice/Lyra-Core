@@ -36,10 +36,12 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Orleans.OrleansProviders" Version="3.0.1" />
     <PackageReference Include="Microsoft.Orleans.OrleansSQLUtils" Version="2.4.4" />
+    <PackageReference Include="Microsoft.Orleans.OrleansZooKeeperUtils" Version="3.0.1" />
     <PackageReference Include="Microsoft.Orleans.Persistence.AdoNet" Version="3.0.1" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="3.0.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.9.3" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="OrleansDashboard" Version="3.0.8" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.0" />
     <PackageReference Include="System.Reactive.Core" Version="4.3.1" />
     <PackageReference Include="System.Reactive.Interfaces" Version="4.3.1" />

@@ -9,6 +9,8 @@ using Microsoft.Extensions.Hosting;
 using Orleans.Configuration;
 using Orleans.Hosting;
 using Orleans;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace Lyra.Node2
 {
@@ -32,22 +34,29 @@ namespace Lyra.Node2
                 {
                     siloBuilder
                     //.UseLocalhostClustering()
-                    .UseAdoNetClustering(options =>
+                    //.UseAdoNetClustering(options =>
+                    //{
+                    //    options.Invariant = "System.Data.SqlClient";
+                    //    options.ConnectionString = "Data Source=ZION;Initial Catalog=Orleans;Persist Security Info=True;User ID=orleans;Password=orleans";
+                    //})
+                    .UseZooKeeperClustering((ZooKeeperClusteringSiloOptions options) =>
                     {
-                        options.Invariant = "System.Data.SqlClient";
-                        options.ConnectionString = "Data Source=ZION;Initial Catalog=Orleans;Persist Security Info=True;User ID=orleans;Password=orleans";
+                        options.ConnectionString = OrleansSettings.AppSetting["ZooKeeperClusteringSilo:ConnectionString"];
                     })
                     .Configure<ClusterOptions>(options =>
                     {
-                        options.ClusterId = "dev";
-                        options.ServiceId = "LyraAuthorizerNode";
+                        options.ClusterId = OrleansSettings.AppSetting["Cluster:ClusterId"];
+                        options.ServiceId = OrleansSettings.AppSetting["Cluster:ServiceId"];
                     })
-                    .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Parse("192.168.3.91"))
+                    .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Parse(OrleansSettings.AppSetting["EndPoint:AdvertisedIPAddress"]))
                     .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ApiService).Assembly).WithReferences())
-                    .AddAdoNetGrainStorage("OrleansStorage", options =>
-                    {
-                        options.Invariant = "System.Data.SqlClient";
-                        options.ConnectionString = "Data Source=ZION;Initial Catalog=Orleans;Persist Security Info=True;User ID=orleans;Password=orleans";
+                    //.AddAdoNetGrainStorage("OrleansStorage", options =>
+                    //{
+                    //    options.Invariant = "System.Data.SqlClient";
+                    //    options.ConnectionString = "Data Source=ZION;Initial Catalog=Orleans;Persist Security Info=True;User ID=orleans;Password=orleans";
+                    //})
+                    .UseDashboard(options => {
+                        options.Port = 8080;
                     })
                     .AddStartupTask((sp, token) =>
                     {
@@ -61,5 +70,17 @@ namespace Lyra.Node2
                     services.AddHostedService<NodeService>();
                     services.AddSingleton<INodeAPI, ApiService>();
                 });
+    }
+
+    static class OrleansSettings
+    {
+        public static IConfiguration AppSetting { get; }
+        static OrleansSettings()
+        {
+            AppSetting = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("Orleans.json")
+                    .Build();
+        }
     }
 }

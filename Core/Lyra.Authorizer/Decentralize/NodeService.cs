@@ -172,8 +172,8 @@ namespace Lyra.Authorizer.Decentralize
             {
                 if (_db == null)
                 {
-                    BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
-                    BsonSerializer.RegisterSerializer(typeof(decimal?), new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
+                    //BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
+                    //BsonSerializer.RegisterSerializer(typeof(decimal?), new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
 
                     client = new MongoClient(_config.DBConnect);
                     _db = client.GetDatabase("Dex");
