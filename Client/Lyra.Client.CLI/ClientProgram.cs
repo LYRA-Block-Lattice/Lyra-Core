@@ -86,6 +86,7 @@ namespace Lyra.Client.CLI
 
         public const string RPC_PROTOCOL = "rpc";
         public const string WEBAPI_PROTOCOL = "webapi";
+        public const string P2P_PROTOCOL = "p2p";
 
         public const string INMEMORY_DATABASE = "inmemory";
         public const string LITEDB_DATABASE = "litedb";

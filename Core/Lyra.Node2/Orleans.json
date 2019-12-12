@@ -1,6 +1,6 @@
 {
   "ZooKeeperClusteringSilo": {
-    "ConnectionString": "zk.dev.lex.lyrashops.com"
+    "ConnectionString": "zkdev.lex.lyrashops.com"
   },
   "Cluster": {
     "ClusterId": "dev",

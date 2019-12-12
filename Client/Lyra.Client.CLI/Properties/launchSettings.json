@@ -2,7 +2,7 @@
   "profiles": {
     "Lyra.Client.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "--networkid lexdev -ddddd inmemory -p p2p",
+      "commandLineArgs": "--networkid lexdev -ddddd inmemory -p webapi",
       "workingDirectory": "E:\\Repositories\\graft-project\\LyraNetwork\\Client\\Lyra.Client.CLI\\bin\\Debug\\netcoreapp3.0\\netcoreapp3.1"
     }
   }

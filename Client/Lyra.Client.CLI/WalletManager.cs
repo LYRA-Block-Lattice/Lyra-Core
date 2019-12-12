@@ -123,7 +123,7 @@ namespace Lyra.Client.CLI
 
                 INodeAPI rpcClient;
                 if (client == null)
-                    rpcClient = await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
+                    rpcClient = await LyraRestClient.CreateAsync(network_id, "windows", "Lyra Client Cli", "1.0a");//await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
                 else
                     rpcClient = new DAGAPIClient(client);
 

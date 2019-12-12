@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using System;
 using System.Threading;
+using Lyra.Core.Utils;
 
 namespace Lyra.Node2
 {
