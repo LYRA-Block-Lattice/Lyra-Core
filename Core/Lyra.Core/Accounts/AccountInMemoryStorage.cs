@@ -114,7 +114,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public Block FindBlockByIndex(int index)
+        public Block FindBlockByIndex(long index)
         {
             if (_blocks.Count == 0)
                 return null;

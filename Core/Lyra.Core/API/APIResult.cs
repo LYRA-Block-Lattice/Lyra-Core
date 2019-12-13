@@ -33,7 +33,7 @@ namespace Lyra.Core.API
 
     public class AccountHeightAPIResult : APIResult
     {
-        public int Height { get; set; }
+        public long Height { get; set; }
         public string SyncHash { get; set; }
         public string NetworkId { get; set; }
 

@@ -150,7 +150,7 @@ namespace Lyra.Authorizer
                 return null;
         }
 
-        public Block FindBlockByIndex(int index)
+        public Block FindBlockByIndex(long index)
         {
             var result = _blocks.Find(x => x.Index.Equals(index));
             if (result.Any()) 

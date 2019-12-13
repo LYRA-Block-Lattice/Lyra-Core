@@ -160,7 +160,7 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        async Task<BlockAPIResult> INodeAPI.GetBlockByIndex(string AccountId, int Index, string Signature)
+        async Task<BlockAPIResult> INodeAPI.GetBlockByIndex(string AccountId, long Index, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetBlockByIndex/?AccountId={AccountId}&Signature={Signature}&Index={Index}");
             if (response.IsSuccessStatusCode)

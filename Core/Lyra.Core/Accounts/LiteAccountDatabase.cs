@@ -106,7 +106,7 @@ namespace Lyra.Core.LiteDB
             return (Block)result;
         }
 
-        public Block FindBlockByIndex(int index)
+        public Block FindBlockByIndex(long index)
         {
             var result = _blocks.FindOne(x => x.Index.Equals(index));
             return (Block)result;

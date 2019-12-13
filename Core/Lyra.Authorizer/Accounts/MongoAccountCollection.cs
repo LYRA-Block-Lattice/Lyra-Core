@@ -263,7 +263,7 @@ namespace Lyra.Authorizer
         }
 
 
-        public TransactionBlock FindBlockByIndex(string AccountId, int index)
+        public TransactionBlock FindBlockByIndex(string AccountId, Int64 index)
         {
             var result = _blocks.Find(x => x.AccountID == AccountId && x.Index == index);
             if (result.Any())

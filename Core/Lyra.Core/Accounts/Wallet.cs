@@ -24,7 +24,7 @@ namespace Lyra.Core.Accounts
         //private RPCClient _rpcClient = null;
         private INodeAPI _rpcClient = null;
 
-        private int SyncHeight = -1;
+        private long SyncHeight = -1;
         private string SyncHash = string.Empty;
 
         public decimal TransferFee = 0; // in atomic units
@@ -41,7 +41,7 @@ namespace Lyra.Core.Accounts
             // block != null ? (block as TransactionBlock) : null; 
         }
 
-        public int GetLocalAccountHeight()
+        public long GetLocalAccountHeight()
         {
             var block = GetLatestBlock();
             return block != null ? block.Index : 0;
@@ -141,8 +141,8 @@ namespace Lyra.Core.Accounts
                 if (NetworkId != result.NetworkId)
                     return APIResultCodes.InvalidNetworkId;
 
-                int server_height = result.Height;
-                int local_height = GetLocalAccountHeight();
+                var server_height = result.Height;
+                var local_height = GetLocalAccountHeight();
                 if (server_height > local_height)
                 {
                     var block = await GetBlockByIndex(server_height);
@@ -462,7 +462,7 @@ namespace Lyra.Core.Accounts
             }
         }
 
-        public async Task<TransactionBlock> GetBlockByIndex(int Index)
+        public async Task<TransactionBlock> GetBlockByIndex(long Index)
         {
             var block = _storage.FindBlockByIndex(Index) as TransactionBlock;
             if (block == null)

@@ -17,7 +17,7 @@ namespace Lyra.Core.Accounts
 
         Block FindBlockByHash(string hash);
 
-        Block FindBlockByIndex(int index);
+        Block FindBlockByIndex(long index);
 
         TokenGenesisBlock FindTokenGenesisBlockByTicker(string Ticker);
       

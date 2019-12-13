@@ -18,7 +18,7 @@ namespace Lyra.Core.Accounts.Node
         ReceiveTransferBlock FindBlockBySourceHash(string hash);
         List<NonFungibleToken> GetNonFungibleTokens(string AccountId);
         TransactionBlock FindBlockByPreviousBlockHash(string previousBlockHash);
-        TransactionBlock FindBlockByIndex(string AccountId, int index);
+        TransactionBlock FindBlockByIndex(string AccountId, long index);
         SendTransferBlock FindUnsettledSendBlock(string AccountId);
 
         /// <summary>

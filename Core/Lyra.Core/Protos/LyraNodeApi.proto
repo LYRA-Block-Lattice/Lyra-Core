@@ -105,7 +105,7 @@ message GetAccountHeightReply{
 message GetBlockByIndexRequest{
 	string AccountId = 1;
 	string Signature = 2;
-	int32 Index = 3;
+	int64 Index = 3;
 }
 
 message GetBlockReply{

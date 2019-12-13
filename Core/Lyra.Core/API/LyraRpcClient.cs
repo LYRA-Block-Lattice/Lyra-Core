@@ -142,7 +142,7 @@ namespace Lyra.Core.API
             return ret;
         }
 
-        async Task<BlockAPIResult> INodeAPI.GetBlockByIndex(string AccountId, int Index, string Signature)
+        async Task<BlockAPIResult> INodeAPI.GetBlockByIndex(string AccountId, long Index, string Signature)
         {
             var request = new GetBlockByIndexRequest()
             {

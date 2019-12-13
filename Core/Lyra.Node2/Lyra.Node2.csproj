@@ -46,7 +46,6 @@
     <PackageReference Include="System.Reactive.Core" Version="4.3.1" />
     <PackageReference Include="System.Reactive.Interfaces" Version="4.3.1" />
     <PackageReference Include="System.Reactive.Linq" Version="4.3.1" />
-    <PackageReference Include="ZooKeeperNetEx.Recipes" Version="3.4.12.4" />
   </ItemGroup>
 
   <ItemGroup>

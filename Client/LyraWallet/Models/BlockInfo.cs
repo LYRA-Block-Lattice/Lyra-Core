@@ -6,7 +6,7 @@ namespace LyraWallet.Models
 {
     public class BlockInfo
     {
-        public int index { get; set; }
+        public long index { get; set; }
         public DateTime timeStamp { get; set; }
         public string hash { get; set; }
         public string type { get; set; }

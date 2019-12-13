@@ -18,6 +18,7 @@
     <PackageReference Include="Microsoft.Orleans.OrleansZooKeeperUtils" Version="3.0.1" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="3.0.1" />
     <PackageReference Include="System.Reactive.Linq" Version="4.3.1" />
+    <PackageReference Include="ZooKeeperNetEx.Recipes" Version="3.4.12.4" />
   </ItemGroup>
 
   <ItemGroup>

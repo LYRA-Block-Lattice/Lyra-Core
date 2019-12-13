@@ -62,7 +62,7 @@ namespace Lyra.Client.Lib
             return _svc.Node.GetBlockByHash(AccountId, Hash, Signature);
         }
 
-        public Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
+        public Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index, string Signature)
         {
             return _svc.Node.GetBlockByIndex(AccountId, Index, Signature);
         }

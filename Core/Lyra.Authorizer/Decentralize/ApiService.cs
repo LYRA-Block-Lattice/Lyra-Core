@@ -38,12 +38,15 @@ namespace Lyra.Authorizer.Decentralize
         static IAccountCollection _accountCollection;
         private LyraConfig _config;
         IClusterClient _clusterClient;
+        NodeService _nodeService;
 
         public ApiService(ILogger<ApiService> logger, 
             Microsoft.Extensions.Options.IOptions<LyraConfig> config)
         {
             _logger = logger;
             _config = config.Value;
+
+            _nodeService = (NodeService)ServiceProvider.GetService(typeof(NodeService));
 
             if (_serviceAccount == null)
                 InitializeNodeAsync().Wait();
@@ -161,7 +164,7 @@ namespace Lyra.Authorizer.Decentralize
             return Task.FromResult(result);
         }
 
-        public Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
+        public Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index, string Signature)
         {
             var result = new BlockAPIResult();
 
@@ -575,7 +578,7 @@ namespace Lyra.Authorizer.Decentralize
             // TODO verify signature first
 
             // store to database
-            var acct = await NodeService.AddExchangeAccount(AccountId);
+            var acct = await _nodeService.AddExchangeAccount(AccountId);
 
             var result = new ExchangeAccountAPIResult()
             {
@@ -587,7 +590,7 @@ namespace Lyra.Authorizer.Decentralize
 
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
-            var acct = await NodeService.GetExchangeAccount(AccountId, true);
+            var acct = await _nodeService.GetExchangeAccount(AccountId, true);
             var result = new ExchangeBalanceAPIResult()
             {
                 ResultCode = APIResultCodes.Success
@@ -612,7 +615,7 @@ namespace Lyra.Authorizer.Decentralize
             }
 
             // verify the balance. 
-            var acct = await NodeService.GetExchangeAccount(reqOrder.AccountID, true);
+            var acct = await _nodeService.GetExchangeAccount(reqOrder.AccountID, true);
             if(acct == null)
             {
                 return new CancelKey() { Key = string.Empty, State = OrderState.BadOrder };
@@ -630,12 +633,12 @@ namespace Lyra.Authorizer.Decentralize
                     return new CancelKey() { Key = string.Empty, State = OrderState.InsufficientFunds };
             }
                 
-            return await NodeService.AddOrderAsync(acct, reqOrder);
+            return await _nodeService.AddOrderAsync(acct, reqOrder);
         }
 
         public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            await NodeService.RemoveOrderAsync(cancelKey);
+            await _nodeService.RemoveOrderAsync(cancelKey);
             return new APIResult() { ResultCode = APIResultCodes.Success };
         }
 
@@ -749,13 +752,13 @@ namespace Lyra.Authorizer.Decentralize
         public async Task<APIResult> RequestMarket(string tokenName)
         {
             if(tokenName != null)
-                await NodeService.SendMarket(tokenName);
+                await _nodeService.SendMarket(tokenName);
             return new APIResult() { ResultCode = APIResultCodes.Success };
         }
 
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
-            return await NodeService.GetOrdersForAccount(AccountId);
+            return await _nodeService.GetOrdersForAccount(AccountId);
         }
 
         //public override async Task<GetVersionReply> GetVersion(GetVersionRequest request, ServerCallContext context)

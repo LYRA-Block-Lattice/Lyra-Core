@@ -201,7 +201,7 @@ namespace Lyra.Core.LiteDB
             return (TransactionBlock)result;
         }
 
-        public TransactionBlock FindBlockByIndex(string AccountId, int index)
+        public TransactionBlock FindBlockByIndex(string AccountId, long index)
         {
             //IEnumerable<TransactionBlock> result = _blocks.Find(x => x.AccountID == AccountId && x.Index == index);
             //IEnumerator<TransactionBlock> enumerator = result.GetEnumerator();

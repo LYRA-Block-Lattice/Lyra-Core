@@ -12,11 +12,14 @@ namespace Lyra.Core.Blocks
 {
     public abstract class Block: SignableObject
     {
-        //public int Id { get; set; }
+        /// <summary>
+        /// Universal Index. Generated only by leader node.
+        /// </summary>
+        public long UIndex { get; set; }
 
         public Guid Id { get; set; }
 
-        public int Index { get; set; }
+        public long Index { get; set; }
 
         public DateTime TimeStamp { get; set; }
 

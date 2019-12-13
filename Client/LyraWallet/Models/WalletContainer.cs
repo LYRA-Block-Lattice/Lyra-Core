@@ -207,7 +207,7 @@ namespace LyraWallet.Models
         {
             var blocks = new List<BlockInfo>();
             var height = wallet.GetLocalAccountHeight();
-            for (int i = height; i > 0; i--)
+            for (var i = height; i > 0; i--)
             {
                 var block = await wallet.GetBlockByIndex(i);
                 blocks.Add(new BlockInfo()
