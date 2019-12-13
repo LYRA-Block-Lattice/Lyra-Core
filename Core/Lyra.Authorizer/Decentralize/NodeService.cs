@@ -28,6 +28,7 @@ using org.apache.zookeeper;
 using Microsoft.Extensions.Options;
 using Orleans.Configuration;
 using Orleans.Runtime;
+using Microsoft.Extensions.Logging;
 
 namespace Lyra.Authorizer.Decentralize
 {
@@ -46,6 +47,7 @@ namespace Lyra.Authorizer.Decentralize
         AutoResetEvent _waitOrder;
         ILogger _log;
         ZooKeeperClusteringSiloOptions _zkClusterOptions;
+        private ZooKeeper _zk;
         private ZooKeeperWatcher _watcher;
 
         public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config,
@@ -85,14 +87,17 @@ namespace Lyra.Authorizer.Decentralize
                     _finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
                 }
 
-                await Task.Factory.StartNew(() => {
-                    ZooKeeper.Using(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher,
-                        async zk =>
-                        {
-                            var leader = new LeaderElectionSupport(zk, "elect", Environment.MachineName);
-                            await leader.start();
-                        });
-                }, stoppingToken);
+                _watcher = new ZooKeeperWatcher(_log);
+                _zk = new ZooKeeper(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher);
+                //var zkroot = await _zk.createAsync("/", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
+                var electRoot = "/elect";
+                var stat = await _zk.existsAsync(electRoot);
+                if(stat == null)
+                    await _zk.createAsync(electRoot, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                var leader = new LeaderElectionSupport(_zk, electRoot, Environment.MachineName);
+                await leader.start();
+
+                var leaderHostName = await leader.getLeaderHostName();
             }
             catch (Exception ex)
             {

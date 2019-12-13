@@ -41,12 +41,13 @@ namespace Lyra.Authorizer.Decentralize
         NodeService _nodeService;
 
         public ApiService(ILogger<ApiService> logger, 
+            IServiceProvider serviceProvider,
             Microsoft.Extensions.Options.IOptions<LyraConfig> config)
         {
             _logger = logger;
             _config = config.Value;
 
-            _nodeService = (NodeService)ServiceProvider.GetService(typeof(NodeService));
+            _nodeService = (NodeService)serviceProvider.GetService(typeof(NodeService));
 
             if (_serviceAccount == null)
                 InitializeNodeAsync().Wait();

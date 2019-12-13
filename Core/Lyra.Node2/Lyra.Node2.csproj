@@ -28,6 +28,9 @@
     <PackageReference Include="Grpc.AspNetCore" Version="2.25.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.0" />
     <PackageReference Include="Microsoft.Orleans.Clustering.AdoNet" Version="3.0.1" />
     <PackageReference Include="Microsoft.Orleans.Core" Version="3.0.1" />
     <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="3.0.1">
@@ -46,6 +49,8 @@
     <PackageReference Include="System.Reactive.Core" Version="4.3.1" />
     <PackageReference Include="System.Reactive.Interfaces" Version="4.3.1" />
     <PackageReference Include="System.Reactive.Linq" Version="4.3.1" />
+    <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.4" />
+    <PackageReference Include="ZooKeeperNetEx.Recipes" Version="3.4.12.4" />
   </ItemGroup>
 
   <ItemGroup>
