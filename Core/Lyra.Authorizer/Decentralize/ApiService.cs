@@ -66,7 +66,7 @@ namespace Lyra.Authorizer.Decentralize
             _accountCollection = new MongoAccountCollection(_config.DBConnect, NodeGlobalParameters.DEFAULT_DATABASE_NAME, NodeGlobalParameters.Network_Id);
             Console.WriteLine("Database Location: mongodb " + (_accountCollection as MongoAccountCollection).Cluster);
 
-            //tradeMatchEngine = new TradeMatchEngine(accountCollection, serviceAccount);
+            
             Console.WriteLine("Node is starting");
 
             //_clusterClient = await DAGNode.ConnectClient();

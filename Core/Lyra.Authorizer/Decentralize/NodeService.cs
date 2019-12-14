@@ -1,5 +1,4 @@
-﻿using Lyra.Core;
-using Lyra.Core.Accounts;
+﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
@@ -10,13 +9,8 @@ using Lyra.Authorizer.Accounts;
 using Lyra.Authorizer.Authorizers;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -28,11 +22,10 @@ using org.apache.zookeeper;
 using Microsoft.Extensions.Options;
 using Orleans.Configuration;
 using Orleans.Runtime;
-using Microsoft.Extensions.Logging;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    public class NodeService : BackgroundService
+    public class NodeService : BackgroundService, LeaderElectionAware
     {
         private const int ZOOKEEPER_CONNECTION_TIMEOUT = 2000;
 
@@ -49,6 +42,9 @@ namespace Lyra.Authorizer.Decentralize
         ZooKeeperClusteringSiloOptions _zkClusterOptions;
         private ZooKeeper _zk;
         private ZooKeeperWatcher _watcher;
+        private LeaderElectionSupport _leader;
+
+        public string Leader { get; private set; }
 
         public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config,
             IOptions<ZooKeeperClusteringSiloOptions> zkOptions,
@@ -94,14 +90,14 @@ namespace Lyra.Authorizer.Decentralize
                 var stat = await _zk.existsAsync(electRoot);
                 if(stat == null)
                     await _zk.createAsync(electRoot, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                var leader = new LeaderElectionSupport(_zk, electRoot, Environment.MachineName);
-                await leader.start();
+                _leader = new LeaderElectionSupport(_zk, electRoot, Environment.MachineName);
 
-                var leaderHostName = await leader.getLeaderHostName();
+                _leader.addListener(this);
+                await _leader.start();
             }
             catch (Exception ex)
             {
-                throw new Exception("Can find or create mongo database.", ex);
+                throw new Exception("Error Initialize Node Service", ex);
             }
 
             while (!stoppingToken.IsCancellationRequested)
@@ -118,6 +114,18 @@ namespace Lyra.Authorizer.Decentralize
                     // no new order. do house keeping.
                 }
             }
+        }
+
+        public async Task onElectionEvent(ElectionEventType eventType)
+        {
+            switch(eventType)
+            {
+                case ElectionEventType.ELECTED_COMPLETE:
+                    Leader = await _leader.getLeaderHostName();
+                    break;
+                default:
+                    break;
+            }            
         }
 
         internal async Task<ExchangeAccount> GetExchangeAccount(string accountID, bool refreshBalance = false)

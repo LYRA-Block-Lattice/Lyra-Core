@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Lyra.Authorizer.Decentralize;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -29,6 +30,8 @@ namespace Lyra.Client.Lib
                     options.ClusterId = OrleansSettings.AppSetting["Cluster:ClusterId"];
                     options.ServiceId = OrleansSettings.AppSetting["Cluster:ServiceId"];
                 })
+                .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(IGossipChannel).Assembly).WithReferences())
+                .AddSimpleMessageStreamProvider(Constants.ChatRoomStreamProvider)
                 //.Configure<ClusterOptions>(options =>
                 //{
                 //    options.ClusterId = "dev";

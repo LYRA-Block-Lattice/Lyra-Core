@@ -20,12 +20,14 @@ namespace Lyra.Node2
     public class Program
     {
         static CancellationTokenSource _cancel;
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
             var host = CreateHostBuilder(args).Build();
             _cancel = new CancellationTokenSource();
-            await host.RunAsync(_cancel.Token);
+            host.StartAsync().Wait();
+            Console.ReadLine();
+            host.StopAsync().Wait();
         }
 
         private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
@@ -67,6 +69,8 @@ namespace Lyra.Node2
                     //    options.Invariant = "System.Data.SqlClient";
                     //    options.ConnectionString = "Data Source=ZION;Initial Catalog=Orleans;Persist Security Info=True;User ID=orleans;Password=orleans";
                     //})
+                    .AddMemoryGrainStorage("PubSubStore")
+                    .AddSimpleMessageStreamProvider(Constants.ChatRoomStreamProvider)
                     .UseDashboard(options => {
                         options.Port = 8080;
                     })
