@@ -4,11 +4,16 @@ using System.Text;
 
 namespace Lyra.Authorizer.Decentralize
 {
-	[Serializable]
+	public enum ChatMessageType { NewLeader, NewStaker };
+
 	public class ChatMsg
 	{
 		public DateTimeOffset Created { get; set; } = DateTimeOffset.Now;
-		public string Author { get; set; } = "Alexey";
+		/// <summary>
+		/// Node Identify
+		/// </summary>
+		public string From { get; set; }
+		public ChatMessageType Type { get; set; }
 		public string Text { get; set; }
 
 
@@ -18,7 +23,7 @@ namespace Lyra.Authorizer.Decentralize
 
 		public ChatMsg(string author, string msg)
 		{
-			Author = author;
+			From = author;
 			Text = msg;
 		}
 	}

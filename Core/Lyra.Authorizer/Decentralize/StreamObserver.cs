@@ -30,7 +30,7 @@ namespace Lyra.Authorizer.Decentralize
 
         public Task OnNextAsync(ChatMsg item, StreamSequenceToken token = null)
         {
-            var info = $"=={item.Created}==         {item.Author} said: {item.Text}";
+            var info = $"=={item.Created}==         {item.From} said: {item.Text}";
             this.logger.LogInformation(info);
             Console.WriteLine(info);
             return Task.CompletedTask;

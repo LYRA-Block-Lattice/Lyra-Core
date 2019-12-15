@@ -20,18 +20,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="Lyra Networks.txt" />
-    <None Include="LyraShop Azure Deployment.txt" />
-    <None Include="ngrok on Mac.txt" />
-    <None Include="Publish.txt" />
-    <None Include="Running Local LoyalShopper.txt" />
-    <None Include="Running Node and API.txt" />
-    <None Include="SSL.txt" />
-    <None Include="TO DO.txt" />
-    <None Include="Trade Order Flow.txt" />
+    <None Include="Leagcy\Lyra Networks.txt" />
+    <None Include="Leagcy\LyraShop Azure Deployment.txt" />
+    <None Include="Leagcy\ngrok on Mac.txt" />
+    <None Include="Leagcy\Publish.txt" />
+    <None Include="Leagcy\Running Local LoyalShopper.txt" />
+    <None Include="Leagcy\Running Node and API.txt" />
+    <None Include="Leagcy\SSL.txt" />
+    <None Include="Leagcy\TO DO.txt" />
+    <None Include="Leagcy\Trade Order Flow.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Running Client.txt" />
+    <None Include="Leagcy\Running Client.txt" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="DEX.txt" />

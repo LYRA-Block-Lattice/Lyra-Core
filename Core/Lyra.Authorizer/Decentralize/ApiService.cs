@@ -27,6 +27,7 @@ namespace Lyra.Authorizer.Decentralize
     public class LyraConfig
     {
         public string DBConnect { get; set; }
+        public string DexDBConnect { get; set; }
         public string NetworkId { get; set; }
     }
 

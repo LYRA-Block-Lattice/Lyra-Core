@@ -75,7 +75,7 @@ namespace Lyra.Authorizer.Decentralize
                     //BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
                     //BsonSerializer.RegisterSerializer(typeof(decimal?), new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
 
-                    client = new MongoClient(_config.DBConnect);
+                    client = new MongoClient(_config.DexDBConnect);
                     _db = client.GetDatabase("Dex");
 
                     _exchangeAccounts = _db.GetCollection<ExchangeAccount>("exchangeAccounts");

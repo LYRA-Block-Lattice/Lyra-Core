@@ -31,7 +31,7 @@ namespace Lyra.Client.Lib
                     options.ServiceId = OrleansSettings.AppSetting["Cluster:ServiceId"];
                 })
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(IGossipChannel).Assembly).WithReferences())
-                .AddSimpleMessageStreamProvider(Constants.ChatRoomStreamProvider)
+                .AddSimpleMessageStreamProvider(Constants.LyraGossipStreamProvider)
                 //.Configure<ClusterOptions>(options =>
                 //{
                 //    options.ClusterId = "dev";

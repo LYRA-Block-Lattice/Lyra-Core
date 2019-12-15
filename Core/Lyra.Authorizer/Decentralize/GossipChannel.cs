@@ -16,9 +16,9 @@ namespace Lyra.Authorizer.Decentralize
 
 		public override Task OnActivateAsync()
 		{
-			var streamProvider = GetStreamProvider(Constants.ChatRoomStreamProvider);
+			var streamProvider = GetStreamProvider(Constants.LyraGossipStreamProvider);
 
-		    stream = streamProvider.GetStream<ChatMsg>(Guid.NewGuid(), Constants.CharRoomStreamNameSpace);
+		    stream = streamProvider.GetStream<ChatMsg>(Guid.NewGuid(), Constants.LyraGossipStreamNameSpace);
             return base.OnActivateAsync();
 		}
 
@@ -66,11 +66,8 @@ namespace Lyra.Authorizer.Decentralize
 
 	public static class Constants
 	{
-		public const string ChatRoomStreamProvider = "ChatRoom";
-		public const string CharRoomStreamNameSpace = "YOLO";
-		public const string ClusterId = "chatroom-deployment1";
-		public const string ServiceId = "ChatRoomApp";
-
+		public const string LyraGossipStreamProvider = "pbft";
+		public const string LyraGossipStreamNameSpace = "lyra";
 	}
 
 	public static class PrettyConsole

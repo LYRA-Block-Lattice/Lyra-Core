@@ -102,7 +102,7 @@ namespace Lyra.Client.CLI
             PrettyConsole.Line($"====== History for '{joinedChannel}' Channel ======", ConsoleColor.DarkGreen);
             foreach (var chatMsg in history)
             {
-                PrettyConsole.Line($" ({chatMsg.Created:g}) {chatMsg.Author}> {chatMsg.Text}", ConsoleColor.DarkGreen);
+                PrettyConsole.Line($" ({chatMsg.Created:g}) {chatMsg.From}> {chatMsg.Text}", ConsoleColor.DarkGreen);
             }
             PrettyConsole.Line("============", ConsoleColor.DarkGreen);
         }
@@ -125,8 +125,8 @@ namespace Lyra.Client.CLI
             joinedChannel = channelName;
             var room = client.GetGrain<IGossipChannel>(joinedChannel);
             var streamId = await room.Join(userName);
-            var stream = client.GetStreamProvider(Constants.ChatRoomStreamProvider)
-                .GetStream<ChatMsg>(streamId, Constants.CharRoomStreamNameSpace);
+            var stream = client.GetStreamProvider(Constants.LyraGossipStreamProvider)
+                .GetStream<ChatMsg>(streamId, Constants.LyraGossipStreamNameSpace);
             //subscribe to the stream to receiver furthur messages sent to the chatroom
             await stream.SubscribeAsync(new StreamObserver(client.ServiceProvider.GetService<ILoggerFactory>()
                 .CreateLogger($"{joinedChannel} channel")));
@@ -137,8 +137,8 @@ namespace Lyra.Client.CLI
             PrettyConsole.Line($"Leaving channel {joinedChannel}");
             var room = client.GetGrain<IGossipChannel>(joinedChannel);
             var streamId = await room.Leave(userName);
-            var stream = client.GetStreamProvider(Constants.ChatRoomStreamProvider)
-                .GetStream<ChatMsg>(streamId, Constants.CharRoomStreamNameSpace);
+            var stream = client.GetStreamProvider(Constants.LyraGossipStreamProvider)
+                .GetStream<ChatMsg>(streamId, Constants.LyraGossipStreamNameSpace);
 
             //unsubscribe from the channel/stream since client left, so that client won't
             //receive furture messages from this channel/stream
