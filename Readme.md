@@ -1,4 +1,4 @@
-# Setup Node
+# Lyra Permissionless Node Setup
 
 1. Install Linux (Ubuntu 18.04)
 2. Install Mongodb 4.2 Community Edition
@@ -21,7 +21,7 @@ Install the ASP.NET Core runtime
 
 `mongo`  
 `use lyra`  
-`db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'lyra'}]})` 
+`db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'lyra'}]})`  
 `use dex`  
 `db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'dex'}]})`
 
