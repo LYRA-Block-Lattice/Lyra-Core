@@ -7,7 +7,7 @@ using Orleans.Streams;
 
 namespace Lyra.Authorizer.Decentralize
 {
-	public class GossipChannel : Grain, IGossipChannel
+	public class LyraGossip : Grain, ILyraGossip
 	{
 		private readonly List<ChatMsg> messages = new List<ChatMsg>(100);
 		private readonly List<string> onlineMembers = new List<string>(10);
@@ -16,9 +16,9 @@ namespace Lyra.Authorizer.Decentralize
 
 		public override Task OnActivateAsync()
 		{
-			var streamProvider = GetStreamProvider(Constants.LyraGossipStreamProvider);
+			var streamProvider = GetStreamProvider(GossipConstants.LyraGossipStreamProvider);
 
-		    stream = streamProvider.GetStream<ChatMsg>(Guid.NewGuid(), Constants.LyraGossipStreamNameSpace);
+		    stream = streamProvider.GetStream<ChatMsg>(Guid.Parse(GossipConstants.LyraGossipStreamId), GossipConstants.LyraGossipStreamNameSpace);
             return base.OnActivateAsync();
 		}
 
@@ -64,8 +64,10 @@ namespace Lyra.Authorizer.Decentralize
 	    }
     }
 
-	public static class Constants
+	public static class GossipConstants
 	{
+		// {1FBB3153-68C2-4903-A802-CE0EA5F0BD95}
+		public const string LyraGossipStreamId = "{1FBB3153-68C2-4903-A802-CE0EA5F0BD95}";
 		public const string LyraGossipStreamProvider = "pbft";
 		public const string LyraGossipStreamNameSpace = "lyra";
 	}

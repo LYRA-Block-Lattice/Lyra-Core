@@ -22,7 +22,7 @@ namespace LyraNodesBot
         private readonly ZooKeeper ZK = new ZooKeeper(ConfigurationManager.AppSettings["zookeeperConnectString"], 2000,
             new ZooKeeperWatcher(LoggerFactory.Create(builder => { builder.AddConsole(); }).CreateLogger("log")));
 
-        public void Main(string[] args)
+        public void Start()
         {
             var me = Bot.GetMeAsync().Result;
             Console.Title = me.Username;
@@ -36,7 +36,10 @@ namespace LyraNodesBot
 
             Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"Start listening for @{me.Username}");
-            Console.ReadLine();
+        }
+
+        public void Stop()
+        {
             Bot.StopReceiving();
         }
 

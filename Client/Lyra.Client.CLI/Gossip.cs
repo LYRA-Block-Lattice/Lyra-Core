@@ -83,7 +83,7 @@ namespace Lyra.Client.CLI
 
         private static async Task ShowChannelMembers(IClusterClient client)
         {
-            var room = client.GetGrain<IGossipChannel>(joinedChannel);
+            var room = client.GetGrain<ILyraGossip>(joinedChannel);
             var members = await room.GetMembers();
 
             PrettyConsole.Line($"====== Members for '{joinedChannel}' Channel ======", ConsoleColor.DarkGreen);
@@ -96,7 +96,7 @@ namespace Lyra.Client.CLI
 
         private static async Task ShowCurrentChannelHistory(IClusterClient client)
         {
-            var room = client.GetGrain<IGossipChannel>(joinedChannel);
+            var room = client.GetGrain<ILyraGossip>(joinedChannel);
             var history = await room.ReadHistory(1000);
 
             PrettyConsole.Line($"====== History for '{joinedChannel}' Channel ======", ConsoleColor.DarkGreen);
@@ -109,7 +109,7 @@ namespace Lyra.Client.CLI
 
         private static async Task SendMessage(IClusterClient client, string messageText)
         {
-            var room = client.GetGrain<IGossipChannel>(joinedChannel);
+            var room = client.GetGrain<ILyraGossip>(joinedChannel);
             await room.Message(new ChatMsg(userName, messageText));
         }
 
@@ -123,10 +123,10 @@ namespace Lyra.Client.CLI
             }
             PrettyConsole.Line($"Joining to channel {channelName}");
             joinedChannel = channelName;
-            var room = client.GetGrain<IGossipChannel>(joinedChannel);
+            var room = client.GetGrain<ILyraGossip>(joinedChannel);
             var streamId = await room.Join(userName);
-            var stream = client.GetStreamProvider(Constants.LyraGossipStreamProvider)
-                .GetStream<ChatMsg>(streamId, Constants.LyraGossipStreamNameSpace);
+            var stream = client.GetStreamProvider(GossipConstants.LyraGossipStreamProvider)
+                .GetStream<ChatMsg>(streamId, GossipConstants.LyraGossipStreamNameSpace);
             //subscribe to the stream to receiver furthur messages sent to the chatroom
             await stream.SubscribeAsync(new StreamObserver(client.ServiceProvider.GetService<ILoggerFactory>()
                 .CreateLogger($"{joinedChannel} channel")));
@@ -135,10 +135,10 @@ namespace Lyra.Client.CLI
         private static async Task LeaveChannel(IClusterClient client)
         {
             PrettyConsole.Line($"Leaving channel {joinedChannel}");
-            var room = client.GetGrain<IGossipChannel>(joinedChannel);
+            var room = client.GetGrain<ILyraGossip>(joinedChannel);
             var streamId = await room.Leave(userName);
-            var stream = client.GetStreamProvider(Constants.LyraGossipStreamProvider)
-                .GetStream<ChatMsg>(streamId, Constants.LyraGossipStreamNameSpace);
+            var stream = client.GetStreamProvider(GossipConstants.LyraGossipStreamProvider)
+                .GetStream<ChatMsg>(streamId, GossipConstants.LyraGossipStreamNameSpace);
 
             //unsubscribe from the channel/stream since client left, so that client won't
             //receive furture messages from this channel/stream

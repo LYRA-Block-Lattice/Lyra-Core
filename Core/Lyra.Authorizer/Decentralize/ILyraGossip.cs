@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    public interface IGossipChannel : IGrainWithStringKey
+    public interface ILyraGossip : IGrainWithStringKey
     {
         Task<Guid> Join(string nickname);
         Task<Guid> Leave(string nickname);
