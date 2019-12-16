@@ -19,10 +19,10 @@ Install the ASP.NET Core runtime
 
 5. create mongodb user
 
-`mongo`
-`use lyra`
-`db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'lyra'}]})`
-`use dex`
+`mongo`  
+`use lyra`  
+`db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'lyra'}]})` 
+`use dex`  
 `db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'dex'}]})`
 
 6. modify lyranode2\appsettings.json, change monodb account/password
