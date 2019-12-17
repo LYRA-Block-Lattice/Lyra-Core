@@ -8,12 +8,14 @@ using Lyra.Core.API;
 using Lyra.Core.Accounts.Node;
 using Lyra.Authorizer.Services;
 using Lyra.Core.Protos;
+using Lyra.Authorizer.Decentralize;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class SendTransferAuthorizer : BaseAuthorizer
     {
-        public SendTransferAuthorizer(ServiceAccount serviceAccount, IAccountCollection accountCollection) : base(serviceAccount, accountCollection)
+        public SendTransferAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
+            : base(node, serviceAccount, accountCollection)
         {
         }
 

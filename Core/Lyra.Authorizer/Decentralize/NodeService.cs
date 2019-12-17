@@ -22,6 +22,8 @@ using org.apache.zookeeper;
 using Microsoft.Extensions.Options;
 using Orleans.Configuration;
 using Orleans.Runtime;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace Lyra.Authorizer.Decentralize
 {
@@ -45,6 +47,7 @@ namespace Lyra.Authorizer.Decentralize
         private LeaderElectionSupport _leader;
 
         public string Leader { get; private set; }
+        public LyraNetworkConfigration LyraNetworkConfig { get; set; }
 
         public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config,
             IOptions<ZooKeeperClusteringSiloOptions> zkOptions,
@@ -70,6 +73,23 @@ namespace Lyra.Authorizer.Decentralize
             _waitOrder = new AutoResetEvent(false);
             try
             {
+                _watcher = new ZooKeeperWatcher(_log);
+                _zk = new ZooKeeper(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher);
+
+                // get Lyra network configurations from /lyra
+                var cfg = await _zk.getDataAsync("/lyra");
+                LyraNetworkConfig = JsonConvert.DeserializeObject<LyraNetworkConfigration>(Encoding.ASCII.GetString(cfg.Data));
+
+                // do node election
+                var electRoot = "/elect";
+                var stat = await _zk.existsAsync(electRoot);
+                if (stat == null)
+                    await _zk.createAsync(electRoot, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                _leader = new LeaderElectionSupport(_zk, electRoot, Environment.MachineName);
+
+                _leader.addListener(this);
+                await _leader.start();
+
                 if (_db == null)
                 {
                     //BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
@@ -82,18 +102,6 @@ namespace Lyra.Authorizer.Decentralize
                     _queue = _db.GetCollection<ExchangeOrder>("queuedDexOrders");
                     _finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
                 }
-
-                _watcher = new ZooKeeperWatcher(_log);
-                _zk = new ZooKeeper(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher);
-                //var zkroot = await _zk.createAsync("/", null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
-                var electRoot = "/elect";
-                var stat = await _zk.existsAsync(electRoot);
-                if(stat == null)
-                    await _zk.createAsync(electRoot, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                _leader = new LeaderElectionSupport(_zk, electRoot, Environment.MachineName);
-
-                _leader.addListener(this);
-                await _leader.start();
             }
             catch (Exception ex)
             {

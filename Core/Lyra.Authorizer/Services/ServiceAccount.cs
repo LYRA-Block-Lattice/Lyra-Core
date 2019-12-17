@@ -69,7 +69,6 @@ namespace Lyra.Authorizer.Services
             firstServiceBlock.InitializeBlock(null, PrivateKey, NodeGlobalParameters.Network_Id);
             //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
             AddBlock(firstServiceBlock);
-
         }
 
 

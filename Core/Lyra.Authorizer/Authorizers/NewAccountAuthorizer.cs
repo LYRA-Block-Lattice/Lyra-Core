@@ -4,12 +4,14 @@ using Lyra.Core.API;
 using Lyra.Core.Accounts.Node;
 using Lyra.Authorizer.Services;
 using Lyra.Core.Protos;
+using Lyra.Authorizer.Decentralize;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class NewAccountAuthorizer: ReceiveTransferAuthorizer
     {
-        public NewAccountAuthorizer(ServiceAccount serviceAccount, IAccountCollection accountCollection): base (serviceAccount, accountCollection)
+        public NewAccountAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(node, serviceAccount, accountCollection)
         {
         }
 

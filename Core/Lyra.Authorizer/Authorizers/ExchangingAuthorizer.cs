@@ -7,12 +7,14 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Protos;
 using Lyra.Authorizer.Services;
+using Lyra.Authorizer.Decentralize;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class ExchangingAuthorizer : SendTransferAuthorizer
     {
-        public ExchangingAuthorizer(ServiceAccount serviceAccount, IAccountCollection accountCollection) : base(serviceAccount, accountCollection)
+        public ExchangingAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
+            : base(node, serviceAccount, accountCollection)
         {
 
         }

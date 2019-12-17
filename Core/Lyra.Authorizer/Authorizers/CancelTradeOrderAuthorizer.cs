@@ -5,16 +5,16 @@ using Lyra.Core.API;
 using Lyra.Core.Accounts.Node;
 using Lyra.Authorizer.Services;
 using Lyra.Core.Protos;
+using Lyra.Authorizer.Decentralize;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class CancelTradeOrderAuthorizer: BaseAuthorizer
     {
-        TradeMatchEngine _TradeMatchEngine;
-
-        public CancelTradeOrderAuthorizer(ServiceAccount serviceAccount, IAccountCollection accountCollection, TradeMatchEngine tradeMatchEngine) : base(serviceAccount, accountCollection)
+        public CancelTradeOrderAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
+            : base(node, serviceAccount, accountCollection)
         {
-            _TradeMatchEngine = tradeMatchEngine;
+            
         }
 
         public override APIResultCodes Authorize<T>(ref T tblock)
@@ -52,7 +52,7 @@ namespace Lyra.Authorizer.Authorizers
 
             _accountCollection.AddBlock(block);
 
-            _TradeMatchEngine.RemoveOrder(original_order);
+            //_TradeMatchEngine.RemoveOrder(original_order);
 
             return base.Authorize(ref tblock);
         }

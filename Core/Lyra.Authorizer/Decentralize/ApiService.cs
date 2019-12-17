@@ -347,7 +347,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new GenesisAuthorizer(_serviceAccount, _accountCollection);
+                var authorizer = new GenesisAuthorizer(_nodeService, _serviceAccount, _accountCollection);
 
                 var openBlock = block;
                 result.ResultCode = authorizer.Authorize(ref openBlock);
@@ -380,7 +380,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewAccountAuthorizer(_serviceAccount, _accountCollection);
+                var authorizer = new NewAccountAuthorizer(_nodeService, _serviceAccount, _accountCollection);
                 result.ResultCode = authorizer.Authorize(ref openReceiveBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                     return Task.FromResult(result);
@@ -404,7 +404,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewAccountWithImportAuthorizer(_serviceAccount, _accountCollection);
+                var authorizer = new NewAccountWithImportAuthorizer(_nodeService, _serviceAccount, _accountCollection);
                 result.ResultCode = authorizer.Authorize(ref block);
                 if (result.ResultCode != APIResultCodes.Success)
                     return Task.FromResult(result);
@@ -432,7 +432,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = (sendBlock is ExchangingBlock) ? new ExchangingAuthorizer(_serviceAccount, _accountCollection) : new SendTransferAuthorizer(_serviceAccount, _accountCollection);
+                var authorizer = (sendBlock is ExchangingBlock) ? new ExchangingAuthorizer(_nodeService, _serviceAccount, _accountCollection) : new SendTransferAuthorizer(_nodeService, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(ref sendBlock);
                 if (result.ResultCode != APIResultCodes.Success)
@@ -480,7 +480,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new ReceiveTransferAuthorizer(_serviceAccount, _accountCollection);
+                var authorizer = new ReceiveTransferAuthorizer(_nodeService, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(ref receiveBlock);
 
@@ -514,7 +514,7 @@ namespace Lyra.Authorizer.Decentralize
             try
             {
 
-                var authorizer = new ImportAccountAuthorizer(_serviceAccount, _accountCollection);
+                var authorizer = new ImportAccountAuthorizer(_nodeService, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(ref block);
 
@@ -540,17 +540,17 @@ namespace Lyra.Authorizer.Decentralize
         {
             var result = new AuthorizationAPIResult();
 
-            //// filter the names
-            //if (tokenBlock.DomainName.ToLower().StartsWith("lyra")
-            //    || tokenBlock.Ticker.ToLower().StartsWith("lyra"))
-            //{
-            //    result.ResultCode = APIResultCodes.NameUnavailable;
-            //    return result;
-            //}
+            // filter the names
+            if (tokenBlock.DomainName.ToLower().StartsWith("lyra")
+                || tokenBlock.Ticker.ToLower().StartsWith("lyra"))
+            {
+                result.ResultCode = APIResultCodes.NameUnavailable;
+                return result;
+            }
 
             try
             {
-                var authorizer = new NewTokenAuthorizer(_serviceAccount, _accountCollection);
+                var authorizer = new NewTokenAuthorizer(_nodeService, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(ref tokenBlock);
                 if (result.ResultCode != APIResultCodes.Success)
@@ -698,7 +698,7 @@ namespace Lyra.Authorizer.Decentralize
 
             //receiveBlock.Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, receiveBlock.Hash);
 
-            var authorizer = new ReceiveTransferAuthorizer(_serviceAccount, _accountCollection);
+            var authorizer = new ReceiveTransferAuthorizer(_nodeService, _serviceAccount, _accountCollection);
             callresult = authorizer.Authorize(ref receiveBlock);
 
             return callresult;

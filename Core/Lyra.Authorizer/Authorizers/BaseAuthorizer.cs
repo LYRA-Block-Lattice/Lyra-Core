@@ -11,6 +11,7 @@ using Lyra.Authorizer.Services;
 using Lyra.Core.Protos;
 using Lyra.Core.Utils;
 using System.Threading.Tasks;
+using Lyra.Authorizer.Decentralize;
 
 namespace Lyra.Authorizer.Authorizers
 {
@@ -26,14 +27,16 @@ namespace Lyra.Authorizer.Authorizers
     }
     public abstract class BaseAuthorizer
     {
+        protected readonly NodeService _node;
         protected readonly ServiceAccount _serviceAccount;
         protected readonly IAccountCollection _accountCollection;
 
         public static event AuthorizeCompleteEventHandler OnAuthorized;
 
         //public Authorizer(ServiceAccount serviceAccount, AccountCollection accountCollection)
-        public BaseAuthorizer(ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public BaseAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection)
         {
+            _node = node;
             _serviceAccount = serviceAccount;
             _accountCollection = accountCollection;
         }

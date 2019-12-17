@@ -7,12 +7,14 @@ using Lyra.Core.Accounts.Node;
 using Lyra.Core.API;
 using Lyra.Authorizer.Services;
 using Lyra.Core.Protos;
+using Lyra.Authorizer.Decentralize;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class GenesisAuthorizer: BaseAuthorizer
     {
-        public GenesisAuthorizer(ServiceAccount serviceAccount, IAccountCollection accountCollection): base (serviceAccount, accountCollection)
+        public GenesisAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(node, serviceAccount, accountCollection)
         {
         }
 
