@@ -46,7 +46,7 @@ namespace Lyra.Authorizer.Decentralize
             _logger = logger;
             _config = config.Value;
 
-            _nodeService = (NodeService)serviceProvider.GetService(typeof(NodeService));
+            _nodeService = NodeService.Instance;
 
             if (_serviceAccount == null)
                 InitializeNodeAsync().Wait();
@@ -133,15 +133,6 @@ namespace Lyra.Authorizer.Decentralize
 
         public Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
         {
-            // look for other nodes
-            var mgr = GrainFactory.GetGrain<IManagementGrain>(0);
-            var grains = mgr.GetDetailedGrainStatistics().Result;
-            foreach (var g in grains)
-            {
-                var node = GrainFactory.GetGrain<INodeAPI>(g.GrainIdentity.PrimaryKeyLong);
-                node.GetAccountHeight(AccountId, Signature);
-            }
-
             var result = new AccountHeightAPIResult();
             try
             {

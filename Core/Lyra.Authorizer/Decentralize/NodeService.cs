@@ -28,6 +28,7 @@ namespace Lyra.Authorizer.Decentralize
 {
     public class NodeService : BackgroundService, LeaderElectionAware
     {
+        public static NodeService Instance { get; private set; } 
         private const int ZOOKEEPER_CONNECTION_TIMEOUT = 2000;
 
         private LyraConfig _config;
@@ -68,21 +69,25 @@ namespace Lyra.Authorizer.Decentralize
 
         public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config,
             IOptions<ZooKeeperClusteringSiloOptions> zkOptions,
-            INodeAPI node, ILogger<ApiService> logger)
+            ILogger<NodeService> logger,
+            INodeAPI node)
         {
+            if (Instance == null)
+                Instance = this;
+
             _config = config.Value;
             _zkClusterOptions = zkOptions.Value;
             _node = node;
             _log = logger;
 
-            BaseAuthorizer.OnAuthorized += (s, e) =>
-            {
-                if (e.Result is SendTransferBlock)
-                {
-                    var block = e.Result as SendTransferBlock;
-                    _log.LogWarning("Transfer {0} from {1} to {2}", block.Index, block.AccountID, block.DestinationAccountId);
-                }
-            };
+            //BaseAuthorizer.OnAuthorized += (s, e) =>
+            //{
+            //    if (e.Result is SendTransferBlock)
+            //    {
+            //        var block = e.Result as SendTransferBlock;
+            //        _log.LogWarning("Transfer {0} from {1} to {2}", block.Index, block.AccountID, block.DestinationAccountId);
+            //    }
+            //};
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

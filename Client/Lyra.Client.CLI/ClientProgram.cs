@@ -18,34 +18,27 @@ namespace Lyra.Client.CLI
 {
     class ClientProgram
     {
- 
-
-        static void Main(string[] args)
+        static Task Main(string[] args)
         {
             Console.WriteLine("LYRA Command Line Client");
             Console.WriteLine("Version: " + "0.5.3");
-
-            Console.WriteLine("press enter when ready to connect to server");
-            Console.ReadLine();
 
             ParserResult<Options> result = Parser.Default.ParseArguments<Options>(args);
 
             var host = CreateHost();
             host.Start();
 
-            var client = (ClusterClientHostedService) host.Services.GetService<IHostedService>();
+            var client = host.Services.GetService<IHostedService>();
 
-            Gossip.Main(client.Client);
+            var wm = new WalletManager();
+            int mapresult = result.MapResult((Options options) => wm.RunWallet((DAGClientHostedService)client, options).Result, _ => CommandLineError());
 
-            //var wm = new WalletManager();
-            //int mapresult = result.MapResult((Options options) => wm.RunWallet((DAGClientHostedService)client, options).Result, _ => CommandLineError());
-
-            //if (mapresult != 0)
-            //{
-            //    if (mapresult == -2)
-            //        Console.WriteLine("Unsupported parameters");                
-            //}
-            //return Task.CompletedTask;
+            if (mapresult != 0)
+            {
+                if (mapresult == -2)
+                    Console.WriteLine("Unsupported parameters");
+            }
+            return Task.CompletedTask;
         }
 
         static int CommandLineError()
@@ -63,7 +56,7 @@ namespace Lyra.Client.CLI
                     services.AddSingleton<IHostedService>(_ => _.GetService<ClusterClientHostedService>());
                     services.AddSingleton(_ => _.GetService<ClusterClientHostedService>().Client);
 
-                    //services.AddHostedService<DAGClientHostedService>();
+                    services.AddHostedService<DAGClientHostedService>();
 
                     services.Configure<ConsoleLifetimeOptions>(options =>
                     {
