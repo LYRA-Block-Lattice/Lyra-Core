@@ -11,7 +11,6 @@ using Lyra.Core.Cryptography;
 using Lyra.Core.API;
 
 using Newtonsoft.Json;
-using Lyra.Core.Protos;
 using System.Diagnostics;
 
 namespace Lyra.Core.Accounts
@@ -70,7 +69,7 @@ namespace Lyra.Core.Accounts
                 return result;
             }
             else
-                return APIResultCodes.NoRpcserverConnection;
+                return APIResultCodes.NoRPCServerConnection;
 
         }
 

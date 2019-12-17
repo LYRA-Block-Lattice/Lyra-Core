@@ -5,9 +5,6 @@ using System.Text;
 
 using Newtonsoft.Json;
 
-using Lyra.Core.Cryptography;
-using Lyra.Core.Protos;
-
 namespace Lyra.Core.Blocks
 {
     public abstract class Block: SignableObject
@@ -58,7 +55,6 @@ namespace Lyra.Core.Blocks
             {
                 Index = prevBlock.Index + 1;
                 PreviousHash = prevBlock.Hash;
-
             }
             else
             {
@@ -177,4 +173,160 @@ namespace Lyra.Core.Blocks
 
     }
 
+    public enum BlockTypes
+    {
+        Null = 0,
+
+        // Network service blocks
+
+        ServiceGenesis = 10,
+
+        Service = 11,
+
+        Sync = 12,
+
+        // Opening blocks
+
+        // This is the very first block that creates Lyra Gas token on primary shard
+        LyraTokenGenesis = 20,
+
+        // account opening block where the first transaction is receive transfer
+        OpenAccountWithReceiveTransfer = 21,
+
+        // the same as OpenWithReceiveTransfer Block but tells the authorizer that it received fee instead of regular transfer
+        OpenAccountWithReceiveFee = 22,
+
+        // Open a new account and import another account
+        OpenAccountWithImport = 23,
+
+        // Transaction blocks
+
+        TokenGenesis = 30,
+
+        SendTransfer = 31,
+
+        ReceiveTransfer = 32,
+
+        // adds tarnsfers' fee to authorizer's account, 
+        // the fee is settled when a new sync or service block is generated, for the previous service Index, 
+        // by summarizing all the fee amounts from all blocks with the same corresponding sefrviceblock hash and dividing it by the number of authorizers in the sample,
+        // the block can be validated by the next sample and all other nores in the same way,
+        // fee data is not encrypted 
+        ReceiveFee = 33,
+
+        // Imports an account into current account
+        ImportAccount = 34,
+
+        // Trading blocks
+
+        // Put Sell or Buy trade order to exchange tokens
+        TradeOrder = 40,
+
+        // Send tokens to the trade order to initiate trade
+        Trade = 41,
+
+        // Exchange tokens with Trade initiator to conclude the trade and execute the trade order
+        ExecuteTradeOrder = 42,
+
+        // Cancels the order and frees up the locked funds
+        CancelTradeOrder = 43,
+
+        // to/from exchange
+        ExchangingTransfer = 50,
+    }
+
+    public enum APIResultCodes
+    {
+        Success = 0,
+        UnknownError = 1,
+        // default error code
+        UndefinedError = 1000,
+        BlockWithThisIndexAlreadyExists = 2,
+        AccountAlreadyExists = 3,
+        AccountDoesNotExist = 4,
+        BlockWithThisPreviousHashAlreadyExists = 5, // double-spending attempt - trying to add another block to the same previous block
+        BlockValidationFailed = 6,
+        TokenGenesisBlockAlreadyExists = 7,
+        CouldNotFindLatestBlock = 8,
+        NegativeTransactionAmount = 9,
+        AccountChainBlockValidationFailed = 10,
+        AccountChainSignatureValidationFailed = 11,
+        AccountChainBalanceValidationFailed = 12,
+        AccountBlockAlreadyExists = 13,
+        SourceSendBlockNotFound = 14,
+        InvalidDestinationAccountId = 15,
+        CouldNotTraceSendBlockChain = 16,
+        TransactionAmountDoesNotMatch = 17,
+        ExceptionInOpenAccountWithGenesis = 18,
+        ExceptionInSendTransfer = 19,
+        ExceptionInReceiveTransferAndOpenAccount = 20,
+        ExceptionInReceiveTransfer = 21,
+        InvalidBlockType = 22,
+        ExceptionInCreateToken = 23,
+        InvalidFeeAmount = 24,
+        InvalidNewAccountBalance = 25,
+        SendTransactionValidationFailed = 26,
+        ReceiveTransactionValidationFailed = 27,
+        TransactionTokenDoesNotMatch = 28,
+        BlockSignatureValidationFailed = 29,
+        NoNewTransferFound = 30,
+        TokenGenesisBlockNotFound = 31,
+        ServiceBlockNotFound = 32,
+        BlockNotFound = 33,
+        NoRPCServerConnection = 34,
+        ExceptionInNodeAPI = 35,
+        ExceptionInWebAPI = 36,
+        PreviousBlockNotFound = 37,
+        InsufficientFunds = 38,
+        InvalidAccountId = 39,
+        InvalidPrivateKey = 40,
+        TradeOrderMatchFound = 41,
+        InvalidIndexSequence = 42,
+        FeatureIsNotSupported = 48,
+
+        // Trade Codes
+
+        ExceptionInTradeOrderAuthorizer = 43,
+        ExceptionInTradeAuthorizer = 44,
+        ExceptionInExecuteTradeOrderAuthorizer = 45,
+        ExceptionInCancelTradeOrderAuthorizer = 46,
+
+        TradeOrderValidationFailed = 47,
+        NoTradesFound = 49,
+        TradeOrderNotFound = 50,
+        InvalidTradeAmount = 51,
+
+        // Non-fungible token codes
+        InvalidNonFungibleAmount = 52,
+        InvalidNonFungibleTokenCode = 53,
+        MissingNonFungibleToken = 54,
+        InvalidNonFungibleSenderAccountId = 55,
+        NoNonFungibleTokensFound = 56,
+        OriginNonFungibleBlockNotFound = 57,
+        SourceNonFungibleBlockNotFound = 58,
+        OriginNonFungibleBlockHashDoesNotMatch = 59,
+        SourceNonFungibleBlockHashDoesNotMatch = 60,
+        NonFungibleSignatureVerificationFailed = 61,
+        InvalidNonFungiblePublicKey = 62,
+
+        CancelTradeOrderValidationFailed = 63,
+
+        InvalidFeeType = 64,
+
+        InvalidParameterFormat = 65,
+
+        APISignatureValidationFailed = 66,
+
+        InvalidNetworkId = 67,
+
+        DuplicateReceiveBlock = 100,
+
+        InvalidTokenRenewalDate = 200,
+
+        TokenExpired = 201,
+
+        NameUnavailable = 202,
+
+        NotAllowedToSign = 300
+    }
 }

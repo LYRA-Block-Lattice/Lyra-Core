@@ -1,5 +1,4 @@
-﻿using Lyra.Core.Protos;
-using System;
+﻿using System;
 
 namespace Lyra.Core.Blocks.Transactions
 {

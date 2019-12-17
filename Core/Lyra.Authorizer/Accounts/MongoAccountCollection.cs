@@ -15,7 +15,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization.Options;
 using System.Linq;
-using Lyra.Core.Protos;
 
 namespace Lyra.Authorizer
 {

@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Microsoft.Extensions.Hosting;
 using Orleans;
 using System;
@@ -25,7 +26,7 @@ namespace Lyra.Client.Lib
         {
             Node = _client.GetGrain<INodeAPI>(0);
             var result = await Node.GetVersion(3, "client", "1.0a");
-            Trace.Assert(result.ResultCode == Lyra.Core.Protos.APIResultCodes.Success);
+            Trace.Assert(result.ResultCode == APIResultCodes.Success);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

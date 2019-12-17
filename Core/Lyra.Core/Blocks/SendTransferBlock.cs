@@ -1,6 +1,5 @@
 ﻿
 using Lyra.Core.API;
-using Lyra.Core.Protos;
 
 namespace Lyra.Core.Blocks.Transactions
 {

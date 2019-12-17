@@ -3,8 +3,9 @@
 using Lyra.Core.API;
 using Lyra.Core.Accounts.Node;
 using Lyra.Authorizer.Services;
-using Lyra.Core.Protos;
 using Lyra.Authorizer.Decentralize;
+using System.Threading.Tasks;
+using Lyra.Core.Blocks;
 
 namespace Lyra.Authorizer.Authorizers
 {
@@ -15,7 +16,7 @@ namespace Lyra.Authorizer.Authorizers
         {
         }
 
-        public override APIResultCodes Authorize<T>(ref T tblock)
+        public override APIResultCodes Authorize<T>(T tblock)
         {
             if (!(tblock is OpenWithReceiveTransferBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -46,11 +47,16 @@ namespace Lyra.Authorizer.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            Sign(ref block);
-
-            _accountCollection.AddBlock(block);
-
-            return base.Authorize(ref tblock);
+            var signed = Sign(block).GetAwaiter().GetResult();
+            if (signed)
+            {
+                _accountCollection.AddBlock(block);
+                return APIResultCodes.Success;
+            }
+            else
+            {
+                return APIResultCodes.NotAllowedToSign;
+            }
         }
     }
 }

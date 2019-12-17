@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Lyra.Core.Protos;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks.Service

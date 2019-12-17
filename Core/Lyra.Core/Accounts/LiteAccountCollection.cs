@@ -7,7 +7,6 @@ using System.IO;
 
 using Lyra.Core.Accounts.Node;
 using System.Linq;
-using Lyra.Core.Protos;
 
 namespace Lyra.Core.LiteDB
 {

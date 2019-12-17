@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,7 +76,7 @@ namespace Lyra.Node2.Services
                     // has notify
                     result = new GetNotificationAPIResult()
                     {
-                        ResultCode = Core.Protos.APIResultCodes.Success,
+                        ResultCode = APIResultCodes.Success,
                         HasEvent = true,
                         Action = nc.Action,
                         Catalog = nc.Catalog,
@@ -88,7 +89,7 @@ namespace Lyra.Node2.Services
                     // no notify, just timeout
                     result = new GetNotificationAPIResult()
                     {
-                        ResultCode = Core.Protos.APIResultCodes.Success,
+                        ResultCode = APIResultCodes.Success,
                         HasEvent = false,
                         Source = NotifySource.None
                     };
@@ -99,7 +100,7 @@ namespace Lyra.Node2.Services
                 // network timeout etc.
                 result = new GetNotificationAPIResult()
                 {
-                    ResultCode = Core.Protos.APIResultCodes.UnknownError,
+                    ResultCode = APIResultCodes.UnknownError,
                     HasEvent = false,
                     Source = NotifySource.None
                 };

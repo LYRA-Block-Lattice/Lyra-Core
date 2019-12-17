@@ -1,5 +1,4 @@
 ﻿using Lyra.Core.Blocks.Transactions;
-using Lyra.Core.Protos;
 using System;
 using System.Collections.Generic;
 using System.Text;

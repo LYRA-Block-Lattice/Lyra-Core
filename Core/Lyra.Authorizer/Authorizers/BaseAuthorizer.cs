@@ -8,7 +8,6 @@ using Lyra.Core.Accounts.Node;
 
 using System;
 using Lyra.Authorizer.Services;
-using Lyra.Core.Protos;
 using Lyra.Core.Utils;
 using System.Threading.Tasks;
 using Lyra.Authorizer.Decentralize;
@@ -41,11 +40,9 @@ namespace Lyra.Authorizer.Authorizers
             _accountCollection = accountCollection;
         }
 
-        public virtual APIResultCodes Authorize<T>(ref T tblock)
+        public virtual APIResultCodes Authorize<T>(T tblock)
         {
-            OnAuthorized?.Invoke(this, new AuthorizeCompletedEventArgs(tblock as Block));
-
-            return APIResultCodes.Success;
+            throw new NotImplementedException("Must override");
         }
 
         protected APIResultCodes VerifyBlock(TransactionBlock block, TransactionBlock previousBlock)
@@ -197,7 +194,7 @@ namespace Lyra.Authorizer.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected void Sign<T>(ref T tblock)
+        protected async Task<bool> Sign<T>(T tblock)
         {
             if (!(tblock is TransactionBlock))
                 throw new System.ApplicationException("APIResultCodes.InvalidBlockType");
@@ -208,16 +205,39 @@ namespace Lyra.Authorizer.Authorizers
             // but it is included when creating/validating the authorization signature
             block.ServiceHash = _serviceAccount.GetLatestBlock().Hash;
 
-            // sign with the authorizer key
-            AuthorizationSignature authSignature = new AuthorizationSignature
+            bool shouldSign = false;
+            if(_node.ModeConsensus)
             {
-                Key = _serviceAccount.AccountId,
-                Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash)
-            };
+                await _node.Pre_PrepareAsync(block);
+                var prepareResult = await _node.PrepareAsync(block);
+                if(prepareResult)
+                {
+                    shouldSign = true;
+                    await _node.CommitAsync(block);
+                }                
+            }
+            else
+            {
+                shouldSign = true;
+            }
 
-            if (block.Authorizations == null)
-                block.Authorizations = new List<AuthorizationSignature>();
-            block.Authorizations.Add(authSignature);
+            if(shouldSign)
+            {
+                // sign with the authorizer key
+                AuthorizationSignature authSignature = new AuthorizationSignature
+                {
+                    Key = _serviceAccount.AccountId,
+                    Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash)
+                };
+
+                if (block.Authorizations == null)
+                    block.Authorizations = new List<AuthorizationSignature>();
+                block.Authorizations.Add(authSignature);
+
+                return true;
+            }
+            else
+                return false;
         }
 
         protected bool VerifyAuthorizationSignatures(TransactionBlock block)

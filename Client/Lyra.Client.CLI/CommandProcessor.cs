@@ -6,7 +6,6 @@ using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.API;
 
 using System.Threading.Tasks;
-using Lyra.Core.Protos;
 using Lyra.Core.Accounts;
 
 namespace Lyra.Client.CLI

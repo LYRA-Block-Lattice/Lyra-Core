@@ -3,7 +3,6 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
-using Lyra.Core.Protos;
 using Lyra.Exchange;
 using Lyra.Authorizer.Accounts;
 using Lyra.Authorizer.Authorizers;
@@ -47,6 +46,24 @@ namespace Lyra.Authorizer.Decentralize
         private LeaderElectionSupport _leader;
 
         public string Leader { get; private set; }
+        public bool ModeConsensus { get; private set; }
+
+        internal Task<bool> Pre_PrepareAsync(TransactionBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Task<bool> PrepareAsync(TransactionBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Task<bool> CommitAsync(TransactionBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public LyraNetworkConfigration LyraNetworkConfig { get; set; }
 
         public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config,
@@ -79,6 +96,7 @@ namespace Lyra.Authorizer.Decentralize
                 // get Lyra network configurations from /lyra
                 var cfg = await _zk.getDataAsync("/lyra");
                 LyraNetworkConfig = JsonConvert.DeserializeObject<LyraNetworkConfigration>(Encoding.ASCII.GetString(cfg.Data));
+                ModeConsensus = LyraNetworkConfig.master == "permissionless";
 
                 // do node election
                 var electRoot = "/elect";

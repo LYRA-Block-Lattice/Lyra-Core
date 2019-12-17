@@ -2,7 +2,6 @@
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.LiteDB;
-using Lyra.Core.Protos;
 using System;
 using System.Collections.Generic;
 using System.Text;

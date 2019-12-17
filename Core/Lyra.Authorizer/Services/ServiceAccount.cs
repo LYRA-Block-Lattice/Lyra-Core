@@ -5,7 +5,6 @@ using System.Threading;
 using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Service;
-using Lyra.Core.Protos;
 
 //using Lyra.Core.Cryptography;
 

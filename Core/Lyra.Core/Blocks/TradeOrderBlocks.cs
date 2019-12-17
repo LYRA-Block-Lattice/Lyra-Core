@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using Lyra.Core.Blocks.Transactions;
-using Lyra.Core.Protos;
 
 namespace Lyra.Core.Blocks
 {

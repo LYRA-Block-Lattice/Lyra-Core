@@ -8,7 +8,6 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Accounts;
 
 using Lyra.Core.LiteDB;
-using Grpc.Net.Client;
 using System.Net.Http;
 using Lyra.Core.API;
 using Microsoft.Extensions.Hosting;

@@ -1,5 +1,4 @@
 ﻿using Lyra.Core.API;
-using Lyra.Core.Protos;
 using Lyra.Core.Utils;
 using Orleans;
 using Orleans.Configuration;

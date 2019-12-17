@@ -58,7 +58,7 @@ namespace Lyra.Core.API
                     try
                     {
                         var result = await GetNotification(AccountID, Signature);
-                        if (result.ResultCode == Protos.APIResultCodes.Success && result.HasEvent)
+                        if (result.ResultCode == APIResultCodes.Success && result.HasEvent)
                         {
                             Task.Run(() => action(result.Source, result.Action, result.Catalog, result.ExtraInfo));
                         }

@@ -6,13 +6,13 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.11.1" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.25.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.25.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <Compile Remove="Protos\**" />
+    <EmbeddedResource Remove="Protos\**" />
+    <None Remove="Protos\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="LiteDB" Version="4.1.4" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.0" />
@@ -31,21 +31,15 @@
   <ItemGroup>
     <Compile Remove=":Users:slava:Projects:Lyra:lyranode:GenesisBlocks.cs" />
     <Compile Remove="API\APIResultCodes.cs" />
+    <Compile Remove="API\LyraRpcClient.cs" />
     <Compile Remove="BaseAccount %281%29.cs" />
     <Compile Remove="BaseAccount %281%29.cs" />
     <Compile Remove="API\AuthenticationInfo.cs" />
     <Compile Remove="Blocks\BlockTypes.cs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Protos\LyraNodeApi.proto" />
-  </ItemGroup>
   <ItemGroup>
     <Folder Include="Authorizations\" />
     <Folder Include="Cryptography\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Protobuf Include="Protos\LyraNodeApi.proto" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Mono.Android">
