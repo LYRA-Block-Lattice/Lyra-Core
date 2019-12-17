@@ -23,6 +23,7 @@ using Orleans.Configuration;
 using Orleans.Runtime;
 using Newtonsoft.Json;
 using System.Text;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Decentralize
 {
@@ -102,6 +103,12 @@ namespace Lyra.Authorizer.Decentralize
                 var cfg = await _zk.getDataAsync("/lyra");
                 LyraNetworkConfig = JsonConvert.DeserializeObject<LyraNetworkConfigration>(Encoding.ASCII.GetString(cfg.Data));
                 ModeConsensus = LyraNetworkConfig.master == "permissionless";
+
+                // check if this node needs sync with master
+                if(LyraNetworkConfig.master != OrleansSettings.AppSetting["EndPoint:AdvertisedIPAddress"])
+                {
+                    // TODO: sync database
+                }
 
                 // do node election
                 var electRoot = "/elect";

@@ -37,7 +37,6 @@ namespace Lyra.Authorizer.Decentralize
         static IAccountCollection _accountCollection;
         private LyraConfig _config;
         IClusterClient _clusterClient;
-        NodeService _nodeService;
 
         public ApiService(ILogger<ApiService> logger, 
             IServiceProvider serviceProvider,
@@ -45,8 +44,6 @@ namespace Lyra.Authorizer.Decentralize
         {
             _logger = logger;
             _config = config.Value;
-
-            _nodeService = NodeService.Instance;
 
             if (_serviceAccount == null)
                 InitializeNodeAsync().Wait();
@@ -336,7 +333,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new GenesisAuthorizer(_nodeService, _serviceAccount, _accountCollection);
+                var authorizer = new GenesisAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
 
                 var openBlock = block;
                 result.ResultCode = authorizer.Authorize(openBlock);
@@ -369,7 +366,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewAccountAuthorizer(_nodeService, _serviceAccount, _accountCollection);
+                var authorizer = new NewAccountAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
                 result.ResultCode = authorizer.Authorize(openReceiveBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                     return Task.FromResult(result);
@@ -393,7 +390,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewAccountWithImportAuthorizer(_nodeService, _serviceAccount, _accountCollection);
+                var authorizer = new NewAccountWithImportAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
                 result.ResultCode = authorizer.Authorize(block);
                 if (result.ResultCode != APIResultCodes.Success)
                     return Task.FromResult(result);
@@ -421,7 +418,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = (sendBlock is ExchangingBlock) ? new ExchangingAuthorizer(_nodeService, _serviceAccount, _accountCollection) : new SendTransferAuthorizer(_nodeService, _serviceAccount, _accountCollection);
+                var authorizer = (sendBlock is ExchangingBlock) ? new ExchangingAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection) : new SendTransferAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(sendBlock);
                 if (result.ResultCode != APIResultCodes.Success)
@@ -469,7 +466,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new ReceiveTransferAuthorizer(_nodeService, _serviceAccount, _accountCollection);
+                var authorizer = new ReceiveTransferAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(receiveBlock);
 
@@ -503,7 +500,7 @@ namespace Lyra.Authorizer.Decentralize
             try
             {
 
-                var authorizer = new ImportAccountAuthorizer(_nodeService, _serviceAccount, _accountCollection);
+                var authorizer = new ImportAccountAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(block);
 
@@ -539,7 +536,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewTokenAuthorizer(_nodeService, _serviceAccount, _accountCollection);
+                var authorizer = new NewTokenAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(tokenBlock);
                 if (result.ResultCode != APIResultCodes.Success)
@@ -569,7 +566,7 @@ namespace Lyra.Authorizer.Decentralize
             // TODO verify signature first
 
             // store to database
-            var acct = await _nodeService.AddExchangeAccount(AccountId);
+            var acct = await NodeService.Instance.AddExchangeAccount(AccountId);
 
             var result = new ExchangeAccountAPIResult()
             {
@@ -581,7 +578,7 @@ namespace Lyra.Authorizer.Decentralize
 
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
-            var acct = await _nodeService.GetExchangeAccount(AccountId, true);
+            var acct = await NodeService.Instance.GetExchangeAccount(AccountId, true);
             var result = new ExchangeBalanceAPIResult()
             {
                 ResultCode = APIResultCodes.Success
@@ -606,7 +603,7 @@ namespace Lyra.Authorizer.Decentralize
             }
 
             // verify the balance. 
-            var acct = await _nodeService.GetExchangeAccount(reqOrder.AccountID, true);
+            var acct = await NodeService.Instance.GetExchangeAccount(reqOrder.AccountID, true);
             if(acct == null)
             {
                 return new CancelKey() { Key = string.Empty, State = OrderState.BadOrder };
@@ -624,12 +621,12 @@ namespace Lyra.Authorizer.Decentralize
                     return new CancelKey() { Key = string.Empty, State = OrderState.InsufficientFunds };
             }
                 
-            return await _nodeService.AddOrderAsync(acct, reqOrder);
+            return await NodeService.Instance.AddOrderAsync(acct, reqOrder);
         }
 
         public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            await _nodeService.RemoveOrderAsync(cancelKey);
+            await NodeService.Instance.RemoveOrderAsync(cancelKey);
             return new APIResult() { ResultCode = APIResultCodes.Success };
         }
 
@@ -687,7 +684,7 @@ namespace Lyra.Authorizer.Decentralize
 
             //receiveBlock.Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, receiveBlock.Hash);
 
-            var authorizer = new ReceiveTransferAuthorizer(_nodeService, _serviceAccount, _accountCollection);
+            var authorizer = new ReceiveTransferAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
             callresult = authorizer.Authorize(receiveBlock);
 
             return callresult;
@@ -743,13 +740,13 @@ namespace Lyra.Authorizer.Decentralize
         public async Task<APIResult> RequestMarket(string tokenName)
         {
             if(tokenName != null)
-                await _nodeService.SendMarket(tokenName);
+                await NodeService.Instance.SendMarket(tokenName);
             return new APIResult() { ResultCode = APIResultCodes.Success };
         }
 
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
-            return await _nodeService.GetOrdersForAccount(AccountId);
+            return await NodeService.Instance.GetOrdersForAccount(AccountId);
         }
 
         //public override async Task<GetVersionReply> GetVersion(GetVersionRequest request, ServerCallContext context)
