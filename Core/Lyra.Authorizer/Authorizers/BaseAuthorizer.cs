@@ -208,11 +208,14 @@ namespace Lyra.Authorizer.Authorizers
             bool shouldSign = false;
             if(_node.ModeConsensus)
             {
+                // get universal index from leader node
+                block.UIndex = _node.GenerateUniversalBlockId();
                 await _node.Pre_PrepareAsync(block);
                 var prepareResult = await _node.PrepareAsync(block);
                 if(prepareResult)
                 {
-                    shouldSign = true;
+                    shouldSign = true;                  
+
                     await _node.CommitAsync(block);
                 }                
             }

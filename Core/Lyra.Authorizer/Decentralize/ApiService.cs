@@ -566,7 +566,7 @@ namespace Lyra.Authorizer.Decentralize
             // TODO verify signature first
 
             // store to database
-            var acct = await NodeService.Instance.AddExchangeAccount(AccountId);
+            var acct = await NodeService.Dealer.AddExchangeAccount(AccountId);
 
             var result = new ExchangeAccountAPIResult()
             {
@@ -578,7 +578,7 @@ namespace Lyra.Authorizer.Decentralize
 
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
-            var acct = await NodeService.Instance.GetExchangeAccount(AccountId, true);
+            var acct = await NodeService.Dealer.GetExchangeAccount(AccountId, true);
             var result = new ExchangeBalanceAPIResult()
             {
                 ResultCode = APIResultCodes.Success
@@ -603,7 +603,7 @@ namespace Lyra.Authorizer.Decentralize
             }
 
             // verify the balance. 
-            var acct = await NodeService.Instance.GetExchangeAccount(reqOrder.AccountID, true);
+            var acct = await NodeService.Dealer.GetExchangeAccount(reqOrder.AccountID, true);
             if(acct == null)
             {
                 return new CancelKey() { Key = string.Empty, State = OrderState.BadOrder };
@@ -621,12 +621,12 @@ namespace Lyra.Authorizer.Decentralize
                     return new CancelKey() { Key = string.Empty, State = OrderState.InsufficientFunds };
             }
                 
-            return await NodeService.Instance.AddOrderAsync(acct, reqOrder);
+            return await NodeService.Dealer.AddOrderAsync(acct, reqOrder);
         }
 
         public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            await NodeService.Instance.RemoveOrderAsync(cancelKey);
+            await NodeService.Dealer.RemoveOrderAsync(cancelKey);
             return new APIResult() { ResultCode = APIResultCodes.Success };
         }
 
@@ -740,13 +740,13 @@ namespace Lyra.Authorizer.Decentralize
         public async Task<APIResult> RequestMarket(string tokenName)
         {
             if(tokenName != null)
-                await NodeService.Instance.SendMarket(tokenName);
+                await NodeService.Dealer.SendMarket(tokenName);
             return new APIResult() { ResultCode = APIResultCodes.Success };
         }
 
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
-            return await NodeService.Instance.GetOrdersForAccount(AccountId);
+            return await NodeService.Dealer.GetOrdersForAccount(AccountId);
         }
 
         //public override async Task<GetVersionReply> GetVersion(GetVersionRequest request, ServerCallContext context)

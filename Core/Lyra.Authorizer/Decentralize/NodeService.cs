@@ -30,18 +30,18 @@ namespace Lyra.Authorizer.Decentralize
     public class NodeService : BackgroundService, LeaderElectionAware
     {
         public static NodeService Instance { get; private set; } 
+        public static DealEngine Dealer { get; private set; }
         private const int ZOOKEEPER_CONNECTION_TIMEOUT = 2000;
 
         private LyraConfig _config;
 
-        private INodeAPI _node;
+        private INodeAPI _dataApi;
         public MongoClient client;
         private IMongoDatabase _db;
-        private IMongoCollection<ExchangeAccount> _exchangeAccounts;
-        private IMongoCollection<ExchangeOrder> _queue;
-        private IMongoCollection<ExchangeOrder> _finished;
+
         AutoResetEvent _waitOrder;
         ILogger _log;
+
         ZooKeeperClusteringSiloOptions _zkClusterOptions;
         private ZooKeeper _zk;
         private ZooKeeperWatcher _watcher;
@@ -49,36 +49,23 @@ namespace Lyra.Authorizer.Decentralize
 
         public string Leader { get; private set; }
         public bool ModeConsensus { get; private set; }
-
-        internal Task<bool> Pre_PrepareAsync(TransactionBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task<bool> PrepareAsync(TransactionBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task<bool> CommitAsync(TransactionBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
+        private long UIndexSeed = 0;
 
         public LyraNetworkConfigration LyraNetworkConfig { get; set; }
 
-        public NodeService(Microsoft.Extensions.Options.IOptions<LyraConfig> config,
+        public NodeService(IOptions<LyraConfig> config,
             IOptions<ZooKeeperClusteringSiloOptions> zkOptions,
             ILogger<NodeService> logger,
-            INodeAPI node)
+            INodeAPI dataApi)
         {
             if (Instance == null)
                 Instance = this;
+            else
+                throw new InvalidOperationException("Should not do this");
 
             _config = config.Value;
             _zkClusterOptions = zkOptions.Value;
-            _node = node;
+            _dataApi = dataApi;
             _log = logger;
 
             //BaseAuthorizer.OnAuthorized += (s, e) =>
@@ -102,10 +89,10 @@ namespace Lyra.Authorizer.Decentralize
                 // get Lyra network configurations from /lyra
                 var cfg = await _zk.getDataAsync("/lyra");
                 LyraNetworkConfig = JsonConvert.DeserializeObject<LyraNetworkConfigration>(Encoding.ASCII.GetString(cfg.Data));
-                ModeConsensus = LyraNetworkConfig.master == "permissionless";
+                ModeConsensus = LyraNetworkConfig.seed == "permissionless";
 
                 // check if this node needs sync with master
-                if(LyraNetworkConfig.master != OrleansSettings.AppSetting["EndPoint:AdvertisedIPAddress"])
+                if(LyraNetworkConfig.seed != OrleansSettings.AppSetting["EndPoint:AdvertisedIPAddress"])
                 {
                     // TODO: sync database
                 }
@@ -128,9 +115,12 @@ namespace Lyra.Authorizer.Decentralize
                     client = new MongoClient(_config.DexDBConnect);
                     _db = client.GetDatabase("Dex");
 
-                    _exchangeAccounts = _db.GetCollection<ExchangeAccount>("exchangeAccounts");
-                    _queue = _db.GetCollection<ExchangeOrder>("queuedDexOrders");
-                    _finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
+                    var exchangeAccounts = _db.GetCollection<ExchangeAccount>("exchangeAccounts");
+                    var queue = _db.GetCollection<ExchangeOrder>("queuedDexOrders");
+                    var finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
+
+                    Dealer = new DealEngine(_config, _dataApi, exchangeAccounts, queue, finished);
+                    Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
                 }
             }
             catch (Exception ex)
@@ -145,7 +135,7 @@ namespace Lyra.Authorizer.Decentralize
                 {
                     _waitOrder.Reset();
 
-                    await MakeDealAsync();
+                    await Dealer.MakeDealAsync();
                 }
                 else
                 {
@@ -166,449 +156,26 @@ namespace Lyra.Authorizer.Decentralize
             }            
         }
 
-        internal async Task<ExchangeAccount> GetExchangeAccount(string accountID, bool refreshBalance = false)
+        internal long GenerateUniversalBlockId()
         {
-            var findResult = await _exchangeAccounts.FindAsync(a => a.AssociatedToAccountId == accountID);
-            var acct = await findResult.FirstOrDefaultAsync();
-            if(!refreshBalance)
-                return acct;
-
-            if (acct != null)
-            {
-                // create wallet and update balance
-                var memStor = new AccountInMemoryStorage();
-                var acctWallet = new ExchangeAccountWallet(memStor, _config.NetworkId);
-                acctWallet.AccountName = "tmpAcct";
-                acctWallet.RestoreAccount("", acct.PrivateKey);
-                acctWallet.OpenAccount("", acctWallet.AccountName);
-                for(int i = 0; i < 300; i++)
-                {
-                    var result = await acctWallet.Sync(_node);
-                    if (result == APIResultCodes.Success)
-                        break;
-                }
-                
-                {
-                    var transb = acctWallet.GetLatestBlock();
-                    if (transb != null)
-                    {
-                        if (acct.Balance == null)
-                            acct.Balance = new Dictionary<string, decimal>();
-                        else
-                            acct.Balance.Clear();
-                        foreach (var b in transb.Balances)
-                        {
-                            acct.Balance.Add(b.Key, b.Value);
-                        }
-                        _exchangeAccounts.ReplaceOne(a => a.AssociatedToAccountId == accountID, acct);
-                    }
-                }
-            }
-            return acct;
-        }
-        internal async Task<decimal> GetExchangeAccountBalance(string accountID, string tokenName)
-        {
-            var findResult = await _exchangeAccounts.FindAsync(a => a.AssociatedToAccountId == accountID);
-            var acct = await findResult.FirstOrDefaultAsync();
-            if (acct == null)
-                return 0;
-            if (!acct.Balance.ContainsKey(tokenName))
-                return 0;
-            return acct.Balance[tokenName];
+            // if self master, use seeds; if not, ask master node
+            UIndexSeed++;
+            return UIndexSeed;
         }
 
-        public async Task<ExchangeAccount> AddExchangeAccount(string assocaitedAccountId)
+        internal Task<bool> Pre_PrepareAsync(TransactionBlock block)
         {
-            var findResult = await _exchangeAccounts.FindAsync(a => a.AssociatedToAccountId == assocaitedAccountId);
-            var findAccount = await findResult.FirstOrDefaultAsync();
-            if (findAccount != null)
-            {
-                return findAccount;
-            }
-
-            var walletPrivateKey = Signatures.GeneratePrivateKey();
-            var walletAccountId = Signatures.GetAccountIdFromPrivateKey(walletPrivateKey);
-
-            var account = new ExchangeAccount()
-            {
-                AssociatedToAccountId = assocaitedAccountId,
-                AccountId = walletAccountId,
-                PrivateKey = walletPrivateKey
-            };
-            await _exchangeAccounts.InsertOneAsync(account);
-            return account;
+            throw new NotImplementedException();
         }
 
-        public async Task<CancelKey> AddOrderAsync(ExchangeAccount acct, TokenTradeOrder order)
+        internal Task<bool> PrepareAsync(TransactionBlock block)
         {
-            order.CreatedTime = DateTime.Now;
-            var item = new ExchangeOrder()
-            {
-                ExchangeAccountId = acct.Id,
-                Order = order,
-                CanDeal = true,
-                State = DealState.Placed,
-                ClientIP = null
-            };
-            await _queue.InsertOneAsync(item);
-            _waitOrder.Set();
-
-            var key = new CancelKey()
-            {
-                State = OrderState.Placed,
-                Key = item.Id.ToString(),
-                Order = order
-            };
-            return key;
+            throw new NotImplementedException();
         }
 
-        public async Task RemoveOrderAsync(string key)
+        internal Task<bool> CommitAsync(TransactionBlock block)
         {
-            var finds = await _queue.FindAsync(a => a.Id == key);
-            var order = await finds.FirstOrDefaultAsync();
-
-            if(order != null)
-            {
-                await _queue.DeleteOneAsync(a => a.Id == order.Id);
-                await SendMarket(order.Order.TokenName);
-                await ExchangeAccountLiquidation(order.Order.AccountID);
-            }
-        }
-
-        private async Task<bool> MakeDealAsync()
-        {
-            // has new order. do trade
-            var changedTokens = new List<string>();
-            var changedAccount = new List<string>();
-
-            var placed = await GetNewlyPlacedOrdersAsync();
-            for (int i = 0; i < placed.Length; i++)
-            {
-                var curOrder = placed[i];
-
-                if (!changedTokens.Contains(curOrder.Order.TokenName))
-                    changedTokens.Add(curOrder.Order.TokenName);
-
-                (bool IsSuccess, decimal balance) mtrans, ctrans;
-
-                var matchedOrders = await LookforExecution(curOrder);
-                if (matchedOrders.Count() > 0)
-                {
-                    foreach (var matchedOrder in matchedOrders)
-                    {
-                        var tradedAmount = Math.Min(matchedOrder.Order.Amount, curOrder.Order.Amount);
-
-                        // lets sync exchange wallet first to prevent any error from happening
-                        //Wallet mwallet, cwallet;
-                        //try
-                        //{
-
-                        //}
-
-                        // taker profit first
-                        if (curOrder.Order.BuySellType == OrderType.Buy)
-                        {
-                            var tradedPrice = Math.Min(matchedOrder.Order.Price, curOrder.Order.Price);
-                            var lyraAmount = tradedAmount * tradedPrice;
-                            mtrans = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
-                                curOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
-                                tradedAmount);
-                            ctrans = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
-                                matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
-                                lyraAmount);
-
-                            //// transfer back the result to user wallet
-                            //var tb1 = await SendFromExchangeAccountBackToUserAsync(curOrder.ExchangeAccountId, matchedOrder.Order.TokenName, tradedAmount);
-                            //var tb2 = await SendFromExchangeAccountBackToUserAsync(matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE, lyraAmount);
-                            //Trace.Assert(tb1.IsSuccess && tb2.IsSuccess);
-                        }
-                        else   // currentOrder sell
-                        {
-                            var tradedPrice = Math.Max(matchedOrder.Order.Price, curOrder.Order.Price);
-                            var lyraAmount = tradedAmount * tradedPrice;
-                            mtrans = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
-                                curOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
-                                lyraAmount);
-                            ctrans = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
-                                matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
-                                tradedAmount);
-
-                            //// transfer back to user
-                            //var tb1 = await SendFromExchangeAccountBackToUserAsync(curOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE, lyraAmount);
-                            //var tb2 = await SendFromExchangeAccountBackToUserAsync(matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName, tradedAmount);
-                            //Trace.Assert(tb1.IsSuccess && tb2.IsSuccess);
-                        }
-
-                        if (!mtrans.IsSuccess || !ctrans.IsSuccess)
-                        {
-                            throw new Exception("Exchange Deal Engin Fatal Error");
-                        }
-                        // three conditions
-                        if (matchedOrder.Order.Amount < curOrder.Order.Amount)
-                        {
-                            //matched -> archive, cur -> partial
-                            matchedOrder.State = DealState.Executed;
-                            await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, matchedOrder.Id));
-                            await _finished.InsertOneAsync(matchedOrder);
-
-                            curOrder.State = DealState.PartialExecuted;
-                            curOrder.Order.Amount -= matchedOrder.Order.Amount;
-
-                            if (!changedAccount.Contains(matchedOrder.Order.AccountID))
-                                changedAccount.Add(matchedOrder.Order.AccountID);
-                            if (!changedAccount.Contains(curOrder.Order.AccountID))
-                                changedAccount.Add(curOrder.Order.AccountID);
-
-                            continue;
-                        }
-                        else if (matchedOrder.Order.Amount == curOrder.Order.Amount)
-                        {
-                            // matched -> archive, cur -> archive
-                            matchedOrder.State = DealState.Executed;
-                            await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, matchedOrder.Id));
-                            await _finished.InsertOneAsync(matchedOrder);
-
-                            curOrder.State = DealState.Executed;
-                            await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, curOrder.Id));
-                            await _finished.InsertOneAsync(curOrder);
-
-                            if (!changedAccount.Contains(matchedOrder.Order.AccountID))
-                                changedAccount.Add(matchedOrder.Order.AccountID);
-                            if (!changedAccount.Contains(curOrder.Order.AccountID))
-                                changedAccount.Add(curOrder.Order.AccountID);
-
-                            break;
-                        }
-                        else // matchedOrder.Order.Amount > curOrder.Order.Amount
-                        {
-                            // matched -> partial, cur -> archive
-                            matchedOrder.State = DealState.PartialExecuted;
-                            matchedOrder.Order.Amount -= curOrder.Order.Amount;
-                            await _queue.ReplaceOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, matchedOrder.Id), matchedOrder);
-
-                            curOrder.State = DealState.Executed;
-                            await _queue.DeleteOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, curOrder.Id));
-                            await _finished.InsertOneAsync(curOrder);
-
-                            if (!changedAccount.Contains(matchedOrder.Order.AccountID))
-                                changedAccount.Add(matchedOrder.Order.AccountID);
-                            if (!changedAccount.Contains(curOrder.Order.AccountID))
-                                changedAccount.Add(curOrder.Order.AccountID);
-
-                            break;
-                        }
-                    }
-                }
-
-                // all matched. update database                        
-                // change state from placed to queued, update amount also.
-                var update = Builders<ExchangeOrder>.Update.Set(o => o.Order.Amount, curOrder.Order.Amount);
-                if (curOrder.State == DealState.Placed)
-                    update = update.Set(s => s.State, DealState.Queued);
-                if (curOrder.State == DealState.Placed || curOrder.State == DealState.PartialExecuted)
-                    await _queue.UpdateOneAsync(Builders<ExchangeOrder>.Filter.Eq(o => o.Id, curOrder.Id), update);
-            }
-            foreach (var tokenName in changedTokens)
-            {
-                // the update the client
-                await SendMarket(tokenName);
-            }
-            foreach (var account in changedAccount)
-            {
-                // client must refresh by itself
-                //NotifyService.Notify(account, Core.API.NotifySource.Dex, "Deal", "", "");
-                await ExchangeAccountLiquidation(account);
-            }
-            return true;
-        }
-
-        private async Task ExchangeAccountLiquidation(string associatedAccountId)
-        {
-            var ordersFind = await _queue.FindAsync(a => a.Order.AccountID == associatedAccountId);
-            if (await ordersFind.AnyAsync())
-                return;
-
-            var fromResult = await _exchangeAccounts.FindAsync(a => a.AssociatedToAccountId == associatedAccountId);
-            var fromAcct = await fromResult.FirstOrDefaultAsync();
-            if(fromAcct != null)
-            {
-                var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
-
-                {
-                    var transb = fromWallet.GetLatestBlock();
-                    if (transb != null) 
-                    {
-                        int sendCount = 0;
-                        foreach(var kvp in transb.Balances)
-                        {
-                            if(kvp.Value > 0 && kvp.Key != LyraGlobal.LYRA_TICKER_CODE)
-                            {
-                                var ret = await fromWallet.Send(kvp.Value, associatedAccountId, kvp.Key, true);
-                                Trace.Assert(ret.ResultCode == APIResultCodes.Success);
-                                sendCount++;
-                            }
-                        }
-
-                        sendCount++;
-
-                        if(transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - sendCount * ExchangingBlock.FEE > 0)
-                        {
-                            var ret2 = await fromWallet.Send(transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - sendCount * ExchangingBlock.FEE, associatedAccountId, LyraGlobal.LYRA_TICKER_CODE, true);
-                            Trace.Assert(ret2.ResultCode == APIResultCodes.Success);
-                        }
-                    }
-                }
-            }
-        }
-
-        private async Task<(bool IsSuccess, decimal balance)> SendFromExchangeAccountToAnotherAsync(string fromId, string toId, string tokenName, decimal amount)
-        {
-            var fromResult = await _exchangeAccounts.FindAsync(a => a.Id == fromId);
-            var fromAcct = await fromResult.FirstOrDefaultAsync();
-
-            var toResult = await _exchangeAccounts.FindAsync(a => a.Id == toId);
-            var toAcct = await toResult.FirstOrDefaultAsync();
-
-            var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
-
-            var transb = fromWallet.GetLatestBlock();
-            if (transb != null && transb.Balances[tokenName] >= amount)
-            {
-                var bLast = transb.Balances[tokenName] - amount;
-                var ret = await fromWallet.Send(amount, toAcct.AccountId, tokenName, true);
-                return (ret.ResultCode == APIResultCodes.Success, bLast);
-            }
-            else
-            {
-                return (false, 0);
-            }
-        }
-
-        private async Task<(bool IsSuccess, decimal balance)> SendFromExchangeAccountBackToUserAsync(string fromId, string tokenName, decimal amount)
-        {
-            var fromResult = await _exchangeAccounts.FindAsync(a => a.Id == fromId);
-            var fromAcct = await fromResult.FirstOrDefaultAsync();
-
-            var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
-            var transb = fromWallet.GetLatestBlock();
-            if (transb != null && transb.Balances[tokenName] >= amount)
-            {
-                var bLast = transb.Balances[tokenName] - amount;
-                var ret = await fromWallet.Send(amount, fromAcct.AssociatedToAccountId, tokenName, true);
-                return (ret.ResultCode == APIResultCodes.Success, bLast);
-            }
-            else
-            {
-                return (false, 0);
-            }            
-        }
-
-        private async Task<Wallet> GetExchangeAccountWallet(string privateKey)
-        {
-            // create wallet and update balance
-            var memStor = new AccountInMemoryStorage();
-            var fromWallet = new Wallet(memStor, _config.NetworkId);
-            fromWallet.AccountName = "tmpAcct";
-            fromWallet.RestoreAccount("", privateKey);
-            fromWallet.OpenAccount("", fromWallet.AccountName);
-            APIResultCodes result = APIResultCodes.UnknownError;
-            for (int i = 0; i < 300; i++)
-            {
-                result = await fromWallet.Sync(_node);
-                if (result == APIResultCodes.Success)
-                    break;
-            }
-            Trace.Assert(result == APIResultCodes.Success);
-            return fromWallet;
-        }
-
-        public async Task<ExchangeOrder[]> GetNewlyPlacedOrdersAsync()
-        {
-            var finds = await _queue.FindAsync(a => a.State == DealState.Placed);
-            var fl = await finds.ToListAsync();
-            return fl.OrderBy(a => a.Order.CreatedTime).ToArray();
-        }
-
-        public async Task<ExchangeOrder[]> GetQueuedOrdersAsync()
-        {
-            var finds = await _queue.FindAsync(a => a.CanDeal);
-            var fl = await finds.ToListAsync();
-            return fl.OrderBy(a => a.Order.CreatedTime).ToArray();
-        }
-
-        public async Task<IOrderedEnumerable<ExchangeOrder>> LookforExecution(ExchangeOrder order)
-        {
-            //var builder = Builders<ExchangeOrder>.Filter;
-            //var filter = builder.Eq("Order.TokenName", order.Order.TokenName)
-            //    & builder.Ne("State", DealState.Placed);
-
-            //if (order.Order.BuySellType == OrderType.Buy)
-            //{
-            //    filter &= builder.Eq("Order.BuySellType", OrderType.Sell);
-            //    filter &= builder.Lte("Order.Price", order.Order.Price);
-            //}
-            //else
-            //{
-            //    filter &= builder.Eq("Order.BuySellType", OrderType.Buy);
-            //    filter &= builder.Gte("Order.Price", order.Order.Price);
-            //}
-
-            IAsyncCursor<ExchangeOrder> found;
-            if (order.Order.BuySellType == OrderType.Buy)
-            {
-                found = await _queue.FindAsync(a => a.Order.TokenName == order.Order.TokenName
-                                && a.State != DealState.Placed
-                                && a.Order.BuySellType == OrderType.Sell
-                                && a.Order.Price <= order.Order.Price);
-            }
-            else
-            {
-                found = await _queue.FindAsync(a => a.Order.TokenName == order.Order.TokenName
-                && a.State != DealState.Placed
-                && a.Order.BuySellType == OrderType.Buy
-                && a.Order.Price >= order.Order.Price);
-            }
-
-            var matches0 = await found.ToListAsync();
-
-            if (order.Order.BuySellType == OrderType.Buy)
-            {
-                var matches = matches0.OrderBy(a => a.Order.Price);
-                return matches;
-            }
-            else
-            {
-                var matches = matches0.OrderByDescending(a => a.Order.Price);
-                return matches;
-            }
-        }
-
-        public async Task<List<ExchangeOrder>> GetActiveOrders(string tokenName)
-        {
-            return await _queue.Find(a => a.CanDeal && a.Order.TokenName == tokenName).ToListAsync();
-        }
-
-        public async Task SendMarket(string tokenName)
-        {
-            var excOrders = (await GetActiveOrders(tokenName)).OrderByDescending(a => a.Order.Price);
-            var sellOrders = excOrders.Where(a => a.Order.BuySellType == OrderType.Sell)
-                .GroupBy(a => a.Order.Price)
-                .Select(a => new KeyValuePair<Decimal, Decimal>(a.Key, a.Sum(x => x.Order.Amount))).ToList();
-
-            var buyOrders = excOrders.Where(a => a.Order.BuySellType == OrderType.Buy)
-                .GroupBy(a => a.Order.Price)
-                .Select(a => new KeyValuePair<Decimal, Decimal>(a.Key, a.Sum(x => x.Order.Amount))).ToList();
-
-            var orders = new Dictionary<string, List<KeyValuePair<Decimal, Decimal>>>();
-            orders.Add("SellOrders", sellOrders);
-            orders.Add("BuyOrders", buyOrders);
-
-            //NotifyService.Notify("", Core.API.NotifySource.Dex, "Orders", tokenName, JsonConvert.SerializeObject(orders));
-        }
-
-        internal async Task<List<ExchangeOrder>> GetOrdersForAccount(string accountId)
-        {
-            return await _queue.Find(a => a.Order.AccountID == accountId).ToListAsync();
+            throw new NotImplementedException();
         }
 
         // help class

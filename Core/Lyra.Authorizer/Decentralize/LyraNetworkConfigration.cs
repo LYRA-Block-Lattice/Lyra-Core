@@ -7,6 +7,6 @@ namespace Lyra.Authorizer.Decentralize
     public class LyraNetworkConfigration
     {
         public string mode { get; set; }
-        public string master { get; set; }
+        public string seed { get; set; }
     }
 }
