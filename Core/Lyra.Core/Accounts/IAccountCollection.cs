@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 
@@ -7,6 +8,7 @@ namespace Lyra.Core.Accounts.Node
 {
     public interface IAccountCollection: IDisposable
     {
+        Task<long> GetBlockCountAsync();
         long GetBlockCount(string AccountId);
         //int GetTotalBlockCount();
         bool AccountExists(string AccountId);

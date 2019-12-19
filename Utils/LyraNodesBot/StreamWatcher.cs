@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace LyraNodesBot
 {
-    public class StreamWatcher : IAsyncObserver<ChatMsg>
+    public class StreamWatcher// : IAsyncObserver<ChatMsg>
     {
         IClusterClient _client;
         private IAsyncStream<ChatMsg> _gossipStream;

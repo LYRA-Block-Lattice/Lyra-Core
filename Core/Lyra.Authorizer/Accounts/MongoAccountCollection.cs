@@ -15,6 +15,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization.Options;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Lyra.Authorizer
 {
@@ -100,6 +101,11 @@ namespace Lyra.Authorizer
             if (_db == null)
                 _db = GetClient().GetDatabase(_DatabaseName);
             return _db;
+        }
+
+        public Task<long> GetBlockCountAsync()
+        {
+            return _blocks.EstimatedDocumentCountAsync();
         }
 
         public long GetBlockCount(string AccountId)

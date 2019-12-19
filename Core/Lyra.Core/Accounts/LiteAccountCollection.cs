@@ -7,6 +7,7 @@ using System.IO;
 
 using Lyra.Core.Accounts.Node;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Lyra.Core.LiteDB
 {
@@ -45,6 +46,10 @@ namespace Lyra.Core.LiteDB
                 File.Delete(FileName);
         }
 
+        public Task<long> GetBlockCountAsync()
+        {
+            return Task.FromResult((long) _blocks.Count());
+        }
         public long GetBlockCount(string AccountId)
         {
             //var count = _blocks.Count(Query.EQ("AccountId", AccountId));

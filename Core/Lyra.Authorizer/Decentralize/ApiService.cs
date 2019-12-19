@@ -31,13 +31,12 @@ namespace Lyra.Authorizer.Decentralize
     }
 
     [StorageProvider(ProviderName = "OrleansStorage")]
-    public class ApiService : Grain, INodeAPI, IAsyncObserver<ChatMsg>
+    public class ApiService : Grain, INodeAPI, IBlockConsensus
     {
         private readonly ILogger<ApiService> _logger;
         static ServiceAccount _serviceAccount;
         static IAccountCollection _accountCollection;
         private LyraConfig _config;
-        private IGrainFactory _grainFactory;
 
         private long UIndexSeed = 0;
 
@@ -49,15 +48,12 @@ namespace Lyra.Authorizer.Decentralize
         {
             _logger = logger;
             _config = config.Value;
-
-            //if (_serviceAccount == null)
-            //    InitializeNodeAsync().GetAwaiter().GetResult();
         }
 
         // main
         public async Task InitializeNodeAsync()
         {
-            Console.WriteLine("Starting single-node network: " + NodeGlobalParameters.Network_Id);
+            Console.WriteLine("Starting Lyra network: " + NodeGlobalParameters.Network_Id);
             NodeGlobalParameters.IsSingleNodeTestnet = true;
             NodeGlobalParameters.Network_Id = _config.NetworkId;
 
@@ -65,8 +61,13 @@ namespace Lyra.Authorizer.Decentralize
             _serviceAccount = new ServiceAccount(service_database, NodeGlobalParameters.Network_Id);
 
             _accountCollection = new MongoAccountCollection(_config.DBConnect, NodeGlobalParameters.DEFAULT_DATABASE_NAME, NodeGlobalParameters.Network_Id);
+
+            UIndexSeed = await _accountCollection.GetBlockCountAsync();
+            
             Console.WriteLine("Database Location: mongodb " + (_accountCollection as MongoAccountCollection).Cluster);
             Console.WriteLine("Node is starting");
+
+            _serviceAccount.Start(ModeConsensus, null);
         }
 
         public override Task OnActivateAsync()
@@ -82,8 +83,8 @@ namespace Lyra.Authorizer.Decentralize
 
             RegisterTimer(s =>
             {
-                return _gossipStream.OnNextAsync(new ChatMsg("node", new Random().Next().ToString()));
-            }, null, TimeSpan.FromMilliseconds(1000), TimeSpan.FromMilliseconds(1000));
+                return _gossipStream.OnNextAsync(new ChatMsg("LyraNode", new Random().Next().ToString()));
+            }, null, TimeSpan.FromMilliseconds(5000), TimeSpan.FromMilliseconds(1000));
         }
 
         public bool ModeConsensus => NodeService.Instance.ModeConsensus;
@@ -112,7 +113,7 @@ namespace Lyra.Authorizer.Decentralize
             return Task.CompletedTask;
         }
 
-        internal long GenerateUniversalBlockId()
+        public long GenerateUniversalBlockId()
         {
             // if self master, use seeds; if not, ask master node
             UIndexSeed++;
