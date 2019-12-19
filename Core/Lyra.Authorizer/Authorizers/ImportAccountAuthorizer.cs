@@ -15,8 +15,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class ImportAccountAuthorizer: BaseAuthorizer
     {
-        public ImportAccountAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base (node, serviceAccount, accountCollection)
+        public ImportAccountAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base (apiService, serviceAccount, accountCollection)
         {
         }
 

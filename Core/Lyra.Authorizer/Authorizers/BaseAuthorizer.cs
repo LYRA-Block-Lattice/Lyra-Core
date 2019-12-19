@@ -26,16 +26,16 @@ namespace Lyra.Authorizer.Authorizers
     }
     public abstract class BaseAuthorizer
     {
-        protected readonly NodeService _node;
+        protected readonly ApiService _apiService;
         protected readonly ServiceAccount _serviceAccount;
         protected readonly IAccountCollection _accountCollection;
 
         public static event AuthorizeCompleteEventHandler OnAuthorized;
 
         //public Authorizer(ServiceAccount serviceAccount, AccountCollection accountCollection)
-        public BaseAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public BaseAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection)
         {
-            _node = node;
+            _apiService = apiService;
             _serviceAccount = serviceAccount;
             _accountCollection = accountCollection;
         }
@@ -201,22 +201,25 @@ namespace Lyra.Authorizer.Authorizers
 
             var block = tblock as TransactionBlock;
 
+            if (block.UIndex == 0)
+                throw new InvalidOperationException("Should have Universal Index for block");
+
             // ServiceHash is excluded when calculating the block hash,
             // but it is included when creating/validating the authorization signature
             block.ServiceHash = _serviceAccount.GetLatestBlock().Hash;
 
             bool shouldSign = false;
-            if(_node.ModeConsensus)
+            if(_apiService.ModeConsensus)
             {
                 // get universal index from leader node
-                block.UIndex = _node.GenerateUniversalBlockId();
-                await _node.Pre_PrepareAsync(block);
-                var prepareResult = await _node.PrepareAsync(block);
+                block.UIndex = _apiService.GenerateUniversalBlockId();
+                await _apiService.Pre_PrepareAsync(block);
+                var prepareResult = await _apiService.PrepareAsync(block);
                 if(prepareResult)
                 {
                     shouldSign = true;                  
 
-                    await _node.CommitAsync(block);
+                    await _apiService.CommitAsync(block);
                 }                
             }
             else

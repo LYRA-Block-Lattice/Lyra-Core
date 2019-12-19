@@ -71,7 +71,7 @@ namespace Lyra.Authorizer.Services
         }
 
 
-        public void StartSingleNodeTestnet(string Path)
+        public void Start(bool ModeConsensus, string Path)
         {
             
             if (!AccountExistsLocally(Path, SERVICE_ACCOUNT_NAME))
@@ -80,11 +80,14 @@ namespace Lyra.Authorizer.Services
                 OpenAccount(Path, SERVICE_ACCOUNT_NAME);
             DatabasePath = Path;
 
-            timer = new Timer(_ =>
+            if(!ModeConsensus)
             {
-                TimingSync();
-            },
-            null, 10 * 1000, 10 * 60 * 1000);
+                timer = new Timer(_ =>
+                {
+                    TimingSync();
+                },
+                null, 10 * 1000, 10 * 60 * 1000);
+            }
         }
 
         public void TimingSync()

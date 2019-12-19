@@ -6,13 +6,17 @@ using System;
 using Orleans;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Orleans.Streams;
 
 namespace LyraNodesBot
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
+            Console.WriteLine("Wait for node start. Press enter to continue...");
+            Console.ReadLine();
+
             var monitor = new NodesMonitor();
             monitor.Start();
 
@@ -20,10 +24,18 @@ namespace LyraNodesBot
             host.Start();
             var client = (ClusterClientHostedService)host.Services.GetService<IHostedService>();
 
+            var watch = new StreamWatcher(client.Client);
+            var myName = "LyraNodeBot";
+            await watch.Init(myName);
 
+            while(true)
+            {
+                var line = Console.ReadLine();
+                if (line.Trim() == "quit")
+                    break;
 
-
-            Console.ReadLine();
+                await watch.SendMessage(new ChatMsg(myName, line));
+            }            
 
             monitor.Stop();
         }

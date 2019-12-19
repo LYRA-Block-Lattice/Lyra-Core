@@ -7,19 +7,23 @@ using Orleans.Streams;
 
 namespace Lyra.Authorizer.Decentralize
 {
+	[ImplicitStreamSubscription(LyraGossipConstants.LyraGossipStreamNameSpace)]
 	public class LyraGossip : Grain, ILyraGossip
 	{
-		private readonly List<ChatMsg> messages = new List<ChatMsg>(100);
-		private readonly List<string> onlineMembers = new List<string>(10);
+		private readonly List<string> onlineMembers = new List<string>(100);
 
 		private IAsyncStream<ChatMsg> stream;
 
 		public override Task OnActivateAsync()
 		{
-			var streamProvider = GetStreamProvider(GossipConstants.LyraGossipStreamProvider);
+			var streamProvider = GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider);
 
-		    stream = streamProvider.GetStream<ChatMsg>(Guid.Parse(GossipConstants.LyraGossipStreamId), GossipConstants.LyraGossipStreamNameSpace);
-            return base.OnActivateAsync();
+		    stream = streamProvider.GetStream<ChatMsg>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
+            
+			return stream.SubscribeAsync<ChatMsg>(async (data, token) =>
+			{
+				Console.WriteLine(data);
+			});
 		}
 
 		public async Task<Guid> Join(string nickname)
@@ -41,7 +45,6 @@ namespace Lyra.Authorizer.Decentralize
 
 		public async Task<bool> Message(ChatMsg msg)
 		{
-			messages.Add(msg);
 			await stream.OnNextAsync(msg);
 
 			return true;
@@ -51,20 +54,9 @@ namespace Lyra.Authorizer.Decentralize
 	    {
 	        return Task.FromResult(onlineMembers.ToArray());
 	    }
-
-	    public Task<ChatMsg[]> ReadHistory(int numberOfMessages)
-	    {
-	        var response = messages
-	            .OrderByDescending(x => x.Created)
-	            .Take(numberOfMessages)
-	            .OrderBy(x => x.Created)
-	            .ToArray();
-
-	        return Task.FromResult(response);
-	    }
     }
 
-	public static class GossipConstants
+	public static class LyraGossipConstants
 	{
 		// {1FBB3153-68C2-4903-A802-CE0EA5F0BD95}
 		public const string LyraGossipStreamId = "{1FBB3153-68C2-4903-A802-CE0EA5F0BD95}";

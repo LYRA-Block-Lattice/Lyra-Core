@@ -15,6 +15,7 @@ using Orleans;
 using Orleans.Configuration;
 using Orleans.Providers;
 using Orleans.Runtime;
+using Orleans.Streams;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,13 +31,17 @@ namespace Lyra.Authorizer.Decentralize
     }
 
     [StorageProvider(ProviderName = "OrleansStorage")]
-    public class ApiService : Orleans.Grain, INodeAPI
+    public class ApiService : Grain, INodeAPI, IAsyncObserver<ChatMsg>
     {
         private readonly ILogger<ApiService> _logger;
         static ServiceAccount _serviceAccount;
         static IAccountCollection _accountCollection;
         private LyraConfig _config;
-        IClusterClient _clusterClient;
+        private IGrainFactory _grainFactory;
+
+        private long UIndexSeed = 0;
+
+        private IAsyncStream<ChatMsg> _gossipStream;
 
         public ApiService(ILogger<ApiService> logger, 
             IServiceProvider serviceProvider,
@@ -45,12 +50,12 @@ namespace Lyra.Authorizer.Decentralize
             _logger = logger;
             _config = config.Value;
 
-            if (_serviceAccount == null)
-                InitializeNodeAsync().Wait();
+            //if (_serviceAccount == null)
+            //    InitializeNodeAsync().GetAwaiter().GetResult();
         }
 
         // main
-        async Task InitializeNodeAsync()
+        public async Task InitializeNodeAsync()
         {
             Console.WriteLine("Starting single-node network: " + NodeGlobalParameters.Network_Id);
             NodeGlobalParameters.IsSingleNodeTestnet = true;
@@ -61,13 +66,82 @@ namespace Lyra.Authorizer.Decentralize
 
             _accountCollection = new MongoAccountCollection(_config.DBConnect, NodeGlobalParameters.DEFAULT_DATABASE_NAME, NodeGlobalParameters.Network_Id);
             Console.WriteLine("Database Location: mongodb " + (_accountCollection as MongoAccountCollection).Cluster);
-
-            
             Console.WriteLine("Node is starting");
+        }
 
-            //_clusterClient = await DAGNode.ConnectClient();
+        public override Task OnActivateAsync()
+        {
+            return InitGossipChannel();
+        }
 
-            _serviceAccount.StartSingleNodeTestnet(null);
+        private async Task InitGossipChannel()
+        {
+            // gossip channel
+            //var room = GrainFactory.GetGrain<ILyraGossip>(LyraGossipConstants.LyraGossipStreamId);
+            //var gossipStreamId = await room.Join(IdentityString);
+            _gossipStream = GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
+                .GetStream<ChatMsg>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
+            //await _gossipStream.SubscribeAsync<ChatMsg>(async (data, token) => {
+            //    Console.WriteLine(data);
+            //});
+
+            // TEMP
+            // _serviceAccount.Start(ModeConsensus, null);
+
+            //await SendMessage(new ChatMsg { From = IdentityString, Text = "Node Up", Type = ChatMessageType.NewStaker });
+            RegisterTimer(s =>
+            {
+                return _gossipStream.OnNextAsync(new ChatMsg("node", new Random().Next().ToString()));
+            }, null, TimeSpan.FromMilliseconds(1000), TimeSpan.FromMilliseconds(1000));
+        }
+
+        public bool ModeConsensus => NodeService.Instance.ModeConsensus;
+
+        public async Task SendMessage(ChatMsg msg)
+        {
+            await _gossipStream.OnNextAsync(msg);
+        }
+
+        public Task OnCompletedAsync()
+        {
+            _logger.LogInformation("Chatroom message stream received stream completed event");
+            return Task.CompletedTask;
+        }
+
+        public Task OnErrorAsync(Exception ex)
+        {
+            _logger.LogInformation($"Chatroom is experiencing message delivery failure, ex :{ex}");
+            return Task.CompletedTask;
+        }
+
+        public Task OnNextAsync(ChatMsg item, StreamSequenceToken token = null)
+        {
+            var info = $"=={item.Created}==         {item.From} said: {item.Text}";
+            _logger.LogInformation(info);
+            Console.WriteLine(info);
+            return Task.CompletedTask;
+        }
+
+        internal long GenerateUniversalBlockId()
+        {
+            // if self master, use seeds; if not, ask master node
+            UIndexSeed++;
+            return UIndexSeed;
+        }
+
+        internal Task<bool> Pre_PrepareAsync(TransactionBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Task<bool> PrepareAsync(TransactionBlock block)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Task<bool> CommitAsync(TransactionBlock block)
+        {
+            throw new NotImplementedException();
         }
 
         public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
@@ -333,7 +407,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new GenesisAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
+                var authorizer = new GenesisAuthorizer(this, _serviceAccount, _accountCollection);
 
                 var openBlock = block;
                 result.ResultCode = authorizer.Authorize(openBlock);
@@ -366,7 +440,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewAccountAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
+                var authorizer = new NewAccountAuthorizer(this, _serviceAccount, _accountCollection);
                 result.ResultCode = authorizer.Authorize(openReceiveBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                     return Task.FromResult(result);
@@ -390,7 +464,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewAccountWithImportAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
+                var authorizer = new NewAccountWithImportAuthorizer(this, _serviceAccount, _accountCollection);
                 result.ResultCode = authorizer.Authorize(block);
                 if (result.ResultCode != APIResultCodes.Success)
                     return Task.FromResult(result);
@@ -418,7 +492,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = (sendBlock is ExchangingBlock) ? new ExchangingAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection) : new SendTransferAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
+                var authorizer = (sendBlock is ExchangingBlock) ? new ExchangingAuthorizer(this, _serviceAccount, _accountCollection) : new SendTransferAuthorizer(this, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(sendBlock);
                 if (result.ResultCode != APIResultCodes.Success)
@@ -466,7 +540,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new ReceiveTransferAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
+                var authorizer = new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(receiveBlock);
 
@@ -500,7 +574,7 @@ namespace Lyra.Authorizer.Decentralize
             try
             {
 
-                var authorizer = new ImportAccountAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
+                var authorizer = new ImportAccountAuthorizer(this, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(block);
 
@@ -536,7 +610,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewTokenAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
+                var authorizer = new NewTokenAuthorizer(this, _serviceAccount, _accountCollection);
 
                 result.ResultCode = authorizer.Authorize(tokenBlock);
                 if (result.ResultCode != APIResultCodes.Success)
@@ -684,7 +758,7 @@ namespace Lyra.Authorizer.Decentralize
 
             //receiveBlock.Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, receiveBlock.Hash);
 
-            var authorizer = new ReceiveTransferAuthorizer(NodeService.Instance, _serviceAccount, _accountCollection);
+            var authorizer = new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
             callresult = authorizer.Authorize(receiveBlock);
 
             return callresult;

@@ -49,7 +49,6 @@ namespace Lyra.Authorizer.Decentralize
 
         public string Leader { get; private set; }
         public bool ModeConsensus { get; private set; }
-        private long UIndexSeed = 0;
 
         public LyraNetworkConfigration LyraNetworkConfig { get; set; }
 
@@ -122,6 +121,9 @@ namespace Lyra.Authorizer.Decentralize
                     Dealer = new DealEngine(_config, _dataApi, exchangeAccounts, queue, finished);
                     Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
                 }
+
+                // init api service
+                await (_dataApi as ApiService).InitializeNodeAsync();
             }
             catch (Exception ex)
             {
@@ -154,28 +156,6 @@ namespace Lyra.Authorizer.Decentralize
                 default:
                     break;
             }            
-        }
-
-        internal long GenerateUniversalBlockId()
-        {
-            // if self master, use seeds; if not, ask master node
-            UIndexSeed++;
-            return UIndexSeed;
-        }
-
-        internal Task<bool> Pre_PrepareAsync(TransactionBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task<bool> PrepareAsync(TransactionBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task<bool> CommitAsync(TransactionBlock block)
-        {
-            throw new NotImplementedException();
         }
 
         // help class

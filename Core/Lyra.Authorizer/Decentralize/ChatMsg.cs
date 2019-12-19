@@ -19,6 +19,7 @@ namespace Lyra.Authorizer.Decentralize
 
 		public ChatMsg()
 		{
+
 		}
 
 		public ChatMsg(string author, string msg)

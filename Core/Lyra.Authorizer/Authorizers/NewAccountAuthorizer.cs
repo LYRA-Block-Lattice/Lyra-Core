@@ -11,8 +11,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class NewAccountAuthorizer: ReceiveTransferAuthorizer
     {
-        public NewAccountAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(node, serviceAccount, accountCollection)
+        public NewAccountAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(apiService, serviceAccount, accountCollection)
         {
         }
 

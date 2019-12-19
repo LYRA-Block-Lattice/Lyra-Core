@@ -10,12 +10,12 @@ using Lyra.Authorizer.Decentralize;
 
 namespace Lyra.Client.CLI
 {
-    class Gossip
+    public class Gossip
     {
         //To make this sample simple
         //In this sample, one client can only join one channel, hence we have a static variable of one channel name.
         //client can send messages to the channel , and receive messages sent to the channel/stream from other clients. 
-        private static string joinedChannel = "general";
+        private static Guid joinedChannel = Guid.NewGuid();//"general";
         private static string userName = "UserWithNoName";
         public static void Main(IClusterClient client)
         {
@@ -96,15 +96,15 @@ namespace Lyra.Client.CLI
 
         private static async Task ShowCurrentChannelHistory(IClusterClient client)
         {
-            var room = client.GetGrain<ILyraGossip>(joinedChannel);
-            var history = await room.ReadHistory(1000);
+            //var room = client.GetGrain<ILyraGossip>(joinedChannel);
+            //var history = await room.ReadHistory(1000);
 
-            PrettyConsole.Line($"====== History for '{joinedChannel}' Channel ======", ConsoleColor.DarkGreen);
-            foreach (var chatMsg in history)
-            {
-                PrettyConsole.Line($" ({chatMsg.Created:g}) {chatMsg.From}> {chatMsg.Text}", ConsoleColor.DarkGreen);
-            }
-            PrettyConsole.Line("============", ConsoleColor.DarkGreen);
+            //PrettyConsole.Line($"====== History for '{joinedChannel}' Channel ======", ConsoleColor.DarkGreen);
+            //foreach (var chatMsg in history)
+            //{
+            //    PrettyConsole.Line($" ({chatMsg.Created:g}) {chatMsg.From}> {chatMsg.Text}", ConsoleColor.DarkGreen);
+            //}
+            //PrettyConsole.Line("============", ConsoleColor.DarkGreen);
         }
 
         private static async Task SendMessage(IClusterClient client, string messageText)
@@ -115,21 +115,21 @@ namespace Lyra.Client.CLI
 
         private static async Task JoinChannel(IClusterClient client, string channelName)
         {
-            if (joinedChannel == channelName)
-            {
-                PrettyConsole.Line($"You already joined channel {channelName}. Double joining a channel, which is implemented as a stream, would result in double subscription to the same stream, " +
-                                   $"which would result in receiving duplicated messages. For more information, please refer to Orleans streaming documentation.");
-                return;
-            }
-            PrettyConsole.Line($"Joining to channel {channelName}");
-            joinedChannel = channelName;
-            var room = client.GetGrain<ILyraGossip>(joinedChannel);
-            var streamId = await room.Join(userName);
-            var stream = client.GetStreamProvider(GossipConstants.LyraGossipStreamProvider)
-                .GetStream<ChatMsg>(streamId, GossipConstants.LyraGossipStreamNameSpace);
-            //subscribe to the stream to receiver furthur messages sent to the chatroom
-            await stream.SubscribeAsync(new StreamObserver(client.ServiceProvider.GetService<ILoggerFactory>()
-                .CreateLogger($"{joinedChannel} channel")));
+            //if (joinedChannel == channelName)
+            //{
+            //    PrettyConsole.Line($"You already joined channel {channelName}. Double joining a channel, which is implemented as a stream, would result in double subscription to the same stream, " +
+            //                       $"which would result in receiving duplicated messages. For more information, please refer to Orleans streaming documentation.");
+            //    return;
+            //}
+            //PrettyConsole.Line($"Joining to channel {channelName}");
+            //joinedChannel = channelName;
+            //var room = client.GetGrain<ILyraGossip>(joinedChannel);
+            //var streamId = await room.Join(userName);
+            //var stream = client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
+            //    .GetStream<ChatMsg>(streamId, LyraGossipConstants.LyraGossipStreamNameSpace);
+            ////subscribe to the stream to receiver furthur messages sent to the chatroom
+            //await stream.SubscribeAsync(new StreamObserver(client.ServiceProvider.GetService<ILoggerFactory>()
+            //    .CreateLogger($"{joinedChannel} channel")));
         }
 
         private static async Task LeaveChannel(IClusterClient client)
@@ -137,8 +137,8 @@ namespace Lyra.Client.CLI
             PrettyConsole.Line($"Leaving channel {joinedChannel}");
             var room = client.GetGrain<ILyraGossip>(joinedChannel);
             var streamId = await room.Leave(userName);
-            var stream = client.GetStreamProvider(GossipConstants.LyraGossipStreamProvider)
-                .GetStream<ChatMsg>(streamId, GossipConstants.LyraGossipStreamNameSpace);
+            var stream = client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
+                .GetStream<ChatMsg>(streamId, LyraGossipConstants.LyraGossipStreamNameSpace);
 
             //unsubscribe from the channel/stream since client left, so that client won't
             //receive furture messages from this channel/stream

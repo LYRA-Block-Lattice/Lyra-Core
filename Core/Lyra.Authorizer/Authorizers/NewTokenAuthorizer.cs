@@ -14,8 +14,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class NewTokenAuthorizer: BaseAuthorizer
     {
-        public NewTokenAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(node, serviceAccount, accountCollection)
+        public NewTokenAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(apiService, serviceAccount, accountCollection)
         {
         }
 

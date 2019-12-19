@@ -11,8 +11,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class CancelTradeOrderAuthorizer: BaseAuthorizer
     {
-        public CancelTradeOrderAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
-            : base(node, serviceAccount, accountCollection)
+        public CancelTradeOrderAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
+            : base(apiService, serviceAccount, accountCollection)
         {
             
         }

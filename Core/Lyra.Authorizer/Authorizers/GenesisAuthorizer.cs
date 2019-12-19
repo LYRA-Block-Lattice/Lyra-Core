@@ -13,8 +13,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class GenesisAuthorizer: BaseAuthorizer
     {
-        public GenesisAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(node, serviceAccount, accountCollection)
+        public GenesisAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(apiService, serviceAccount, accountCollection)
         {
         }
 

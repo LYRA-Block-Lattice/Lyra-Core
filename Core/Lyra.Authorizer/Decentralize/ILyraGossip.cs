@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    public interface ILyraGossip : IGrainWithStringKey
+    public interface ILyraGossip : IGrainWithGuidKey
     {
         Task<Guid> Join(string nickname);
         Task<Guid> Leave(string nickname);
         Task<bool> Message(ChatMsg msg);
-        Task<ChatMsg[]> ReadHistory(int numberOfMessages);
         Task<string[]> GetMembers();
     }
 }

@@ -6,7 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\..\Core\Lyra.Node2\Orleans.json" Link="Orleans.json" />
+    <Content Include="..\..\Core\Lyra.Node2\Orleans.json" Link="Orleans.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

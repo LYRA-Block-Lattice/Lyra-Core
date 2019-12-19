@@ -12,8 +12,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class ExchangingAuthorizer : SendTransferAuthorizer
     {
-        public ExchangingAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
-            : base(node, serviceAccount, accountCollection)
+        public ExchangingAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
+            : base(apiService, serviceAccount, accountCollection)
         {
 
         }

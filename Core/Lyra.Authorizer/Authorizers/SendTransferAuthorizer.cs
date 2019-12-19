@@ -14,8 +14,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class SendTransferAuthorizer : BaseAuthorizer
     {
-        public SendTransferAuthorizer(NodeService node, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
-            : base(node, serviceAccount, accountCollection)
+        public SendTransferAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
+            : base(apiService, serviceAccount, accountCollection)
         {
         }
 

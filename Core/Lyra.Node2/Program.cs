@@ -69,7 +69,7 @@ namespace Lyra.Node2
                     //    options.Invariant = "System.Data.SqlClient";
                     //    options.ConnectionString = "Data Source=ZION;Initial Catalog=Orleans;Persist Security Info=True;User ID=orleans;Password=orleans";
                     //})
-                    .AddSimpleMessageStreamProvider(GossipConstants.LyraGossipStreamProvider)
+                    .AddSimpleMessageStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
                     .AddMemoryGrainStorage("PubSubStore")
                     .UseDashboard(options => {
                         options.Port = 8080;
