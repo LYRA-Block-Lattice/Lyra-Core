@@ -22,7 +22,7 @@ namespace Lyra.Authorizer.Decentralize
             
 			return stream.SubscribeAsync<ChatMsg>(async (data, token) =>
 			{
-				Console.WriteLine(data);
+				//Console.WriteLine(data);
 			});
 		}
 

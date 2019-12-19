@@ -9,12 +9,10 @@ using System.Threading.Tasks;
 
 namespace LyraNodesBot
 {
-    public class StreamWatcher
+    public class StreamWatcher : IAsyncObserver<ChatMsg>
     {
         IClusterClient _client;
         private IAsyncStream<ChatMsg> _gossipStream;
-
-        //private INodeAPI _gsp;
 
         public StreamWatcher(IClusterClient client)
         {
@@ -23,26 +21,11 @@ namespace LyraNodesBot
 
         public async Task Init(string IdentityString)
         {
-            //_gsp = _client.GetGrain<INodeAPI>(0);
-
-            // gossip channel
-            //var room = _client.GetGrain<ILyraGossip>(LyraGossipConstants.LyraGossipStreamId);
-            //var gossipStreamId = await room.Join(IdentityString);
             _gossipStream = _client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
                 .GetStream<ChatMsg>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
-            await _gossipStream.SubscribeAsync<ChatMsg>(async (data, token) =>
-            {
-                Console.WriteLine(data);
-            });
+            await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
 
-            //await SendMessage(new ChatMsg { From = IdentityString, Text = IdentityString + " Up", Type = ChatMessageType.NewStaker });
-        }
-
-
-        public async Task SendMessage(ChatMsg msg)
-        {
-            //await _gsp.Message(msg);
-            await _gossipStream.OnNextAsync(msg);
+            await SendMessage(new ChatMsg { From = IdentityString, Text = IdentityString + " Up", Type = ChatMessageType.NewStaker });
         }
 
         public Task OnCompletedAsync()
@@ -61,28 +44,12 @@ namespace LyraNodesBot
         {
             var info = $"=={item.Created}==         {item.From} said: {item.Text}";
             Console.WriteLine(info);
-            Console.WriteLine(info);
             return Task.CompletedTask;
         }
 
-        public Task<Guid> Join(string nickname)
+        public async Task SendMessage(ChatMsg msg)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<Guid> Leave(string nickname)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> Message(ChatMsg msg)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<string[]> GetMembers()
-        {
-            throw new NotImplementedException();
+            await _gossipStream.OnNextAsync(msg);
         }
     }
 }

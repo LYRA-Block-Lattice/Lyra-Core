@@ -76,19 +76,10 @@ namespace Lyra.Authorizer.Decentralize
 
         private async Task InitGossipChannel()
         {
-            // gossip channel
-            //var room = GrainFactory.GetGrain<ILyraGossip>(LyraGossipConstants.LyraGossipStreamId);
-            //var gossipStreamId = await room.Join(IdentityString);
             _gossipStream = GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
                 .GetStream<ChatMsg>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
-            //await _gossipStream.SubscribeAsync<ChatMsg>(async (data, token) => {
-            //    Console.WriteLine(data);
-            //});
+            await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
 
-            // TEMP
-            // _serviceAccount.Start(ModeConsensus, null);
-
-            //await SendMessage(new ChatMsg { From = IdentityString, Text = "Node Up", Type = ChatMessageType.NewStaker });
             RegisterTimer(s =>
             {
                 return _gossipStream.OnNextAsync(new ChatMsg("node", new Random().Next().ToString()));
@@ -118,7 +109,6 @@ namespace Lyra.Authorizer.Decentralize
         {
             var info = $"=={item.Created}==         {item.From} said: {item.Text}";
             _logger.LogInformation(info);
-            Console.WriteLine(info);
             return Task.CompletedTask;
         }
 
