@@ -72,8 +72,7 @@ namespace Lyra.Authorizer.Services
 
 
         public void Start(bool ModeConsensus, string Path)
-        {
-            
+        {            
             if (!AccountExistsLocally(Path, SERVICE_ACCOUNT_NAME))
                 InitializeServiceAccount(Path);
             else

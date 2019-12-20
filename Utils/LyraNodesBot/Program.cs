@@ -14,11 +14,11 @@ namespace LyraNodesBot
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Wait for node start. Press enter to continue...");
-            Console.ReadLine();
-
             var monitor = new NodesMonitor();
             monitor.Start();
+
+            Console.WriteLine("Wait for Lyra node start. Press enter to continue...");
+            await Task.Delay(15000);
 
             var host = CreateHost();
             host.Start();
@@ -26,6 +26,7 @@ namespace LyraNodesBot
 
             var watch = new StreamWatcher(client.Client);
             var myName = "LyraNodeBot";
+            watch.OnNodeChat += async (m) => await monitor.SendGroupMessageAsync($"{m.From}: {m.Text}");
             await watch.Init(myName);
 
             while(true)

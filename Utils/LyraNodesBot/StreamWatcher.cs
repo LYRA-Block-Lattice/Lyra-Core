@@ -9,10 +9,13 @@ using System.Threading.Tasks;
 
 namespace LyraNodesBot
 {
+    public delegate void NodeMessageHandler(ChatMsg msg);
     public class StreamWatcher// : IAsyncObserver<ChatMsg>
     {
         IClusterClient _client;
         private IAsyncStream<ChatMsg> _gossipStream;
+
+        public event NodeMessageHandler OnNodeChat;
 
         public StreamWatcher(IClusterClient client)
         {
@@ -44,6 +47,9 @@ namespace LyraNodesBot
         {
             var info = $"=={item.Created}==         {item.From} said: {item.Text}";
             Console.WriteLine(info);
+
+            OnNodeChat?.Invoke(item);
+
             return Task.CompletedTask;
         }
 

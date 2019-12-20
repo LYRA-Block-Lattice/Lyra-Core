@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -17,10 +18,12 @@ namespace LyraNodesBot
 {
     public class NodesMonitor
     {
-        private readonly TelegramBotClient Bot = new TelegramBotClient(File.ReadAllText(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\telegram.txt"));
+        private readonly TelegramBotClient Bot = new TelegramBotClient(System.IO.File.ReadAllText(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\telegram.txt"));
 
         private readonly ZooKeeper ZK = new ZooKeeper(ConfigurationManager.AppSettings["zookeeperConnectString"], 2000,
             new ZooKeeperWatcher(LoggerFactory.Create(builder => { builder.AddConsole(); }).CreateLogger("log")));
+
+        private ChatId _groupId = new ChatId(-1001462436848);
 
         public void Start()
         {
@@ -41,6 +44,11 @@ namespace LyraNodesBot
         public void Stop()
         {
             Bot.StopReceiving();
+        }
+
+        public async Task SendGroupMessageAsync(string msg)
+        {
+            await Bot.SendTextMessageAsync(_groupId, msg);
         }
 
         private async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)

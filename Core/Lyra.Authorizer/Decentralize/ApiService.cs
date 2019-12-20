@@ -84,7 +84,7 @@ namespace Lyra.Authorizer.Decentralize
             RegisterTimer(s =>
             {
                 return _gossipStream.OnNextAsync(new ChatMsg("LyraNode", new Random().Next().ToString()));
-            }, null, TimeSpan.FromMilliseconds(5000), TimeSpan.FromMilliseconds(1000));
+            }, null, TimeSpan.FromMilliseconds(5000), TimeSpan.FromMilliseconds(10000));
         }
 
         public bool ModeConsensus => NodeService.Instance.ModeConsensus;
