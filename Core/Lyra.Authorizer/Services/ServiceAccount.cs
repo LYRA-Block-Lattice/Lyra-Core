@@ -14,14 +14,16 @@ namespace Lyra.Authorizer.Services
     {
         public const string SERVICE_ACCOUNT_NAME = "service_account";
 
+        ApiService _apiService;
         public string DatabasePath { get; set; }
 
         Timer timer = null;
 
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
-        public ServiceAccount(IAccountDatabase storage, string  NetworkId) : base(SERVICE_ACCOUNT_NAME, storage, NetworkId)
+        public ServiceAccount(ApiService apiService, IAccountDatabase storage, string  NetworkId) : base(SERVICE_ACCOUNT_NAME, storage, NetworkId)
         {
+            _apiService = apiService;
         }
 
         /// <summary>
@@ -66,6 +68,9 @@ namespace Lyra.Authorizer.Services
 
             firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = AccountId, IPAddress = "127.0.0.1" });
             firstServiceBlock.InitializeBlock(null, PrivateKey, NodeGlobalParameters.Network_Id);
+
+            firstServiceBlock.Sign(PrivateKey);
+
             //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
             AddBlock(firstServiceBlock);
         }
@@ -111,6 +116,8 @@ namespace Lyra.Authorizer.Services
                 SyncBlock sync = new SyncBlock();
                 sync.LastServiceBlockHash = latestServiceBlock.Hash;
                 sync.InitializeBlock(latestBlock, PrivateKey, NetworkId);
+                sync.Sign(PrivateKey);
+
                 //sync.Signature = Signatures.GetSignature(PrivateKey, sync.Hash);
                 AddBlock(sync);
             }

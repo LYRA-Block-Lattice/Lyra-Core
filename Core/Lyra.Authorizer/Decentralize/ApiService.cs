@@ -58,7 +58,7 @@ namespace Lyra.Authorizer.Decentralize
             NodeGlobalParameters.Network_Id = _config.NetworkId;
 
             var service_database = new MongoServiceAccountDatabase(_config.DBConnect, NodeGlobalParameters.DEFAULT_DATABASE_NAME, ServiceAccount.SERVICE_ACCOUNT_NAME, NodeGlobalParameters.Network_Id);
-            _serviceAccount = new ServiceAccount(service_database, NodeGlobalParameters.Network_Id);
+            _serviceAccount = new ServiceAccount(this, service_database, NodeGlobalParameters.Network_Id);
 
             _accountCollection = new MongoAccountCollection(_config.DBConnect, NodeGlobalParameters.DEFAULT_DATABASE_NAME, NodeGlobalParameters.Network_Id);
 
@@ -83,8 +83,10 @@ namespace Lyra.Authorizer.Decentralize
 
             RegisterTimer(s =>
             {
-                return _gossipStream.OnNextAsync(new ChatMsg("LyraNode", new Random().Next().ToString()));
-            }, null, TimeSpan.FromMilliseconds(5000), TimeSpan.FromMilliseconds(10000));
+                return _gossipStream.OnNextAsync(new ChatMsg("LyraNode", "ImLive"));
+            }, null, TimeSpan.FromMilliseconds(60000), TimeSpan.FromMilliseconds(60000));
+
+            await _gossipStream.OnNextAsync(new ChatMsg("LyraNode", "Startup"));
         }
 
         public bool ModeConsensus => NodeService.Instance.ModeConsensus;
@@ -116,8 +118,7 @@ namespace Lyra.Authorizer.Decentralize
         public long GenerateUniversalBlockId()
         {
             // if self master, use seeds; if not, ask master node
-            UIndexSeed++;
-            return UIndexSeed;
+            return UIndexSeed++;
         }
 
         internal Task<bool> Pre_PrepareAsync(TransactionBlock block)
@@ -743,9 +744,17 @@ namespace Lyra.Authorizer.Decentralize
             };
 
             TransactionBlock latestBlock = _accountCollection.FindLatestBlock(_serviceAccount.AccountId);
-            decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
-            receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
-            receiveBlock.InitializeBlock(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+            if(latestBlock == null)
+            {
+                receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
+                receiveBlock.InitializeBlock(null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+            }
+            else
+            {
+                decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
+                receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
+                receiveBlock.InitializeBlock(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+            }
 
             //receiveBlock.Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, receiveBlock.Hash);
 

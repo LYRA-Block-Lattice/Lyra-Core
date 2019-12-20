@@ -201,18 +201,17 @@ namespace Lyra.Authorizer.Authorizers
 
             var block = tblock as TransactionBlock;
 
-            if (block.UIndex == 0)
-                throw new InvalidOperationException("Should have Universal Index for block");
-
             // ServiceHash is excluded when calculating the block hash,
             // but it is included when creating/validating the authorization signature
             block.ServiceHash = _serviceAccount.GetLatestBlock().Hash;
 
+            // get universal index from leader node
+            block.UIndex = _apiService.GenerateUniversalBlockId();
+            block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
+
             bool shouldSign = false;
             if(_apiService.ModeConsensus)
             {
-                // get universal index from leader node
-                block.UIndex = _apiService.GenerateUniversalBlockId();
                 await _apiService.Pre_PrepareAsync(block);
                 var prepareResult = await _apiService.PrepareAsync(block);
                 if(prepareResult)

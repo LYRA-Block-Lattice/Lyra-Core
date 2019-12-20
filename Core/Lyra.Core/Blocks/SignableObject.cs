@@ -71,5 +71,15 @@ namespace Lyra.Core.Blocks
         {
             return dateTime.ToUniversalTime().ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
         }
+
+        public static string CalculateHash(string txt)
+        {
+            using (SHA256Managed sha = new SHA256Managed())
+            {
+                byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(txt));
+                string hash = Base58Encoding.Encode(hash_bytes);
+                return hash;
+            }
+        }
     }
 }

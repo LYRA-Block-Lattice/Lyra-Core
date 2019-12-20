@@ -24,7 +24,7 @@ namespace Lyra.Core.API
             switch (networkID)
             {
 #if DEBUG
-                case "lexdev":
+                case "ldxdev":
                     return ("https://192.168.3.91:5002/", "https://192.168.3.91:5002/api/");
 #endif
                 case "lexnet":

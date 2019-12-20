@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-
+using Lyra.Core.Cryptography;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks

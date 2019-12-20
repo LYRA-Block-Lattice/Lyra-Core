@@ -32,7 +32,7 @@ namespace LyraNodesBot
             while(true)
             {
                 var line = Console.ReadLine();
-                if (line.Trim() == "quit")
+                if (line?.Trim() == "quit")
                     break;
 
                 await watch.SendMessage(new ChatMsg(myName, line));

@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Lyra.Client.Lib;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace Lyra.Client.CLI
 
@@ -53,10 +54,6 @@ namespace Lyra.Client.CLI
                 .ConfigureServices(services =>
                 {
                     services.AddSingleton<ClusterClientHostedService>();
-                    services.AddSingleton<IHostedService>(_ => _.GetService<ClusterClientHostedService>());
-                    services.AddSingleton(_ => _.GetService<ClusterClientHostedService>().Client);
-
-                    services.AddHostedService<DAGClientHostedService>();
 
                     services.Configure<ConsoleLifetimeOptions>(options =>
                     {

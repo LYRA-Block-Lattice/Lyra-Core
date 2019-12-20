@@ -105,7 +105,7 @@ namespace Lyra.Authorizer
 
         public Task<long> GetBlockCountAsync()
         {
-            return _blocks.EstimatedDocumentCountAsync();
+            return _blocks.CountDocumentsAsync(new BsonDocument());
         }
 
         public long GetBlockCount(string AccountId)

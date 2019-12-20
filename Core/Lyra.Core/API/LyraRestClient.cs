@@ -37,7 +37,7 @@ namespace Lyra.Core.API
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
 
-            if(platform =="Android")
+            if(platform == "Android" || platform == "Windows")
             {
                 httpClientHandler.ServerCertificateCustomValidationCallback =
                     HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
