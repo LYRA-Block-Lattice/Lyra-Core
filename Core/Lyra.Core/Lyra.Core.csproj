@@ -8,8 +8,11 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
 
   <ItemGroup>
+    <Compile Remove="Authorizations\**" />
     <Compile Remove="Protos\**" />
+    <EmbeddedResource Remove="Authorizations\**" />
     <EmbeddedResource Remove="Protos\**" />
+    <None Remove="Authorizations\**" />
     <None Remove="Protos\**" />
   </ItemGroup>
   <ItemGroup>
@@ -38,7 +41,6 @@
     <Compile Remove="Blocks\BlockTypes.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Authorizations\" />
     <Folder Include="Cryptography\" />
   </ItemGroup>
   <ItemGroup>
