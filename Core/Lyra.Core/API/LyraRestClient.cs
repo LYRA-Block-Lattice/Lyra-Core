@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.API
 {
-    public class LyraRestClient : INodeAPI
+    public class LyraRestClient : INodeAPI, INodeTransactionAPI, INodeDexAPI
     {
         private string _appName;
         private string _appVersion;
@@ -116,22 +116,12 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        Task<AuthorizationAPIResult> INodeAPI.CancelTradeOrder(CancelTradeOrderBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        async Task<AuthorizationAPIResult> INodeAPI.CreateToken(TokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
         {
             return await PostBlock("CreateToken", block);
         }
 
-        Task<AuthorizationAPIResult> INodeAPI.ExecuteTradeOrder(ExecuteTradeOrderBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        async Task<AccountHeightAPIResult> INodeAPI.GetAccountHeight(string AccountId, string Signature)
+        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetAccountHeight/?AccountId={AccountId}&Signature={Signature}");
             if (response.IsSuccessStatusCode)
@@ -143,12 +133,12 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        Task<ActiveTradeOrdersAPIResult> INodeAPI.GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        public Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
             throw new NotImplementedException();
         }
 
-        async Task<BlockAPIResult> INodeAPI.GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
             if (response.IsSuccessStatusCode)
@@ -160,7 +150,7 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        async Task<BlockAPIResult> INodeAPI.GetBlockByIndex(string AccountId, long Index, string Signature)
+        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetBlockByIndex/?AccountId={AccountId}&Signature={Signature}&Index={Index}");
             if (response.IsSuccessStatusCode)
@@ -172,7 +162,7 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        async Task<BlockAPIResult> INodeAPI.GetLastServiceBlock(string AccountId, string Signature)
+        public async Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetLastServiceBlock/?AccountId={AccountId}&Signature={Signature}");
             if (response.IsSuccessStatusCode)
@@ -184,7 +174,7 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        async Task<NonFungibleListAPIResult> INodeAPI.GetNonFungibleTokens(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetNonFungibleTokens/?AccountId={AccountId}&Signature={Signature}");
             if (response.IsSuccessStatusCode)
@@ -196,7 +186,7 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        async Task<AccountHeightAPIResult> INodeAPI.GetSyncHeight()
+        public async Task<AccountHeightAPIResult> GetSyncHeight()
         {
             HttpResponseMessage response = await _client.GetAsync("GetSyncHeight");
             if (response.IsSuccessStatusCode)
@@ -208,7 +198,7 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        async Task<BlockAPIResult> INodeAPI.GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetTokenGenesisBlock/?AccountId={AccountId}&Signature={Signature}");
             if (response.IsSuccessStatusCode)
@@ -220,7 +210,7 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        async Task<GetTokenNamesAPIResult> INodeAPI.GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetTokenNames/?AccountId={AccountId}&Signature={Signature}&keyword={keyword}");
             if (response.IsSuccessStatusCode)
@@ -232,17 +222,17 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        async Task<AuthorizationAPIResult> INodeAPI.ImportAccount(ImportAccountBlock block)
+        public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
             return await PostBlock("ImportAccount", block);
         }
 
-        Task<TradeAPIResult> INodeAPI.LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
+        public Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
             throw new NotImplementedException();
         }
 
-        async Task<NewTransferAPIResult> INodeAPI.LookForNewTransfer(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"LookForNewTransfer/?AccountId={AccountId}&Signature={Signature}");
             if (response.IsSuccessStatusCode)
@@ -254,27 +244,27 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        async Task<AuthorizationAPIResult> INodeAPI.OpenAccountWithGenesis(LyraTokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
             return await PostBlock("OpenAccountWithGenesis", block);
         }
 
-        async Task<AuthorizationAPIResult> INodeAPI.OpenAccountWithImport(OpenAccountWithImportBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
         {
             return await PostBlock("OpenAccountWithImport", block);
         }
 
-        async Task<AuthorizationAPIResult> INodeAPI.ReceiveTransfer(ReceiveTransferBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block)
         {
             return await PostBlock("ReceiveTransfer", block);
         }
 
-        async Task<AuthorizationAPIResult> INodeAPI.ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)
         {
             return await PostBlock("ReceiveTransferAndOpenAccount", block);
         }
 
-        async Task<AuthorizationAPIResult> INodeAPI.SendTransfer(SendTransferBlock block)
+        public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
         {
             return await PostBlock("SendTransfer", block);
         }
@@ -284,17 +274,7 @@ namespace Lyra.Core.API
             return await PostBlock("SendExchangeTransfer", block);
         }
 
-        Task<AuthorizationAPIResult> INodeAPI.Trade(TradeBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<TradeOrderAuthorizationAPIResult> INodeAPI.TradeOrder(TradeOrderBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        async Task<CancelKey> INodeAPI.SubmitExchangeOrder(TokenTradeOrder order)
+        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
         {
             return await PostBlock<CancelKey>("SubmitExchangeOrder", order);
         }

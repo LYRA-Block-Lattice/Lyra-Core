@@ -21,7 +21,7 @@ namespace Lyra.Core.Accounts
         // 1) move rpcclient to CLI
         // 2) create interface and reference rpcclient by interface here, use the same interface in server and REST API client (Shopify app)  
         //private RPCClient _rpcClient = null;
-        private INodeAPI _rpcClient = null;
+        private LyraRestClient _rpcClient = null;
 
         private long SyncHeight = -1;
         private string SyncHash = string.Empty;
@@ -50,7 +50,7 @@ namespace Lyra.Core.Accounts
         { }
 
         // one-time "manual" sync up with the node 
-        public async Task<APIResultCodes> Sync(INodeAPI RPCClient)
+        public async Task<APIResultCodes> Sync(LyraRestClient RPCClient)
         {
             if (RPCClient != null)
                 _rpcClient = RPCClient;
@@ -206,7 +206,7 @@ namespace Lyra.Core.Accounts
             }
         }
 
-        public async Task<AuthorizationAPIResult> RedeemRewards(string reward_token_code, decimal discount_amount)
+/*        public async Task<AuthorizationAPIResult> RedeemRewards(string reward_token_code, decimal discount_amount)
         {
             var trade_orders = await GetActiveTradeOrders("*", reward_token_code, TradeOrderListTypes.SellOnly);
             if (trade_orders.ResultCode != APIResultCodes.Success)
@@ -243,9 +243,9 @@ namespace Lyra.Core.Accounts
             {
                 return new AuthorizationAPIResult() { ResultCode = trade_order_result.ResultCode, ResultMessage = trade_order_result.ResultMessage };
             }
-        }
+        }*/
 
-        public async Task<AuthorizationAPIResult> ExecuteSellOrder(TradeBlock trade, TradeOrderBlock order, NonFungibleToken nonfungible_token = null)
+ /*       public async Task<AuthorizationAPIResult> ExecuteSellOrder(TradeBlock trade, TradeOrderBlock order, NonFungibleToken nonfungible_token = null)
         {
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
@@ -362,7 +362,7 @@ namespace Lyra.Core.Accounts
                 //
             }
             return result;
-        }
+        }*/
 
         // launches a live wallet with auto-updates enabled
         //public void Launch(INodeAPI RPCClient)
@@ -637,7 +637,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(
+/*        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(
             TradeOrderTypes orderType, string SellToken, string BuyToken, decimal MaxAmount, decimal MinAmount, decimal Price, bool CoverAnotherTradersFee, bool AnotherTraderWillCoverFee)
         {
             TransactionBlock previousBlock = GetLatestBlock();
@@ -769,7 +769,7 @@ namespace Lyra.Core.Accounts
             }
 
             return result;
-        }
+        }*/
 
         /// <summary>
         /// 
@@ -778,7 +778,7 @@ namespace Lyra.Core.Accounts
         /// The trade order block
         /// </param>
         /// <returns></returns>
-        public async Task<AuthorizationAPIResult> Trade(TradeBlock trade)
+/*        public async Task<AuthorizationAPIResult> Trade(TradeBlock trade)
         {
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
@@ -820,7 +820,7 @@ namespace Lyra.Core.Accounts
 
             return trade_result;
         }
-
+        */
 
         /// <summary>
         /// 
@@ -829,7 +829,7 @@ namespace Lyra.Core.Accounts
         /// Teh hash of the trade order block
         /// </param>
         /// <returns></returns>
-        public async Task<AuthorizationAPIResult> CancelTradeOrder(string OrderId)
+ /*       public async Task<AuthorizationAPIResult> CancelTradeOrder(string OrderId)
         {
             var order = await GetBlockByHash(OrderId) as TradeOrderBlock;
             if (order == null)
@@ -882,7 +882,7 @@ namespace Lyra.Core.Accounts
                 Console.WriteLine("Error Message: " + result.ResultMessage);
             }
             return result;
-        }
+        }*/
 
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string SellToken, string BuyToken, TradeOrderListTypes OrderType)
         {

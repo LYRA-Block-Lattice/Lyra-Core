@@ -16,9 +16,13 @@ namespace LyraLexWeb2
     public class LyraNodeController : ControllerBase
     {
         private INodeAPI _node;
-        public LyraNodeController(INodeAPI node)
+        private INodeTransactionAPI _nodeTrans;
+        private INodeDexAPI _nodeDex;
+        public LyraNodeController(INodeAPI node, INodeTransactionAPI trans, INodeDexAPI dex)
         {
             _node = node;
+            _nodeTrans = trans;
+            _nodeDex = dex;
         }
         // GET: api/LyraNode
         [HttpGet]
@@ -90,93 +94,93 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
-            return await _node.OpenAccountWithGenesis(block);
+            return await _nodeTrans.OpenAccountWithGenesis(block);
         }
 
         [Route("ReceiveTransferAndOpenAccount")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
         {
-            return await _node.ReceiveTransferAndOpenAccount(openReceiveBlock);
+            return await _nodeTrans.ReceiveTransferAndOpenAccount(openReceiveBlock);
         }
 
         [Route("OpenAccountWithImport")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
         {
-            return await _node.OpenAccountWithImport(block);
+            return await _nodeTrans.OpenAccountWithImport(block);
         }
 
         [Route("SendTransfer")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
-            return await _node.SendTransfer(sendBlock);
+            return await _nodeTrans.SendTransfer(sendBlock);
         }
 
         [Route("SendExchangeTransfer")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock sendBlock)
         {
-            return await _node.SendExchangeTransfer(sendBlock);
+            return await _nodeTrans.SendExchangeTransfer(sendBlock);
         }
 
         [Route("ReceiveTransfer")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
-            return await _node.ReceiveTransfer(receiveBlock);
+            return await _nodeTrans.ReceiveTransfer(receiveBlock);
         }
 
         [Route("ImportAccount")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
-            return await _node.ImportAccount(block);
+            return await _nodeTrans.ImportAccount(block);
         }
 
         [Route("CreateToken")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
         {
-            return await _node.CreateToken(tokenBlock);
+            return await _nodeTrans.CreateToken(tokenBlock);
         }
 
         [Route("CreateExchangeAccount")]
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
-            return await _node.CreateExchangeAccount(AccountId, Signature);
+            return await _nodeDex.CreateExchangeAccount(AccountId, Signature);
         }
 
         [Route("GetExchangeBalance")]
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
-            return await _node.GetExchangeBalance(AccountId, Signature);
+            return await _nodeDex.GetExchangeBalance(AccountId, Signature);
         }
 
         [Route("SubmitExchangeOrder")]
         [HttpPost]
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
         {
-            return await _node.SubmitExchangeOrder(order);
+            return await _nodeDex.SubmitExchangeOrder(order);
         }
 
         [Route("CancelExchangeOrder")]
         public async Task<APIResult> SubmitExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            return await _node.CancelExchangeOrder(AccountId, Signature, cancelKey);
+            return await _nodeDex.CancelExchangeOrder(AccountId, Signature, cancelKey);
         }
 
         [Route("RequestMarket")]
         public async Task<APIResult> RequestMarket(string TokenName)
         {
-            return await _node.RequestMarket(TokenName);
+            return await _nodeDex.RequestMarket(TokenName);
         }
 
         [Route("GetOrdersForAccount")]
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
-            return await _node.GetOrdersForAccount(AccountId, Signature);
+            return await _nodeDex.GetOrdersForAccount(AccountId, Signature);
         }
 
         //[HttpPost]

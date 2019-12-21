@@ -14,6 +14,8 @@ using System.IO;
 using System;
 using System.Threading;
 using Lyra.Core.Utils;
+using System.Diagnostics;
+using Lyra.Authorizer.Services;
 
 namespace Lyra.Node2
 {
@@ -22,7 +24,14 @@ namespace Lyra.Node2
         static CancellationTokenSource _cancel;
         public static void Main(string[] args)
         {
-            using(var host = CreateHostBuilder(args).Build())
+            Console.WriteLine("Waiting for debugger to attach");
+            while (!Debugger.IsAttached)
+            {
+                Thread.Sleep(100);
+            }
+            Console.WriteLine("Debugger attached");
+
+            using (var host = CreateHostBuilder(args).Build())
             {
                 _cancel = new CancellationTokenSource();
                 host.StartAsync().Wait();
@@ -71,15 +80,16 @@ namespace Lyra.Node2
                     })
                     .AddStartupTask((sp, token) =>
                     {
-                        INodeAPI localNode = sp.GetRequiredService<INodeAPI>();
-
+                        //var sh = (SiloHandle)sp.GetRequiredService(typeof(SiloHandle));
+                        SiloHandle.TheSilo = siloBuilder;
                         return Task.CompletedTask;
                     });
                 })
                 .ConfigureServices(services =>
                 {
-                    services.AddHostedService<NodeService>();
-                    services.AddSingleton<INodeAPI, ApiService>();
+                    //services.AddTransient(typeof(SiloHandle));
+                    //services.AddHostedService<NodeService>();
+                    //services.AddSingleton<INodeAPI, ApiService>();
                 });
     }
 }

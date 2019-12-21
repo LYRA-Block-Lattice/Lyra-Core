@@ -54,8 +54,7 @@ namespace Lyra.Authorizer.Decentralize
 
         public NodeService(IOptions<LyraConfig> config,
             IOptions<ZooKeeperClusteringSiloOptions> zkOptions,
-            ILogger<NodeService> logger,
-            INodeAPI dataApi)
+            ILogger<NodeService> logger)
         {
             if (Instance == null)
                 Instance = this;
@@ -64,7 +63,7 @@ namespace Lyra.Authorizer.Decentralize
 
             _config = config.Value;
             _zkClusterOptions = zkOptions.Value;
-            _dataApi = dataApi;
+            //_dataApi = dataApi;
             _log = logger;
 
             //BaseAuthorizer.OnAuthorized += (s, e) =>
@@ -82,6 +81,7 @@ namespace Lyra.Authorizer.Decentralize
             _waitOrder = new AutoResetEvent(false);
             try
             {
+                await Task.Delay(100000000);
                 _watcher = new ZooKeeperWatcher(_log);
                 _zk = new ZooKeeper(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher);
 
@@ -89,12 +89,6 @@ namespace Lyra.Authorizer.Decentralize
                 var cfg = await _zk.getDataAsync("/lyra");
                 LyraNetworkConfig = JsonConvert.DeserializeObject<LyraNetworkConfigration>(Encoding.ASCII.GetString(cfg.Data));
                 ModeConsensus = LyraNetworkConfig.seed == "permissionless";
-
-                // check if this node needs sync with master
-                if(LyraNetworkConfig.seed != OrleansSettings.AppSetting["EndPoint:AdvertisedIPAddress"])
-                {
-                    // TODO: sync database
-                }
 
                 // do node election
                 var electRoot = "/elect";
@@ -122,8 +116,10 @@ namespace Lyra.Authorizer.Decentralize
                     Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
                 }
 
+                // check if this node needs sync with master
+                var myIp = OrleansSettings.AppSetting["EndPoint:AdvertisedIPAddress"];
                 // init api service
-                await (_dataApi as ApiService).InitializeNodeAsync();
+                await (_dataApi as ApiService).InitializeNodeAsync(myIp, LyraNetworkConfig.seed == myIp);
             }
             catch (Exception ex)
             {

@@ -7,6 +7,7 @@ using Orleans;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Orleans.Streams;
+using Lyra.Core.API;
 
 namespace LyraNodesBot
 {
@@ -24,6 +25,9 @@ namespace LyraNodesBot
             {
                 host.Start();
                 var client = (ClusterClientHostedService)host.Services.GetService<IHostedService>();
+
+                var api = client.Client.GetGrain<INodeAPI>(0);
+                var height = await api.GetSyncHeight();
 
                 var watch = new StreamWatcher(client.Client);
                 var myName = "LyraNodeBot";

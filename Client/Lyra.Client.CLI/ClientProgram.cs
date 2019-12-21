@@ -13,13 +13,15 @@ using Lyra.Client.Lib;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Net.Http;
+using Orleans;
+using Lyra.Core.API;
 
 namespace Lyra.Client.CLI
 
 {
     class ClientProgram
     {
-        static Task Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine("LYRA Command Line Client");
             Console.WriteLine("Version: " + "0.5.3");
@@ -30,7 +32,20 @@ namespace Lyra.Client.CLI
             {
                 host.Start();
 
+                await Task.Delay(20000);
+
                 var client = host.Services.GetService<IHostedService>();
+
+
+                // activate api serivce grain
+                // debug test
+                var c = (DAGClientHostedService)client;
+
+                //var gf = host.Services.GetService<IGrainFactory>();
+                //var nodeApi = c.Node;
+
+
+
 
                 var wm = new WalletManager();
                 int mapresult = result.MapResult((Options options) => wm.RunWallet((DAGClientHostedService)client, options).Result, _ => CommandLineError());
@@ -40,7 +55,6 @@ namespace Lyra.Client.CLI
                     if (mapresult == -2)
                         Console.WriteLine("Unsupported parameters");
                 }
-                return Task.CompletedTask;
             }
         }
 

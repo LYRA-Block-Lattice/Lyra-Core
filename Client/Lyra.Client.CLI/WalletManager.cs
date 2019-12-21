@@ -120,11 +120,11 @@ namespace Lyra.Client.CLI
                         wallet.OpenAccount(full_path, wallet.AccountName);
                 }
 
-                INodeAPI rpcClient;
-                if (client == null)
-                    rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a");//await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
-                else
-                    rpcClient = new DAGAPIClient(client);
+                //INodeAPI rpcClient;
+                //if (client == null)
+                var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a");//await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
+                //else
+                //    rpcClient = new DAGAPIClient(client);
 
                 //if (WEB)
                 //{

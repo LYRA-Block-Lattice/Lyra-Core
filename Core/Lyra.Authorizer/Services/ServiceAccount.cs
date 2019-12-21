@@ -5,6 +5,7 @@ using Lyra.Authorizer.Decentralize;
 using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Service;
+using Microsoft.Extensions.Options;
 
 //using Lyra.Core.Cryptography;
 
@@ -13,17 +14,16 @@ namespace Lyra.Authorizer.Services
     public class ServiceAccount : BaseAccount
     {
         public const string SERVICE_ACCOUNT_NAME = "service_account";
-
-        ApiService _apiService;
+        ServiceAccount _serviceAccount;
         public string DatabasePath { get; set; }
 
         Timer timer = null;
 
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
-        public ServiceAccount(ApiService apiService, IAccountDatabase storage, string  NetworkId) : base(SERVICE_ACCOUNT_NAME, storage, NetworkId)
+        public ServiceAccount(IAccountDatabase storage, IOptions<LyraConfig> config) 
+            : base(SERVICE_ACCOUNT_NAME, storage, config.Value.NetworkId)
         {
-            _apiService = apiService;
         }
 
         /// <summary>

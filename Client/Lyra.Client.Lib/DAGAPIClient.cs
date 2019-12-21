@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Client.Lib
 {
-    public class DAGAPIClient : INodeAPI
+/*    public class DAGAPIClient : INodeAPI
     {
         private DAGClientHostedService _svc;
         public DAGAPIClient(DAGClientHostedService clientSvc)
@@ -171,5 +171,5 @@ namespace Lyra.Client.Lib
         {
             throw new NotImplementedException();
         }
-    }
+    }*/
 }

@@ -1,16 +1,17 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Exchange;
+using Orleans;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Lyra.Core.API
 {
-    public interface INodeAPI : Orleans.IGrainWithIntegerKey
-    {
+    public interface INodeAPI : IGrainWithIntegerKey
+    { 
+        #region Blocklist information methods
         Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion);
 
-        #region Blocklist information methods
         // this one can be cached for a few milliseconds
         Task<AccountHeightAPIResult> GetSyncHeight();
 
@@ -42,15 +43,12 @@ namespace Lyra.Core.API
 
         Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature);
 
-        Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature);
-
         Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature);
-
-        Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature);
-
-        //Task<TradeOrderListAPIResult> GetActiveBuyOrders(string BuyToken, string SellToken);
         #endregion Account maintenance methods
+    }
 
+    public interface INodeTransactionAPI : IGrainWithGuidKey
+    { 
         #region Authorization methods 
         // These methods return authorization result and authorizers' signatures if approved
 
@@ -69,16 +67,11 @@ namespace Lyra.Core.API
 
         Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block);
 
-        Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block);
-
-        Task<AuthorizationAPIResult> Trade(TradeBlock block);
-
-        Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block);
-
-        Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block);
-
         #endregion Authorization methods
+    }
 
+    public interface INodeDexAPI : IGrainWithIntegerKey
+    { 
         #region Exchange, DEX
         Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature);
         Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order);

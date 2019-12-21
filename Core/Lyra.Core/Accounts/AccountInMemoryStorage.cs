@@ -9,7 +9,7 @@ using Lyra.Core.Accounts;
 namespace Lyra.Core.Accounts
 {
     // use it in client wallet and node's service account as a single account database
-    public class AccountInMemoryStorage: IAccountDatabase
+    public class AccountInMemoryStorage : IAccountDatabase
     {
         //        protected LiteDatabase _db = null;
 

@@ -7,6 +7,9 @@ using Lyra.Core.Accounts;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using Lyra.Authorizer.Decentralize;
+using Microsoft.Extensions.Options;
+using Lyra.Authorizer.Services;
 
 namespace Lyra.Authorizer
 {
@@ -15,17 +18,13 @@ namespace Lyra.Authorizer
     // use it in client wallet and node's service account as a single account database
     public class MongoServiceAccountDatabase : IAccountDatabase
     {
-        //protected LiteDatabase _db = null;
+        private LyraConfig _config;
+
         private MongoClient _Client;
 
         private IMongoCollection<Block> _blocks;
 
         protected IMongoCollection<AccountParam> _params;
-
-        readonly string _ConnectionString = null;
-        //string _NetworkId = null;
-        //string _ShardId = null;
-        //string _AccountName = null;
 
         IMongoDatabase _db;
 
@@ -34,17 +33,19 @@ namespace Lyra.Authorizer
         readonly string _BlockCollectionName;
         readonly string _ParamsCollectionName;
 
-        public MongoServiceAccountDatabase(string ConnectionString, string DatabaseName, string AccountName, string NetworkId, string ShardId = "Primary")
+        public MongoServiceAccountDatabase(IOptions<LyraConfig> config)
+            //string ConnectionString, string DatabaseName, string AccountName, string NetworkId, string ShardId = "Primary")
         {
-            _ConnectionString = ConnectionString;
+            _config = config.Value;
 
-            _DatabaseName = DatabaseName;
+            _DatabaseName = NodeGlobalParameters.DEFAULT_DATABASE_NAME;
             //_NetworkId = NetworkId;
             //_ShardId = ShardId;
             //_AccountName = AccountName;
+            var ShardId = "Primary";
 
-            _BlockCollectionName = NetworkId + "-" + ShardId + "-" + AccountName + "-blocks";
-            _ParamsCollectionName = NetworkId + "-" + ShardId + "-" + AccountName + "-params";
+            _BlockCollectionName = _config.NetworkId + "-" + ShardId + "-" + ServiceAccount.SERVICE_ACCOUNT_NAME + "-blocks";
+            _ParamsCollectionName = _config.NetworkId + "-" + ShardId + "-" + ServiceAccount.SERVICE_ACCOUNT_NAME + "-params";
 
             BsonClassMap.RegisterClassMap<SyncBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
@@ -65,7 +66,7 @@ namespace Lyra.Authorizer
         private MongoClient GetClient()
         {
             if (_Client == null)
-                _Client = new MongoClient(_ConnectionString);
+                _Client = new MongoClient(_config.DBConnect);
             return _Client;
         }
 

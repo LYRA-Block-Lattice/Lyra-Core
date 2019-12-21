@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lyra.Authorizer;
 using Lyra.Authorizer.Decentralize;
+using Lyra.Authorizer.Services;
+using Lyra.Core.Accounts;
+using Lyra.Core.Accounts.Node;
 using Lyra.Core.API;
 using Lyra.Node2.Services;
 using Microsoft.AspNetCore.Builder;
@@ -29,12 +33,15 @@ namespace Lyra.Node2
         {
             OptionsConfigurationServiceCollectionExtensions.Configure<LyraConfig>(services, Configuration.GetSection("Lyra"));
 
-            services.AddSingleton<INotifyAPI, NotifyService>();
+            // mongodb
+            services.AddSingleton<IAccountCollection, MongoAccountCollection>();
+            services.AddSingleton<IAccountDatabase, MongoServiceAccountDatabase>();
+            services.AddSingleton(typeof(ServiceAccount));
+            //services.AddSingleton<INotifyAPI, NotifyService>();
 
-            services.AddGrpc();
+            //services.AddGrpc();
 
             services.AddMvc();
-
             services.AddControllers();
         }
 
@@ -50,12 +57,12 @@ namespace Lyra.Node2
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<ApiService>();
+                //endpoints.MapGrpcService<ApiService>();
                 endpoints.MapControllers();
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-                });
+                //endpoints.MapGet("/", async context =>
+                //{
+                //    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+                //});
             });
         }
     }

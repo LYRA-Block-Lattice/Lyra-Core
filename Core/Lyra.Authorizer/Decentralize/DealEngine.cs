@@ -57,7 +57,7 @@ namespace Lyra.Authorizer.Decentralize
                 acctWallet.OpenAccount("", acctWallet.AccountName);
                 for (int i = 0; i < 300; i++)
                 {
-                    var result = await acctWallet.Sync(_dataApi);
+                    var result = await acctWallet.Sync(null);
                     if (result == APIResultCodes.Success)
                         break;
                 }
@@ -389,7 +389,7 @@ namespace Lyra.Authorizer.Decentralize
             APIResultCodes result = APIResultCodes.UnknownError;
             for (int i = 0; i < 300; i++)
             {
-                result = await fromWallet.Sync(_dataApi);
+                result = await fromWallet.Sync(null);
                 if (result == APIResultCodes.Success)
                     break;
             }

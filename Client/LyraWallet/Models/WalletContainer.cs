@@ -37,7 +37,7 @@ namespace LyraWallet.Models
         // working status
         private string busyMessage;
 
-        private INodeAPI _nodeApiClient;
+        private LyraRestClient _nodeApiClient;
         private LyraRestNotify _notifyApiClient;
 
         public string DataStoragePath { get => dataStoragePath; set => SetProperty(ref dataStoragePath, value); }
