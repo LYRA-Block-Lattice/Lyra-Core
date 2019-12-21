@@ -20,25 +20,27 @@ namespace LyraNodesBot
             Console.WriteLine("Wait for Lyra node start. Press enter to continue...");
             await Task.Delay(15000);
 
-            var host = CreateHost();
-            host.Start();
-            var client = (ClusterClientHostedService)host.Services.GetService<IHostedService>();
-
-            var watch = new StreamWatcher(client.Client);
-            var myName = "LyraNodeBot";
-            watch.OnNodeChat += async (m) => await monitor.SendGroupMessageAsync($"{m.From}: {m.Text}");
-            await watch.Init(myName);
-
-            while(true)
+            using (var host = CreateHost())
             {
-                var line = Console.ReadLine();
-                if (line?.Trim() == "quit")
-                    break;
+                host.Start();
+                var client = (ClusterClientHostedService)host.Services.GetService<IHostedService>();
 
-                await watch.SendMessage(new ChatMsg(myName, line));
-            }            
+                var watch = new StreamWatcher(client.Client);
+                var myName = "LyraNodeBot";
+                watch.OnNodeChat += async (m) => await monitor.SendGroupMessageAsync($"{m.From}: {m.Text}");
+                await watch.Init(myName);
 
-            monitor.Stop();
+                while (true)
+                {
+                    var line = Console.ReadLine();
+                    if (line?.Trim() == "quit")
+                        break;
+
+                    await watch.SendMessage(new ChatMsg(myName, line));
+                }
+
+                monitor.Stop();
+            }
         }
 
         //private static async Task AttachStream(IClusterClient client)

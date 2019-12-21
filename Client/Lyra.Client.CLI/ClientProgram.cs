@@ -26,20 +26,22 @@ namespace Lyra.Client.CLI
 
             ParserResult<Options> result = Parser.Default.ParseArguments<Options>(args);
 
-            var host = CreateHost();
-            host.Start();
-
-            var client = host.Services.GetService<IHostedService>();
-
-            var wm = new WalletManager();
-            int mapresult = result.MapResult((Options options) => wm.RunWallet((DAGClientHostedService)client, options).Result, _ => CommandLineError());
-
-            if (mapresult != 0)
+            using (var host = CreateHost())
             {
-                if (mapresult == -2)
-                    Console.WriteLine("Unsupported parameters");
+                host.Start();
+
+                var client = host.Services.GetService<IHostedService>();
+
+                var wm = new WalletManager();
+                int mapresult = result.MapResult((Options options) => wm.RunWallet((DAGClientHostedService)client, options).Result, _ => CommandLineError());
+
+                if (mapresult != 0)
+                {
+                    if (mapresult == -2)
+                        Console.WriteLine("Unsupported parameters");
+                }
+                return Task.CompletedTask;
             }
-            return Task.CompletedTask;
         }
 
         static int CommandLineError()

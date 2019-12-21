@@ -22,17 +22,12 @@ namespace Lyra.Node2
         static CancellationTokenSource _cancel;
         public static void Main(string[] args)
         {
-            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
-            var host = CreateHostBuilder(args).Build();
-            _cancel = new CancellationTokenSource();
-            host.StartAsync().Wait();
-            Console.ReadLine();
-            host.StopAsync().Wait();
-        }
-
-        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
-        {
-            _cancel.Cancel();
+            using(var host = CreateHostBuilder(args).Build())
+            {
+                _cancel = new CancellationTokenSource();
+                host.StartAsync().Wait();
+                Console.ReadLine();
+            }
         }
 
         // Additional configuration is required to successfully run gRPC on macOS.
