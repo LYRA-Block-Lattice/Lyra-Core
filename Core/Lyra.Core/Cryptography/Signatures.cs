@@ -75,8 +75,8 @@ namespace Lyra.Core.Cryptography
         private static bool VerifySignature(string message, byte[] public_key_bytes, string signature)
         {
 
-            var curve = SecNamedCurves.GetByName("secp256k1");
-            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
+            var curve = SecNamedCurves.GetByName("secp256r1");
+            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
 
             //var publicKeyBytes = Base58Encoding.Decode(publicKey);
             //var publicKeyBytes = Base58Encoding.DecodeWithCheckSum(publicKey);
@@ -100,15 +100,15 @@ namespace Lyra.Core.Cryptography
 
         public static string GetSignature(string privateKey, string message)
         {
-            var curve = SecNamedCurves.GetByName("secp256k1");
-            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
+            var curve = SecNamedCurves.GetByName("secp256r1");
+            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
 
             //byte[] pkbytes = Base58Encoding.Decode(privateKey);
             //byte[] pkbytes = Base58Encoding.DecodeWithCheckSum(privateKey);
             byte[] pkbytes = Base58Encoding.DecodePrivateKey(privateKey);
 
             var keyParameters = new
-                    ECPrivateKeyParameters(new Org.BouncyCastle.Math.BigInteger(1, pkbytes),
+                    ECPrivateKeyParameters(new Org.BouncyCastle.Math.BigInteger(pkbytes),
                     domain);
 
             ISigner signer = SignerUtilities.GetSigner("SHA-256withECDSA");
@@ -121,8 +121,8 @@ namespace Lyra.Core.Cryptography
 
         private static byte[] DerivePublicKeyBytes(string privateKey)
         {
-            var curve = SecNamedCurves.GetByName("secp256k1");
-            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
+            var curve = SecNamedCurves.GetByName("secp256r1");
+            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
 
             byte[] pkbytes = Base58Encoding.DecodePrivateKey(privateKey);
             var d = new BigInteger(pkbytes);
@@ -158,15 +158,45 @@ namespace Lyra.Core.Cryptography
         //    PublicKey = keyPair.Public as ECPublicKeyParameters;
         //}
 
-        public static string GeneratePrivateKey()
+        public static (string privateKey, string publicKey) GenerateWallet()
         {
-            var privateKey = new byte[32];
-            var rnd = System.Security.Cryptography.RandomNumberGenerator.Create();
-            rnd.GetBytes(privateKey);
-            //return Base58Encoding.Encode(privateKey);
-            //return Base58Encoding.EncodeWithCheckSum(privateKey);
-            return Base58Encoding.EncodePrivateKey(privateKey);
+            var kp = GenerateKeys(256);
+            ECPrivateKeyParameters prvk = kp.Private as ECPrivateKeyParameters;
+            ECPublicKeyParameters pubk = kp.Public as ECPublicKeyParameters;
+
+            var privBuff = prvk.D.ToByteArrayUnsigned();
+            var pubBuff = pubk.Q.GetEncoded();
+
+            return (Base58Encoding.EncodePrivateKey(privBuff), Base58Encoding.EncodePublicKey(pubBuff));
         }
+        private static AsymmetricCipherKeyPair GenerateKeys(int keySize)
+        {
+            //using ECDSA algorithm for the key generation
+            var gen = new Org.BouncyCastle.Crypto.Generators.ECKeyPairGenerator("ECDSA");
+
+            //Creating Random
+            var secureRandom = new SecureRandom();
+
+            //Parameters creation using the random and keysize
+            var keyGenParam = new KeyGenerationParameters(secureRandom, keySize);
+
+            //Initializing generation algorithm with the Parameters--This method Init i modified
+            gen.Init(keyGenParam);
+
+            //Generation of Key Pair
+            return gen.GenerateKeyPair();
+        }
+
+        // is this a good key generating?
+        //public static string GeneratePrivateKey()
+        //{
+        //    var privateKey = new byte[32];
+        //    var rnd = System.Security.Cryptography.RandomNumberGenerator.Create();
+        //    rnd.GetBytes(privateKey);
+        //    //return Base58Encoding.Encode(privateKey);
+        //    //return Base58Encoding.EncodeWithCheckSum(privateKey);
+        //    return Base58Encoding.EncodePrivateKey(privateKey);
+        //}
 
 
         //private static string GetPublicKeyFromPrivateKey(string privateKey)
@@ -184,6 +214,46 @@ namespace Lyra.Core.Cryptography
         //    var pubkeyPoint = generator256 * secret;
         //    return pubkeyPoint.X.ToString("X") + pubkeyPoint.Y.ToString("X");
         //}
+
+        // test sign/verify functions
+        public static string SignData(string msg, ECPrivateKeyParameters privKey)
+        {
+            try
+            {
+                byte[] msgBytes = Encoding.UTF8.GetBytes(msg);
+
+                ISigner signer = SignerUtilities.GetSigner("SHA-256withECDSA");
+                signer.Init(true, privKey);
+                signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
+                byte[] sigBytes = signer.GenerateSignature();
+
+                return Convert.ToBase64String(sigBytes);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Signing Failed: " + exc.ToString());
+                return null;
+            }
+        }
+
+        public static bool VerifySignature(ECPublicKeyParameters pubKey, string signature, string msg)
+        {
+            try
+            {
+                byte[] msgBytes = Encoding.UTF8.GetBytes(msg);
+                byte[] sigBytes = Convert.FromBase64String(signature);
+
+                ISigner signer = SignerUtilities.GetSigner("SHA-256withECDSA");
+                signer.Init(false, pubKey);
+                signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
+                return signer.VerifySignature(sigBytes);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Verification failed with the error: " + exc.ToString());
+                return false;
+            }
+        }
     }
 
 

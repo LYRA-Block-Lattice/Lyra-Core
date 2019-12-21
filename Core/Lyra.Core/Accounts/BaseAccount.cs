@@ -128,7 +128,7 @@ namespace Lyra.Core.Accounts
 
             void generateAccountKeys()
             {
-                PrivateKey = Signatures.GeneratePrivateKey();
+                PrivateKey = Signatures.GenerateWallet().privateKey;
                 _storage.StorePrivateKey(PrivateKey);
                 AccountId = Signatures.GetAccountIdFromPrivateKey(PrivateKey);
                 _storage.StoreAccountId(AccountId);

@@ -389,7 +389,7 @@ namespace Lyra.Authorizer.Decentralize
             return Task.FromResult(transfer_info);
         }
 
-        public Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
             // Send to the authorizations sample - TO DO
             // For now, implementation for single-node testnet only
@@ -407,6 +407,8 @@ namespace Lyra.Authorizer.Decentralize
                 {
                     result.Authorizations = openBlock.Authorizations;
                     result.ServiceHash = openBlock.ServiceHash;
+
+                    await ProcessTokenGenerationFee(openBlock);
                 }
                 else
                 {
@@ -419,7 +421,7 @@ namespace Lyra.Authorizer.Decentralize
                 result.ResultCode = APIResultCodes.ExceptionInOpenAccountWithGenesis;
             }
 
-            return Task.FromResult(result);
+            return result;
         }
 
         public Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
@@ -733,34 +735,47 @@ namespace Lyra.Authorizer.Decentralize
         private async Task<APIResultCodes> ProcessFee(string source, decimal fee)
         {
             var callresult = APIResultCodes.Success;
-            var receiveBlock = new ReceiveFeeBlock
-            {
-                AccountID = _serviceAccount.AccountId,
-                ServiceHash = string.Empty,
-                SourceHash = source,
-                Fee = 0,
-                FeeType = AuthorizationFeeTypes.NoFee,
-                Balances = new Dictionary<string, decimal>()
-            };
 
             TransactionBlock latestBlock = _accountCollection.FindLatestBlock(_serviceAccount.AccountId);
             if(latestBlock == null)
             {
+                var receiveBlock = new OpenWithReceiveFeeBlock
+                {
+                    AccountType = AccountTypes.Service,
+                    AccountID = _serviceAccount.AccountId,
+                    ServiceHash = string.Empty,
+                    SourceHash = source,
+                    Fee = 0,
+                    FeeType = AuthorizationFeeTypes.NoFee,
+                    Balances = new Dictionary<string, decimal>()
+                };
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
                 receiveBlock.InitializeBlock(null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+
+                var authorizer = new NewAccountAuthorizer(this, _serviceAccount, _accountCollection);
+                callresult = authorizer.Authorize(receiveBlock);
             }
             else
             {
+                var receiveBlock = new ReceiveFeeBlock
+                {
+                    AccountID = _serviceAccount.AccountId,
+                    ServiceHash = string.Empty,
+                    SourceHash = source,
+                    Fee = 0,
+                    FeeType = AuthorizationFeeTypes.NoFee,
+                    Balances = new Dictionary<string, decimal>()
+                };
+
                 decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
                 receiveBlock.InitializeBlock(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+
+                var authorizer = new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
+                callresult = authorizer.Authorize(receiveBlock);
             }
 
             //receiveBlock.Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, receiveBlock.Hash);
-
-            var authorizer = new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
-            callresult = authorizer.Authorize(receiveBlock);
-
             return callresult;
         }
 

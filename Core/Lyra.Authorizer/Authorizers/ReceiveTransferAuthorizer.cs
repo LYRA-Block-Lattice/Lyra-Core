@@ -90,17 +90,15 @@ namespace Lyra.Authorizer.Authorizers
 
 
             // find the actual amount of transaction 
-
-            TransactionBlock prevToSendBlock = _accountCollection.FindBlockByHash(sourceBlock.PreviousHash);
-            if (prevToSendBlock == null)
-                return APIResultCodes.CouldNotTraceSendBlockChain;
-
-
             TransactionInfo sendTransaction;
             if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer)
             {
                 if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
                     return APIResultCodes.InvalidDestinationAccountId;
+
+                TransactionBlock prevToSendBlock = _accountCollection.FindBlockByHash(sourceBlock.PreviousHash);
+                if (prevToSendBlock == null)
+                    return APIResultCodes.CouldNotTraceSendBlockChain;
 
                 sendTransaction = sourceBlock.GetTransaction(prevToSendBlock);
 
