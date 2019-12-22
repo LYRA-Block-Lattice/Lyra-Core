@@ -152,7 +152,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = GrainFactory.GetGrain<GenesisAuthorizer>(Guid.NewGuid()); //new GenesisAuthorizer(_serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.GenesisAuthorizer");
 
                 var openBlock = block;
                 result.ResultCode = await authorizer.Authorize(openBlock);
@@ -187,7 +187,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = GrainFactory.GetGrain<NewAccountAuthorizer>(Guid.NewGuid());//new NewAccountAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountAuthorizer");
                 result.ResultCode = await authorizer.Authorize(openReceiveBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                     return result;
@@ -211,7 +211,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = GrainFactory.GetGrain<NewAccountWithImportAuthorizer>(Guid.NewGuid());//new NewAccountWithImportAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountWithImportAuthorizer");
                 result.ResultCode = await authorizer.Authorize(block);
                 if (result.ResultCode != APIResultCodes.Success)
                     return result;
@@ -240,7 +240,7 @@ namespace Lyra.Authorizer.Decentralize
             try
             {
                 var authorizer = (sendBlock is ExchangingBlock) ?
-                    GrainFactory.GetGrain<ExchangingAuthorizer>(Guid.NewGuid()) :
+                    GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ExchangingAuthorizer") :
                     GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.SendTransferAuthorizer");
 
                 result.ResultCode = await authorizer.Authorize(sendBlock);
@@ -289,7 +289,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = GrainFactory.GetGrain<ReceiveTransferAuthorizer>(Guid.NewGuid());//new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ReceiveTransferAuthorizer");
 
                 result.ResultCode = await authorizer.Authorize(receiveBlock);
 
@@ -323,7 +323,7 @@ namespace Lyra.Authorizer.Decentralize
             try
             {
 
-                var authorizer = GrainFactory.GetGrain<ImportAccountAuthorizer>(Guid.NewGuid());//new ImportAccountAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ImportAccountAuthorizer");
 
                 result.ResultCode = await authorizer.Authorize(block);
 
@@ -359,7 +359,7 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = GrainFactory.GetGrain<NewTokenAuthorizer>(Guid.NewGuid());//new NewTokenAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewTokenAuthorizer");
 
                 result.ResultCode = await authorizer.Authorize(tokenBlock);
                 if (result.ResultCode != APIResultCodes.Success)
@@ -507,7 +507,7 @@ namespace Lyra.Authorizer.Decentralize
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
                 receiveBlock.InitializeBlock(null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
 
-                var authorizer = GrainFactory.GetGrain<NewAccountAuthorizer>(Guid.NewGuid());//new NewAccountAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountAuthorizer");
                 callresult = await authorizer.Authorize(receiveBlock);
             }
             else
@@ -526,7 +526,7 @@ namespace Lyra.Authorizer.Decentralize
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
                 receiveBlock.InitializeBlock(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
 
-                var authorizer = GrainFactory.GetGrain<ReceiveTransferAuthorizer>(Guid.NewGuid());//new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ReceiveTransferAuthorizer");
                 callresult = await authorizer.Authorize(receiveBlock);
             }
 

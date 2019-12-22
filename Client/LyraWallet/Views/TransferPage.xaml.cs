@@ -1,5 +1,4 @@
-﻿using crypto;
-using LyraWallet.ViewModels;
+﻿using LyraWallet.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
