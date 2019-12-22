@@ -38,7 +38,7 @@ namespace Lyra.Authorizer
         {
             _config = config.Value;
 
-            _DatabaseName = NodeGlobalParameters.DEFAULT_DATABASE_NAME;
+            _DatabaseName = _config.DatabaseName;
             //_NetworkId = NetworkId;
             //_ShardId = ShardId;
             //_AccountName = AccountName;

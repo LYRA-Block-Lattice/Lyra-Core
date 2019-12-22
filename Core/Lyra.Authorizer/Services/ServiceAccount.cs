@@ -14,16 +14,18 @@ namespace Lyra.Authorizer.Services
     public class ServiceAccount : BaseAccount
     {
         public const string SERVICE_ACCOUNT_NAME = "service_account";
-        ServiceAccount _serviceAccount;
         public string DatabasePath { get; set; }
 
         Timer timer = null;
+        private LyraConfig _config;
 
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
         public ServiceAccount(IAccountDatabase storage, IOptions<LyraConfig> config) 
             : base(SERVICE_ACCOUNT_NAME, storage, config.Value.NetworkId)
         {
+            _config = config.Value;
+            Start(true, null);
         }
 
         /// <summary>
@@ -67,7 +69,7 @@ namespace Lyra.Authorizer.Services
             };
 
             firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = AccountId, IPAddress = "127.0.0.1" });
-            firstServiceBlock.InitializeBlock(null, PrivateKey, NodeGlobalParameters.Network_Id);
+            firstServiceBlock.InitializeBlock(null, PrivateKey, _config.NetworkId);
 
             firstServiceBlock.Sign(PrivateKey);
 
@@ -75,8 +77,7 @@ namespace Lyra.Authorizer.Services
             AddBlock(firstServiceBlock);
         }
 
-
-        public void Start(bool ModeConsensus, string Path)
+        private void Start(bool ModeConsensus, string Path)
         {            
             if (!AccountExistsLocally(Path, SERVICE_ACCOUNT_NAME))
                 InitializeServiceAccount(Path);

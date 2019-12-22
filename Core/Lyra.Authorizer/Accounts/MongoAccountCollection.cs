@@ -45,7 +45,7 @@ namespace Lyra.Authorizer
         {
             _config = config.Value;
 
-            _DatabaseName = NodeGlobalParameters.DEFAULT_DATABASE_NAME;
+            _DatabaseName = _config.DatabaseName;
 
             _BlocksCollectionName = _config.NetworkId + "-" + "Primary" + "-blocks";
 

@@ -9,19 +9,23 @@ using Lyra.Core.Accounts.Node;
 using Lyra.Authorizer.Services;
 using Lyra.Authorizer.Decentralize;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class NewTokenAuthorizer: BaseAuthorizer
     {
-        public NewTokenAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(apiService, serviceAccount, accountCollection)
+        public NewTokenAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(config, serviceAccount, accountCollection)
         {
         }
 
-        public override APIResultCodes Authorize<T>(T tblock)
+        public override Task<APIResultCodes> Authorize<T>(T tblock)
         {
-
+            return Task.FromResult(AuthorizeImpl<T>(tblock));
+        }
+        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        {
             if (!(tblock is TokenGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
 

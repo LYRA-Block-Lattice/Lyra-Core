@@ -11,6 +11,8 @@ using Lyra.Authorizer.Services;
 using Lyra.Core.Utils;
 using System.Threading.Tasks;
 using Lyra.Authorizer.Decentralize;
+using Microsoft.Extensions.Options;
+using Orleans;
 
 namespace Lyra.Authorizer.Authorizers
 {
@@ -24,30 +26,27 @@ namespace Lyra.Authorizer.Authorizers
             Result = block;
         }
     }
-    public abstract class BaseAuthorizer
+    public abstract class BaseAuthorizer : Grain, IAuthorizer
     {
-        protected readonly ApiService _apiService;
+        private LyraConfig _config;
         protected readonly ServiceAccount _serviceAccount;
         protected readonly IAccountCollection _accountCollection;
 
-        public static event AuthorizeCompleteEventHandler OnAuthorized;
-
-        //public Authorizer(ServiceAccount serviceAccount, AccountCollection accountCollection)
-        public BaseAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public BaseAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
         {
-            _apiService = apiService;
+            _config = config.Value;
             _serviceAccount = serviceAccount;
             _accountCollection = accountCollection;
         }
 
-        public virtual APIResultCodes Authorize<T>(T tblock)
+        public virtual Task<APIResultCodes> Authorize<T>(T tblock)
         {
             throw new NotImplementedException("Must override");
         }
 
         protected APIResultCodes VerifyBlock(TransactionBlock block, TransactionBlock previousBlock)
         {
-            if (NodeGlobalParameters.Network_Id != block.NetworkId)
+            if (_config.NetworkId != block.NetworkId)
                 return APIResultCodes.InvalidNetworkId;
 
             if (!block.IsBlockValid(previousBlock))
@@ -206,27 +205,27 @@ namespace Lyra.Authorizer.Authorizers
             block.ServiceHash = _serviceAccount.GetLatestBlock().Hash;
 
             // get universal index from leader node
-            block.UIndex = _apiService.GenerateUniversalBlockId();
-            block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
+            //block.UIndex = _apiService.GenerateUniversalBlockId();
+            //block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
-            bool shouldSign = false;
-            if(_apiService.ModeConsensus)
-            {
-                await _apiService.Pre_PrepareAsync(block);
-                var prepareResult = await _apiService.PrepareAsync(block);
-                if(prepareResult)
-                {
-                    shouldSign = true;                  
+            //bool shouldSign = false;
+            //if(_apiService.ModeConsensus)
+            //{
+            //    await _apiService.Pre_PrepareAsync(block);
+            //    var prepareResult = await _apiService.PrepareAsync(block);
+            //    if(prepareResult)
+            //    {
+            //        shouldSign = true;                  
 
-                    await _apiService.CommitAsync(block);
-                }                
-            }
-            else
-            {
-                shouldSign = true;
-            }
+            //        await _apiService.CommitAsync(block);
+            //    }                
+            //}
+            //else
+            //{
+            //    shouldSign = true;
+            //}
 
-            if(shouldSign)
+            if(true)
             {
                 // sign with the authorizer key
                 AuthorizationSignature authSignature = new AuthorizationSignature

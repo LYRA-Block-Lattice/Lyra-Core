@@ -27,6 +27,7 @@ namespace Lyra.Authorizer.Decentralize
 {
     public class LyraConfig
     {
+        public string DatabaseName { get; set; }
         public string DBConnect { get; set; }
         public string DexDBConnect { get; set; }
         public string NetworkId { get; set; }
@@ -61,26 +62,19 @@ namespace Lyra.Authorizer.Decentralize
             _serviceAccount = serviceAccount;
         }
 
-        // main
-        public async Task InitializeNodeAsync(string nodeTag, bool isSeedNode)
-        {
-            NodeTag = nodeTag;
-            IsSeedNode = isSeedNode;
+        //// main
+        //public async Task InitializeNodeAsync(string nodeTag, bool isSeedNode)
+        //{
+        //    NodeTag = nodeTag;
+        //    IsSeedNode = isSeedNode;
 
-            Console.WriteLine("Starting Lyra network: " + NodeGlobalParameters.Network_Id);
-            NodeGlobalParameters.IsSingleNodeTestnet = true;
-            NodeGlobalParameters.Network_Id = _config.NetworkId;
+        //    Console.WriteLine("Starting Lyra network: " + _config.NetworkId);
 
-            UIndexSeed = await _accountCollection.GetBlockCountAsync();
+        //    UIndexSeed = await _accountCollection.GetBlockCountAsync();
             
-            Console.WriteLine("Database Location: mongodb " + (_accountCollection as MongoAccountCollection).Cluster);
-            Console.WriteLine("Node is starting");
-
-            if(IsSeedNode)
-            {
-                _serviceAccount.Start(ModeConsensus, null);
-            }            
-        }
+        //    Console.WriteLine("Database Location: mongodb " + (_accountCollection as MongoAccountCollection).Cluster);
+        //    Console.WriteLine("Node is starting");
+        //}
 
         public override Task OnActivateAsync()
         {
@@ -98,7 +92,7 @@ namespace Lyra.Authorizer.Decentralize
                 return _gossipStream.OnNextAsync(new ChatMsg($"LyraNode[{NodeTag}]", "ImLive"));
             }, null, TimeSpan.FromMilliseconds(60000), TimeSpan.FromMilliseconds(60000));
 
-            await _gossipStream.OnNextAsync(new ChatMsg($"LyraNode[{NodeTag}]", $"Startup. IsSeedNode: {IsSeedNode}"));
+            //await _gossipStream.OnNextAsync(new ChatMsg($"LyraNode[{NodeTag}]", $"Startup. IsSeedNode: {IsSeedNode}"));
         }
 
         public bool ModeConsensus => NodeService.Instance.ModeConsensus;
@@ -148,10 +142,6 @@ namespace Lyra.Authorizer.Decentralize
             throw new NotImplementedException();
         }
 
-
-
-
-
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
             // Send to the authorizations sample - TO DO
@@ -162,10 +152,10 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new GenesisAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<GenesisAuthorizer>(Guid.NewGuid()); //new GenesisAuthorizer(_serviceAccount, _accountCollection);
 
                 var openBlock = block;
-                result.ResultCode = authorizer.Authorize(openBlock);
+                result.ResultCode = await authorizer.Authorize(openBlock);
                 if (result.ResultCode == APIResultCodes.Success)
                 {
                     result.Authorizations = openBlock.Authorizations;
@@ -187,7 +177,7 @@ namespace Lyra.Authorizer.Decentralize
             return result;
         }
 
-        public Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
         {
             // Send to the authorizations sample - TO DO
             // For now, implementation for single-node testnet only
@@ -197,10 +187,10 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewAccountAuthorizer(this, _serviceAccount, _accountCollection);
-                result.ResultCode = authorizer.Authorize(openReceiveBlock);
+                var authorizer = GrainFactory.GetGrain<NewAccountAuthorizer>(Guid.NewGuid());//new NewAccountAuthorizer(this, _serviceAccount, _accountCollection);
+                result.ResultCode = await authorizer.Authorize(openReceiveBlock);
                 if (result.ResultCode != APIResultCodes.Success)
-                    return Task.FromResult(result);
+                    return result;
 
                 result.Authorizations = openReceiveBlock.Authorizations;
                 result.ServiceHash = openReceiveBlock.ServiceHash;
@@ -211,20 +201,20 @@ namespace Lyra.Authorizer.Decentralize
                 Console.WriteLine("Exception in ReceiveTransferAndOpenAccount: " + e.Message);
                 result.ResultCode = APIResultCodes.ExceptionInReceiveTransferAndOpenAccount;
             }
-            return Task.FromResult(result);
+            return result;
         }
 
 
-        public Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
         {
             var result = new AuthorizationAPIResult();
 
             try
             {
-                var authorizer = new NewAccountWithImportAuthorizer(this, _serviceAccount, _accountCollection);
-                result.ResultCode = authorizer.Authorize(block);
+                var authorizer = GrainFactory.GetGrain<NewAccountWithImportAuthorizer>(Guid.NewGuid());//new NewAccountWithImportAuthorizer(this, _serviceAccount, _accountCollection);
+                result.ResultCode = await authorizer.Authorize(block);
                 if (result.ResultCode != APIResultCodes.Success)
-                    return Task.FromResult(result);
+                    return result;
 
                 result.Authorizations = block.Authorizations;
                 result.ServiceHash = block.ServiceHash;
@@ -235,7 +225,7 @@ namespace Lyra.Authorizer.Decentralize
                 Console.WriteLine("Exception in OpenAccountWithImport: " + e.Message);
                 result.ResultCode = APIResultCodes.UnknownError;
             }
-            return Task.FromResult(result);
+            return result;
         }
 
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
@@ -249,9 +239,11 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = (sendBlock is ExchangingBlock) ? new ExchangingAuthorizer(this, _serviceAccount, _accountCollection) : new SendTransferAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = (sendBlock is ExchangingBlock) ?
+                    GrainFactory.GetGrain<ExchangingAuthorizer>(Guid.NewGuid()) :
+                    GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.SendTransferAuthorizer");
 
-                result.ResultCode = authorizer.Authorize(sendBlock);
+                result.ResultCode = await authorizer.Authorize(sendBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                 {
                     Console.WriteLine("Authorization failed" + result.ResultCode.ToString());
@@ -286,7 +278,7 @@ namespace Lyra.Authorizer.Decentralize
             return SendTransfer(block);
         }
 
-        public Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
             // Send to the authorizations sample - TO DO
             // For now, implementation for single-node testnet only
@@ -297,13 +289,13 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<ReceiveTransferAuthorizer>(Guid.NewGuid());//new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
 
-                result.ResultCode = authorizer.Authorize(receiveBlock);
+                result.ResultCode = await authorizer.Authorize(receiveBlock);
 
                 if (result.ResultCode != APIResultCodes.Success)
                 {
-                    return Task.FromResult(result);
+                    return result;
                 }
 
                 result.Authorizations = receiveBlock.Authorizations;
@@ -316,10 +308,10 @@ namespace Lyra.Authorizer.Decentralize
                 Console.WriteLine("Exception in ReceiveTransfer: " + e.Message);
                 result.ResultCode = APIResultCodes.ExceptionInReceiveTransfer;
             }
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
+        public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
             // Send to the authorizations sample - TO DO
             // For now, implementation for single-node testnet only
@@ -331,13 +323,13 @@ namespace Lyra.Authorizer.Decentralize
             try
             {
 
-                var authorizer = new ImportAccountAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<ImportAccountAuthorizer>(Guid.NewGuid());//new ImportAccountAuthorizer(this, _serviceAccount, _accountCollection);
 
-                result.ResultCode = authorizer.Authorize(block);
+                result.ResultCode = await authorizer.Authorize(block);
 
                 if (result.ResultCode != APIResultCodes.Success)
                 {
-                    return Task.FromResult(result);
+                    return result;
                 }
 
                 result.Authorizations = block.Authorizations;
@@ -350,7 +342,7 @@ namespace Lyra.Authorizer.Decentralize
                 Console.WriteLine("Exception in ImportAccount: " + e.Message);
                 result.ResultCode = APIResultCodes.UnknownError;
             }
-            return Task.FromResult(result);
+            return result;
         }
 
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
@@ -367,9 +359,9 @@ namespace Lyra.Authorizer.Decentralize
 
             try
             {
-                var authorizer = new NewTokenAuthorizer(this, _serviceAccount, _accountCollection);
+                var authorizer = GrainFactory.GetGrain<NewTokenAuthorizer>(Guid.NewGuid());//new NewTokenAuthorizer(this, _serviceAccount, _accountCollection);
 
-                result.ResultCode = authorizer.Authorize(tokenBlock);
+                result.ResultCode = await authorizer.Authorize(tokenBlock);
                 if (result.ResultCode != APIResultCodes.Success)
                 {
                     return result;
@@ -515,8 +507,8 @@ namespace Lyra.Authorizer.Decentralize
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
                 receiveBlock.InitializeBlock(null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
 
-                var authorizer = new NewAccountAuthorizer(this, _serviceAccount, _accountCollection);
-                callresult = authorizer.Authorize(receiveBlock);
+                var authorizer = GrainFactory.GetGrain<NewAccountAuthorizer>(Guid.NewGuid());//new NewAccountAuthorizer(this, _serviceAccount, _accountCollection);
+                callresult = await authorizer.Authorize(receiveBlock);
             }
             else
             {
@@ -534,8 +526,8 @@ namespace Lyra.Authorizer.Decentralize
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
                 receiveBlock.InitializeBlock(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
 
-                var authorizer = new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
-                callresult = authorizer.Authorize(receiveBlock);
+                var authorizer = GrainFactory.GetGrain<ReceiveTransferAuthorizer>(Guid.NewGuid());//new ReceiveTransferAuthorizer(this, _serviceAccount, _accountCollection);
+                callresult = await authorizer.Authorize(receiveBlock);
             }
 
             //receiveBlock.Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, receiveBlock.Hash);

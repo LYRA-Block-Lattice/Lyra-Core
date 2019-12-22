@@ -7,6 +7,6 @@ namespace Lyra.Authorizer.Services
 {
     public class SiloHandle
     {
-        public static ISiloBuilder TheSilo { get; set; }
+        public static HostBuilderContext TheSilo { get; set; }
     }
 }

@@ -7,13 +7,14 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Authorizer.Services;
 using Lyra.Authorizer.Decentralize;
+using Microsoft.Extensions.Options;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class ExchangingAuthorizer : SendTransferAuthorizer
     {
-        public ExchangingAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
-            : base(apiService, serviceAccount, accountCollection)
+        public ExchangingAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
+            : base(config, serviceAccount, accountCollection)
         {
 
         }

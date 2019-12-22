@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lyra.Authorizer.Services;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Exchange;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Orleans;
 
 namespace LyraLexWeb2
 {
@@ -15,172 +17,169 @@ namespace LyraLexWeb2
     [ApiController]
     public class LyraNodeController : ControllerBase
     {
-        private INodeAPI _node;
-        private INodeTransactionAPI _nodeTrans;
-        private INodeDexAPI _nodeDex;
-        public LyraNodeController(INodeAPI node, INodeTransactionAPI trans, INodeDexAPI dex)
+        private readonly IClusterClient _client;
+        public LyraNodeController(IClusterClient client)
         {
-            _node = node;
-            _nodeTrans = trans;
-            _nodeDex = dex;
+            _client = client;
         }
         // GET: api/LyraNode
         [HttpGet]
         public async Task<AccountHeightAPIResult> GetAsync()
         {
-            return await _node.GetSyncHeight();
+            var node = _client.GetGrain<INodeAPI>(0);
+            return await node.GetSyncHeight();
         }
 
         [Route("GetVersion")]
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
-            return await _node.GetVersion(apiVersion, appName, appVersion);
+            return await _client.GetGrain<INodeAPI>(0).GetVersion(apiVersion, appName, appVersion);
         }
 
         [Route("GetSyncHeight")]
         public async Task<AccountHeightAPIResult> GetSyncHeightAsync() {
-            return await _node.GetSyncHeight();
+            return await _client.GetGrain<INodeAPI>(0).GetSyncHeight();
         }
 
         [Route("GetTokenNames")]
         public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
-            return await _node.GetTokenNames(AccountId, Signature, keyword);
+            return await _client.GetGrain<INodeAPI>(0).GetTokenNames(AccountId, Signature, keyword);
         }
 
         [Route("GetAccountHeight")]
         public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
         {
-            return await _node.GetAccountHeight(AccountId, Signature);
+            return await _client.GetGrain<INodeAPI>(0).GetAccountHeight(AccountId, Signature);
         }
 
         [Route("GetBlockByIndex")]
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
         {
-            return await _node.GetBlockByIndex(AccountId, Index, Signature);
+            return await _client.GetGrain<INodeAPI>(0).GetBlockByIndex(AccountId, Index, Signature);
         }
 
         [Route("GetBlockByHash")]
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
-            return await _node.GetBlockByHash(AccountId, Hash, Signature);
+            return await _client.GetGrain<INodeAPI>(0).GetBlockByHash(AccountId, Hash, Signature);
         }
 
         [Route("GetNonFungibleTokens")]
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
-            return await _node.GetNonFungibleTokens(AccountId, Signature);
+            return await _client.GetGrain<INodeAPI>(0).GetNonFungibleTokens(AccountId, Signature);
         }
 
         [Route("GetTokenGenesisBlock")]
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
-            return await _node.GetTokenGenesisBlock(AccountId, TokenTicker, Signature);
+            return await _client.GetGrain<INodeAPI>(0).GetTokenGenesisBlock(AccountId, TokenTicker, Signature);
         }
 
         [Route("GetLastServiceBlock")]
         public async Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
         {
-            return await _node.GetLastServiceBlock(AccountId, Signature);
+            return await _client.GetGrain<INodeAPI>(0).GetLastServiceBlock(AccountId, Signature);
         }
 
         [Route("LookForNewTransfer")]
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
-            return await _node.LookForNewTransfer(AccountId, Signature);
+            return await _client.GetGrain<INodeAPI>(0).LookForNewTransfer(AccountId, Signature);
         }
 
         [Route("OpenAccountWithGenesis")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
-            return await _nodeTrans.OpenAccountWithGenesis(block);
+            return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).OpenAccountWithGenesis(block);
         }
 
         [Route("ReceiveTransferAndOpenAccount")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
         {
-            return await _nodeTrans.ReceiveTransferAndOpenAccount(openReceiveBlock);
+            return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).ReceiveTransferAndOpenAccount(openReceiveBlock);
         }
 
         [Route("OpenAccountWithImport")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
         {
-            return await _nodeTrans.OpenAccountWithImport(block);
+            return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).OpenAccountWithImport(block);
         }
 
         [Route("SendTransfer")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
-            return await _nodeTrans.SendTransfer(sendBlock);
+            return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).SendTransfer(sendBlock);
         }
 
         [Route("SendExchangeTransfer")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock sendBlock)
         {
-            return await _nodeTrans.SendExchangeTransfer(sendBlock);
+            return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).SendExchangeTransfer(sendBlock);
         }
 
         [Route("ReceiveTransfer")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
-            return await _nodeTrans.ReceiveTransfer(receiveBlock);
+            return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).ReceiveTransfer(receiveBlock);
         }
 
         [Route("ImportAccount")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
-            return await _nodeTrans.ImportAccount(block);
+            return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).ImportAccount(block);
         }
 
         [Route("CreateToken")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
         {
-            return await _nodeTrans.CreateToken(tokenBlock);
+            return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).CreateToken(tokenBlock);
         }
 
         [Route("CreateExchangeAccount")]
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
-            return await _nodeDex.CreateExchangeAccount(AccountId, Signature);
+            return await _client.GetGrain<INodeDexAPI>(0).CreateExchangeAccount(AccountId, Signature);
         }
 
         [Route("GetExchangeBalance")]
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
-            return await _nodeDex.GetExchangeBalance(AccountId, Signature);
+            return await _client.GetGrain<INodeDexAPI>(0).GetExchangeBalance(AccountId, Signature);
         }
 
         [Route("SubmitExchangeOrder")]
         [HttpPost]
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
         {
-            return await _nodeDex.SubmitExchangeOrder(order);
+            return await _client.GetGrain<INodeDexAPI>(0).SubmitExchangeOrder(order);
         }
 
         [Route("CancelExchangeOrder")]
         public async Task<APIResult> SubmitExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            return await _nodeDex.CancelExchangeOrder(AccountId, Signature, cancelKey);
+            return await _client.GetGrain<INodeDexAPI>(0).CancelExchangeOrder(AccountId, Signature, cancelKey);
         }
 
         [Route("RequestMarket")]
         public async Task<APIResult> RequestMarket(string TokenName)
         {
-            return await _nodeDex.RequestMarket(TokenName);
+            return await _client.GetGrain<INodeDexAPI>(0).RequestMarket(TokenName);
         }
 
         [Route("GetOrdersForAccount")]
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
-            return await _nodeDex.GetOrdersForAccount(AccountId, Signature);
+            return await _client.GetGrain<INodeDexAPI>(0).GetOrdersForAccount(AccountId, Signature);
         }
 
         //[HttpPost]

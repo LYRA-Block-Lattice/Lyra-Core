@@ -81,7 +81,7 @@ namespace Lyra.Node2
                     .AddStartupTask((sp, token) =>
                     {
                         //var sh = (SiloHandle)sp.GetRequiredService(typeof(SiloHandle));
-                        SiloHandle.TheSilo = siloBuilder;
+                        //SiloHandle.TheSilo = cntx;
                         return Task.CompletedTask;
                     });
                 })

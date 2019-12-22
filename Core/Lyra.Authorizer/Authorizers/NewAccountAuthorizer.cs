@@ -6,17 +6,22 @@ using Lyra.Authorizer.Services;
 using Lyra.Authorizer.Decentralize;
 using System.Threading.Tasks;
 using Lyra.Core.Blocks;
+using Microsoft.Extensions.Options;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class NewAccountAuthorizer: ReceiveTransferAuthorizer
     {
-        public NewAccountAuthorizer(ApiService apiService, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(apiService, serviceAccount, accountCollection)
+        public NewAccountAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(config, serviceAccount, accountCollection)
         {
         }
 
-        public override APIResultCodes Authorize<T>(T tblock)
+        public override Task<APIResultCodes> Authorize<T>(T tblock)
+        {
+            return Task.FromResult(AuthorizeImpl<T>(tblock));
+        }
+        private APIResultCodes AuthorizeImpl<T>(T tblock)
         {
             if (!(tblock is OpenWithReceiveTransferBlock))
                 return APIResultCodes.InvalidBlockType;

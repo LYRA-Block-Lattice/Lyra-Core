@@ -74,7 +74,6 @@ namespace Lyra.Core.Cryptography
 
         private static bool VerifySignature(string message, byte[] public_key_bytes, string signature)
         {
-
             var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
 
@@ -160,14 +159,21 @@ namespace Lyra.Core.Cryptography
 
         public static (string privateKey, string publicKey) GenerateWallet()
         {
-            var kp = GenerateKeys(256);
-            ECPrivateKeyParameters prvk = kp.Private as ECPrivateKeyParameters;
-            ECPublicKeyParameters pubk = kp.Public as ECPublicKeyParameters;
+            while(true)
+            {
+                var kp = GenerateKeys(256);
+                ECPrivateKeyParameters prvk = kp.Private as ECPrivateKeyParameters;
+                ECPublicKeyParameters pubk = kp.Public as ECPublicKeyParameters;
 
-            var privBuff = prvk.D.ToByteArrayUnsigned();
-            var pubBuff = pubk.Q.GetEncoded();
+                // ugly bug: Exception in SyncServiceChain(): Scalar is not in the interval [1, n - 1] (Parameter 'd')
+                if (prvk.D.CompareTo(BigInteger.One) < 0 || prvk.D.CompareTo(prvk.Parameters.N) >= 0)
+                    continue;
 
-            return (Base58Encoding.EncodePrivateKey(privBuff), Base58Encoding.EncodePublicKey(pubBuff));
+                var privBuff = prvk.D.ToByteArrayUnsigned();
+                var pubBuff = pubk.Q.GetEncoded();
+
+                return (Base58Encoding.EncodePrivateKey(privBuff), Base58Encoding.EncodePublicKey(pubBuff));
+            }
         }
         private static AsymmetricCipherKeyPair GenerateKeys(int keySize)
         {

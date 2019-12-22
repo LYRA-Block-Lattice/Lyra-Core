@@ -24,6 +24,7 @@ using Orleans.Runtime;
 using Newtonsoft.Json;
 using System.Text;
 using Lyra.Core.Utils;
+using Lyra.Authorizer.Services;
 
 namespace Lyra.Authorizer.Decentralize
 {
@@ -38,6 +39,7 @@ namespace Lyra.Authorizer.Decentralize
         private INodeAPI _dataApi;
         public MongoClient client;
         private IMongoDatabase _db;
+        ServiceAccount _serviceAccount;
 
         AutoResetEvent _waitOrder;
         ILogger _log;
@@ -54,6 +56,7 @@ namespace Lyra.Authorizer.Decentralize
 
         public NodeService(IOptions<LyraConfig> config,
             IOptions<ZooKeeperClusteringSiloOptions> zkOptions,
+            ServiceAccount serviceAccount,
             ILogger<NodeService> logger)
         {
             if (Instance == null)
@@ -65,6 +68,7 @@ namespace Lyra.Authorizer.Decentralize
             _zkClusterOptions = zkOptions.Value;
             //_dataApi = dataApi;
             _log = logger;
+            _serviceAccount = serviceAccount;
 
             //BaseAuthorizer.OnAuthorized += (s, e) =>
             //{
@@ -119,7 +123,7 @@ namespace Lyra.Authorizer.Decentralize
                 // check if this node needs sync with master
                 var myIp = OrleansSettings.AppSetting["EndPoint:AdvertisedIPAddress"];
                 // init api service
-                await (_dataApi as ApiService).InitializeNodeAsync(myIp, LyraNetworkConfig.seed == myIp);
+                //await (_dataApi as ApiService).InitializeNodeAsync(myIp, LyraNetworkConfig.seed == myIp);
             }
             catch (Exception ex)
             {

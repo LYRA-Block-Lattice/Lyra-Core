@@ -62,18 +62,23 @@ namespace LyraNodesBot
                 case "/nodes":
                     var root = await ZK.getChildrenAsync("/dev");
                     var sb = new StringBuilder();
-                    foreach(var child in root.Children)
+                    foreach(var child in root.Children.Distinct())
                     {
                         sb.AppendLine(child);
                     }
                     sb.AppendLine(root.Stat.getMtime().ToString());
                     await Bot.SendTextMessageAsync(message.Chat.Id, sb.ToString());
                     break;
+                case "/leader":
+                case "/tps":
+                    await SendGroupMessageAsync("No Data");
+                    break;
                 default:
                     const string usage = @"
 Usage:
 /nodes    - send status of all nodes
-/leader   - send info about current leader node";
+/leader   - send info about current leader node
+/tps      - send info about TPS";
 
                     await Bot.SendTextMessageAsync(
                         message.Chat.Id,

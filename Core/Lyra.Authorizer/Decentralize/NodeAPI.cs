@@ -3,6 +3,7 @@ using Lyra.Core.Accounts.Node;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Orleans;
 using Orleans.Concurrency;
@@ -19,12 +20,15 @@ namespace Lyra.Authorizer.Decentralize
     {
         IAccountCollection _accountCollection;
         ServiceAccount _serviceAccount;
+        private LyraConfig _config;
 
         public NodeAPI(ServiceAccount serviceAccount,
-            IAccountCollection accountCollection)
+            IAccountCollection accountCollection,
+            IOptions<LyraConfig> config)
         {
             _accountCollection = accountCollection;
             _serviceAccount = serviceAccount;
+            _config = config.Value;
         }
         public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
@@ -47,7 +51,7 @@ namespace Lyra.Authorizer.Decentralize
                 var last_sync_block = _serviceAccount.GetLatestBlock();
                 result.Height = last_sync_block.Index;
                 result.SyncHash = last_sync_block.Hash;
-                result.NetworkId = NodeGlobalParameters.Network_Id;
+                result.NetworkId = _config.NetworkId;
                 result.ResultCode = APIResultCodes.Success;
             }
             catch (Exception e)
@@ -92,7 +96,7 @@ namespace Lyra.Authorizer.Decentralize
                 if (_accountCollection.AccountExists(AccountId))
                 {
                     result.Height = _accountCollection.FindLatestBlock(AccountId).Index;
-                    result.NetworkId = NodeGlobalParameters.Network_Id;
+                    result.NetworkId = _config.NetworkId;
                     result.SyncHash = _serviceAccount.GetLatestBlock().Hash;
                     result.ResultCode = APIResultCodes.Success;
                 }
