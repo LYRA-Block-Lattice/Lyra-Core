@@ -33,7 +33,7 @@ namespace Lyra.Core.Cryptography
 
         public Task<bool> VerifyAccountSignature(string message, string accountId, string signature)
         {
-            return SignaturesBase.VerifyAccountSignature(message, accountId, signature);
+            return Task.FromResult(SignaturesBase.VerifyAccountSignature(message, accountId, signature));
         }
 
         public Task<bool> VerifyAuthorizerSignature(string message, string publicKey, string signature)

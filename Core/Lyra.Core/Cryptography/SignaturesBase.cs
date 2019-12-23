@@ -108,7 +108,7 @@ namespace Lyra.Core.Cryptography
             byte[] pkbytes = Base58Encoding.DecodePrivateKey(privateKey);
 
             var keyParameters = new
-                    ECPrivateKeyParameters(new Org.BouncyCastle.Math.BigInteger(pkbytes),
+                    ECPrivateKeyParameters(new Org.BouncyCastle.Math.BigInteger(1, pkbytes),
                     domain);
 
             ISigner signer = SignerUtilities.GetSigner("SHA-256withECDSA");

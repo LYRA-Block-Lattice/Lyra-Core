@@ -32,7 +32,7 @@ namespace Lyra.Client.CLI
             {
                 host.Start();
 
-                await Task.Delay(20000);
+                await Task.Delay(15000);
 
                 var client = host.Services.GetService<IHostedService>();
 
