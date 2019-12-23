@@ -11,6 +11,7 @@ namespace Lyra.Core.Blocks
 {
     abstract public class SignableObject
     {
+        private ISignatures _signer = new Signatures();
         public string Hash { get; set; }
 
         public string Signature { get; set; }
@@ -36,7 +37,7 @@ namespace Lyra.Core.Blocks
         {
             if (string.IsNullOrWhiteSpace(Hash))
                 Hash = CalculateHash();
-            Signature = Signatures.GetSignature(PrivateKey, Hash);
+            Signature = _signer.GetSignature(PrivateKey, Hash);
             return this.Signature;
         }
 
@@ -54,7 +55,7 @@ namespace Lyra.Core.Blocks
             if (!VerifyHash())
                 return false;
 
-            return Signatures.VerifyAccountSignature(Hash, PublicKey, Signature);
+            return _signer.VerifyAccountSignature(Hash, PublicKey, Signature);
         }
 
         public virtual string Print()

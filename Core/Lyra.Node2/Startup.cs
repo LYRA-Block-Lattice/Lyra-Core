@@ -3,6 +3,7 @@ using Lyra.Authorizer.Decentralize;
 using Lyra.Authorizer.Services;
 using Lyra.Core.Accounts;
 using Lyra.Core.Accounts.Node;
+using Lyra.Core.Cryptography;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -26,9 +27,12 @@ namespace Lyra.Node2
         {
             OptionsConfigurationServiceCollectionExtensions.Configure<LyraConfig>(services, Configuration.GetSection("Lyra"));
 
+            services.AddSingleton<ISignatures, Signatures>();
+
             // mongodb
             services.AddSingleton<IAccountCollection, MongoAccountCollection>();
             services.AddSingleton<IAccountDatabase, MongoServiceAccountDatabase>();
+
             services.AddSingleton(typeof(ServiceAccount));
             //services.AddSingleton<INotifyAPI, NotifyService>();
 

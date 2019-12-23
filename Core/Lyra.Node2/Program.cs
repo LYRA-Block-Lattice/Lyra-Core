@@ -22,19 +22,19 @@ namespace Lyra.Node2
     public class Program
     {
         static CancellationTokenSource _cancel;
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             Console.WriteLine("Waiting for debugger to attach");
             while (!Debugger.IsAttached)
             {
-                Thread.Sleep(100);
+                await Task.Delay(200);
             }
             Console.WriteLine("Debugger attached");
 
             using (var host = CreateHostBuilder(args).Build())
             {
                 _cancel = new CancellationTokenSource();
-                host.StartAsync().Wait();
+                await host.StartAsync();
                 Console.ReadLine();
             }
         }

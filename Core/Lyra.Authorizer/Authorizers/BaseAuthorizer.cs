@@ -28,12 +28,14 @@ namespace Lyra.Authorizer.Authorizers
     }
     public abstract class BaseAuthorizer : Grain, IAuthorizer
     {
+        protected ISignatures _signr;
         private LyraConfig _config;
         protected readonly ServiceAccount _serviceAccount;
         protected readonly IAccountCollection _accountCollection;
 
-        public BaseAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public BaseAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
         {
+            _signr = signr;
             _config = config.Value;
             _serviceAccount = serviceAccount;
             _accountCollection = accountCollection;
@@ -106,7 +108,7 @@ namespace Lyra.Authorizer.Authorizers
         protected APIResultCodes VerifyTransactionBlock(TransactionBlock block)
         {
             // Validate the account id
-            if (!Signatures.ValidateAccountId(block.AccountID))
+            if (!_signr.ValidateAccountId(block.AccountID))
                 return APIResultCodes.InvalidAccountId;
 
             if (!string.IsNullOrEmpty(block.PreviousHash)) // not for new account
@@ -120,7 +122,7 @@ namespace Lyra.Authorizer.Authorizers
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
-                    if (!Signatures.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature))
+                    if (!_signr.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature))
                         return APIResultCodes.AccountChainSignatureValidationFailed;
 
                     thisBlock = prevBlock;
@@ -231,7 +233,7 @@ namespace Lyra.Authorizer.Authorizers
                 AuthorizationSignature authSignature = new AuthorizationSignature
                 {
                     Key = _serviceAccount.AccountId,
-                    Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash)
+                    Signature = _signr.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash)
                 };
 
                 if (block.Authorizations == null)
@@ -255,7 +257,7 @@ namespace Lyra.Authorizer.Authorizers
             if (block.Authorizations[0].Key != _serviceAccount.AccountId)
                 return false;
                        
-            return Signatures.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);
+            return _signr.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);
 
         }
     }

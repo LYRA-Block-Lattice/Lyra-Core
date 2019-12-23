@@ -100,8 +100,9 @@ namespace Lyra.Authorizer.Decentralize
                 return findAccount;
             }
 
-            var walletPrivateKey = Signatures.GenerateWallet().privateKey;
-            var walletAccountId = Signatures.GetAccountIdFromPrivateKey(walletPrivateKey);
+            var signr = new Signatures();
+            var walletPrivateKey = signr.GenerateWallet().privateKey;
+            var walletAccountId = signr.GetAccountIdFromPrivateKey(walletPrivateKey);
 
             var account = new ExchangeAccount()
             {

@@ -15,8 +15,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class SendTransferAuthorizer : BaseAuthorizer
     {
-        public SendTransferAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection) 
-            : base(config, serviceAccount, accountCollection)
+        public SendTransferAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(signr, config, serviceAccount, accountCollection)
         {
         }
 
@@ -47,7 +47,7 @@ namespace Lyra.Authorizer.Authorizers
             //    return AuthorizationResultCodes.NegativeTransactionAmount;
 
             // Validate the destination account id
-            if (!Signatures.ValidateAccountId(block.DestinationAccountId))
+            if (!_signr.ValidateAccountId(block.DestinationAccountId))
                 return APIResultCodes.InvalidDestinationAccountId;
 
             result = VerifyTransactionBlock(block);

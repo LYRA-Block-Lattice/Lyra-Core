@@ -16,8 +16,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class ImportAccountAuthorizer: BaseAuthorizer
     {
-        public ImportAccountAuthorizer(IOptions<LyraConfig> config,ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base (config, serviceAccount, accountCollection)
+        public ImportAccountAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(signr, config, serviceAccount, accountCollection)
         {
         }
 

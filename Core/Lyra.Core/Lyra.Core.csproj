@@ -40,9 +40,6 @@
     <Compile Remove="Blocks\BlockTypes.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Cryptography\" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="crypto">
       <HintPath>..\..\..\..\code\3rd-part\bc-csharp\crypto\bin\pcl2\Debug\crypto.dll</HintPath>
     </Reference>

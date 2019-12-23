@@ -147,21 +147,21 @@ namespace Lyra.Client.CLI
                 Console.WriteLine("Type 'help' to see the list of available commands");
                 Console.WriteLine("");
 
-                timer1 = new Timer(async _ =>
-                {
-                    if (timer_busy1)
-                        return;
-                    try
-                    {
-                        timer_busy1 = true;
-                        var sync_result = await wallet.Sync(rpcClient);
-                    }
-                    finally
-                    {
-                        timer_busy1 = false;
-                    }
-                },
-                null, 2000, 30000);
+                //timer1 = new Timer(async _ =>
+                //{
+                //    if (timer_busy1)
+                //        return;
+                //    try
+                //    {
+                //        timer_busy1 = true;
+                //        var sync_result = await wallet.Sync(rpcClient);
+                //    }
+                //    finally
+                //    {
+                //        timer_busy1 = false;
+                //    }
+                //},
+                //null, 2000, 30000);
 
 
                 input = CommandProcessor.COMMAND_STATUS;

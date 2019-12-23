@@ -11,9 +11,9 @@ namespace Lyra.Core.Cryptography
     //
     // Parts of this code are from https://github.com/sander-/working-with-digital-signatures
     //
-    public static class Signatures
+    public class Signatures : ISignatures
     {
-        public static bool ValidateAccountId(string AccountId)
+        public bool ValidateAccountId(string AccountId)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace Lyra.Core.Cryptography
         }
 
         // It can validate either public or private key - thanks to the checksum
-        public static bool ValidatePublicKey(string PublicKey)
+        public bool ValidatePublicKey(string PublicKey)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace Lyra.Core.Cryptography
             }
         }
 
-        public static bool ValidatePrivateKey(string PrivateKey)
+        public bool ValidatePrivateKey(string PrivateKey)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace Lyra.Core.Cryptography
             }
         }
 
-        public static bool VerifyAccountSignature(string message, string accountId, string signature)
+        public bool VerifyAccountSignature(string message, string accountId, string signature)
         {
             if (string.IsNullOrWhiteSpace(message) || !ValidateAccountId(accountId) || string.IsNullOrWhiteSpace(signature))
                 return false;
@@ -64,7 +64,7 @@ namespace Lyra.Core.Cryptography
             return VerifySignature(message, publicKeyBytes, signature);
         }
 
-        public static bool VerifyAuthorizerSignature(string message, string publicKey, string signature)
+        public bool VerifyAuthorizerSignature(string message, string publicKey, string signature)
         {
             if (string.IsNullOrWhiteSpace(message) || !ValidatePublicKey(publicKey) || string.IsNullOrWhiteSpace(signature))
                 return false;
@@ -72,7 +72,7 @@ namespace Lyra.Core.Cryptography
             return VerifySignature(message, publicKeyBytes, signature);
         }
 
-        private static bool VerifySignature(string message, byte[] public_key_bytes, string signature)
+        private bool VerifySignature(string message, byte[] public_key_bytes, string signature)
         {
             var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
@@ -97,7 +97,7 @@ namespace Lyra.Core.Cryptography
             return signer.VerifySignature(signatureBytes);
         }
 
-        public static string GetSignature(string privateKey, string message)
+        public string GetSignature(string privateKey, string message)
         {
             var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
@@ -118,7 +118,7 @@ namespace Lyra.Core.Cryptography
             return Base58Encoding.Encode(signature);
         }
 
-        private static byte[] DerivePublicKeyBytes(string privateKey)
+        private byte[] DerivePublicKeyBytes(string privateKey)
         {
             var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
@@ -132,13 +132,13 @@ namespace Lyra.Core.Cryptography
             return publicKey.Q.GetEncoded();
         }
 
-        public static string GetAccountIdFromPrivateKey(string privateKey)
+        public string GetAccountIdFromPrivateKey(string privateKey)
         {
             byte[] public_key_bytes = DerivePublicKeyBytes(privateKey);
             return Base58Encoding.EncodeAccountId(public_key_bytes);
         }
 
-        public static string GetPublicKeyFromPrivateKey(string privateKey)
+        public string GetPublicKeyFromPrivateKey(string privateKey)
         {
             byte[] public_key_bytes = DerivePublicKeyBytes(privateKey);
             return Base58Encoding.EncodePublicKey(public_key_bytes);
@@ -157,7 +157,7 @@ namespace Lyra.Core.Cryptography
         //    PublicKey = keyPair.Public as ECPublicKeyParameters;
         //}
 
-        public static (string privateKey, string publicKey) GenerateWallet()
+        public (string privateKey, string publicKey) GenerateWallet()
         {
             while(true)
             {
@@ -175,7 +175,7 @@ namespace Lyra.Core.Cryptography
                 return (Base58Encoding.EncodePrivateKey(privBuff), Base58Encoding.EncodePublicKey(pubBuff));
             }
         }
-        private static AsymmetricCipherKeyPair GenerateKeys(int keySize)
+        private AsymmetricCipherKeyPair GenerateKeys(int keySize)
         {
             //using ECDSA algorithm for the key generation
             var gen = new Org.BouncyCastle.Crypto.Generators.ECKeyPairGenerator("ECDSA");
@@ -194,7 +194,7 @@ namespace Lyra.Core.Cryptography
         }
 
         // is this a good key generating?
-        //public static string GeneratePrivateKey()
+        //public string GeneratePrivateKey()
         //{
         //    var privateKey = new byte[32];
         //    var rnd = System.Security.Cryptography.RandomNumberGenerator.Create();
@@ -205,7 +205,7 @@ namespace Lyra.Core.Cryptography
         //}
 
 
-        //private static string GetPublicKeyFromPrivateKey(string privateKey)
+        //private string GetPublicKeyFromPrivateKey(string privateKey)
         //{
         //    var p = BigInteger.Parse("0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F", NumberStyles.HexNumber);
         //    var b = (BigInteger)7;
@@ -222,7 +222,7 @@ namespace Lyra.Core.Cryptography
         //}
 
         // test sign/verify functions
-        public static string SignData(string msg, ECPrivateKeyParameters privKey)
+        public string SignData(string msg, ECPrivateKeyParameters privKey)
         {
             try
             {
@@ -242,7 +242,7 @@ namespace Lyra.Core.Cryptography
             }
         }
 
-        public static bool VerifySignature(ECPublicKeyParameters pubKey, string signature, string msg)
+        public bool VerifySignature(ECPublicKeyParameters pubKey, string signature, string msg)
         {
             try
             {
@@ -281,7 +281,7 @@ namespace Lyra.Core.Cryptography
      */
     //class Point
     //{
-    //    public static readonly Point INFINITY = new Point(null, default(BigInteger), default(BigInteger));
+    //    public readonly Point INFINITY = new Point(null, default(BigInteger), default(BigInteger));
     //    public CurveFp Curve { get; private set; }
     //    public BigInteger X { get; private set; }
     //    public BigInteger Y { get; private set; }
@@ -310,7 +310,7 @@ namespace Lyra.Core.Cryptography
     //            return "infinity";
     //        return string.Format("({0},{1})", this.X, this.Y);
     //    }
-    //    public static Point operator +(Point left, Point right)
+    //    public Point operator +(Point left, Point right)
     //    {
     //        if (right == INFINITY)
     //            return left;
@@ -330,7 +330,7 @@ namespace Lyra.Core.Cryptography
     //        var y3 = (l * (left.X - x3) - left.Y) % p;
     //        return new Point(left.Curve, x3, y3);
     //    }
-    //    public static Point operator *(Point left, BigInteger right)
+    //    public Point operator *(Point left, BigInteger right)
     //    {
     //        var e = right;
     //        if (e == 0 || left == INFINITY)
@@ -351,14 +351,14 @@ namespace Lyra.Core.Cryptography
     //        return result;
     //    }
 
-    //    private static BigInteger LeftmostBit(BigInteger x)
+    //    private BigInteger LeftmostBit(BigInteger x)
     //    {
     //        BigInteger result = 1;
     //        while (result <= x)
     //            result = 2 * result;
     //        return result / 2;
     //    }
-    //    private static BigInteger InverseMod(BigInteger a, BigInteger m)
+    //    private BigInteger InverseMod(BigInteger a, BigInteger m)
     //    {
     //        while (a < 0) a += m;
     //        if (a < 0 || m <= a)

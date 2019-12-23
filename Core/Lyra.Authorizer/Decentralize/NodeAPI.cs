@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    [StatelessWorker(100)]
+    //[StatelessWorker(100)]
     public class NodeAPI : Grain, INodeAPI
     {
         IAccountCollection _accountCollection;

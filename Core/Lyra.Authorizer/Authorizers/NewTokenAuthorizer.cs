@@ -15,8 +15,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class NewTokenAuthorizer: BaseAuthorizer
     {
-        public NewTokenAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
+        public NewTokenAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(signr, config, serviceAccount, accountCollection)
         {
         }
 
@@ -64,7 +64,7 @@ namespace Lyra.Authorizer.Authorizers
 
             if (block.IsNonFungible)
             {
-                if (!Signatures.ValidateAccountId(block.NonFungibleKey))
+                if (!_signr.ValidateAccountId(block.NonFungibleKey))
                     return APIResultCodes.InvalidNonFungiblePublicKey;
             }
 

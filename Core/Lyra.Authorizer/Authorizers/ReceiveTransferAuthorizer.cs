@@ -15,8 +15,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class ReceiveTransferAuthorizer: BaseAuthorizer
     {
-        public ReceiveTransferAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
+        public ReceiveTransferAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(signr, config, serviceAccount, accountCollection)
         {
         }
 

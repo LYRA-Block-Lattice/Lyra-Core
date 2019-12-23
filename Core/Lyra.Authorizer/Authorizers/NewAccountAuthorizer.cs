@@ -7,13 +7,14 @@ using Lyra.Authorizer.Decentralize;
 using System.Threading.Tasks;
 using Lyra.Core.Blocks;
 using Microsoft.Extensions.Options;
+using Lyra.Core.Cryptography;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class NewAccountAuthorizer: ReceiveTransferAuthorizer
     {
-        public NewAccountAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
+        public NewAccountAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(signr, config, serviceAccount, accountCollection)
         {
         }
 

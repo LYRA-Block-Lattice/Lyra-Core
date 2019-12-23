@@ -23,6 +23,8 @@ namespace Lyra.Core.Accounts
         //private RPCClient _rpcClient = null;
         private LyraRestClient _rpcClient = null;
 
+        private ISignatures _signer;
+
         private long SyncHeight = -1;
         private string SyncHash = string.Empty;
 
@@ -47,7 +49,9 @@ namespace Lyra.Core.Accounts
         }
 
         public Wallet(IAccountDatabase storage, string NetworkId) : base(null, storage, NetworkId)
-        { }
+        {
+            _signer = new Signatures();
+        }
 
         // one-time "manual" sync up with the node 
         public async Task<APIResultCodes> Sync(LyraRestClient RPCClient)
@@ -75,7 +79,7 @@ namespace Lyra.Core.Accounts
 
         public string SignAPICall()
         {
-            return Signatures.GetSignature(PrivateKey, SyncHash);
+            return _signer.GetSignature(PrivateKey, SyncHash);
         }
 
         public async Task<List<string>> GetTokenNames(string keyword)
@@ -425,13 +429,13 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                if (!Signatures.ValidatePrivateKey(privateKey))
+                if (!_signer.ValidatePrivateKey(privateKey))
                     return new APIResult() { ResultCode = APIResultCodes.InvalidPrivateKey };
 
                 _storage.Open(path, AccountName);
 
                 PrivateKey = privateKey;
-                AccountId = Signatures.GetAccountIdFromPrivateKey(PrivateKey);
+                AccountId = _signer.GetAccountIdFromPrivateKey(PrivateKey);
 
                 _storage.StorePrivateKey(PrivateKey);
                 _storage.StoreAccountId(AccountId);
@@ -1295,7 +1299,7 @@ namespace Lyra.Core.Accounts
         // checks the checksum of public or private key
         public bool ValidatePrivateKey(string private_key)
         {
-            return Signatures.ValidatePrivateKey(private_key);
+            return _signer.ValidatePrivateKey(private_key);
         }
 
         public override void Dispose()
