@@ -18,14 +18,24 @@ namespace LyraLexWeb2
     public class LyraNodeController : ControllerBase
     {
         private readonly IClusterClient _client;
-        public LyraNodeController(IClusterClient client)
+        ServiceAccount _svcAccount;
+        public LyraNodeController(IClusterClient client, ServiceAccount svcAccount)
         {
             _client = client;
+            _svcAccount = svcAccount;
+        }
+        private void CheckSyncState()
+        {
+            if (!_svcAccount.IsNodeFullySynced)
+            {
+                throw new Exception("Node Out of Sync");
+            }
         }
         // GET: api/LyraNode
         [HttpGet]
         public async Task<AccountHeightAPIResult> GetAsync()
         {
+            CheckSyncState();
             var node = _client.GetGrain<INodeAPI>(0);
             return await node.GetSyncHeight();
         }
@@ -33,59 +43,69 @@ namespace LyraLexWeb2
         [Route("GetVersion")]
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).GetVersion(apiVersion, appName, appVersion);
         }
 
         [Route("GetSyncHeight")]
         public async Task<AccountHeightAPIResult> GetSyncHeightAsync() {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).GetSyncHeight();
         }
 
         [Route("GetTokenNames")]
         public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).GetTokenNames(AccountId, Signature, keyword);
         }
 
         [Route("GetAccountHeight")]
         public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).GetAccountHeight(AccountId, Signature);
         }
 
         [Route("GetBlockByIndex")]
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).GetBlockByIndex(AccountId, Index, Signature);
         }
 
         [Route("GetBlockByHash")]
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).GetBlockByHash(AccountId, Hash, Signature);
         }
 
         [Route("GetNonFungibleTokens")]
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).GetNonFungibleTokens(AccountId, Signature);
         }
 
         [Route("GetTokenGenesisBlock")]
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).GetTokenGenesisBlock(AccountId, TokenTicker, Signature);
         }
 
         [Route("GetLastServiceBlock")]
         public async Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).GetLastServiceBlock(AccountId, Signature);
         }
 
         [Route("LookForNewTransfer")]
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeAPI>(0).LookForNewTransfer(AccountId, Signature);
         }
 
@@ -93,6 +113,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).OpenAccountWithGenesis(block);
         }
 
@@ -100,6 +121,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).ReceiveTransferAndOpenAccount(openReceiveBlock);
         }
 
@@ -107,6 +129,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).OpenAccountWithImport(block);
         }
 
@@ -114,6 +137,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).SendTransfer(sendBlock);
         }
 
@@ -121,6 +145,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock sendBlock)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).SendExchangeTransfer(sendBlock);
         }
 
@@ -128,6 +153,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).ReceiveTransfer(receiveBlock);
         }
 
@@ -135,6 +161,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).ImportAccount(block);
         }
 
@@ -142,18 +169,21 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeTransactionAPI>(Guid.NewGuid()).CreateToken(tokenBlock);
         }
 
         [Route("CreateExchangeAccount")]
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeDexAPI>(0).CreateExchangeAccount(AccountId, Signature);
         }
 
         [Route("GetExchangeBalance")]
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeDexAPI>(0).GetExchangeBalance(AccountId, Signature);
         }
 
@@ -161,24 +191,28 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeDexAPI>(0).SubmitExchangeOrder(order);
         }
 
         [Route("CancelExchangeOrder")]
         public async Task<APIResult> SubmitExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeDexAPI>(0).CancelExchangeOrder(AccountId, Signature, cancelKey);
         }
 
         [Route("RequestMarket")]
         public async Task<APIResult> RequestMarket(string TokenName)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeDexAPI>(0).RequestMarket(TokenName);
         }
 
         [Route("GetOrdersForAccount")]
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
+            CheckSyncState();
             return await _client.GetGrain<INodeDexAPI>(0).GetOrdersForAccount(AccountId, Signature);
         }
 

@@ -24,10 +24,13 @@ namespace Lyra.Authorizer.Services
         ISignatures _signr;
         BaseAccount _ba;
 
+        public bool IsNodeFullySynced { get; set; }
+
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
         public ServiceAccount(IClusterClient client, IAccountDatabase storage, IOptions<LyraNodeConfig> config) 
         {
+            IsNodeFullySynced = false;
             _config = config.Value;
 
             _signr = client.GetGrain<ISignaturesForGrain>(0);
@@ -81,6 +84,8 @@ namespace Lyra.Authorizer.Services
             else
                 _ba.OpenAccount(Path, SERVICE_ACCOUNT_NAME);
             DatabasePath = Path;
+
+            // begin sync node
 
             if(!ModeConsensus)
             {

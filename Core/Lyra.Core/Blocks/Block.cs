@@ -336,6 +336,7 @@ namespace Lyra.Core.Blocks
 
         NotAllowedToSign = 300,
         NotAllowedToCommit = 301,
-        UnableToSendToConsensusNetwork = 302
+        UnableToSendToConsensusNetwork = 302,
+        NodeOutOfSync = 303
     }
 }
