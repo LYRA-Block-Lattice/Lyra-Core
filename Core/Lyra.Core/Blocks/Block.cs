@@ -334,6 +334,8 @@ namespace Lyra.Core.Blocks
 
         NameUnavailable = 202,
 
-        NotAllowedToSign = 300
+        NotAllowedToSign = 300,
+        NotAllowedToCommit = 301,
+        UnableToSendToConsensusNetwork = 302
     }
 }

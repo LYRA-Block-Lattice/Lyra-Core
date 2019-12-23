@@ -33,32 +33,32 @@ namespace Lyra.Core.Cryptography
 
         public Task<bool> VerifyAccountSignature(string message, string accountId, string signature)
         {
-            return Task.FromResult(SignaturesBase.VerifyAccountSignature(message, accountId, signature));
+            return Task.Run(() => { return SignaturesBase.VerifyAccountSignature(message, accountId, signature); });
         }
 
         public Task<bool> VerifyAuthorizerSignature(string message, string publicKey, string signature)
         {
-            return Task.FromResult(SignaturesBase.VerifyAuthorizerSignature(message, publicKey, signature));
+            return Task.Run(() => { return SignaturesBase.VerifyAuthorizerSignature(message, publicKey, signature); });
         }
 
         public Task<string> GetSignature(string privateKey, string message)
         {
-            return Task.FromResult(SignaturesBase.GetSignature(privateKey, message));
+            return Task.Run(() => { return SignaturesBase.GetSignature(privateKey, message); });
         }
 
         public Task<string> GetAccountIdFromPrivateKey(string privateKey)
         {
-            return Task.FromResult(SignaturesBase.GetAccountIdFromPrivateKey(privateKey));
+            return Task.Run(() => { return SignaturesBase.GetAccountIdFromPrivateKey(privateKey); });
         }
 
         public Task<string> GetPublicKeyFromPrivateKey(string privateKey)
         {
-            return Task.FromResult(SignaturesBase.GetPublicKeyFromPrivateKey(privateKey));
+            return Task.Run(() => { return SignaturesBase.GetPublicKeyFromPrivateKey(privateKey); });
         }
 
         public Task<(string privateKey, string publicKey)> GenerateWallet()
         {
-            return Task.FromResult(SignaturesBase.GenerateWallet());
+            return Task.Run(() => { return SignaturesBase.GenerateWallet(); });
         }
     }
 }

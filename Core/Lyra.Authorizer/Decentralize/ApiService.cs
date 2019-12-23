@@ -34,105 +34,79 @@ namespace Lyra.Authorizer.Decentralize
     }
 
     [StorageProvider(ProviderName = "OrleansStorage")]
-    public class ApiService : Grain, INodeTransactionAPI, IBlockConsensus
+    public class ApiService : Grain, INodeTransactionAPI//, IBlockConsensus
     {
         private readonly ILogger<ApiService> _logger;
         ServiceAccount _serviceAccount;
         IAccountCollection _accountCollection;
-        IAccountDatabase _accountDatabase;
         private LyraConfig _config;
         ISignatures _signr;
+        GossipListener _gossipListener;
 
         private string NodeTag;
         private bool IsSeedNode = false;
-        private long UIndexSeed = 0;
-
-        private IAsyncStream<ChatMsg> _gossipStream;
 
         public ApiService(ILogger<ApiService> logger, 
-            IServiceProvider serviceProvider,
             IAccountCollection accountCollection,
-            IAccountDatabase accountDatabase,
             ServiceAccount serviceAccount,
-            IOptions<LyraConfig> config)
+            GossipListener gossipListener,
+            IOptions<LyraConfig> config
+            )
         {
             _logger = logger;
             _config = config.Value;
             _accountCollection = accountCollection;
-            _accountDatabase = accountDatabase;
             _serviceAccount = serviceAccount;
+            _gossipListener = gossipListener;
         }
 
-        //// main
-        //public async Task InitializeNodeAsync(string nodeTag, bool isSeedNode)
-        //{
-        //    NodeTag = nodeTag;
-        //    IsSeedNode = isSeedNode;
-
-        //    Console.WriteLine("Starting Lyra network: " + _config.NetworkId);
-
-        //    UIndexSeed = await _accountCollection.GetBlockCountAsync();
-            
-        //    Console.WriteLine("Database Location: mongodb " + (_accountCollection as MongoAccountCollection).Cluster);
-        //    Console.WriteLine("Node is starting");
-        //}
-
-        public override Task OnActivateAsync()
+        public override async Task OnActivateAsync()
         {
             _signr = GrainFactory.GetGrain<ISignaturesForGrain>(0);
 
-            return InitGossipChannel();
-        }
-
-        private async Task InitGossipChannel()
-        {
-            _gossipStream = GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
-                .GetStream<ChatMsg>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
-            await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
-
-            RegisterTimer(s =>
-            {
-                return _gossipStream.OnNextAsync(new ChatMsg($"LyraNode[{NodeTag}]", "ImLive"));
-            }, null, TimeSpan.FromMilliseconds(60000), TimeSpan.FromMilliseconds(60000));
-
-            //await _gossipStream.OnNextAsync(new ChatMsg($"LyraNode[{NodeTag}]", $"Startup. IsSeedNode: {IsSeedNode}"));
+            await Gossip(new ChatMsg($"LyraNode[{NodeTag}]", $"Startup. IsSeedNode: {IsSeedNode}"));
         }
 
         public bool ModeConsensus => NodeService.Instance.ModeConsensus;
 
-        public async Task SendMessage(ChatMsg msg)
+        public async Task Gossip(string txt)
         {
-            await _gossipStream.OnNextAsync(msg);
+            await Gossip(new ChatMsg($"LyraNode[{NodeTag}]", txt));
+        }
+        public async Task Gossip(ChatMsg msg)
+        {
+            await _gossipListener.SendMessage(msg);
         }
 
-        public Task OnCompletedAsync()
+        private async Task<bool> GossipForConsensus(long uIndex)
         {
-            _logger.LogInformation("Chatroom message stream received stream completed event");
-            return Task.CompletedTask;
+            await Task.Delay(1000000000);
+            return true;
         }
 
-        public Task OnErrorAsync(Exception ex)
-        {
-            _logger.LogInformation($"Chatroom is experiencing message delivery failure, ex :{ex}");
-            return Task.CompletedTask;
-        }
-
-        public Task OnNextAsync(ChatMsg item, StreamSequenceToken token = null)
-        {
-            var info = $"=={item.Created}==         {item.From} said: {item.Text}";
-            _logger.LogInformation(info);
-            return Task.CompletedTask;
-        }
-
-        public long GenerateUniversalBlockId()
+        public async Task<long> GenerateUniversalBlockIdAsync()
         {
             // if self master, use seeds; if not, ask master node
-            return UIndexSeed++;
+            return await _accountCollection.GetBlockCountAsync();
         }
 
-        internal Task<bool> Pre_PrepareAsync(TransactionBlock block)
+        internal async Task<bool> Pre_PrepareAsync(TransactionBlock block)
         {
-            throw new NotImplementedException();
+            block.UIndex = await GenerateUniversalBlockIdAsync();
+            block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
+
+            ChatMsg msg = new ChatMsg
+            {
+                From = NodeTag,
+                Type = ChatMessageType.AuthorizerPrePrepare,
+                BlockToAuth = block,
+                BlockUIndex = block.UIndex,
+                Text = "Need Consensus",
+                Created = DateTime.Now
+            };
+
+            await Gossip(msg);
+            return true;
         }
 
         internal Task<bool> PrepareAsync(TransactionBlock block)
@@ -240,13 +214,24 @@ namespace Lyra.Authorizer.Decentralize
 
             var result = new AuthorizationAPIResult();
 
+            // first send to network. 
+            if (!await Pre_PrepareAsync(sendBlock))
+            {
+                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
+                return result;
+            }
+
             try
             {
-                var authorizer = (sendBlock is ExchangingBlock) ?
-                    GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ExchangingAuthorizer") :
-                    GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.SendTransferAuthorizer");
+                //var authorizer = (sendBlock is ExchangingBlock) ?
+                //    GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ExchangingAuthorizer") :
+                //    GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.SendTransferAuthorizer");
 
-                result.ResultCode = await authorizer.Authorize(sendBlock);
+                //var localAuthResult = await authorizer.Authorize(sendBlock);
+
+
+                var consensusResult = await GossipForConsensus(sendBlock.UIndex);
+
                 if (result.ResultCode != APIResultCodes.Success)
                 {
                     Console.WriteLine("Authorization failed" + result.ResultCode.ToString());

@@ -27,11 +27,14 @@ namespace Lyra.Node2
         {
             OptionsConfigurationServiceCollectionExtensions.Configure<LyraConfig>(services, Configuration.GetSection("Lyra"));
 
+            services.AddHostedService<NodeService>();
+
             // mongodb
             services.AddSingleton<IAccountCollection, MongoAccountCollection>();
             services.AddSingleton<IAccountDatabase, MongoServiceAccountDatabase>();
 
             services.AddSingleton(typeof(ServiceAccount));
+            services.AddSingleton(typeof(GossipListener));
             //services.AddSingleton<INotifyAPI, NotifyService>();
 
             //services.AddGrpc();

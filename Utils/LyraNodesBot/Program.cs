@@ -31,7 +31,7 @@ namespace LyraNodesBot
 
                 var watch = new StreamWatcher(client.Client);
                 var myName = "LyraNodeBot";
-                watch.OnNodeChat += async (m) => await monitor.SendGroupMessageAsync($"{m.From}: {m.Text}");
+                watch.OnNodeChat += async (m) => await monitor.SendGroupMessageAsync($"{m.From}: {m.Text} Consensus: {m.Type} BlockType: {m.BlockToAuth?.BlockType}");
                 await watch.Init(myName);
 
                 while (true)

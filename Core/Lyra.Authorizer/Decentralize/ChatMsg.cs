@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Lyra.Core.Blocks;
+using Lyra.Core.Blocks.Transactions;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Lyra.Authorizer.Decentralize
 {
-	public enum ChatMessageType { NewLeader, NewStaker };
+	public enum ChatMessageType { General, OperatorEvent, NodeEvent, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
 
 	public class ChatMsg
 	{
@@ -16,6 +18,10 @@ namespace Lyra.Authorizer.Decentralize
 		public ChatMessageType Type { get; set; }
 		public string Text { get; set; }
 
+		// use BlockAPIResult to deserialize it
+		public long BlockUIndex { get; set; }
+		public APIResultCodes AuthResult { get; set; }
+		public TransactionBlock BlockToAuth { get; set; }
 
 		public ChatMsg()
 		{

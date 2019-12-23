@@ -49,6 +49,11 @@ namespace Lyra.Authorizer.Decentralize
             try
             {
                 var last_sync_block = _serviceAccount.GetLatestBlock();
+                if(last_sync_block == null)
+                {
+                    // empty database. 
+                    throw new Exception("Database empty.");
+                }
                 result.Height = last_sync_block.Index;
                 result.SyncHash = last_sync_block.Hash;
                 result.NetworkId = _config.NetworkId;

@@ -26,6 +26,37 @@ namespace Lyra.Authorizer.Authorizers
             Result = block;
         }
     }
+
+    public class AuthorizedCommiter : BaseAuthorizer
+    {
+        public AuthorizedCommiter(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(config, serviceAccount, accountCollection)
+        {
+        }
+
+        public override Task<APIResultCodes> Commit<T>(T tblock)
+        {
+            return CommitAsync<T>(tblock);
+        }
+        private async Task<APIResultCodes> CommitAsync<T>(T tblock)
+        {
+            var signed = await Sign(tblock);
+            if (signed)
+            {
+                _accountCollection.AddBlock(tblock as TransactionBlock);
+                return APIResultCodes.Success;
+            }
+            else
+            {
+                return APIResultCodes.NotAllowedToSign;
+            }
+        }
+
+        protected override APIResultCodes ValidateFee(TransactionBlock block)
+        {
+            throw new NotImplementedException();
+        }
+    }
     public abstract class BaseAuthorizer : Grain, IAuthorizer
     {
         protected ISignatures _signr;
@@ -47,6 +78,11 @@ namespace Lyra.Authorizer.Authorizers
         }
 
         public virtual Task<APIResultCodes> Authorize<T>(T tblock)
+        {
+            throw new NotImplementedException("Must override");
+        }
+
+        public virtual Task<APIResultCodes> Commit<T>(T tblock)
         {
             throw new NotImplementedException("Must override");
         }

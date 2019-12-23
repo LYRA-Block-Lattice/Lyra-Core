@@ -43,6 +43,7 @@ namespace Lyra.Authorizer.Decentralize
 
         AutoResetEvent _waitOrder;
         ILogger _log;
+        GossipListener _gossiper;
 
         ZooKeeperClusteringSiloOptions _zkClusterOptions;
         private ZooKeeper _zk;
@@ -57,7 +58,9 @@ namespace Lyra.Authorizer.Decentralize
         public NodeService(IOptions<LyraConfig> config,
             IOptions<ZooKeeperClusteringSiloOptions> zkOptions,
             ServiceAccount serviceAccount,
-            ILogger<NodeService> logger)
+            ILogger<NodeService> logger,
+            GossipListener gossiper
+            )
         {
             if (Instance == null)
                 Instance = this;
@@ -69,15 +72,7 @@ namespace Lyra.Authorizer.Decentralize
             //_dataApi = dataApi;
             _log = logger;
             _serviceAccount = serviceAccount;
-
-            //BaseAuthorizer.OnAuthorized += (s, e) =>
-            //{
-            //    if (e.Result is SendTransferBlock)
-            //    {
-            //        var block = e.Result as SendTransferBlock;
-            //        _log.LogWarning("Transfer {0} from {1} to {2}", block.Index, block.AccountID, block.DestinationAccountId);
-            //    }
-            //};
+            _gossiper = gossiper;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -85,6 +80,8 @@ namespace Lyra.Authorizer.Decentralize
             _waitOrder = new AutoResetEvent(false);
             try
             {
+                await Task.Delay(15000);// wait for silo to startup
+                await _gossiper.Init("dev1node");
                 await Task.Delay(100000000);
                 _watcher = new ZooKeeperWatcher(_log);
                 _zk = new ZooKeeper(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher);

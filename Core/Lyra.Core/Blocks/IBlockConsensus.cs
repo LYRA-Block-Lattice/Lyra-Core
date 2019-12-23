@@ -6,6 +6,6 @@ namespace Lyra.Core.Blocks
 {
     public interface IBlockConsensus
     {
-        long GenerateUniversalBlockId();
+        long GenerateUniversalBlockIdAsync();
     }
 }

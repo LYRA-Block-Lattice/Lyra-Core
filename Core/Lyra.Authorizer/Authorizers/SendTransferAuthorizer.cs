@@ -61,16 +61,7 @@ namespace Lyra.Authorizer.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            var signed = await Sign(block);
-            if (signed)
-            {
-                _accountCollection.AddBlock(block);
-                return APIResultCodes.Success;
-            }
-            else
-            {
-                return APIResultCodes.NotAllowedToSign;
-            }
+            return APIResultCodes.Success;
         }
 
         protected override APIResultCodes ValidateFee(TransactionBlock block)
