@@ -33,12 +33,17 @@ namespace Lyra.Authorizer.Authorizers
         protected readonly ServiceAccount _serviceAccount;
         protected readonly IAccountCollection _accountCollection;
 
-        public BaseAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public BaseAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
         {
-            _signr = signr;
             _config = config.Value;
             _serviceAccount = serviceAccount;
             _accountCollection = accountCollection;
+        }
+
+        public override Task OnActivateAsync()
+        {
+            _signr = GrainFactory.GetGrain<ISignaturesForGrain>(0);
+            return base.OnActivateAsync();
         }
 
         public virtual Task<APIResultCodes> Authorize<T>(T tblock)
@@ -46,7 +51,7 @@ namespace Lyra.Authorizer.Authorizers
             throw new NotImplementedException("Must override");
         }
 
-        protected APIResultCodes VerifyBlock(TransactionBlock block, TransactionBlock previousBlock)
+        protected async Task<APIResultCodes> VerifyBlockAsync(TransactionBlock block, TransactionBlock previousBlock)
         {
             if (_config.NetworkId != block.NetworkId)
                 return APIResultCodes.InvalidNetworkId;
@@ -57,7 +62,8 @@ namespace Lyra.Authorizer.Authorizers
             //if (!Signatures.VerifySignature(block.Hash, block.AccountID, block.Signature))
             //    return APIResultCodes.BlockSignatureValidationFailed;
 
-            if (!block.VerifySignature(block.AccountID))
+            var result = await block.VerifySignatureAsync(_signr, block.AccountID);
+            if (!result)
                 return APIResultCodes.BlockSignatureValidationFailed;
 
             // check if this Index already exists (double-spending, kind of)
@@ -105,10 +111,10 @@ namespace Lyra.Authorizer.Authorizers
         }
 
         // common validations for Send and Receive blocks
-        protected APIResultCodes VerifyTransactionBlock(TransactionBlock block)
+        protected async Task<APIResultCodes> VerifyTransactionBlockAsync(TransactionBlock block)
         {
             // Validate the account id
-            if (!_signr.ValidateAccountId(block.AccountID))
+            if (!SignaturesBase.ValidateAccountId(block.AccountID))
                 return APIResultCodes.InvalidAccountId;
 
             if (!string.IsNullOrEmpty(block.PreviousHash)) // not for new account
@@ -122,7 +128,8 @@ namespace Lyra.Authorizer.Authorizers
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
-                    if (!_signr.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature))
+                    var result = await _signr.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature);
+                    if (!result)
                         return APIResultCodes.AccountChainSignatureValidationFailed;
 
                     thisBlock = prevBlock;
@@ -164,7 +171,7 @@ namespace Lyra.Authorizer.Authorizers
         //    return APIResultCodes.Success;
         //}
 
-        protected virtual APIResultCodes ValidateNonFungible(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        protected virtual async Task<APIResultCodes> ValidateNonFungibleAsync(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
             TransactionInfoEx transaction = send_or_receice_block.GetTransaction(previousBlock);
 
@@ -189,7 +196,8 @@ namespace Lyra.Authorizer.Authorizers
             if (send_or_receice_block.NonFungibleToken.TokenCode != transaction.TokenCode)
                 return APIResultCodes.InvalidNonFungibleTokenCode;
 
-            if (!send_or_receice_block.NonFungibleToken.VerifySignature(token_block.NonFungibleKey))
+            var vr = await send_or_receice_block.NonFungibleToken.VerifySignatureAsync(_signr, token_block.NonFungibleKey);
+            if (!vr)
                 return APIResultCodes.NonFungibleSignatureVerificationFailed;
 
             return APIResultCodes.Success;
@@ -233,7 +241,7 @@ namespace Lyra.Authorizer.Authorizers
                 AuthorizationSignature authSignature = new AuthorizationSignature
                 {
                     Key = _serviceAccount.AccountId,
-                    Signature = _signr.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash)
+                    Signature = await _signr.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash)
                 };
 
                 if (block.Authorizations == null)
@@ -246,7 +254,7 @@ namespace Lyra.Authorizer.Authorizers
                 return false;
         }
 
-        protected bool VerifyAuthorizationSignatures(TransactionBlock block)
+        protected async Task<bool> VerifyAuthorizationSignaturesAsync(TransactionBlock block)
         {
             //block.ServiceHash = _serviceAccount.GetLatestBlock(block.ServiceHash);
 
@@ -257,7 +265,7 @@ namespace Lyra.Authorizer.Authorizers
             if (block.Authorizations[0].Key != _serviceAccount.AccountId)
                 return false;
                        
-            return _signr.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);
+            return await _signr.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);
 
         }
     }

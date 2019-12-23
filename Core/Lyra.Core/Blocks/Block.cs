@@ -55,7 +55,7 @@ namespace Lyra.Core.Blocks
 
         public List<AuthorizationSignature> Authorizations { get; set; }
 
-        public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string NetworkId, string ShardId = "Primary")
+        public virtual void InitializeBlock(ISignatures signer, Block prevBlock, string PrivateKey, string NetworkId, string ShardId = "Primary")
         {
             if (prevBlock != null)
             {
@@ -73,7 +73,7 @@ namespace Lyra.Core.Blocks
             Version = 1; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
             BlockType = GetBlockType();
             //Hash = CalculateHash();
-            Sign(PrivateKey);
+            SignAsync(signer, PrivateKey);
         }
 
         public override string GetHashInput()

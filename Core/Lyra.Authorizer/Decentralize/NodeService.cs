@@ -116,8 +116,9 @@ namespace Lyra.Authorizer.Decentralize
                     var queue = _db.GetCollection<ExchangeOrder>("queuedDexOrders");
                     var finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
 
-                    Dealer = new DealEngine(_config, _dataApi, exchangeAccounts, queue, finished);
-                    Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
+                    // TODO: make it DI
+                    //Dealer = new DealEngine(_config, _dataApi, exchangeAccounts, queue, finished);
+                    //Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
                 }
 
                 // check if this node needs sync with master

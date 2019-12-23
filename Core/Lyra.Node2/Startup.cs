@@ -27,8 +27,6 @@ namespace Lyra.Node2
         {
             OptionsConfigurationServiceCollectionExtensions.Configure<LyraConfig>(services, Configuration.GetSection("Lyra"));
 
-            services.AddSingleton<ISignatures, Signatures>();
-
             // mongodb
             services.AddSingleton<IAccountCollection, MongoAccountCollection>();
             services.AddSingleton<IAccountDatabase, MongoServiceAccountDatabase>();

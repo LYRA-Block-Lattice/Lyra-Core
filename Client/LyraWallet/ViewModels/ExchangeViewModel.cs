@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Lyra.Client.Lib;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Exchange;
 using LyraWallet.Models;
@@ -263,7 +264,8 @@ namespace LyraWallet.ViewModels
                     return;
                 }
 
-                order.Sign(App.Container.PrivateKey);
+                var signer = new SignaturesClient();
+                await order.SignAsync(signer, App.Container.PrivateKey);
                 var key = await App.Container.SubmitExchangeOrderAsync(order);
                 if(key.State == OrderState.Placed)
                 {

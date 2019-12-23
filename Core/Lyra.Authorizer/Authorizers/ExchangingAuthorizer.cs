@@ -14,8 +14,8 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class ExchangingAuthorizer : SendTransferAuthorizer
     {
-        public ExchangingAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(signr, config, serviceAccount, accountCollection)
+        public ExchangingAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(config, serviceAccount, accountCollection)
         {
 
         }

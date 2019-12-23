@@ -48,6 +48,9 @@ namespace Lyra.Core.API
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
+#if DEBUG
+            _client.Timeout = new TimeSpan(1, 0, 0);
+#endif
         }
 
         public static async Task<LyraRestClient> CreateAsync(string networkId, string platform, string appName, string appVersion)

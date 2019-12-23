@@ -23,8 +23,6 @@ namespace Lyra.Core.Accounts
         //private RPCClient _rpcClient = null;
         private LyraRestClient _rpcClient = null;
 
-        private ISignatures _signer;
-
         private long SyncHeight = -1;
         private string SyncHash = string.Empty;
 
@@ -48,9 +46,8 @@ namespace Lyra.Core.Accounts
             return block != null ? block.Index : 0;
         }
 
-        public Wallet(IAccountDatabase storage, string NetworkId) : base(null, storage, NetworkId)
+        public Wallet(ISignatures signer, IAccountDatabase storage, string NetworkId) : base(signer, null, storage, NetworkId)
         {
-            _signer = new Signatures();
         }
 
         // one-time "manual" sync up with the node 
@@ -77,9 +74,9 @@ namespace Lyra.Core.Accounts
 
         }
 
-        public string SignAPICall()
+        public async Task<string> SignAPICallAsync()
         {
-            return _signer.GetSignature(PrivateKey, SyncHash);
+            return await _signr.GetSignature(PrivateKey, SyncHash);
         }
 
         public async Task<List<string>> GetTokenNames(string keyword)
@@ -87,7 +84,7 @@ namespace Lyra.Core.Accounts
             if (_rpcClient == null)
                 return new List<string>();
 
-            var result = await _rpcClient.GetTokenNames(AccountId, SignAPICall(), keyword);
+            var result = await _rpcClient.GetTokenNames(AccountId, await SignAPICallAsync(), keyword);
             if (result.ResultCode == APIResultCodes.Success)
                 return result.TokenNames;
             else
@@ -110,7 +107,7 @@ namespace Lyra.Core.Accounts
 
                 if (TransferFee == 0 || TokenGenerationFee == 0 || TradeFee == 0)
                 {
-                    var blockresult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICall());
+                    var blockresult = await _rpcClient.GetLastServiceBlock(AccountId, await SignAPICallAsync());
 
                     if (blockresult.ResultCode != APIResultCodes.Success)
                         return blockresult.ResultCode;
@@ -137,7 +134,7 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                var result = await _rpcClient.GetAccountHeight(AccountId, SignAPICall());
+                var result = await _rpcClient.GetAccountHeight(AccountId, await SignAPICallAsync());
                 if (result.ResultCode != APIResultCodes.Success)
                     return result.ResultCode;
 
@@ -166,7 +163,7 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTransfer(AccountId, SignAPICall());
+                var lookup_result = await _rpcClient.LookForNewTransfer(AccountId, await SignAPICallAsync());
                 int max_counter = 0;
 
                 while (lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
@@ -179,7 +176,7 @@ namespace Lyra.Core.Accounts
                     if (!receive_result.Successful())
                         return receive_result.ResultCode;
 
-                    lookup_result = await _rpcClient.LookForNewTransfer(AccountId, SignAPICall());
+                    lookup_result = await _rpcClient.LookForNewTransfer(AccountId, await SignAPICallAsync());
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -199,7 +196,7 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, SignAPICall());
+                var lookup_result = await _rpcClient.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, await SignAPICallAsync());
 
                 return lookup_result;
             }
@@ -411,7 +408,7 @@ namespace Lyra.Core.Accounts
                 }
                 if (lastBlock.NonFungibleToken != null)
                 {
-                    var discount_token_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, lastBlock.NonFungibleToken.TokenCode, SignAPICall());
+                    var discount_token_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, lastBlock.NonFungibleToken.TokenCode, await SignAPICallAsync());
                     if (discount_token_genesis != null)
                     {
                         var issuer_account_id = (discount_token_genesis.GetBlock() as TokenGenesisBlock).AccountID;
@@ -425,17 +422,17 @@ namespace Lyra.Core.Accounts
             return res;
         }
 
-        public APIResult RestoreAccount(string path, string privateKey)
+        public async Task<APIResult> RestoreAccountAsync(string path, string privateKey)
         {
             try
             {
-                if (!_signer.ValidatePrivateKey(privateKey))
+                if (!SignaturesBase.ValidatePrivateKey(privateKey))
                     return new APIResult() { ResultCode = APIResultCodes.InvalidPrivateKey };
 
                 _storage.Open(path, AccountName);
 
                 PrivateKey = privateKey;
-                AccountId = _signer.GetAccountIdFromPrivateKey(PrivateKey);
+                AccountId = await _signr.GetAccountIdFromPrivateKey(PrivateKey);
 
                 _storage.StorePrivateKey(PrivateKey);
                 _storage.StoreAccountId(AccountId);
@@ -470,7 +467,7 @@ namespace Lyra.Core.Accounts
             var block = _storage.FindBlockByIndex(Index) as TransactionBlock;
             if (block == null)
             {
-                var result = await _rpcClient.GetBlockByIndex(AccountId, Index, SignAPICall());
+                var result = await _rpcClient.GetBlockByIndex(AccountId, Index, await SignAPICallAsync());
                 if (result.ResultCode == APIResultCodes.Success)
                 {
                     block = result.GetBlock() as TransactionBlock;
@@ -485,7 +482,7 @@ namespace Lyra.Core.Accounts
             var block = _storage.FindBlockByHash(Hash) as TransactionBlock;
             if (block == null)
             {
-                var result = await _rpcClient.GetBlockByHash(AccountId, Hash, SignAPICall());
+                var result = await _rpcClient.GetBlockByHash(AccountId, Hash, await SignAPICallAsync());
                 if (result.ResultCode == APIResultCodes.Success)
                 {
                     block = result.GetBlock() as TransactionBlock;
@@ -609,7 +606,7 @@ namespace Lyra.Core.Accounts
                 if (!(sendBlock.Balances.ContainsKey(balance.Key)))
                     sendBlock.Balances.Add(balance.Key, balance.Value);
 
-            sendBlock.InitializeBlock(previousBlock, PrivateKey, NetworkId);
+            sendBlock.InitializeBlock(_signr, previousBlock, PrivateKey, NetworkId);
 
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
@@ -890,12 +887,12 @@ namespace Lyra.Core.Accounts
 
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string SellToken, string BuyToken, TradeOrderListTypes OrderType)
         {
-            return await _rpcClient.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, SignAPICall());
+            return await _rpcClient.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, await SignAPICallAsync());
         }
 
-        public string PrintActiveTradeOrders()
+        public async Task<string> PrintActiveTradeOrdersAsync()
         {
-            var orders_result = _rpcClient.GetActiveTradeOrders(AccountId, null, null, TradeOrderListTypes.All, SignAPICall()).Result;
+            var orders_result = _rpcClient.GetActiveTradeOrders(AccountId, null, null, TradeOrderListTypes.All, await SignAPICallAsync()).Result;
             if (orders_result.ResultCode != APIResultCodes.Success)
             {
                 return "No active trade orders found";
@@ -925,7 +922,7 @@ namespace Lyra.Core.Accounts
             var genesisBlock = _storage.GetTokenInfo(token);
             if (genesisBlock == null)
             {
-                var result = await _rpcClient.GetTokenGenesisBlock(AccountId, token, SignAPICall());
+                var result = await _rpcClient.GetTokenGenesisBlock(AccountId, token, await SignAPICallAsync());
                 if (result.ResultCode == APIResultCodes.Success)
                 {
                     genesisBlock = result.GetBlock() as TokenGenesisBlock;
@@ -963,7 +960,7 @@ namespace Lyra.Core.Accounts
             };
 
             openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount);
-            openReceiveBlock.InitializeBlock(null, PrivateKey, NetworkId);
+            openReceiveBlock.InitializeBlock(_signr, null, PrivateKey, NetworkId);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 
@@ -1029,7 +1026,7 @@ namespace Lyra.Core.Accounts
                 if (!(receiveBlock.Balances.ContainsKey(balance.Key)))
                     receiveBlock.Balances.Add(balance.Key, balance.Value);
 
-            receiveBlock.InitializeBlock(latestBlock, PrivateKey, NetworkId);
+            receiveBlock.InitializeBlock(_signr, latestBlock, PrivateKey, NetworkId);
 
             if (!receiveBlock.ValidateTransaction(latestBlock))
                 throw new ApplicationException("ValidateTransaction failed");
@@ -1110,7 +1107,7 @@ namespace Lyra.Core.Accounts
 
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
             //openTokenGenesisBlock.Transaction = transaction;
-            openTokenGenesisBlock.InitializeBlock(null, PrivateKey, NetworkId);
+            openTokenGenesisBlock.InitializeBlock(_signr, null, PrivateKey, NetworkId);
 
             //openTokenGenesisBlock.Signature = Signatures.GetSignature(PrivateKey, openTokenGenesisBlock.Hash);
 
@@ -1210,7 +1207,7 @@ namespace Lyra.Core.Accounts
                 if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
                     tokenBlock.Balances.Add(balance.Key, balance.Value);
 
-            tokenBlock.InitializeBlock(latestBlock, PrivateKey, NetworkId);
+            tokenBlock.InitializeBlock(_signr, latestBlock, PrivateKey, NetworkId);
 
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
 
@@ -1299,7 +1296,7 @@ namespace Lyra.Core.Accounts
         // checks the checksum of public or private key
         public bool ValidatePrivateKey(string private_key)
         {
-            return _signer.ValidatePrivateKey(private_key);
+            return SignaturesBase.ValidatePrivateKey(private_key);
         }
 
         public override void Dispose()

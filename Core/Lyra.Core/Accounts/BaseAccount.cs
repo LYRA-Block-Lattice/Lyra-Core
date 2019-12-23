@@ -1,6 +1,7 @@
 ﻿using System;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Blocks;
+using System.Threading.Tasks;
 
 namespace Lyra.Core.Accounts
 {
@@ -10,8 +11,9 @@ namespace Lyra.Core.Accounts
     /// The storage can be any database module that implements IAccountDatabase interface:
     /// InMemory (wallet only), LiteDB (both wallet and node), or MongoDB/Cosmos (node only).
     /// </summary>
-    public abstract class BaseAccount : IDisposable
+    public class BaseAccount : IDisposable
     {
+        protected ISignatures _signr;
         protected readonly IAccountDatabase _storage;
 
         public string Path { get; set; }
@@ -44,11 +46,23 @@ namespace Lyra.Core.Accounts
             return GetHomePath() + FolderName;
         }
 
-        protected BaseAccount(string accountName, IAccountDatabase storage, string NetworkId)
+        public BaseAccount(ISignatures signr, string accountName, IAccountDatabase storage, string NetworkId)
         {
+            _signr = signr;
             AccountName = accountName;
             _storage = storage; //new AccountDatabase();
             this.NetworkId = NetworkId;
+        }
+
+        /// <summary>
+        /// Delete service account database storage (for unit testing only)
+        /// </summary>
+        /// <param name="DatabaseName">
+        /// Full name including path and file name
+        /// </param>
+        public void Delete(string DatabaseName)
+        {
+            _storage.Delete(DatabaseName);
         }
 
         public Block GetFirstBlock()
@@ -57,9 +71,8 @@ namespace Lyra.Core.Accounts
         }
 
         public Block GetLatestBlock()
-        {
-      
-                return _storage.FindLatestBlock();
+        {      
+            return _storage.FindLatestBlock();
         }
 
         //public int GetBlockCount()
@@ -106,7 +119,7 @@ namespace Lyra.Core.Accounts
 
         // Create a new account (AccountName is the local wallet name)
         // Returns wallet address
-        public string CreateAccount(string path, string accountName, AccountTypes accountType)
+        public async Task<string> CreateAccountAsync(string path, string accountName, AccountTypes accountType)
         {
             if (AccountExistsLocally(path, accountName))
                 throw new ApplicationException(String.Format(@"Account with name ""{0}"" already exists", AccountName));
@@ -117,7 +130,7 @@ namespace Lyra.Core.Accounts
 
             //OpenBlock block = new OpenBlock
             //{
-            generateAccountKeys();
+            await generateAccountKeysAsync();
             //AccountType = accountType;
             //};
             //block.InitializeBlock(null);
@@ -126,16 +139,21 @@ namespace Lyra.Core.Accounts
             //LatestBlock = block;
             return AccountId;
 
-            void generateAccountKeys()
+            async Task generateAccountKeysAsync()
             {
-                ISignatures signr = new Signatures();
-                PrivateKey = signr.GenerateWallet().privateKey;
+                var keys = await _signr.GenerateWallet();
+                PrivateKey = keys.privateKey;
                 _storage.StorePrivateKey(PrivateKey);
-                AccountId = signr.GetAccountIdFromPrivateKey(PrivateKey);
+                AccountId = await _signr.GetAccountIdFromPrivateKey(PrivateKey);
                 _storage.StoreAccountId(AccountId);
 
             }
 
+        }
+
+        public Block FindBlockByHash(string hash)
+        {
+            return _storage.FindBlockByHash(hash);
         }
 
         //public int SendBlock(TransactionBlock block)

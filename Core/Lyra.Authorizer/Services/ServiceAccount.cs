@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Lyra.Authorizer.Decentralize;
 using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Service;
+using Lyra.Core.Cryptography;
 using Microsoft.Extensions.Options;
+using Orleans;
 
 //using Lyra.Core.Cryptography;
 
 namespace Lyra.Authorizer.Services
 {
-    public class ServiceAccount : BaseAccount
+    public class ServiceAccount
     {
         public const string SERVICE_ACCOUNT_NAME = "service_account";
         public string DatabasePath { get; set; }
@@ -19,42 +22,37 @@ namespace Lyra.Authorizer.Services
         Timer timer = null;
         private LyraConfig _config;
 
+        ISignatures _signr;
+        BaseAccount _ba;
+
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
-        public ServiceAccount(IAccountDatabase storage, IOptions<LyraConfig> config) 
-            : base(SERVICE_ACCOUNT_NAME, storage, config.Value.NetworkId)
+        public ServiceAccount(IClusterClient client, IAccountDatabase storage, IOptions<LyraConfig> config) 
         {
             _config = config.Value;
-            Start(true, null);
-        }
 
-        /// <summary>
-        /// Delete service account database storage (for unit testing only)
-        /// </summary>
-        /// <param name="DatabaseName">
-        /// Full name including path and file name
-        /// </param>
-        public void Delete(string DatabaseName)
-        {
-            _storage.Delete(DatabaseName);
+            _signr = client.GetGrain<ISignaturesForGrain>(0);
+            _ba = new BaseAccount(_signr, SERVICE_ACCOUNT_NAME, storage, config.Value.NetworkId);
+
+            Task.Run(() => StartAsync(true, null));            
         }
 
         public ServiceBlock GetLastServiceBlock()
         {
             //var lstServiceBlock = base._storage. _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("SourceHash", sendBlock.Hash)));
-            Block lastBlock = GetLatestBlock();
+            Block lastBlock = _ba.GetLatestBlock();
             if (lastBlock.BlockType == BlockTypes.Service)
                 return lastBlock as ServiceBlock;
             if (lastBlock == null)
                 return null;
             string hash = (lastBlock as SyncBlock).LastServiceBlockHash;
-            ServiceBlock lastServiceBlock = _storage.FindBlockByHash(hash) as ServiceBlock;
+            ServiceBlock lastServiceBlock = _ba.FindBlockByHash(hash) as ServiceBlock;
             return lastServiceBlock;
         }
 
-        public void InitializeServiceAccount(string Path)
+        public async Task InitializeServiceAccountAsync(string Path)
         {
-            CreateAccount(Path, SERVICE_ACCOUNT_NAME, AccountTypes.Service);
+            await _ba.CreateAccountAsync(Path, SERVICE_ACCOUNT_NAME, AccountTypes.Service);
             //_blocks.EnsureIndex(x => x.AccountID);
             //_blocks.EnsureIndex(x => x.Index);
 
@@ -68,38 +66,38 @@ namespace Lyra.Authorizer.Services
                 AcceptedShards = new List<string> { "Primary" },
             };
 
-            firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = AccountId, IPAddress = "127.0.0.1" });
-            firstServiceBlock.InitializeBlock(null, PrivateKey, _config.NetworkId);
+            firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = _ba.AccountId, IPAddress = "127.0.0.1" });
+            firstServiceBlock.InitializeBlock(_signr, null, _ba.PrivateKey, _config.NetworkId);
 
-            firstServiceBlock.Sign(PrivateKey);
+            await firstServiceBlock.SignAsync(_signr, _ba.PrivateKey);
 
             //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
-            AddBlock(firstServiceBlock);
+            _ba.AddBlock(firstServiceBlock);
         }
 
-        private void Start(bool ModeConsensus, string Path)
+        private async Task StartAsync(bool ModeConsensus, string Path)
         {            
-            if (!AccountExistsLocally(Path, SERVICE_ACCOUNT_NAME))
-                InitializeServiceAccount(Path);
+            if (!_ba.AccountExistsLocally(Path, SERVICE_ACCOUNT_NAME))
+                await InitializeServiceAccountAsync(Path);
             else
-                OpenAccount(Path, SERVICE_ACCOUNT_NAME);
+                _ba.OpenAccount(Path, SERVICE_ACCOUNT_NAME);
             DatabasePath = Path;
 
             if(!ModeConsensus)
             {
-                timer = new Timer(_ =>
+                timer = new Timer(async _ =>
                 {
-                    TimingSync();
+                    await TimingSyncAsync();
                 },
                 null, 10 * 1000, 10 * 60 * 1000);
             }
         }
 
-        public void TimingSync()
+        public async Task TimingSyncAsync()
         {
             try
             {
-                Block latestBlock = GetLatestBlock();
+                Block latestBlock = _ba.GetLatestBlock();
                 if (latestBlock == null)
                     throw new Exception("Last service chain block not found!");
 
@@ -116,11 +114,11 @@ namespace Lyra.Authorizer.Services
 
                 SyncBlock sync = new SyncBlock();
                 sync.LastServiceBlockHash = latestServiceBlock.Hash;
-                sync.InitializeBlock(latestBlock, PrivateKey, NetworkId);
-                sync.Sign(PrivateKey);
+                sync.InitializeBlock(_signr, latestBlock, _ba.PrivateKey, _ba.NetworkId);
+                await sync.SignAsync(_signr, _ba.PrivateKey);
 
                 //sync.Signature = Signatures.GetSignature(PrivateKey, sync.Hash);
-                AddBlock(sync);
+                _ba.AddBlock(sync);
             }
             catch (Exception e)
             {
@@ -128,6 +126,10 @@ namespace Lyra.Authorizer.Services
             }
         }
 
+        public Block GetLatestBlock() => _ba.GetLatestBlock();
+        public string AccountId => _ba.AccountId;
+        public string PrivateKey => _ba.PrivateKey;
+        public string NetworkId => _ba.NetworkId;
     }
 
 }

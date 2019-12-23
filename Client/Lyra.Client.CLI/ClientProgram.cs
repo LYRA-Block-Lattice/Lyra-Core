@@ -44,9 +44,6 @@ namespace Lyra.Client.CLI
                 //var gf = host.Services.GetService<IGrainFactory>();
                 //var nodeApi = c.Node;
 
-
-
-
                 var wm = new WalletManager();
                 int mapresult = result.MapResult((Options options) => wm.RunWallet((DAGClientHostedService)client, options).Result, _ => CommandLineError());
 

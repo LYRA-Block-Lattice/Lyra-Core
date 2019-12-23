@@ -15,16 +15,16 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class NewTokenAuthorizer: BaseAuthorizer
     {
-        public NewTokenAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(signr, config, serviceAccount, accountCollection)
+        public NewTokenAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(config, serviceAccount, accountCollection)
         {
         }
 
         public override Task<APIResultCodes> Authorize<T>(T tblock)
         {
-            return Task.FromResult(AuthorizeImpl<T>(tblock));
+            return AuthorizeImplAsync<T>(tblock);
         }
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is TokenGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -41,11 +41,11 @@ namespace Lyra.Authorizer.Authorizers
                 return APIResultCodes.CouldNotFindLatestBlock;
 
             // 2. Validate blocks
-            var result = VerifyBlock(block, lastBlock);
+            var result = await VerifyBlockAsync(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = VerifyTransactionBlock(block);
+            result = await VerifyTransactionBlockAsync(block);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -64,14 +64,14 @@ namespace Lyra.Authorizer.Authorizers
 
             if (block.IsNonFungible)
             {
-                if (!_signr.ValidateAccountId(block.NonFungibleKey))
+                if (!SignaturesBase.ValidateAccountId(block.NonFungibleKey))
                     return APIResultCodes.InvalidNonFungiblePublicKey;
             }
 
             if (block.RenewalDate > DateTime.Now.Add(TimeSpan.FromDays(366)) || block.RenewalDate < DateTime.Now)
                 return APIResultCodes.InvalidTokenRenewalDate;
 
-            var signed = Sign(block).GetAwaiter().GetResult();
+            var signed = await Sign(block);
             if (signed)
             {
                 _accountCollection.AddBlock(block);

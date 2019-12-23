@@ -16,16 +16,16 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class ImportAccountAuthorizer: BaseAuthorizer
     {
-        public ImportAccountAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(signr, config, serviceAccount, accountCollection)
+        public ImportAccountAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(config, serviceAccount, accountCollection)
         {
         }
 
         public override Task<APIResultCodes> Authorize<T>(T tblock)
         {
-            return Task.FromResult(AuthorizeImpl<T>(tblock));
+            return AuthorizeImplAsync<T>(tblock);
         }
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is ReceiveTransferBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -40,14 +40,14 @@ namespace Lyra.Authorizer.Authorizers
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            var result = VerifyBlock(block, lastBlock);
+            var result = await VerifyBlockAsync(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
             //if (lastBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] > block.Balances[LyraGlobal.LYRA_TICKER_CODE])
             //    return AuthorizationResultCodes.NegativeTransactionAmount;
 
-            result = VerifyTransactionBlock(block);
+            result = await VerifyTransactionBlockAsync(block);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -59,11 +59,11 @@ namespace Lyra.Authorizer.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = ValidateNonFungible(block, lastBlock);
+            result = await ValidateNonFungibleAsync(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
-            var signed = Sign(block).GetAwaiter().GetResult();
+            var signed = await Sign(block);
             if (signed)
             {
                 _accountCollection.AddBlock(block);
@@ -133,9 +133,9 @@ namespace Lyra.Authorizer.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected override APIResultCodes ValidateNonFungible(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        protected override async Task<APIResultCodes> ValidateNonFungibleAsync(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
-            var result = base.ValidateNonFungible(send_or_receice_block, previousBlock);
+            var result = await base.ValidateNonFungibleAsync(send_or_receice_block, previousBlock);
             if (result != APIResultCodes.Success)
                 return result;
 

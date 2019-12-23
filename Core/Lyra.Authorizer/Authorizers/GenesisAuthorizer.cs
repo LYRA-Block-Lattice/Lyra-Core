@@ -15,16 +15,16 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class GenesisAuthorizer: BaseAuthorizer
     {
-        public GenesisAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(signr, config, serviceAccount, accountCollection)
+        public GenesisAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(config, serviceAccount, accountCollection)
         {
         }
 
         public override Task<APIResultCodes> Authorize<T>(T tblock)
         {
-            return Task.FromResult(AuthorizeImpl<T>(tblock));
+            return AuthorizeImplAsync<T>(tblock);
         }
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is LyraTokenGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -40,7 +40,7 @@ namespace Lyra.Authorizer.Authorizers
                 return APIResultCodes.AccountAlreadyExists; // 
 
             // 2. Validate blocks
-            var result = VerifyBlock(block, null);
+            var result = await VerifyBlockAsync(block, null);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -50,7 +50,7 @@ namespace Lyra.Authorizer.Authorizers
             if (_accountCollection.FindTokenGenesisBlock(block.Hash, LyraGlobal.LYRA_TICKER_CODE) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
-            var signed = Sign(block).GetAwaiter().GetResult();
+            var signed = await Sign(block);
             if (signed)
             {
                 _accountCollection.AddBlock(block);

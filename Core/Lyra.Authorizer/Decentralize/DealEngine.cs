@@ -7,6 +7,7 @@ using Lyra.Exchange;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using Orleans;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,6 +19,7 @@ namespace Lyra.Authorizer.Decentralize
 {
     public class DealEngine
     {
+        IClusterClient _client;
         private IMongoCollection<ExchangeAccount> _exchangeAccounts;
         private IMongoCollection<ExchangeOrder> _queue;
         private IMongoCollection<ExchangeOrder> _finished;
@@ -25,20 +27,26 @@ namespace Lyra.Authorizer.Decentralize
         private LyraConfig _config;
         private INodeAPI _dataApi;
 
+        private ISignatures _signer;
+
         public event EventHandler OnNewOrder;
 
         public DealEngine(LyraConfig config,
             INodeAPI dataApi,
             IMongoCollection<ExchangeAccount> exchangeAccounts,
             IMongoCollection<ExchangeOrder> queue,
-            IMongoCollection<ExchangeOrder> finished
+            IMongoCollection<ExchangeOrder> finished,
+            IClusterClient client
             )
         {
+            _client = client;
             _config = config;
             _dataApi = dataApi;
             _exchangeAccounts = exchangeAccounts;
             _queue = queue;
             _finished = finished;
+
+            _signer = client.GetGrain<ISignaturesForGrain>(0);
         }
         internal async Task<ExchangeAccount> GetExchangeAccount(string accountID, bool refreshBalance = false)
         {
@@ -51,9 +59,9 @@ namespace Lyra.Authorizer.Decentralize
             {
                 // create wallet and update balance
                 var memStor = new AccountInMemoryStorage();
-                var acctWallet = new ExchangeAccountWallet(memStor, _config.NetworkId);
+                var acctWallet = new ExchangeAccountWallet(_signer, memStor, _config.NetworkId);
                 acctWallet.AccountName = "tmpAcct";
-                acctWallet.RestoreAccount("", acct.PrivateKey);
+                await acctWallet.RestoreAccountAsync("", acct.PrivateKey);
                 acctWallet.OpenAccount("", acctWallet.AccountName);
                 for (int i = 0; i < 300; i++)
                 {
@@ -100,9 +108,8 @@ namespace Lyra.Authorizer.Decentralize
                 return findAccount;
             }
 
-            var signr = new Signatures();
-            var walletPrivateKey = signr.GenerateWallet().privateKey;
-            var walletAccountId = signr.GetAccountIdFromPrivateKey(walletPrivateKey);
+            var walletPrivateKey = (await _signer.GenerateWallet()).privateKey;
+            var walletAccountId = await _signer.GetAccountIdFromPrivateKey(walletPrivateKey);
 
             var account = new ExchangeAccount()
             {
@@ -383,9 +390,10 @@ namespace Lyra.Authorizer.Decentralize
         {
             // create wallet and update balance
             var memStor = new AccountInMemoryStorage();
-            var fromWallet = new Wallet(memStor, _config.NetworkId);
+
+            var fromWallet = new Wallet(_signer, memStor, _config.NetworkId);
             fromWallet.AccountName = "tmpAcct";
-            fromWallet.RestoreAccount("", privateKey);
+            fromWallet.RestoreAccountAsync("", privateKey);
             fromWallet.OpenAccount("", fromWallet.AccountName);
             APIResultCodes result = APIResultCodes.UnknownError;
             for (int i = 0; i < 300; i++)

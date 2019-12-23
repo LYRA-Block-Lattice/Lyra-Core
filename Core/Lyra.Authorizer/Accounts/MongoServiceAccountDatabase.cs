@@ -49,6 +49,9 @@ namespace Lyra.Authorizer
 
             BsonClassMap.RegisterClassMap<SyncBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
+
+            _blocks = GetDatabase().GetCollection<Block>(_BlockCollectionName);
+            _params = GetDatabase().GetCollection<AccountParam>(_ParamsCollectionName);
         }
 
         public void Delete(string Database = null)
@@ -98,8 +101,8 @@ namespace Lyra.Authorizer
 
         public void Open(string path, string accountName)
         {
-            _blocks = GetDatabase().GetCollection<Block>(_BlockCollectionName);
-            _params = GetDatabase().GetCollection<AccountParam>(_ParamsCollectionName);
+            //_blocks = GetDatabase().GetCollection<Block>(_BlockCollectionName);
+            //_params = GetDatabase().GetCollection<AccountParam>(_ParamsCollectionName);
 
             //_blocks = _db.GetCollection<Block>("blocks");
 

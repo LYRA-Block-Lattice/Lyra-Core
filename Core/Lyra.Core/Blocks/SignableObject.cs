@@ -6,12 +6,12 @@ using System.Text;
 using Newtonsoft.Json;
 
 using Lyra.Core.Cryptography;
+using System.Threading.Tasks;
 
 namespace Lyra.Core.Blocks
 {
     abstract public class SignableObject
     {
-        private ISignatures _signer = new Signatures();
         public string Hash { get; set; }
 
         public string Signature { get; set; }
@@ -33,11 +33,11 @@ namespace Lyra.Core.Blocks
             }
         }
 
-        public string Sign(string PrivateKey)
+        public async Task<string> SignAsync(ISignatures signer, string PrivateKey)
         {
             if (string.IsNullOrWhiteSpace(Hash))
                 Hash = CalculateHash();
-            Signature = _signer.GetSignature(PrivateKey, Hash);
+            Signature = await signer.GetSignature(PrivateKey, Hash);
             return this.Signature;
         }
 
@@ -50,12 +50,12 @@ namespace Lyra.Core.Blocks
             return true;
         }
 
-        public bool VerifySignature(string PublicKey)
+        public async Task<bool> VerifySignatureAsync(ISignatures signer, string PublicKey)
         {
             if (!VerifyHash())
                 return false;
 
-            return _signer.VerifyAccountSignature(Hash, PublicKey, Signature);
+            return await signer.VerifyAccountSignature(Hash, PublicKey, Signature);
         }
 
         public virtual string Print()

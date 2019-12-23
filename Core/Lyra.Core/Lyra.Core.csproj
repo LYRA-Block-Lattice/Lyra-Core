@@ -39,10 +39,11 @@
     <Compile Remove="API\AuthenticationInfo.cs" />
     <Compile Remove="Blocks\BlockTypes.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <Reference Include="crypto">
-      <HintPath>..\..\..\..\code\3rd-part\bc-csharp\crypto\bin\pcl2\Debug\crypto.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\..\..\..\code\3rd-part\bc-csharp\crypto\crypto.pcl2.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Mono.Android">
       <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\ReferenceAssemblies\Microsoft\Framework\MonoAndroid\v8.1\Mono.Android.dll</HintPath>
     </Reference>

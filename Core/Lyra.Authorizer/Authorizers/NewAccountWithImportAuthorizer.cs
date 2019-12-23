@@ -13,16 +13,16 @@ namespace Lyra.Authorizer.Authorizers
 {
     public class NewAccountWithImportAuthorizer : ReceiveTransferAuthorizer
     {
-        public NewAccountWithImportAuthorizer(ISignatures signr, IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(signr, config, serviceAccount, accountCollection)
+        public NewAccountWithImportAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+            : base(config, serviceAccount, accountCollection)
         {
         }
 
         public override Task<APIResultCodes> Authorize<T>(T tblock)
         {
-            return Task.FromResult(AuthorizeImpl<T>(tblock));
+            return AuthorizeImplAsync<T>(tblock);
         }
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is OpenWithReceiveTransferBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -37,11 +37,11 @@ namespace Lyra.Authorizer.Authorizers
             if (_accountCollection.FindLatestBlock(block.AccountID) != null)
                 return APIResultCodes.AccountBlockAlreadyExists;
 
-            var result = VerifyBlock(block, null);
+            var result = await VerifyBlockAsync(block, null);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = VerifyTransactionBlock(block);
+            result = await VerifyTransactionBlockAsync(block);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -49,11 +49,11 @@ namespace Lyra.Authorizer.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = ValidateNonFungible(block, null);
+            result = await ValidateNonFungibleAsync(block, null);
             if (result != APIResultCodes.Success)
                 return result;
 
-            var signed = Sign(block).GetAwaiter().GetResult();
+            var signed = await Sign(block);
             if (signed)
             {
                 _accountCollection.AddBlock(block);

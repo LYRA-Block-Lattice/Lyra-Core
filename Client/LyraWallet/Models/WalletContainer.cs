@@ -17,6 +17,7 @@ using Lyra.Exchange;
 using Lyra.Core.Accounts;
 using Lyra.Client.Lib;
 using Microsoft.Extensions.Hosting;
+using Lyra.Core.Cryptography;
 
 namespace LyraWallet.Models
 {
@@ -40,6 +41,8 @@ namespace LyraWallet.Models
         private LyraRestClient _nodeApiClient;
         private LyraRestNotify _notifyApiClient;
 
+        private ISignatures _signr = new SignaturesClient();
+
         public string DataStoragePath { get => dataStoragePath; set => SetProperty(ref dataStoragePath, value); }
         public string WalletFn { get => walletFn; set => SetProperty(ref walletFn, value); }
         public string CurrentNetwork { get => currentNetwork; set => SetProperty(ref currentNetwork, value); }
@@ -60,7 +63,7 @@ namespace LyraWallet.Models
             if (wallet != null)
                 throw new Exception("Wallet opening");
 
-            wallet = new Wallet(new LiteAccountDatabase(), CurrentNetwork);
+            wallet = new Wallet(_signr, new LiteAccountDatabase(), CurrentNetwork);
             wallet.AccountName = "My Account";
             wallet.OpenAccount(App.Container.DataStoragePath, wallet.AccountName);
 
@@ -107,11 +110,11 @@ namespace LyraWallet.Models
 
             var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
             File.WriteAllText(path + "network.txt", network_id);
-            wallet = new Wallet(new LiteAccountDatabase(), network_id)
+            wallet = new Wallet(_signr, new LiteAccountDatabase(), network_id)
             {
                 AccountName = "My Account"
             };
-            await Task.FromResult(wallet.CreateAccount(path, wallet.AccountName, AccountTypes.Standard));
+            await wallet.CreateAccountAsync(path, wallet.AccountName, AccountTypes.Standard);
         }
 
         public async Task CreateByPrivateKey(string network_id, string privatekey)
@@ -121,7 +124,7 @@ namespace LyraWallet.Models
 
             var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
             File.WriteAllText(path + "network.txt", network_id);
-            wallet = new Wallet(new LiteAccountDatabase(), network_id)
+            wallet = new Wallet(_signr, new LiteAccountDatabase(), network_id)
             {
                 AccountName = "My Account"
             };
@@ -132,7 +135,7 @@ namespace LyraWallet.Models
                 throw new InvalidDataException("Invalid Private Key");
             }                
 
-            var result = await Task.FromResult(wallet.RestoreAccount(path, privatekey));
+            var result = await wallet.RestoreAccountAsync(path, privatekey);
             if (!result.Successful())
             {
                 wallet = null;
@@ -256,7 +259,7 @@ namespace LyraWallet.Models
 
         public async Task<string> GetExchangeAccountId()
         {
-            var result = await _nodeApiClient.CreateExchangeAccount(AccountID, wallet.SignAPICall());
+            var result = await _nodeApiClient.CreateExchangeAccount(AccountID, await wallet.SignAPICallAsync());
             if (result.ResultCode == APIResultCodes.Success)
                 return result.AccountId;
             else
@@ -270,7 +273,7 @@ namespace LyraWallet.Models
 
         public async Task<APIResult> CancelExchangeOrder(string key)
         {
-            return await _nodeApiClient.CancelExchangeOrder(AccountID, wallet.SignAPICall(), key);
+            return await _nodeApiClient.CancelExchangeOrder(AccountID, await wallet.SignAPICallAsync(), key);
         }
 
         public async Task<APIResult> RequestMarket(string tokenName)
@@ -280,12 +283,12 @@ namespace LyraWallet.Models
 
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId)
         {
-            return await _nodeApiClient.GetOrdersForAccount(AccountId, wallet.SignAPICall());
+            return await _nodeApiClient.GetOrdersForAccount(AccountId, await wallet.SignAPICallAsync());
         }
 
         public async Task<Dictionary<string, decimal>> GetExchangeBalance()
         {
-            var result = await _nodeApiClient.GetExchangeBalance(AccountID, wallet.SignAPICall());
+            var result = await _nodeApiClient.GetExchangeBalance(AccountID, await wallet.SignAPICallAsync());
             return result.Balance;
         }
     }

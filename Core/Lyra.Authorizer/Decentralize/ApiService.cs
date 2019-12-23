@@ -41,6 +41,7 @@ namespace Lyra.Authorizer.Decentralize
         IAccountCollection _accountCollection;
         IAccountDatabase _accountDatabase;
         private LyraConfig _config;
+        ISignatures _signr;
 
         private string NodeTag;
         private bool IsSeedNode = false;
@@ -78,6 +79,8 @@ namespace Lyra.Authorizer.Decentralize
 
         public override Task OnActivateAsync()
         {
+            _signr = GrainFactory.GetGrain<ISignaturesForGrain>(0);
+
             return InitGossipChannel();
         }
 
@@ -416,7 +419,8 @@ namespace Lyra.Authorizer.Decentralize
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder reqOrder)
         {
             CancelKey key;
-            if (!reqOrder.VerifySignature(reqOrder.AccountID)
+            var result = await reqOrder.VerifySignatureAsync(_signr, reqOrder.AccountID);
+            if (!result
                 || reqOrder.TokenName == null 
                 || reqOrder.Price <= 0 
                 || reqOrder.Amount <= 0)
@@ -505,7 +509,7 @@ namespace Lyra.Authorizer.Decentralize
                     Balances = new Dictionary<string, decimal>()
                 };
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
-                receiveBlock.InitializeBlock(null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+                receiveBlock.InitializeBlock(_signr, null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
 
                 var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountAuthorizer");
                 callresult = await authorizer.Authorize(receiveBlock);
@@ -524,7 +528,7 @@ namespace Lyra.Authorizer.Decentralize
 
                 decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
-                receiveBlock.InitializeBlock(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+                receiveBlock.InitializeBlock(_signr, latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
 
                 var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ReceiveTransferAuthorizer");
                 callresult = await authorizer.Authorize(receiveBlock);

@@ -12,6 +12,7 @@ using System.Net.Http;
 using Lyra.Core.API;
 using Microsoft.Extensions.Hosting;
 using Lyra.Client.Lib;
+using Lyra.Core.Cryptography;
 
 namespace Lyra.Client.CLI
 {
@@ -34,15 +35,16 @@ namespace Lyra.Client.CLI
             bool INMEMORY = options.Database == Options.INMEMORY_DATABASE;
             bool WEB = options.Protocol == Options.WEBAPI_PROTOCOL;
 
+            var signr = new SignaturesClient();
             Wallet wallet;
             if (INMEMORY)
             {
                 var inmemory_storage = new AccountInMemoryStorage();
-                wallet = new Wallet(inmemory_storage, network_id);
+                wallet = new Wallet(signr, inmemory_storage, network_id);
             }
             else
             {
-                wallet = new Wallet(new LiteAccountDatabase(), network_id);
+                wallet = new Wallet(signr, new LiteAccountDatabase(), network_id);
             }
 
             string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + network_id);
@@ -77,7 +79,7 @@ namespace Lyra.Client.CLI
                             string private_key = System.IO.File.ReadAllText(fileName);
                             if (wallet.ValidatePrivateKey(private_key))
                             {
-                                var result = wallet.RestoreAccount(full_path, private_key);
+                                var result = await wallet.RestoreAccountAsync(full_path, private_key);
                                 if (!result.Successful())
                                 {
                                     Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
@@ -93,7 +95,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine("Local account data not found. Would you like to create a new account? (Y/n): ");
                         if (command.ReadYesNoAnswer())
                         {
-                            wallet.CreateAccount(full_path, wallet.AccountName, AccountTypes.Standard);
+                            await wallet.CreateAccountAsync(full_path, wallet.AccountName, AccountTypes.Standard);
                         }
                         else
                         {
@@ -103,7 +105,7 @@ namespace Lyra.Client.CLI
                             if (!wallet.ValidatePrivateKey(privatekey))
                                 continue;
 
-                            var result = wallet.RestoreAccount(full_path, privatekey);
+                            var result = await wallet.RestoreAccountAsync(full_path, privatekey);
                             if (!result.Successful())
                             {
                                 Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
@@ -146,6 +148,8 @@ namespace Lyra.Client.CLI
 
                 Console.WriteLine("Type 'help' to see the list of available commands");
                 Console.WriteLine("");
+
+                await wallet.Sync(rpcClient);
 
                 //timer1 = new Timer(async _ =>
                 //{
