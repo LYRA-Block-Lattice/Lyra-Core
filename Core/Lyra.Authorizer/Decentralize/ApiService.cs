@@ -22,24 +22,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    public class LyraConfig
-    {
-        public string DatabaseName { get; set; }
-        public string DBConnect { get; set; }
-        public string DexDBConnect { get; set; }
-        public string NetworkId { get; set; }
-    }
-
     [StorageProvider(ProviderName = "OrleansStorage")]
     public class ApiService : Grain, INodeTransactionAPI//, IBlockConsensus
     {
         private readonly ILogger<ApiService> _logger;
         ServiceAccount _serviceAccount;
         IAccountCollection _accountCollection;
-        private LyraConfig _config;
+        private LyraNodeConfig _config;
         ISignatures _signr;
         GossipListener _gossipListener;
 
@@ -50,7 +43,7 @@ namespace Lyra.Authorizer.Decentralize
             IAccountCollection accountCollection,
             ServiceAccount serviceAccount,
             GossipListener gossipListener,
-            IOptions<LyraConfig> config
+            IOptions<LyraNodeConfig> config
             )
         {
             _logger = logger;

@@ -15,6 +15,10 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Orleans;
 using Lyra.Core.API;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using Lyra.Authorizer.Decentralize;
+using Lyra.Core.Utils;
 
 namespace Lyra.Client.CLI
 
@@ -66,6 +70,15 @@ namespace Lyra.Client.CLI
             return new HostBuilder()
                 .ConfigureServices(services =>
                 {
+                    //// build config
+                    //var Configuration = new ConfigurationBuilder()
+                    //    .SetBasePath(Directory.GetCurrentDirectory())
+                    //    .AddJsonFile("appsettings.json", false)
+                    //    .AddEnvironmentVariables()
+                    //    .Build();
+
+                    //services.Configure<OrleansConfig>(Configuration.GetSection("Orleans"));
+
                     services.AddSingleton<ClusterClientHostedService>();
 
                     services.Configure<ConsoleLifetimeOptions>(options =>

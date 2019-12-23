@@ -23,12 +23,12 @@ namespace Lyra.Client.Lib
             Client = new ClientBuilder()
                 .UseZooKeeperClustering((options) =>
                 {
-                    options.ConnectionString = OrleansSettings.AppSetting["ZooKeeperClusteringSilo:ConnectionString"];
+                    options.ConnectionString = OrleansSettings.AppSetting["LyraNode:Orleans:ZooKeeperClusteringSilo:ConnectionString"];
                 })
                 .Configure<ClusterOptions>(options =>
                 {
-                    options.ClusterId = OrleansSettings.AppSetting["Cluster:ClusterId"];
-                    options.ServiceId = OrleansSettings.AppSetting["Cluster:ServiceId"];
+                    options.ClusterId = OrleansSettings.AppSetting["LyraNode:Orleans:Cluster:ClusterId"];
+                    options.ServiceId = OrleansSettings.AppSetting["LyraNode:Orleans:Cluster:ServiceId"];
                 })
                 .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ILyraGossip).Assembly).WithReferences())
                 .AddSimpleMessageStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)

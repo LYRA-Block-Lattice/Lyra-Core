@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using Lyra.Authorizer.Decentralize;
 using Microsoft.Extensions.Options;
 using Lyra.Authorizer.Services;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer
 {
@@ -27,7 +28,7 @@ namespace Lyra.Authorizer
     public class MongoAccountCollection : IAccountCollection
     {
         //private const string COLLECTION_DATABASE_NAME = "account_collection";
-        private LyraConfig _config;
+        private LyraNodeConfig _config;
 
         private MongoClient _Client;
 
@@ -41,13 +42,13 @@ namespace Lyra.Authorizer
 
         public string Cluster { get; set; }
 
-        public MongoAccountCollection(IOptions<LyraConfig> config)
+        public MongoAccountCollection(IOptions<LyraNodeConfig> config)
         {
             _config = config.Value;
 
-            _DatabaseName = _config.DatabaseName;
+            _DatabaseName = _config.Lyra.DatabaseName;
 
-            _BlocksCollectionName = _config.NetworkId + "-" + "Primary" + "-blocks";
+            _BlocksCollectionName = _config.Lyra.NetworkId + "-" + "Primary" + "-blocks";
 
             BsonClassMap.RegisterClassMap<TransactionBlock>(cm =>
             {
@@ -96,7 +97,7 @@ namespace Lyra.Authorizer
         private MongoClient GetClient()
         {
             if (_Client == null)
-                _Client = new MongoClient(_config.DBConnect);
+                _Client = new MongoClient(_config.Lyra.DBConnect);
             return _Client;
         }
 

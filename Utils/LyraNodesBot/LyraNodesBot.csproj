@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\..\Core\Lyra.Node2\Orleans.json" Link="Orleans.json">
+    <Content Include="..\..\Client\Lyra.Client.CLI\appsettings.json" Link="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

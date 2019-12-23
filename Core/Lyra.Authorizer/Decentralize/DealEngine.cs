@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Decentralize
 {
@@ -24,14 +25,14 @@ namespace Lyra.Authorizer.Decentralize
         private IMongoCollection<ExchangeOrder> _queue;
         private IMongoCollection<ExchangeOrder> _finished;
 
-        private LyraConfig _config;
+        private LyraNodeConfig _config;
         private INodeAPI _dataApi;
 
         private ISignatures _signer;
 
         public event EventHandler OnNewOrder;
 
-        public DealEngine(LyraConfig config,
+        public DealEngine(LyraNodeConfig config,
             INodeAPI dataApi,
             IMongoCollection<ExchangeAccount> exchangeAccounts,
             IMongoCollection<ExchangeOrder> queue,
@@ -59,7 +60,7 @@ namespace Lyra.Authorizer.Decentralize
             {
                 // create wallet and update balance
                 var memStor = new AccountInMemoryStorage();
-                var acctWallet = new ExchangeAccountWallet(_signer, memStor, _config.NetworkId);
+                var acctWallet = new ExchangeAccountWallet(_signer, memStor, _config.Lyra.NetworkId);
                 acctWallet.AccountName = "tmpAcct";
                 await acctWallet.RestoreAccountAsync("", acct.PrivateKey);
                 acctWallet.OpenAccount("", acctWallet.AccountName);
@@ -391,9 +392,9 @@ namespace Lyra.Authorizer.Decentralize
             // create wallet and update balance
             var memStor = new AccountInMemoryStorage();
 
-            var fromWallet = new Wallet(_signer, memStor, _config.NetworkId);
+            var fromWallet = new Wallet(_signer, memStor, _config.Lyra.NetworkId);
             fromWallet.AccountName = "tmpAcct";
-            fromWallet.RestoreAccountAsync("", privateKey);
+            await fromWallet.RestoreAccountAsync("", privateKey);
             fromWallet.OpenAccount("", fromWallet.AccountName);
             APIResultCodes result = APIResultCodes.UnknownError;
             for (int i = 0; i < 300; i++)

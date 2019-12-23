@@ -13,7 +13,7 @@ namespace Lyra.Core.Utils
         {
             AppSetting = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("Orleans.json")
+                    .AddJsonFile("appsettings.json")
                     .Build();
         }
     }

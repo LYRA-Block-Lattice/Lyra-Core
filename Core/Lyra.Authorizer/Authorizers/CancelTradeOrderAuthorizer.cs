@@ -8,12 +8,13 @@ using Lyra.Authorizer.Decentralize;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Cryptography;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class CancelTradeOrderAuthorizer: BaseAuthorizer
     {
-        public CancelTradeOrderAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public CancelTradeOrderAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
             : base(config, serviceAccount, accountCollection)
         {
             

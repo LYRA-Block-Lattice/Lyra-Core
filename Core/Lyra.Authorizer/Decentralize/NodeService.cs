@@ -34,7 +34,7 @@ namespace Lyra.Authorizer.Decentralize
         public static DealEngine Dealer { get; private set; }
         private const int ZOOKEEPER_CONNECTION_TIMEOUT = 2000;
 
-        private LyraConfig _config;
+        private LyraNodeConfig _config;
 
         private INodeAPI _dataApi;
         public MongoClient client;
@@ -55,7 +55,7 @@ namespace Lyra.Authorizer.Decentralize
 
         public LyraNetworkConfigration LyraNetworkConfig { get; set; }
 
-        public NodeService(IOptions<LyraConfig> config,
+        public NodeService(IOptions<LyraNodeConfig> config,
             IOptions<ZooKeeperClusteringSiloOptions> zkOptions,
             ServiceAccount serviceAccount,
             ILogger<NodeService> logger,
@@ -106,7 +106,7 @@ namespace Lyra.Authorizer.Decentralize
                     //BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
                     //BsonSerializer.RegisterSerializer(typeof(decimal?), new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
 
-                    client = new MongoClient(_config.DexDBConnect);
+                    client = new MongoClient(_config.Lyra.DexDBConnect);
                     _db = client.GetDatabase("Dex");
 
                     var exchangeAccounts = _db.GetCollection<ExchangeAccount>("exchangeAccounts");
@@ -118,8 +118,6 @@ namespace Lyra.Authorizer.Decentralize
                     //Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
                 }
 
-                // check if this node needs sync with master
-                var myIp = OrleansSettings.AppSetting["EndPoint:AdvertisedIPAddress"];
                 // init api service
                 //await (_dataApi as ApiService).InitializeNodeAsync(myIp, LyraNetworkConfig.seed == myIp);
             }

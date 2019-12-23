@@ -22,6 +22,8 @@
     <ProjectReference Include="..\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="appsettings.Development.json" />
+    <None Remove="appsettings.json" />
     <None Remove="My Account.db" />
     <None Remove="lyraclient-mac\libsos.dylib" />
     <None Remove="lyraclient-mac\Lyra.Client.WebAPI.dll" />
@@ -669,8 +671,15 @@
     <None Remove="lyracli-mac-0.5.2\CommandLine.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\Core\Lyra.Node2\Orleans.json" Link="Orleans.json">
+    <Content Include="appsettings.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

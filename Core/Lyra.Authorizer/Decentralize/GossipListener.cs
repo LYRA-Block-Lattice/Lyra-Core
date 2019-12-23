@@ -101,7 +101,7 @@ namespace Lyra.Authorizer.Decentralize
                 }
                 authResults.Add((item.From, item.AuthResult));     
                 
-                if(authResults.Count(a => a.result == APIResultCodes.Success) > 0)  //need to get from global config
+                if(authResults.Count(a => a.result == APIResultCodes.Success) > 1)  //need to get from global config
                 {
                     // do commit
                     var commiter = _client.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.AuthorizedCommiter");

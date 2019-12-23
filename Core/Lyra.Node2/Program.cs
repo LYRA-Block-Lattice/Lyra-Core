@@ -50,6 +50,7 @@ namespace Lyra.Node2
                 })
                 .UseOrleans((cntx, siloBuilder) =>
                 {
+                    
                     siloBuilder
                     //.UseLocalhostClustering()
                     //.UseAdoNetClustering(options =>
@@ -59,14 +60,14 @@ namespace Lyra.Node2
                     //})
                     .UseZooKeeperClustering((options) =>
                     {
-                        options.ConnectionString = OrleansSettings.AppSetting["ZooKeeperClusteringSilo:ConnectionString"];
+                        options.ConnectionString = OrleansSettings.AppSetting["LyraNode:Orleans:ZooKeeperClusteringSilo:ConnectionString"];
                     })
                     .Configure<ClusterOptions>(options =>
                     {
-                        options.ClusterId = OrleansSettings.AppSetting["Cluster:ClusterId"];
-                        options.ServiceId = OrleansSettings.AppSetting["Cluster:ServiceId"];
+                        options.ClusterId = OrleansSettings.AppSetting["LyraNode:Orleans:Cluster:ClusterId"];
+                        options.ServiceId = OrleansSettings.AppSetting["LyraNode:Orleans:Cluster:ServiceId"];
                     })
-                    .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Parse(OrleansSettings.AppSetting["EndPoint:AdvertisedIPAddress"]))
+                    .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Parse(OrleansSettings.AppSetting["LyraNode:Orleans:EndPoint:AdvertisedIPAddress"]))
                     .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ApiService).Assembly).WithReferences())
                     //.AddAdoNetGrainStorage("OrleansStorage", options =>
                     //{
@@ -75,7 +76,8 @@ namespace Lyra.Node2
                     //})
                     .AddSimpleMessageStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
                     .AddMemoryGrainStorage("PubSubStore")
-                    .UseDashboard(options => {
+                    .UseDashboard(options =>
+                    {
                         options.Port = 8080;
                     })
                     .AddStartupTask((sp, token) =>
@@ -84,12 +86,6 @@ namespace Lyra.Node2
                         //SiloHandle.TheSilo = cntx;
                         return Task.CompletedTask;
                     });
-                })
-                .ConfigureServices(services =>
-                {
-                    //services.AddTransient(typeof(SiloHandle));
-                    //services.AddHostedService<NodeService>();
-                    //services.AddSingleton<INodeAPI, ApiService>();
                 });
     }
 }

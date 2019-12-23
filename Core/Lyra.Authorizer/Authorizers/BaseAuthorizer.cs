@@ -29,7 +29,7 @@ namespace Lyra.Authorizer.Authorizers
 
     public class AuthorizedCommiter : BaseAuthorizer
     {
-        public AuthorizedCommiter(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public AuthorizedCommiter(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
             : base(config, serviceAccount, accountCollection)
         {
         }
@@ -60,11 +60,11 @@ namespace Lyra.Authorizer.Authorizers
     public abstract class BaseAuthorizer : Grain, IAuthorizer
     {
         protected ISignatures _signr;
-        private LyraConfig _config;
+        private LyraNodeConfig _config;
         protected readonly ServiceAccount _serviceAccount;
         protected readonly IAccountCollection _accountCollection;
 
-        public BaseAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public BaseAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
         {
             _config = config.Value;
             _serviceAccount = serviceAccount;
@@ -89,7 +89,7 @@ namespace Lyra.Authorizer.Authorizers
 
         protected async Task<APIResultCodes> VerifyBlockAsync(TransactionBlock block, TransactionBlock previousBlock)
         {
-            if (_config.NetworkId != block.NetworkId)
+            if (_config.Lyra.NetworkId != block.NetworkId)
                 return APIResultCodes.InvalidNetworkId;
 
             if (!block.IsBlockValid(previousBlock))

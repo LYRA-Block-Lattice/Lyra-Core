@@ -10,12 +10,13 @@ using Lyra.Authorizer.Decentralize;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Cryptography;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class GenesisAuthorizer: BaseAuthorizer
     {
-        public GenesisAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public GenesisAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
             : base(config, serviceAccount, accountCollection)
         {
         }

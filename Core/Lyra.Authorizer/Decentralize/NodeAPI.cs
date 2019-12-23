@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Decentralize
 {
@@ -20,11 +21,11 @@ namespace Lyra.Authorizer.Decentralize
     {
         IAccountCollection _accountCollection;
         ServiceAccount _serviceAccount;
-        private LyraConfig _config;
+        private LyraNodeConfig _config;
 
         public NodeAPI(ServiceAccount serviceAccount,
             IAccountCollection accountCollection,
-            IOptions<LyraConfig> config)
+            IOptions<LyraNodeConfig> config)
         {
             _accountCollection = accountCollection;
             _serviceAccount = serviceAccount;
@@ -56,7 +57,7 @@ namespace Lyra.Authorizer.Decentralize
                 }
                 result.Height = last_sync_block.Index;
                 result.SyncHash = last_sync_block.Hash;
-                result.NetworkId = _config.NetworkId;
+                result.NetworkId = _config.Lyra.NetworkId;
                 result.ResultCode = APIResultCodes.Success;
             }
             catch (Exception e)
@@ -101,7 +102,7 @@ namespace Lyra.Authorizer.Decentralize
                 if (_accountCollection.AccountExists(AccountId))
                 {
                     result.Height = _accountCollection.FindLatestBlock(AccountId).Index;
-                    result.NetworkId = _config.NetworkId;
+                    result.NetworkId = _config.Lyra.NetworkId;
                     result.SyncHash = _serviceAccount.GetLatestBlock().Hash;
                     result.ResultCode = APIResultCodes.Success;
                 }

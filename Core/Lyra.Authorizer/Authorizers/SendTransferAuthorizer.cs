@@ -10,12 +10,13 @@ using Lyra.Authorizer.Services;
 using Lyra.Authorizer.Decentralize;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class SendTransferAuthorizer : BaseAuthorizer
     {
-        public SendTransferAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public SendTransferAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
             : base(config, serviceAccount, accountCollection)
         {
         }

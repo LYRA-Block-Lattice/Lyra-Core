@@ -10,6 +10,7 @@ using MongoDB.Bson.Serialization;
 using Lyra.Authorizer.Decentralize;
 using Microsoft.Extensions.Options;
 using Lyra.Authorizer.Services;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer
 {
@@ -18,7 +19,7 @@ namespace Lyra.Authorizer
     // use it in client wallet and node's service account as a single account database
     public class MongoServiceAccountDatabase : IAccountDatabase
     {
-        private LyraConfig _config;
+        private LyraNodeConfig _config;
 
         private MongoClient _Client;
 
@@ -33,19 +34,19 @@ namespace Lyra.Authorizer
         readonly string _BlockCollectionName;
         readonly string _ParamsCollectionName;
 
-        public MongoServiceAccountDatabase(IOptions<LyraConfig> config)
+        public MongoServiceAccountDatabase(IOptions<LyraNodeConfig> config)
             //string ConnectionString, string DatabaseName, string AccountName, string NetworkId, string ShardId = "Primary")
         {
             _config = config.Value;
 
-            _DatabaseName = _config.DatabaseName;
+            _DatabaseName = _config.Lyra.DatabaseName;
             //_NetworkId = NetworkId;
             //_ShardId = ShardId;
             //_AccountName = AccountName;
             var ShardId = "Primary";
 
-            _BlockCollectionName = _config.NetworkId + "-" + ShardId + "-" + ServiceAccount.SERVICE_ACCOUNT_NAME + "-blocks";
-            _ParamsCollectionName = _config.NetworkId + "-" + ShardId + "-" + ServiceAccount.SERVICE_ACCOUNT_NAME + "-params";
+            _BlockCollectionName = _config.Lyra.NetworkId + "-" + ShardId + "-" + ServiceAccount.SERVICE_ACCOUNT_NAME + "-blocks";
+            _ParamsCollectionName = _config.Lyra.NetworkId + "-" + ShardId + "-" + ServiceAccount.SERVICE_ACCOUNT_NAME + "-params";
 
             BsonClassMap.RegisterClassMap<SyncBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
@@ -69,7 +70,7 @@ namespace Lyra.Authorizer
         private MongoClient GetClient()
         {
             if (_Client == null)
-                _Client = new MongoClient(_config.DBConnect);
+                _Client = new MongoClient(_config.Lyra.DBConnect);
             return _Client;
         }
 

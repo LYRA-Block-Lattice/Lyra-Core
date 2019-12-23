@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Orleans.Streams;
 using Lyra.Core.API;
+using System.Configuration;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using Lyra.Core.Utils;
 
 namespace LyraNodesBot
 {
@@ -63,6 +67,15 @@ namespace LyraNodesBot
             return new HostBuilder()
                 .ConfigureServices(services =>
                 {
+                    // build config
+                    var Configuration = new ConfigurationBuilder()
+                        .SetBasePath(Directory.GetCurrentDirectory())
+                        .AddJsonFile("appsettings.json", false)
+                        .AddEnvironmentVariables()
+                        .Build();
+
+                    services.Configure<LyraNodeConfig>(Configuration.GetSection("LyraNode"));
+
                     services.AddSingleton<ClusterClientHostedService>();
                     services.AddSingleton<IHostedService>(_ => _.GetService<ClusterClientHostedService>());
                     services.AddSingleton(_ => _.GetService<ClusterClientHostedService>().Client);
@@ -74,10 +87,6 @@ namespace LyraNodesBot
                         options.SuppressStatusMessages = true;
                     });
                 })
-                //.ConfigureLogging(builder =>
-                //{
-                //    builder.AddConsole();
-                //})
                 .Build();
         }
     }

@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 using Lyra.Core.Blocks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Cryptography;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Authorizers
 {
     public class NewAccountWithImportAuthorizer : ReceiveTransferAuthorizer
     {
-        public NewAccountWithImportAuthorizer(IOptions<LyraConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public NewAccountWithImportAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
             : base(config, serviceAccount, accountCollection)
         {
         }

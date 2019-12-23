@@ -4,6 +4,7 @@ using Lyra.Authorizer.Services;
 using Lyra.Core.Accounts;
 using Lyra.Core.Accounts.Node;
 using Lyra.Core.Cryptography;
+using Lyra.Core.Utils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -25,7 +26,7 @@ namespace Lyra.Node2
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            OptionsConfigurationServiceCollectionExtensions.Configure<LyraConfig>(services, Configuration.GetSection("Lyra"));
+            OptionsConfigurationServiceCollectionExtensions.Configure<LyraNodeConfig>(services, Configuration.GetSection("LyraNode"));
 
             services.AddHostedService<NodeService>();
 

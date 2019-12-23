@@ -9,8 +9,7 @@ using Lyra.Core.Blocks.Service;
 using Lyra.Core.Cryptography;
 using Microsoft.Extensions.Options;
 using Orleans;
-
-//using Lyra.Core.Cryptography;
+using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Services
 {
@@ -20,19 +19,19 @@ namespace Lyra.Authorizer.Services
         public string DatabasePath { get; set; }
 
         Timer timer = null;
-        private LyraConfig _config;
+        private LyraNodeConfig _config;
 
         ISignatures _signr;
         BaseAccount _ba;
 
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
-        public ServiceAccount(IClusterClient client, IAccountDatabase storage, IOptions<LyraConfig> config) 
+        public ServiceAccount(IClusterClient client, IAccountDatabase storage, IOptions<LyraNodeConfig> config) 
         {
             _config = config.Value;
 
             _signr = client.GetGrain<ISignaturesForGrain>(0);
-            _ba = new BaseAccount(_signr, SERVICE_ACCOUNT_NAME, storage, config.Value.NetworkId);
+            _ba = new BaseAccount(_signr, SERVICE_ACCOUNT_NAME, storage, _config.Lyra.NetworkId);
 
             Task.Run(() => StartAsync(true, null));            
         }
@@ -67,7 +66,7 @@ namespace Lyra.Authorizer.Services
             };
 
             firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = _ba.AccountId, IPAddress = "127.0.0.1" });
-            firstServiceBlock.InitializeBlock(_signr, null, _ba.PrivateKey, _config.NetworkId);
+            firstServiceBlock.InitializeBlock(_signr, null, _ba.PrivateKey, _config.Lyra.NetworkId);
 
             await firstServiceBlock.SignAsync(_signr, _ba.PrivateKey);
 
