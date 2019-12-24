@@ -19,9 +19,6 @@ namespace LyraNodesBot
     {
         static async Task Main(string[] args)
         {
-            var monitor = new NodesMonitor();
-            monitor.Start();
-
             Console.WriteLine("Wait for Lyra node start. Press enter to continue...");
             await Task.Delay(10000);
 
@@ -32,6 +29,10 @@ namespace LyraNodesBot
 
                 var api = client.Client.GetGrain<INodeAPI>(0);
                 var height = await api.GetSyncHeight();
+
+                var config = host.Services.GetService<LyraNodeConfig>();
+                var monitor = new NodesMonitor();
+                monitor.Start();
 
                 var watch = new StreamWatcher(client.Client);
                 var myName = "LyraNodeBot";

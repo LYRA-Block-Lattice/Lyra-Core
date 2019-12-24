@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Lyra.Authorizer.Decentralize;
+using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Newtonsoft.Json;
 using org.apache.zookeeper;
 using System;
 using System.Configuration;
@@ -20,10 +23,16 @@ namespace LyraNodesBot
     {
         private readonly TelegramBotClient Bot = new TelegramBotClient(System.IO.File.ReadAllText(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\telegram.txt"));
 
-        private readonly ZooKeeper ZK = new ZooKeeper(ConfigurationManager.AppSettings["zookeeperConnectString"], 2000,
-            new ZooKeeperWatcher(LoggerFactory.Create(builder => { builder.AddConsole(); }).CreateLogger("log")));
+        private ZooKeeperWatcher _watcher = new ZooKeeperWatcher(LoggerFactory.Create(builder => { builder.AddConsole(); }).CreateLogger("log"));
+        //private readonly ZooKeeper ZK = new ZooKeeper(ConfigurationManager.AppSettings["zookeeperConnectString"], 2000,
+        //    new ZooKeeperWatcher(LoggerFactory.Create(builder => { builder.AddConsole(); }).CreateLogger("log")));
 
         private ChatId _groupId = new ChatId(-1001462436848);
+        private LyraNodeConfig _config;
+
+        public NodesMonitor()
+        {
+        }
 
         public void Start()
         {
@@ -48,7 +57,7 @@ namespace LyraNodesBot
 
         public async Task SendGroupMessageAsync(string msg)
         {
-            await Bot.SendTextMessageAsync(_groupId, msg);
+            await Bot.SendTextMessageAsync(_groupId, msg, ParseMode.Markdown);
         }
 
         private async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
@@ -57,17 +66,23 @@ namespace LyraNodesBot
 
             if (message == null || message.Type != MessageType.Text) return;
 
-            switch (message.Text.Split(' ').First())
+            switch (message.Text.Split(' ', '@').First())
             {
                 case "/nodes":
-                    var root = await ZK.getChildrenAsync("/dev");
-                    var sb = new StringBuilder();
-                    foreach(var child in root.Children.Distinct())
+                    await UsingZookeeper(async (zk) =>
                     {
-                        sb.AppendLine(child);
-                    }
-                    sb.AppendLine(root.Stat.getMtime().ToString());
-                    await Bot.SendTextMessageAsync(message.Chat.Id, sb.ToString());
+                        var cfg = await zk.getDataAsync("/lyra");
+                        var runtimeConfig = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
+                        
+                        var text = $@"*BlockChain Mode*: {runtimeConfig.Mode}
+*Seeds Nodes*: {string.Join(',', runtimeConfig.Seeds.ToArray())}
+*Current Seed Node*: {runtimeConfig.CurrentSeed}
+*Primary Authorizer Nodes*: {runtimeConfig.PrimaryAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
+*Backup Authorizer Nodes*: {runtimeConfig.BackupAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
+*Voting Nodes*: {runtimeConfig.VotingNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}";
+
+                        await SendGroupMessageAsync(text);
+                    });
                     break;
                 case "/leader":
                 case "/tps":
@@ -146,6 +161,11 @@ Usage:
             Console.WriteLine("Received error: {0} — {1}",
                 receiveErrorEventArgs.ApiRequestException.ErrorCode,
                 receiveErrorEventArgs.ApiRequestException.Message);
+        }
+
+        private Task UsingZookeeper(Func<ZooKeeper, Task> zkMethod)
+        {
+            return ZooKeeper.Using(ConfigurationManager.AppSettings["zookeeperConnectString"], 2000, _watcher, zkMethod);
         }
 
         class ZooKeeperWatcher : Watcher

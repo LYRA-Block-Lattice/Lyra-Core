@@ -6,7 +6,7 @@ namespace Lyra.Core.API
 {
     public class LyraGlobal
     {
-        public const string LYRA_TICKER_CODE = "Lyra.LeX";
+        public const string LYRA_TICKER_CODE = "Lyra.Coin";
         public const int LYRA_PRECISION = 8;
 
         public static readonly int APIVERSION = 3;
