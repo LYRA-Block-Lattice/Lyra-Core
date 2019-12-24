@@ -116,15 +116,29 @@ namespace Lyra.Authorizer.Decentralize
                 // all seeds do node election
                 if (_consensus.Seeds.Contains(_config.Orleans.EndPoint.AdvertisedIPAddress))
                 {
-                    var electRoot = "/lyra/seedelect";
-                    var zk = new ZooKeeper(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher);
-                    var stat = await zk.existsAsync(electRoot);
-                    if (stat == null)
-                        await zk.createAsync(electRoot, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                    _leader = new LeaderElectionSupport(zk, electRoot, _config.Orleans.EndPoint.AdvertisedIPAddress);
+                    while(true)     // we do nothing without zk
+                    {
+                        try
+                        {
+                            var electRoot = "/lyra/seedelect";
+                            var zk = new ZooKeeper(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher);
+                            var stat = await zk.existsAsync(electRoot);
+                            if (stat == null)
+                                await zk.createAsync(electRoot, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                            _leader = new LeaderElectionSupport(zk, electRoot, _config.Orleans.EndPoint.AdvertisedIPAddress);
 
-                    _leader.addListener(this);
-                    await _leader.start();
+                            _leader.addListener(this);
+                            await _leader.start();
+
+                            break;
+                        }
+                        catch(Exception ex)
+                        {
+                            _log.Fail(Orleans.ErrorCode.MembershipShutDownFailure, ex.Message);
+                            await Task.Delay(1000);
+                        }
+                    }
+
                 }
             }
             catch (Exception ex)

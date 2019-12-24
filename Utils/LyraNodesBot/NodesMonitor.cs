@@ -57,14 +57,26 @@ namespace LyraNodesBot
 
         public async Task SendGroupMessageAsync(string msg)
         {
-            await Bot.SendTextMessageAsync(_groupId, msg, ParseMode.Markdown);
+            var retryCount = 5;
+            while(retryCount-- > 0)
+            {
+                try
+                {
+                    await Bot.SendTextMessageAsync(_groupId, msg, ParseMode.Markdown);
+                    break;
+                }
+                catch(Exception)
+                {
+                    await Task.Delay(2000);
+                }
+            }            
         }
 
         private async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
             var message = messageEventArgs.Message;
 
-            if (message == null || message.Type != MessageType.Text) return;
+            if (message == null || message.Type != MessageType.Text || !message.Text.StartsWith('/')) return;
 
             switch (message.Text.Split(' ', '@').First())
             {
@@ -84,21 +96,41 @@ namespace LyraNodesBot
                         await SendGroupMessageAsync(text);
                     });
                     break;
-                case "/leader":
                 case "/tps":
                     await SendGroupMessageAsync("No Data");
                     break;
-                default:
+                case "/help":
                     const string usage = @"
-Usage:
+*User Command*:
 /nodes    - send status of all nodes
-/leader   - send info about current leader node
-/tps      - send info about TPS";
-
-                    await Bot.SendTextMessageAsync(
-                        message.Chat.Id,
-                        usage,
-                        replyMarkup: new ReplyKeyboardRemove());
+/tps      - send info about TPS
+/help     - display this message
+*Authorizer Node Owner Command*:
+/authlist _AccountId_ _SignedMessage_ - List a node to authorizers list
+/authdelist _AccountId_ _SignedMessage_ - Delist a node from authorizers list
+*Admim Command*:
+/seed _AccountId_ - approve a authorizer node to seed node
+/deseed _AccountId_ - disapprove a seed node
+";
+                    await SendGroupMessageAsync(usage);
+                    break;
+                case "/authlist":
+                case "/authdelist":
+                    await SendGroupMessageAsync("Under Construction");
+                    break;
+                case "/seed":
+                case "/deseed":
+                    if(message.From.Id == 397968968)      // @jfkwn
+                    {
+                        await SendGroupMessageAsync("Code todo");
+                    }
+                    else
+                    {
+                        await SendGroupMessageAsync("Only admins can do this");
+                    }
+                    break;
+                default:
+                    await SendGroupMessageAsync("Unknown command. Please reference to: /help");
                     break;
             }
         }
