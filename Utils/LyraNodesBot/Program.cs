@@ -23,7 +23,7 @@ namespace LyraNodesBot
             monitor.Start();
 
             Console.WriteLine("Wait for Lyra node start. Press enter to continue...");
-            await Task.Delay(15000);
+            await Task.Delay(10000);
 
             using (var host = CreateHost())
             {
@@ -35,7 +35,7 @@ namespace LyraNodesBot
 
                 var watch = new StreamWatcher(client.Client);
                 var myName = "LyraNodeBot";
-                watch.OnNodeChat += async (m) => await monitor.SendGroupMessageAsync($"{m.From}: {m.Text} Consensus: {m.Type} BlockType: {m.BlockToAuth?.BlockType}");
+                watch.OnNodeChat += async (m) => await monitor.SendGroupMessageAsync($"From: {m.From}\nMessage Type: {m.Type}\nText: {m.Text}");
                 await watch.Init(myName);
 
                 while (true)

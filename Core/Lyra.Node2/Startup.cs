@@ -36,6 +36,7 @@ namespace Lyra.Node2
 
             services.AddSingleton(typeof(ServiceAccount));
             services.AddSingleton(typeof(GossipListener));
+            services.AddSingleton(typeof(ConsensusRuntimeConfig));
             //services.AddSingleton<INotifyAPI, NotifyService>();
 
             //services.AddGrpc();

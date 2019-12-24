@@ -35,14 +35,15 @@ namespace Lyra.Authorizer.Decentralize
         private LyraNodeConfig _config;
         ISignatures _signr;
         GossipListener _gossipListener;
+        ConsensusRuntimeConfig _consensus;
 
-        private string NodeTag;
         private bool IsSeedNode = false;
 
         public ApiService(ILogger<ApiService> logger, 
             IAccountCollection accountCollection,
             ServiceAccount serviceAccount,
             GossipListener gossipListener,
+            ConsensusRuntimeConfig consensus,
             IOptions<LyraNodeConfig> config
             )
         {
@@ -51,20 +52,19 @@ namespace Lyra.Authorizer.Decentralize
             _accountCollection = accountCollection;
             _serviceAccount = serviceAccount;
             _gossipListener = gossipListener;
+            _consensus = consensus;
         }
 
         public override async Task OnActivateAsync()
         {
             _signr = GrainFactory.GetGrain<ISignaturesForGrain>(0);
 
-            await Gossip(new ChatMsg($"LyraNode[{NodeTag}]", $"Startup. IsSeedNode: {IsSeedNode}"));
+            //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
         }
-
-        public bool ModeConsensus => NodeService.Instance.ModeConsensus;
 
         public async Task Gossip(string txt)
         {
-            await Gossip(new ChatMsg($"LyraNode[{NodeTag}]", txt));
+            await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", txt));
         }
         public async Task Gossip(ChatMsg msg)
         {
@@ -90,7 +90,7 @@ namespace Lyra.Authorizer.Decentralize
 
             ChatMsg msg = new ChatMsg
             {
-                From = NodeTag,
+                From = _config.Orleans.EndPoint.AdvertisedIPAddress,
                 Type = ChatMessageType.AuthorizerPrePrepare,
                 BlockToAuth = block,
                 BlockUIndex = block.UIndex,

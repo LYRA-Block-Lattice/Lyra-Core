@@ -46,20 +46,18 @@ namespace Lyra.Authorizer.Decentralize
         GossipListener _gossiper;
 
         ZooKeeperClusteringSiloOptions _zkClusterOptions;
-        private ZooKeeper _zk;
         private ZooKeeperWatcher _watcher;
         private LeaderElectionSupport _leader;
 
         public string Leader { get; private set; }
-        public bool ModeConsensus { get; private set; }
-
-        public LyraNetworkConfigration LyraNetworkConfig { get; set; }
+        private ConsensusRuntimeConfig _consensus;
 
         public NodeService(IOptions<LyraNodeConfig> config,
             IOptions<ZooKeeperClusteringSiloOptions> zkOptions,
             ServiceAccount serviceAccount,
             ILogger<NodeService> logger,
-            GossipListener gossiper
+            GossipListener gossiper,
+            ConsensusRuntimeConfig consensus
             )
         {
             if (Instance == null)
@@ -73,6 +71,7 @@ namespace Lyra.Authorizer.Decentralize
             _log = logger;
             _serviceAccount = serviceAccount;
             _gossiper = gossiper;
+            _consensus = consensus;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -80,27 +79,6 @@ namespace Lyra.Authorizer.Decentralize
             _waitOrder = new AutoResetEvent(false);
             try
             {
-                await Task.Delay(15000);// wait for silo to startup
-                await _gossiper.Init("dev1node");
-                await Task.Delay(100000000);
-                _watcher = new ZooKeeperWatcher(_log);
-                _zk = new ZooKeeper(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher);
-
-                // get Lyra network configurations from /lyra
-                var cfg = await _zk.getDataAsync("/lyra");
-                LyraNetworkConfig = JsonConvert.DeserializeObject<LyraNetworkConfigration>(Encoding.ASCII.GetString(cfg.Data));
-                ModeConsensus = LyraNetworkConfig.seed == "permissionless";
-
-                // do node election
-                var electRoot = "/elect";
-                var stat = await _zk.existsAsync(electRoot);
-                if (stat == null)
-                    await _zk.createAsync(electRoot, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                _leader = new LeaderElectionSupport(_zk, electRoot, Environment.MachineName);
-
-                _leader.addListener(this);
-                await _leader.start();
-
                 if (_db == null)
                 {
                     //BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
@@ -118,8 +96,36 @@ namespace Lyra.Authorizer.Decentralize
                     //Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
                 }
 
-                // init api service
-                //await (_dataApi as ApiService).InitializeNodeAsync(myIp, LyraNetworkConfig.seed == myIp);
+                _watcher = new ZooKeeperWatcher(_log);
+                await UsingZookeeper(_zkClusterOptions.ConnectionString, async (zk) => {
+                    // get Lyra network configurations from /lyra
+                    // {"mode":"permissioned","seeds":["node1","node2"]}
+                    var cfg = await zk.getDataAsync("/lyra");
+                    var runtimeConfig = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
+                    // do copy because the object is global
+                    _consensus.Mode = runtimeConfig.Mode;
+                    _consensus.Seeds = runtimeConfig.Seeds;
+                    _consensus.CurrentSeed = runtimeConfig.CurrentSeed;
+                    _consensus.PrimaryAuthorizerNodes = runtimeConfig.PrimaryAuthorizerNodes;
+                    _consensus.BackupAuthorizerNodes = runtimeConfig.BackupAuthorizerNodes;
+                });
+
+                await Task.Delay(15000);// wait for silo to startup
+                await _gossiper.Init(_config.Orleans.EndPoint.AdvertisedIPAddress);
+
+                // all seeds do node election
+                if (_consensus.Seeds.Contains(_config.Orleans.EndPoint.AdvertisedIPAddress))
+                {
+                    var electRoot = "/lyra/seedelect";
+                    var zk = new ZooKeeper(_zkClusterOptions.ConnectionString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher);
+                    var stat = await zk.existsAsync(electRoot);
+                    if (stat == null)
+                        await zk.createAsync(electRoot, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                    _leader = new LeaderElectionSupport(zk, electRoot, _config.Orleans.EndPoint.AdvertisedIPAddress);
+
+                    _leader.addListener(this);
+                    await _leader.start();
+                }
             }
             catch (Exception ex)
             {
@@ -148,10 +154,23 @@ namespace Lyra.Authorizer.Decentralize
             {
                 case ElectionEventType.ELECTED_COMPLETE:
                     Leader = await _leader.getLeaderHostName();
+                    _consensus.CurrentSeed = Leader;
+                    var seedMsg = new ChatMsg
+                    {
+                        From = _config.Orleans.EndPoint.AdvertisedIPAddress,
+                        Type = ChatMessageType.SeedElection,
+                        Text = Leader
+                    };
+                    await _gossiper.SendMessage(seedMsg);
                     break;
                 default:
                     break;
             }            
+        }
+
+        private Task UsingZookeeper(string connectString, Func<ZooKeeper, Task> zkMethod)
+        {
+            return ZooKeeper.Using(connectString, ZOOKEEPER_CONNECTION_TIMEOUT, _watcher, zkMethod);
         }
 
         // help class

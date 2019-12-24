@@ -115,7 +115,6 @@ namespace Lyra.Authorizer.Services
                 else
                     latestServiceBlock = latestBlock as ServiceBlock;
 
-
                 SyncBlock sync = new SyncBlock();
                 sync.LastServiceBlockHash = latestServiceBlock.Hash;
                 sync.InitializeBlock(_signr, latestBlock, _ba.PrivateKey, _ba.NetworkId);

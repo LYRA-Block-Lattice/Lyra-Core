@@ -18,6 +18,7 @@ namespace Lyra.Core.API
 #else
         public static readonly IList<string> Networks = new[] { "lexnet" };
 #endif
+
         // get api for (rpcurl, resturl)
         public static (string rpcUrl, string restUrl) SelectNode(string networkID)
         {
