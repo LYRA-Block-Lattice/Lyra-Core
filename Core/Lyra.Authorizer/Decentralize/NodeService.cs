@@ -108,6 +108,7 @@ namespace Lyra.Authorizer.Decentralize
                     _consensus.CurrentSeed = runtimeConfig.CurrentSeed;
                     _consensus.PrimaryAuthorizerNodes = runtimeConfig.PrimaryAuthorizerNodes;
                     _consensus.BackupAuthorizerNodes = runtimeConfig.BackupAuthorizerNodes;
+                    _consensus.VotingNodes = runtimeConfig.VotingNodes;
                 });
 
                 await Task.Delay(15000);// wait for silo to startup
@@ -172,7 +173,7 @@ namespace Lyra.Authorizer.Decentralize
                     var seedMsg = new ChatMsg
                     {
                         From = _config.Orleans.EndPoint.AdvertisedIPAddress,
-                        Type = ChatMessageType.SeedElection,
+                        Type = ChatMessageType.SeedChanged,
                         Text = Leader
                     };
                     await _gossiper.SendMessage(seedMsg);

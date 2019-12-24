@@ -27,8 +27,6 @@ namespace Lyra.Authorizer.Decentralize
             _gossipStream = _client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
                 .GetStream<ChatMsg>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
             await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
-
-            await SendMessage(new ChatMsg { From = IdentityString, Text = IdentityString + " Up", Type = ChatMessageType.NodeEvent });
         }
 
         public virtual Task OnCompletedAsync()

@@ -24,12 +24,15 @@ namespace Lyra.Node2
         static CancellationTokenSource _cancel;
         public static async Task Main(string[] args)
         {
-            Console.WriteLine("Waiting for debugger to attach");
-            while (!Debugger.IsAttached)
+            if(args.Length > 0 && args[0] == "/debug")
             {
-                await Task.Delay(200);
+                Console.WriteLine("Waiting for debugger to attach");
+                while (!Debugger.IsAttached)
+                {
+                    await Task.Delay(200);
+                }
+                Console.WriteLine("Debugger attached");
             }
-            Console.WriteLine("Debugger attached");
 
             using (var host = CreateHostBuilder(args).Build())
             {

@@ -9,6 +9,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -30,13 +31,15 @@ namespace LyraNodesBot
         private ChatId _groupId = new ChatId(-1001462436848);
         private LyraNodeConfig _config;
 
+        private ConsensusRuntimeConfig _runtimeCfg;
+
         public NodesMonitor()
         {
         }
 
-        public void Start()
+        public async Task StartAsync()
         {
-            var me = Bot.GetMeAsync().Result;
+            var me = await Bot.GetMeAsync();
             Console.Title = me.Username;
 
             Bot.OnMessage += BotOnMessageReceived;
@@ -48,6 +51,8 @@ namespace LyraNodesBot
 
             Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"Start listening for @{me.Username}");
+
+            _runtimeCfg = await RefreshConfigFromZK();
         }
 
         public void Stop()
@@ -72,6 +77,37 @@ namespace LyraNodesBot
             }            
         }
 
+        public async Task OnGossipMessageAsync(ChatMsg m)
+        {
+            switch(m.Type)
+            {
+                case ChatMessageType.NodeUp:
+                    // add node to zk runtime config
+                    _runtimeCfg = await RefreshConfigFromZK();
+                    if (!_runtimeCfg.GetAllNodes().Any(a => a.Address == m.From))
+                    {
+                        _runtimeCfg.VotingNodes.Add(new AuthorizerNode
+                        {
+                            Address = m.From,
+                            AccountID = m.Text,
+                            StakingAmount = 10000   // TODO: get real balance
+                        });
+                        await UsingZookeeper(async (zk) =>
+                        {
+                            var json = JsonConvert.SerializeObject(_runtimeCfg);
+                            var cfg = await zk.setDataAsync("/lyra", Encoding.ASCII.GetBytes(json));
+                        });
+                        await SendGroupMessageAsync($"*💖Good News Everyone!💖*\n\nA new node is up and running: {m.From}");
+                    }
+                    break;
+                default:
+                    var typStr = string.Join(" ", Regex.Split(m.Type.ToString(), @"(?<!^)(?=[A-Z])"));
+                    var text = $"*From*: {m.From}\n*Event*: {typStr}\n*Text*: {m.Text}\n*Block Number*: {m.BlockUIndex}";
+                    await SendGroupMessageAsync(text);
+                    break;
+            }
+        }
+
         private async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
             var message = messageEventArgs.Message;
@@ -84,14 +120,14 @@ namespace LyraNodesBot
                     await UsingZookeeper(async (zk) =>
                     {
                         var cfg = await zk.getDataAsync("/lyra");
-                        var runtimeConfig = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
+                        _runtimeCfg = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
                         
-                        var text = $@"*BlockChain Mode*: {runtimeConfig.Mode}
-*Seeds Nodes*: {string.Join(',', runtimeConfig.Seeds.ToArray())}
-*Current Seed Node*: {runtimeConfig.CurrentSeed}
-*Primary Authorizer Nodes*: {runtimeConfig.PrimaryAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
-*Backup Authorizer Nodes*: {runtimeConfig.BackupAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
-*Voting Nodes*: {runtimeConfig.VotingNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}";
+                        var text = $@"*BlockChain Mode*: {_runtimeCfg.Mode}
+*Seeds Nodes*: {string.Join(',', _runtimeCfg.Seeds.ToArray())}
+*Current Seed Node*: {_runtimeCfg.CurrentSeed}
+*Primary Authorizer Nodes*: {_runtimeCfg.PrimaryAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
+*Backup Authorizer Nodes*: {_runtimeCfg.BackupAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
+*Voting Nodes*: {_runtimeCfg.VotingNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}";
 
                         await SendGroupMessageAsync(text);
                     });
@@ -193,6 +229,19 @@ namespace LyraNodesBot
             Console.WriteLine("Received error: {0} — {1}",
                 receiveErrorEventArgs.ApiRequestException.ErrorCode,
                 receiveErrorEventArgs.ApiRequestException.Message);
+        }
+
+        private async Task<ConsensusRuntimeConfig> RefreshConfigFromZK()
+        {
+            ConsensusRuntimeConfig result = null;
+            await UsingZookeeper(async (zk) =>
+            {
+                // get Lyra network configurations from /lyra
+                // {"mode":"permissioned","seeds":["node1","node2"]}
+                var cfg = await zk.getDataAsync("/lyra");
+                result = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
+            });
+            return result;
         }
 
         private Task UsingZookeeper(Func<ZooKeeper, Task> zkMethod)

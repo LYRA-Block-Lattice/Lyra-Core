@@ -32,11 +32,11 @@ namespace LyraNodesBot
 
                 var config = host.Services.GetService<LyraNodeConfig>();
                 var monitor = new NodesMonitor();
-                monitor.Start();
+                await monitor.StartAsync();
 
                 var watch = new StreamWatcher(client.Client);
                 var myName = "LyraNodeBot";
-                watch.OnNodeChat += async (m) => await monitor.SendGroupMessageAsync($"From: {m.From}\nMessage Type: {m.Type}\nText: {m.Text}");
+                watch.OnNodeChat += async (m) => await monitor.OnGossipMessageAsync(m);
                 await watch.Init(myName);
 
                 while (true)

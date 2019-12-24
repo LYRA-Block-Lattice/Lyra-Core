@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Lyra.Authorizer.Decentralize
@@ -13,6 +14,11 @@ namespace Lyra.Authorizer.Decentralize
         public List<AuthorizerNode> PrimaryAuthorizerNodes { get; set; }
         public List<AuthorizerNode> BackupAuthorizerNodes { get; set; }
         public List<AuthorizerNode> VotingNodes { get; set; }
+
+        public List<AuthorizerNode> GetAllNodes()
+        {
+            return PrimaryAuthorizerNodes.Concat(BackupAuthorizerNodes).Concat(VotingNodes).ToList();
+        }
     }
 
     public class AuthorizerNode

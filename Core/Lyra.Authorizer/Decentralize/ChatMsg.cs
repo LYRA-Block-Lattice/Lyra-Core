@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Lyra.Authorizer.Decentralize
 {
-	public enum ChatMessageType { General, SeedElection, OperatorEvent, NodeEvent, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
+	public enum ChatMessageType { General, SeedChanged, NodeUp, NodeDown, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
 
 	public class ChatMsg : SignableObject
 	{

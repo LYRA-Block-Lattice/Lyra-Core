@@ -50,7 +50,7 @@ namespace Lyra.Authorizer.Decentralize
                 .GetStream<ChatMsg>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
             await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
 
-            await SendMessage(new ChatMsg { From = IdentityString, Text = "Service Online", Type = ChatMessageType.NodeEvent });
+            await SendMessage(new ChatMsg { From = IdentityString, Text = "account id goes here", Type = ChatMessageType.NodeUp });
         }
 
         public virtual async Task SendMessage(ChatMsg msg)
@@ -89,7 +89,7 @@ namespace Lyra.Authorizer.Decentralize
                 case ChatMessageType.AuthorizerCommit:
                     await OnCommit(item);
                     break;
-                case ChatMessageType.SeedElection:
+                case ChatMessageType.SeedChanged:
                     //ConsensusRuntimeConfig. = item.Text;
                     break;
                 default:
