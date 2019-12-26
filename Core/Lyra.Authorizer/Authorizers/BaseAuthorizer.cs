@@ -60,7 +60,6 @@ namespace Lyra.Authorizer.Authorizers
     }
     public abstract class BaseAuthorizer : Grain, IAuthorizer
     {
-        protected ISignatures _signr;
         private LyraNodeConfig _config;
         protected readonly ServiceAccount _serviceAccount;
         protected readonly IAccountCollection _accountCollection;
@@ -74,7 +73,6 @@ namespace Lyra.Authorizer.Authorizers
 
         public override Task OnActivateAsync()
         {
-            _signr = GrainFactory.GetGrain<ISignaturesForGrain>(0);
             return base.OnActivateAsync();
         }
 
@@ -99,9 +97,7 @@ namespace Lyra.Authorizer.Authorizers
             //if (!Signatures.VerifySignature(block.Hash, block.AccountID, block.Signature))
             //    return APIResultCodes.BlockSignatureValidationFailed;
 
-            // debug
-            File.AppendAllText(@"c:\tmp\signer.log", $"VerifyBlockAsync of {block.BlockType}\n");
-            var result = await block.VerifySignatureAsync(_signr, block.AccountID);
+            var result = block.VerifySignature(block.AccountID);
             if (!result)
                 return APIResultCodes.BlockSignatureValidationFailed;
 
@@ -153,7 +149,7 @@ namespace Lyra.Authorizer.Authorizers
         protected async Task<APIResultCodes> VerifyTransactionBlockAsync(TransactionBlock block)
         {
             // Validate the account id
-            if (!SignaturesBase.ValidateAccountId(block.AccountID))
+            if (!Signatures.ValidateAccountId(block.AccountID))
                 return APIResultCodes.InvalidAccountId;
 
             if (!string.IsNullOrEmpty(block.PreviousHash)) // not for new account
@@ -167,7 +163,7 @@ namespace Lyra.Authorizer.Authorizers
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
-                    var result = await _signr.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature);
+                    var result = Signatures.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature);
                     if (!result)
                         return APIResultCodes.AccountChainSignatureValidationFailed;
 
@@ -235,7 +231,7 @@ namespace Lyra.Authorizer.Authorizers
             if (send_or_receice_block.NonFungibleToken.TokenCode != transaction.TokenCode)
                 return APIResultCodes.InvalidNonFungibleTokenCode;
 
-            var vr = await send_or_receice_block.NonFungibleToken.VerifySignatureAsync(_signr, token_block.NonFungibleKey);
+            var vr = send_or_receice_block.NonFungibleToken.VerifySignature(token_block.NonFungibleKey);
             if (!vr)
                 return APIResultCodes.NonFungibleSignatureVerificationFailed;
 
@@ -280,7 +276,7 @@ namespace Lyra.Authorizer.Authorizers
                 AuthorizationSignature authSignature = new AuthorizationSignature
                 {
                     Key = _serviceAccount.AccountId,
-                    Signature = await _signr.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash)
+                    Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash, block.AccountID)
                 };
 
                 if (block.Authorizations == null)
@@ -293,19 +289,19 @@ namespace Lyra.Authorizer.Authorizers
                 return false;
         }
 
-        protected async Task<bool> VerifyAuthorizationSignaturesAsync(TransactionBlock block)
-        {
-            //block.ServiceHash = _serviceAccount.GetLatestBlock(block.ServiceHash);
+        //protected async Task<bool> VerifyAuthorizationSignaturesAsync(TransactionBlock block)
+        //{
+        //    //block.ServiceHash = _serviceAccount.GetLatestBlock(block.ServiceHash);
 
-            // TO DO - support multy nodes
-            if (block.Authorizations == null || block.Authorizations.Count != 1)
-                return false;
+        //    // TO DO - support multy nodes
+        //    if (block.Authorizations == null || block.Authorizations.Count != 1)
+        //        return false;
 
-            if (block.Authorizations[0].Key != _serviceAccount.AccountId)
-                return false;
+        //    if (block.Authorizations[0].Key != _serviceAccount.AccountId)
+        //        return false;
                        
-            return await _signr.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);
+        //    return Signatures.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);
 
-        }
+        //}
     }
 }

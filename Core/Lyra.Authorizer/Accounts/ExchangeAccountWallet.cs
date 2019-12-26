@@ -10,7 +10,7 @@ namespace Lyra.Authorizer.Accounts
     // transaction by exchange account is zero-fee
     public class ExchangeAccountWallet : Wallet
     {
-        public ExchangeAccountWallet(ISignatures signr, IAccountDatabase storage, string NetworkId) : base(signr, storage, NetworkId)
+        public ExchangeAccountWallet(IAccountDatabase storage, string NetworkId) : base(storage, NetworkId)
         {
         }
     }

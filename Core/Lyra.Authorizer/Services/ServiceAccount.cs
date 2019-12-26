@@ -24,7 +24,6 @@ namespace Lyra.Authorizer.Services
         IAccountDatabase _storage;
         private LyraNodeConfig _config;
 
-        ISignatures _signr;
         BaseAccount _ba;
 
         public bool IsNodeFullySynced { get; set; }
@@ -52,9 +51,9 @@ namespace Lyra.Authorizer.Services
             return lastServiceBlock;
         }
 
-        public async Task InitializeServiceAccountAsync(string Path)
+        public void InitializeServiceAccountAsync(string Path)
         {
-            await _ba.CreateAccountAsync(Path, SERVICE_ACCOUNT_NAME, AccountTypes.Service);
+            _ba.CreateAccountAsync(Path, SERVICE_ACCOUNT_NAME, AccountTypes.Service);
             //_blocks.EnsureIndex(x => x.AccountID);
             //_blocks.EnsureIndex(x => x.Index);
 
@@ -69,7 +68,7 @@ namespace Lyra.Authorizer.Services
             };
 
             firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = _ba.AccountId, IPAddress = "127.0.0.1" });
-            await firstServiceBlock.InitializeBlockAsync(_signr, null, _ba.PrivateKey, _config.Lyra.NetworkId);
+            firstServiceBlock.InitializeBlockAsync(null, _ba.PrivateKey, _config.Lyra.NetworkId, AccountId: _ba.AccountId);
 
             //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
             _ba.AddBlock(firstServiceBlock);
@@ -79,13 +78,12 @@ namespace Lyra.Authorizer.Services
         {
             IsNodeFullySynced = true;
 
-            _signr = _client.GetGrain<ISignaturesForGrain>(0);
-            _ba = new BaseAccount(_signr, SERVICE_ACCOUNT_NAME, _storage, _config.Lyra.NetworkId);
+            _ba = new BaseAccount(SERVICE_ACCOUNT_NAME, _storage, _config.Lyra.NetworkId);
 
             if (!_ba.AccountExistsLocally(Path, SERVICE_ACCOUNT_NAME))
             {
 
-                await InitializeServiceAccountAsync(Path);
+                InitializeServiceAccountAsync(Path);
             }                
             else
                 _ba.OpenAccount(Path, SERVICE_ACCOUNT_NAME);
@@ -123,7 +121,7 @@ namespace Lyra.Authorizer.Services
 
                 SyncBlock sync = new SyncBlock();
                 sync.LastServiceBlockHash = latestServiceBlock.Hash;
-                await sync.InitializeBlockAsync(_signr, latestBlock, _ba.PrivateKey, _ba.NetworkId);
+                sync.InitializeBlockAsync(latestBlock, _ba.PrivateKey, _ba.NetworkId, AccountId: AccountId);
 
                 //sync.Signature = Signatures.GetSignature(PrivateKey, sync.Hash);
                 _ba.AddBlock(sync);

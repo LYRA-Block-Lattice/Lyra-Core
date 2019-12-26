@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
 using Newtonsoft.Json;
 
@@ -56,7 +57,7 @@ namespace Lyra.Core.Blocks
 
         public List<AuthorizationSignature> Authorizations { get; set; }
 
-        public virtual async System.Threading.Tasks.Task InitializeBlockAsync(ISignatures signer, Block prevBlock, string PrivateKey, string NetworkId, string ShardId = "Primary")
+        public virtual void InitializeBlockAsync(Block prevBlock, string PrivateKey, string NetworkId, string ShardId = "Primary", string AccountId = null)
         {
             if (prevBlock != null)
             {
@@ -74,7 +75,7 @@ namespace Lyra.Core.Blocks
             Version = 1; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
             BlockType = GetBlockType();
             //Hash = CalculateHash();
-            await SignAsync(signer, PrivateKey);
+            Sign(PrivateKey, AccountId);
         }
 
         public override string GetHashInput()

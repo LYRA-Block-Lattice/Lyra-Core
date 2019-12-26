@@ -28,8 +28,6 @@ namespace Lyra.Authorizer.Decentralize
         private LyraNodeConfig _config;
         private INodeAPI _dataApi;
 
-        private ISignatures _signer;
-
         public event EventHandler OnNewOrder;
 
         public DealEngine(LyraNodeConfig config,
@@ -46,8 +44,6 @@ namespace Lyra.Authorizer.Decentralize
             _exchangeAccounts = exchangeAccounts;
             _queue = queue;
             _finished = finished;
-
-            _signer = client.GetGrain<ISignaturesForGrain>(0);
         }
         internal async Task<ExchangeAccount> GetExchangeAccount(string accountID, bool refreshBalance = false)
         {
@@ -60,7 +56,7 @@ namespace Lyra.Authorizer.Decentralize
             {
                 // create wallet and update balance
                 var memStor = new AccountInMemoryStorage();
-                var acctWallet = new ExchangeAccountWallet(_signer, memStor, _config.Lyra.NetworkId);
+                var acctWallet = new ExchangeAccountWallet(memStor, _config.Lyra.NetworkId);
                 acctWallet.AccountName = "tmpAcct";
                 await acctWallet.RestoreAccountAsync("", acct.PrivateKey);
                 acctWallet.OpenAccount("", acctWallet.AccountName);
@@ -109,8 +105,8 @@ namespace Lyra.Authorizer.Decentralize
                 return findAccount;
             }
 
-            var walletPrivateKey = (await _signer.GenerateWallet()).privateKey;
-            var walletAccountId = await _signer.GetAccountIdFromPrivateKey(walletPrivateKey);
+            var walletPrivateKey = Signatures.GenerateWallet().privateKey;
+            var walletAccountId = Signatures.GetAccountIdFromPrivateKey(walletPrivateKey);
 
             var account = new ExchangeAccount()
             {
@@ -392,7 +388,7 @@ namespace Lyra.Authorizer.Decentralize
             // create wallet and update balance
             var memStor = new AccountInMemoryStorage();
 
-            var fromWallet = new Wallet(_signer, memStor, _config.Lyra.NetworkId);
+            var fromWallet = new Wallet(memStor, _config.Lyra.NetworkId);
             fromWallet.AccountName = "tmpAcct";
             await fromWallet.RestoreAccountAsync("", privateKey);
             fromWallet.OpenAccount("", fromWallet.AccountName);

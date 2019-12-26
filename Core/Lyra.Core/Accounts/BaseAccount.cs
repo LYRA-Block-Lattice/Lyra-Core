@@ -13,7 +13,6 @@ namespace Lyra.Core.Accounts
     /// </summary>
     public class BaseAccount : IDisposable
     {
-        protected ISignatures _signr;
         protected readonly IAccountDatabase _storage;
 
         public string Path { get; set; }
@@ -46,9 +45,8 @@ namespace Lyra.Core.Accounts
             return GetHomePath() + FolderName;
         }
 
-        public BaseAccount(ISignatures signr, string accountName, IAccountDatabase storage, string NetworkId)
+        public BaseAccount(string accountName, IAccountDatabase storage, string NetworkId)
         {
-            _signr = signr;
             AccountName = accountName;
             _storage = storage; //new AccountDatabase();
             this.NetworkId = NetworkId;
@@ -119,7 +117,7 @@ namespace Lyra.Core.Accounts
 
         // Create a new account (AccountName is the local wallet name)
         // Returns wallet address
-        public async Task<string> CreateAccountAsync(string path, string accountName, AccountTypes accountType)
+        public string CreateAccountAsync(string path, string accountName, AccountTypes accountType)
         {
             if (AccountExistsLocally(path, accountName))
                 throw new ApplicationException(String.Format(@"Account with name ""{0}"" already exists", AccountName));
@@ -128,27 +126,13 @@ namespace Lyra.Core.Accounts
             AccountName = accountName;
             Path = path;
 
-            //OpenBlock block = new OpenBlock
-            //{
-            await generateAccountKeysAsync();
-            //AccountType = accountType;
-            //};
-            //block.InitializeBlock(null);
-            //_storage.AddBlock(block);
-            //FirstBlock = block;
-            //LatestBlock = block;
+            var keys = Signatures.GenerateWallet();
+            PrivateKey = keys.privateKey;
+            _storage.StorePrivateKey(PrivateKey);
+            AccountId = keys.AccountId;
+            _storage.StoreAccountId(AccountId);
+
             return AccountId;
-
-            async Task generateAccountKeysAsync()
-            {
-                var keys = await _signr.GenerateWallet();
-                PrivateKey = keys.privateKey;
-                _storage.StorePrivateKey(PrivateKey);
-                AccountId = await _signr.GetAccountIdFromPrivateKey(PrivateKey);
-                _storage.StoreAccountId(AccountId);
-
-            }
-
         }
 
         public Block FindBlockByHash(string hash)

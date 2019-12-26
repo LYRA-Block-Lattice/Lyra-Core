@@ -65,7 +65,7 @@ namespace Lyra.Authorizer.Authorizers
 
             if (block.IsNonFungible)
             {
-                if (!SignaturesBase.ValidateAccountId(block.NonFungibleKey))
+                if (!Signatures.ValidateAccountId(block.NonFungibleKey))
                     return APIResultCodes.InvalidNonFungiblePublicKey;
             }
 

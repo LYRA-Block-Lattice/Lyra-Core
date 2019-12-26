@@ -264,8 +264,7 @@ namespace LyraWallet.ViewModels
                     return;
                 }
 
-                var signer = new SignaturesClient();
-                await order.SignAsync(signer, App.Container.PrivateKey);
+                order.Sign(App.Container.PrivateKey, App.Container.AccountID);
                 var key = await App.Container.SubmitExchangeOrderAsync(order);
                 if(key.State == OrderState.Placed)
                 {

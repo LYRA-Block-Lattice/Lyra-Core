@@ -33,7 +33,6 @@ namespace Lyra.Authorizer.Decentralize
         ServiceAccount _serviceAccount;
         IAccountCollection _accountCollection;
         private LyraNodeConfig _config;
-        ISignatures _signr;
         GossipListener _gossipListener;
         ConsensusRuntimeConfig _consensus;
 
@@ -59,8 +58,6 @@ namespace Lyra.Authorizer.Decentralize
 
         public override async Task OnActivateAsync()
         {
-            _signr = GrainFactory.GetGrain<ISignaturesForGrain>(0);
-
             _useed = await _accountCollection.GetBlockCountAsync();
 
             //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
@@ -410,7 +407,7 @@ namespace Lyra.Authorizer.Decentralize
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder reqOrder)
         {
             CancelKey key;
-            var result = await reqOrder.VerifySignatureAsync(_signr, reqOrder.AccountID);
+            var result = reqOrder.VerifySignature(reqOrder.AccountID);
             if (!result
                 || reqOrder.TokenName == null 
                 || reqOrder.Price <= 0 
@@ -501,7 +498,7 @@ namespace Lyra.Authorizer.Decentralize
                     Balances = new Dictionary<string, decimal>()
                 };
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
-                await receiveBlock.InitializeBlockAsync(_signr, null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+                receiveBlock.InitializeBlockAsync(null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId, AccountId: _serviceAccount.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
@@ -521,7 +518,7 @@ namespace Lyra.Authorizer.Decentralize
 
                 decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
-                await receiveBlock.InitializeBlockAsync(_signr, latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+                receiveBlock.InitializeBlockAsync(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId, AccountId: _serviceAccount.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ReceiveTransferAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
