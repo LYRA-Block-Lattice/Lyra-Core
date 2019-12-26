@@ -57,7 +57,7 @@ namespace Lyra.Authorizer.Decentralize
 
         public virtual async Task SendMessage(ChatMsg msg)
         {
-            var signr = new SignaturesBase();
+            var signr = new Signatures();
 
             await _gossipStream.OnNextAsync(msg);
         }

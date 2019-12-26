@@ -80,9 +80,6 @@ namespace Lyra.Authorizer.Decentralize
             _waitOrder = new AutoResetEvent(false);
             try
             {
-                // debug
-                File.AppendAllText(@"c:\tmp\signer.log", $"\nProgram Start\nExecuteAsync of NodeService\n");
-
                 await Task.Delay(15000);// wait for silo to startup
                 await _serviceAccount.StartAsync(false, null);
                 await Task.Delay(1000);

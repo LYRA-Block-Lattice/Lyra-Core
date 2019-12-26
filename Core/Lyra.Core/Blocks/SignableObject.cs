@@ -34,17 +34,11 @@ namespace Lyra.Core.Blocks
             }
         }
 
-        public async Task<string> SignAsync(ISignatures signer, string PrivateKey)
+        public string Sign(string PrivateKey, string accountId)
         {
             if (string.IsNullOrWhiteSpace(Hash))
                 Hash = CalculateHash();
-            Signature = await signer.GetSignature(PrivateKey, Hash);
-            // debug
-            File.AppendAllText(@"c:\tmp\signer.log", $"  Sign:   {Hash} With: {PrivateKey} Got: {Signature}\n");
-            //if(PrivateKey == "2tzpzECRYKQueaCX7d7wFWqHzU2XKHYJ8G8hX56uh44j4N85Q1")
-            //{
-            //    var result = await VerifySignatureAsync(signer, "L3jk7gUtcXrxNt2GxanwY5ksiJibADdj18EwpbEDmGs2AECfwouggyz6YXBNFYT13xJ8CJNahnGZQWwjKssB6bid1BBgS9F");
-            //}
+            Signature = Signatures.GetSignature(PrivateKey, Hash, accountId);
             return this.Signature;
         }
 
@@ -57,14 +51,12 @@ namespace Lyra.Core.Blocks
             return true;
         }
 
-        public async Task<bool> VerifySignatureAsync(ISignatures signer, string PublicKey)
+        public bool VerifySignature(string PublicKey)
         {
             if (!VerifyHash())
                 return false;
 
-            var result = await signer.VerifyAccountSignature(Hash, PublicKey, Signature);
-            // debug
-            File.AppendAllText(@"c:\tmp\signer.log", $"  Verify: {Hash} against: {Signature} With: {PublicKey} Result: {result}\n");
+            var result = Signatures.VerifyAccountSignature(Hash, PublicKey, Signature);
             return result;
         }
 

@@ -19,7 +19,6 @@ namespace Lyra.Authorizer.Decentralize
     {
         protected IClusterClient _client;
         ServiceAccount _serviceAccount;
-        protected ISignatures _signr;
         private IAsyncStream<SourceSignedMessage> _gossipStream;
         string Identity;
 
@@ -39,7 +38,7 @@ namespace Lyra.Authorizer.Decentralize
             _authorizers = new Dictionary<BlockTypes, string>();
             _authorizers.Add(BlockTypes.SendTransfer, "SendTransferAuthorizer");
             _authorizers.Add(BlockTypes.LyraTokenGenesis, "GenesisAuthorizer");
-            _authorizers.Add(BlockTypes.OpenAccountWithReceiveFee, "ReceiveTransferAuthorizer");
+            _authorizers.Add(BlockTypes.OpenAccountWithReceiveFee, "NewAccountAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithReceiveTransfer, "NewAccountAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithImport, "NewAccountWithImportAuthorizer");
             _authorizers.Add(BlockTypes.ReceiveTransfer, "ReceiveTransferAuthorizer");
@@ -50,7 +49,6 @@ namespace Lyra.Authorizer.Decentralize
         public async Task Init(string IdentityString)
         {
             Identity = IdentityString;
-            _signr = _client.GetGrain<ISignaturesForGrain>(0);
 
             _gossipStream = _client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
                 .GetStream<SourceSignedMessage>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
@@ -63,10 +61,8 @@ namespace Lyra.Authorizer.Decentralize
         {
             while (_serviceAccount.PrivateKey == null)  //starup. need to wait it generated
                 await Task.Delay(1000);
-            // debug
-            File.AppendAllText(@"c:\tmp\signer.log", $"SendMessage of {msg.GetType().Name}\n");
-            await msg.SignAsync(_signr, _serviceAccount.PrivateKey);
-            await msg.VerifySignatureAsync(_signr, _serviceAccount.AccountId);
+            msg.Sign(_serviceAccount.PrivateKey, msg.From);
+            msg.VerifySignature(_serviceAccount.AccountId);
             await _gossipStream.OnNextAsync(msg);
         }
 
@@ -85,9 +81,7 @@ namespace Lyra.Authorizer.Decentralize
         {
             // verify the signatures of msg. make sure it is from the right node.
             //var nodeConfig = null;
-            // debug
-            File.AppendAllText(@"c:\tmp\signer.log", $"OnNextAsyncImpl of {item.GetType().Name}\n");
-            if (!await item.VerifySignatureAsync(_signr, item.From))
+            if (!item.VerifySignature(item.From))
             {
                 // log failed verify
                 return;

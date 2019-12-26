@@ -48,7 +48,7 @@ namespace Lyra.Authorizer.Authorizers
             //    return AuthorizationResultCodes.NegativeTransactionAmount;
 
             // Validate the destination account id
-            if (!SignaturesBase.ValidateAccountId(block.DestinationAccountId))
+            if (!Signatures.ValidateAccountId(block.DestinationAccountId))
                 return APIResultCodes.InvalidDestinationAccountId;
 
             result = await VerifyTransactionBlockAsync(block);

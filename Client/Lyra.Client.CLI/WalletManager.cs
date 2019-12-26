@@ -35,16 +35,15 @@ namespace Lyra.Client.CLI
             bool INMEMORY = options.Database == Options.INMEMORY_DATABASE;
             bool WEB = options.Protocol == Options.WEBAPI_PROTOCOL;
 
-            var signr = new SignaturesClient();
             Wallet wallet;
             if (INMEMORY)
             {
                 var inmemory_storage = new AccountInMemoryStorage();
-                wallet = new Wallet(signr, inmemory_storage, network_id);
+                wallet = new Wallet(inmemory_storage, network_id);
             }
             else
             {
-                wallet = new Wallet(signr, new LiteAccountDatabase(), network_id);
+                wallet = new Wallet(new LiteAccountDatabase(), network_id);
             }
 
             string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + network_id);
@@ -95,7 +94,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine("Local account data not found. Would you like to create a new account? (Y/n): ");
                         if (command.ReadYesNoAnswer())
                         {
-                            await wallet.CreateAccountAsync(full_path, wallet.AccountName, AccountTypes.Standard);
+                            wallet.CreateAccountAsync(full_path, wallet.AccountName, AccountTypes.Standard);
                         }
                         else
                         {
