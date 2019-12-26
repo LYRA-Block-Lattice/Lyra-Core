@@ -25,6 +25,7 @@ using Newtonsoft.Json;
 using System.Text;
 using Lyra.Core.Utils;
 using Lyra.Authorizer.Services;
+using System.IO;
 
 namespace Lyra.Authorizer.Decentralize
 {
@@ -79,12 +80,20 @@ namespace Lyra.Authorizer.Decentralize
             _waitOrder = new AutoResetEvent(false);
             try
             {
+                // debug
+                File.AppendAllText(@"c:\tmp\signer.log", $"\nProgram Start\nExecuteAsync of NodeService\n");
+
+                await Task.Delay(15000);// wait for silo to startup
+                await _serviceAccount.StartAsync(false, null);
+                await Task.Delay(1000);
+                await _gossiper.Init(_config.Orleans.EndPoint.AdvertisedIPAddress);
+
                 if (_db == null)
                 {
                     //BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
                     //BsonSerializer.RegisterSerializer(typeof(decimal?), new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
 
-                    client = new MongoClient(_config.Lyra.DexDBConnect);
+                    client = new MongoClient(_config.Lyra.Database.DexDBConnect);
                     _db = client.GetDatabase("Dex");
 
                     var exchangeAccounts = _db.GetCollection<ExchangeAccount>("exchangeAccounts");
@@ -110,9 +119,6 @@ namespace Lyra.Authorizer.Decentralize
                     _consensus.BackupAuthorizerNodes = runtimeConfig.BackupAuthorizerNodes;
                     _consensus.VotingNodes = runtimeConfig.VotingNodes;
                 });
-
-                await Task.Delay(15000);// wait for silo to startup
-                await _gossiper.Init(_config.Orleans.EndPoint.AdvertisedIPAddress);
 
                 // all seeds do node election
                 if (_consensus.Seeds.Contains(_config.Orleans.EndPoint.AdvertisedIPAddress))
@@ -169,10 +175,17 @@ namespace Lyra.Authorizer.Decentralize
             {
                 case ElectionEventType.ELECTED_COMPLETE:
                     Leader = await _leader.getLeaderHostName();
+                    
+                    if (Leader == _config.Orleans.EndPoint.AdvertisedIPAddress)
+                        _serviceAccount.IsNodeFullySynced = true;
+
+                    if (Leader == _consensus.CurrentSeed)
+                        return;
+
                     _consensus.CurrentSeed = Leader;
                     var seedMsg = new ChatMsg
                     {
-                        From = _config.Orleans.EndPoint.AdvertisedIPAddress,
+                        From = _serviceAccount.AccountId,
                         Type = ChatMessageType.SeedChanged,
                         Text = Leader
                     };

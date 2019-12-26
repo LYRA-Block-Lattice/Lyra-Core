@@ -1,5 +1,6 @@
 ﻿using Lyra.Authorizer.Decentralize;
 using Lyra.Core.API;
+using Lyra.Core.Cryptography;
 using Orleans;
 using Orleans.Streams;
 using System;
@@ -9,11 +10,11 @@ using System.Threading.Tasks;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    public delegate void NodeMessageHandler(ChatMsg msg);
+    public delegate void NodeMessageHandler(SourceSignedMessage msg);
     public class StreamWatcher
     {
         protected IClusterClient _client;
-        private IAsyncStream<ChatMsg> _gossipStream;
+        private IAsyncStream<SourceSignedMessage> _gossipStream;
 
         public event NodeMessageHandler OnNodeChat;
 
@@ -25,7 +26,7 @@ namespace Lyra.Authorizer.Decentralize
         public virtual async Task Init(string IdentityString)
         {
             _gossipStream = _client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
-                .GetStream<ChatMsg>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
+                .GetStream<SourceSignedMessage>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
             await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
         }
 
@@ -41,18 +42,23 @@ namespace Lyra.Authorizer.Decentralize
             return Task.CompletedTask;
         }
 
-        public virtual Task OnNextAsync(ChatMsg item, StreamSequenceToken token = null)
+        public virtual Task OnNextAsync(SourceSignedMessage msg, StreamSequenceToken token = null)
         {
-            var info = $"=={item.Created}==         {item.From} said: {item.Text}";
-            Console.WriteLine(info);
+            var item = msg as ChatMsg;
+            if (item != null)
+            {
+                var info = $"=={item.Created}==         {item.From} said: {item.Text}";
+                Console.WriteLine(info);
 
-            OnNodeChat?.Invoke(item);
-
+                OnNodeChat?.Invoke(item);
+            }
             return Task.CompletedTask;
         }
 
         public virtual async Task SendMessage(ChatMsg msg)
         {
+            var signr = new SignaturesBase();
+
             await _gossipStream.OnNextAsync(msg);
         }
     }

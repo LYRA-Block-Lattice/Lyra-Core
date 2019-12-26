@@ -77,14 +77,18 @@ namespace LyraNodesBot
             }            
         }
 
-        public async Task OnGossipMessageAsync(ChatMsg m)
+        public async Task OnGossipMessageAsync(SourceSignedMessage msg)
         {
+            var m = msg as ChatMsg;
+            if (m == null)
+                return;
+
             switch(m.Type)
             {
                 case ChatMessageType.NodeUp:
                     // add node to zk runtime config
                     _runtimeCfg = await RefreshConfigFromZK();
-                    if (!_runtimeCfg.GetAllNodes().Any(a => a.Address == m.From))
+                    if (_runtimeCfg != null && !_runtimeCfg.GetAllNodes().Any(a => a.Address == m.From))
                     {
                         _runtimeCfg.VotingNodes.Add(new AuthorizerNode
                         {
@@ -97,13 +101,20 @@ namespace LyraNodesBot
                             var json = JsonConvert.SerializeObject(_runtimeCfg);
                             var cfg = await zk.setDataAsync("/lyra", Encoding.ASCII.GetBytes(json));
                         });
-                        await SendGroupMessageAsync($"*💖Good News Everyone!💖*\n\nA new node is up and running: {m.From}");
+                        await SendGroupMessageAsync($"*💖 Good News Everyone! 💖*\n\nA new node is up and running: {m.From}");
                     }
                     break;
+                case ChatMessageType.AuthorizerPrePrepare:
+                case ChatMessageType.AuthorizerPrepare:
+                //case ChatMessageType.AuthorizerCommit:
+                //    var typStr = string.Join(" ", Regex.Split(m.Type.ToString(), @"(?<!^)(?=[A-Z])"));
+                //    var text = $"*From*: {m.From}\n*Event*: {typStr}\n*Block Number*: {m.BlockUIndex}";
+                //    await SendGroupMessageAsync(text);
+                //    break;
                 default:
-                    var typStr = string.Join(" ", Regex.Split(m.Type.ToString(), @"(?<!^)(?=[A-Z])"));
-                    var text = $"*From*: {m.From}\n*Event*: {typStr}\n*Text*: {m.Text}\n*Block Number*: {m.BlockUIndex}";
-                    await SendGroupMessageAsync(text);
+                    var typStr2 = string.Join(" ", Regex.Split(m.Type.ToString(), @"(?<!^)(?=[A-Z])"));
+                    var text2 = $"*From*: {m.From}\n*Event*: {typStr2}\n*Text*: {m.Text}";
+                    await SendGroupMessageAsync(text2);
                     break;
             }
         }
@@ -234,13 +245,20 @@ namespace LyraNodesBot
         private async Task<ConsensusRuntimeConfig> RefreshConfigFromZK()
         {
             ConsensusRuntimeConfig result = null;
-            await UsingZookeeper(async (zk) =>
+            try
             {
-                // get Lyra network configurations from /lyra
-                // {"mode":"permissioned","seeds":["node1","node2"]}
-                var cfg = await zk.getDataAsync("/lyra");
-                result = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
-            });
+                await UsingZookeeper(async (zk) =>
+                {
+                    // get Lyra network configurations from /lyra
+                    // {"mode":"permissioned","seeds":["node1","node2"]}
+                    var cfg = await zk.getDataAsync("/lyra");
+                    result = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
+                });
+            }
+            catch (Exception)
+            {
+                result = null;
+            }
             return result;
         }
 

@@ -46,7 +46,7 @@ namespace Lyra.Authorizer
         {
             _config = config.Value;
 
-            _DatabaseName = _config.Lyra.DatabaseName;
+            _DatabaseName = _config.Lyra.Database.DatabaseName;
 
             _BlocksCollectionName = _config.Lyra.NetworkId + "-" + "Primary" + "-blocks";
 
@@ -97,7 +97,7 @@ namespace Lyra.Authorizer
         private MongoClient GetClient()
         {
             if (_Client == null)
-                _Client = new MongoClient(_config.Lyra.DBConnect);
+                _Client = new MongoClient(_config.Lyra.Database.DBConnect);
             return _Client;
         }
 

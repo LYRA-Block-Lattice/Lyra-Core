@@ -37,6 +37,8 @@ namespace Lyra.Authorizer.Decentralize
         GossipListener _gossipListener;
         ConsensusRuntimeConfig _consensus;
 
+        long _useed = -1;
+
         private bool IsSeedNode = false;
 
         public ApiService(ILogger<ApiService> logger, 
@@ -59,6 +61,8 @@ namespace Lyra.Authorizer.Decentralize
         {
             _signr = GrainFactory.GetGrain<ISignaturesForGrain>(0);
 
+            _useed = await _accountCollection.GetBlockCountAsync();
+
             //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
         }
 
@@ -66,7 +70,7 @@ namespace Lyra.Authorizer.Decentralize
         {
             await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", txt));
         }
-        public async Task Gossip(ChatMsg msg)
+        public async Task Gossip(SourceSignedMessage msg)
         {
             await _gossipListener.SendMessage(msg);
         }
@@ -77,27 +81,25 @@ namespace Lyra.Authorizer.Decentralize
             return true;
         }
 
-        public async Task<long> GenerateUniversalBlockIdAsync()
+        public long GenerateUniversalBlockIdAsync()
         {
             // if self master, use seeds; if not, ask master node
-            return await _accountCollection.GetBlockCountAsync();
+            return _useed++;
         }
 
-        internal async Task<bool> Pre_PrepareAsync(TransactionBlock block)
+        internal async Task<bool> Pre_PrepareAsync(TransactionBlock[] blocks)
         {
-            block.UIndex = await GenerateUniversalBlockIdAsync();
-            block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
-
-            ChatMsg msg = new ChatMsg
+            AuthorizingMsg msg = new AuthorizingMsg
             {
-                From = _config.Orleans.EndPoint.AdvertisedIPAddress,
-                Type = ChatMessageType.AuthorizerPrePrepare,
-                BlockToAuth = block,
-                BlockUIndex = block.UIndex,
-                Text = "Need Consensus",
-                Created = DateTime.Now
+                From = _serviceAccount.AccountId,
+                Blocks = new SortedList<long, TransactionBlock>()
             };
-
+            foreach(var block in blocks)
+            {
+                block.UIndex = GenerateUniversalBlockIdAsync();
+                block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
+                msg.Blocks.Add(block.UIndex, block);
+            }
             await Gossip(msg);
             return true;
         }
@@ -119,6 +121,15 @@ namespace Lyra.Authorizer.Decentralize
             // ***
             // to do - sign by authorizer and send to the outgoing queue
             var result = new AuthorizationAPIResult();
+
+            // first send to network. 
+            var feeResult = await ProcessTokenGenerationFee(block);
+            if (feeResult.result == APIResultCodes.Success && !await Pre_PrepareAsync(new[] { block, feeResult.block }))
+            {
+                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
+                return result;
+            }
+            return result;
 
             try
             {
@@ -208,11 +219,13 @@ namespace Lyra.Authorizer.Decentralize
             var result = new AuthorizationAPIResult();
 
             // first send to network. 
-            if (!await Pre_PrepareAsync(sendBlock))
+            var feeResult = await ProcessTransferFee(sendBlock);
+            if (feeResult.result == APIResultCodes.Success && !await Pre_PrepareAsync(new[] { sendBlock, feeResult.block }))
             {
                 result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
                 return result;
             }
+            return result;
 
             try
             {
@@ -234,7 +247,7 @@ namespace Lyra.Authorizer.Decentralize
                 }
 
                 var r = await ProcessTransferFee(sendBlock);
-                if (r != APIResultCodes.Success)
+                if (r.result != APIResultCodes.Success)
                     Console.WriteLine("Error in SendTransfer->ProcessTransferFee: " + r.ToString());
 
                 result.Authorizations = sendBlock.Authorizations;
@@ -349,7 +362,7 @@ namespace Lyra.Authorizer.Decentralize
                 }
 
                 var r = await ProcessTokenGenerationFee(tokenBlock);
-                if (r != APIResultCodes.Success)
+                if (r.result != APIResultCodes.Success)
                     Console.WriteLine("Error in CreateToken->ProcessTokenGenerationFee: " + r.ToString());
 
                 result.Authorizations = tokenBlock.Authorizations;
@@ -447,31 +460,32 @@ namespace Lyra.Authorizer.Decentralize
 
         #region Fee processing private methods
 
-        async Task<APIResultCodes> ProcessTransferFee(SendTransferBlock sendBlock)
+        async Task<(APIResultCodes result, TransactionBlock block)> ProcessTransferFee(SendTransferBlock sendBlock)
         {
             // TO DO: handle all token balances, not just LYRA
             if(sendBlock is ExchangingBlock)
             {
                 if(sendBlock.Fee != ExchangingBlock.FEE)
-                    return APIResultCodes.InvalidFeeAmount;
+                    return (APIResultCodes.InvalidFeeAmount, null);
             }
             else if (sendBlock.Fee != _serviceAccount.GetLastServiceBlock().TransferFee)
-                return APIResultCodes.InvalidFeeAmount;
+                return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
         }
 
-        async Task<APIResultCodes> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
+        async Task<(APIResultCodes result, TransactionBlock block)> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
         {
             if (tokenBlock.Fee != _serviceAccount.GetLastServiceBlock().TokenGenerationFee)
-                return APIResultCodes.InvalidFeeAmount;
+                return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(tokenBlock.Hash, tokenBlock.Fee);
         }
 
-        private async Task<APIResultCodes> ProcessFee(string source, decimal fee)
+        private async Task<(APIResultCodes result, TransactionBlock block)> ProcessFee(string source, decimal fee)
         {
             var callresult = APIResultCodes.Success;
+            TransactionBlock blockresult = null;
 
             TransactionBlock latestBlock = _accountCollection.FindLatestBlock(_serviceAccount.AccountId);
             if(latestBlock == null)
@@ -487,10 +501,11 @@ namespace Lyra.Authorizer.Decentralize
                     Balances = new Dictionary<string, decimal>()
                 };
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
-                receiveBlock.InitializeBlock(_signr, null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+                await receiveBlock.InitializeBlockAsync(_signr, null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
 
-                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountAuthorizer");
-                callresult = await authorizer.Authorize(receiveBlock);
+                //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountAuthorizer");
+                //callresult = await authorizer.Authorize(receiveBlock);
+                blockresult = receiveBlock;
             }
             else
             {
@@ -506,14 +521,15 @@ namespace Lyra.Authorizer.Decentralize
 
                 decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
-                receiveBlock.InitializeBlock(_signr, latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
+                await receiveBlock.InitializeBlockAsync(_signr, latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId);
 
-                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ReceiveTransferAuthorizer");
-                callresult = await authorizer.Authorize(receiveBlock);
+                //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ReceiveTransferAuthorizer");
+                //callresult = await authorizer.Authorize(receiveBlock);
+                blockresult = receiveBlock;
             }
 
             //receiveBlock.Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, receiveBlock.Hash);
-            return callresult;
+            return (callresult, blockresult);
         }
 
         #endregion

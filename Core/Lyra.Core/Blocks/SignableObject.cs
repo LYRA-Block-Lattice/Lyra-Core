@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 
 using Lyra.Core.Cryptography;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Lyra.Core.Blocks
 {
@@ -38,6 +39,12 @@ namespace Lyra.Core.Blocks
             if (string.IsNullOrWhiteSpace(Hash))
                 Hash = CalculateHash();
             Signature = await signer.GetSignature(PrivateKey, Hash);
+            // debug
+            File.AppendAllText(@"c:\tmp\signer.log", $"  Sign:   {Hash} With: {PrivateKey} Got: {Signature}\n");
+            //if(PrivateKey == "2tzpzECRYKQueaCX7d7wFWqHzU2XKHYJ8G8hX56uh44j4N85Q1")
+            //{
+            //    var result = await VerifySignatureAsync(signer, "L3jk7gUtcXrxNt2GxanwY5ksiJibADdj18EwpbEDmGs2AECfwouggyz6YXBNFYT13xJ8CJNahnGZQWwjKssB6bid1BBgS9F");
+            //}
             return this.Signature;
         }
 
@@ -55,7 +62,10 @@ namespace Lyra.Core.Blocks
             if (!VerifyHash())
                 return false;
 
-            return await signer.VerifyAccountSignature(Hash, PublicKey, Signature);
+            var result = await signer.VerifyAccountSignature(Hash, PublicKey, Signature);
+            // debug
+            File.AppendAllText(@"c:\tmp\signer.log", $"  Verify: {Hash} against: {Signature} With: {PublicKey} Result: {result}\n");
+            return result;
         }
 
         public virtual string Print()

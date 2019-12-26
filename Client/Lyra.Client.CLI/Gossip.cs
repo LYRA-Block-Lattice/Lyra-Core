@@ -10,7 +10,7 @@ using Lyra.Authorizer.Decentralize;
 
 namespace Lyra.Client.CLI
 {
-    public class Gossip
+ /*   public class Gossip
     {
         //To make this sample simple
         //In this sample, one client can only join one channel, hence we have a static variable of one channel name.
@@ -148,5 +148,5 @@ namespace Lyra.Client.CLI
                 await handle.UnsubscribeAsync();
             }
         }
-    }
+    }*/
 }

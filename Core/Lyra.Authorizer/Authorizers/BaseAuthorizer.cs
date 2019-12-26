@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Lyra.Authorizer.Decentralize;
 using Microsoft.Extensions.Options;
 using Orleans;
+using System.IO;
 
 namespace Lyra.Authorizer.Authorizers
 {
@@ -98,6 +99,8 @@ namespace Lyra.Authorizer.Authorizers
             //if (!Signatures.VerifySignature(block.Hash, block.AccountID, block.Signature))
             //    return APIResultCodes.BlockSignatureValidationFailed;
 
+            // debug
+            File.AppendAllText(@"c:\tmp\signer.log", $"VerifyBlockAsync of {block.BlockType}\n");
             var result = await block.VerifySignatureAsync(_signr, block.AccountID);
             if (!result)
                 return APIResultCodes.BlockSignatureValidationFailed;

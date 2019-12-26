@@ -10,6 +10,7 @@ using Lyra.Core.Cryptography;
 using Microsoft.Extensions.Options;
 using Orleans;
 using Lyra.Core.Utils;
+using System.IO;
 
 namespace Lyra.Authorizer.Services
 {
@@ -19,6 +20,8 @@ namespace Lyra.Authorizer.Services
         public string DatabasePath { get; set; }
 
         Timer timer = null;
+        IClusterClient _client;
+        IAccountDatabase _storage;
         private LyraNodeConfig _config;
 
         ISignatures _signr;
@@ -30,13 +33,10 @@ namespace Lyra.Authorizer.Services
 
         public ServiceAccount(IClusterClient client, IAccountDatabase storage, IOptions<LyraNodeConfig> config) 
         {
-            IsNodeFullySynced = false;
+            _client = client;
+            _storage = storage;
+            IsNodeFullySynced = true;
             _config = config.Value;
-
-            _signr = client.GetGrain<ISignaturesForGrain>(0);
-            _ba = new BaseAccount(_signr, SERVICE_ACCOUNT_NAME, storage, _config.Lyra.NetworkId);
-
-            Task.Run(() => StartAsync(true, null));            
         }
 
         public ServiceBlock GetLastServiceBlock()
@@ -69,18 +69,24 @@ namespace Lyra.Authorizer.Services
             };
 
             firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = _ba.AccountId, IPAddress = "127.0.0.1" });
-            firstServiceBlock.InitializeBlock(_signr, null, _ba.PrivateKey, _config.Lyra.NetworkId);
-
-            await firstServiceBlock.SignAsync(_signr, _ba.PrivateKey);
+            await firstServiceBlock.InitializeBlockAsync(_signr, null, _ba.PrivateKey, _config.Lyra.NetworkId);
 
             //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
             _ba.AddBlock(firstServiceBlock);
         }
 
-        private async Task StartAsync(bool ModeConsensus, string Path)
-        {            
+        public async Task StartAsync(bool ModeConsensus, string Path)
+        {
+            IsNodeFullySynced = true;
+
+            _signr = _client.GetGrain<ISignaturesForGrain>(0);
+            _ba = new BaseAccount(_signr, SERVICE_ACCOUNT_NAME, _storage, _config.Lyra.NetworkId);
+
             if (!_ba.AccountExistsLocally(Path, SERVICE_ACCOUNT_NAME))
+            {
+
                 await InitializeServiceAccountAsync(Path);
+            }                
             else
                 _ba.OpenAccount(Path, SERVICE_ACCOUNT_NAME);
             DatabasePath = Path;
@@ -117,8 +123,7 @@ namespace Lyra.Authorizer.Services
 
                 SyncBlock sync = new SyncBlock();
                 sync.LastServiceBlockHash = latestServiceBlock.Hash;
-                sync.InitializeBlock(_signr, latestBlock, _ba.PrivateKey, _ba.NetworkId);
-                await sync.SignAsync(_signr, _ba.PrivateKey);
+                await sync.InitializeBlockAsync(_signr, latestBlock, _ba.PrivateKey, _ba.NetworkId);
 
                 //sync.Signature = Signatures.GetSignature(PrivateKey, sync.Hash);
                 _ba.AddBlock(sync);

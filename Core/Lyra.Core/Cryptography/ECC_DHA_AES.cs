@@ -87,7 +87,7 @@ namespace Lyra.Core.Cryptography
         public byte[] GetSharedSecret(string LocalPrivateKey, string RemoteAccountId)
         {
             var curve = SecNamedCurves.GetByName("secp256r1");
-            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H, curve.GetSeed());
+            var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
 
             //byte[] pkbytes = Base58Encoding.DecodeWithCheckSum(LocalPrivateKey);
             byte[] pkbytes = Base58Encoding.DecodePrivateKey(LocalPrivateKey);

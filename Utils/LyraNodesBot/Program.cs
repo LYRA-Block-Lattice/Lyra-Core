@@ -20,15 +20,15 @@ namespace LyraNodesBot
         static async Task Main(string[] args)
         {
             Console.WriteLine("Wait for Lyra node start. Press enter to continue...");
-            await Task.Delay(10000);
+            await Task.Delay(20000);
 
             using (var host = CreateHost())
             {
                 host.Start();
                 var client = (ClusterClientHostedService)host.Services.GetService<IHostedService>();
 
-                var api = client.Client.GetGrain<INodeAPI>(0);
-                var height = await api.GetSyncHeight();
+                //var api = client.Client.GetGrain<INodeAPI>(0);
+                //var height = await api.GetSyncHeight();
 
                 var config = host.Services.GetService<LyraNodeConfig>();
                 var monitor = new NodesMonitor();

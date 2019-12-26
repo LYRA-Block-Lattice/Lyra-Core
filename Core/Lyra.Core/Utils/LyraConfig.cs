@@ -11,11 +11,16 @@ namespace Lyra.Core.Utils
 
         public class LyraConfig
         {
-            public string DatabaseName { get; set; }
-            public string DBConnect { get; set; }
-            public string DexDBConnect { get; set; }
             public string NetworkId { get; set; }
+            public LyraDatabaseConfig Database { get; set; }
         }
+    }
+
+    public class LyraDatabaseConfig
+    {
+        public string DatabaseName { get; set; }
+        public string DBConnect { get; set; }
+        public string DexDBConnect { get; set; }
     }
 
     public class OrleansConfig

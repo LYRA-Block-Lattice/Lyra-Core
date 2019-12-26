@@ -2,6 +2,7 @@
 using Lyra.Core.Blocks.Transactions;
 using Newtonsoft.Json;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,25 +10,32 @@ namespace Lyra.Authorizer.Decentralize
 {
 	public enum ChatMessageType { General, SeedChanged, NodeUp, NodeDown, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
 
-	public class ChatMsg : SignableObject
+	public class SourceSignedMessage : SignableObject
 	{
-		public DateTime Created { get; set; } = DateTime.Now;
-		public int Version { get; set; }
-		public string NetworkId { get; set; }
 		/// <summary>
-		/// Node Identify
+		/// Node Identify. Now it is AccountId
 		/// </summary>
 		public string From { get; set; }
+
+		public override string GetHashInput()
+		{
+			throw new NotImplementedException();
+		}
+
+		protected override string GetExtraData()
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	public class ChatMsg : SourceSignedMessage
+	{
 		public ChatMessageType Type { get; set; }
 		public string Text { get; set; }
 
-		// use BlockAPIResult to deserialize it
-		public long BlockUIndex { get; set; }
-		public TransactionBlock BlockToAuth { get; set; }
-
-		// auth result. for prepare result can't be null
-		public APIResultCodes AuthResult { get; set; }
-		public AuthorizationSignature AuthSignature { get; set; }
+		public DateTime Created { get; set; } = DateTime.Now;
+		public int Version { get; set; }
+		public string NetworkId { get; set; }
 
 		public ChatMsg()
 		{
@@ -49,10 +57,6 @@ namespace Lyra.Authorizer.Decentralize
 				this.From + "|" +
 				this.Type.ToString() + "|" +
 				this.Text + "|" +
-				this.BlockUIndex.ToString() + "|" +
-				JsonConvert.SerializeObject(BlockToAuth) + "|" +
-				this.AuthResult.ToString() + "|" +
-				JsonConvert.SerializeObject(AuthSignature) + "|" +
 				this.GetExtraData();
 		}
 
@@ -60,6 +64,75 @@ namespace Lyra.Authorizer.Decentralize
 		protected override string GetExtraData()
 		{
 			return string.Empty;
+		}
+	}
+
+	public class AuthorizingMsg : SourceSignedMessage
+	{
+		public SortedList<long, TransactionBlock> Blocks { get; set; }
+		public override string GetHashInput()
+		{
+			var sb = new StringBuilder();
+			sb.Append(From + "|");
+			foreach(var b in Blocks)
+			{
+				sb.Append($"{b.Key}|{b.Value.GetHashInput()}|");
+			}
+			return sb.ToString();
+		}
+
+		protected override string GetExtraData()
+		{
+			return "";
+		}
+	}
+
+	public class AuthorizedMsg : SourceSignedMessage
+	{
+		// block uindex, block hash (replace block itself), error code, authsign
+		public SortedList<long, AuthSignForBlock> AuthResults { get; set; }
+		public override string GetHashInput()
+		{
+			var sb = new StringBuilder();
+			sb.Append(From + "|");
+			foreach (var b in AuthResults)
+			{
+				sb.Append($"{b.Key}|{b.Value.Hash}|{b.Value.Result}|{b.Value.AuthSign?.Key}|{b.Value.AuthSign?.Signature}|");
+			}
+			return sb.ToString();
+		}
+
+		protected override string GetExtraData()
+		{
+			return "";
+		}
+
+		public class AuthSignForBlock
+		{
+			public string Hash { get; set; }
+			public APIResultCodes Result { get; set; }
+			public AuthorizationSignature AuthSign { get; set; }
+		}
+	}
+
+	public class AuthorizerCommitMsg : SourceSignedMessage
+	{
+		public SortedList<long, bool> Commited { get; set; }
+
+		public override string GetHashInput()
+		{
+			var sb = new StringBuilder();
+			sb.Append(From + "|");
+			foreach (var b in Commited)
+			{
+				sb.Append($"{b.Key}|{b.Value}|");
+			}
+			return sb.ToString();
+		}
+
+		protected override string GetExtraData()
+		{
+			return "";
 		}
 	}
 }
