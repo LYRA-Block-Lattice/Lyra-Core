@@ -57,7 +57,7 @@ namespace Lyra.Core.Blocks
 
         public List<AuthorizationSignature> Authorizations { get; set; }
 
-        public virtual void InitializeBlockAsync(Block prevBlock, string PrivateKey, string NetworkId, string ShardId = "Primary", string AccountId = null)
+        public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string NetworkId, string ShardId = "Primary", string AccountId = null)
         {
             if (prevBlock != null)
             {

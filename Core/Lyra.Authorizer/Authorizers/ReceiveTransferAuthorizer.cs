@@ -40,11 +40,11 @@ namespace Lyra.Authorizer.Authorizers
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            var result = await VerifyBlockAsync(block, lastBlock);
+            var result = VerifyBlock(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await VerifyTransactionBlockAsync(block);
+            result = VerifyTransactionBlock(block);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -55,7 +55,7 @@ namespace Lyra.Authorizer.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await ValidateNonFungibleAsync(block, lastBlock);
+            result = ValidateNonFungible(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -64,7 +64,7 @@ namespace Lyra.Authorizer.Authorizers
             if (duplicate_block != null)
                 return APIResultCodes.DuplicateReceiveBlock;
 
-            var signed = await Sign(block);
+            var signed = Sign(block);
             if (signed)
             {
                 _accountCollection.AddBlock(block);
@@ -132,9 +132,9 @@ namespace Lyra.Authorizer.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected override async Task<APIResultCodes> ValidateNonFungibleAsync(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        protected override APIResultCodes ValidateNonFungible(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
-            var result = await base.ValidateNonFungibleAsync(send_or_receice_block, previousBlock);
+            var result = base.ValidateNonFungible(send_or_receice_block, previousBlock);
             if (result != APIResultCodes.Success)
                 return result;
 

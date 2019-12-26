@@ -38,11 +38,11 @@ namespace Lyra.Authorizer.Authorizers
             if (_accountCollection.FindLatestBlock(block.AccountID) != null)
                 return APIResultCodes.AccountBlockAlreadyExists;
 
-            var result = await VerifyBlockAsync(block, null);
+            var result = VerifyBlock(block, null);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await VerifyTransactionBlockAsync(block);
+            result = VerifyTransactionBlock(block);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -50,11 +50,11 @@ namespace Lyra.Authorizer.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await ValidateNonFungibleAsync(block, null);
+            result = ValidateNonFungible(block, null);
             if (result != APIResultCodes.Success)
                 return result;
 
-            var signed = await Sign(block);
+            var signed = Sign(block);
             if (signed)
             {
                 _accountCollection.AddBlock(block);

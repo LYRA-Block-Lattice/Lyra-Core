@@ -498,7 +498,7 @@ namespace Lyra.Authorizer.Decentralize
                     Balances = new Dictionary<string, decimal>()
                 };
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
-                receiveBlock.InitializeBlockAsync(null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId, AccountId: _serviceAccount.AccountId);
+                receiveBlock.InitializeBlock(null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId, AccountId: _serviceAccount.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
@@ -518,7 +518,7 @@ namespace Lyra.Authorizer.Decentralize
 
                 decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
-                receiveBlock.InitializeBlockAsync(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId, AccountId: _serviceAccount.AccountId);
+                receiveBlock.InitializeBlock(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId, AccountId: _serviceAccount.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ReceiveTransferAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);

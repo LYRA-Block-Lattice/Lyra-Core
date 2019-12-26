@@ -41,7 +41,7 @@ namespace Lyra.Authorizer.Authorizers
                 return APIResultCodes.AccountAlreadyExists; // 
 
             // 2. Validate blocks
-            var result = await VerifyBlockAsync(block, null);
+            var result = VerifyBlock(block, null);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -51,7 +51,7 @@ namespace Lyra.Authorizer.Authorizers
             if (_accountCollection.FindTokenGenesisBlock(block.Hash, LyraGlobal.LYRA_TICKER_CODE) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
-            var signed = await Sign(block);
+            var signed = Sign(block);
             if (signed)
             {
                 _accountCollection.AddBlock(block);

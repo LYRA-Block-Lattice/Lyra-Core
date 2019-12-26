@@ -39,11 +39,11 @@ namespace Lyra.Authorizer.Authorizers
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            var result = await VerifyBlockAsync(block, lastBlock);
+            var result = VerifyBlock(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await VerifyTransactionBlockAsync(block);
+            result = VerifyTransactionBlock(block);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -55,7 +55,7 @@ namespace Lyra.Authorizer.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            var signed = await Sign(block);
+            var signed = Sign(block);
             if(signed)
             {
                 _accountCollection.AddBlock(block);

@@ -42,11 +42,11 @@ namespace Lyra.Authorizer.Authorizers
                 return APIResultCodes.CouldNotFindLatestBlock;
 
             // 2. Validate blocks
-            var result = await VerifyBlockAsync(block, lastBlock);
+            var result = VerifyBlock(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await VerifyTransactionBlockAsync(block);
+            result = VerifyTransactionBlock(block);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -72,7 +72,7 @@ namespace Lyra.Authorizer.Authorizers
             if (block.RenewalDate > DateTime.Now.Add(TimeSpan.FromDays(366)) || block.RenewalDate < DateTime.Now)
                 return APIResultCodes.InvalidTokenRenewalDate;
 
-            var signed = await Sign(block);
+            var signed = Sign(block);
             if (signed)
             {
                 _accountCollection.AddBlock(block);

@@ -41,7 +41,7 @@ namespace Lyra.Authorizer.Authorizers
         }
         private async Task<APIResultCodes> CommitAsync<T>(T tblock)
         {
-            var signed = await Sign(tblock);
+            var signed = Sign(tblock);
             if (signed)
             {
                 _accountCollection.AddBlock(tblock as TransactionBlock);
@@ -86,7 +86,7 @@ namespace Lyra.Authorizer.Authorizers
             throw new NotImplementedException("Must override");
         }
 
-        protected async Task<APIResultCodes> VerifyBlockAsync(TransactionBlock block, TransactionBlock previousBlock)
+        protected APIResultCodes VerifyBlock(TransactionBlock block, TransactionBlock previousBlock)
         {
             if (_config.Lyra.NetworkId != block.NetworkId)
                 return APIResultCodes.InvalidNetworkId;
@@ -146,7 +146,7 @@ namespace Lyra.Authorizer.Authorizers
         }
 
         // common validations for Send and Receive blocks
-        protected async Task<APIResultCodes> VerifyTransactionBlockAsync(TransactionBlock block)
+        protected APIResultCodes VerifyTransactionBlock(TransactionBlock block)
         {
             // Validate the account id
             if (!Signatures.ValidateAccountId(block.AccountID))
@@ -206,7 +206,7 @@ namespace Lyra.Authorizer.Authorizers
         //    return APIResultCodes.Success;
         //}
 
-        protected virtual async Task<APIResultCodes> ValidateNonFungibleAsync(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        protected virtual APIResultCodes ValidateNonFungible(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
             TransactionInfoEx transaction = send_or_receice_block.GetTransaction(previousBlock);
 
@@ -238,7 +238,7 @@ namespace Lyra.Authorizer.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected async Task<bool> Sign<T>(T tblock)
+        protected bool Sign<T>(T tblock)
         {
             if (!(tblock is TransactionBlock))
                 throw new System.ApplicationException("APIResultCodes.InvalidBlockType");
@@ -270,7 +270,7 @@ namespace Lyra.Authorizer.Authorizers
             //    shouldSign = true;
             //}
 
-            if(true)
+            if (true)
             {
                 // sign with the authorizer key
                 AuthorizationSignature authSignature = new AuthorizationSignature
@@ -299,7 +299,7 @@ namespace Lyra.Authorizer.Authorizers
 
         //    if (block.Authorizations[0].Key != _serviceAccount.AccountId)
         //        return false;
-                       
+
         //    return Signatures.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);
 
         //}

@@ -68,7 +68,7 @@ namespace Lyra.Authorizer.Services
             };
 
             firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = _ba.AccountId, IPAddress = "127.0.0.1" });
-            firstServiceBlock.InitializeBlockAsync(null, _ba.PrivateKey, _config.Lyra.NetworkId, AccountId: _ba.AccountId);
+            firstServiceBlock.InitializeBlock(null, _ba.PrivateKey, _config.Lyra.NetworkId, AccountId: _ba.AccountId);
 
             //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
             _ba.AddBlock(firstServiceBlock);
@@ -121,7 +121,7 @@ namespace Lyra.Authorizer.Services
 
                 SyncBlock sync = new SyncBlock();
                 sync.LastServiceBlockHash = latestServiceBlock.Hash;
-                sync.InitializeBlockAsync(latestBlock, _ba.PrivateKey, _ba.NetworkId, AccountId: AccountId);
+                sync.InitializeBlock(latestBlock, _ba.PrivateKey, _ba.NetworkId, AccountId: AccountId);
 
                 //sync.Signature = Signatures.GetSignature(PrivateKey, sync.Hash);
                 _ba.AddBlock(sync);

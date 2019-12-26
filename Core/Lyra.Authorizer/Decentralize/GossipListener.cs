@@ -90,7 +90,7 @@ namespace Lyra.Authorizer.Decentralize
             switch(item)
             {
                 case AuthorizingMsg msg:
-                    await OnPrePrepare(msg);
+                    OnPrePrepare(msg);
                     break;
                 case AuthorizedMsg authed:
                     await OnPrepare(authed);
@@ -112,26 +112,27 @@ namespace Lyra.Authorizer.Decentralize
 
         //}
 
-        private async Task OnPrePrepare(AuthorizingMsg item)
+        private void OnPrePrepare(AuthorizingMsg item)
         {
             // send to self node to auth
             _pendingAuthMsg.Add(item.Blocks.First().Key, item);
 
             _ = Task.Run(async () =>
             {
-                var resultMsg = new AuthorizedMsg { 
+                var resultMsg = new AuthorizedMsg
+                {
                     From = _serviceAccount.AccountId,
                     AuthResults = new SortedList<long, AuthorizedMsg.AuthSignForBlock>()
                 };
 
-                foreach(var b in item.Blocks)
+                foreach (var b in item.Blocks)
                 {
                     var authrName = _authorizers[b.Value.BlockType];
                     var authorizer = _client.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers." + authrName);
 
                     var localAuthResult = await authorizer.Authorize(b.Value);
                     var result = new AuthorizedMsg.AuthSignForBlock
-                    { 
+                    {
                         Result = localAuthResult,
                         AuthSign = b.Value.Authorizations?.First()
                     };
