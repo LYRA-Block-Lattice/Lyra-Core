@@ -29,27 +29,13 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.0" />
-    <PackageReference Include="Microsoft.Orleans.Clustering.AdoNet" Version="3.0.1" />
-    <PackageReference Include="Microsoft.Orleans.Core" Version="3.0.2" />
-    <PackageReference Include="Microsoft.Orleans.OrleansCodeGenerator.Build" Version="3.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Orleans.OrleansProviders" Version="3.0.1" />
-    <PackageReference Include="Microsoft.Orleans.OrleansSQLUtils" Version="2.4.4" />
-    <PackageReference Include="Microsoft.Orleans.OrleansZooKeeperUtils" Version="3.0.1" />
-    <PackageReference Include="Microsoft.Orleans.Persistence.AdoNet" Version="3.0.1" />
-    <PackageReference Include="Microsoft.Orleans.Server" Version="3.0.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.9.3" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="OrleansDashboard" Version="3.0.8" />
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="1.1.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.0" />
     <PackageReference Include="System.Reactive.Core" Version="4.3.1" />
     <PackageReference Include="System.Reactive.Interfaces" Version="4.3.1" />
     <PackageReference Include="System.Reactive.Linq" Version="4.3.1" />
-    <PackageReference Include="ZooKeeperNetEx" Version="3.4.12.4" />
-    <PackageReference Include="ZooKeeperNetEx.Recipes" Version="3.4.12.4" />
   </ItemGroup>
 
   <ItemGroup>
