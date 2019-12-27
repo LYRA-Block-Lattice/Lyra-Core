@@ -20,24 +20,26 @@ namespace Lyra.Authorizer.Decentralize
         protected IClusterClient _client;
         ServiceAccount _serviceAccount;
         private IAsyncStream<SourceSignedMessage> _gossipStream;
-        string Identity;
-
-        Dictionary<long, AuthorizingMsg> _pendingAuthMsg;
-        Dictionary<long, List<(string from, long uIndex, bool authResult, AuthorizedMsg msg)>> _activeConsensus;
+        private string Identity;
 
         Dictionary<BlockTypes, string> _authorizers;
+
+        // queue bellow
+        Dictionary<long, AuthState> _activeConsensus;
+
+
 
         public GossipListener(IClusterClient clusterClient, ServiceAccount serviceAccount)
         {
             _client = clusterClient;
             _serviceAccount = serviceAccount;
 
-            _pendingAuthMsg = new Dictionary<long, AuthorizingMsg>();
-            _activeConsensus = new Dictionary<long, List<(string from, long uIndex, bool authResult, AuthorizedMsg msg)>>();
+            _activeConsensus = new Dictionary<long, AuthState>();
 
             _authorizers = new Dictionary<BlockTypes, string>();
             _authorizers.Add(BlockTypes.SendTransfer, "SendTransferAuthorizer");
             _authorizers.Add(BlockTypes.LyraTokenGenesis, "GenesisAuthorizer");
+            _authorizers.Add(BlockTypes.ReceiveFee, "ReceiveTransferAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithReceiveFee, "NewAccountAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithReceiveTransfer, "NewAccountAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithImport, "NewAccountWithImportAuthorizer");
@@ -62,16 +64,15 @@ namespace Lyra.Authorizer.Decentralize
             while (_serviceAccount.PrivateKey == null)  //starup. need to wait it generated
                 await Task.Delay(1000);
             msg.Sign(_serviceAccount.PrivateKey, msg.From);
-            msg.VerifySignature(_serviceAccount.AccountId);
             await _gossipStream.OnNextAsync(msg);
         }
 
-        //public async Task SendMessage(SourceSignedMessage msg, TransactionBlock[] block)
-        //{
-        //    var 
-        //    _pendingAuthMsg.Add(block.UIndex, block);
-        //    await SendMessage(msg);
-        //}
+        public async Task<AuthState> SendAuthorizingMessage(AuthorizingMsg block)
+        {
+            await SendMessage(block);
+            var state = CreateAuthringState(block);
+            return state;
+        }
 
         public Task OnNextAsync(SourceSignedMessage item, StreamSequenceToken token = null)
         {
@@ -93,10 +94,10 @@ namespace Lyra.Authorizer.Decentralize
                     OnPrePrepare(msg);
                     break;
                 case AuthorizedMsg authed:
-                    await OnPrepare(authed);
+                    OnPrepare(authed);
                     break;
                 case AuthorizerCommitMsg commited:
-                    await OnCommit(commited);
+                    OnCommit(commited);
                     break;
                 //case ChatMsg chat:
                 //    await OnChatMsg(chat);
@@ -112,79 +113,78 @@ namespace Lyra.Authorizer.Decentralize
 
         //}
 
+        private AuthState CreateAuthringState(AuthorizingMsg item)
+        {
+            var ukey = item.Block.UIndex;
+            if (_activeConsensus.ContainsKey(ukey))
+            {
+                return _activeConsensus[ukey];
+            }
+
+            var state = new AuthState
+            {
+                UIndexOfFirstBlock = ukey,
+                InputMsg = item,
+            };
+            _activeConsensus.Add(ukey, state);
+            return state;
+        }
+
         private void OnPrePrepare(AuthorizingMsg item)
         {
-            // send to self node to auth
-            _pendingAuthMsg.Add(item.Blocks.First().Key, item);
+            var state = CreateAuthringState(item);
 
             _ = Task.Run(async () =>
             {
-                var resultMsg = new AuthorizedMsg
+                var authrName = _authorizers[item.Block.BlockType];
+                var authorizer = _client.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers." + authrName);
+
+                var localAuthResult = await authorizer.Authorize(item.Block);
+                var result = new AuthorizedMsg
                 {
                     From = _serviceAccount.AccountId,
-                    AuthResults = new SortedList<long, AuthorizedMsg.AuthSignForBlock>()
+                    BlockIndex = item.Block.UIndex,
+                    Result = localAuthResult.Item1,
+                    AuthSign = localAuthResult.Item2
                 };
 
-                foreach (var b in item.Blocks)
-                {
-                    var authrName = _authorizers[b.Value.BlockType];
-                    var authorizer = _client.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers." + authrName);
-
-                    var localAuthResult = await authorizer.Authorize(b.Value);
-                    var result = new AuthorizedMsg.AuthSignForBlock
-                    {
-                        Result = localAuthResult,
-                        AuthSign = b.Value.Authorizations?.First()
-                    };
-                    resultMsg.AuthResults.Add(b.Value.UIndex, result);
-                }
-
-                await SendMessage(resultMsg);
+                await SendMessage(result);
+                state.AddAuthResult(result);
             });
         }
 
-        private async Task OnPrepare(AuthorizedMsg item)
+        private void OnPrepare(AuthorizedMsg item)
         {
-            List<(string from, long uIndex, bool authResult, AuthorizedMsg msg)> authResults;
-            var uindex = item.AuthResults.First().Key;
-            if (_activeConsensus.ContainsKey(uindex))
-            {
-                authResults = _activeConsensus[uindex];
-            }
-            else
-            {
-                authResults = new List<(string from, long uIndex, bool authResult, AuthorizedMsg msg)>();
-                _activeConsensus.Add(uindex, authResults);
-            }
-            authResults.Add((item.From, uindex, item.AuthResults.Values.Any(a => a.Result != APIResultCodes.Success), item));
+            var state = _activeConsensus[item.BlockIndex];
+            state.AddAuthResult(item);
 
-            if (authResults.Where(a => a.uIndex == uindex)
-                .Count(b => b.authResult) > 1)  //need to get from global config
+            if (state.IsAuthoringSuccess)
             {
-                // do commit
-                var commiter = _client.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.AuthorizedCommiter");
-
-                var authMsg = _pendingAuthMsg[uindex];
-                foreach(var block in authMsg.Blocks)
+                _ = Task.Run(async () =>
                 {
-                    block.Value.Authorizations = authResults.Where(a => a.uIndex == uindex)
-                        .Select(a => a.msg.AuthResults[block.Key].AuthSign).ToList();
-                    await commiter.Commit(block.Value);
-                }
+                    // do commit
+                    var block = state.InputMsg.Block;
+                    block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
-                var msg = new AuthorizerCommitMsg
-                {
-                    From = _serviceAccount.AccountId,
-                    Commited = new SortedList<long, bool>()
-                };
-                authMsg.Blocks.Select(a => { msg.Commited.Add(a.Key, true); return true; });
-                await SendMessage(msg);
+                    var commiter = _client.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.AuthorizedCommiter");
+                    await commiter.Commit(block);
+
+                    var msg = new AuthorizerCommitMsg
+                    {
+                        From = _serviceAccount.AccountId,
+                        BlockIndex = block.UIndex,
+                        Commited = true
+                    };
+
+                    await SendMessage(msg);
+                });
             }
         }
 
-        private async Task OnCommit(AuthorizerCommitMsg msg)
+        private void OnCommit(AuthorizerCommitMsg item)
         {
-            // reply to client
+            var state = _activeConsensus[item.BlockIndex];
+            state.AddCommitedResult(item);
         }
 
         public virtual Task OnCompletedAsync()
@@ -197,6 +197,11 @@ namespace Lyra.Authorizer.Decentralize
         {
             Console.WriteLine($"Chatroom is experiencing message delivery failure, ex :{ex}");
             return Task.CompletedTask;
+        }
+
+        public IDisposable Subscribe(IObserver<AuthorizingMsg> observer)
+        {
+            throw new NotImplementedException();
         }
     }
 }

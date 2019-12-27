@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Lyra.Authorizer.Decentralize
@@ -69,16 +70,10 @@ namespace Lyra.Authorizer.Decentralize
 
 	public class AuthorizingMsg : SourceSignedMessage
 	{
-		public SortedList<long, TransactionBlock> Blocks { get; set; }
+		public TransactionBlock Block { get; set; }
 		public override string GetHashInput()
 		{
-			var sb = new StringBuilder();
-			sb.Append(From + "|");
-			foreach(var b in Blocks)
-			{
-				sb.Append($"{b.Key}|{b.Value.GetHashInput()}|");
-			}
-			return sb.ToString();
+			return $"{Block.UIndex}|{Block.GetHashInput()}";
 		}
 
 		protected override string GetExtraData()
@@ -90,44 +85,32 @@ namespace Lyra.Authorizer.Decentralize
 	public class AuthorizedMsg : SourceSignedMessage
 	{
 		// block uindex, block hash (replace block itself), error code, authsign
-		public SortedList<long, AuthSignForBlock> AuthResults { get; set; }
+		public long BlockIndex { get; set; }
+		public APIResultCodes Result { get; set; }
+		public AuthorizationSignature AuthSign { get; set; }
 		public override string GetHashInput()
 		{
-			var sb = new StringBuilder();
-			sb.Append(From + "|");
-			foreach (var b in AuthResults)
-			{
-				sb.Append($"{b.Key}|{b.Value.Hash}|{b.Value.Result}|{b.Value.AuthSign?.Key}|{b.Value.AuthSign?.Signature}|");
-			}
-			return sb.ToString();
+			return $"{BlockIndex}|{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|";
 		}
+
+		public bool IsSuccess => Result == APIResultCodes.Success;
 
 		protected override string GetExtraData()
 		{
 			return "";
 		}
-
-		public class AuthSignForBlock
-		{
-			public string Hash { get; set; }
-			public APIResultCodes Result { get; set; }
-			public AuthorizationSignature AuthSign { get; set; }
-		}
 	}
 
 	public class AuthorizerCommitMsg : SourceSignedMessage
 	{
-		public SortedList<long, bool> Commited { get; set; }
+		public long BlockIndex { get; set; }
+		public bool Commited { get; set; }
+
+		public bool IsSuccess => Commited;
 
 		public override string GetHashInput()
 		{
-			var sb = new StringBuilder();
-			sb.Append(From + "|");
-			foreach (var b in Commited)
-			{
-				sb.Append($"{b.Key}|{b.Value}|");
-			}
-			return sb.ToString();
+			return $"{BlockIndex}|{Commited}";
 		}
 
 		protected override string GetExtraData()

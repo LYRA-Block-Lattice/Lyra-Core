@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
+using System.Threading;
 
 namespace Lyra.Authorizer.Decentralize
 {
@@ -84,100 +85,67 @@ namespace Lyra.Authorizer.Decentralize
             return _useed++;
         }
 
-        internal async Task<bool> Pre_PrepareAsync(TransactionBlock[] blocks)
+        private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
         {
+            block.UIndex = GenerateUniversalBlockIdAsync();
+            block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
             AuthorizingMsg msg = new AuthorizingMsg
             {
                 From = _serviceAccount.AccountId,
-                Blocks = new SortedList<long, TransactionBlock>()
+                Block = block
             };
-            foreach(var block in blocks)
+            var state = await _gossipListener.SendAuthorizingMessage(msg);
+            state.Done.WaitOne();
+            return state;
+        }
+
+        internal async Task<bool> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)
+        {
+            var state1 = await PostToConsensusAsync(block1);
+
+            if(state1.IsAuthoringSuccess)
             {
-                block.UIndex = GenerateUniversalBlockIdAsync();
-                block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
-                msg.Blocks.Add(block.UIndex, block);
+                if(OnBlockSucceed != null)
+                {
+                    var block2 = await OnBlockSucceed(state1.InputMsg.Block);
+
+                    var state2 = await PostToConsensusAsync(block2);
+
+                    return state2.IsAuthoringSuccess;
+                }
+                return true;                
             }
-            await Gossip(msg);
-            return true;
-        }
 
-        internal Task<bool> PrepareAsync(TransactionBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal Task<bool> CommitAsync(TransactionBlock block)
-        {
-            throw new NotImplementedException();
+            return false;
         }
 
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
-            // Send to the authorizations sample - TO DO
-            // For now, implementation for single-node testnet only
-            // ***
-            // to do - sign by authorizer and send to the outgoing queue
             var result = new AuthorizationAPIResult();
-
-            // first send to network. 
-            var feeResult = await ProcessTokenGenerationFee(block);
-            if (feeResult.result == APIResultCodes.Success && !await Pre_PrepareAsync(new[] { block, feeResult.block }))
+            if (await Pre_PrepareAsync(block, async (b) =>
+            {
+                var feeResult = await ProcessTokenGenerationFee(b as LyraTokenGenesisBlock);
+                return feeResult.block;
+            }))
             {
                 result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
                 return result;
             }
             return result;
-
-            try
-            {
-                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.GenesisAuthorizer");
-
-                var openBlock = block;
-                result.ResultCode = await authorizer.Authorize(openBlock);
-                if (result.ResultCode == APIResultCodes.Success)
-                {
-                    result.Authorizations = openBlock.Authorizations;
-                    result.ServiceHash = openBlock.ServiceHash;
-
-                    await ProcessTokenGenerationFee(openBlock);
-                }
-                else
-                {
-                    Console.WriteLine(openBlock.Print());
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception in OpenAccountWithGenesis: " + e.Message);
-                result.ResultCode = APIResultCodes.ExceptionInOpenAccountWithGenesis;
-            }
-
-            return result;
         }
 
         public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
         {
-            // Send to the authorizations sample - TO DO
-            // For now, implementation for single-node testnet only
-            // ***
-            // to do - sign by authorizer and send to the outgoing queue
             var result = new AuthorizationAPIResult();
 
-            try
+            // first send to network. 
+            if (!await Pre_PrepareAsync(openReceiveBlock))
             {
-                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountAuthorizer");
-                result.ResultCode = await authorizer.Authorize(openReceiveBlock);
-                if (result.ResultCode != APIResultCodes.Success)
-                    return result;
-
-                result.Authorizations = openReceiveBlock.Authorizations;
-                result.ServiceHash = openReceiveBlock.ServiceHash;
-                result.ResultCode = APIResultCodes.Success;
+                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine("Exception in ReceiveTransferAndOpenAccount: " + e.Message);
-                result.ResultCode = APIResultCodes.ExceptionInReceiveTransferAndOpenAccount;
+                result.ResultCode = APIResultCodes.Success;
             }
             return result;
         }
@@ -187,81 +155,35 @@ namespace Lyra.Authorizer.Decentralize
         {
             var result = new AuthorizationAPIResult();
 
-            try
+            // first send to network. 
+            if (!await Pre_PrepareAsync(block))
             {
-                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewAccountWithImportAuthorizer");
-                result.ResultCode = await authorizer.Authorize(block);
-                if (result.ResultCode != APIResultCodes.Success)
-                    return result;
-
-                result.Authorizations = block.Authorizations;
-                result.ServiceHash = block.ServiceHash;
-                result.ResultCode = APIResultCodes.Success;
+                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine("Exception in OpenAccountWithImport: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.Success;
             }
             return result;
         }
 
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
-            // Send to the authorizations sample - TO DO
-            // For now, implementation for single-node testnet only
-            // ***
-            // to do - sign by authorizer and send to the outgoing queue
-
             var result = new AuthorizationAPIResult();
-
-            // first send to network. 
-            var feeResult = await ProcessTransferFee(sendBlock);
-            if (feeResult.result == APIResultCodes.Success && !await Pre_PrepareAsync(new[] { sendBlock, feeResult.block }))
+            if (await Pre_PrepareAsync(sendBlock, async (b) =>
+            {
+                var feeResult = await ProcessTransferFee(b as SendTransferBlock);
+                return feeResult.block;
+            }))
+            {
+                result.ResultCode = APIResultCodes.Success;
+            }
+            else
             {
                 result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
-                return result;
             }
+
             return result;
-
-            try
-            {
-                //var authorizer = (sendBlock is ExchangingBlock) ?
-                //    GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ExchangingAuthorizer") :
-                //    GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.SendTransferAuthorizer");
-
-                //var localAuthResult = await authorizer.Authorize(sendBlock);
-
-
-                var consensusResult = await GossipForConsensus(sendBlock.UIndex);
-
-                if (result.ResultCode != APIResultCodes.Success)
-                {
-                    Console.WriteLine("Authorization failed" + result.ResultCode.ToString());
-                    //Console.WriteLine(JsonConvert.SerializeObject(sendBlock));
-                    //Console.WriteLine(sendBlock.CalculateHash());
-                    return result;
-                }
-
-                var r = await ProcessTransferFee(sendBlock);
-                if (r.result != APIResultCodes.Success)
-                    Console.WriteLine("Error in SendTransfer->ProcessTransferFee: " + r.ToString());
-
-                result.Authorizations = sendBlock.Authorizations;
-                result.ServiceHash = sendBlock.ServiceHash;
-                result.ResultCode = APIResultCodes.Success;
-
-                //// test. send notify
-                //NotifyService.Notify(sendBlock.AccountID, NotifySource.Balance, "", "", "");
-                //NotifyService.Notify(sendBlock.DestinationAccountId, NotifySource.Balance, "", "", "");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception in SendTransfer: " + e.Message);
-                result.ResultCode = APIResultCodes.ExceptionInSendTransfer;
-            }
-            return await Task.FromResult(result);
-
         }
 
         public Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
@@ -271,67 +193,31 @@ namespace Lyra.Authorizer.Decentralize
 
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
-            // Send to the authorizations sample - TO DO
-            // For now, implementation for single-node testnet only
-            // ***
-            // to do - sign by authorizer and send to the outgoing queue
-
             var result = new AuthorizationAPIResult();
 
-            try
+            if (!await Pre_PrepareAsync(receiveBlock))
             {
-                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ReceiveTransferAuthorizer");
-
-                result.ResultCode = await authorizer.Authorize(receiveBlock);
-
-                if (result.ResultCode != APIResultCodes.Success)
-                {
-                    return result;
-                }
-
-                result.Authorizations = receiveBlock.Authorizations;
-                result.ServiceHash = receiveBlock.ServiceHash;
-                result.ResultCode = APIResultCodes.Success;
-
+                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine("Exception in ReceiveTransfer: " + e.Message);
-                result.ResultCode = APIResultCodes.ExceptionInReceiveTransfer;
+                result.ResultCode = APIResultCodes.Success;
             }
             return result;
         }
 
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
-            // Send to the authorizations sample - TO DO
-            // For now, implementation for single-node testnet only
-            // ***
-            // to do - sign by authorizer and send to the outgoing queue
-
             var result = new AuthorizationAPIResult();
 
-            try
+            if (!await Pre_PrepareAsync(block))
             {
-
-                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.ImportAccountAuthorizer");
-
-                result.ResultCode = await authorizer.Authorize(block);
-
-                if (result.ResultCode != APIResultCodes.Success)
-                {
-                    return result;
-                }
-
-                result.Authorizations = block.Authorizations;
-                result.ServiceHash = block.ServiceHash;
-                result.ResultCode = APIResultCodes.Success;
-
+                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
+                return result;
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine("Exception in ImportAccount: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultCode = APIResultCodes.Success;
             }
             return result;
         }
@@ -348,31 +234,19 @@ namespace Lyra.Authorizer.Decentralize
                 return result;
             }
 
-            try
+            if (!await Pre_PrepareAsync(tokenBlock, async (b) =>
             {
-                var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.NewTokenAuthorizer");
-
-                result.ResultCode = await authorizer.Authorize(tokenBlock);
-                if (result.ResultCode != APIResultCodes.Success)
-                {
-                    return result;
-                }
-
-                var r = await ProcessTokenGenerationFee(tokenBlock);
-                if (r.result != APIResultCodes.Success)
-                    Console.WriteLine("Error in CreateToken->ProcessTokenGenerationFee: " + r.ToString());
-
-                result.Authorizations = tokenBlock.Authorizations;
-                result.ServiceHash = tokenBlock.ServiceHash;
+                var feeResult = await ProcessTokenGenerationFee(b as TokenGenesisBlock);
+                return feeResult.block;
+            }))
+            {
+                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
+            }
+            else
+            {
                 result.ResultCode = APIResultCodes.Success;
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception in CreateToken: " + e.Message);
-                result.ResultCode = APIResultCodes.ExceptionInCreateToken;
-            }
-
-            return await Task.FromResult(result);
+            return result;
         }
 
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)

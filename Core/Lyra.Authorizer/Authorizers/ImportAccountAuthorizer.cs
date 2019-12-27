@@ -22,11 +22,15 @@ namespace Lyra.Authorizer.Authorizers
         {
         }
 
-        public override Task<APIResultCodes> Authorize<T>(T tblock)
+        public override Task<(APIResultCodes, AuthorizationSignature)> Authorize<T>(T tblock)
         {
-            return AuthorizeImplAsync<T>(tblock);
+            var result = AuthorizeImpl(tblock);
+            if (APIResultCodes.Success == result)
+                return Task.FromResult((APIResultCodes.Success, Sign(tblock)));
+            else
+                return Task.FromResult((result, (AuthorizationSignature)null));
         }
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
+        private APIResultCodes AuthorizeImpl<T>(T tblock)
         {
             if (!(tblock is ReceiveTransferBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -64,16 +68,7 @@ namespace Lyra.Authorizer.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            var signed = Sign(block);
-            if (signed)
-            {
-                _accountCollection.AddBlock(block);
-                return APIResultCodes.Success;
-            }
-            else
-            {
-                return APIResultCodes.NotAllowedToSign;
-            }
+            return APIResultCodes.Success;
         }
 
         protected override APIResultCodes ValidateFee(TransactionBlock block)

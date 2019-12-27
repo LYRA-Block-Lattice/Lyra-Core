@@ -9,7 +9,7 @@ namespace Lyra.Authorizer.Authorizers
 {
     public interface IAuthorizer : IGrainWithGuidKey
     {
-        Task<APIResultCodes> Authorize<T>(T tblock);
+        Task<(APIResultCodes, AuthorizationSignature)> Authorize<T>(T tblock);
         Task<APIResultCodes> Commit<T>(T tblock);
     }
 }

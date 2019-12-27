@@ -37,20 +37,12 @@ namespace Lyra.Authorizer.Authorizers
 
         public override Task<APIResultCodes> Commit<T>(T tblock)
         {
-            return CommitAsync<T>(tblock);
+            return Task.FromResult(CommitImpl<T>(tblock));
         }
-        private async Task<APIResultCodes> CommitAsync<T>(T tblock)
+        private APIResultCodes CommitImpl<T>(T tblock)
         {
-            var signed = Sign(tblock);
-            if (signed)
-            {
-                _accountCollection.AddBlock(tblock as TransactionBlock);
-                return APIResultCodes.Success;
-            }
-            else
-            {
-                return APIResultCodes.NotAllowedToSign;
-            }
+            _accountCollection.AddBlock(tblock as TransactionBlock);
+            return APIResultCodes.Success;
         }
 
         protected override APIResultCodes ValidateFee(TransactionBlock block)
@@ -76,7 +68,7 @@ namespace Lyra.Authorizer.Authorizers
             return base.OnActivateAsync();
         }
 
-        public virtual Task<APIResultCodes> Authorize<T>(T tblock)
+        public virtual Task<(APIResultCodes, AuthorizationSignature)> Authorize<T>(T tblock)
         {
             throw new NotImplementedException("Must override");
         }
@@ -238,7 +230,7 @@ namespace Lyra.Authorizer.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected bool Sign<T>(T tblock)
+        protected AuthorizationSignature Sign<T>(T tblock)
         {
             if (!(tblock is TransactionBlock))
                 throw new System.ApplicationException("APIResultCodes.InvalidBlockType");
@@ -249,44 +241,14 @@ namespace Lyra.Authorizer.Authorizers
             // but it is included when creating/validating the authorization signature
             block.ServiceHash = _serviceAccount.GetLatestBlock().Hash;
 
-            // get universal index from leader node
-            //block.UIndex = _apiService.GenerateUniversalBlockId();
-            //block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
-
-            //bool shouldSign = false;
-            //if(_apiService.ModeConsensus)
-            //{
-            //    await _apiService.Pre_PrepareAsync(block);
-            //    var prepareResult = await _apiService.PrepareAsync(block);
-            //    if(prepareResult)
-            //    {
-            //        shouldSign = true;                  
-
-            //        await _apiService.CommitAsync(block);
-            //    }                
-            //}
-            //else
-            //{
-            //    shouldSign = true;
-            //}
-
-            if (true)
+            // sign with the authorizer key
+            AuthorizationSignature authSignature = new AuthorizationSignature
             {
-                // sign with the authorizer key
-                AuthorizationSignature authSignature = new AuthorizationSignature
-                {
-                    Key = _serviceAccount.AccountId,
-                    Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash, block.AccountID)
-                };
+                Key = _serviceAccount.AccountId,
+                Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash, block.AccountID)
+            };
 
-                if (block.Authorizations == null)
-                    block.Authorizations = new List<AuthorizationSignature>();
-                block.Authorizations.Add(authSignature);
-
-                return true;
-            }
-            else
-                return false;
+            return authSignature;
         }
 
         //protected async Task<bool> VerifyAuthorizationSignaturesAsync(TransactionBlock block)
