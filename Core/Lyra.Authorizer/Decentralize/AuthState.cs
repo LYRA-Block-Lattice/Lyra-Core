@@ -8,6 +8,7 @@ namespace Lyra.Authorizer.Decentralize
 {
     public class AuthState
     {
+        private int ConfirmCount = 1;
         public long UIndexOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
         public List<AuthorizedMsg> OutputMsgs { get; set; }
@@ -32,13 +33,13 @@ namespace Lyra.Authorizer.Decentralize
         public void AddCommitedResult(AuthorizerCommitMsg msg)
         {
             CommitMsgs.Add(msg);
-            if (CommitMsgs.Count() > 0)
+            if (CommitMsgs.Count() > ConfirmCount)
             {
                 Settled = true;
                 Done.Set();
             }                
         }
 
-        public bool IsAuthoringSuccess => OutputMsgs.Count(a => a.IsSuccess) > 0;   //need to get from global config
+        public bool IsAuthoringSuccess => OutputMsgs.Count(a => a.IsSuccess) >= ConfirmCount;   //need to get from global config
     }
 }

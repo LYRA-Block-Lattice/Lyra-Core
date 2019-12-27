@@ -3,6 +3,7 @@ using Lyra.Authorizer.Services;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
+using Microsoft.Extensions.Logging;
 using Orleans;
 using Orleans.Streams;
 using System;
@@ -19,6 +20,7 @@ namespace Lyra.Authorizer.Decentralize
     {
         protected IClusterClient _client;
         ServiceAccount _serviceAccount;
+        ILogger<GossipListener> _log;
         private IAsyncStream<SourceSignedMessage> _gossipStream;
         private string Identity;
 
@@ -29,10 +31,13 @@ namespace Lyra.Authorizer.Decentralize
 
 
 
-        public GossipListener(IClusterClient clusterClient, ServiceAccount serviceAccount)
+        public GossipListener(IClusterClient clusterClient, 
+            ILogger<GossipListener> logger,
+            ServiceAccount serviceAccount)
         {
             _client = clusterClient;
             _serviceAccount = serviceAccount;
+            _log = logger;
 
             _activeConsensus = new Dictionary<long, AuthState>();
 
@@ -50,20 +55,24 @@ namespace Lyra.Authorizer.Decentralize
 
         public async Task Init(string IdentityString)
         {
+            _log.LogInformation($"GossipListener: Init Called: {IdentityString}");
             Identity = IdentityString;
 
             _gossipStream = _client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
                 .GetStream<SourceSignedMessage>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
             await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
 
-//            await SendMessage(new ChatMsg { From = _serviceAccount.AccountId, Text = "account id goes here", Type = ChatMessageType.NodeUp });
+            _log.LogInformation($"GossipListener: Init Exited.");
+            //            await SendMessage(new ChatMsg { From = _serviceAccount.AccountId, Text = "account id goes here", Type = ChatMessageType.NodeUp });
         }
 
         public virtual async Task SendMessage(SourceSignedMessage msg)
         {
+            _log.LogInformation($"GossipListener: SendMessage Called: msg From: {msg.From}");
             while (_serviceAccount.PrivateKey == null)  //starup. need to wait it generated
                 await Task.Delay(1000);
-            msg.Sign(_serviceAccount.PrivateKey, msg.From);
+            var sign = msg.Sign(_serviceAccount.PrivateKey, msg.From);
+            _log.LogInformation($"GossipListener: Sign {msg.Hash} got: {sign} by prvKey: {_serviceAccount.PrivateKey} pubKey: {msg.From}");
             await _gossipStream.OnNextAsync(msg);
         }
 
@@ -76,19 +85,23 @@ namespace Lyra.Authorizer.Decentralize
 
         public Task OnNextAsync(SourceSignedMessage item, StreamSequenceToken token = null)
         {
-            return OnNextAsyncImpl(item);
+            OnNextAsyncImpl(item);
+            return Task.CompletedTask;
         }
-        async Task OnNextAsyncImpl(SourceSignedMessage item)
+        void OnNextAsyncImpl(SourceSignedMessage item)
         {
+            _log.LogInformation($"GossipListener: OnNextAsyncImpl Called: msg From: {item.From}");
+
             // verify the signatures of msg. make sure it is from the right node.
             //var nodeConfig = null;
             if (!item.VerifySignature(item.From))
             {
-                // log failed verify
+                _log.LogInformation($"GossipListener: bad signature: {item.Hash} sign: {item.Signature} by pubKey: {item.From}");
+                _log.LogInformation($"GossipListener: hash: {item.Hash} rehash: {item.CalculateHash()}");
                 return;
             }
 
-            switch(item)
+            switch (item)
             {
                 case AuthorizingMsg msg:
                     OnPrePrepare(msg);
@@ -115,6 +128,8 @@ namespace Lyra.Authorizer.Decentralize
 
         private AuthState CreateAuthringState(AuthorizingMsg item)
         {
+            _log.LogInformation($"GossipListener: CreateAuthringState Called: BlockUIndex: {item.Block.UIndex}");
+
             var ukey = item.Block.UIndex;
             if (_activeConsensus.ContainsKey(ukey))
             {
@@ -132,6 +147,8 @@ namespace Lyra.Authorizer.Decentralize
 
         private void OnPrePrepare(AuthorizingMsg item)
         {
+            _log.LogInformation($"GossipListener: OnPrePrepare Called: BlockUIndex: {item.Block.UIndex}");
+
             var state = CreateAuthringState(item);
 
             _ = Task.Run(async () =>
@@ -150,11 +167,14 @@ namespace Lyra.Authorizer.Decentralize
 
                 await SendMessage(result);
                 state.AddAuthResult(result);
+                _log.LogInformation($"GossipListener: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {localAuthResult.Item1}");
             });
         }
 
         private void OnPrepare(AuthorizedMsg item)
         {
+            _log.LogInformation($"GossipListener: OnPrepare Called: BlockUIndex: {item.BlockIndex}");
+
             var state = _activeConsensus[item.BlockIndex];
             state.AddAuthResult(item);
 
@@ -177,12 +197,16 @@ namespace Lyra.Authorizer.Decentralize
                     };
 
                     await SendMessage(msg);
+
+                    _log.LogInformation($"GossipListener: OnPrepare Commited: BlockUIndex: {item.BlockIndex}");
                 });
             }
         }
 
         private void OnCommit(AuthorizerCommitMsg item)
         {
+            _log.LogInformation($"GossipListener: OnCommit Called: BlockUIndex: {item.BlockIndex}");
+
             var state = _activeConsensus[item.BlockIndex];
             state.AddCommitedResult(item);
         }

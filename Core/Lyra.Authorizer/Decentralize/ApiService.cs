@@ -24,13 +24,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
 using System.Threading;
+using Orleans.Concurrency;
 
 namespace Lyra.Authorizer.Decentralize
 {
+    [StatelessWorker(1)] // max 1 activation per silo
     [StorageProvider(ProviderName = "OrleansStorage")]
     public class ApiService : Grain, INodeTransactionAPI//, IBlockConsensus
     {
-        private readonly ILogger<ApiService> _logger;
+        private readonly ILogger<ApiService> _log;
         ServiceAccount _serviceAccount;
         IAccountCollection _accountCollection;
         private LyraNodeConfig _config;
@@ -38,8 +40,6 @@ namespace Lyra.Authorizer.Decentralize
         ConsensusRuntimeConfig _consensus;
 
         long _useed = -1;
-
-        private bool IsSeedNode = false;
 
         public ApiService(ILogger<ApiService> logger, 
             IAccountCollection accountCollection,
@@ -49,7 +49,7 @@ namespace Lyra.Authorizer.Decentralize
             IOptions<LyraNodeConfig> config
             )
         {
-            _logger = logger;
+            _log = logger;
             _config = config.Value;
             _accountCollection = accountCollection;
             _serviceAccount = serviceAccount;
@@ -59,24 +59,10 @@ namespace Lyra.Authorizer.Decentralize
 
         public override async Task OnActivateAsync()
         {
+            _log.LogInformation("ApiService: Activated");
             _useed = await _accountCollection.GetBlockCountAsync();
 
             //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
-        }
-
-        public async Task Gossip(string txt)
-        {
-            await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", txt));
-        }
-        public async Task Gossip(SourceSignedMessage msg)
-        {
-            await _gossipListener.SendMessage(msg);
-        }
-
-        private async Task<bool> GossipForConsensus(long uIndex)
-        {
-            await Task.Delay(1000000000);
-            return true;
         }
 
         public long GenerateUniversalBlockIdAsync()
@@ -87,6 +73,7 @@ namespace Lyra.Authorizer.Decentralize
 
         private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
         {
+            _log.LogInformation($"ApiService: PostToConsensusAsync Called: {block.BlockType}");
             block.UIndex = GenerateUniversalBlockIdAsync();
             block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
             AuthorizingMsg msg = new AuthorizingMsg
@@ -96,6 +83,7 @@ namespace Lyra.Authorizer.Decentralize
             };
             var state = await _gossipListener.SendAuthorizingMessage(msg);
             state.Done.WaitOne();
+            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state.IsAuthoringSuccess}");
             return state;
         }
 

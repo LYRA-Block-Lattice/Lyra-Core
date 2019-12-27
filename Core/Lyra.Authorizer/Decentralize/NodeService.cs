@@ -80,6 +80,8 @@ namespace Lyra.Authorizer.Decentralize
             _waitOrder = new AutoResetEvent(false);
             try
             {
+                _log.LogInformation($"NodeService: ExecuteAsync Called.");
+
                 await Task.Delay(15000);// wait for silo to startup
                 await _serviceAccount.StartAsync(false, null);
                 await Task.Delay(1000);
@@ -115,6 +117,8 @@ namespace Lyra.Authorizer.Decentralize
                     _consensus.PrimaryAuthorizerNodes = runtimeConfig.PrimaryAuthorizerNodes;
                     _consensus.BackupAuthorizerNodes = runtimeConfig.BackupAuthorizerNodes;
                     _consensus.VotingNodes = runtimeConfig.VotingNodes;
+
+                    _log.LogInformation($"NodeService: Got runtimeconfig success.");
                 });
 
                 // all seeds do node election

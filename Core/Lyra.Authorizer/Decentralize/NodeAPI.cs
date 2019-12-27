@@ -16,7 +16,7 @@ using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    //[StatelessWorker(100)]
+    [StatelessWorker(10)]
     public class NodeAPI : Grain, INodeAPI
     {
         IAccountCollection _accountCollection;
