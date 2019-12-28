@@ -7,7 +7,6 @@ using Lyra.Exchange;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Orleans;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,7 +19,6 @@ namespace Lyra.Authorizer.Decentralize
 {
     public class DealEngine
     {
-        IClusterClient _client;
         private IMongoCollection<ExchangeAccount> _exchangeAccounts;
         private IMongoCollection<ExchangeOrder> _queue;
         private IMongoCollection<ExchangeOrder> _finished;
@@ -34,11 +32,9 @@ namespace Lyra.Authorizer.Decentralize
             INodeAPI dataApi,
             IMongoCollection<ExchangeAccount> exchangeAccounts,
             IMongoCollection<ExchangeOrder> queue,
-            IMongoCollection<ExchangeOrder> finished,
-            IClusterClient client
+            IMongoCollection<ExchangeOrder> finished
             )
         {
-            _client = client;
             _config = config;
             _dataApi = dataApi;
             _exchangeAccounts = exchangeAccounts;

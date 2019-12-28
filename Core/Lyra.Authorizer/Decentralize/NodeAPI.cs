@@ -5,8 +5,6 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Orleans;
-using Orleans.Concurrency;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,8 +14,7 @@ using Lyra.Core.Utils;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    [StatelessWorker(10)]
-    public class NodeAPI : Grain, INodeAPI
+    public class NodeAPI : INodeAPI
     {
         IAccountCollection _accountCollection;
         ServiceAccount _serviceAccount;

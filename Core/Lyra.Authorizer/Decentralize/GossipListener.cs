@@ -4,8 +4,6 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
 using Microsoft.Extensions.Logging;
-using Orleans;
-using Orleans.Streams;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,10 +16,9 @@ namespace Lyra.Authorizer.Decentralize
     // listen to gossip messages and activate the necessary grains to do works.
     public class GossipListener
     {
-        protected IClusterClient _client;
         ServiceAccount _serviceAccount;
         ILogger<GossipListener> _log;
-        private IAsyncStream<SourceSignedMessage> _gossipStream;
+
         private string Identity;
 
         Dictionary<BlockTypes, string> _authorizers;
@@ -31,11 +28,10 @@ namespace Lyra.Authorizer.Decentralize
 
 
 
-        public GossipListener(IClusterClient clusterClient, 
+        public GossipListener(
             ILogger<GossipListener> logger,
             ServiceAccount serviceAccount)
         {
-            _client = clusterClient;
             _serviceAccount = serviceAccount;
             _log = logger;
 
@@ -58,9 +54,9 @@ namespace Lyra.Authorizer.Decentralize
             _log.LogInformation($"GossipListener: Init Called: {IdentityString}");
             Identity = IdentityString;
 
-            _gossipStream = _client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
-                .GetStream<SourceSignedMessage>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
-            await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
+            //_gossipStream = _client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
+            //    .GetStream<SourceSignedMessage>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
+            //await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
 
             _log.LogInformation($"GossipListener: Init Exited.");
             //            await SendMessage(new ChatMsg { From = _serviceAccount.AccountId, Text = "account id goes here", Type = ChatMessageType.NodeUp });
@@ -73,7 +69,7 @@ namespace Lyra.Authorizer.Decentralize
                 await Task.Delay(1000);
             var sign = msg.Sign(_serviceAccount.PrivateKey, msg.From);
             _log.LogInformation($"GossipListener: Sign {msg.Hash} got: {sign} by prvKey: {_serviceAccount.PrivateKey} pubKey: {msg.From}");
-            await _gossipStream.OnNextAsync(msg);
+            //await _gossipStream.OnNextAsync(msg);
         }
 
         public async Task<AuthState> SendAuthorizingMessage(AuthorizingMsg block)
@@ -83,7 +79,7 @@ namespace Lyra.Authorizer.Decentralize
             return state;
         }
 
-        public Task OnNextAsync(SourceSignedMessage item, StreamSequenceToken token = null)
+        public Task OnNextAsync(SourceSignedMessage item)
         {
             OnNextAsyncImpl(item);
             return Task.CompletedTask;
@@ -154,7 +150,7 @@ namespace Lyra.Authorizer.Decentralize
             _ = Task.Run(async () =>
             {
                 var authrName = _authorizers[item.Block.BlockType];
-                var authorizer = _client.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers." + authrName);
+                var authorizer = (IAuthorizer)Activator.CreateInstance(Type.GetType("Lyra.Authorizer.Authorizers." + authrName));
 
                 var localAuthResult = await authorizer.Authorize(item.Block);
                 var result = new AuthorizedMsg
@@ -186,7 +182,8 @@ namespace Lyra.Authorizer.Decentralize
                     var block = state.InputMsg.Block;
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
-                    var commiter = _client.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Authorizer.Authorizers.AuthorizedCommiter");
+                    var commiter = (IAuthorizer)Activator.CreateInstance(Type.GetType("Lyra.Authorizer.Authorizers.AuthorizedCommiter"));
+
                     await commiter.Commit(block);
 
                     var msg = new AuthorizerCommitMsg

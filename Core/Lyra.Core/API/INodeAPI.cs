@@ -1,13 +1,12 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
 using Lyra.Exchange;
-using Orleans;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Lyra.Core.API
 {
-    public interface INodeAPI : IGrainWithIntegerKey
+    public interface INodeAPI
     { 
         #region Blocklist information methods
         Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion);
@@ -47,7 +46,7 @@ namespace Lyra.Core.API
         #endregion Account maintenance methods
     }
 
-    public interface INodeTransactionAPI : IGrainWithGuidKey
+    public interface INodeTransactionAPI
     { 
         #region Authorization methods 
         // These methods return authorization result and authorizers' signatures if approved
@@ -70,7 +69,7 @@ namespace Lyra.Core.API
         #endregion Authorization methods
     }
 
-    public interface INodeDexAPI : IGrainWithIntegerKey
+    public interface INodeDexAPI
     { 
         #region Exchange, DEX
         Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature);

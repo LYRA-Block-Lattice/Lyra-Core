@@ -2,18 +2,14 @@
 //#define INMEMORY
 
 using System;
-
-
 using CommandLine;
 using CommandLine.Text;
 using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Lyra.Client.Lib;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System.Net.Http;
-using Orleans;
 using Lyra.Core.API;
 using Microsoft.Extensions.Configuration;
 using System.IO;
@@ -43,13 +39,13 @@ namespace Lyra.Client.CLI
 
                 // activate api serivce grain
                 // debug test
-                var c = (DAGClientHostedService)client;
+                var c = client;
 
                 //var gf = host.Services.GetService<IGrainFactory>();
                 //var nodeApi = c.Node;
 
                 var wm = new WalletManager();
-                int mapresult = result.MapResult((Options options) => wm.RunWallet((DAGClientHostedService)client, options).Result, _ => CommandLineError());
+                int mapresult = result.MapResult((Options options) => wm.RunWallet(options).Result, _ => CommandLineError());
 
                 if (mapresult != 0)
                 {
@@ -78,8 +74,6 @@ namespace Lyra.Client.CLI
                     //    .Build();
 
                     //services.Configure<OrleansConfig>(Configuration.GetSection("Orleans"));
-
-                    services.AddSingleton<ClusterClientHostedService>();
 
                     services.Configure<ConsoleLifetimeOptions>(options =>
                     {

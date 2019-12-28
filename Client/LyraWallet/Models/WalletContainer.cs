@@ -15,9 +15,7 @@ using Xamarin.Forms;
 using Xamarin.Essentials;
 using Lyra.Exchange;
 using Lyra.Core.Accounts;
-using Lyra.Client.Lib;
 using Microsoft.Extensions.Hosting;
-using Lyra.Core.Cryptography;
 
 namespace LyraWallet.Models
 {

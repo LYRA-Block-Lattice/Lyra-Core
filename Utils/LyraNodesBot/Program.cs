@@ -1,12 +1,8 @@
-﻿using Lyra.Authorizer.Decentralize;
-using Lyra.Client.Lib;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
-using Orleans;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Orleans.Streams;
 using Lyra.Core.API;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
@@ -25,7 +21,6 @@ namespace LyraNodesBot
             using (var host = CreateHost())
             {
                 host.Start();
-                var client = (ClusterClientHostedService)host.Services.GetService<IHostedService>();
 
                 //var api = client.Client.GetGrain<INodeAPI>(0);
                 //var height = await api.GetSyncHeight();
@@ -34,10 +29,9 @@ namespace LyraNodesBot
                 var monitor = new NodesMonitor();
                 await monitor.StartAsync();
 
-                var watch = new StreamWatcher(client.Client);
-                var myName = "LyraNodeBot";
-                watch.OnNodeChat += async (m) => await monitor.OnGossipMessageAsync(m);
-                await watch.Init(myName);
+                //var myName = "LyraNodeBot";
+                //watch.OnNodeChat += async (m) => await monitor.OnGossipMessageAsync(m);
+                //await watch.Init(myName);
 
                 while (true)
                 {
@@ -45,7 +39,7 @@ namespace LyraNodesBot
                     if (line?.Trim() == "quit")
                         break;
 
-                    await watch.SendMessage(new ChatMsg(myName, line));
+                    //await watch.SendMessage(new ChatMsg(myName, line));
                 }
 
                 monitor.Stop();
@@ -76,10 +70,6 @@ namespace LyraNodesBot
                         .Build();
 
                     services.Configure<LyraNodeConfig>(Configuration.GetSection("LyraNode"));
-
-                    services.AddSingleton<ClusterClientHostedService>();
-                    services.AddSingleton<IHostedService>(_ => _.GetService<ClusterClientHostedService>());
-                    services.AddSingleton(_ => _.GetService<ClusterClientHostedService>().Client);
 
                     //services.AddHostedService<DAGClientHostedService>();
 

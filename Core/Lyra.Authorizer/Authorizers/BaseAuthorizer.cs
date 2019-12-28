@@ -50,7 +50,7 @@ namespace Lyra.Authorizer.Authorizers
         }
     }
 
-    public abstract class BaseAuthorizer : Grain, IAuthorizer
+    public abstract class BaseAuthorizer : IAuthorizer
     {
         private LyraNodeConfig _config;
         protected readonly ServiceAccount _serviceAccount;

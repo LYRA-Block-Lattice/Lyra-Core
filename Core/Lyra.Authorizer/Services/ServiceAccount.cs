@@ -8,7 +8,6 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Service;
 using Lyra.Core.Cryptography;
 using Microsoft.Extensions.Options;
-using Orleans;
 using Lyra.Core.Utils;
 using System.IO;
 
@@ -20,7 +19,6 @@ namespace Lyra.Authorizer.Services
         public string DatabasePath { get; set; }
 
         Timer timer = null;
-        IClusterClient _client;
         IAccountDatabase _storage;
         private LyraNodeConfig _config;
 
@@ -30,9 +28,8 @@ namespace Lyra.Authorizer.Services
 
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
-        public ServiceAccount(IClusterClient client, IAccountDatabase storage, IOptions<LyraNodeConfig> config) 
+        public ServiceAccount(IAccountDatabase storage, IOptions<LyraNodeConfig> config) 
         {
-            _client = client;
             _storage = storage;
             IsNodeFullySynced = true;
             _config = config.Value;

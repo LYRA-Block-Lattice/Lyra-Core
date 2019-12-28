@@ -11,7 +11,6 @@ using Lyra.Core.LiteDB;
 using System.Net.Http;
 using Lyra.Core.API;
 using Microsoft.Extensions.Hosting;
-using Lyra.Client.Lib;
 using Lyra.Core.Cryptography;
 
 namespace Lyra.Client.CLI
@@ -22,7 +21,7 @@ namespace Lyra.Client.CLI
 
         Timer timer1;
 
-        public async Task<int> RunWallet(DAGClientHostedService client, Options options)
+        public async Task<int> RunWallet(Options options)
         {
             Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
             Console.WriteLine("");

@@ -1,5 +1,4 @@
-﻿using Lyra.Client.Lib;
-using LyraWallet.States;
+﻿using LyraWallet.States;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -35,12 +34,6 @@ namespace LyraWallet
                 })
                 .ConfigureServices(services =>
                 {
-                    services.AddSingleton<ClusterClientHostedService>();
-                    services.AddSingleton<IHostedService>(_ => _.GetService<ClusterClientHostedService>());
-                    services.AddSingleton(_ => _.GetService<ClusterClientHostedService>().Client);
-
-                    services.AddHostedService<DAGClientHostedService>();
-
                     services.Configure<ConsoleLifetimeOptions>(options =>
                     {
                         options.SuppressStatusMessages = true;

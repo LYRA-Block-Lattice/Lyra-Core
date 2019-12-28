@@ -1,5 +1,4 @@
-﻿using Lyra.Client.Lib;
-using Lyra.Core.API;
+﻿using Lyra.Core.API;
 using ReduxSimple;
 using System;
 using System.Collections.Generic;
@@ -11,8 +10,6 @@ namespace LyraWallet.States
 {
     public static class Effects
     {
-        private static DAGClientHostedService _dagClient;
-
         public static Effect<RootState> GetApiCompatibleInfo = ReduxSimple.Effects.CreateEffect<RootState>
             (
                 () => App.Store.ObserveAction<GetApiVersionAction>()

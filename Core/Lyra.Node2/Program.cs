@@ -6,9 +6,6 @@ using Lyra.Node2.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Orleans.Configuration;
-using Orleans.Hosting;
-using Orleans;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using System;
@@ -50,45 +47,6 @@ namespace Lyra.Node2
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                })
-                .UseOrleans((cntx, siloBuilder) =>
-                {
-                    
-                    siloBuilder
-                    //.UseLocalhostClustering()
-                    //.UseAdoNetClustering(options =>
-                    //{
-                    //    options.Invariant = "System.Data.SqlClient";
-                    //    options.ConnectionString = "Data Source=ZION;Initial Catalog=Orleans;Persist Security Info=True;User ID=orleans;Password=orleans";
-                    //})
-                    .UseZooKeeperClustering((options) =>
-                    {
-                        options.ConnectionString = OrleansSettings.AppSetting["LyraNode:Orleans:ZooKeeperClusteringSilo:ConnectionString"];
-                    })
-                    .Configure<ClusterOptions>(options =>
-                    {
-                        options.ClusterId = OrleansSettings.AppSetting["LyraNode:Orleans:Cluster:ClusterId"];
-                        options.ServiceId = OrleansSettings.AppSetting["LyraNode:Orleans:Cluster:ServiceId"];
-                    })
-                    .Configure<EndpointOptions>(options => options.AdvertisedIPAddress = IPAddress.Parse(OrleansSettings.AppSetting["LyraNode:Orleans:EndPoint:AdvertisedIPAddress"]))
-                    .ConfigureApplicationParts(parts => parts.AddApplicationPart(typeof(ApiService).Assembly).WithReferences())
-                    //.AddAdoNetGrainStorage("OrleansStorage", options =>
-                    //{
-                    //    options.Invariant = "System.Data.SqlClient";
-                    //    options.ConnectionString = "Data Source=ZION;Initial Catalog=Orleans;Persist Security Info=True;User ID=orleans;Password=orleans";
-                    //})
-                    .AddSimpleMessageStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
-                    .AddMemoryGrainStorage("PubSubStore")
-                    .UseDashboard(options =>
-                    {
-                        options.Port = 8080;
-                    })
-                    .AddStartupTask((sp, token) =>
-                    {
-                        //var sh = (SiloHandle)sp.GetRequiredService(typeof(SiloHandle));
-                        //SiloHandle.TheSilo = cntx;
-                        return Task.CompletedTask;
-                    });
                 });
     }
 }

@@ -3,7 +3,6 @@ using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Newtonsoft.Json;
-using org.apache.zookeeper;
 using System;
 using System.Configuration;
 using System.IO;
@@ -24,11 +23,7 @@ namespace LyraNodesBot
     {
         private readonly TelegramBotClient Bot = new TelegramBotClient(System.IO.File.ReadAllText(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\telegram.txt"));
 
-        private ZooKeeperWatcher _watcher = new ZooKeeperWatcher(LoggerFactory.Create(builder => { builder.AddConsole(); }).CreateLogger("log"));
-        //private readonly ZooKeeper ZK = new ZooKeeper(ConfigurationManager.AppSettings["zookeeperConnectString"], 2000,
-        //    new ZooKeeperWatcher(LoggerFactory.Create(builder => { builder.AddConsole(); }).CreateLogger("log")));
-
-        private ChatId _groupId = new ChatId(-1001462436848);
+         private ChatId _groupId = new ChatId(-1001462436848);
         private LyraNodeConfig _config;
 
         private ConsensusRuntimeConfig _runtimeCfg;
@@ -96,12 +91,12 @@ namespace LyraNodesBot
                             AccountID = m.Text,
                             StakingAmount = 10000   // TODO: get real balance
                         });
-                        await UsingZookeeper(async (zk) =>
-                        {
-                            var json = JsonConvert.SerializeObject(_runtimeCfg);
-                            var cfg = await zk.setDataAsync("/lyra", Encoding.ASCII.GetBytes(json));
-                        });
-                        await SendGroupMessageAsync($"*💖 Good News Everyone! 💖*\n\nA new node is up and running: {m.From}");
+                        //await UsingZookeeper(async (zk) =>
+                        //{
+                        //    var json = JsonConvert.SerializeObject(_runtimeCfg);
+                        //    var cfg = await zk.setDataAsync("/lyra", Encoding.ASCII.GetBytes(json));
+                        //});
+                        //await SendGroupMessageAsync($"*💖 Good News Everyone! 💖*\n\nA new node is up and running: {m.From}");
                     }
                     break;
                 case ChatMessageType.AuthorizerPrePrepare:
@@ -127,22 +122,22 @@ namespace LyraNodesBot
 
             switch (message.Text.Split(' ', '@').First())
             {
-                case "/nodes":
-                    await UsingZookeeper(async (zk) =>
-                    {
-                        var cfg = await zk.getDataAsync("/lyra");
-                        _runtimeCfg = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
+//                case "/nodes":
+//                    await UsingZookeeper(async (zk) =>
+//                    {
+//                        var cfg = await zk.getDataAsync("/lyra");
+//                        _runtimeCfg = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
                         
-                        var text = $@"*BlockChain Mode*: {_runtimeCfg.Mode}
-*Seeds Nodes*: {string.Join(',', _runtimeCfg.Seeds.ToArray())}
-*Current Seed Node*: {_runtimeCfg.CurrentSeed}
-*Primary Authorizer Nodes*: {_runtimeCfg.PrimaryAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
-*Backup Authorizer Nodes*: {_runtimeCfg.BackupAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
-*Voting Nodes*: {_runtimeCfg.VotingNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}";
+//                        var text = $@"*BlockChain Mode*: {_runtimeCfg.Mode}
+//*Seeds Nodes*: {string.Join(',', _runtimeCfg.Seeds.ToArray())}
+//*Current Seed Node*: {_runtimeCfg.CurrentSeed}
+//*Primary Authorizer Nodes*: {_runtimeCfg.PrimaryAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
+//*Backup Authorizer Nodes*: {_runtimeCfg.BackupAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
+//*Voting Nodes*: {_runtimeCfg.VotingNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}";
 
-                        await SendGroupMessageAsync(text);
-                    });
-                    break;
+//                        await SendGroupMessageAsync(text);
+//                    });
+//                    break;
                 case "/tps":
                     await SendGroupMessageAsync("No Data");
                     break;
@@ -247,13 +242,13 @@ namespace LyraNodesBot
             ConsensusRuntimeConfig result = null;
             try
             {
-                await UsingZookeeper(async (zk) =>
-                {
-                    // get Lyra network configurations from /lyra
-                    // {"mode":"permissioned","seeds":["node1","node2"]}
-                    var cfg = await zk.getDataAsync("/lyra");
-                    result = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
-                });
+                //await UsingZookeeper(async (zk) =>
+                //{
+                //    // get Lyra network configurations from /lyra
+                //    // {"mode":"permissioned","seeds":["node1","node2"]}
+                //    var cfg = await zk.getDataAsync("/lyra");
+                //    result = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
+                //});
             }
             catch (Exception)
             {
@@ -262,27 +257,5 @@ namespace LyraNodesBot
             return result;
         }
 
-        private Task UsingZookeeper(Func<ZooKeeper, Task> zkMethod)
-        {
-            return ZooKeeper.Using(ConfigurationManager.AppSettings["zookeeperConnectString"], 2000, _watcher, zkMethod);
-        }
-
-        class ZooKeeperWatcher : Watcher
-        {
-            private readonly ILogger logger;
-            public ZooKeeperWatcher(ILogger logger)
-            {
-                this.logger = logger;
-            }
-
-            public override Task process(WatchedEvent @event)
-            {
-                if (logger.IsEnabled(LogLevel.Debug))
-                {
-                    logger.LogDebug(@event.ToString());
-                }
-                return Task.CompletedTask;
-            }
-        }
     }
 }

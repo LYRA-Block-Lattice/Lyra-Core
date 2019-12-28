@@ -1,8 +1,6 @@
 ﻿using Lyra.Authorizer.Decentralize;
 using Lyra.Core.API;
 using Lyra.Core.Cryptography;
-using Orleans;
-using Orleans.Streams;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,21 +11,14 @@ namespace Lyra.Authorizer.Decentralize
     public delegate void NodeMessageHandler(SourceSignedMessage msg);
     public class StreamWatcher
     {
-        protected IClusterClient _client;
-        private IAsyncStream<SourceSignedMessage> _gossipStream;
-
         public event NodeMessageHandler OnNodeChat;
 
-        public StreamWatcher(IClusterClient client)
+        public StreamWatcher()
         {
-            _client = client;
         }
 
         public virtual async Task Init(string IdentityString)
         {
-            _gossipStream = _client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
-                .GetStream<SourceSignedMessage>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
-            await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
         }
 
         public virtual Task OnCompletedAsync()
@@ -42,7 +33,7 @@ namespace Lyra.Authorizer.Decentralize
             return Task.CompletedTask;
         }
 
-        public virtual Task OnNextAsync(SourceSignedMessage msg, StreamSequenceToken token = null)
+        public virtual Task OnNextAsync(SourceSignedMessage msg)
         {
             var item = msg as ChatMsg;
             if (item != null)
@@ -57,9 +48,7 @@ namespace Lyra.Authorizer.Decentralize
 
         public virtual async Task SendMessage(ChatMsg msg)
         {
-            var signr = new Signatures();
 
-            await _gossipStream.OnNextAsync(msg);
         }
     }
 }

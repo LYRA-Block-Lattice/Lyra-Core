@@ -13,24 +13,16 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Newtonsoft.Json;
-using Orleans;
-using Orleans.Configuration;
-using Orleans.Providers;
-using Orleans.Runtime;
-using Orleans.Streams;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
 using System.Threading;
-using Orleans.Concurrency;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    [StatelessWorker(1)] // max 1 activation per silo
-    [StorageProvider(ProviderName = "OrleansStorage")]
-    public class ApiService : Grain, INodeTransactionAPI//, IBlockConsensus
+    public class ApiService : INodeTransactionAPI//, IBlockConsensus
     {
         private readonly ILogger<ApiService> _log;
         ServiceAccount _serviceAccount;
@@ -57,7 +49,7 @@ namespace Lyra.Authorizer.Decentralize
             _consensus = consensus;
         }
 
-        public override async Task OnActivateAsync()
+        public async Task OnActivateAsync()
         {
             _log.LogInformation("ApiService: Activated");
             _useed = await _accountCollection.GetBlockCountAsync();

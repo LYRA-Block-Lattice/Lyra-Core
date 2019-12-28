@@ -1,12 +1,11 @@
-﻿using Orleans;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Lyra.Authorizer.Decentralize
 {
-    public interface ILyraGossip : IGrainWithGuidKey
+    public interface ILyraGossip
     {
         Task<Guid> Join(string nickname);
         Task<Guid> Leave(string nickname);

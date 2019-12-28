@@ -81,6 +81,12 @@
     <InterfaceDefinition Include="SplashScreen.storyboard" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Reflection.Emit">
+      <Version>4.3.0</Version>
+      <ExcludeAssets>all</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
     <ImageAsset Include="Assets.xcassets\AppIcon.appiconset\Contents.json">
       <Visible>false</Visible>
     </ImageAsset>
