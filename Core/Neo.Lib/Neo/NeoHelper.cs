@@ -12,7 +12,7 @@ using System.Text;
 
 namespace Neo
 {
-    public static class Helper
+    public static class NeoHelper
     {
         private static readonly DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
@@ -176,32 +176,32 @@ namespace Neo
             return (ulong)(time.ToUniversalTime() - unixEpoch).TotalMilliseconds;
         }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //unsafe internal static ushort ToUInt16(this byte[] value, int startIndex)
-        //{
-        //    fixed (byte* pbyte = &value[startIndex])
-        //    {
-        //        return *((ushort*)pbyte);
-        //    }
-        //}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe internal static ushort ToUInt16(this byte[] value, int startIndex)
+        {
+            fixed (byte* pbyte = &value[startIndex])
+            {
+                return *((ushort*)pbyte);
+            }
+        }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //unsafe internal static uint ToUInt32(this byte[] value, int startIndex)
-        //{
-        //    fixed (byte* pbyte = &value[startIndex])
-        //    {
-        //        return *((uint*)pbyte);
-        //    }
-        //}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe internal static uint ToUInt32(this byte[] value, int startIndex)
+        {
+            fixed (byte* pbyte = &value[startIndex])
+            {
+                return *((uint*)pbyte);
+            }
+        }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //unsafe internal static ulong ToUInt64(this byte[] value, int startIndex)
-        //{
-        //    fixed (byte* pbyte = &value[startIndex])
-        //    {
-        //        return *((ulong*)pbyte);
-        //    }
-        //}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe internal static ulong ToUInt64(this byte[] value, int startIndex)
+        {
+            fixed (byte* pbyte = &value[startIndex])
+            {
+                return *((ulong*)pbyte);
+            }
+        }
 
         internal static IPAddress Unmap(this IPAddress address)
         {

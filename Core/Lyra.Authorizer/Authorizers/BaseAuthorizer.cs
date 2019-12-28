@@ -12,9 +12,7 @@ using Lyra.Core.Utils;
 using System.Threading.Tasks;
 using Lyra.Authorizer.Decentralize;
 using Microsoft.Extensions.Options;
-using Orleans;
 using System.IO;
-using Orleans.Concurrency;
 
 namespace Lyra.Authorizer.Authorizers
 {
@@ -52,7 +50,6 @@ namespace Lyra.Authorizer.Authorizers
         }
     }
 
-    [StatelessWorker(1)] // max 1 activation per silo
     public abstract class BaseAuthorizer : Grain, IAuthorizer
     {
         private LyraNodeConfig _config;
@@ -64,11 +61,6 @@ namespace Lyra.Authorizer.Authorizers
             _config = config.Value;
             _serviceAccount = serviceAccount;
             _accountCollection = accountCollection;
-        }
-
-        public override Task OnActivateAsync()
-        {
-            return base.OnActivateAsync();
         }
 
         public virtual Task<(APIResultCodes, AuthorizationSignature)> Authorize<T>(T tblock)
