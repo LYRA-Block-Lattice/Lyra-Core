@@ -22,8 +22,8 @@ namespace Lyra
         public static BlockChain Singleton;
         public uint Height;
 
-        private ServiceAccount _serviceAccount;
-        private IAccountCollection _blockLists;
+        private readonly ServiceAccount _serviceAccount;
+        private readonly IAccountCollection _blockLists;
         private LyraSystem _sys;
         public BlockChain(LyraSystem sys)
         {
@@ -38,6 +38,9 @@ namespace Lyra
         // forward api. should have more control here.
         public ServiceAccount ServiceAccount => _serviceAccount;
         public void AddBlock(TransactionBlock block) => _blockLists.AddBlock(block);
+
+
+        // bellow readonly access
         public bool AccountExists(string AccountId) => _blockLists.AccountExists(AccountId);
         public TransactionBlock FindLatestBlock(string AccountId) => _blockLists.FindLatestBlock(AccountId);
         public TransactionBlock FindBlockByHash(string hash) => _blockLists.FindBlockByHash(hash);

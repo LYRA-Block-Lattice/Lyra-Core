@@ -180,9 +180,7 @@ namespace Lyra.Core.Decentralize
                     var block = state.InputMsg.Block;
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
-                    var commiter = (IAuthorizer)Activator.CreateInstance(Type.GetType("Lyra.Core.Authorizers.AuthorizedCommiter"));
-
-                    await commiter.Commit(block);
+                    BlockChain.Singleton.AddBlock(block);
 
                     var msg = new AuthorizerCommitMsg
                     {
