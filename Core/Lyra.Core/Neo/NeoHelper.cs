@@ -148,23 +148,23 @@ namespace Neo
             return sb.ToString();
         }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //unsafe internal static int ToInt32(this byte[] value, int startIndex)
-        //{
-        //    fixed (byte* pbyte = &value[startIndex])
-        //    {
-        //        return *((int*)pbyte);
-        //    }
-        //}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe internal static int ToInt32(this byte[] value, int startIndex)
+        {
+            fixed (byte* pbyte = &value[startIndex])
+            {
+                return *((int*)pbyte);
+            }
+        }
 
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //unsafe internal static long ToInt64(this byte[] value, int startIndex)
-        //{
-        //    fixed (byte* pbyte = &value[startIndex])
-        //    {
-        //        return *((long*)pbyte);
-        //    }
-        //}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        unsafe internal static long ToInt64(this byte[] value, int startIndex)
+        {
+            fixed (byte* pbyte = &value[startIndex])
+            {
+                return *((long*)pbyte);
+            }
+        }
 
         public static uint ToTimestamp(this DateTime time)
         {

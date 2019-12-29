@@ -116,8 +116,8 @@ namespace Lyra.Authorizer.Decentralize
                 //});
 
                 // all seeds do node election
-                if (_consensus.Seeds.Contains(_config.Orleans.EndPoint.AdvertisedIPAddress))
-                {
+                //if (_consensus.Seeds.Contains(_config.Orleans.EndPoint.AdvertisedIPAddress))
+                //{
                     //while(true)     // we do nothing without zk
                     //{
                     //    try
@@ -140,7 +140,7 @@ namespace Lyra.Authorizer.Decentralize
                     //        await Task.Delay(1000);
                     //    }
                     //}
-                }
+                //}
             }
             catch (Exception ex)
             {

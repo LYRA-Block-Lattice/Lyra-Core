@@ -21,7 +21,7 @@ namespace Neo.Network.P2P
         public const uint ProtocolVersion = 0;
 
         private static readonly object lockObj = new object();
-        private readonly NeoSystem system;
+        private readonly LyraSystem system;
         internal readonly ConcurrentDictionary<IActorRef, RemoteNode> RemoteNodes = new ConcurrentDictionary<IActorRef, RemoteNode>();
 
         public int ConnectedCount => RemoteNodes.Count;
@@ -46,7 +46,7 @@ namespace Neo.Network.P2P
             UserAgent = $"/{Assembly.GetExecutingAssembly().GetName().Name}:{Assembly.GetExecutingAssembly().GetVersion()}/";
         }
 
-        public LocalNode(NeoSystem system)
+        public LocalNode(LyraSystem system)
         {
             lock (lockObj)
             {
@@ -159,7 +159,7 @@ namespace Neo.Network.P2P
         {
             if (inventory is Transaction transaction)
                 system.Consensus?.Tell(transaction);
-            system.Blockchain.Tell(inventory);
+            system.TheBlockchain.Tell(inventory);
         }
 
         private void OnRelayDirectly(IInventory inventory)
@@ -172,7 +172,7 @@ namespace Neo.Network.P2P
             Connections.Tell(inventory);
         }
 
-        public static Props Props(NeoSystem system)
+        public static Props Props(LyraSystem system)
         {
             return Akka.Actor.Props.Create(() => new LocalNode(system));
         }

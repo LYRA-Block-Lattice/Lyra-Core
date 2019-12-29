@@ -21,14 +21,14 @@ namespace Neo.Network.P2P
     {
         public class SetFilter { public BloomFilter Filter; }
 
-        private readonly NeoSystem system;
+        private readonly LyraSystem system;
         private readonly FIFOSet<UInt256> knownHashes;
         private readonly FIFOSet<UInt256> sentHashes;
         private VersionPayload version;
         private bool verack = false;
         private BloomFilter bloom_filter;
 
-        public ProtocolHandler(NeoSystem system)
+        public ProtocolHandler(LyraSystem system)
         {
             this.system = system;
             //this.knownHashes = new FIFOSet<UInt256>(Blockchain.Singleton.MemPool.Capacity * 2);
@@ -292,7 +292,7 @@ namespace Neo.Network.P2P
             Context.Parent.Tell(payload);
         }
 
-        public static Props Props(NeoSystem system)
+        public static Props Props(LyraSystem system)
         {
             return Akka.Actor.Props.Create(() => new ProtocolHandler(system)).WithMailbox("protocol-handler-mailbox");
         }
@@ -300,7 +300,7 @@ namespace Neo.Network.P2P
 
     internal class ProtocolHandlerMailbox : PriorityMailbox
     {
-        public ProtocolHandlerMailbox(Settings settings, Config config)
+        public ProtocolHandlerMailbox(Akka.Actor.Settings settings, Config config)
             : base(settings, config)
         {
         }

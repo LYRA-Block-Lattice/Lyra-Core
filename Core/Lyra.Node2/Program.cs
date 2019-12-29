@@ -13,6 +13,7 @@ using System.Threading;
 using Lyra.Core.Utils;
 using System.Diagnostics;
 using Lyra.Authorizer.Services;
+using Neo;
 
 namespace Lyra.Node2
 {
@@ -30,6 +31,10 @@ namespace Lyra.Node2
                 }
                 Console.WriteLine("Debugger attached");
             }
+
+            // temp code
+            var sys = new LyraSystem();
+            sys.Start();
 
             using (var host = CreateHostBuilder(args).Build())
             {
