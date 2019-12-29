@@ -56,9 +56,9 @@ namespace Neo.Network.P2P
                 case MessageCommand.Version:
                     Payload = decompressed.AsSerializable<VersionPayload>();
                     break;
-                //case MessageCommand.Addr:
-                //    Payload = decompressed.AsSerializable<AddrPayload>();
-                //    break;
+                case MessageCommand.Addr:
+                    Payload = decompressed.AsSerializable<AddrPayload>();
+                    break;
                 case MessageCommand.Ping:
                 case MessageCommand.Pong:
                     Payload = decompressed.AsSerializable<PingPayload>();

@@ -65,11 +65,7 @@ namespace Neo
             else
                 this.SeedList = new[]
                 {
-                    "seed1.neo.org:10333",
-                    "seed2.neo.org:10333",
-                    "seed3.neo.org:10333",
-                    "seed4.neo.org:10333",
-                    "seed5.neo.org:10333"
+                    "seed.devnet.lyrashops.com:4503"
                 };
             this.MillisecondsPerBlock = section.GetValue("MillisecondsPerBlock", 15000u);
             this.MemoryPoolMaxTransactions = Math.Max(1, section.GetValue("MemoryPoolMaxTransactions", 50_000));
