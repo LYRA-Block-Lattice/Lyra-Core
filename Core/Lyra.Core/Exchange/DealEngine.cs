@@ -14,7 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
 
-namespace Lyra.Core.Decentralize
+namespace Lyra.Core.Exchange
 {
     public class DealEngine
     {

@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
-using Lyra.Core.Cryptography;
 using Lyra.Core.API;
-using Lyra.Core.Accounts.Node;
 using Lyra.Core.Decentralize;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -15,8 +12,8 @@ namespace Lyra.Core.Authorizers
 {
     public class ImportAccountAuthorizer: BaseAuthorizer
     {
-        public ImportAccountAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
+        public ImportAccountAuthorizer(IOptions<LyraNodeConfig> config)
+            : base(config)
         {
         }
 
@@ -36,10 +33,10 @@ namespace Lyra.Core.Authorizers
             var block = tblock as ReceiveTransferBlock;
 
             // 1. check if the account already exists
-            if (!_accountCollection.AccountExists(block.AccountID))
+            if (!BlockChain.Singleton.AccountExists(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
-            TransactionBlock lastBlock = _accountCollection.FindLatestBlock(block.AccountID);
+            TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
@@ -84,14 +81,14 @@ namespace Lyra.Core.Authorizers
         protected APIResultCodes ValidateReceiveTransAmount(ReceiveTransferBlock block, TransactionInfo receiveTransaction)
         {
             //find the corresponding send block and validate the added transaction amount
-            var sourceBlock = _accountCollection.FindBlockByHash(block.SourceHash);
+            var sourceBlock = BlockChain.Singleton.FindBlockByHash(block.SourceHash);
             if (sourceBlock == null)
                 return APIResultCodes.SourceSendBlockNotFound;
 
 
             // find the actual amount of transaction 
 
-            TransactionBlock prevToSendBlock = _accountCollection.FindBlockByHash(sourceBlock.PreviousHash);
+            TransactionBlock prevToSendBlock = BlockChain.Singleton.FindBlockByHash(sourceBlock.PreviousHash);
             if (prevToSendBlock == null)
                 return APIResultCodes.CouldNotTraceSendBlockChain;
 
@@ -136,7 +133,7 @@ namespace Lyra.Core.Authorizers
             if (send_or_receice_block.NonFungibleToken == null)
                 return APIResultCodes.Success;
 
-            var originBlock = _accountCollection.FindBlockByHash((send_or_receice_block as ReceiveTransferBlock).SourceHash);
+            var originBlock = BlockChain.Singleton.FindBlockByHash((send_or_receice_block as ReceiveTransferBlock).SourceHash);
             if (originBlock == null)
                 return APIResultCodes.OriginNonFungibleBlockNotFound;
 

@@ -33,7 +33,7 @@ namespace Lyra
         public LyraSystem()
         {
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
-            TheBlockchain = ActorSystem.ActorOf(Blockchain.Props(this));
+            TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this));
         }
 
         public void Start()

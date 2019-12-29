@@ -1,11 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-using Lyra.Core.Blocks.Transactions;
-using Lyra.Core.Cryptography;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks

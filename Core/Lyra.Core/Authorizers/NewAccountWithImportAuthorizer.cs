@@ -1,8 +1,4 @@
-﻿using Lyra.Core.Blocks.Transactions;
-using Lyra.Core.API;
-using Lyra.Core.Accounts.Node;
-using Lyra.Core.Decentralize;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Lyra.Core.Blocks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Cryptography;
@@ -13,8 +9,8 @@ namespace Lyra.Core.Authorizers
 {
     public class NewAccountWithImportAuthorizer : ReceiveTransferAuthorizer
     {
-        public NewAccountWithImportAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
+        public NewAccountWithImportAuthorizer(IOptions<LyraNodeConfig> config)
+            : base(config)
         {
         }
 
@@ -34,11 +30,11 @@ namespace Lyra.Core.Authorizers
             var block = tblock as OpenWithReceiveTransferBlock;
 
             // 1. check if the account already exists
-            if (_accountCollection.AccountExists(block.AccountID))
+            if (BlockChain.Singleton.AccountExists(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists;
 
             // This is redundant but just in case
-            if (_accountCollection.FindLatestBlock(block.AccountID) != null)
+            if (BlockChain.Singleton.FindLatestBlock(block.AccountID) != null)
                 return APIResultCodes.AccountBlockAlreadyExists;
 
             var result = VerifyBlock(block, null);

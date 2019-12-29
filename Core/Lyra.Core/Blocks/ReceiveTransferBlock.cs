@@ -1,7 +1,7 @@
 ﻿
 using Lyra.Core.API;
 
-namespace Lyra.Core.Blocks.Transactions
+namespace Lyra.Core.Blocks
 {
     public class ReceiveTransferBlock : TransactionBlock
     {

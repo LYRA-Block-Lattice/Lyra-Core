@@ -1,5 +1,4 @@
 ﻿using Lyra.Core.API;
-using Lyra.Core.Blocks.Transactions;
 using LyraWallet.Models;
 using LyraWallet.Services;
 using LyraWallet.Views;

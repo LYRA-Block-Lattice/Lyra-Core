@@ -1,16 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Blocks.Fees;
-
 using MongoDB.Driver;
 using MongoDB.Bson;
-
-
-using System.IO;
-
-using Lyra.Core.Accounts.Node;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization.Options;

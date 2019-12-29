@@ -1,7 +1,6 @@
 ﻿using Lyra.Client.Lib;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using Lyra.Exchange;
 using System;
 using System.Collections.Generic;

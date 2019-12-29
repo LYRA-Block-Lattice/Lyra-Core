@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
-using Lyra.Core.API;
-using Lyra.Core.Accounts.Node;
-using Lyra.Core.Decentralize;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
@@ -15,8 +11,8 @@ namespace Lyra.Core.Authorizers
 {
     public class SendTransferAuthorizer : BaseAuthorizer
     {
-        public SendTransferAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
+        public SendTransferAuthorizer(IOptions<LyraNodeConfig> config)
+            : base(config)
         {
         }
 
@@ -36,10 +32,10 @@ namespace Lyra.Core.Authorizers
             var block = tblock as SendTransferBlock;
 
             // 1. check if the account already exists
-            if (!_accountCollection.AccountExists(block.AccountID))
+            if (!BlockChain.Singleton.AccountExists(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
-            TransactionBlock lastBlock = _accountCollection.FindLatestBlock(block.AccountID);
+            TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
@@ -73,7 +69,7 @@ namespace Lyra.Core.Authorizers
             if (block.FeeType != AuthorizationFeeTypes.Regular)
                 return APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != _serviceAccount.GetLastServiceBlock().TransferFee)
+            if (block.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TransferFee)
                 return APIResultCodes.InvalidFeeAmount;
 
             return APIResultCodes.Success;

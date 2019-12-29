@@ -1,11 +1,5 @@
 ﻿using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
-using Newtonsoft.Json;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Lyra.Core.Decentralize
 {

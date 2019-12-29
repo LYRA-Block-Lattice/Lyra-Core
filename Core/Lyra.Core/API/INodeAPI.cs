@@ -1,5 +1,4 @@
 ﻿using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using Lyra.Exchange;
 using System.Collections.Generic;
 using System.Threading.Tasks;

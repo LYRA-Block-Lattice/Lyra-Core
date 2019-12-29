@@ -1,9 +1,11 @@
 using System;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 
 namespace Lyra.Core.Accounts
 {
+    /// <summary>
+    /// hold wallets
+    /// </summary>
     public interface IAccountDatabase : IDisposable
     {
         bool Exists(string path, string accountName);

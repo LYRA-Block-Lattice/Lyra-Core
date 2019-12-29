@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Accounts;
 using LiteDB;
 

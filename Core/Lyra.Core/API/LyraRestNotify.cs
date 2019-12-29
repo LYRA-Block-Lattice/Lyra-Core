@@ -1,6 +1,5 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;

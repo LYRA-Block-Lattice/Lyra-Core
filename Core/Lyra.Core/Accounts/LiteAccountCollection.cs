@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using LiteDB;
 using System.IO;
-
-using Lyra.Core.Accounts.Node;
+using Lyra.Core.Accounts;
 using System.Linq;
 using System.Threading.Tasks;
 

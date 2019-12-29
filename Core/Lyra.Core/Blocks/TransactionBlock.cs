@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
-namespace Lyra.Core.Blocks.Transactions
+namespace Lyra.Core.Blocks
 {
     // This transaction recording, in any direction (send or receive)
     public class TransactionInfo

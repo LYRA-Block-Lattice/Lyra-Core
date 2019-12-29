@@ -11,7 +11,6 @@ using LyraWallet.Views;
 using System.Linq;
 using System.IO;
 using ZXing.Net.Mobile.Forms;
-using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.API;
 
 namespace LyraWallet.ViewModels

@@ -1,15 +1,10 @@
-﻿using System.Collections.Generic;
-using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
+﻿using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
 using Lyra.Core.API;
-using Lyra.Core.Accounts.Node;
 using System;
 using Lyra.Core.Utils;
 using System.Threading.Tasks;
-using Lyra.Core.Decentralize;
 using Microsoft.Extensions.Options;
-using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {
@@ -24,40 +19,13 @@ namespace Lyra.Core.Authorizers
         }
     }
 
-    public class AuthorizedCommiter : BaseAuthorizer
-    {
-        public AuthorizedCommiter(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
-        {
-        }
-
-        public override Task<APIResultCodes> Commit<T>(T tblock)
-        {
-            return Task.FromResult(CommitImpl<T>(tblock));
-        }
-        private APIResultCodes CommitImpl<T>(T tblock)
-        {
-            _accountCollection.AddBlock(tblock as TransactionBlock);
-            return APIResultCodes.Success;
-        }
-
-        protected override APIResultCodes ValidateFee(TransactionBlock block)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public abstract class BaseAuthorizer : IAuthorizer
     {
         private LyraNodeConfig _config;
-        protected readonly ServiceAccount _serviceAccount;
-        protected readonly IAccountCollection _accountCollection;
 
-        public BaseAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
+        public BaseAuthorizer(IOptions<LyraNodeConfig> config)
         {
             _config = config.Value;
-            _serviceAccount = serviceAccount;
-            _accountCollection = accountCollection;
         }
 
         public virtual Task<(APIResultCodes, AuthorizationSignature)> Authorize<T>(T tblock)
@@ -86,11 +54,11 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.BlockSignatureValidationFailed;
 
             // check if this Index already exists (double-spending, kind of)
-            if (_accountCollection.FindBlockByIndex(block.AccountID, block.Index) != null)
+            if (BlockChain.Singleton.FindBlockByIndex(block.AccountID, block.Index) != null)
                 return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
             // This is the double-spending check for send block!
-            if (!string.IsNullOrEmpty(block.PreviousHash) && _accountCollection.FindBlockByPreviousBlockHash(block.PreviousHash) != null)
+            if (!string.IsNullOrEmpty(block.PreviousHash) && BlockChain.Singleton.FindBlockByPreviousBlockHash(block.PreviousHash) != null)
                 return APIResultCodes.BlockWithThisPreviousHashAlreadyExists;
 
             if (block.Index <= 0)
@@ -121,7 +89,7 @@ namespace Lyra.Core.Authorizers
             if (trs.Amount <= 0)
                 return true;
 
-            var token = _accountCollection.FindTokenGenesisBlock(null, trs.TokenCode);
+            var token = BlockChain.Singleton.FindTokenGenesisBlock(null, trs.TokenCode);
             if (token != null)
                 if (token.RenewalDate < DateTime.Now)
                     return false;
@@ -143,7 +111,7 @@ namespace Lyra.Core.Authorizers
                 //while (thisBlock.BlockType != BlockTypes.OpenWithReceiveTransfer && thisBlock.BlockType != BlockTypes.OpenWithReceiveFee)
                 while (!(thisBlock is IOpeningBlock))
                 {
-                    prevBlock = _accountCollection.FindBlockByHash(thisBlock.PreviousHash);
+                    prevBlock = BlockChain.Singleton.FindBlockByHash(thisBlock.PreviousHash);
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
@@ -155,7 +123,7 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // verify the spending
-                TransactionBlock previousTransaction = _accountCollection.FindBlockByHash(block.PreviousHash);
+                TransactionBlock previousTransaction = BlockChain.Singleton.FindBlockByHash(block.PreviousHash);
                 foreach (var prevbalance in previousTransaction.Balances)
                 {
                     // make sure all balances from the previous block are present in a new block even if they are unchanged
@@ -165,11 +133,11 @@ namespace Lyra.Core.Authorizers
 
                 // Verify fee
                 if (block.BlockType == BlockTypes.SendTransfer)
-                    if ((block as SendTransferBlock).Fee != _serviceAccount.GetLastServiceBlock().TransferFee)
+                    if ((block as SendTransferBlock).Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TransferFee)
                         return APIResultCodes.InvalidFeeAmount;
 
                 if (block.BlockType == BlockTypes.TokenGenesis)
-                    if ((block as TokenGenesisBlock).Fee != _serviceAccount.GetLastServiceBlock().TokenGenerationFee)
+                    if ((block as TokenGenesisBlock).Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TokenGenerationFee)
                         return APIResultCodes.InvalidFeeAmount;
             }
 
@@ -197,7 +165,7 @@ namespace Lyra.Core.Authorizers
             if (transaction.TokenCode == LyraGlobal.LYRA_TICKER_CODE)
                 return APIResultCodes.Success;
 
-            var token_block = _accountCollection.FindTokenGenesisBlock(null, transaction.TokenCode);
+            var token_block = BlockChain.Singleton.FindTokenGenesisBlock(null, transaction.TokenCode);
             if (token_block == null)
                 return APIResultCodes.TokenGenesisBlockNotFound;
 
@@ -231,13 +199,13 @@ namespace Lyra.Core.Authorizers
 
             // ServiceHash is excluded when calculating the block hash,
             // but it is included when creating/validating the authorization signature
-            block.ServiceHash = _serviceAccount.GetLatestBlock().Hash;
+            block.ServiceHash = BlockChain.Singleton.ServiceAccount.GetLatestBlock().Hash;
 
             // sign with the authorizer key
             AuthorizationSignature authSignature = new AuthorizationSignature
             {
-                Key = _serviceAccount.AccountId,
-                Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, block.Hash + block.ServiceHash, block.AccountID)
+                Key = BlockChain.Singleton.ServiceAccount.AccountId,
+                Signature = Signatures.GetSignature(BlockChain.Singleton.ServiceAccount.PrivateKey, block.Hash + block.ServiceHash, block.AccountID)
             };
 
             return authSignature;
@@ -245,13 +213,13 @@ namespace Lyra.Core.Authorizers
 
         //protected async Task<bool> VerifyAuthorizationSignaturesAsync(TransactionBlock block)
         //{
-        //    //block.ServiceHash = _serviceAccount.GetLatestBlock(block.ServiceHash);
+        //    //block.ServiceHash = BlockChain.Singleton.ServiceAccount.GetLatestBlock(block.ServiceHash);
 
         //    // TO DO - support multy nodes
         //    if (block.Authorizations == null || block.Authorizations.Count != 1)
         //        return false;
 
-        //    if (block.Authorizations[0].Key != _serviceAccount.AccountId)
+        //    if (block.Authorizations[0].Key != BlockChain.Singleton.ServiceAccount.AccountId)
         //        return false;
 
         //    return Signatures.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);

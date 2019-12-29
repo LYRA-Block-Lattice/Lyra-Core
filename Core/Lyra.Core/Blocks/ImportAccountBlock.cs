@@ -1,5 +1,5 @@
 ﻿using System;
-namespace Lyra.Core.Blocks.Transactions
+namespace Lyra.Core.Blocks
 {
     public class ImportAccountBlock : ReceiveTransferBlock
     {

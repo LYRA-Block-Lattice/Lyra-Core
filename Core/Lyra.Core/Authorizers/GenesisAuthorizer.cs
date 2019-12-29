@@ -1,6 +1,4 @@
 ﻿using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
-using Lyra.Core.Accounts.Node;
 using Lyra.Core.API;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -11,8 +9,8 @@ namespace Lyra.Core.Authorizers
 {
     public class GenesisAuthorizer: BaseAuthorizer
     {
-        public GenesisAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
+        public GenesisAuthorizer(IOptions<LyraNodeConfig> config)
+            : base(config)
         {
         }
 
@@ -36,7 +34,7 @@ namespace Lyra.Core.Authorizers
 
             // Local node validations - before it sends it out to the authorization sample:
             // 1. check if the account already exists
-                if (_accountCollection.AccountExists(block.AccountID))
+                if (BlockChain.Singleton.AccountExists(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists; // 
 
             // 2. Validate blocks
@@ -47,7 +45,7 @@ namespace Lyra.Core.Authorizers
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
             //if (genesis_blocks.FindTokenGenesisBlock(testTokenGenesisBlock) != null)
-            if (_accountCollection.FindTokenGenesisBlock(block.Hash, LyraGlobal.LYRA_TICKER_CODE) != null)
+            if (BlockChain.Singleton.FindTokenGenesisBlock(block.Hash, LyraGlobal.LYRA_TICKER_CODE) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
             return APIResultCodes.Success;

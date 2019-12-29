@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
+using Lyra.Core.Exchange;
 
 namespace Lyra.Core.Decentralize
 {
@@ -16,7 +17,6 @@ namespace Lyra.Core.Decentralize
     {
         public static NodeService Instance { get; private set; } 
         public static DealEngine Dealer { get; private set; }
-        private const int ZOOKEEPER_CONNECTION_TIMEOUT = 2000;
 
         private LyraNodeConfig _config;
 
@@ -64,7 +64,7 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"NodeService: ExecuteAsync Called.");
 
                 await Task.Delay(15000);// wait for silo to startup
-                await _serviceAccount.StartAsync(false, null);
+                _serviceAccount.Start(false, null);
                 await Task.Delay(1000);
                 await _gossiper.Init(_config.Orleans.EndPoint.AdvertisedIPAddress);
 

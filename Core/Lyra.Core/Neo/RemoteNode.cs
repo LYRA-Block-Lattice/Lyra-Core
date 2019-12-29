@@ -41,7 +41,7 @@ namespace Neo.Network.P2P
 
             var capabilities = new List<NodeCapability>
             {
-                new FullNodeCapability(Blockchain.Singleton.Height)
+                new FullNodeCapability(BlockChain.Singleton.Height)
             };
 
             if (LocalNode.Singleton.ListenerTcpPort > 0) capabilities.Add(new ServerCapability(NodeCapabilityType.TcpServer, (ushort)LocalNode.Singleton.ListenerTcpPort));

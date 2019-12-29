@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Blocks.Fees;
 using Lyra.Core.Blocks.Service;
 using Newtonsoft.Json;

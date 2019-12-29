@@ -193,7 +193,7 @@ namespace LyraWallet.Models
             string description, decimal totalSupply, int precision, string ownerName, string ownerAddress)
         {
             var result = await wallet.CreateToken(tokenName, tokenDomain ?? "", description ?? "", Convert.ToSByte(precision), totalSupply,
-                true, ownerName ?? "", ownerAddress ?? "", null, Lyra.Core.Blocks.Transactions.ContractTypes.Default, null);
+                true, ownerName ?? "", ownerAddress ?? "", null, ContractTypes.Default, null);
             if (result.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception(result.ToString());

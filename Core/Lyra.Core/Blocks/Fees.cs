@@ -1,6 +1,4 @@
-﻿using Lyra.Core.Blocks.Transactions;
-
-namespace Lyra.Core.Blocks.Fees
+﻿namespace Lyra.Core.Blocks.Fees
 {
     public class ReceiveFeeBlock : ReceiveTransferBlock
     {

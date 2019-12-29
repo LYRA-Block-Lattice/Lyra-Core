@@ -1,7 +1,5 @@
-﻿using Lyra.Core.Accounts.Node;
-using Lyra.Core.API;
+﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -14,16 +12,10 @@ namespace Lyra.Core.Decentralize
 {
     public class NodeAPI : INodeAPI
     {
-        IAccountCollection _accountCollection;
-        ServiceAccount _serviceAccount;
         private LyraNodeConfig _config;
 
-        public NodeAPI(ServiceAccount serviceAccount,
-            IAccountCollection accountCollection,
-            IOptions<LyraNodeConfig> config)
+        public NodeAPI(IOptions<LyraNodeConfig> config)
         {
-            _accountCollection = accountCollection;
-            _serviceAccount = serviceAccount;
             _config = config.Value;
         }
         public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
@@ -44,7 +36,7 @@ namespace Lyra.Core.Decentralize
             var result = new AccountHeightAPIResult();
             try
             {
-                var last_sync_block = _serviceAccount.GetLatestBlock();
+                var last_sync_block = BlockChain.Singleton.ServiceAccount.GetLatestBlock();
                 if(last_sync_block == null)
                 {
                     // empty database. 
@@ -68,10 +60,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                //if (!_accountCollection.AccountExists(AccountId))
+                //if (!BlockChain.Singleton.AccountExists(AccountId))
                 //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var blocks = _accountCollection.FindTokenGenesisBlocks(keyword == "(null)" ? null : keyword);
+                var blocks = BlockChain.Singleton.FindTokenGenesisBlocks(keyword == "(null)" ? null : keyword);
                 if (blocks != null)
                 {
                     result.TokenNames = blocks.Select(a => a.Ticker).ToList();
@@ -94,11 +86,11 @@ namespace Lyra.Core.Decentralize
             var result = new AccountHeightAPIResult();
             try
             {
-                if (_accountCollection.AccountExists(AccountId))
+                if (BlockChain.Singleton.AccountExists(AccountId))
                 {
-                    result.Height = _accountCollection.FindLatestBlock(AccountId).Index;
+                    result.Height = BlockChain.Singleton.FindLatestBlock(AccountId).Index;
                     result.NetworkId = _config.Lyra.NetworkId;
-                    result.SyncHash = _serviceAccount.GetLatestBlock().Hash;
+                    result.SyncHash = BlockChain.Singleton.ServiceAccount.GetLatestBlock().Hash;
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else
@@ -119,9 +111,9 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                if (_accountCollection.AccountExists(AccountId))
+                if (BlockChain.Singleton.AccountExists(AccountId))
                 {
-                    var block = _accountCollection.FindBlockByIndex(AccountId, Index);
+                    var block = BlockChain.Singleton.FindBlockByIndex(AccountId, Index);
                     if (block != null)
                     {
                         result.BlockData = Json(block);
@@ -149,10 +141,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                if (!_accountCollection.AccountExists(AccountId))
+                if (!BlockChain.Singleton.AccountExists(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = _accountCollection.FindBlockByHash(AccountId, Hash);
+                var block = BlockChain.Singleton.FindBlockByHash(AccountId, Hash);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -177,10 +169,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                if (!_accountCollection.AccountExists(AccountId))
+                if (!BlockChain.Singleton.AccountExists(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var list = _accountCollection.GetNonFungibleTokens(AccountId);
+                var list = BlockChain.Singleton.GetNonFungibleTokens(AccountId);
                 if (list != null)
                 {
                     result.ListDataSerialized = Json(list);
@@ -204,10 +196,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                //if (!_accountCollection.AccountExists(AccountId))
+                //if (!BlockChain.Singleton.AccountExists(AccountId))
                 //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = _accountCollection.FindTokenGenesisBlock(null, TokenTicker);
+                var block = BlockChain.Singleton.FindTokenGenesisBlock(null, TokenTicker);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -232,10 +224,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                if (!_accountCollection.AccountExists(AccountId))
+                if (!BlockChain.Singleton.AccountExists(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = _serviceAccount.GetLastServiceBlock();
+                var block = BlockChain.Singleton.ServiceAccount.GetLastServiceBlock();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -259,11 +251,11 @@ namespace Lyra.Core.Decentralize
             NewTransferAPIResult transfer_info = new NewTransferAPIResult();
             try
             {
-                SendTransferBlock sendBlock = _accountCollection.FindUnsettledSendBlock(AccountId);
+                SendTransferBlock sendBlock = BlockChain.Singleton.FindUnsettledSendBlock(AccountId);
 
                 if (sendBlock != null)
                 {
-                    TransactionBlock previousBlock = _accountCollection.FindBlockByHash(sendBlock.PreviousHash);
+                    TransactionBlock previousBlock = BlockChain.Singleton.FindBlockByHash(sendBlock.PreviousHash);
                     if (previousBlock == null)
                         transfer_info.ResultCode = APIResultCodes.CouldNotTraceSendBlockChain;
                     else

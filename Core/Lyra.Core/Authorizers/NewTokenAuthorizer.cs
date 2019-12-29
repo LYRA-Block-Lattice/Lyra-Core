@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Cryptography;
 using Lyra.Core.API;
-using Lyra.Core.Accounts.Node;
-using Lyra.Core.Decentralize;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
@@ -15,8 +12,8 @@ namespace Lyra.Core.Authorizers
 {
     public class NewTokenAuthorizer: BaseAuthorizer
     {
-        public NewTokenAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
+        public NewTokenAuthorizer(IOptions<LyraNodeConfig> config)
+            : base(config)
         {
         }
 
@@ -37,10 +34,10 @@ namespace Lyra.Core.Authorizers
 
             // Local node validations - before it sends it out to the authorization sample:
             // 1. check if the account already exists
-            if (!_accountCollection.AccountExists(block.AccountID))
+            if (!BlockChain.Singleton.AccountExists(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist; // 
 
-            TransactionBlock lastBlock = _accountCollection.FindLatestBlock(block.AccountID);
+            TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
@@ -60,10 +57,10 @@ namespace Lyra.Core.Authorizers
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
             //if (genesis_blocks.FindTokenGenesisBlock(testTokenGenesisBlock) != null)
-            if (_accountCollection.FindTokenGenesisBlock(block.Hash, block.Ticker) != null)
+            if (BlockChain.Singleton.FindTokenGenesisBlock(block.Hash, block.Ticker) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
-            if (block.Fee != _serviceAccount.GetLastServiceBlock().TokenGenerationFee)
+            if (block.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TokenGenerationFee)
                 return APIResultCodes.InvalidFeeAmount;
 
             if (block.IsNonFungible)
@@ -83,7 +80,7 @@ namespace Lyra.Core.Authorizers
             if (block.FeeType != AuthorizationFeeTypes.Regular)
                 return APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != _serviceAccount.GetLastServiceBlock().TokenGenerationFee)
+            if (block.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TokenGenerationFee)
                 return APIResultCodes.InvalidFeeAmount;
 
             return APIResultCodes.Success;

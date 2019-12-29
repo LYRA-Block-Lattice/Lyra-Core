@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
-
 using Lyra.Core.API;
-
 using System.Threading.Tasks;
 using Lyra.Core.Accounts;
 
@@ -357,7 +354,7 @@ namespace Lyra.Client.CLI
             //string ticker = domainname + "." + tokenname;
 
 
-            var result = _wallet.CreateToken(tokenname, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, Core.Blocks.Transactions.ContractTypes.Custom, tags).Result;
+            var result = _wallet.CreateToken(tokenname, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, ContractTypes.Custom, tags).Result;
 
             if (result.ResultCode != APIResultCodes.Success)
             {

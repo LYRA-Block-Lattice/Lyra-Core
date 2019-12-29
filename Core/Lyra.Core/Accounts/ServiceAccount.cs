@@ -9,24 +9,21 @@ using Lyra.Core.Utils;
 
 namespace Lyra.Core.Accounts
 {
-    public class ServiceAccount
+    public class ServiceAccount : BaseAccount
     {
         public const string SERVICE_ACCOUNT_NAME = "service_account";
         public string DatabasePath { get; set; }
 
         Timer timer = null;
-        IAccountDatabase _storage;
         private LyraNodeConfig _config;
-
-        BaseAccount _ba;
 
         public bool IsNodeFullySynced { get; set; }
 
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
-        public ServiceAccount(IAccountDatabase storage, IOptions<LyraNodeConfig> config) 
+        public ServiceAccount(IAccountDatabase storage, IOptions<LyraNodeConfig> config) :
+            base(SERVICE_ACCOUNT_NAME, storage, config.Value.Lyra.NetworkId)
         {
-            _storage = storage;
             IsNodeFullySynced = true;
             _config = config.Value;
         }
@@ -34,19 +31,19 @@ namespace Lyra.Core.Accounts
         public ServiceBlock GetLastServiceBlock()
         {
             //var lstServiceBlock = base._storage. _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("SourceHash", sendBlock.Hash)));
-            Block lastBlock = _ba.GetLatestBlock();
+            Block lastBlock = GetLatestBlock();
             if (lastBlock.BlockType == BlockTypes.Service)
                 return lastBlock as ServiceBlock;
             if (lastBlock == null)
                 return null;
             string hash = (lastBlock as SyncBlock).LastServiceBlockHash;
-            ServiceBlock lastServiceBlock = _ba.FindBlockByHash(hash) as ServiceBlock;
+            ServiceBlock lastServiceBlock = FindBlockByHash(hash) as ServiceBlock;
             return lastServiceBlock;
         }
 
         public void InitializeServiceAccountAsync(string Path)
         {
-            _ba.CreateAccountAsync(Path, SERVICE_ACCOUNT_NAME, AccountTypes.Service);
+            CreateAccountAsync(Path, SERVICE_ACCOUNT_NAME, AccountTypes.Service);
             //_blocks.EnsureIndex(x => x.AccountID);
             //_blocks.EnsureIndex(x => x.Index);
 
@@ -60,45 +57,42 @@ namespace Lyra.Core.Accounts
                 AcceptedShards = new List<string> { "Primary" },
             };
 
-            firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = _ba.AccountId, IPAddress = "127.0.0.1" });
-            firstServiceBlock.InitializeBlock(null, _ba.PrivateKey, _config.Lyra.NetworkId, AccountId: _ba.AccountId);
+            firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = AccountId, IPAddress = "127.0.0.1" });
+            firstServiceBlock.InitializeBlock(null, PrivateKey, _config.Lyra.NetworkId, AccountId: AccountId);
 
             //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
-            _ba.AddBlock(firstServiceBlock);
+            AddBlock(firstServiceBlock);
         }
 
-        public async Task StartAsync(bool ModeConsensus, string Path)
+        public void Start(bool ModeConsensus, string Path)
         {
             IsNodeFullySynced = true;
 
-            _ba = new BaseAccount(SERVICE_ACCOUNT_NAME, _storage, _config.Lyra.NetworkId);
-
-            if (!_ba.AccountExistsLocally(Path, SERVICE_ACCOUNT_NAME))
+            if (!AccountExistsLocally(Path, SERVICE_ACCOUNT_NAME))
             {
-
                 InitializeServiceAccountAsync(Path);
-            }                
+            }
             else
-                _ba.OpenAccount(Path, SERVICE_ACCOUNT_NAME);
+                OpenAccount(Path, SERVICE_ACCOUNT_NAME);
             DatabasePath = Path;
 
             // begin sync node
 
-            if(!ModeConsensus)
+            if (!ModeConsensus)
             {
-                timer = new Timer(async _ =>
+                timer = new Timer(_ =>
                 {
-                    await TimingSyncAsync();
+                    TimingSync();
                 },
                 null, 10 * 1000, 10 * 60 * 1000);
             }
         }
 
-        public async Task TimingSyncAsync()
+        public void TimingSync()
         {
             try
             {
-                Block latestBlock = _ba.GetLatestBlock();
+                Block latestBlock = GetLatestBlock();
                 if (latestBlock == null)
                     throw new Exception("Last service chain block not found!");
 
@@ -114,21 +108,16 @@ namespace Lyra.Core.Accounts
 
                 SyncBlock sync = new SyncBlock();
                 sync.LastServiceBlockHash = latestServiceBlock.Hash;
-                sync.InitializeBlock(latestBlock, _ba.PrivateKey, _ba.NetworkId, AccountId: AccountId);
+                sync.InitializeBlock(latestBlock, PrivateKey, NetworkId, AccountId: AccountId);
 
                 //sync.Signature = Signatures.GetSignature(PrivateKey, sync.Hash);
-                _ba.AddBlock(sync);
+                AddBlock(sync);
             }
             catch (Exception e)
             {
                 Console.WriteLine("Exception in StartSingleNodeTestnet timer procedure: " + e.Message);
             }
         }
-
-        public Block GetLatestBlock() => _ba.GetLatestBlock();
-        public string AccountId => _ba.AccountId;
-        public string PrivateKey => _ba.PrivateKey;
-        public string NetworkId => _ba.NetworkId;
     }
 
 }

@@ -1,20 +1,13 @@
-using Lyra.Core.Authorizers;
 using Lyra.Core.Accounts;
-using Lyra.Core.Accounts.Node;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
-using Lyra.Core.Blocks.Transactions;
-using Lyra.Core.Cryptography;
 using Lyra.Exchange;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MongoDB.Driver;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
 
@@ -24,7 +17,6 @@ namespace Lyra.Core.Decentralize
     {
         private readonly ILogger<ApiService> _log;
         ServiceAccount _serviceAccount;
-        IAccountCollection _accountCollection;
         private LyraNodeConfig _config;
         GossipListener _gossipListener;
         ConsensusRuntimeConfig _consensus;
@@ -32,7 +24,6 @@ namespace Lyra.Core.Decentralize
         long _useed = -1;
 
         public ApiService(ILogger<ApiService> logger, 
-            IAccountCollection accountCollection,
             ServiceAccount serviceAccount,
             GossipListener gossipListener,
             ConsensusRuntimeConfig consensus,
@@ -41,7 +32,6 @@ namespace Lyra.Core.Decentralize
         {
             _log = logger;
             _config = config.Value;
-            _accountCollection = accountCollection;
             _serviceAccount = serviceAccount;
             _gossipListener = gossipListener;
             _consensus = consensus;
@@ -50,7 +40,7 @@ namespace Lyra.Core.Decentralize
         public async Task OnActivateAsync()
         {
             _log.LogInformation("ApiService: Activated");
-            _useed = await _accountCollection.GetBlockCountAsync();
+            _useed = await BlockChain.Singleton.GetBlockCountAsync();
 
             //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
         }
@@ -336,7 +326,7 @@ namespace Lyra.Core.Decentralize
             var callresult = APIResultCodes.Success;
             TransactionBlock blockresult = null;
 
-            TransactionBlock latestBlock = _accountCollection.FindLatestBlock(_serviceAccount.AccountId);
+            TransactionBlock latestBlock = BlockChain.Singleton.FindLatestBlock(_serviceAccount.AccountId);
             if(latestBlock == null)
             {
                 var receiveBlock = new OpenWithReceiveFeeBlock

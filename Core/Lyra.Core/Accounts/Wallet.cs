@@ -1,15 +1,10 @@
 using System;
-
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 using Lyra.Core.Blocks.Service;
-
 using Lyra.Core.Cryptography;
 using Lyra.Core.API;
-
 using Newtonsoft.Json;
 using System.Diagnostics;
 

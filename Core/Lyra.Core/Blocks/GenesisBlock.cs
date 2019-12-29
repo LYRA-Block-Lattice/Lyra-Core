@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Lyra.Core.Blocks.Transactions
+namespace Lyra.Core.Blocks
 {
     public enum ContractTypes: uint
     {

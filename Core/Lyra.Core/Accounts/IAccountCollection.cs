@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
 
-namespace Lyra.Core.Accounts.Node
+namespace Lyra.Core.Accounts
 {
+    /// <summary>
+    /// hole block lists.
+    /// </summary>
     public interface IAccountCollection: IDisposable
     {
         Task<long> GetBlockCountAsync();

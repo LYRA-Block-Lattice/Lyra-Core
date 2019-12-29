@@ -2,9 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
-
-using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Accounts
 {

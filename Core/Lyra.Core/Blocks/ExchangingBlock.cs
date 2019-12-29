@@ -1,9 +1,4 @@
-﻿using Lyra.Core.Blocks.Transactions;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Lyra.Core.Blocks
+﻿namespace Lyra.Core.Blocks
 {
     public class ExchangingBlock : SendTransferBlock
     {

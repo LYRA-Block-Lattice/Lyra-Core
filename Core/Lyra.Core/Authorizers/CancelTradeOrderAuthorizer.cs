@@ -1,6 +1,4 @@
 ﻿using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
-using Lyra.Core.Accounts.Node;
 using Lyra.Core.Decentralize;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -12,8 +10,8 @@ namespace Lyra.Core.Authorizers
 {
     public class CancelTradeOrderAuthorizer: BaseAuthorizer
     {
-        public CancelTradeOrderAuthorizer(IOptions<LyraNodeConfig> config, ServiceAccount serviceAccount, IAccountCollection accountCollection)
-            : base(config, serviceAccount, accountCollection)
+        public CancelTradeOrderAuthorizer(IOptions<LyraNodeConfig> config)
+            : base(config)
         {
             
         }
@@ -34,10 +32,10 @@ namespace Lyra.Core.Authorizers
             var block = tblock as CancelTradeOrderBlock;
 
             // 1. check if the account exists
-            if (!_accountCollection.AccountExists(block.AccountID))
+            if (!BlockChain.Singleton.AccountExists(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
-            TransactionBlock lastBlock = _accountCollection.FindLatestBlock(block.AccountID);
+            TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
@@ -49,7 +47,7 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            var original_order = _accountCollection.FindBlockByHash(block.AccountID, block.TradeOrderId) as TradeOrderBlock;
+            var original_order = BlockChain.Singleton.FindBlockByHash(block.AccountID, block.TradeOrderId) as TradeOrderBlock;
             if (original_order == null)
                 return APIResultCodes.NoTradesFound;
 
@@ -64,7 +62,7 @@ namespace Lyra.Core.Authorizers
         // Thus, it should take the balance from the latest block and add the balamce (transactin amount) locked by the order block.
         APIResultCodes ValidateCancellationBalance(CancelTradeOrderBlock block, TransactionBlock lastBlock, TradeOrderBlock original_order)
         {
-            var order_previous_block = _accountCollection.FindBlockByHash(original_order.PreviousHash);
+            var order_previous_block = BlockChain.Singleton.FindBlockByHash(original_order.PreviousHash);
 
             var order_transaction = original_order.GetTransaction(order_previous_block);
             var cancel_transaction = block.GetTransaction(lastBlock);
