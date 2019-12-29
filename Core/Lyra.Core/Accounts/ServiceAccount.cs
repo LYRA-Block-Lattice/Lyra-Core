@@ -2,16 +2,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Lyra.Core.Decentralize;
-using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Service;
-using Lyra.Core.Cryptography;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
-using System.IO;
 
-namespace Lyra.Core.Services
+namespace Lyra.Core.Accounts
 {
     public class ServiceAccount
     {
