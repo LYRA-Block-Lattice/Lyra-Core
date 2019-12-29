@@ -13,7 +13,6 @@ using System.Net.Http;
 using Lyra.Core.API;
 using Microsoft.Extensions.Configuration;
 using System.IO;
-using Lyra.Authorizer.Decentralize;
 using Lyra.Core.Utils;
 
 namespace Lyra.Client.CLI

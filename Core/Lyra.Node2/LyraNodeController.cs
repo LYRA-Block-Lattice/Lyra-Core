@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Lyra.Authorizer.Decentralize;
-using Lyra.Authorizer.Services;
+
+using Lyra.Core.Services;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;

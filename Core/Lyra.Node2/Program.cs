@@ -1,6 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
-using Lyra.Authorizer.Decentralize;
+
 using Lyra.Core.API;
 using Lyra.Node2.Services;
 using Microsoft.AspNetCore.Hosting;
@@ -12,7 +12,7 @@ using System;
 using System.Threading;
 using Lyra.Core.Utils;
 using System.Diagnostics;
-using Lyra.Authorizer.Services;
+using Lyra.Core.Services;
 using Neo;
 
 namespace Lyra.Node2

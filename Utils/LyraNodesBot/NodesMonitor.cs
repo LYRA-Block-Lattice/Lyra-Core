@@ -1,4 +1,4 @@
-﻿using Lyra.Authorizer.Decentralize;
+﻿using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;

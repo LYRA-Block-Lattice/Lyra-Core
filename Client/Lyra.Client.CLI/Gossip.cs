@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using Lyra.Authorizer.Decentralize;
 
 namespace Lyra.Client.CLI
 {

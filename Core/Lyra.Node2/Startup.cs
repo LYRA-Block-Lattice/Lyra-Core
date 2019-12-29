@@ -1,6 +1,4 @@
-﻿using Lyra.Authorizer;
-using Lyra.Authorizer.Decentralize;
-using Lyra.Authorizer.Services;
+﻿using Lyra.Core.Services;
 using Lyra.Core.Accounts;
 using Lyra.Core.Accounts.Node;
 using Lyra.Core.Cryptography;
@@ -11,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Lyra.Core.Decentralize;
 
 namespace Lyra.Node2
 {

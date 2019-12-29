@@ -40,7 +40,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
-    <ProjectReference Include="..\Lyra.Authorizer\Lyra.Authorizer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
