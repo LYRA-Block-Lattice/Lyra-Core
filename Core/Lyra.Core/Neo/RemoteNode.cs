@@ -1,6 +1,7 @@
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.IO;
+using Lyra;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.IO.Actors;

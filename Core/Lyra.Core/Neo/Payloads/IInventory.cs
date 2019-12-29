@@ -1,4 +1,6 @@
 
+using Lyra;
+
 namespace Neo.Network.P2P.Payloads
 {
     public interface IInventory : IVerifiable

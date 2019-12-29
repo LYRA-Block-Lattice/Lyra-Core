@@ -9,9 +9,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using Lyra.Core.Decentralize;
 using Microsoft.Extensions.Options;
-
 using Lyra.Core.Utils;
-using Lyra.Core.Services;
 
 namespace Lyra.Core.Accounts
 {

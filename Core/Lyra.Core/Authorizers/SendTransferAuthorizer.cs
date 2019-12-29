@@ -9,7 +9,7 @@ using Lyra.Core.Decentralize;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
-using Lyra.Core.Services;
+using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {

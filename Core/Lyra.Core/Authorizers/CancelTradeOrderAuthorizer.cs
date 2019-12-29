@@ -1,15 +1,12 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Transactions;
-
-using Lyra.Core.API;
 using Lyra.Core.Accounts.Node;
-
 using Lyra.Core.Decentralize;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
-using Lyra.Core.Services;
+using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {

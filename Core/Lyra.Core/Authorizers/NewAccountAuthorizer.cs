@@ -7,7 +7,7 @@ using Lyra.Core.Blocks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
-using Lyra.Core.Services;
+using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {
