@@ -58,10 +58,10 @@ namespace Lyra.Core.Decentralize
         public virtual async Task SendMessage(SourceSignedMessage msg)
         {
             _log.LogInformation($"GossipListener: SendMessage Called: msg From: {msg.From}");
-            while (BlockChain.Singleton.ServiceAccount.PrivateKey == null)  //starup. need to wait it generated
+            while (NodeService.Instance.PosWallet.PrivateKey == null)  //starup. need to wait it generated
                 await Task.Delay(1000);
-            var sign = msg.Sign(BlockChain.Singleton.ServiceAccount.PrivateKey, msg.From);
-            _log.LogInformation($"GossipListener: Sign {msg.Hash} got: {sign} by prvKey: {BlockChain.Singleton.ServiceAccount.PrivateKey} pubKey: {msg.From}");
+            var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
+            _log.LogInformation($"GossipListener: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
             //await _gossipStream.OnNextAsync(msg);
         }
 
@@ -148,7 +148,7 @@ namespace Lyra.Core.Decentralize
                 var localAuthResult = await authorizer.Authorize(item.Block);
                 var result = new AuthorizedMsg
                 {
-                    From = BlockChain.Singleton.ServiceAccount.AccountId,
+                    From = NodeService.Instance.PosWallet.AccountId,
                     BlockIndex = item.Block.UIndex,
                     Result = localAuthResult.Item1,
                     AuthSign = localAuthResult.Item2
@@ -179,7 +179,7 @@ namespace Lyra.Core.Decentralize
 
                     var msg = new AuthorizerCommitMsg
                     {
-                        From = BlockChain.Singleton.ServiceAccount.AccountId,
+                        From = NodeService.Instance.PosWallet.AccountId,
                         BlockIndex = block.UIndex,
                         Commited = true
                     };

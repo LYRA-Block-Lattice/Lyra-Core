@@ -186,7 +186,9 @@ namespace Lyra.Core.Blocks
 
         Service = 11,
 
-        Sync = 12,
+        Consolidation = 12,
+
+        Sync = 13,
 
         // Opening blocks
 

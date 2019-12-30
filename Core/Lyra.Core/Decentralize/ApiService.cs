@@ -55,7 +55,7 @@ namespace Lyra.Core.Decentralize
             block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
             AuthorizingMsg msg = new AuthorizingMsg
             {
-                From = BlockChain.Singleton.ServiceAccount.AccountId,
+                From = NodeService.Instance.PosWallet.AccountId,
                 Block = block
             };
             var state = await _gossipListener.SendAuthorizingMessage(msg);
@@ -304,7 +304,7 @@ namespace Lyra.Core.Decentralize
                 if(sendBlock.Fee != ExchangingBlock.FEE)
                     return (APIResultCodes.InvalidFeeAmount, null);
             }
-            else if (sendBlock.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TransferFee)
+            else if (sendBlock.Fee != BlockChain.Singleton.GetLastServiceBlock().TransferFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
@@ -312,7 +312,7 @@ namespace Lyra.Core.Decentralize
 
         async Task<(APIResultCodes result, TransactionBlock block)> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
         {
-            if (tokenBlock.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TokenGenerationFee)
+            if (tokenBlock.Fee != BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(tokenBlock.Hash, tokenBlock.Fee);
@@ -323,13 +323,13 @@ namespace Lyra.Core.Decentralize
             var callresult = APIResultCodes.Success;
             TransactionBlock blockresult = null;
 
-            TransactionBlock latestBlock = BlockChain.Singleton.FindLatestBlock(BlockChain.Singleton.ServiceAccount.AccountId);
+            TransactionBlock latestBlock = BlockChain.Singleton.FindLatestBlock(NodeService.Instance.PosWallet.AccountId);
             if(latestBlock == null)
             {
                 var receiveBlock = new OpenWithReceiveFeeBlock
                 {
                     AccountType = AccountTypes.Service,
-                    AccountID = BlockChain.Singleton.ServiceAccount.AccountId,
+                    AccountID = NodeService.Instance.PosWallet.AccountId,
                     ServiceHash = string.Empty,
                     SourceHash = source,
                     Fee = 0,
@@ -337,7 +337,7 @@ namespace Lyra.Core.Decentralize
                     Balances = new Dictionary<string, decimal>()
                 };
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
-                receiveBlock.InitializeBlock(null, BlockChain.Singleton.ServiceAccount.PrivateKey, BlockChain.Singleton.ServiceAccount.NetworkId, AccountId: BlockChain.Singleton.ServiceAccount.AccountId);
+                receiveBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.NetworkId, AccountId: NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
@@ -347,7 +347,7 @@ namespace Lyra.Core.Decentralize
             {
                 var receiveBlock = new ReceiveFeeBlock
                 {
-                    AccountID = BlockChain.Singleton.ServiceAccount.AccountId,
+                    AccountID = NodeService.Instance.PosWallet.AccountId,
                     ServiceHash = string.Empty,
                     SourceHash = source,
                     Fee = 0,
@@ -357,7 +357,7 @@ namespace Lyra.Core.Decentralize
 
                 decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
-                receiveBlock.InitializeBlock(latestBlock, BlockChain.Singleton.ServiceAccount.PrivateKey, BlockChain.Singleton.ServiceAccount.NetworkId, AccountId: BlockChain.Singleton.ServiceAccount.AccountId);
+                receiveBlock.InitializeBlock(latestBlock, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.NetworkId, AccountId: NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);

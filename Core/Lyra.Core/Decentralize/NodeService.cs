@@ -17,7 +17,7 @@ namespace Lyra.Core.Decentralize
     {
         public static NodeService Instance { get; private set; } 
         public static DealEngine Dealer { get; private set; }
-
+        public Wallet PosWallet { get; private set; }
         private LyraNodeConfig _config;
 
         private INodeAPI _dataApi;

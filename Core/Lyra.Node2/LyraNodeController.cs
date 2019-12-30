@@ -29,10 +29,10 @@ namespace LyraLexWeb2
         }
         private void CheckSyncState()
         {
-            if (!BlockChain.Singleton.ServiceAccount.IsNodeFullySynced)
-            {
-                throw new Exception("Node Out of Sync");
-            }
+            //if (!BlockChain.Singleton.IsNodeFullySynced)
+            //{
+            //    throw new Exception("Node Out of Sync");
+            //}
         }
         // GET: api/LyraNode
         [HttpGet]

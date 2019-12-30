@@ -60,7 +60,7 @@ namespace Lyra.Core.Authorizers
             if (BlockChain.Singleton.FindTokenGenesisBlock(block.Hash, block.Ticker) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
-            if (block.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TokenGenerationFee)
+            if (block.Fee != BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
                 return APIResultCodes.InvalidFeeAmount;
 
             if (block.IsNonFungible)
@@ -80,7 +80,7 @@ namespace Lyra.Core.Authorizers
             if (block.FeeType != AuthorizationFeeTypes.Regular)
                 return APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TokenGenerationFee)
+            if (block.Fee != BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
                 return APIResultCodes.InvalidFeeAmount;
 
             return APIResultCodes.Success;

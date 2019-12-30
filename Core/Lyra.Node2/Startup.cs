@@ -27,11 +27,6 @@ namespace Lyra.Node2
 
             services.AddHostedService<NodeService>();
 
-            // mongodb
-            services.AddSingleton<IAccountCollection, MongoAccountCollection>();
-            services.AddSingleton<IAccountDatabase, MongoServiceAccountDatabase>();
-
-            services.AddSingleton(typeof(ServiceAccount));
             services.AddSingleton(typeof(GossipListener));
             services.AddSingleton(typeof(ConsensusRuntimeConfig));
             //services.AddSingleton<INotifyAPI, NotifyService>();

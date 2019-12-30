@@ -2,6 +2,7 @@
 using Akka.Configuration;
 using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
+using Lyra.Core.Blocks.Service;
 using Lyra.Core.Utils;
 using Neo;
 using Neo.IO.Actors;
@@ -23,7 +24,7 @@ namespace Lyra
         public static BlockChain Singleton;
         public uint Height;
 
-        private readonly ServiceAccount _serviceAccount;
+        //private readonly ServiceAccount _serviceAccount;
         private readonly IAccountCollection _store;
         private LyraSystem _sys;
         public BlockChain(LyraSystem sys, LyraNodeConfig nodeConfig)
@@ -31,20 +32,30 @@ namespace Lyra
             _sys = sys;
             _store = new MongoAccountCollection(nodeConfig);
 
-            var acctDb = new MongoServiceAccountDatabase(nodeConfig);
-            _serviceAccount = new ServiceAccount(acctDb, nodeConfig);
-            _serviceAccount.Start(true, null);
-
             Singleton = this;
+
+            //_serviceAccount = sys.ActorSystem.ActorOf(ServiceAccount.Props(this, null, nodeConfig));
+            //_serviceAccount.Start(true, null);
         }
         public static Props Props(LyraSystem system, LyraNodeConfig nodeConfig)
         {
             return Akka.Actor.Props.Create(() => new BlockChain(system, nodeConfig)).WithMailbox("blockchain-mailbox");
         }
 
+        internal ConsolidationBlock GetChallengeBlock()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal ServiceBlock GetLastServiceBlock()
+        {
+            throw new NotImplementedException();
+        }
+
         // forward api. should have more control here.
-        public ServiceAccount ServiceAccount => _serviceAccount;
+        //public ServiceAccount ServiceAccount => _serviceAccount;
         public void AddBlock(TransactionBlock block) => _store.AddBlock(block);
+        public void AddBlock(ServiceBlock serviceBlock) => _store.AddBlock(serviceBlock);
 
         // bellow readonly access
         public bool AccountExists(string AccountId) => _store.AccountExists(AccountId);

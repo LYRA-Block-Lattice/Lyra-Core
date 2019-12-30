@@ -69,7 +69,7 @@ namespace Lyra.Core.Authorizers
             if (block.FeeType != AuthorizationFeeTypes.Regular)
                 return APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TransferFee)
+            if (block.Fee != BlockChain.Singleton.GetLastServiceBlock().TransferFee)
                 return APIResultCodes.InvalidFeeAmount;
 
             return APIResultCodes.Success;

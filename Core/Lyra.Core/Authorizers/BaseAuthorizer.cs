@@ -5,6 +5,7 @@ using System;
 using Lyra.Core.Utils;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Lyra.Core.Decentralize;
 
 namespace Lyra.Core.Authorizers
 {
@@ -133,11 +134,11 @@ namespace Lyra.Core.Authorizers
 
                 // Verify fee
                 if (block.BlockType == BlockTypes.SendTransfer)
-                    if ((block as SendTransferBlock).Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TransferFee)
+                    if ((block as SendTransferBlock).Fee != BlockChain.Singleton.GetLastServiceBlock().TransferFee)
                         return APIResultCodes.InvalidFeeAmount;
 
                 if (block.BlockType == BlockTypes.TokenGenesis)
-                    if ((block as TokenGenesisBlock).Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TokenGenerationFee)
+                    if ((block as TokenGenesisBlock).Fee != BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
                         return APIResultCodes.InvalidFeeAmount;
             }
 
@@ -199,13 +200,13 @@ namespace Lyra.Core.Authorizers
 
             // ServiceHash is excluded when calculating the block hash,
             // but it is included when creating/validating the authorization signature
-            block.ServiceHash = BlockChain.Singleton.ServiceAccount.GetLatestBlock().Hash;
+            block.ServiceHash = BlockChain.Singleton.GetChallengeBlock().Hash;
 
             // sign with the authorizer key
             AuthorizationSignature authSignature = new AuthorizationSignature
             {
-                Key = BlockChain.Singleton.ServiceAccount.AccountId,
-                Signature = Signatures.GetSignature(BlockChain.Singleton.ServiceAccount.PrivateKey, block.Hash + block.ServiceHash, block.AccountID)
+                Key = NodeService.Instance.PosWallet.AccountId,
+                Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, block.Hash + block.ServiceHash, block.AccountID)
             };
 
             return authSignature;
