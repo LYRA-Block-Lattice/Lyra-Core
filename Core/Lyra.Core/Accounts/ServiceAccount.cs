@@ -21,11 +21,11 @@ namespace Lyra.Core.Accounts
 
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
-        public ServiceAccount(IAccountDatabase storage, IOptions<LyraNodeConfig> config) :
-            base(SERVICE_ACCOUNT_NAME, storage, config.Value.Lyra.NetworkId)
+        public ServiceAccount(IAccountDatabase storage, LyraNodeConfig config) :
+            base(SERVICE_ACCOUNT_NAME, storage, config.Lyra.NetworkId)
         {
             IsNodeFullySynced = true;
-            _config = config.Value;
+            _config = config;
         }
 
         public ServiceBlock GetLastServiceBlock()

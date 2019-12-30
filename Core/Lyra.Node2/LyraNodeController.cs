@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lyra;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
@@ -15,23 +16,20 @@ namespace LyraLexWeb2
     [ApiController]
     public class LyraNodeController : ControllerBase
     {
-        ServiceAccount _svcAccount;
         INodeAPI _node;
         INodeTransactionAPI _trans;
         INodeDexAPI _dex;
-        public LyraNodeController(ServiceAccount svcAccount, 
-            INodeAPI node,
+        public LyraNodeController(INodeAPI node,
             INodeTransactionAPI trans,
             INodeDexAPI dex)
         {
-            _svcAccount = svcAccount;
             _node = node;
             _trans = trans;
             _dex = dex;
         }
         private void CheckSyncState()
         {
-            if (!_svcAccount.IsNodeFullySynced)
+            if (!BlockChain.Singleton.ServiceAccount.IsNodeFullySynced)
             {
                 throw new Exception("Node Out of Sync");
             }

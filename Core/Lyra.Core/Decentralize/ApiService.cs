@@ -16,7 +16,6 @@ namespace Lyra.Core.Decentralize
     public class ApiService : INodeTransactionAPI//, IBlockConsensus
     {
         private readonly ILogger<ApiService> _log;
-        ServiceAccount _serviceAccount;
         private LyraNodeConfig _config;
         GossipListener _gossipListener;
         ConsensusRuntimeConfig _consensus;
@@ -24,7 +23,6 @@ namespace Lyra.Core.Decentralize
         long _useed = -1;
 
         public ApiService(ILogger<ApiService> logger, 
-            ServiceAccount serviceAccount,
             GossipListener gossipListener,
             ConsensusRuntimeConfig consensus,
             IOptions<LyraNodeConfig> config
@@ -32,7 +30,6 @@ namespace Lyra.Core.Decentralize
         {
             _log = logger;
             _config = config.Value;
-            _serviceAccount = serviceAccount;
             _gossipListener = gossipListener;
             _consensus = consensus;
         }
@@ -58,7 +55,7 @@ namespace Lyra.Core.Decentralize
             block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
             AuthorizingMsg msg = new AuthorizingMsg
             {
-                From = _serviceAccount.AccountId,
+                From = BlockChain.Singleton.ServiceAccount.AccountId,
                 Block = block
             };
             var state = await _gossipListener.SendAuthorizingMessage(msg);
@@ -307,7 +304,7 @@ namespace Lyra.Core.Decentralize
                 if(sendBlock.Fee != ExchangingBlock.FEE)
                     return (APIResultCodes.InvalidFeeAmount, null);
             }
-            else if (sendBlock.Fee != _serviceAccount.GetLastServiceBlock().TransferFee)
+            else if (sendBlock.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TransferFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
@@ -315,7 +312,7 @@ namespace Lyra.Core.Decentralize
 
         async Task<(APIResultCodes result, TransactionBlock block)> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
         {
-            if (tokenBlock.Fee != _serviceAccount.GetLastServiceBlock().TokenGenerationFee)
+            if (tokenBlock.Fee != BlockChain.Singleton.ServiceAccount.GetLastServiceBlock().TokenGenerationFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(tokenBlock.Hash, tokenBlock.Fee);
@@ -326,13 +323,13 @@ namespace Lyra.Core.Decentralize
             var callresult = APIResultCodes.Success;
             TransactionBlock blockresult = null;
 
-            TransactionBlock latestBlock = BlockChain.Singleton.FindLatestBlock(_serviceAccount.AccountId);
+            TransactionBlock latestBlock = BlockChain.Singleton.FindLatestBlock(BlockChain.Singleton.ServiceAccount.AccountId);
             if(latestBlock == null)
             {
                 var receiveBlock = new OpenWithReceiveFeeBlock
                 {
                     AccountType = AccountTypes.Service,
-                    AccountID = _serviceAccount.AccountId,
+                    AccountID = BlockChain.Singleton.ServiceAccount.AccountId,
                     ServiceHash = string.Empty,
                     SourceHash = source,
                     Fee = 0,
@@ -340,7 +337,7 @@ namespace Lyra.Core.Decentralize
                     Balances = new Dictionary<string, decimal>()
                 };
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, fee);
-                receiveBlock.InitializeBlock(null, _serviceAccount.PrivateKey, _serviceAccount.NetworkId, AccountId: _serviceAccount.AccountId);
+                receiveBlock.InitializeBlock(null, BlockChain.Singleton.ServiceAccount.PrivateKey, BlockChain.Singleton.ServiceAccount.NetworkId, AccountId: BlockChain.Singleton.ServiceAccount.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
@@ -350,7 +347,7 @@ namespace Lyra.Core.Decentralize
             {
                 var receiveBlock = new ReceiveFeeBlock
                 {
-                    AccountID = _serviceAccount.AccountId,
+                    AccountID = BlockChain.Singleton.ServiceAccount.AccountId,
                     ServiceHash = string.Empty,
                     SourceHash = source,
                     Fee = 0,
@@ -360,14 +357,14 @@ namespace Lyra.Core.Decentralize
 
                 decimal newBalance = latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] + fee;
                 receiveBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, newBalance);
-                receiveBlock.InitializeBlock(latestBlock, _serviceAccount.PrivateKey, _serviceAccount.NetworkId, AccountId: _serviceAccount.AccountId);
+                receiveBlock.InitializeBlock(latestBlock, BlockChain.Singleton.ServiceAccount.PrivateKey, BlockChain.Singleton.ServiceAccount.NetworkId, AccountId: BlockChain.Singleton.ServiceAccount.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
                 blockresult = receiveBlock;
             }
 
-            //receiveBlock.Signature = Signatures.GetSignature(_serviceAccount.PrivateKey, receiveBlock.Hash);
+            //receiveBlock.Signature = Signatures.GetSignature(BlockChain.Singleton.ServiceAccount.PrivateKey, receiveBlock.Hash);
             return (callresult, blockresult);
         }
 

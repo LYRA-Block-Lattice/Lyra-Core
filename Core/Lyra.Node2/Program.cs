@@ -29,10 +29,6 @@ namespace Lyra.Node2
                 Console.WriteLine("Debugger attached");
             }
 
-            // temp code
-            var sys = new LyraSystem();
-            sys.Start();
-
             using (var host = CreateHostBuilder(args).Build())
             {
                 _cancel = new CancellationTokenSource();

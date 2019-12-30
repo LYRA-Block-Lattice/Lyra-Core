@@ -35,9 +35,9 @@ namespace Lyra.Core.Accounts
 
         public string Cluster { get; set; }
 
-        public MongoAccountCollection(IOptions<LyraNodeConfig> config)
+        public MongoAccountCollection(LyraNodeConfig config)
         {
-            _config = config.Value;
+            _config = config;
 
             _DatabaseName = _config.Lyra.Database.DatabaseName;
 

@@ -32,10 +32,10 @@ namespace Lyra.Core.Accounts
         readonly string _BlockCollectionName;
         readonly string _ParamsCollectionName;
 
-        public MongoServiceAccountDatabase(IOptions<LyraNodeConfig> config)
+        public MongoServiceAccountDatabase(LyraNodeConfig config)
             //string ConnectionString, string DatabaseName, string AccountName, string NetworkId, string ShardId = "Primary")
         {
-            _config = config.Value;
+            _config = config;
 
             _DatabaseName = _config.Lyra.Database.DatabaseName;
             //_NetworkId = NetworkId;

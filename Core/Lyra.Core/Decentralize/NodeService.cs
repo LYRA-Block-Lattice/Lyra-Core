@@ -23,21 +23,15 @@ namespace Lyra.Core.Decentralize
         private INodeAPI _dataApi;
         public MongoClient client;
         private IMongoDatabase _db;
-        ServiceAccount _serviceAccount;
 
         AutoResetEvent _waitOrder;
         ILogger _log;
         GossipListener _gossiper;
 
-        //ZooKeeperClusteringSiloOptions _zkClusterOptions;
-        //private ZooKeeperWatcher _watcher;
-        //private LeaderElectionSupport _leader;
-
         public string Leader { get; private set; }
         private ConsensusRuntimeConfig _consensus;
 
         public NodeService(IOptions<LyraNodeConfig> config,
-            ServiceAccount serviceAccount,
             ILogger<NodeService> logger,
             GossipListener gossiper,
             ConsensusRuntimeConfig consensus
@@ -51,7 +45,6 @@ namespace Lyra.Core.Decentralize
             _config = config.Value;
             //_dataApi = dataApi;
             _log = logger;
-            _serviceAccount = serviceAccount;
             _gossiper = gossiper;
             _consensus = consensus;
         }
@@ -63,9 +56,9 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation($"NodeService: ExecuteAsync Called.");
 
-                await Task.Delay(15000);// wait for silo to startup
-                _serviceAccount.Start(false, null);
-                await Task.Delay(1000);
+                var sys = new LyraSystem(_config);
+                sys.Start();
+
                 await _gossiper.Init(_config.Orleans.EndPoint.AdvertisedIPAddress);
 
                 if (_db == null)

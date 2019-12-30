@@ -2,6 +2,7 @@
 using Akka.Configuration;
 using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
+using Lyra.Core.Utils;
 using Neo;
 using Neo.IO.Actors;
 using System;
@@ -23,36 +24,41 @@ namespace Lyra
         public uint Height;
 
         private readonly ServiceAccount _serviceAccount;
-        private readonly IAccountCollection _blockLists;
+        private readonly IAccountCollection _store;
         private LyraSystem _sys;
-        public BlockChain(LyraSystem sys)
+        public BlockChain(LyraSystem sys, LyraNodeConfig nodeConfig)
         {
             _sys = sys;
+            _store = new MongoAccountCollection(nodeConfig);
+
+            var acctDb = new MongoServiceAccountDatabase(nodeConfig);
+            _serviceAccount = new ServiceAccount(acctDb, nodeConfig);
+            _serviceAccount.Start(true, null);
+
             Singleton = this;
         }
-        public static Props Props(LyraSystem system)
+        public static Props Props(LyraSystem system, LyraNodeConfig nodeConfig)
         {
-            return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
+            return Akka.Actor.Props.Create(() => new BlockChain(system, nodeConfig)).WithMailbox("blockchain-mailbox");
         }
 
         // forward api. should have more control here.
         public ServiceAccount ServiceAccount => _serviceAccount;
-        public void AddBlock(TransactionBlock block) => _blockLists.AddBlock(block);
-
+        public void AddBlock(TransactionBlock block) => _store.AddBlock(block);
 
         // bellow readonly access
-        public bool AccountExists(string AccountId) => _blockLists.AccountExists(AccountId);
-        public TransactionBlock FindLatestBlock(string AccountId) => _blockLists.FindLatestBlock(AccountId);
-        public TransactionBlock FindBlockByHash(string hash) => _blockLists.FindBlockByHash(hash);
-        public TransactionBlock FindBlockByHash(string AccountId, string hash) => _blockLists.FindBlockByHash(AccountId, hash);
-        public List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword) => _blockLists.FindTokenGenesisBlocks(keyword);
-        public TokenGenesisBlock FindTokenGenesisBlock(string Hash, string Ticker) => _blockLists.FindTokenGenesisBlock(Hash, Ticker);
-        public ReceiveTransferBlock FindBlockBySourceHash(string hash) => _blockLists.FindBlockBySourceHash(hash);
-        public Task<long> GetBlockCountAsync() => _blockLists.GetBlockCountAsync();
-        public TransactionBlock FindBlockByIndex(string AccountId, long index) => _blockLists.FindBlockByIndex(AccountId, index);
-        public List<NonFungibleToken> GetNonFungibleTokens(string AccountId) => _blockLists.GetNonFungibleTokens(AccountId);
-        public SendTransferBlock FindUnsettledSendBlock(string AccountId) => _blockLists.FindUnsettledSendBlock(AccountId);
-        public TransactionBlock FindBlockByPreviousBlockHash(string previousBlockHash) => _blockLists.FindBlockByPreviousBlockHash(previousBlockHash);
+        public bool AccountExists(string AccountId) => _store.AccountExists(AccountId);
+        public TransactionBlock FindLatestBlock(string AccountId) => _store.FindLatestBlock(AccountId);
+        public TransactionBlock FindBlockByHash(string hash) => _store.FindBlockByHash(hash);
+        public TransactionBlock FindBlockByHash(string AccountId, string hash) => _store.FindBlockByHash(AccountId, hash);
+        public List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword) => _store.FindTokenGenesisBlocks(keyword);
+        public TokenGenesisBlock FindTokenGenesisBlock(string Hash, string Ticker) => _store.FindTokenGenesisBlock(Hash, Ticker);
+        public ReceiveTransferBlock FindBlockBySourceHash(string hash) => _store.FindBlockBySourceHash(hash);
+        public Task<long> GetBlockCountAsync() => _store.GetBlockCountAsync();
+        public TransactionBlock FindBlockByIndex(string AccountId, long index) => _store.FindBlockByIndex(AccountId, index);
+        public List<NonFungibleToken> GetNonFungibleTokens(string AccountId) => _store.GetNonFungibleTokens(AccountId);
+        public SendTransferBlock FindUnsettledSendBlock(string AccountId) => _store.FindUnsettledSendBlock(AccountId);
+        public TransactionBlock FindBlockByPreviousBlockHash(string previousBlockHash) => _store.FindBlockByPreviousBlockHash(previousBlockHash);
 
         protected override void OnReceive(object message)
         {

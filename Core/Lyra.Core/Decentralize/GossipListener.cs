@@ -14,7 +14,6 @@ namespace Lyra.Core.Decentralize
     // listen to gossip messages and activate the necessary grains to do works.
     public class GossipListener
     {
-        ServiceAccount _serviceAccount;
         ILogger<GossipListener> _log;
 
         private string Identity;
@@ -24,13 +23,9 @@ namespace Lyra.Core.Decentralize
         // queue bellow
         Dictionary<long, AuthState> _activeConsensus;
 
-
-
         public GossipListener(
-            ILogger<GossipListener> logger,
-            ServiceAccount serviceAccount)
+            ILogger<GossipListener> logger)
         {
-            _serviceAccount = serviceAccount;
             _log = logger;
 
             _activeConsensus = new Dictionary<long, AuthState>();
@@ -57,16 +52,16 @@ namespace Lyra.Core.Decentralize
             //await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
 
             _log.LogInformation($"GossipListener: Init Exited.");
-            //            await SendMessage(new ChatMsg { From = _serviceAccount.AccountId, Text = "account id goes here", Type = ChatMessageType.NodeUp });
+            //            await SendMessage(new ChatMsg { From = BlockChain.Singleton.ServiceAccount.AccountId, Text = "account id goes here", Type = ChatMessageType.NodeUp });
         }
 
         public virtual async Task SendMessage(SourceSignedMessage msg)
         {
             _log.LogInformation($"GossipListener: SendMessage Called: msg From: {msg.From}");
-            while (_serviceAccount.PrivateKey == null)  //starup. need to wait it generated
+            while (BlockChain.Singleton.ServiceAccount.PrivateKey == null)  //starup. need to wait it generated
                 await Task.Delay(1000);
-            var sign = msg.Sign(_serviceAccount.PrivateKey, msg.From);
-            _log.LogInformation($"GossipListener: Sign {msg.Hash} got: {sign} by prvKey: {_serviceAccount.PrivateKey} pubKey: {msg.From}");
+            var sign = msg.Sign(BlockChain.Singleton.ServiceAccount.PrivateKey, msg.From);
+            _log.LogInformation($"GossipListener: Sign {msg.Hash} got: {sign} by prvKey: {BlockChain.Singleton.ServiceAccount.PrivateKey} pubKey: {msg.From}");
             //await _gossipStream.OnNextAsync(msg);
         }
 
@@ -153,7 +148,7 @@ namespace Lyra.Core.Decentralize
                 var localAuthResult = await authorizer.Authorize(item.Block);
                 var result = new AuthorizedMsg
                 {
-                    From = _serviceAccount.AccountId,
+                    From = BlockChain.Singleton.ServiceAccount.AccountId,
                     BlockIndex = item.Block.UIndex,
                     Result = localAuthResult.Item1,
                     AuthSign = localAuthResult.Item2
@@ -184,7 +179,7 @@ namespace Lyra.Core.Decentralize
 
                     var msg = new AuthorizerCommitMsg
                     {
-                        From = _serviceAccount.AccountId,
+                        From = BlockChain.Singleton.ServiceAccount.AccountId,
                         BlockIndex = block.UIndex,
                         Commited = true
                     };

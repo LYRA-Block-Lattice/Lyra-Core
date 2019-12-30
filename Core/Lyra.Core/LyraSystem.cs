@@ -1,5 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
+using Lyra.Core.Accounts;
+using Lyra.Core.Utils;
 using Neo;
 using Neo.IO.Actors;
 using Neo.Network.P2P;
@@ -30,10 +32,10 @@ namespace Lyra
         private ChannelsConfig start_message = null;
         private bool suspend = false;
 
-        public LyraSystem()
+        public LyraSystem(LyraNodeConfig nodeConfig)
         {
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
-            TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this));
+            TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, nodeConfig));
         }
 
         public void Start()
