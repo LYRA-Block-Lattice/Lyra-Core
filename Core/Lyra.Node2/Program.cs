@@ -11,6 +11,7 @@ using System;
 using System.Threading;
 using Lyra.Core.Utils;
 using System.Diagnostics;
+using Lyra.Core.Decentralize;
 
 namespace Lyra.Node2
 {
@@ -31,9 +32,7 @@ namespace Lyra.Node2
 
             using (var host = CreateHostBuilder(args).Build())
             {
-                _cancel = new CancellationTokenSource();
-                await host.StartAsync();
-                Console.ReadLine();
+                host.Run();
             }
         }
 
@@ -45,6 +44,10 @@ namespace Lyra.Node2
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                })
+                .ConfigureServices(services =>
+                {
+                    services.AddHostedService<NodeService>();
                 });
     }
 }

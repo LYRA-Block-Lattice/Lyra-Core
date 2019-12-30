@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Service;
-using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
 using Akka.Actor;
 
@@ -51,28 +49,28 @@ namespace Lyra.Core.Accounts
             //return lastServiceBlock;
         }
 
-        public void InitializeServiceAccountAsync(string Path)
-        {
-            //CreateAccountAsync(Path, SERVICE_ACCOUNT_NAME, AccountTypes.Service);
-            //_blocks.EnsureIndex(x => x.AccountID);
-            //_blocks.EnsureIndex(x => x.Index);
+        //public void InitializeServiceAccountAsync(string Path)
+        //{
+        //    //CreateAccountAsync(Path, SERVICE_ACCOUNT_NAME, AccountTypes.Service);
+        //    //_blocks.EnsureIndex(x => x.AccountID);
+        //    //_blocks.EnsureIndex(x => x.Index);
 
-            ServiceBlock firstServiceBlock = new ServiceBlock()
-            {
-                Authorizers = new List<NodeInfo>(),                //new Dictionary<short, NodeInfo>(),
-                TransferFee = 1,  // 1 LYR
-                TokenGenerationFee = 100, // 100 LYR
-                TradeFee = 0.1m, // 0.1 LYR
-                IsPrimaryShard = true,
-                AcceptedShards = new List<string> { "Primary" },
-            };
+        //    ServiceBlock firstServiceBlock = new ServiceBlock()
+        //    {
+        //        Authorizers = new List<NodeInfo>(),                //new Dictionary<short, NodeInfo>(),
+        //        TransferFee = 1,  // 1 LYR
+        //        TokenGenerationFee = 100, // 100 LYR
+        //        TradeFee = 0.1m, // 0.1 LYR
+        //        IsPrimaryShard = true,
+        //        AcceptedShards = new List<string> { "Primary" },
+        //    };
 
-            firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = _svcWallet.AccountId, IPAddress = "127.0.0.1" });
-            firstServiceBlock.InitializeBlock(null, _svcWallet.PrivateKey, _config.Lyra.NetworkId, AccountId: _svcWallet.AccountId);
+        //    firstServiceBlock.Authorizers.Add(new NodeInfo() { PublicKey = _svcWallet.AccountId, IPAddress = "127.0.0.1" });
+        //    firstServiceBlock.InitializeBlock(null, _svcWallet.PrivateKey, _config.Lyra.NetworkId, AccountId: _svcWallet.AccountId);
 
-            //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
-            BlockChain.Singleton.AddBlock(firstServiceBlock);
-        }
+        //    //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
+        //    BlockChain.Singleton.AddBlock(firstServiceBlock);
+        //}
 
         public void Start(bool ModeConsensus, string Path)
         {

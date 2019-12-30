@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using Lyra.Core.Exchange;
+using Lyra.Core.LiteDB;
 
 namespace Lyra.Core.Decentralize
 {
@@ -56,10 +57,16 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation($"NodeService: ExecuteAsync Called.");
 
+                var walletStore = new LiteAccountDatabase();
+                PosWallet = new Wallet(walletStore, _config.Lyra.NetworkId);
+                string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + _config.Lyra.NetworkId);
+                string full_path = BaseAccount.GetFullPath(lyra_folder);
+                PosWallet.OpenAccount(full_path, _config.Lyra.Wallet.Name);
+
                 var sys = new LyraSystem(_config);
                 sys.Start();
 
-                await _gossiper.Init(_config.Orleans.EndPoint.AdvertisedIPAddress);
+                await _gossiper.Init("whatever");
 
                 if (_db == null)
                 {

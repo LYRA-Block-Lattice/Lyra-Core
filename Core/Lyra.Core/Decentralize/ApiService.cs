@@ -37,7 +37,7 @@ namespace Lyra.Core.Decentralize
         public async Task OnActivateAsync()
         {
             _log.LogInformation("ApiService: Activated");
-            _useed = await BlockChain.Singleton.GetBlockCountAsync();
+            _useed = BlockChain.Singleton.GetBlockCount();
 
             //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
         }

@@ -8,10 +8,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization.Options;
 using System.Linq;
-using System.Threading.Tasks;
-using Lyra.Core.Decentralize;
-using Microsoft.Extensions.Options;
-
 using Lyra.Core.Utils;
 
 namespace Lyra.Core.Accounts
@@ -61,6 +57,9 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<CancelTradeOrderBlock>();
             BsonClassMap.RegisterClassMap<OpenWithReceiveFeeBlock>();
             BsonClassMap.RegisterClassMap<ReceiveFeeBlock>();
+            BsonClassMap.RegisterClassMap<ConsolidationBlock>();
+            BsonClassMap.RegisterClassMap<ServiceBlock>();
+            BsonClassMap.RegisterClassMap<AuthorizationSignature>();
 
             _blocks = GetDatabase().GetCollection<TransactionBlock>(_BlocksCollectionName);
 
@@ -101,9 +100,9 @@ namespace Lyra.Core.Accounts
             return _db;
         }
 
-        public Task<long> GetBlockCountAsync()
+        public long GetBlockCount()
         {
-            return _blocks.CountDocumentsAsync(new BsonDocument());
+            return _blocks.CountDocumentsAsync(new BsonDocument()).Result;
         }
 
         public long GetBlockCount(string AccountId)
@@ -130,6 +129,18 @@ namespace Lyra.Core.Accounts
         public bool AccountExists(string AccountId)
         {
             return GetBlockCount(AccountId) > 0;
+        }
+
+        public ServiceBlock GetLastServiceBlock()
+        {
+            var result = _blocks.Find(a => a.BlockType == BlockTypes.Service).ToList().Last();
+            return result as ServiceBlock;
+        }
+
+        public ConsolidationBlock GetSyncBlock()
+        {
+            var result = _blocks.Find(a => a.BlockType == BlockTypes.Consolidation).ToList().Last();
+            return result as ConsolidationBlock;
         }
 
         private List<TransactionBlock> GetAccountBlockList(string AccountId)

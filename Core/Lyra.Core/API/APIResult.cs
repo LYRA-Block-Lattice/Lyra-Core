@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
-using Lyra.Core.Blocks.Service;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.API
@@ -156,8 +155,8 @@ namespace Lyra.Core.API
                 case BlockTypes.Service:
                     block = JsonConvert.DeserializeObject<ServiceBlock>(BlockData);
                     break;
-                case BlockTypes.Sync:
-                    block = JsonConvert.DeserializeObject<SyncBlock>(BlockData);
+                case BlockTypes.Consolidation:
+                    block = JsonConvert.DeserializeObject<ConsolidationBlock>(BlockData);
                     break;
                 case BlockTypes.TradeOrder:
                     block = JsonConvert.DeserializeObject<TradeOrderBlock>(BlockData);

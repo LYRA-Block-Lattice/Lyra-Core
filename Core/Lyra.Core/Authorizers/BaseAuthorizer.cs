@@ -200,7 +200,7 @@ namespace Lyra.Core.Authorizers
 
             // ServiceHash is excluded when calculating the block hash,
             // but it is included when creating/validating the authorization signature
-            block.ServiceHash = BlockChain.Singleton.GetChallengeBlock().Hash;
+            block.ServiceHash = BlockChain.Singleton.GetSyncBlock().Hash;
 
             // sign with the authorizer key
             AuthorizationSignature authSignature = new AuthorizationSignature

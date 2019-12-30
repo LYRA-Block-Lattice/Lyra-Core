@@ -10,7 +10,7 @@ namespace Lyra.Core.Accounts
     /// </summary>
     public interface IAccountCollection: IDisposable
     {
-        Task<long> GetBlockCountAsync();
+        long GetBlockCount();
         long GetBlockCount(string AccountId);
         //int GetTotalBlockCount();
         bool AccountExists(string AccountId);
@@ -24,6 +24,10 @@ namespace Lyra.Core.Accounts
         TransactionBlock FindBlockByPreviousBlockHash(string previousBlockHash);
         TransactionBlock FindBlockByIndex(string AccountId, long index);
         SendTransferBlock FindUnsettledSendBlock(string AccountId);
+
+        // for service blocks
+        ServiceBlock GetLastServiceBlock();
+        ConsolidationBlock GetSyncBlock();
 
         /// <summary>
         /// Returns the first unexecuted trade aimed to an order created on the account.

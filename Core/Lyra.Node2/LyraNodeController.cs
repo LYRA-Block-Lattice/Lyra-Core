@@ -20,12 +20,13 @@ namespace LyraLexWeb2
         INodeTransactionAPI _trans;
         INodeDexAPI _dex;
         public LyraNodeController(INodeAPI node,
-            INodeTransactionAPI trans,
-            INodeDexAPI dex)
+            INodeTransactionAPI trans
+            //INodeDexAPI dex
+            )
         {
             _node = node;
             _trans = trans;
-            _dex = dex;
+            //_dex = dex;
         }
         private void CheckSyncState()
         {

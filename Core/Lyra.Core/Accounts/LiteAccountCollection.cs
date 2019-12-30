@@ -44,9 +44,9 @@ namespace Lyra.Core.LiteDB
                 File.Delete(FileName);
         }
 
-        public Task<long> GetBlockCountAsync()
+        public long GetBlockCount()
         {
-            return Task.FromResult((long) _blocks.Count());
+            return (long) _blocks.Count();
         }
         public long GetBlockCount(string AccountId)
         {
@@ -367,6 +367,16 @@ namespace Lyra.Core.LiteDB
         {
             if (_db != null)
                 _db.Dispose();
+        }
+
+        public ServiceBlock GetLastServiceBlock()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ConsolidationBlock GetSyncBlock()
+        {
+            throw new NotImplementedException();
         }
     }
 }

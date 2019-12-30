@@ -16,26 +16,23 @@ using Lyra.Core.Utils;
 
 namespace Lyra.Core.Exchange
 {
-    public class DealEngine
+    public class DealEngine : INodeDexAPI
     {
         private IMongoCollection<ExchangeAccount> _exchangeAccounts;
         private IMongoCollection<ExchangeOrder> _queue;
         private IMongoCollection<ExchangeOrder> _finished;
 
         private LyraNodeConfig _config;
-        private INodeAPI _dataApi;
 
         public event EventHandler OnNewOrder;
 
         public DealEngine(LyraNodeConfig config,
-            INodeAPI dataApi,
             IMongoCollection<ExchangeAccount> exchangeAccounts,
             IMongoCollection<ExchangeOrder> queue,
             IMongoCollection<ExchangeOrder> finished
             )
         {
             _config = config;
-            _dataApi = dataApi;
             _exchangeAccounts = exchangeAccounts;
             _queue = queue;
             _finished = finished;
@@ -485,6 +482,41 @@ namespace Lyra.Core.Exchange
         internal async Task<List<ExchangeOrder>> GetOrdersForAccount(string accountId)
         {
             return await _queue.Find(a => a.Order.AccountID == accountId).ToListAsync();
+        }
+
+        public Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<APIResult> RequestMarket(string tokenName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
+        {
+            throw new NotImplementedException();
         }
     }
 }

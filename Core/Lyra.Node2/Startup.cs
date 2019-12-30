@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Lyra.Core.Decentralize;
+using Microsoft.AspNetCore.Http;
+using Lyra.Core.API;
+using Lyra.Core.Exchange;
 
 namespace Lyra.Node2
 {
@@ -25,13 +28,13 @@ namespace Lyra.Node2
         {
             OptionsConfigurationServiceCollectionExtensions.Configure<LyraNodeConfig>(services, Configuration.GetSection("LyraNode"));
 
-            services.AddHostedService<NodeService>();
-
             services.AddSingleton(typeof(GossipListener));
             services.AddSingleton(typeof(ConsensusRuntimeConfig));
-            //services.AddSingleton<INotifyAPI, NotifyService>();
 
-            //services.AddGrpc();
+            // the apis
+            services.AddSingleton<INodeAPI, NodeAPI>();
+            services.AddSingleton<INodeTransactionAPI, ApiService>();
+            //services.AddSingleton<INodeDexAPI, DealEngine>();
 
             services.AddMvc();
             services.AddControllers();
@@ -53,10 +56,10 @@ namespace Lyra.Node2
             {
                 //endpoints.MapGrpcService<ApiService>();
                 endpoints.MapControllers();
-                //endpoints.MapGet("/", async context =>
-                //{
-                //    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-                //});
+                endpoints.MapGet("/", async context =>
+                {
+                    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+                });
             });
         }
     }

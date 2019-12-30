@@ -36,7 +36,7 @@ namespace Lyra.Core.Decentralize
             var result = new AccountHeightAPIResult();
             try
             {
-                var last_sync_block = BlockChain.Singleton.GetChallengeBlock();
+                var last_sync_block = BlockChain.Singleton.GetSyncBlock();
                 if(last_sync_block == null)
                 {
                     // empty database. 
@@ -90,7 +90,7 @@ namespace Lyra.Core.Decentralize
                 {
                     result.Height = BlockChain.Singleton.FindLatestBlock(AccountId).Index;
                     result.NetworkId = _config.Lyra.NetworkId;
-                    result.SyncHash = BlockChain.Singleton.GetChallengeBlock().Hash;
+                    result.SyncHash = BlockChain.Singleton.GetSyncBlock().Hash;
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else

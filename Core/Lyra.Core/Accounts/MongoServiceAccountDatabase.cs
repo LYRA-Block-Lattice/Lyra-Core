@@ -1,8 +1,6 @@
 using System;
 using System.IO;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Service;
-using Lyra.Core.Accounts;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -46,7 +44,7 @@ namespace Lyra.Core.Accounts
             _BlockCollectionName = _config.Lyra.NetworkId + "-" + ShardId + "-" + ServiceAccount.SERVICE_ACCOUNT_NAME + "-blocks";
             _ParamsCollectionName = _config.Lyra.NetworkId + "-" + ShardId + "-" + ServiceAccount.SERVICE_ACCOUNT_NAME + "-params";
 
-            BsonClassMap.RegisterClassMap<SyncBlock>();
+            BsonClassMap.RegisterClassMap<ConsolidationBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
 
             _blocks = GetDatabase().GetCollection<Block>(_BlockCollectionName);

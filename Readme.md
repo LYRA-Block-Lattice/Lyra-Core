@@ -28,8 +28,13 @@ Install the ASP.NET Core runtime
 `use dex`  
 `db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'dex'}]})`
 
-6. modify lyranode2\appsettings.json, change monodb account/password
-7. modify lyranode2\Orleans.json, change AdvertistedIPAddress
+6. generate staking wallet by, give the wallet a name, e.g. "poswallet"
+
+   lyracli.exe --networkid ldxdev -p webapi
+
+7. modify lyranode2\appsettings.json, change monodb account/password, change the wallet/name to the name you created previous step.
+
+
 8. run
 
 `dotnet Lyra.Node2.dll`
