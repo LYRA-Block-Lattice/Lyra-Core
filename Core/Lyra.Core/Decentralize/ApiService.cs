@@ -10,37 +10,40 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
+using System.Threading;
+using Akka.Actor;
 
 namespace Lyra.Core.Decentralize
 {
     public class ApiService : INodeTransactionAPI//, IBlockConsensus
     {
+        IActorRef ConsensusSvc;
+
         private readonly ILogger<ApiService> _log;
         private LyraNodeConfig _config;
-        GossipListener _gossipListener;
         ConsensusRuntimeConfig _consensus;
 
         long _useed = -1;
 
         public ApiService(ILogger<ApiService> logger, 
-            GossipListener gossipListener,
             ConsensusRuntimeConfig consensus,
             IOptions<LyraNodeConfig> config
             )
         {
             _log = logger;
             _config = config.Value;
-            _gossipListener = gossipListener;
             _consensus = consensus;
+
+            ConsensusSvc = LyraSystem.Singleton.ActorSystem.ActorOf(Props.Create(() => new ConsensusService(LyraSystem.Singleton.LocalNode)));
         }
 
-        public async Task OnActivateAsync()
-        {
-            _log.LogInformation("ApiService: Activated");
-            _useed = BlockChain.Singleton.GetBlockCount();
+        //public async Task OnActivateAsync()
+        //{
+        //    _log.LogInformation("ApiService: Activated");
+        //    _useed = BlockChain.Singleton.GetBlockCount();
 
-            //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
-        }
+        //    //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
+        //}
 
         public long GenerateUniversalBlockIdAsync()
         {
@@ -58,10 +61,10 @@ namespace Lyra.Core.Decentralize
                 From = NodeService.Instance.PosWallet.AccountId,
                 Block = block
             };
-            var state = await _gossipListener.SendAuthorizingMessage(msg);
-            state.Done.WaitOne();
-            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state.IsAuthoringSuccess}");
-            return state;
+            var result = await ConsensusSvc.Ask<AuthState>(msg);
+            
+            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {result.IsAuthoringSuccess}");
+            return result;
         }
 
         internal async Task<bool> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)

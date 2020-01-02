@@ -27,15 +27,14 @@ namespace Lyra.Core.Decentralize
 
         AutoResetEvent _waitOrder;
         ILogger _log;
-        GossipListener _gossiper;
 
         public string Leader { get; private set; }
         private ConsensusRuntimeConfig _consensus;
 
         public NodeService(IOptions<LyraNodeConfig> config,
             ILogger<NodeService> logger,
-            GossipListener gossiper,
-            ConsensusRuntimeConfig consensus
+            ConsensusRuntimeConfig consensus,
+            SimpleLogger simpleLogger
             )
         {
             if (Instance == null)
@@ -46,7 +45,6 @@ namespace Lyra.Core.Decentralize
             _config = config.Value;
             //_dataApi = dataApi;
             _log = logger;
-            _gossiper = gossiper;
             _consensus = consensus;
         }
 
@@ -65,8 +63,6 @@ namespace Lyra.Core.Decentralize
 
                 var sys = new LyraSystem(_config);
                 sys.Start();
-
-                await _gossiper.Init("whatever");
 
                 if (_db == null)
                 {

@@ -28,7 +28,7 @@ namespace Lyra.Node2
         {
             OptionsConfigurationServiceCollectionExtensions.Configure<LyraNodeConfig>(services, Configuration.GetSection("LyraNode"));
 
-            services.AddSingleton(typeof(GossipListener));
+            services.AddSingleton(typeof(SimpleLogger));
             services.AddSingleton(typeof(ConsensusRuntimeConfig));
 
             // the apis

@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
 using Lyra.Core.Accounts;
+using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Neo;
 using Neo.IO.Actors;
@@ -21,8 +22,8 @@ namespace Lyra
     $"blockchain-mailbox {{ mailbox-type: \"{typeof(BlockchainMailbox).AssemblyQualifiedName}\" }}" +
     //$"task-manager-mailbox {{ mailbox-type: \"{typeof(TaskManagerMailbox).AssemblyQualifiedName}\" }}" +
     $"remote-node-mailbox {{ mailbox-type: \"{typeof(RemoteNodeMailbox).AssemblyQualifiedName}\" }}" +
-    $"protocol-handler-mailbox {{ mailbox-type: \"{typeof(ProtocolHandlerMailbox).AssemblyQualifiedName}\" }}");
-//    $"consensus-service-mailbox {{ mailbox-type: \"{typeof(ConsensusServiceMailbox).AssemblyQualifiedName}\" }}");
+    $"protocol-handler-mailbox {{ mailbox-type: \"{typeof(ProtocolHandlerMailbox).AssemblyQualifiedName}\" }}" +
+    $"consensus-service-mailbox {{ mailbox-type: \"{typeof(ConsensusServiceMailbox).AssemblyQualifiedName}\" }}");
 
         public IActorRef TheBlockchain { get; }
         public IActorRef LocalNode { get; }
@@ -31,11 +32,14 @@ namespace Lyra
 
         private ChannelsConfig start_message = null;
         private bool suspend = false;
+        public static LyraSystem Singleton { get; private set; }
 
         public LyraSystem(LyraNodeConfig nodeConfig)
         {
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, nodeConfig));
+
+            Singleton = this;
         }
 
         public void Start()
@@ -48,6 +52,14 @@ namespace Lyra
                 MaxConnections = Settings.Default.P2P.MaxConnections,
                 MaxConnectionsPerAddress = Settings.Default.P2P.MaxConnectionsPerAddress
             });
+
+            StartConsensus();
+        }
+
+        public void StartConsensus()
+        {
+            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode));
+            //Consensus.Tell(new ConsensusService.Start { IgnoreRecoveryLogs = ignoreRecoveryLogs }, Blockchain);
         }
 
         public void StartNode(ChannelsConfig config)

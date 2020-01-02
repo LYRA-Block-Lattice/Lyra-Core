@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Lyra;
+using Lyra.Core.Decentralize;
 using Neo.IO;
 using Neo.Network.P2P.Payloads;
 using System;
@@ -150,6 +151,11 @@ namespace Neo.Network.P2P
                     break;
                 case SendDirectly send:
                     OnSendDirectly(send.Inventory);
+                    break;
+                case SourceSignedMessage ssm:
+                    BroadcastMessage(MessageCommand.Consensus, ssm);
+                    break;
+                default:
                     break;
                 //case RelayResultReason _:
                 //    break;

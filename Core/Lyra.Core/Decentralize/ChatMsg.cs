@@ -1,18 +1,31 @@
 ﻿using Lyra.Core.Blocks;
 using System;
+using System.IO;
 
 namespace Lyra.Core.Decentralize
 {
 	public enum ChatMessageType { General, SeedChanged, NodeUp, NodeDown, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
 
-	public class SourceSignedMessage : SignableObject
+	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable
 	{
 		/// <summary>
 		/// Node Identify. Now it is AccountId
 		/// </summary>
 		public string From { get; set; }
 
+		public int Size => throw new NotImplementedException();
+
+		public void Deserialize(BinaryReader reader)
+		{
+			throw new NotImplementedException();
+		}
+
 		public override string GetHashInput()
+		{
+			throw new NotImplementedException();
+		}
+
+		public void Serialize(BinaryWriter writer)
 		{
 			throw new NotImplementedException();
 		}

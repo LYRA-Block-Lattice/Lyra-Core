@@ -1,7 +1,11 @@
-﻿using Lyra.Core.Accounts;
+﻿using Akka.Actor;
+using Akka.Configuration;
+using Lyra.Core.Accounts;
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
+using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
+using Neo.IO.Actors;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,21 +16,21 @@ using System.Threading.Tasks;
 namespace Lyra.Core.Decentralize
 {
     // listen to gossip messages and activate the necessary grains to do works.
-    public class GossipListener
+    public class ConsensusService : ReceiveActor
     {
-        ILogger<GossipListener> _log;
-
-        private string Identity;
+        public class Authorized { public bool IsSuccess { get; set; } }
+        private readonly IActorRef _localNode;
 
         Dictionary<BlockTypes, string> _authorizers;
+        ILogger<SimpleLogger> _log;
 
         // queue bellow
         Dictionary<long, AuthState> _activeConsensus;
 
-        public GossipListener(
-            ILogger<GossipListener> logger)
+        public ConsensusService(IActorRef localNode)
         {
-            _log = logger;
+            _localNode = localNode;
+            _log = SimpleLogger.Instance.Logger;
 
             _activeConsensus = new Dictionary<long, AuthState>();
 
@@ -40,34 +44,34 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.ReceiveTransfer, "ReceiveTransferAuthorizer");
             _authorizers.Add(BlockTypes.ImportAccount, "ImportAccountAuthorizer");
             _authorizers.Add(BlockTypes.TokenGenesis, "NewTokenAuthorizer");
+
+            Receive<AuthorizingMsg>(msg => {
+                var state = SendAuthorizingMessage(msg);
+                Task.Run(() =>
+                {
+                    state.Done.WaitOne();
+                    return state;
+                }).PipeTo(Self, Sender);
+            });
         }
 
-        public async Task Init(string IdentityString)
+        public static Props Props(IActorRef localNode)
         {
-            _log.LogInformation($"GossipListener: Init Called: {IdentityString}");
-            Identity = IdentityString;
-
-            //_gossipStream = _client.GetStreamProvider(LyraGossipConstants.LyraGossipStreamProvider)
-            //    .GetStream<SourceSignedMessage>(Guid.Parse(LyraGossipConstants.LyraGossipStreamId), LyraGossipConstants.LyraGossipStreamNameSpace);
-            //await _gossipStream.SubscribeAsync(OnNextAsync, OnErrorAsync, OnCompletedAsync);
-
-            _log.LogInformation($"GossipListener: Init Exited.");
-            //            await SendMessage(new ChatMsg { From = BlockChain.Singleton.ServiceAccount.AccountId, Text = "account id goes here", Type = ChatMessageType.NodeUp });
+            return Akka.Actor.Props.Create(() => new ConsensusService(localNode)).WithMailbox("consensus-service-mailbox");
         }
 
-        public virtual async Task SendMessage(SourceSignedMessage msg)
+        public virtual void SendMessage(SourceSignedMessage msg)
         {
             _log.LogInformation($"GossipListener: SendMessage Called: msg From: {msg.From}");
-            while (NodeService.Instance.PosWallet.PrivateKey == null)  //starup. need to wait it generated
-                await Task.Delay(1000);
             var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
             _log.LogInformation($"GossipListener: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
-            //await _gossipStream.OnNextAsync(msg);
+
+            _localNode.Tell(msg);
         }
 
-        public async Task<AuthState> SendAuthorizingMessage(AuthorizingMsg block)
+        public AuthState SendAuthorizingMessage(AuthorizingMsg block)
         {
-            await SendMessage(block);
+            SendMessage(block);
             var state = CreateAuthringState(block);
             return state;
         }
@@ -154,7 +158,7 @@ namespace Lyra.Core.Decentralize
                     AuthSign = localAuthResult.Item2
                 };
 
-                await SendMessage(result);
+                SendMessage(result);
                 state.AddAuthResult(result);
                 _log.LogInformation($"GossipListener: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {localAuthResult.Item1}");
             });
@@ -184,7 +188,7 @@ namespace Lyra.Core.Decentralize
                         Commited = true
                     };
 
-                    await SendMessage(msg);
+                    SendMessage(msg);
 
                     _log.LogInformation($"GossipListener: OnPrepare Commited: BlockUIndex: {item.BlockIndex}");
                 });
@@ -198,22 +202,27 @@ namespace Lyra.Core.Decentralize
             var state = _activeConsensus[item.BlockIndex];
             state.AddCommitedResult(item);
         }
+    }
 
-        public virtual Task OnCompletedAsync()
+    internal class ConsensusServiceMailbox : PriorityMailbox
+    {
+        public ConsensusServiceMailbox(Akka.Actor.Settings settings, Config config)
+            : base(settings, config)
         {
-            Console.WriteLine("Chatroom message stream received stream completed event");
-            return Task.CompletedTask;
         }
 
-        public virtual Task OnErrorAsync(Exception ex)
+        internal protected override bool IsHighPriority(object message)
         {
-            Console.WriteLine($"Chatroom is experiencing message delivery failure, ex :{ex}");
-            return Task.CompletedTask;
-        }
-
-        public IDisposable Subscribe(IObserver<AuthorizingMsg> observer)
-        {
-            throw new NotImplementedException();
+            switch (message)
+            {
+                //case ConsensusPayload _:
+                //case ConsensusService.SetViewNumber _:
+                //case ConsensusService.Timer _:
+                //case Blockchain.PersistCompleted _:
+//                    return true;
+                default:
+                    return false;
+            }
         }
     }
 }
