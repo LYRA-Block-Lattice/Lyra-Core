@@ -78,7 +78,7 @@ namespace LyraNodesBot
             if (m == null)
                 return;
 
-            switch(m.Type)
+            switch(m.MsgType)
             {
                 case ChatMessageType.NodeUp:
                     // add node to zk runtime config
@@ -107,7 +107,7 @@ namespace LyraNodesBot
                 //    await SendGroupMessageAsync(text);
                 //    break;
                 default:
-                    var typStr2 = string.Join(" ", Regex.Split(m.Type.ToString(), @"(?<!^)(?=[A-Z])"));
+                    var typStr2 = string.Join(" ", Regex.Split(m.MsgType.ToString(), @"(?<!^)(?=[A-Z])"));
                     var text2 = $"*From*: {m.From}\n*Event*: {typStr2}\n*Text*: {m.Text}";
                     await SendGroupMessageAsync(text2);
                     break;

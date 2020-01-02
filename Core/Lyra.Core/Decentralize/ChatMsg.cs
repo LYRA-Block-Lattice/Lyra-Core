@@ -1,10 +1,11 @@
 ﻿using Lyra.Core.Blocks;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 
 namespace Lyra.Core.Decentralize
 {
-	public enum ChatMessageType { General, SeedChanged, NodeUp, NodeDown, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
+	public enum ChatMessageType : byte { General, SeedChanged, NodeUp, NodeDown, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
 
 	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable
 	{
@@ -13,32 +14,32 @@ namespace Lyra.Core.Decentralize
 		/// </summary>
 		public string From { get; set; }
 
-		public int Size => throw new NotImplementedException();
+		public virtual int Size => From.Length;
 
-		public void Deserialize(BinaryReader reader)
+		public virtual void Deserialize(BinaryReader reader)
 		{
-			throw new NotImplementedException();
+			From = reader.ReadString();
+		}
+
+		public virtual void Serialize(BinaryWriter writer)
+		{
+			writer.Write(From);
 		}
 
 		public override string GetHashInput()
 		{
-			throw new NotImplementedException();
-		}
-
-		public void Serialize(BinaryWriter writer)
-		{
-			throw new NotImplementedException();
+			return "";
 		}
 
 		protected override string GetExtraData()
 		{
-			throw new NotImplementedException();
+			return From;
 		}
 	}
 
 	public class ChatMsg : SourceSignedMessage
 	{
-		public ChatMessageType Type { get; set; }
+		public ChatMessageType MsgType { get; set; }
 		public string Text { get; set; }
 
 		public DateTime Created { get; set; } = DateTime.Now;
@@ -48,6 +49,46 @@ namespace Lyra.Core.Decentralize
 		public ChatMsg()
 		{
 
+		}
+
+		public override int Size => base.Size +
+			sizeof(ChatMessageType) +
+			Text.Length +
+			TimeSize +
+			sizeof(int) +
+			NetworkId.Length;
+
+		public override void Serialize(BinaryWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write((byte)MsgType);
+			writer.Write(Text);
+			writer.Write(Created.ToBinary());
+			writer.Write(Version);
+			writer.Write(NetworkId);
+		}
+
+		public override void Deserialize(BinaryReader reader)
+		{
+			base.Deserialize(reader);
+			MsgType = (ChatMessageType)reader.ReadByte();
+			Text = reader.ReadString();
+			Created = DateTime.FromBinary(reader.ReadInt64());
+			Version = reader.ReadInt32();
+			NetworkId = reader.ReadString();
+		}
+
+		private int TimeSize
+		{
+			get
+			{
+				int s;
+				unsafe
+				{
+					s = sizeof(DateTime);
+				}
+				return s;
+			}
 		}
 
 		public ChatMsg(string author, string msg)
@@ -63,7 +104,7 @@ namespace Lyra.Core.Decentralize
 				this.Version + "|" +
 				this.NetworkId + "|" +
 				this.From + "|" +
-				this.Type.ToString() + "|" +
+				this.MsgType.ToString() + "|" +
 				this.Text + "|" +
 				this.GetExtraData();
 		}
@@ -87,6 +128,20 @@ namespace Lyra.Core.Decentralize
 		{
 			return "";
 		}
+
+		public override int Size => base.Size + JsonConvert.SerializeObject(Block).Length;
+
+		public override void Serialize(BinaryWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write(JsonConvert.SerializeObject(Block));
+		}
+
+		public override void Deserialize(BinaryReader reader)
+		{
+			base.Deserialize(reader);
+			Block = JsonConvert.DeserializeObject<TransactionBlock>(reader.ReadString());
+		}
 	}
 
 	public class AuthorizedMsg : SourceSignedMessage
@@ -106,6 +161,27 @@ namespace Lyra.Core.Decentralize
 		{
 			return "";
 		}
+
+		public override int Size => base.Size + 
+			sizeof(long) +
+			sizeof(int) +
+			JsonConvert.SerializeObject(AuthSign).Length;
+
+		public override void Serialize(BinaryWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write(BlockIndex);
+			writer.Write((int)Result);
+			writer.Write(JsonConvert.SerializeObject(AuthSign));
+		}
+
+		public override void Deserialize(BinaryReader reader)
+		{
+			base.Deserialize(reader);
+			BlockIndex = reader.ReadInt64();
+			Result = (APIResultCodes)reader.ReadInt32();
+			AuthSign = JsonConvert.DeserializeObject<AuthorizationSignature>(reader.ReadString());
+		}
 	}
 
 	public class AuthorizerCommitMsg : SourceSignedMessage
@@ -123,6 +199,24 @@ namespace Lyra.Core.Decentralize
 		protected override string GetExtraData()
 		{
 			return "";
+		}
+
+		public override int Size => base.Size +
+			sizeof(long) +
+			sizeof(bool);
+
+		public override void Serialize(BinaryWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write(BlockIndex);
+			writer.Write(Commited);
+		}
+
+		public override void Deserialize(BinaryReader reader)
+		{
+			base.Deserialize(reader);
+			BlockIndex = reader.ReadInt64();
+			Commited = reader.ReadBoolean();
 		}
 	}
 }
