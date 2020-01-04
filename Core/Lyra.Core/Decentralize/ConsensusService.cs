@@ -145,8 +145,7 @@ namespace Lyra.Core.Decentralize
 
             _ = Task.Run(async () =>
             {
-                var authrName = _authorizers[item.Block.BlockType];
-                var authorizer = (IAuthorizer)Activator.CreateInstance(Type.GetType("Lyra.Core.Authorizers." + authrName));
+                var authorizer = _authorizers[item.Block.BlockType];
 
                 var localAuthResult = await authorizer.Authorize(item.Block);
                 var result = new AuthorizedMsg
