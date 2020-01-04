@@ -38,18 +38,35 @@ namespace Lyra.Core.Decentralize
 
             _authorizers = new AuthorizersFactory();
 
-            Receive<AuthorizingMsg>(msg => {
-                var state = SendAuthorizingMessage(msg);
-                Task.Run(() =>
+            Receive<AuthorizingMsg>(async msg => {
+                // first try auth locally
+                var state = CreateAuthringState(msg);
+                var localAuthResult = await LocalAuthorizingAsync(msg);
+                state.AddAuthResult(localAuthResult);
+                
+                if(!localAuthResult.IsSuccess)
                 {
-                    state.Done.WaitOne();
-                    return state;
-                }).PipeTo(Self, Sender);
+                    state.Done.Set();
+                    Sender.Tell(state);
+                }
+                else
+                {
+                    // gett UIndex
+
+
+                    SendMessage(msg);
+
+                    _ = Task.Run(() =>
+                    {
+                        state.Done.WaitOne();
+                        return state;
+                    }).PipeTo(Self, Sender);
+                }
             });
 
             Receive<SignedMessageRelay>(relayMsg =>
             {
-                OnNextAsyncImpl(relayMsg.signedMessage);
+                OnNextConsensusMessage(relayMsg.signedMessage);
             });
         }
 
@@ -68,19 +85,7 @@ namespace Lyra.Core.Decentralize
             _localNode.Tell(msg);
         }
 
-        public AuthState SendAuthorizingMessage(AuthorizingMsg block)
-        {
-            SendMessage(block);
-            var state = CreateAuthringState(block);
-            return state;
-        }
-
-        public Task OnNextAsync(SourceSignedMessage item)
-        {
-            OnNextAsyncImpl(item);
-            return Task.CompletedTask;
-        }
-        void OnNextAsyncImpl(SourceSignedMessage item)
+        void OnNextConsensusMessage(SourceSignedMessage item)
         {
             _log.LogInformation($"GossipListener: OnNextAsyncImpl Called: msg From: {item.From}");
 
@@ -137,6 +142,22 @@ namespace Lyra.Core.Decentralize
             return state;
         }
 
+        private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)
+        {
+            var authorizer = _authorizers[item.Block.BlockType];
+
+            var localAuthResult = await authorizer.Authorize(item.Block);
+            var result = new AuthorizedMsg
+            {
+                From = NodeService.Instance.PosWallet.AccountId,
+                BlockIndex = item.Block.UIndex,
+                Result = localAuthResult.Item1,
+                AuthSign = localAuthResult.Item2
+            };
+
+            return result;
+        }
+
         private void OnPrePrepare(AuthorizingMsg item)
         {
             _log.LogInformation($"GossipListener: OnPrePrepare Called: BlockUIndex: {item.Block.UIndex}");
@@ -145,20 +166,11 @@ namespace Lyra.Core.Decentralize
 
             _ = Task.Run(async () =>
             {
-                var authorizer = _authorizers[item.Block.BlockType];
-
-                var localAuthResult = await authorizer.Authorize(item.Block);
-                var result = new AuthorizedMsg
-                {
-                    From = NodeService.Instance.PosWallet.AccountId,
-                    BlockIndex = item.Block.UIndex,
-                    Result = localAuthResult.Item1,
-                    AuthSign = localAuthResult.Item2
-                };
+                var result = await LocalAuthorizingAsync(item);
 
                 SendMessage(result);
                 state.AddAuthResult(result);
-                _log.LogInformation($"GossipListener: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {localAuthResult.Item1}");
+                _log.LogInformation($"GossipListener: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.IsSuccess}");
             });
         }
 

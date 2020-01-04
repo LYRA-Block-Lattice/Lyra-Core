@@ -7,11 +7,10 @@ namespace Lyra.Core.Utils
 {
     public class SimpleLogger
     {
+        public static ILoggerFactory Factory { get; set; }
         public SimpleLogger(string catagory)
         {
-            var loggerFactory = new LoggerFactory();
-
-            Logger = loggerFactory.CreateLogger(catagory);
+            Logger = Factory.CreateLogger(catagory);
         }
 
         public ILogger Logger { get; private set; }

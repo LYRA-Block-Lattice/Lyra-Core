@@ -4,6 +4,10 @@ using Lyra.Core.Blocks;
 using Lyra.Core.API;
 using System.Threading.Tasks;
 using Lyra.Core.Accounts;
+using Neo.Cryptography.ECC;
+using Lyra.Core.Cryptography;
+using System.Linq;
+using System.Security.Cryptography;
 
 namespace Lyra.Client.CLI
 {
@@ -79,6 +83,9 @@ namespace Lyra.Client.CLI
                         //Console.WriteLine(string.Format("{0,15}: Sync up the account with the node to check if there are incoming transactions", COMMAND_SYNC));
                         break;
                     case COMMAND_ACCOUNT_ID:
+                        var pubkey = Base58Encoding.DecodeAccountId(_wallet.AccountId);
+                        var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(pubkey, Neo.Cryptography.ECC.ECCurve.Secp256r1);
+                        Console.WriteLine(ep.ToString());
                         Console.WriteLine(_wallet.AccountId);
                         break;
                     case COMMAND_BALANCE:

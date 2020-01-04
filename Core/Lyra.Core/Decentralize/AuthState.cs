@@ -8,7 +8,7 @@ namespace Lyra.Core.Decentralize
 {
     public class AuthState
     {
-        private int ConfirmCount = 1;
+        private int ConfirmCount = 2;
         public long UIndexOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
         public List<AuthorizedMsg> OutputMsgs { get; set; }

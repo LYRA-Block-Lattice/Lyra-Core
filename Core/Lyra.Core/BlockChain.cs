@@ -6,9 +6,11 @@ using Lyra.Core.Cryptography;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Neo;
+using Neo.Cryptography.ECC;
 using Neo.IO.Actors;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Lyra
 {
@@ -21,6 +23,8 @@ namespace Lyra
         public class FillCompleted { }
 
         public static BlockChain Singleton;
+        public static readonly ECPoint[] StandbyValidators = ProtocolSettings.Default.StandbyValidators.OfType<string>().Select(p => ECPoint.DecodePoint(p.HexToBytes(), ECCurve.Secp256r1)).ToArray();
+
         public uint Height;
 
         //private readonly ServiceAccount _serviceAccount;

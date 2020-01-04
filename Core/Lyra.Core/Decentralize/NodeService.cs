@@ -43,8 +43,7 @@ namespace Lyra.Core.Decentralize
 
             _config = config.Value;
             _consensus = consensus;
-
-            _log = new SimpleLogger("NodeService").Logger;
+            _log = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

@@ -1,6 +1,0 @@
-2019-12-29T18:43:13.3943819+08:00  [INF] Now listening on: "https://0.0.0.0:5002" (d826f4b8)
-2019-12-29T18:43:13.4008653+08:00  [INF] Application started. Press Ctrl+C to shut down. (dcaefe54)
-2019-12-29T18:43:13.4032202+08:00  [INF] Hosting environment: "Development" (c3307c92)
-2019-12-29T18:43:13.4052837+08:00  [INF] Content root path: "E:\Repositories\graft-project\LyraNetwork\Core\Lyra.Node2" (b5d60022)
-2019-12-29T18:43:36.1366693+08:00  [INF] GossipListener: Init Called: 192.168.3.91 (09c19bde)
-2019-12-29T18:43:36.1493813+08:00  [INF] GossipListener: Init Exited. (3c5f849b)

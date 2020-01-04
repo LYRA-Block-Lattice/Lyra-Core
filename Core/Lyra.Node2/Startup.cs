@@ -49,7 +49,10 @@ namespace Lyra.Node2
                     ? Environment.GetEnvironmentVariable("HOME")
                     : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
 
-            loggerFactory.AddFile($"{homePath}{Path.PathSeparator}Logs{Path.PathSeparator}LyraNode2-{{Date}}.txt");
+            var path = $"{homePath}/Logs/";
+            loggerFactory.AddFile(path + "LyraNode2-{Date}.txt");
+
+            SimpleLogger.Factory = loggerFactory;
 
             if (env.IsDevelopment())
             {
