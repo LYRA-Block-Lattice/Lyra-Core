@@ -7,14 +7,13 @@ namespace Lyra.Core.Utils
 {
     public class SimpleLogger
     {
-        public static SimpleLogger Instance;
-        ILogger<SimpleLogger> _logger;
-        public SimpleLogger(ILogger<SimpleLogger> logger)
+        public SimpleLogger(string catagory)
         {
-            Logger = logger;
-            Instance = this;
+            var loggerFactory = new LoggerFactory();
+
+            Logger = loggerFactory.CreateLogger(catagory);
         }
 
-        public ILogger<SimpleLogger> Logger { get => _logger; private set => _logger = value; }
+        public ILogger Logger { get; private set; }
     }
 }

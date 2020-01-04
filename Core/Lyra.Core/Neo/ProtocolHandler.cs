@@ -32,6 +32,8 @@ namespace Neo.Network.P2P
         private bool verack = false;
         private BloomFilter bloom_filter;
 
+        private ILogger _log;
+
         public ProtocolHandler(LyraSystem system)
         {
             this.system = system;
@@ -41,7 +43,7 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
-            SimpleLogger.Instance.Logger.LogInformation($"ProtocolHandler OnReceive {message.GetType().Name}");
+            _log.LogInformation($"ProtocolHandler OnReceive {message.GetType().Name}");
 
             if (!(message is Message msg)) return;
             //foreach (IP2PPlugin plugin in Plugin.P2PPlugins)

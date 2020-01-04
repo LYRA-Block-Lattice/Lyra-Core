@@ -23,7 +23,7 @@ namespace Lyra.Core.Decentralize
         private readonly IActorRef _localNode;
 
         Dictionary<BlockTypes, string> _authorizers;
-        ILogger<SimpleLogger> _log;
+        ILogger _log;
 
         // queue bellow
         Dictionary<long, AuthState> _activeConsensus;
@@ -31,7 +31,7 @@ namespace Lyra.Core.Decentralize
         public ConsensusService(IActorRef localNode)
         {
             _localNode = localNode;
-            _log = SimpleLogger.Instance.Logger;
+            _log = new SimpleLogger("ConsensusService").Logger;
 
             _activeConsensus = new Dictionary<long, AuthState>();
 

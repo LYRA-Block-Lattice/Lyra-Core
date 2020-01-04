@@ -33,8 +33,7 @@ namespace Lyra.Core.Decentralize
 
         public NodeService(IOptions<LyraNodeConfig> config,
             ILogger<NodeService> logger,
-            ConsensusRuntimeConfig consensus,
-            SimpleLogger simpleLogger
+            ConsensusRuntimeConfig consensus
             )
         {
             if (Instance == null)
@@ -43,9 +42,9 @@ namespace Lyra.Core.Decentralize
                 throw new InvalidOperationException("Should not do this");
 
             _config = config.Value;
-            //_dataApi = dataApi;
-            _log = logger;
             _consensus = consensus;
+
+            _log = new SimpleLogger("NodeService").Logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

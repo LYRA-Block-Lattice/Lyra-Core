@@ -34,6 +34,7 @@ namespace Neo.Network.P2P
         public uint LastBlockIndex { get; private set; } = 0;
         public bool IsFullNode { get; private set; } = false;
 
+        private ILogger _log;
         public RemoteNode(LyraSystem system, object connection, IPEndPoint remote, IPEndPoint local)
             : base(connection, remote, local)
         {
@@ -113,7 +114,7 @@ namespace Neo.Network.P2P
 
         protected override void OnData(ByteString data)
         {
-            SimpleLogger.Instance.Logger.LogInformation($"RemoteNode OnData {data.Count} bytes.");
+            _log.LogInformation($"RemoteNode OnData {data.Count} bytes.");
             msg_buffer = msg_buffer.Concat(data);
 
             for (Message message = TryParseMessage(); message != null; message = TryParseMessage())
@@ -122,7 +123,7 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
-            SimpleLogger.Instance.Logger.LogInformation($"RemoteNode OnReceive {message.GetType().Name}");
+            _log.LogInformation($"RemoteNode OnReceive {message.GetType().Name}");
             base.OnReceive(message);
             switch (message)
             {

@@ -10,6 +10,8 @@ using Lyra.Core.Decentralize;
 using Microsoft.AspNetCore.Http;
 using Lyra.Core.API;
 using Lyra.Core.Exchange;
+using System;
+using System.IO;
 
 namespace Lyra.Node2
 {
@@ -28,7 +30,6 @@ namespace Lyra.Node2
         {
             OptionsConfigurationServiceCollectionExtensions.Configure<LyraNodeConfig>(services, Configuration.GetSection("LyraNode"));
 
-            services.AddSingleton(typeof(SimpleLogger));
             services.AddSingleton(typeof(ConsensusRuntimeConfig));
 
             // the apis
@@ -43,7 +44,12 @@ namespace Lyra.Node2
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            //loggerFactory.AddFile("Logs/LyraNode2-{Date}.txt");
+            string homePath = (Environment.OSVersion.Platform == PlatformID.Unix ||
+                   Environment.OSVersion.Platform == PlatformID.MacOSX)
+                    ? Environment.GetEnvironmentVariable("HOME")
+                    : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+
+            loggerFactory.AddFile($"{homePath}{Path.PathSeparator}Logs{Path.PathSeparator}LyraNode2-{{Date}}.txt");
 
             if (env.IsDevelopment())
             {

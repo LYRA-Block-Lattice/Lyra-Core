@@ -38,6 +38,8 @@ namespace Neo.Network.P2P
         public static string UserAgent { get; set; }
 
         private static LocalNode singleton;
+
+        private ILogger _log;
         public static LocalNode Singleton
         {
             get
@@ -56,6 +58,8 @@ namespace Neo.Network.P2P
 
         public LocalNode(LyraSystem system)
         {
+            _log = new SimpleLogger("LocalNode").Logger;
+
             lock (lockObj)
             {
                 if (singleton != null)
@@ -168,7 +172,7 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
-            SimpleLogger.Instance.Logger.LogInformation($"LocalNode OnReceive {message.GetType().Name}");
+            _log.LogInformation($"LocalNode OnReceive {message.GetType().Name}");
             base.OnReceive(message);
             switch (message)
             {
