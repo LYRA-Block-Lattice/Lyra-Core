@@ -16,16 +16,21 @@ namespace Lyra.Core.Decentralize
 		public string From { get; set; }
 		public ChatMessageType MsgType { get; set; }
 
-		public virtual int Size => From.Length + 1;
+		public virtual int Size => From.Length + 1
+			+ Hash.Length + Signature.Length;
 
 		public virtual void Deserialize(BinaryReader reader)
 		{
+			Hash = reader.ReadString();
+			Signature = reader.ReadString();
 			From = reader.ReadString();
 			MsgType = (ChatMessageType)reader.ReadByte();
 		}
 
 		public virtual void Serialize(BinaryWriter writer)
 		{
+			writer.Write(Hash);
+			writer.Write(Signature);
 			writer.Write(From);
 			writer.Write((byte)MsgType);
 		}

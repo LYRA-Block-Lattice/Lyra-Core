@@ -69,6 +69,7 @@ namespace Lyra.Core.Decentralize
         public virtual void SendMessage(SourceSignedMessage msg)
         {
             _log.LogInformation($"GossipListener: SendMessage Called: msg From: {msg.From}");
+
             var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
             _log.LogInformation($"GossipListener: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
 
