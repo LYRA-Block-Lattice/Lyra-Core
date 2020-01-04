@@ -201,6 +201,7 @@ namespace Lyra.Core.Decentralize
                     var msg = new AuthorizerCommitMsg
                     {
                         From = NodeService.Instance.PosWallet.AccountId,
+                        BlockHash = item.BlockHash,
                         BlockIndex = block.UIndex,
                         Commited = true
                     };
