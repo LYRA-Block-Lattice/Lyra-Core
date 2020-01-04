@@ -43,7 +43,7 @@ namespace Lyra.Node2
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddFile("Logs/LyraNode2-{Date}.txt");
+            //loggerFactory.AddFile("Logs/LyraNode2-{Date}.txt");
 
             if (env.IsDevelopment())
             {

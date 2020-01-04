@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Neo.Network.P2P.LocalNode;
 
 namespace Lyra.Core.Decentralize
 {
@@ -52,6 +53,11 @@ namespace Lyra.Core.Decentralize
                     state.Done.WaitOne();
                     return state;
                 }).PipeTo(Self, Sender);
+            });
+
+            Receive<SignedMessageRelay>(relayMsg =>
+            {
+                OnNextAsyncImpl(relayMsg.signedMessage);
             });
         }
 

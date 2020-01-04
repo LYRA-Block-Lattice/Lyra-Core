@@ -175,6 +175,9 @@ namespace Neo.Network.P2P
                 case SourceSignedMessage signedMsg:
                     BroadcastMessage(MessageCommand.Consensus, signedMsg);
                     break;
+                case SignedMessageRelay signedMessageRelay:
+                    system.Consensus.Tell(signedMessageRelay);
+                    break;
                 case Message msg:
                     BroadcastMessage(msg);
                     break;
