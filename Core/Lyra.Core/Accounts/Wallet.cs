@@ -1093,7 +1093,7 @@ namespace Lyra.Core.Accounts
                 FeeType = AuthorizationFeeTypes.Regular,
                 Icon = "https://i.imgur.com/L3h0J1K.png",
                 Image = "https://i.imgur.com/B8l4ZG5.png",
-                RenewalDate = DateTime.MaxValue,
+                RenewalDate = DateTime.Now.AddYears(1000)
             };
             // TO DO - set service hash
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 1800000000 };
