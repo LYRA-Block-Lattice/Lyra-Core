@@ -175,6 +175,7 @@ namespace Lyra.Core.Decentralize
 
                 Send2P2pNetwork(result);
                 state.AddAuthResult(result);
+                CheckAuthorizedAllOk(state);
                 _log.LogInformation($"Consensus: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.IsSuccess}");
             });
         }
@@ -186,6 +187,11 @@ namespace Lyra.Core.Decentralize
             var state = _activeConsensus[item.BlockHash];
             state.AddAuthResult(item);
 
+            CheckAuthorizedAllOk(state);
+        }
+
+        private void CheckAuthorizedAllOk(AuthState state)
+        {
             if (state.IsAuthoringSuccess)
             {
                 _ = Task.Run(() =>
@@ -204,7 +210,7 @@ namespace Lyra.Core.Decentralize
                     {
                         From = NodeService.Instance.PosWallet.AccountId,
                         MsgType = ChatMessageType.AuthorizerCommit,
-                        BlockHash = item.BlockHash,
+                        BlockHash = state.InputMsg.Block.Hash,
                         BlockIndex = block.UIndex,
                         Commited = true
                     };
@@ -212,7 +218,7 @@ namespace Lyra.Core.Decentralize
                     state.AddCommitedResult(msg);
                     Send2P2pNetwork(msg);
 
-                    _log.LogInformation($"Consensus: OnPrepare Commited: BlockUIndex: {item.BlockHash}");
+                    _log.LogInformation($"Consensus: OnPrepare Commited: BlockUIndex: {msg.BlockHash}");
                 });
             }
         }
