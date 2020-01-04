@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Neo;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace Lyra.Core.Decentralize
     public class AuthState
     {
         private int ConfirmCount = 2;
-        public long UIndexOfFirstBlock { get; set; }
+        public string HashOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
         public List<AuthorizedMsg> OutputMsgs { get; set; }
         public List<AuthorizerCommitMsg> CommitMsgs { get; set; }
@@ -40,6 +41,7 @@ namespace Lyra.Core.Decentralize
             }                
         }
 
-        public bool IsAuthoringSuccess => OutputMsgs.Count(a => a.IsSuccess) >= ConfirmCount;   //need to get from global config
+        public bool IsAuthoringSuccess => OutputMsgs.Count(a => a.IsSuccess) >= ConfirmCount   //need to get from global config
+            && OutputMsgs.Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]);
     }
 }

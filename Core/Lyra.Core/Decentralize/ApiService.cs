@@ -54,8 +54,7 @@ namespace Lyra.Core.Decentralize
         private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
         {
             _log.LogInformation($"ApiService: PostToConsensusAsync Called: {block.BlockType}");
-            block.UIndex = GenerateUniversalBlockIdAsync();
-            block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
+            
             AuthorizingMsg msg = new AuthorizingMsg
             {
                 From = NodeService.Instance.PosWallet.AccountId,

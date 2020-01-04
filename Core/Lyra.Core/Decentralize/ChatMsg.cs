@@ -173,7 +173,8 @@ namespace Lyra.Core.Decentralize
 	public class AuthorizedMsg : SourceSignedMessage
 	{
 		// block uindex, block hash (replace block itself), error code, authsign
-		public long BlockIndex { get; set; }
+		public long BlockUIndex { get; set; }
+		public string BlockHash { get; set; }
 		public APIResultCodes Result { get; set; }
 		public AuthorizationSignature AuthSign { get; set; }
 
@@ -183,7 +184,7 @@ namespace Lyra.Core.Decentralize
 		}
 		public override string GetHashInput()
 		{
-			return $"{BlockIndex}|{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|" + base.GetHashInput();
+			return $"{BlockHash}|{BlockUIndex}|{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|" + base.GetHashInput();
 		}
 
 		public bool IsSuccess => Result == APIResultCodes.Success;
@@ -193,15 +194,17 @@ namespace Lyra.Core.Decentralize
 			return base.GetExtraData();
 		}
 
-		public override int Size => base.Size + 
+		public override int Size => base.Size +
 			sizeof(long) +
+			BlockHash.Length +
 			sizeof(int) +
 			JsonConvert.SerializeObject(AuthSign).Length;
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
-			writer.Write(BlockIndex);
+			writer.Write(BlockUIndex);
+			writer.Write(BlockHash);
 			writer.Write((int)Result);
 			writer.Write(JsonConvert.SerializeObject(AuthSign));
 		}
@@ -209,7 +212,8 @@ namespace Lyra.Core.Decentralize
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
-			BlockIndex = reader.ReadInt64();
+			BlockUIndex = reader.ReadInt64();
+			BlockHash = reader.ReadString();
 			Result = (APIResultCodes)reader.ReadInt32();
 			AuthSign = JsonConvert.DeserializeObject<AuthorizationSignature>(reader.ReadString());
 		}
@@ -218,6 +222,7 @@ namespace Lyra.Core.Decentralize
 	public class AuthorizerCommitMsg : SourceSignedMessage
 	{
 		public long BlockIndex { get; set; }
+		public string BlockHash { get; set; }
 		public bool Commited { get; set; }
 
 		public AuthorizerCommitMsg()
@@ -229,7 +234,7 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{BlockIndex}|{Commited}" + base.GetHashInput();
+			return $"{BlockHash}|{BlockIndex}|{Commited}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
@@ -239,12 +244,14 @@ namespace Lyra.Core.Decentralize
 
 		public override int Size => base.Size +
 			sizeof(long) +
+			BlockHash.Length +
 			sizeof(bool);
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
 			writer.Write(BlockIndex);
+			writer.Write(BlockHash);
 			writer.Write(Commited);
 		}
 
@@ -252,6 +259,7 @@ namespace Lyra.Core.Decentralize
 		{
 			base.Deserialize(reader);
 			BlockIndex = reader.ReadInt64();
+			BlockHash = reader.ReadString();
 			Commited = reader.ReadBoolean();
 		}
 	}

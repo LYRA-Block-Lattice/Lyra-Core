@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using Settings = Neo.Settings;
 
 namespace Lyra
@@ -56,7 +57,14 @@ namespace Lyra
                 MaxConnectionsPerAddress = Settings.Default.P2P.MaxConnectionsPerAddress
             });
 
-            StartConsensus();
+            Task.Run(async () =>
+            {
+                while (BlockChain.Singleton == null)
+                {
+                    await Task.Delay(100);
+                }
+                StartConsensus();
+            });            
         }
 
         public void StartConsensus()

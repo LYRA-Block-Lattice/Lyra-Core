@@ -5,6 +5,7 @@ using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
+using Neo;
 using Neo.IO.Actors;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,9 @@ using static Neo.Network.P2P.LocalNode;
 
 namespace Lyra.Core.Decentralize
 {
-    // listen to gossip messages and activate the necessary grains to do works.
+    /// <summary>
+    /// about seed generation: the seed0 seed will generate UIndex whild sending authorization message.
+    /// </summary>
     public class ConsensusService : ReceiveActor
     {
         public class Authorized { public bool IsSuccess { get; set; } }
@@ -24,19 +27,21 @@ namespace Lyra.Core.Decentralize
 
         ILogger _log;
 
-        // queue bellow
-        Dictionary<long, AuthState> _activeConsensus;
+        // hash, authState
+        Dictionary<string, AuthState> _activeConsensus;
 
         private AuthorizersFactory _authorizers;
+        private long _UIndexSeed;
 
         public ConsensusService(IActorRef localNode)
         {
             _localNode = localNode;
             _log = new SimpleLogger("ConsensusService").Logger;
 
-            _activeConsensus = new Dictionary<long, AuthState>();
+            _activeConsensus = new Dictionary<string, AuthState>();
 
             _authorizers = new AuthorizersFactory();
+            _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
 
             Receive<AuthorizingMsg>(async msg => {
                 // first try auth locally
@@ -51,10 +56,7 @@ namespace Lyra.Core.Decentralize
                 }
                 else
                 {
-                    // gett UIndex
-
-
-                    SendMessage(msg);
+                    Send2P2pNetwork(msg);
 
                     _ = Task.Run(() =>
                     {
@@ -75,7 +77,7 @@ namespace Lyra.Core.Decentralize
             return Akka.Actor.Props.Create(() => new ConsensusService(localNode)).WithMailbox("consensus-service-mailbox");
         }
 
-        public virtual void SendMessage(SourceSignedMessage msg)
+        public virtual void Send2P2pNetwork(SourceSignedMessage msg)
         {
             _log.LogInformation($"GossipListener: SendMessage Called: msg From: {msg.From}");
 
@@ -127,7 +129,7 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"GossipListener: CreateAuthringState Called: BlockUIndex: {item.Block.UIndex}");
 
-            var ukey = item.Block.UIndex;
+            var ukey = item.Block.Hash;
             if (_activeConsensus.ContainsKey(ukey))
             {
                 return _activeConsensus[ukey];
@@ -135,7 +137,7 @@ namespace Lyra.Core.Decentralize
 
             var state = new AuthState
             {
-                UIndexOfFirstBlock = ukey,
+                HashOfFirstBlock = ukey,
                 InputMsg = item,
             };
             _activeConsensus.Add(ukey, state);
@@ -150,10 +152,11 @@ namespace Lyra.Core.Decentralize
             var result = new AuthorizedMsg
             {
                 From = NodeService.Instance.PosWallet.AccountId,
-                BlockIndex = item.Block.UIndex,
+                BlockUIndex = _UIndexSeed++,
+                BlockHash = item.Block.Hash,
                 Result = localAuthResult.Item1,
                 AuthSign = localAuthResult.Item2
-            };
+            };            
 
             return result;
         }
@@ -168,7 +171,7 @@ namespace Lyra.Core.Decentralize
             {
                 var result = await LocalAuthorizingAsync(item);
 
-                SendMessage(result);
+                Send2P2pNetwork(result);
                 state.AddAuthResult(result);
                 _log.LogInformation($"GossipListener: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.IsSuccess}");
             });
@@ -176,18 +179,22 @@ namespace Lyra.Core.Decentralize
 
         private void OnPrepare(AuthorizedMsg item)
         {
-            _log.LogInformation($"GossipListener: OnPrepare Called: BlockUIndex: {item.BlockIndex}");
+            _log.LogInformation($"GossipListener: OnPrepare Called: Block Hash: {item.BlockHash}");
 
-            var state = _activeConsensus[item.BlockIndex];
+            var state = _activeConsensus[item.BlockHash];
             state.AddAuthResult(item);
 
             if (state.IsAuthoringSuccess)
             {
-                _ = Task.Run(async () =>
+                _ = Task.Run(() =>
                 {
                     // do commit
                     var block = state.InputMsg.Block;
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
+
+                    // pickup UIndex
+                    block.UIndex = state.OutputMsgs.First(a => a.From == ProtocolSettings.Default.StandbyValidators[0]).BlockUIndex;
+                    block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
                     BlockChain.Singleton.AddBlock(block);
 
@@ -198,9 +205,9 @@ namespace Lyra.Core.Decentralize
                         Commited = true
                     };
 
-                    SendMessage(msg);
+                    Send2P2pNetwork(msg);
 
-                    _log.LogInformation($"GossipListener: OnPrepare Commited: BlockUIndex: {item.BlockIndex}");
+                    _log.LogInformation($"GossipListener: OnPrepare Commited: BlockUIndex: {item.BlockHash}");
                 });
             }
         }
@@ -209,7 +216,7 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"GossipListener: OnCommit Called: BlockUIndex: {item.BlockIndex}");
 
-            var state = _activeConsensus[item.BlockIndex];
+            var state = _activeConsensus[item.BlockHash];
             state.AddCommitedResult(item);
         }
     }
