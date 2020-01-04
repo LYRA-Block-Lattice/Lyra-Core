@@ -80,24 +80,24 @@ namespace Lyra.Core.Decentralize
 
         public virtual void Send2P2pNetwork(SourceSignedMessage msg)
         {
-            _log.LogInformation($"GossipListener: SendMessage Called: msg From: {msg.From}");
+            _log.LogInformation($"Consensus: SendMessage Called: msg From: {msg.From}");
 
             var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
-            _log.LogInformation($"GossipListener: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
+            _log.LogInformation($"Consensus: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
 
             _localNode.Tell(msg);
         }
 
         void OnNextConsensusMessage(SourceSignedMessage item)
         {
-            _log.LogInformation($"GossipListener: OnNextAsyncImpl Called: msg From: {item.From}");
+            _log.LogInformation($"Consensus: OnNextAsyncImpl Called: msg From: {item.From}");
 
             // verify the signatures of msg. make sure it is from the right node.
             //var nodeConfig = null;
             if (!item.VerifySignature(item.From))
             {
-                _log.LogInformation($"GossipListener: bad signature: {item.Hash} sign: {item.Signature} by pubKey: {item.From}");
-                _log.LogInformation($"GossipListener: hash: {item.Hash} rehash: {item.CalculateHash()}");
+                _log.LogInformation($"Consensus: bad signature: {item.Hash} sign: {item.Signature} by pubKey: {item.From}");
+                _log.LogInformation($"Consensus: hash: {item.Hash} rehash: {item.CalculateHash()}");
                 return;
             }
 
@@ -128,7 +128,7 @@ namespace Lyra.Core.Decentralize
 
         private AuthState CreateAuthringState(AuthorizingMsg item)
         {
-            _log.LogInformation($"GossipListener: CreateAuthringState Called: BlockUIndex: {item.Block.UIndex}");
+            _log.LogInformation($"Consensus: CreateAuthringState Called: BlockUIndex: {item.Block.UIndex}");
 
             var ukey = item.Block.Hash;
             if (_activeConsensus.ContainsKey(ukey))
@@ -165,7 +165,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnPrePrepare(AuthorizingMsg item)
         {
-            _log.LogInformation($"GossipListener: OnPrePrepare Called: BlockUIndex: {item.Block.UIndex}");
+            _log.LogInformation($"Consensus: OnPrePrepare Called: BlockUIndex: {item.Block.UIndex}");
 
             var state = CreateAuthringState(item);
 
@@ -175,13 +175,13 @@ namespace Lyra.Core.Decentralize
 
                 Send2P2pNetwork(result);
                 state.AddAuthResult(result);
-                _log.LogInformation($"GossipListener: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.IsSuccess}");
+                _log.LogInformation($"Consensus: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.IsSuccess}");
             });
         }
 
         private void OnPrepare(AuthorizedMsg item)
         {
-            _log.LogInformation($"GossipListener: OnPrepare Called: Block Hash: {item.BlockHash}");
+            _log.LogInformation($"Consensus: OnPrepare Called: Block Hash: {item.BlockHash}");
 
             var state = _activeConsensus[item.BlockHash];
             state.AddAuthResult(item);
@@ -212,14 +212,14 @@ namespace Lyra.Core.Decentralize
                     state.AddCommitedResult(msg);
                     Send2P2pNetwork(msg);
 
-                    _log.LogInformation($"GossipListener: OnPrepare Commited: BlockUIndex: {item.BlockHash}");
+                    _log.LogInformation($"Consensus: OnPrepare Commited: BlockUIndex: {item.BlockHash}");
                 });
             }
         }
 
         private void OnCommit(AuthorizerCommitMsg item)
         {
-            _log.LogInformation($"GossipListener: OnCommit Called: BlockUIndex: {item.BlockIndex}");
+            _log.LogInformation($"Consensus: OnCommit Called: BlockUIndex: {item.BlockIndex}");
 
             var state = _activeConsensus[item.BlockHash];
             state.AddCommitedResult(item);

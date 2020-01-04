@@ -116,7 +116,7 @@ namespace Neo.Network.P2P
 
         protected override void OnData(ByteString data)
         {
-            _log.LogInformation($"RemoteNode OnData {data.Count} bytes.");
+            //_log.LogInformation($"RemoteNode OnData {data.Count} bytes.");
             msg_buffer = msg_buffer.Concat(data);
 
             for (Message message = TryParseMessage(); message != null; message = TryParseMessage())
@@ -125,7 +125,7 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
-            _log.LogInformation($"RemoteNode OnReceive {message.GetType().Name}");
+            //_log.LogInformation($"RemoteNode OnReceive {message.GetType().Name}");
             base.OnReceive(message);
             switch (message)
             {
