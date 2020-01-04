@@ -59,12 +59,14 @@ namespace Lyra.Core.Decentralize
                     Send2P2pNetwork(msg);
                     Send2P2pNetwork(localAuthResult);
 
+                    var sender = Context.Sender;
+
                     await Task.Run(() =>
                     {
                         state.Done.WaitOne();
                     });
 
-                    Sender.Tell(state);                    
+                    sender.Tell(state);                    
                 }
             });
 
