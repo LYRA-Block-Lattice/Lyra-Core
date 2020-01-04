@@ -82,7 +82,7 @@ namespace Neo.Network.P2P
                 //    Payload = decompressed.AsSerializable<Block>();
                 //    break;
                 case MessageCommand.Consensus:
-                    Payload = decompressed.AsSerializable<SourceSignedMessage>();
+                    Payload = DecodeSignedMessage(decompressed);
                     break;
                     //case MessageCommand.FilterLoad:
                     //    Payload = decompressed.AsSerializable<FilterLoadPayload>();
@@ -93,6 +93,24 @@ namespace Neo.Network.P2P
                     //case MessageCommand.MerkleBlock:
                     //    Payload = decompressed.AsSerializable<MerkleBlockPayload>();
                     //    break;
+            }
+        }
+
+        private SourceSignedMessage DecodeSignedMessage(byte[] data)
+        {
+            var sm = data.AsSerializable<SourceSignedMessage>();
+            switch(sm.MsgType)
+            {
+                case ChatMessageType.AuthorizerPrePrepare:
+                    return data.AsSerializable<AuthorizingMsg>();
+                case ChatMessageType.AuthorizerPrepare:
+                    return data.AsSerializable<AuthorizedMsg>();
+                case ChatMessageType.AuthorizerCommit:
+                    return data.AsSerializable<AuthorizerCommitMsg>();
+                case ChatMessageType.General:
+                    return data.AsSerializable<ChatMsg>();
+                default:
+                    return null;
             }
         }
 

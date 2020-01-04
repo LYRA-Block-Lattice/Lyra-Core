@@ -13,17 +13,20 @@ namespace Lyra.Core.Decentralize
 		/// Node Identify. Now it is AccountId
 		/// </summary>
 		public string From { get; set; }
+		public ChatMessageType MsgType { get; set; }
 
-		public virtual int Size => From.Length;
+		public virtual int Size => From.Length + 1;
 
 		public virtual void Deserialize(BinaryReader reader)
 		{
 			From = reader.ReadString();
+			MsgType = (ChatMessageType)reader.ReadByte();
 		}
 
 		public virtual void Serialize(BinaryWriter writer)
 		{
 			writer.Write(From);
+			writer.Write((byte)MsgType);
 		}
 
 		public override string GetHashInput()
@@ -39,7 +42,6 @@ namespace Lyra.Core.Decentralize
 
 	public class ChatMsg : SourceSignedMessage
 	{
-		public ChatMessageType MsgType { get; set; }
 		public string Text { get; set; }
 
 		public DateTime Created { get; set; } = DateTime.Now;
@@ -48,7 +50,7 @@ namespace Lyra.Core.Decentralize
 
 		public ChatMsg()
 		{
-
+			MsgType = ChatMessageType.General;
 		}
 
 		public override int Size => base.Size +
@@ -91,7 +93,7 @@ namespace Lyra.Core.Decentralize
 			}
 		}
 
-		public ChatMsg(string author, string msg)
+		public ChatMsg(string author, string msg) : this()
 		{
 			From = author;
 			Text = msg;
@@ -119,6 +121,12 @@ namespace Lyra.Core.Decentralize
 	public class AuthorizingMsg : SourceSignedMessage
 	{
 		public TransactionBlock Block { get; set; }
+
+		public AuthorizingMsg()
+		{
+			MsgType = ChatMessageType.AuthorizerPrePrepare;
+		}
+
 		public override string GetHashInput()
 		{
 			return $"{Block.UIndex}|{Block.GetHashInput()}";
@@ -150,6 +158,11 @@ namespace Lyra.Core.Decentralize
 		public long BlockIndex { get; set; }
 		public APIResultCodes Result { get; set; }
 		public AuthorizationSignature AuthSign { get; set; }
+
+		public AuthorizedMsg()
+		{
+			MsgType = ChatMessageType.AuthorizerPrepare;
+		}
 		public override string GetHashInput()
 		{
 			return $"{BlockIndex}|{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|";
@@ -188,6 +201,11 @@ namespace Lyra.Core.Decentralize
 	{
 		public long BlockIndex { get; set; }
 		public bool Commited { get; set; }
+
+		public AuthorizerCommitMsg()
+		{
+			MsgType = ChatMessageType.AuthorizerCommit;
+		}
 
 		public bool IsSuccess => Commited;
 
