@@ -16,6 +16,7 @@ namespace Neo.Network.P2P
 {
     public class LocalNode : Peer
     {
+        public class SignedMessageRelay { public SourceSignedMessage msg; }
         public class Relay { public IInventory Inventory; }
         internal class RelayDirectly { public IInventory Inventory; }
         internal class SendDirectly { public IInventory Inventory; }
@@ -142,6 +143,8 @@ namespace Neo.Network.P2P
             {
                 case Message msg:
                     BroadcastMessage(msg);
+                    break;
+                case SignedMessageRelay signedRelay:
                     break;
                 case Relay relay:
                     OnRelay(relay.Inventory);

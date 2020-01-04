@@ -1,6 +1,7 @@
 using Akka.Actor;
 using Akka.Configuration;
 using Lyra;
+using Lyra.Core.Decentralize;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.IO.Actors;
@@ -60,6 +61,9 @@ namespace Neo.Network.P2P
             {
                 case MessageCommand.Addr:
                     OnAddrMessageReceived((AddrPayload)msg.Payload);
+                    break;
+                case MessageCommand.Consensus:
+                    OnSignedMessageReceived((SourceSignedMessage)msg.Payload);
                     break;
                 //case MessageCommand.Block:
                 //    OnInventoryReceived((Block)msg.Payload);
@@ -269,6 +273,12 @@ namespace Neo.Network.P2P
         //    foreach (InvPayload payload in InvPayload.CreateGroup(InventoryType.TX, Blockchain.Singleton.MemPool.GetVerifiedTransactions().Select(p => p.Hash).ToArray()))
         //        Context.Parent.Tell(Message.Create(MessageCommand.Inv, payload));
         //}
+
+        private void OnSignedMessageReceived(SourceSignedMessage msg)
+        {
+            //system.TaskManager.Tell(new TaskManager.TaskCompleted { Hash = inventory.Hash }, Context.Parent);
+            system.LocalNode.Tell(new LocalNode.SignedMessageRelay { msg = msg });
+        }
 
         private void OnPingMessageReceived(PingPayload payload)
         {
