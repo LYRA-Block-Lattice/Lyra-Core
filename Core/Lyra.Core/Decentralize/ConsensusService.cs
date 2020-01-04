@@ -74,6 +74,35 @@ namespace Lyra.Core.Decentralize
             {
                 OnNextConsensusMessage(relayMsg.signedMessage);
             });
+
+            Task.Run(async () => { 
+                while(true)
+                {
+                    StateClean();
+                    await Task.Delay(1000);
+                }
+            });
+        }
+
+        private void StateClean()
+        {
+            try
+            {
+                var states = _activeConsensus.Values.ToArray();
+                for (int i = 0; i < states.Length; i++)
+                {
+                    var state = states[i];
+                    if (state.Created - DateTime.Now > TimeSpan.FromSeconds(30)) // consensus timeout 30 seconds
+                    {
+                        _activeConsensus.Remove(state.InputMsg.Block.Hash);
+                        state.Done.Set();
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                _log.LogError("In StateClean: " + ex.Message);
+            }
         }
 
         public static Props Props(IActorRef localNode)

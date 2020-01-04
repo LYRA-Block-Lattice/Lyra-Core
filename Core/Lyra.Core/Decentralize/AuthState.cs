@@ -9,6 +9,7 @@ namespace Lyra.Core.Decentralize
 {
     public class AuthState
     {
+        public DateTime Created { get; private set; }
         private int ConfirmCount = 2;
         public string HashOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
@@ -20,6 +21,8 @@ namespace Lyra.Core.Decentralize
 
         public AuthState()
         {
+            Created = DateTime.Now;
+
             OutputMsgs = new List<AuthorizedMsg>();
             CommitMsgs = new List<AuthorizerCommitMsg>();
 
