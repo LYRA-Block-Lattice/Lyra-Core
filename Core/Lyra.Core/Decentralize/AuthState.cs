@@ -41,7 +41,6 @@ namespace Lyra.Core.Decentralize
             }                
         }
 
-        public bool IsAuthoringSuccess => OutputMsgs.Count(a => a.IsSuccess) >= ConfirmCount   //need to get from global config
-            && OutputMsgs.Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]);
+        public bool IsAuthoringSuccess => OutputMsgs.Count(a => a.IsSuccess) >= ConfirmCount;
     }
 }

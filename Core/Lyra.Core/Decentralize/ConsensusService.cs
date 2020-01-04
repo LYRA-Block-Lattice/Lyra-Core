@@ -153,6 +153,7 @@ namespace Lyra.Core.Decentralize
             var result = new AuthorizedMsg
             {
                 From = NodeService.Instance.PosWallet.AccountId,
+                MsgType = ChatMessageType.AuthorizerPrepare,
                 BlockUIndex = _UIndexSeed++,
                 BlockHash = item.Block.Hash,
                 Result = localAuthResult.Item1,
@@ -202,6 +203,7 @@ namespace Lyra.Core.Decentralize
                     var msg = new AuthorizerCommitMsg
                     {
                         From = NodeService.Instance.PosWallet.AccountId,
+                        MsgType = ChatMessageType.AuthorizerCommit,
                         BlockHash = item.BlockHash,
                         BlockIndex = block.UIndex,
                         Commited = true

@@ -58,7 +58,8 @@ namespace Lyra.Core.Decentralize
             AuthorizingMsg msg = new AuthorizingMsg
             {
                 From = NodeService.Instance.PosWallet.AccountId,
-                Block = block
+                Block = block,
+                MsgType = ChatMessageType.AuthorizerPrePrepare
             };
             var result = await ConsensusSvc.Ask<AuthState>(msg);
             
