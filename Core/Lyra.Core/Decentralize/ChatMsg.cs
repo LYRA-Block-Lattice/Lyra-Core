@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -37,6 +38,15 @@ namespace Lyra.Core.Decentralize
 		protected override string GetExtraData()
 		{
 			return From;
+		}
+
+		protected TransactionBlock GetBlock(BlockTypes blockType, string json)
+		{
+			var ar = new BlockAPIResult {
+				ResultBlockType = blockType,
+				BlockData = json
+			};
+			return ar.GetBlock() as TransactionBlock;
 		}
 	}
 
@@ -137,18 +147,21 @@ namespace Lyra.Core.Decentralize
 			return "";
 		}
 
-		public override int Size => base.Size + JsonConvert.SerializeObject(Block).Length;
+		public override int Size => base.Size + JsonConvert.SerializeObject(Block).Length + 1;
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
+			writer.Write((byte)Block.BlockType);
 			writer.Write(JsonConvert.SerializeObject(Block));
 		}
 
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
-			Block = JsonConvert.DeserializeObject<TransactionBlock>(reader.ReadString());
+			var typ = (BlockTypes)reader.ReadByte();
+			var json = reader.ReadString();
+			Block = GetBlock(typ, json);
 		}
 	}
 

@@ -176,7 +176,7 @@ namespace Lyra.Core.Blocks
 
     }
 
-    public enum BlockTypes
+    public enum BlockTypes : byte
     {
         Null = 0,
 
