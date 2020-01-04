@@ -34,7 +34,7 @@ namespace Lyra.Core.Decentralize
         public void AddCommitedResult(AuthorizerCommitMsg msg)
         {
             CommitMsgs.Add(msg);
-            if (CommitMsgs.Count() > ConfirmCount)
+            if (CommitMsgs.Count() >= ConfirmCount)
             {
                 Settled = true;
                 Done.Set();
