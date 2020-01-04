@@ -37,6 +37,7 @@ namespace Neo.Network.P2P
         public ProtocolHandler(LyraSystem system)
         {
             this.system = system;
+            _log = new SimpleLogger("ProtocolHandler").Logger;
             //this.knownHashes = new FIFOSet<UInt256>(Blockchain.Singleton.MemPool.Capacity * 2);
             //this.sentHashes = new FIFOSet<UInt256>(Blockchain.Singleton.MemPool.Capacity * 2);
         }
