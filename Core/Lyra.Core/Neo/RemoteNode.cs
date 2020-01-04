@@ -2,6 +2,8 @@ using Akka.Actor;
 using Akka.Configuration;
 using Akka.IO;
 using Lyra;
+using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.IO.Actors;
@@ -111,6 +113,7 @@ namespace Neo.Network.P2P
 
         protected override void OnData(ByteString data)
         {
+            SimpleLogger.Instance.Logger.LogInformation($"RemoteNode OnData {data.Count} bytes.");
             msg_buffer = msg_buffer.Concat(data);
 
             for (Message message = TryParseMessage(); message != null; message = TryParseMessage())
@@ -119,6 +122,7 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
+            SimpleLogger.Instance.Logger.LogInformation($"RemoteNode OnReceive {message.GetType().Name}");
             base.OnReceive(message);
             switch (message)
             {

@@ -2,6 +2,8 @@ using Akka.Actor;
 using Akka.Configuration;
 using Lyra;
 using Lyra.Core.Decentralize;
+using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.IO.Actors;
@@ -39,6 +41,8 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
+            SimpleLogger.Instance.Logger.LogInformation($"ProtocolHandler OnReceive {message.GetType().Name}");
+
             if (!(message is Message msg)) return;
             //foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
             //    if (!plugin.OnP2PMessage(msg))

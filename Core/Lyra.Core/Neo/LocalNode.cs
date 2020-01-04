@@ -1,6 +1,8 @@
 using Akka.Actor;
 using Lyra;
 using Lyra.Core.Decentralize;
+using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 using Neo.IO;
 using Neo.Network.P2P.Payloads;
 using System;
@@ -138,6 +140,7 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
+            SimpleLogger.Instance.Logger.LogInformation($"LocalNode OnReceive {message.GetType().Name}");
             base.OnReceive(message);
             switch (message)
             {
