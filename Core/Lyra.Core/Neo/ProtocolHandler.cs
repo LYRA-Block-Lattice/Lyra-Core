@@ -281,7 +281,7 @@ namespace Neo.Network.P2P
         private void OnSignedMessageReceived(SourceSignedMessage msg)
         {
             //system.TaskManager.Tell(new TaskManager.TaskCompleted { Hash = inventory.Hash }, Context.Parent);
-            system.LocalNode.Tell(new LocalNode.SignedMessageRelay { msg = msg });
+            system.LocalNode.Tell(new LocalNode.SignedMessageRelay { signedMessage = msg });
         }
 
         private void OnPingMessageReceived(PingPayload payload)
