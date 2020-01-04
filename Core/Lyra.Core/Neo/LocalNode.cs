@@ -172,6 +172,9 @@ namespace Neo.Network.P2P
             base.OnReceive(message);
             switch (message)
             {
+                case SourceSignedMessage signedMsg:
+                    BroadcastMessage(MessageCommand.Consensus, signedMsg);
+                    break;
                 case Message msg:
                     BroadcastMessage(msg);
                     break;

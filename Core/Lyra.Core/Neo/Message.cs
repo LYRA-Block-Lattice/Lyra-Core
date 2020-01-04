@@ -1,4 +1,5 @@
 using Akka.IO;
+using Lyra.Core.Decentralize;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.Network.P2P.Payloads;
@@ -80,18 +81,18 @@ namespace Neo.Network.P2P
                 //case MessageCommand.Block:
                 //    Payload = decompressed.AsSerializable<Block>();
                 //    break;
-                //case MessageCommand.Consensus:
-                //    Payload = decompressed.AsSerializable<ConsensusPayload>();
-                //    break;
-                //case MessageCommand.FilterLoad:
-                //    Payload = decompressed.AsSerializable<FilterLoadPayload>();
-                //    break;
-                //case MessageCommand.FilterAdd:
-                //    Payload = decompressed.AsSerializable<FilterAddPayload>();
-                //    break;
-                //case MessageCommand.MerkleBlock:
-                //    Payload = decompressed.AsSerializable<MerkleBlockPayload>();
-                //    break;
+                case MessageCommand.Consensus:
+                    Payload = decompressed.AsSerializable<SourceSignedMessage>();
+                    break;
+                    //case MessageCommand.FilterLoad:
+                    //    Payload = decompressed.AsSerializable<FilterLoadPayload>();
+                    //    break;
+                    //case MessageCommand.FilterAdd:
+                    //    Payload = decompressed.AsSerializable<FilterAddPayload>();
+                    //    break;
+                    //case MessageCommand.MerkleBlock:
+                    //    Payload = decompressed.AsSerializable<MerkleBlockPayload>();
+                    //    break;
             }
         }
 
