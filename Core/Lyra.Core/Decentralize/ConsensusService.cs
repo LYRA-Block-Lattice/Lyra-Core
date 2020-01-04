@@ -22,11 +22,12 @@ namespace Lyra.Core.Decentralize
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
 
-        Dictionary<BlockTypes, string> _authorizers;
         ILogger _log;
 
         // queue bellow
         Dictionary<long, AuthState> _activeConsensus;
+
+        private AuthorizersFactory _authorizers;
 
         public ConsensusService(IActorRef localNode)
         {
@@ -35,16 +36,7 @@ namespace Lyra.Core.Decentralize
 
             _activeConsensus = new Dictionary<long, AuthState>();
 
-            _authorizers = new Dictionary<BlockTypes, string>();
-            _authorizers.Add(BlockTypes.SendTransfer, "SendTransferAuthorizer");
-            _authorizers.Add(BlockTypes.LyraTokenGenesis, "GenesisAuthorizer");
-            _authorizers.Add(BlockTypes.ReceiveFee, "ReceiveTransferAuthorizer");
-            _authorizers.Add(BlockTypes.OpenAccountWithReceiveFee, "NewAccountAuthorizer");
-            _authorizers.Add(BlockTypes.OpenAccountWithReceiveTransfer, "NewAccountAuthorizer");
-            _authorizers.Add(BlockTypes.OpenAccountWithImport, "NewAccountWithImportAuthorizer");
-            _authorizers.Add(BlockTypes.ReceiveTransfer, "ReceiveTransferAuthorizer");
-            _authorizers.Add(BlockTypes.ImportAccount, "ImportAccountAuthorizer");
-            _authorizers.Add(BlockTypes.TokenGenesis, "NewTokenAuthorizer");
+            _authorizers = new AuthorizersFactory();
 
             Receive<AuthorizingMsg>(msg => {
                 var state = SendAuthorizingMessage(msg);

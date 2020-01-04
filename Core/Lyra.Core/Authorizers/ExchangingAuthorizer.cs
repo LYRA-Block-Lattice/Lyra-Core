@@ -8,8 +8,7 @@ namespace Lyra.Core.Authorizers
 {
     public class ExchangingAuthorizer : SendTransferAuthorizer
     {
-        public ExchangingAuthorizer(IOptions<LyraNodeConfig> config)
-            : base(config)
+        public ExchangingAuthorizer()
         {
 
         }

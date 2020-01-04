@@ -9,8 +9,7 @@ namespace Lyra.Core.Authorizers
 {
     public class NewAccountWithImportAuthorizer : ReceiveTransferAuthorizer
     {
-        public NewAccountWithImportAuthorizer(IOptions<LyraNodeConfig> config)
-            : base(config)
+        public NewAccountWithImportAuthorizer()
         {
         }
 

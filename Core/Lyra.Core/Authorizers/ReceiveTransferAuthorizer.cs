@@ -11,8 +11,7 @@ namespace Lyra.Core.Authorizers
 {
     public class ReceiveTransferAuthorizer: BaseAuthorizer
     {
-        public ReceiveTransferAuthorizer(IOptions<LyraNodeConfig> config)
-            : base(config)
+        public ReceiveTransferAuthorizer()
         {
         }
 

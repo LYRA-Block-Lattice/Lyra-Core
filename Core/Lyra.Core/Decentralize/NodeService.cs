@@ -54,6 +54,9 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation($"NodeService: ExecuteAsync Called.");
 
+                // something must be initialized first
+                new AuthorizersFactory().Init();
+
                 var walletStore = new LiteAccountDatabase();
                 PosWallet = new Wallet(walletStore, _config.Lyra.NetworkId);
                 string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + _config.Lyra.NetworkId);

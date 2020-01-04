@@ -11,8 +11,7 @@ namespace Lyra.Core.Authorizers
 {
     public class SendTransferAuthorizer : BaseAuthorizer
     {
-        public SendTransferAuthorizer(IOptions<LyraNodeConfig> config)
-            : base(config)
+        public SendTransferAuthorizer()
         {
         }
 

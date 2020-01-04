@@ -34,11 +34,14 @@ namespace Lyra
         private bool suspend = false;
         public static LyraSystem Singleton { get; private set; }
 
+        public string NetworkId { get; private set; }
+
         public LyraSystem(LyraNodeConfig nodeConfig)
         {
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, nodeConfig));
 
+            NetworkId = nodeConfig.Lyra.NetworkId;
             Singleton = this;
         }
 

@@ -10,8 +10,7 @@ namespace Lyra.Core.Authorizers
 {
     public class CancelTradeOrderAuthorizer: BaseAuthorizer
     {
-        public CancelTradeOrderAuthorizer(IOptions<LyraNodeConfig> config)
-            : base(config)
+        public CancelTradeOrderAuthorizer()
         {
             
         }

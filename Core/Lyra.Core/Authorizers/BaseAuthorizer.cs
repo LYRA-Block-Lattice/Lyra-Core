@@ -22,11 +22,9 @@ namespace Lyra.Core.Authorizers
 
     public abstract class BaseAuthorizer : IAuthorizer
     {
-        private LyraNodeConfig _config;
-
-        public BaseAuthorizer(IOptions<LyraNodeConfig> config)
+        public BaseAuthorizer()
         {
-            _config = config.Value;
+
         }
 
         public virtual Task<(APIResultCodes, AuthorizationSignature)> Authorize<T>(T tblock)
@@ -41,7 +39,7 @@ namespace Lyra.Core.Authorizers
 
         protected APIResultCodes VerifyBlock(TransactionBlock block, TransactionBlock previousBlock)
         {
-            if (_config.Lyra.NetworkId != block.NetworkId)
+            if (LyraSystem.Singleton.NetworkId != block.NetworkId)
                 return APIResultCodes.InvalidNetworkId;
 
             if (!block.IsBlockValid(previousBlock))

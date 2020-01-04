@@ -12,8 +12,7 @@ namespace Lyra.Core.Authorizers
 {
     public class NewTokenAuthorizer: BaseAuthorizer
     {
-        public NewTokenAuthorizer(IOptions<LyraNodeConfig> config)
-            : base(config)
+        public NewTokenAuthorizer()
         {
         }
 

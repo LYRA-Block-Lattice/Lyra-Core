@@ -9,8 +9,7 @@ namespace Lyra.Core.Authorizers
 {
     public class GenesisAuthorizer: BaseAuthorizer
     {
-        public GenesisAuthorizer(IOptions<LyraNodeConfig> config)
-            : base(config)
+        public GenesisAuthorizer()
         {
         }
 

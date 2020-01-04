@@ -12,8 +12,7 @@ namespace Lyra.Core.Authorizers
 {
     public class ImportAccountAuthorizer: BaseAuthorizer
     {
-        public ImportAccountAuthorizer(IOptions<LyraNodeConfig> config)
-            : base(config)
+        public ImportAccountAuthorizer()
         {
         }
 
