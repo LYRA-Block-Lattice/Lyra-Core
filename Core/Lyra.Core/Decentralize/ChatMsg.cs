@@ -122,14 +122,14 @@ namespace Lyra.Core.Decentralize
 				this.NetworkId + "|" +
 				this.From + "|" +
 				this.MsgType.ToString() + "|" +
-				this.Text + "|" +
-				this.GetExtraData();
+				this.Text +
+				base.GetHashInput();
 		}
 
 		// should be overriden in specific instance to get the correct hash claculated from the entire block data 
 		protected override string GetExtraData()
 		{
-			return string.Empty;
+			return base.GetExtraData();
 		}
 	}
 
@@ -144,12 +144,12 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{Block.UIndex}|{Block.GetHashInput()}";
+			return $"{Block.UIndex}|{Block.GetHashInput()}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
 		{
-			return "";
+			return base.GetExtraData();
 		}
 
 		public override int Size => base.Size + JsonConvert.SerializeObject(Block).Length + 1;
@@ -183,14 +183,14 @@ namespace Lyra.Core.Decentralize
 		}
 		public override string GetHashInput()
 		{
-			return $"{BlockIndex}|{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|";
+			return $"{BlockIndex}|{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|" + base.GetHashInput();
 		}
 
 		public bool IsSuccess => Result == APIResultCodes.Success;
 
 		protected override string GetExtraData()
 		{
-			return "";
+			return base.GetExtraData();
 		}
 
 		public override int Size => base.Size + 
@@ -229,12 +229,12 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{BlockIndex}|{Commited}";
+			return $"{BlockIndex}|{Commited}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
 		{
-			return "";
+			return base.GetExtraData();
 		}
 
 		public override int Size => base.Size +
