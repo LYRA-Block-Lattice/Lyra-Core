@@ -8,7 +8,7 @@ namespace Lyra.Core.Authorizers
 {
     public interface IAuthorizer
     {
-        Task<(APIResultCodes, AuthorizationSignature)> Authorize<T>(T tblock);
-        Task<APIResultCodes> Commit<T>(T tblock);
+        (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock);
+        APIResultCodes Commit<T>(T tblock);
     }
 }

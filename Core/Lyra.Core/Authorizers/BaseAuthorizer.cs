@@ -27,12 +27,12 @@ namespace Lyra.Core.Authorizers
 
         }
 
-        public virtual Task<(APIResultCodes, AuthorizationSignature)> Authorize<T>(T tblock)
+        public virtual (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock)
         {
             throw new NotImplementedException("Must override");
         }
 
-        public virtual Task<APIResultCodes> Commit<T>(T tblock)
+        public virtual APIResultCodes Commit<T>(T tblock)
         {
             throw new NotImplementedException("Must override");
         }

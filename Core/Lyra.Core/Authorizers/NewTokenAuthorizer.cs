@@ -16,13 +16,13 @@ namespace Lyra.Core.Authorizers
         {
         }
 
-        public override Task<(APIResultCodes, AuthorizationSignature)> Authorize<T>(T tblock)
+        public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock)
         {
             var result = AuthorizeImpl(tblock);
             if (APIResultCodes.Success == result)
-                return Task.FromResult((APIResultCodes.Success, Sign(tblock)));
+                return (APIResultCodes.Success, Sign(tblock));
             else
-                return Task.FromResult((result, (AuthorizationSignature)null));
+                return (result, (AuthorizationSignature)null);
         }
         private APIResultCodes AuthorizeImpl<T>(T tblock)
         {

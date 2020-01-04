@@ -46,7 +46,7 @@ namespace Lyra.Core.Decentralize
             Receive<AuthorizingMsg>(async msg => {
                 // first try auth locally
                 var state = CreateAuthringState(msg);
-                var localAuthResult = await LocalAuthorizingAsync(msg);
+                var localAuthResult = LocalAuthorizingAsync(msg);
                 state.AddAuthResult(localAuthResult);
                 
                 if(!localAuthResult.IsSuccess)
@@ -59,11 +59,12 @@ namespace Lyra.Core.Decentralize
                     Send2P2pNetwork(msg);
                     Send2P2pNetwork(localAuthResult);
 
-                    _ = Task.Run(() =>
+                    await Task.Run(() =>
                     {
                         state.Done.WaitOne();
-                        return state;
-                    }).PipeTo(Self, Sender);
+                    });
+
+                    Sender.Tell(state);                    
                 }
             });
 
@@ -145,11 +146,11 @@ namespace Lyra.Core.Decentralize
             return state;
         }
 
-        private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)
+        private AuthorizedMsg LocalAuthorizingAsync(AuthorizingMsg item)
         {
             var authorizer = _authorizers[item.Block.BlockType];
 
-            var localAuthResult = await authorizer.Authorize(item.Block);
+            var localAuthResult = authorizer.Authorize(item.Block);
             var result = new AuthorizedMsg
             {
                 From = NodeService.Instance.PosWallet.AccountId,
@@ -169,9 +170,9 @@ namespace Lyra.Core.Decentralize
 
             var state = CreateAuthringState(item);
 
-            _ = Task.Run(async () =>
+            _ = Task.Run(() =>
             {
-                var result = await LocalAuthorizingAsync(item);
+                var result = LocalAuthorizingAsync(item);
 
                 Send2P2pNetwork(result);
                 state.AddAuthResult(result);
