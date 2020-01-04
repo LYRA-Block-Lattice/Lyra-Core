@@ -38,6 +38,8 @@ namespace Neo.Network.P2P
         public RemoteNode(LyraSystem system, object connection, IPEndPoint remote, IPEndPoint local)
             : base(connection, remote, local)
         {
+            _log = new SimpleLogger("RemoteNode").Logger;
+
             this.system = system;
             this.protocol = Context.ActorOf(ProtocolHandler.Props(system));
             LocalNode.Singleton.RemoteNodes.TryAdd(Self, this);
