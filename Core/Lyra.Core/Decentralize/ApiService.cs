@@ -34,7 +34,7 @@ namespace Lyra.Core.Decentralize
             _config = config.Value;
             _consensus = consensus;
 
-            ConsensusSvc = LyraSystem.Singleton.ActorSystem.ActorOf(Props.Create(() => new ConsensusService(LyraSystem.Singleton.LocalNode)));
+            ConsensusSvc = LyraSystem.Singleton.Consensus;
         }
 
         //public async Task OnActivateAsync()
