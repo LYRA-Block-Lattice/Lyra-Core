@@ -57,6 +57,7 @@ namespace Lyra.Core.Decentralize
                 else
                 {
                     Send2P2pNetwork(msg);
+                    Send2P2pNetwork(localAuthResult);
 
                     _ = Task.Run(() =>
                     {
@@ -206,6 +207,7 @@ namespace Lyra.Core.Decentralize
                         Commited = true
                     };
 
+                    state.AddCommitedResult(msg);
                     Send2P2pNetwork(msg);
 
                     _log.LogInformation($"GossipListener: OnPrepare Commited: BlockUIndex: {item.BlockHash}");
