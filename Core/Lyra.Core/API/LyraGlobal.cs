@@ -26,7 +26,7 @@ namespace Lyra.Core.API
             {
 #if DEBUG
                 case "ldxdev":
-                    return ("https://192.168.3.73:5002/", "https://192.168.3.73:5002/api/");
+                    return ("https://192.168.3.73:4505/", "https://192.168.3.73:4505/api/");
 #endif
                 case "lexnet":
                     return ("https://34.80.72.244:5392/", "https://34.80.72.244:5392/api/");
