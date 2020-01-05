@@ -242,8 +242,9 @@ namespace Lyra.Core.Decentralize
                     return;
 
                 state.Saving = true;
-                _ = Task.Run(() =>
+                _ = Task.Run(async () =>
                 {
+                    await Task.Delay(300);  //wait for more message to come
                     // do commit
                     var block = state.InputMsg.Block;
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();

@@ -122,7 +122,7 @@ namespace Lyra.Core.Accounts
 
         public long GetBlockCount()
         {
-            return _blocks.Count();
+            return _blocks.Count;
         }
 
         public void AddBlock(Block block)
