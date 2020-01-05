@@ -18,6 +18,7 @@ namespace Lyra.Core.Decentralize
 
         public EventWaitHandle Done { get; set; }
         public bool Settled { get; set; }
+        public bool Saving { get; set; }
 
         public AuthState()
         {

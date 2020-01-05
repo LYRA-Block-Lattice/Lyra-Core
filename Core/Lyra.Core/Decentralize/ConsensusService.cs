@@ -238,6 +238,10 @@ namespace Lyra.Core.Decentralize
         {
             if (state.IsAuthoringSuccess)
             {
+                if (state.Saving)
+                    return;
+
+                state.Saving = true;
                 _ = Task.Run(() =>
                 {
                     // do commit
