@@ -238,7 +238,7 @@ namespace Lyra
 
                         async Task<bool> DoCopyBlock()
                         {
-                            for (long j = startUIndex; j < syncToUIndex; j++)
+                            for (long j = startUIndex; j <= syncToUIndex; j++)
                             {
                                 var blockResult = await client.GetBlockByUIndex(j);
                                 if (blockResult.ResultCode == APIResultCodes.Success)

@@ -438,9 +438,12 @@ namespace Lyra.Core.Accounts
 
         public long GetNewestBlockUIndex()
         {
-            var result = _blocks.Find(FilterDefinition<TransactionBlock>.Empty)
-                .Sort("{UIndex: -1}").First().UIndex;
-            return result;
+            var result = _blocks.Find(a => true)
+                .SortByDescending(a => a.UIndex).FirstOrDefault();
+            if (result != null)
+                return result.UIndex;
+            else
+                return 0;
         }
 
         public TransactionBlock GetBlockByUIndex(long uindex)
