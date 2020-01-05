@@ -65,6 +65,8 @@ namespace Lyra
                     await Task.Delay(100);
                 }
                 StartConsensus();
+
+                TheBlockchain.Tell(new BlockChain.Startup());
             });            
         }
 

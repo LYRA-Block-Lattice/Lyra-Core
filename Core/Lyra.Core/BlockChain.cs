@@ -20,6 +20,7 @@ namespace Lyra
     public class BlockChain : UntypedActor
     {
         public class NeedSync { public long ToUIndex { get; set; } }
+        public class Startup { }
         public class PersistCompleted { }
         public class Import { }
         public class ImportCompleted { }
@@ -33,7 +34,7 @@ namespace Lyra
         public uint Height;
         public string NetworkID { get; private set; }
 
-        //private readonly ServiceAccount _serviceAccount;
+        private LyraNodeConfig _nodeConfig;
         private readonly IAccountCollection _store;
         private LyraSystem _sys;
         private ILogger _log;
@@ -42,62 +43,8 @@ namespace Lyra
             _sys = sys;
             _store = new MongoAccountCollection(nodeConfig);
             _log = new SimpleLogger("BlockChain").Logger;
+            _nodeConfig = nodeConfig;
             NetworkID = nodeConfig.Lyra.NetworkId;
-
-            if(0 == GetBlockCount() && NodeService.Instance.PosWallet.AccountId ==
-                ProtocolSettings.Default.StandbyValidators[0])
-            {
-                // do genesis
-                var authGenesis = new ServiceBlock
-                {
-                    Index = 1,
-                    UIndex = 1,                   
-                    NetworkId = nodeConfig.Lyra.NetworkId,
-                    ShardId = "Primary",
-                    TransferFee = 1,
-                    TokenGenerationFee = 100,
-                    TradeFee = 0.1m
-                };
-                authGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                    nodeConfig.Lyra.NetworkId, authGenesis.ShardId,
-                    NodeService.Instance.PosWallet.AccountId);
-                authGenesis.UHash = SignableObject.CalculateHash($"{authGenesis.UIndex}|{authGenesis.Index}|{authGenesis.Hash}");
-                authGenesis.Authorizations = new List<AuthorizationSignature>();
-                authGenesis.Authorizations.Add(new AuthorizationSignature
-                {
-                    Key = NodeService.Instance.PosWallet.AccountId,
-                    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, authGenesis.Hash, NodeService.Instance.PosWallet.AccountId)
-                });
-                // TODO: add more seed's auth info
-
-                _store.AddBlock(authGenesis);
-
-                // the first consolidate block
-                var consBlock = new ConsolidationBlock
-                {
-                    UIndex = 2,
-                    NetworkId = authGenesis.NetworkId,
-                    ShardId = authGenesis.ShardId,
-                    ServiceHash = authGenesis.Hash,
-                    LastServiceBlockHash = authGenesis.Hash
-                };
-                consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
-                    nodeConfig.Lyra.NetworkId, authGenesis.ShardId,
-                    NodeService.Instance.PosWallet.AccountId);
-                consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
-                consBlock.Authorizations = new List<AuthorizationSignature>();
-                consBlock.Authorizations.Add(new AuthorizationSignature
-                {
-                    Key = NodeService.Instance.PosWallet.AccountId,
-                    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
-                });
-
-                _store.AddBlock(consBlock);
-            }
-            else
-            {
-                SyncBlocksFromSeeds(0);
-            }
 
             Singleton = this;
         }
@@ -137,6 +84,9 @@ namespace Lyra
                 case NeedSync cmd:
                     SyncBlocksFromSeeds(cmd.ToUIndex);
                     break;
+                case Startup _:
+                    StartInit();
+                    break;
             //    case Import import:
             //        OnImport(import.Blocks);
             //        break;
@@ -168,6 +118,64 @@ namespace Lyra
             }
         }
 
+        private void StartInit()
+        {
+            if (0 == GetBlockCount() && NodeService.Instance.PosWallet.AccountId ==
+    ProtocolSettings.Default.StandbyValidators[0])
+            {
+                // do genesis
+                var authGenesis = new ServiceBlock
+                {
+                    Index = 1,
+                    UIndex = 1,
+                    NetworkId = _nodeConfig.Lyra.NetworkId,
+                    ShardId = "Primary",
+                    TransferFee = 1,
+                    TokenGenerationFee = 100,
+                    TradeFee = 0.1m
+                };
+                authGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+                    _nodeConfig.Lyra.NetworkId, authGenesis.ShardId,
+                    NodeService.Instance.PosWallet.AccountId);
+                authGenesis.UHash = SignableObject.CalculateHash($"{authGenesis.UIndex}|{authGenesis.Index}|{authGenesis.Hash}");
+                authGenesis.Authorizations = new List<AuthorizationSignature>();
+                authGenesis.Authorizations.Add(new AuthorizationSignature
+                {
+                    Key = NodeService.Instance.PosWallet.AccountId,
+                    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, authGenesis.Hash, NodeService.Instance.PosWallet.AccountId)
+                });
+                // TODO: add more seed's auth info
+
+                _store.AddBlock(authGenesis);
+
+                // the first consolidate block
+                var consBlock = new ConsolidationBlock
+                {
+                    UIndex = 2,
+                    NetworkId = authGenesis.NetworkId,
+                    ShardId = authGenesis.ShardId,
+                    ServiceHash = authGenesis.Hash,
+                    LastServiceBlockHash = authGenesis.Hash
+                };
+                consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
+                    _nodeConfig.Lyra.NetworkId, authGenesis.ShardId,
+                    NodeService.Instance.PosWallet.AccountId);
+                consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
+                consBlock.Authorizations = new List<AuthorizationSignature>();
+                consBlock.Authorizations.Add(new AuthorizationSignature
+                {
+                    Key = NodeService.Instance.PosWallet.AccountId,
+                    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
+                });
+
+                _store.AddBlock(consBlock);
+            }
+            else
+            {
+                SyncBlocksFromSeeds(0);
+            }
+        }
+
         /// <summary>
         /// if this node is seed0 then sync with seeds others (random choice the one that is in normal state)
         /// if this node is seed1+ then sync with seed0
@@ -179,6 +187,7 @@ namespace Lyra
 
                 while(true)
                 {
+                    _log.LogInformation("BlockChain Doing Sync...");
                     string syncWithUrl = null;
                     LyraRestClient client = null;
                     long syncToUIndex = ToUIndex;
@@ -204,13 +213,24 @@ namespace Lyra
                     if (syncWithUrl == null)
                     {
                         // no node to sync.
-                        _log.LogError("No seed node in normal state. Wait...");
-                        await Task.Delay(300 * 1000);
+                        if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
+                        {
+                            // seed0. no seed to sync. this seed must have the NORMAL blockchain
+                            LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
+                            break;
+                        }
+                        else
+                        {
+                            _log.LogError("No seed node in normal state. Wait...");
+                            await Task.Delay(300 * 1000);
+                        }
                     }
                     else
                     {
                         // do sync with node
                         long startUIndex = _store.GetNewestBlockUIndex() + 1;
+
+                        _log.LogInformation($"BlockChain Doing sync from {startUIndex} to {syncToUIndex} from node {syncWithUrl}");
 
                         async Task<bool> DoCopyBlock()
                         {
@@ -221,6 +241,8 @@ namespace Lyra
                                 {
                                     AddBlock(blockResult.GetBlock() as TransactionBlock);
                                     startUIndex = j + 1;
+
+                                    _log.LogInformation($"BlockChain Synced Block Number: {j}");
                                 }
                                 else
                                 {
@@ -244,6 +266,8 @@ namespace Lyra
                         }
                     }
                 }
+
+                _log.LogInformation("BlockChain Sync Completed.");
             });
         }
     }
