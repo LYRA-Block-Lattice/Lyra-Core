@@ -378,5 +378,15 @@ namespace Lyra.Core.LiteDB
         {
             throw new NotImplementedException();
         }
+
+        public long GetNewestBlockUIndex()
+        {
+            throw new NotImplementedException();
+        }
+
+        public TransactionBlock GetBlockByUIndex(long index)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

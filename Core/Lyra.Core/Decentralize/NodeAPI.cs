@@ -18,6 +18,39 @@ namespace Lyra.Core.Decentralize
         {
             _config = config.Value;
         }
+
+        public Task<GetSyncStateAPIResult> GetSyncState()
+        {
+            var result = new GetSyncStateAPIResult
+            {
+                ResultCode = APIResultCodes.Success,
+                Mode = LyraSystem.Singleton.CurrentConsensusMode,
+                NewestBlockUIndex = BlockChain.Singleton.GetNewestBlockUIndex()
+            };
+            return Task.FromResult(result);
+        }
+
+        public Task<BlockAPIResult> GetBlockByUIndex(long uindex)
+        {
+            BlockAPIResult result;
+            var block = BlockChain.Singleton.GetBlockByUIndex(uindex);
+            if(block == null)
+            {
+                result = new BlockAPIResult { ResultCode = APIResultCodes.BlockNotFound };
+            }
+            else
+            {
+                result = new BlockAPIResult
+                {
+                    BlockData = Json(block),
+                    ResultBlockType = block.BlockType,
+                    ResultCode = APIResultCodes.Success
+                };
+            }
+
+            return Task.FromResult(result);
+        }
+
         public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
             var result = new GetVersionAPIResult()
@@ -285,5 +318,7 @@ namespace Lyra.Core.Decentralize
         {
             return JsonConvert.SerializeObject(o);
         }
+
+
     }
 }

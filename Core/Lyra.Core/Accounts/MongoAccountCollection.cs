@@ -435,5 +435,18 @@ namespace Lyra.Core.Accounts
         {
            // nothing to dispose
         }
+
+        public long GetNewestBlockUIndex()
+        {
+            var result = _blocks.Find(FilterDefinition<TransactionBlock>.Empty)
+                .Sort("{UIndex: -1}").First().UIndex;
+            return result;
+        }
+
+        public TransactionBlock GetBlockByUIndex(long uindex)
+        {
+            var result = _blocks.Find(x => x.UIndex == uindex);
+            return result.FirstOrDefault();
+        }
     }
 }

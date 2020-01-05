@@ -10,6 +10,9 @@ namespace Lyra.Core.API
         #region Blocklist information methods
         Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion);
 
+        Task<GetSyncStateAPIResult> GetSyncState();
+        Task<BlockAPIResult> GetBlockByUIndex(long uindex);
+
         // this one can be cached for a few milliseconds
         Task<AccountHeightAPIResult> GetSyncHeight();
 

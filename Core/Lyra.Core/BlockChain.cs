@@ -1,21 +1,25 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
 using Lyra.Core.Accounts;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.Cryptography.ECC;
 using Neo.IO.Actors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Lyra
 {
     public class BlockChain : UntypedActor
     {
+        public class NeedSync { public long ToUIndex { get; set; } }
         public class PersistCompleted { }
         public class Import { }
         public class ImportCompleted { }
@@ -27,16 +31,21 @@ namespace Lyra
                                                         ECPoint.FromBytes(Base58Encoding.DecodeAccountId(p), ECCurve.Secp256r1)).ToArray();
 
         public uint Height;
+        public string NetworkID { get; private set; }
 
         //private readonly ServiceAccount _serviceAccount;
         private readonly IAccountCollection _store;
         private LyraSystem _sys;
+        private ILogger _log;
         public BlockChain(LyraSystem sys, LyraNodeConfig nodeConfig)
         {
             _sys = sys;
             _store = new MongoAccountCollection(nodeConfig);
+            _log = new SimpleLogger("BlockChain").Logger;
+            NetworkID = nodeConfig.Lyra.NetworkId;
 
-            if(0 == GetBlockCount())
+            if(0 == GetBlockCount() && NodeService.Instance.PosWallet.AccountId ==
+                ProtocolSettings.Default.StandbyValidators[0])
             {
                 // do genesis
                 var authGenesis = new ServiceBlock
@@ -85,6 +94,10 @@ namespace Lyra
 
                 _store.AddBlock(consBlock);
             }
+            else
+            {
+                SyncBlocksFromSeeds(0);
+            }
 
             Singleton = this;
         }
@@ -93,6 +106,8 @@ namespace Lyra
             return Akka.Actor.Props.Create(() => new BlockChain(system, nodeConfig)).WithMailbox("blockchain-mailbox");
         }
 
+        public long GetNewestBlockUIndex() => _store.GetNewestBlockUIndex();
+        public TransactionBlock GetBlockByUIndex(long uindex) => _store.GetBlockByUIndex(uindex);
         internal ConsolidationBlock GetSyncBlock() => _store.GetSyncBlock();
         internal ServiceBlock GetLastServiceBlock() => _store.GetLastServiceBlock();
 
@@ -117,8 +132,11 @@ namespace Lyra
 
         protected override void OnReceive(object message)
         {
-            //switch (message)
-            //{
+            switch (message)
+            {
+                case NeedSync cmd:
+                    SyncBlocksFromSeeds(cmd.ToUIndex);
+                    break;
             //    case Import import:
             //        OnImport(import.Blocks);
             //        break;
@@ -147,7 +165,86 @@ namespace Lyra
             //        if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
             //            Self.Tell(Idle.Instance, ActorRefs.NoSender);
             //        break;
-            //}
+            }
+        }
+
+        /// <summary>
+        /// if this node is seed0 then sync with seeds others (random choice the one that is in normal state)
+        /// if this node is seed1+ then sync with seed0
+        /// otherwise sync with any seed node
+        /// </summary>
+        private void SyncBlocksFromSeeds(long ToUIndex)
+        {
+            RunTask(async () => {
+
+                while(true)
+                {
+                    string syncWithUrl = null;
+                    LyraRestClient client = null;
+                    long syncToUIndex = ToUIndex;
+
+                    for (int i = 0; i < ProtocolSettings.Default.SeedList.Length; i++)
+                    {
+                        if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[i])  // self
+                            continue;
+
+                        var addr = ProtocolSettings.Default.SeedList[i].Split(':')[0];
+                        var apiUrl = $"https://{addr}:4505/api/LyraNode/";
+                        client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+                        var mode = await client.GetSyncState();
+                        if (mode.ResultCode == APIResultCodes.Success && mode.Mode == ConsensusWorkingMode.Normal)
+                        {
+                            syncWithUrl = apiUrl;
+                            if (syncToUIndex == 0)
+                                syncToUIndex = mode.NewestBlockUIndex;
+                            break;
+                        }
+                    }
+
+                    if (syncWithUrl == null)
+                    {
+                        // no node to sync.
+                        _log.LogError("No seed node in normal state. Wait...");
+                        await Task.Delay(300 * 1000);
+                    }
+                    else
+                    {
+                        // do sync with node
+                        long startUIndex = _store.GetNewestBlockUIndex() + 1;
+
+                        async Task<bool> DoCopyBlock()
+                        {
+                            for (long j = startUIndex; j < syncToUIndex; j++)
+                            {
+                                var blockResult = await client.GetBlockByUIndex(j);
+                                if (blockResult.ResultCode == APIResultCodes.Success)
+                                {
+                                    AddBlock(blockResult.GetBlock() as TransactionBlock);
+                                    startUIndex = j + 1;
+                                }
+                                else
+                                {
+                                    // error
+                                    _log.LogError($"Error syncing block: {blockResult.ResultCode}");
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }
+
+                        var copyOK = await DoCopyBlock();
+                        if(copyOK)
+                        {
+                            LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
+                            break;
+                        }
+                        else
+                        {
+                            await Task.Delay(5000);
+                        }
+                    }
+                }
+            });
         }
     }
 

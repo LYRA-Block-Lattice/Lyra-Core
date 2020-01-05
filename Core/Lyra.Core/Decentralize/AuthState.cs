@@ -56,7 +56,7 @@ namespace Lyra.Core.Decentralize
                     for(int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
                     {
                         var authenSeed = OutputMsgs.FirstOrDefault(a => a.From == ProtocolSettings.Default.StandbyValidators[i]);
-                        if (authenSeed != null)
+                        if (authenSeed != null && authenSeed.BlockUIndex != 0)
                         {
                             return authenSeed.BlockUIndex;
                         }

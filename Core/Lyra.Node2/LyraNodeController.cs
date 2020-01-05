@@ -50,6 +50,19 @@ namespace LyraLexWeb2
             return await _node.GetVersion(apiVersion, appName, appVersion);
         }
 
+        [Route("GetSyncState")]
+        public async Task<GetSyncStateAPIResult> GetSyncState()
+        {
+            CheckSyncState();
+            return await _node.GetSyncState();
+        }
+
+        [Route("GetBlockByUIndex")]
+        public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
+        {
+            CheckSyncState();
+            return await _node.GetBlockByUIndex(uindex);
+        }
         [Route("GetSyncHeight")]
         public async Task<AccountHeightAPIResult> GetSyncHeightAsync() {
             CheckSyncState();

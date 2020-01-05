@@ -52,9 +52,9 @@ namespace Lyra.Core.API
 #endif
         }
 
-        public static async Task<LyraRestClient> CreateAsync(string networkId, string platform, string appName, string appVersion)
+        public static async Task<LyraRestClient> CreateAsync(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
         {
-            var url = LyraGlobal.SelectNode(networkId).restUrl + "LyraNode/";
+            var url = apiUrl == null ? LyraGlobal.SelectNode(networkId).restUrl + "LyraNode/" : apiUrl;
             var restClient = new LyraRestClient(platform, appName, appVersion, url);
             if (!await restClient.CheckApiVersion())
                 throw new Exception("Unable to use API. Must upgrade your App.");
@@ -104,6 +104,30 @@ namespace Lyra.Core.API
                 return false;
             else
                 return true;
+        }
+        
+        public async Task<GetSyncStateAPIResult> GetSyncState()
+        {
+            HttpResponseMessage response = await _client.GetAsync("GetSyncState");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<GetSyncStateAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockByUIndex/?uindex={uindex}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)

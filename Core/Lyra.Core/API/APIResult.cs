@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
+using Lyra.Core.Decentralize;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.API
@@ -203,6 +204,12 @@ namespace Lyra.Core.API
         public string NodeVersion { get; set; }
         public bool UpgradeNeeded { get; set; }
         public bool MustUpgradeToConnect { get; set; }        
+    }
+
+    public class GetSyncStateAPIResult : APIResult
+    {
+        public ConsensusWorkingMode Mode { get; set; }
+        public long NewestBlockUIndex { get; set; }
     }
 
     public class ExchangeAccountAPIResult : APIResult

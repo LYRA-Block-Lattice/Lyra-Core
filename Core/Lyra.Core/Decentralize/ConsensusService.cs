@@ -17,11 +17,16 @@ using static Neo.Network.P2P.LocalNode;
 
 namespace Lyra.Core.Decentralize
 {
+    // when out of sync, we adjust useed, continue to save blocks, and told blockchain to do sync.
+    public enum ConsensusWorkingMode { Normal, OutofSyncWaiting }
     /// <summary>
     /// about seed generation: the seed0 seed will generate UIndex whild sending authorization message.
     /// </summary>
     public class ConsensusService : ReceiveActor
     {
+        public class AskForCurrentMode { }
+        public class ReplyForCurrentMode { public ConsensusWorkingMode Mode { get; set; } }
+        public class BlockChainSynced { }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
 
@@ -32,6 +37,8 @@ namespace Lyra.Core.Decentralize
 
         private AuthorizersFactory _authorizers;
         private long _UIndexSeed = 0;
+
+        public ConsensusWorkingMode Mode { get; private set; }
 
         public ConsensusService(IActorRef localNode)
         {
@@ -45,6 +52,7 @@ namespace Lyra.Core.Decentralize
                 Task.Delay(100).Wait();
 
             _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
+            Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
             Receive<AuthorizingMsg>(async msg => {
                 // first try auth locally
@@ -77,6 +85,10 @@ namespace Lyra.Core.Decentralize
             {
                 OnNextConsensusMessage(relayMsg.signedMessage);
             });
+
+            Receive<BlockChainSynced>(_ => Mode = ConsensusWorkingMode.Normal);
+
+            Receive<AskForCurrentMode>(_ => new ReplyForCurrentMode { Mode = this.Mode });
 
             Task.Run(async () => { 
                 while(true)
@@ -189,7 +201,7 @@ namespace Lyra.Core.Decentralize
             {
                 From = NodeService.Instance.PosWallet.AccountId,
                 MsgType = ChatMessageType.AuthorizerPrepare,
-                BlockUIndex = _UIndexSeed++,
+                BlockUIndex = Mode == ConsensusWorkingMode.Normal ? _UIndexSeed++ : 0,     // if seed out of sync, then others know
                 BlockHash = item.Block.Hash,
                 Result = localAuthResult.Item1,
                 AuthSign = localAuthResult.Item2
@@ -244,6 +256,14 @@ namespace Lyra.Core.Decentralize
                     {
                         _log.LogError("Can't get UIndex. System fail.");
                         return;
+                    }
+
+                    if(block.UIndex != _UIndexSeed - 1)
+                    {
+                        // local node out of sync
+                        _UIndexSeed = block.UIndex + 1;
+                        Mode = ConsensusWorkingMode.OutofSyncWaiting;
+                        LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
                     }
                                         
                     block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");

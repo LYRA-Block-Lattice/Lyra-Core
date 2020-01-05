@@ -10,6 +10,11 @@ namespace Lyra.Core.Accounts
     /// </summary>
     public interface IAccountCollection: IDisposable
     {
+        // for sync
+        long GetNewestBlockUIndex();
+        TransactionBlock GetBlockByUIndex(long uindex);
+
+        // for service
         long GetBlockCount();
         long GetBlockCount(string AccountId);
         //int GetTotalBlockCount();
