@@ -1,7 +1,7 @@
 {
   "ProtocolConfiguration": {
     "Magic": 6195086,
-    "MillisecondsPerBlock": 15000,
+    "MillisecondsPerBlock": 500,
     "StandbyValidators": [
       "L58YqcfgJKtZVp3Q4zsJMjunYJkcpmYWkfvrcBhyntNGKLUM1X54NDTmDjezLkEXZZV15bQ5g5jaib8CdLfZ1y5NrtKH7t"
     ],

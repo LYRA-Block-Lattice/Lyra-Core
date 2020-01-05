@@ -13,27 +13,26 @@ namespace Lyra.Core.API
         public static readonly string NodeVersion = "LyraLex 1.0";
 #if DEBUG
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
-            "lexnet", "lexdev"
+            "devnet"
         };
 #else
-        public static readonly IList<string> Networks = new[] { "lexnet" };
+        public static readonly IList<string> Networks = new[] { "mainnet", "testnet"
+        };
 #endif
 
         // get api for (rpcurl, resturl)
-        public static (string rpcUrl, string restUrl) SelectNode(string networkID)
+        public static string SelectNode(string networkID)
         {
             switch (networkID)
             {
 #if DEBUG
-                case "ldxdev":
-                    return ("https://192.168.3.73:4505/", "https://192.168.3.73:4505/api/");
+                case "devnet":
+                    return "https://seed.devnet.lyrashops.com:4505/api/";
 #endif
-                case "lexnet":
-                    return ("https://34.80.72.244:5392/", "https://34.80.72.244:5392/api/");
                 case "testnet":
-                    return ("https://testnet.lyratokens.com:5392/", "");
+                    return "https://seed.testnet.lyrashops.com:4505/api/";
                 case "mainnet":
-                    return ("https://mainnet.lyratokens.com:5392/", "");
+                    return "https://seed.mainnet.lyrashops.com:4505/api/";
                 default:
                     throw new Exception("Unsupported network ID");
             }

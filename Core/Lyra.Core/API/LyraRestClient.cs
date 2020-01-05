@@ -54,9 +54,9 @@ namespace Lyra.Core.API
 
         public static async Task<LyraRestClient> CreateAsync(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
         {
-            var url = apiUrl == null ? LyraGlobal.SelectNode(networkId).restUrl + "LyraNode/" : apiUrl;
+            var url = apiUrl == null ? LyraGlobal.SelectNode(networkId) + "LyraNode/" : apiUrl;
             var restClient = new LyraRestClient(platform, appName, appVersion, url);
-            if (!await restClient.CheckApiVersion())
+            if (!await restClient.CheckApiVersion().ConfigureAwait(false))
                 throw new Exception("Unable to use API. Must upgrade your App.");
             else
                 return restClient;
@@ -64,13 +64,13 @@ namespace Lyra.Core.API
 
         private async Task<AuthorizationAPIResult> PostBlock(string action, Block block)
         {
-            return await PostBlock<AuthorizationAPIResult>(action, block);
+            return await PostBlock<AuthorizationAPIResult>(action, block).ConfigureAwait(false);
         }
 
         private async Task<T> PostBlock<T>(string action, object obj)
         {
             HttpResponseMessage response = await _client.PostAsJsonAsync(
-                    action, obj);
+                    action, obj).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             if (response.IsSuccessStatusCode)
             {
