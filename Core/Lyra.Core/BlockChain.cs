@@ -40,6 +40,9 @@ namespace Lyra
         private ILogger _log;
         public BlockChain(LyraSystem sys, LyraNodeConfig nodeConfig)
         {
+            if (Singleton != null)
+                throw new Exception("Blockchain reinitialization");
+
             _sys = sys;
             _store = new MongoAccountCollection(nodeConfig);
             _log = new SimpleLogger("BlockChain").Logger;
@@ -183,7 +186,7 @@ namespace Lyra
         /// </summary>
         private void SyncBlocksFromSeeds(long ToUIndex)
         {
-            RunTask(async () => {
+            Task.Run(async () => {
 
                 while(true)
                 {
