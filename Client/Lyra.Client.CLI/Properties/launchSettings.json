@@ -2,7 +2,7 @@
   "profiles": {
     "Lyra.Client.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "--networkid ldxdev -ddddd inmemory -p webapi"
+      "commandLineArgs": "--networkid devnet -ddddd inmemory -p webapi"
     }
   }
 }

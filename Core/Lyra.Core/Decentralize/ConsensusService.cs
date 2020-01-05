@@ -85,7 +85,11 @@ namespace Lyra.Core.Decentralize
                 OnNextConsensusMessage(relayMsg.signedMessage);
             });
 
-            Receive<BlockChainSynced>(_ => Mode = ConsensusWorkingMode.Normal);
+            Receive<BlockChainSynced>(_ =>
+            {
+                Mode = ConsensusWorkingMode.Normal;
+                _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
+            });
 
             Task.Run(async () => { 
                 while(true)
@@ -242,9 +246,8 @@ namespace Lyra.Core.Decentralize
                     return;
 
                 state.Saving = true;
-                _ = Task.Run(async () =>
+                _ = Task.Run(() =>
                 {
-                    await Task.Delay(300);  //wait for more message to come
                     // do commit
                     var block = state.InputMsg.Block;
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
@@ -254,20 +257,20 @@ namespace Lyra.Core.Decentralize
                     {
                         block.UIndex = state.ConsensusUIndex;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         _log.LogError("Can't get UIndex. System fail.");
                         return;
                     }
 
-                    if(block.UIndex != _UIndexSeed - 1)
+                    if (block.UIndex != _UIndexSeed - 1)
                     {
                         // local node out of sync
                         _UIndexSeed = block.UIndex + 1;
                         Mode = ConsensusWorkingMode.OutofSyncWaiting;
                         LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
                     }
-                                        
+
                     block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
                     BlockChain.Singleton.AddBlock(block);
