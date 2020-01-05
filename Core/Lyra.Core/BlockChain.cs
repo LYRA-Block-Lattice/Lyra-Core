@@ -219,8 +219,7 @@ namespace Lyra
                         // no node to sync.
                         if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
                         {
-                            // seed0. no seed to sync. this seed must have the NORMAL blockchain
-                            LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
+                            // seed0. no seed to sync. this seed must have the NORMAL blockchain                            
                             break;
                         }
                         else
@@ -240,7 +239,7 @@ namespace Lyra
                         {
                             for (long j = startUIndex; j <= syncToUIndex; j++)
                             {
-                                var blockResult = await client.GetBlockByUIndex(j);
+                                var blockResult = await client.GetBlockByUIndex(j).ConfigureAwait(false);
                                 if (blockResult.ResultCode == APIResultCodes.Success)
                                 {
                                     AddBlock(blockResult.GetBlock() as TransactionBlock);
@@ -258,20 +257,20 @@ namespace Lyra
                             return true;
                         }
 
-                        var copyOK = await DoCopyBlock();
+                        var copyOK = await DoCopyBlock().ConfigureAwait(false);
                         if(copyOK)
                         {
-                            LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
                             break;
                         }
                         else
                         {
-                            await Task.Delay(5000);
+                            await Task.Delay(5000).ConfigureAwait(false);
                         }
                     }
                 }
 
                 InSyncing = false;
+                LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 _log.LogInformation("BlockChain Sync Completed.");
             });
         }
