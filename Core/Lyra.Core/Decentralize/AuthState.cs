@@ -10,7 +10,7 @@ namespace Lyra.Core.Decentralize
     public class AuthState
     {
         public DateTime Created { get; private set; }
-        private int ConfirmCount = 2;
+        private int ConfirmCount = 4;       // debug. success of 4/5
         public string HashOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
         public List<AuthorizedMsg> OutputMsgs { get; set; }
