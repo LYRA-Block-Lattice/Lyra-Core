@@ -1,3 +1,6 @@
+# Note
+Testnet launching date is not set yet, but very soon.
+
 # Lyra Permissionless Node Setup
 
 1. Install Linux (Ubuntu 18.04), or Windows, macOS
@@ -30,7 +33,7 @@ Install the ASP.NET Core runtime
 
 6. generate staking wallet by, give the wallet a name, e.g. "poswallet"
 
-   lyracli.exe --networkid ldxdev -p webapi
+   lyracli.exe --networkid testnet -p webapi
 
 7. modify lyranode2\appsettings.json, change monodb account/password, change the wallet/name to the name you created previous step.
 
