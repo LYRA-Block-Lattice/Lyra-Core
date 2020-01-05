@@ -10,7 +10,7 @@ namespace Lyra.Core.Decentralize
     public class AuthState
     {
         public DateTime Created { get; private set; }
-        private int ConfirmCount = 4;       // debug. success of 4/5
+
         public string HashOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
         public List<AuthorizedMsg> OutputMsgs { get; set; }
@@ -38,14 +38,14 @@ namespace Lyra.Core.Decentralize
         public void AddCommitedResult(AuthorizerCommitMsg msg)
         {
             CommitMsgs.Add(msg);
-            if (CommitMsgs.Count() >= ConfirmCount)
+            if (CommitMsgs.Count() >= ProtocolSettings.Default.ConsensusNumber)
             {
                 Settled = true;
                 Done.Set();
             }                
         }
 
-        public bool IsAuthoringSuccess => OutputMsgs.Count(a => a.IsSuccess) >= ConfirmCount;
+        public bool IsAuthoringSuccess => OutputMsgs.Count(a => a.IsSuccess) >= ProtocolSettings.Default.ConsensusNumber;
 
         public long ConsensusUIndex
         {
@@ -66,7 +66,7 @@ namespace Lyra.Core.Decentralize
                     var consensusedSeed = OutputMsgs.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
                         .OrderByDescending(b => b.Froms.Count)
                         .First();
-                    if (consensusedSeed.Froms.Count >= ConfirmCount)
+                    if (consensusedSeed.Froms.Count >= ProtocolSettings.Default.ConsensusNumber)
                     {
                         return consensusedSeed.UIndex;
                     }

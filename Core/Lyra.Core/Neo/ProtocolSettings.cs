@@ -11,7 +11,7 @@ namespace Neo
         public byte AddressVersion { get; }
         public string[] StandbyValidators { get; }
         public string[] SeedList { get; }
-        public uint MillisecondsPerBlock { get; }
+        public uint ConsensusNumber { get; }
         public int MemoryPoolMaxTransactions { get; }
 
         static ProtocolSettings _default;
@@ -67,7 +67,7 @@ namespace Neo
                 {
                     "seed.devnet.lyrashops.com:4503"
                 };
-            this.MillisecondsPerBlock = section.GetValue("MillisecondsPerBlock", 15000u);
+            this.ConsensusNumber = section.GetValue("ConsensusNumber", 17u);
             this.MemoryPoolMaxTransactions = Math.Max(1, section.GetValue("MemoryPoolMaxTransactions", 50_000));
         }
     }
