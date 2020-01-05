@@ -233,7 +233,16 @@ namespace Lyra.Core.Decentralize
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
                     // pickup UIndex
-                    block.UIndex = state.OutputMsgs.First(a => a.From == ProtocolSettings.Default.StandbyValidators[0]).BlockUIndex;
+                    try
+                    {
+                        block.UIndex = state.ConsensusUIndex;
+                    }
+                    catch(Exception ex)
+                    {
+                        _log.LogError("Can't get UIndex. System fail.");
+                        return;
+                    }
+                                        
                     block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
                     BlockChain.Singleton.AddBlock(block);

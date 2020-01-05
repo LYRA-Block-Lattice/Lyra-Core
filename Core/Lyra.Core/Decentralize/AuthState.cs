@@ -45,5 +45,35 @@ namespace Lyra.Core.Decentralize
         }
 
         public bool IsAuthoringSuccess => OutputMsgs.Count(a => a.IsSuccess) >= ConfirmCount;
+
+        public long ConsensusUIndex
+        {
+            get
+            {
+                if(IsAuthoringSuccess)
+                {
+                    // get from seed node. so we must keep seeds synced in perfect state.
+                    for(int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
+                    {
+                        var authenSeed = OutputMsgs.FirstOrDefault(a => a.From == ProtocolSettings.Default.StandbyValidators[i]);
+                        if (authenSeed != null)
+                        {
+                            return authenSeed.BlockUIndex;
+                        }
+                    }
+
+                    var consensusedSeed = OutputMsgs.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
+                        .OrderByDescending(b => b.Froms.Count)
+                        .First();
+                    if (consensusedSeed.Froms.Count >= ConfirmCount)
+                    {
+                        return consensusedSeed.UIndex;
+                    }
+                }
+
+                // out of lucky??? we should halt and switch to emgergency state
+                throw new Exception("Can't get UIndex");
+            }
+        }
     }
 }
