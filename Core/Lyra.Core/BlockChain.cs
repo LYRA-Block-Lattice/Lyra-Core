@@ -36,8 +36,6 @@ namespace Lyra
             _sys = sys;
             _store = new MongoAccountCollection(nodeConfig);
 
-            Singleton = this;
-
             if(0 == GetBlockCount())
             {
                 // do genesis
@@ -87,6 +85,8 @@ namespace Lyra
 
                 _store.AddBlock(consBlock);
             }
+
+            Singleton = this;
         }
         public static Props Props(LyraSystem system, LyraNodeConfig nodeConfig)
         {

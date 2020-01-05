@@ -31,7 +31,7 @@ namespace Lyra.Core.Decentralize
         Dictionary<string, AuthState> _activeConsensus;
 
         private AuthorizersFactory _authorizers;
-        private long _UIndexSeed;
+        private long _UIndexSeed = 0;
 
         public ConsensusService(IActorRef localNode)
         {
@@ -41,6 +41,9 @@ namespace Lyra.Core.Decentralize
             _activeConsensus = new Dictionary<string, AuthState>();
 
             _authorizers = new AuthorizersFactory();
+            while (BlockChain.Singleton == null)
+                Task.Delay(100).Wait();
+
             _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
 
             Receive<AuthorizingMsg>(async msg => {
