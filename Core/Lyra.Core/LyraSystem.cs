@@ -30,7 +30,6 @@ namespace Lyra
         public IActorRef LocalNode { get; }
         internal IActorRef TaskManager { get; }
         public IActorRef Consensus { get; private set; }
-        public ConsensusWorkingMode CurrentConsensusMode => Consensus.Ask<ConsensusService.ReplyForCurrentMode>(new ConsensusService.AskForCurrentMode()).Result.Mode;
 
         private ChannelsConfig start_message = null;
         private bool suspend = false;

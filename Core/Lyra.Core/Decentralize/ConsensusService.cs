@@ -25,7 +25,6 @@ namespace Lyra.Core.Decentralize
     public class ConsensusService : ReceiveActor
     {
         public class AskForCurrentMode { }
-        public class ReplyForCurrentMode { public ConsensusWorkingMode Mode { get; set; } }
         public class BlockChainSynced { }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
@@ -87,8 +86,6 @@ namespace Lyra.Core.Decentralize
             });
 
             Receive<BlockChainSynced>(_ => Mode = ConsensusWorkingMode.Normal);
-
-            Receive<AskForCurrentMode>(_ => new ReplyForCurrentMode { Mode = this.Mode });
 
             Task.Run(async () => { 
                 while(true)

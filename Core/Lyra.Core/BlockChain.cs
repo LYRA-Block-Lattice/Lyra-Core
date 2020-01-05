@@ -33,7 +33,7 @@ namespace Lyra
 
         public uint Height;
         public string NetworkID { get; private set; }
-
+        public bool InSyncing { get; private set; }
         private LyraNodeConfig _nodeConfig;
         private readonly IAccountCollection _store;
         private LyraSystem _sys;
@@ -186,6 +186,7 @@ namespace Lyra
         /// </summary>
         private void SyncBlocksFromSeeds(long ToUIndex)
         {
+            InSyncing = true;
             Task.Run(async () => {
 
                 while(true)
@@ -270,6 +271,7 @@ namespace Lyra
                     }
                 }
 
+                InSyncing = false;
                 _log.LogInformation("BlockChain Sync Completed.");
             });
         }
