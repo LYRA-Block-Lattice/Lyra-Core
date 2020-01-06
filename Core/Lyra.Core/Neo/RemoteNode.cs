@@ -12,6 +12,7 @@ using Neo.Network.P2P.Payloads;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace Neo.Network.P2P
 {
@@ -43,6 +44,9 @@ namespace Neo.Network.P2P
             this.system = system;
             this.protocol = Context.ActorOf(ProtocolHandler.Props(system));
             LocalNode.Singleton.RemoteNodes.TryAdd(Self, this);
+
+            while (BlockChain.Singleton == null)
+                Task.Delay(100).Wait();
 
             var capabilities = new List<NodeCapability>
             {

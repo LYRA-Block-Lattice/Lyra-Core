@@ -172,7 +172,7 @@ namespace LyraWallet.ViewModels
                     await Refresh();
                     //break;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     times++;
                     await Task.Delay(2000 * times);

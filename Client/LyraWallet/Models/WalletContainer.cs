@@ -72,7 +72,7 @@ namespace LyraWallet.Models
             // setup API clients
             var platform = DeviceInfo.Platform.ToString();
 
-            var client = App.ServiceProvider.GetService(typeof(IHostedService));
+            //var client = App.ServiceProvider.GetService(typeof(IHostedService));
 
             //_nodeApiClient = new DAGAPIClient((DAGClientHostedService)client);
             //while ((client as DAGClientHostedService).Node == null)

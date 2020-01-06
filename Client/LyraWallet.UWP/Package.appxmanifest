@@ -31,5 +31,7 @@
     <Capability Name="internetClient" />
     <Capability Name="privateNetworkClientServer" />
     <Capability Name="internetClientServer" />
+    <uap:Capability Name="enterpriseAuthentication"/>
+    <DeviceCapability Name="proximity"/>
   </Capabilities>
 </Package>
