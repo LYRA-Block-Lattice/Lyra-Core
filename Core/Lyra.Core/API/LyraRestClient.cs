@@ -38,8 +38,7 @@ namespace Lyra.Core.API
 
             if(platform == "Android" || platform == "Windows" || platform == "Win32NT")
             {
-                httpClientHandler.ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;                    
             }
 
             _client = new HttpClient(httpClientHandler);

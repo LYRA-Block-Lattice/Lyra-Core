@@ -1,15 +1,9 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Transactions;
-
 using Lyra.Core.Cryptography;
 using Lyra.Core.Accounts;
-using Lyra.Core.Accounts.Node;
 using System;
 using System.Collections.Generic;
-using Lyra.Core.Protos;
-using Lyra.Node2.Authorizers;
-
 
 // The test script:
 // Account  Height  Block                   TransAmount                 Fee, LGT       Balance, LGT       Balance, USD    TradeAmount Price

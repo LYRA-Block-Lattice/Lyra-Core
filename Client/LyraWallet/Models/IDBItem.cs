@@ -6,6 +6,6 @@ namespace LyraWallet.Models
 {
     public interface IDBItem
     {
-        public int ID { get; set; }
+        int ID { get; set; }
     }
 }

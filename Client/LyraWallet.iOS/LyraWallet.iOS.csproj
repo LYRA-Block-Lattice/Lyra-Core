@@ -82,8 +82,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Reflection.Emit">
-      <Version>4.3.0</Version>
+      <Version>4.7.0</Version>
       <ExcludeAssets>all</ExcludeAssets>
+      <IncludeAssets>none</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -171,7 +172,7 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="4.3.0.991221" />
+    <PackageReference Include="Xamarin.Forms" Version="4.4.0.991265" />
     <PackageReference Include="ZXing.Net.Mobile.Forms">
       <Version>2.4.1</Version>
     </PackageReference>
