@@ -36,7 +36,7 @@ namespace Lyra.Core.Decentralize
         Dictionary<string, AuthState> _activeConsensus;
 
         private AuthorizersFactory _authorizers;
-        private long _UIndexSeed = 0;
+        private long _UIndexSeed = -1;
 
         public ConsensusWorkingMode Mode { get; private set; }
 
@@ -274,7 +274,7 @@ namespace Lyra.Core.Decentralize
                     }
                     catch (Exception ex)
                     {
-                        _log.LogError("Can't get UIndex. System fail.");
+                        _log.LogError("Can't get UIndex. System fail: " + ex.Message);
                         return;
                     }
 
