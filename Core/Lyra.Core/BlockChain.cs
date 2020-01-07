@@ -172,6 +172,11 @@ namespace Lyra
                 });
 
                 _store.AddBlock(consBlock);
+
+                // tell consensus what happened
+                InSyncing = false;
+                LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
+                _log.LogInformation("Service Genesis Completed.");
             }
             else
             {
