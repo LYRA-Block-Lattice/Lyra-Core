@@ -155,10 +155,12 @@ namespace Lyra.Core.Decentralize
             var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
             //_log.LogInformation($"Consensus: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
 
-            while (LocalNode.Singleton.RemoteNodes.Count < 1)
+            int waitCount = 5;
+            while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
             {
                 _log.LogWarning("Not connected to Lyra Network. Delay sending... ");
-                Task.Delay(2000).Wait();
+                Task.Delay(1000).Wait();
+                waitCount--;
             }
 
             _localNode.Tell(msg);

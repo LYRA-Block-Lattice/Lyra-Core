@@ -15,8 +15,7 @@ namespace LyraNodesBot
     {
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Wait for Lyra node start. Press enter to continue...");
-            await Task.Delay(20000);
+            System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
 
             using (var host = CreateHost())
             {

@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Decentralize;
+﻿using Lyra.Core.API;
+using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
@@ -7,6 +8,7 @@ using System;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -23,7 +25,7 @@ namespace LyraNodesBot
     {
         private readonly TelegramBotClient Bot = new TelegramBotClient(System.IO.File.ReadAllText(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\telegram.txt"));
 
-         private ChatId _groupId = new ChatId(-1001462436848);
+        private ChatId _groupId = new ChatId(-1001462436848);
         private LyraNodeConfig _config;
 
         private ConsensusRuntimeConfig _runtimeCfg;
@@ -122,22 +124,20 @@ namespace LyraNodesBot
 
             switch (message.Text.Split(' ', '@').First())
             {
-//                case "/nodes":
-//                    await UsingZookeeper(async (zk) =>
-//                    {
-//                        var cfg = await zk.getDataAsync("/lyra");
-//                        _runtimeCfg = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
-                        
-//                        var text = $@"*BlockChain Mode*: {_runtimeCfg.Mode}
-//*Seeds Nodes*: {string.Join(',', _runtimeCfg.Seeds.ToArray())}
-//*Current Seed Node*: {_runtimeCfg.CurrentSeed}
-//*Primary Authorizer Nodes*: {_runtimeCfg.PrimaryAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
-//*Backup Authorizer Nodes*: {_runtimeCfg.BackupAuthorizerNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}
-//*Voting Nodes*: {_runtimeCfg.VotingNodes.Aggregate("", (a, b) => { return a.ToString() + "\n    " + b.ToString(); })}";
-
-//                        await SendGroupMessageAsync(text);
-//                    });
-//                    break;
+                case "/nodes":
+                    var wc = new WebClient();
+                    var json = wc.DownloadString(LyraGlobal.SelectNode("devnet") + "LyraNode/GetBillboard");
+                    var bb = JsonConvert.DeserializeObject<BillBoard>(json);
+                    var sb = new StringBuilder();
+                    foreach(var node in bb.AllNodes.Values)
+                    {
+                        sb.AppendLine($"{node.AccountID}");
+                        sb.AppendLine($"Staking Balance: {node.Balance}");
+                        sb.AppendLine($"Last Staking Time: {node.LastStaking}");
+                        sb.AppendLine();
+                    }
+                    await SendGroupMessageAsync(sb.ToString());
+                    break;
                 case "/tps":
                     await SendGroupMessageAsync("No Data");
                     break;
