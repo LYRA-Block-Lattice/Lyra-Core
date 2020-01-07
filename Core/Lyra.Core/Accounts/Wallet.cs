@@ -513,7 +513,7 @@ namespace Lyra.Core.Accounts
 
         //}
 
-        public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.LYRA_TICKER_CODE, bool ToExchange = false)
+        public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.LYRATICKERCODE, bool ToExchange = false)
         {
             Trace.Assert(Amount > 0);
             if (Amount <= 0)
@@ -540,7 +540,7 @@ namespace Lyra.Core.Accounts
 
             var fee = ToExchange ? ExchangingBlock.FEE : TransferFee;
 
-            if (ticker == LyraGlobal.LYRA_TICKER_CODE)
+            if (ticker == LyraGlobal.LYRATICKERCODE)
                 balance_change += fee;
 
             // see if we have enough tokens
@@ -551,8 +551,8 @@ namespace Lyra.Core.Accounts
             }
 
             // see if we have enough LYR to pay the transfer fee
-            if (ticker != LyraGlobal.LYRA_TICKER_CODE)
-                if (!previousBlock.Balances.ContainsKey(LyraGlobal.LYRA_TICKER_CODE) || previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] < fee)
+            if (ticker != LyraGlobal.LYRATICKERCODE)
+                if (!previousBlock.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE) || previousBlock.Balances[LyraGlobal.LYRATICKERCODE] < fee)
                 {
                     //throw new ApplicationException("Insufficient funds to pay transfer fee");
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
@@ -569,7 +569,7 @@ namespace Lyra.Core.Accounts
                     Balances = new Dictionary<string, decimal>(),
                     //PaymentID = string.Empty,
                     Fee = fee,
-                    FeeCode = LyraGlobal.LYRA_TICKER_CODE,
+                    FeeCode = LyraGlobal.LYRATICKERCODE,
                     FeeType = AuthorizationFeeTypes.Regular
                 };
             }
@@ -583,7 +583,7 @@ namespace Lyra.Core.Accounts
                     Balances = new Dictionary<string, decimal>(),
                     //PaymentID = string.Empty,
                     Fee = fee,
-                    FeeCode = LyraGlobal.LYRA_TICKER_CODE,
+                    FeeCode = LyraGlobal.LYRATICKERCODE,
                     FeeType = AuthorizationFeeTypes.Regular
                 };
             };
@@ -592,8 +592,8 @@ namespace Lyra.Core.Accounts
             //sendBlock.Transaction = transaction;
 
             // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
-            if (ticker != LyraGlobal.LYRA_TICKER_CODE)
-                sendBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - fee);
+            if (ticker != LyraGlobal.LYRATICKERCODE)
+                sendBlock.Balances.Add(LyraGlobal.LYRATICKERCODE, previousBlock.Balances[LyraGlobal.LYRATICKERCODE] - fee);
 
             // transfer unchanged token balances from the previous block
             foreach (var balance in previousBlock.Balances)
@@ -1077,11 +1077,11 @@ namespace Lyra.Core.Accounts
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
             {
                 AccountType = AccountTypes.Standard,
-                Ticker = LyraGlobal.LYRA_TICKER_CODE,
+                Ticker = LyraGlobal.LYRATICKERCODE,
                 DomainName = "Lyra",
                 ContractType = ContractTypes.Cryptocurrency,
                 Description = "Lyra Permissioned Gas Token",
-                Precision = LyraGlobal.LYRA_PRECISION,
+                Precision = LyraGlobal.LYRAPRECISION,
                 //Balances.Add // =  //10000000000, 
                 IsFinalSupply = true,
                 //CustomFee = 0,
@@ -1158,7 +1158,7 @@ namespace Lyra.Core.Accounts
             string ticker = domainName + "." + tokenName;
 
             TransactionBlock latestBlock = GetLatestBlock();
-            if (latestBlock == null || latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] < TokenGenerationFee)
+            if (latestBlock == null || latestBlock.Balances[LyraGlobal.LYRATICKERCODE] < TokenGenerationFee)
             {
                 //throw new ApplicationException("Insufficent funds");
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
@@ -1192,7 +1192,7 @@ namespace Lyra.Core.Accounts
             var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply };
 
             tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
-            tokenBlock.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, latestBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - TokenGenerationFee);
+            tokenBlock.Balances.Add(LyraGlobal.LYRATICKERCODE, latestBlock.Balances[LyraGlobal.LYRATICKERCODE] - TokenGenerationFee);
             //tokenBlock.Transaction = transaction;
             // transfer unchanged token balances from the previous block
             foreach (var balance in latestBlock.Balances)

@@ -23,7 +23,7 @@ namespace Lyra.Core.Blocks
 
         public override TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
         {
-            var transaction = new TransactionInfoEx() { TokenCode = LyraGlobal.LYRA_TICKER_CODE, Amount = 0, FeeAmount = 0, FeeCode = null };
+            var transaction = new TransactionInfoEx() { TokenCode = LyraGlobal.LYRATICKERCODE, Amount = 0, FeeAmount = 0, FeeCode = null };
 
             // let's find te balance that was changed since the previous block - to determine the token being transacted
             foreach (var balance in this.Balances)

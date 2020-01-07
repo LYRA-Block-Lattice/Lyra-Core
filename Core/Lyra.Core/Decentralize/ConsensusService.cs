@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
 using Lyra.Core.Accounts;
+using Lyra.Core.API;
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Core.Utils;
@@ -54,6 +55,9 @@ namespace Lyra.Core.Decentralize
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
             Receive<AuthorizingMsg>(async msg => {
+                if (msg.Version != LyraGlobal.ProtocolVersion)
+                    Context.Sender.Tell(null);
+
                 // first try auth locally
                 var state = CreateAuthringState(msg);
                 var localAuthResult = LocalAuthorizingAsync(msg);
@@ -73,8 +77,8 @@ namespace Lyra.Core.Decentralize
 
                     await Task.Run(() =>
                     {
-                        state.Done.WaitOne();
-                    });
+                        _ = state.Done.WaitOne();
+                    }).ConfigureAwait(false);
 
                     sender.Tell(state);                    
                 }
@@ -82,20 +86,31 @@ namespace Lyra.Core.Decentralize
 
             Receive<SignedMessageRelay>(relayMsg =>
             {
-                OnNextConsensusMessage(relayMsg.signedMessage);
+                if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
+                    OnNextConsensusMessage(relayMsg.signedMessage);
+                else
+                    _log.LogWarning("Protocol Version Mismatch. Do nothing.");
             });
 
             Receive<BlockChainSynced>(_ =>
             {
                 Mode = ConsensusWorkingMode.Normal;
                 _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
+
+                // declare to the network
+                var msg = new ChatMsg
+                {
+                    From = NodeService.Instance.PosWallet.AccountId,
+                    MsgType = ChatMessageType.NodeUp,
+
+                };
             });
 
             Task.Run(async () => { 
                 while(true)
                 {
                     StateClean();
-                    await Task.Delay(1000);
+                    await Task.Delay(1000).ConfigureAwait(false);
                 }
             });
         }

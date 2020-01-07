@@ -127,7 +127,7 @@ namespace LyraWallet.ViewModels
                     {
                         for(int i = 0; i < TokenNames.Count; i++)
                         {
-                            if (TokenNames[i] == LyraGlobal.LYRA_TICKER_CODE)
+                            if (TokenNames[i] == LyraGlobal.LYRATICKERCODE)
                                 SelectedIndex = i;
                         }
                     }

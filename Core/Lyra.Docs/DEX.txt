@@ -1,3 +1,0 @@
-﻿every new order save to the <queuedOrders>
-
-loop through queuedOrders, look for deal: token name, buy to sel/sell to buy, price ordered,

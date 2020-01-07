@@ -4,13 +4,15 @@ using System.Text;
 
 namespace Lyra.Core.API
 {
-    public class LyraGlobal
+    public sealed class LyraGlobal
     {
-        public const string LYRA_TICKER_CODE = "Lyra.Coin";
-        public const int LYRA_PRECISION = 8;
+        public const string LYRATICKERCODE = "Lyra.Coin";
+        public const int LYRAPRECISION = 8;
 
-        public static readonly int APIVERSION = 3;
-        public static readonly string NodeVersion = "LyraLex 1.0";
+        public const int ProtocolVersion = 1;
+
+        public const string NodeAppName = "Lyra Permisionless 1.0";
+
 #if DEBUG
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
             "devnet"

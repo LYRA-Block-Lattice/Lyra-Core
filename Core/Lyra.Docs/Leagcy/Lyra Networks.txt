@@ -1,8 +1,0 @@
-﻿Network Name    Server Address              Description
-
-testnet         node1.testnet.lyra.live     public demo/testnet
-devnet          node.dev.lyra.live          Shopify development
-shoptest        node1.shoptest.lyra.live    Shopify public demo/testnet
-shopstage       node1.shopstage.lyra.live   Shopify QA/stage
-mainnet         node1.lyra.live             Shopify production / mainnet
-local           localhost                   local dev network

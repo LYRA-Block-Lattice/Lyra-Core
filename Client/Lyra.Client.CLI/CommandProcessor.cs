@@ -286,7 +286,7 @@ namespace Lyra.Client.CLI
             string ticker = null;
             if (_wallet.NumberOfNonZeroBalances > 1)
             {
-                Console.WriteLine(string.Format("Please select token to send, or press Enter for {0}: ", LyraGlobal.LYRA_TICKER_CODE));
+                Console.WriteLine(string.Format("Please select token to send, or press Enter for {0}: ", LyraGlobal.LYRATICKERCODE));
                 ticker = Console.ReadLine();
 
             }

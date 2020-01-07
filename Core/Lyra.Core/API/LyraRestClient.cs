@@ -98,7 +98,7 @@ namespace Lyra.Core.API
 
         private async Task<bool> CheckApiVersion()
         {
-            var ret = await GetVersion(LyraGlobal.APIVERSION, _appName, _appVersion);
+            var ret = await GetVersion(LyraGlobal.ProtocolVersion, _appName, _appVersion);
             if (ret.MustUpgradeToConnect)
                 return false;
             else

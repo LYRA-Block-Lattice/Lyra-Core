@@ -186,7 +186,7 @@ namespace Lyra.Core.Exchange
                                 curOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
                                 tradedAmount);
                             ctrans = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
-                                matchedOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
+                                matchedOrder.ExchangeAccountId, LyraGlobal.LYRATICKERCODE,
                                 lyraAmount);
 
                             //// transfer back the result to user wallet
@@ -199,7 +199,7 @@ namespace Lyra.Core.Exchange
                             var tradedPrice = Math.Max(matchedOrder.Order.Price, curOrder.Order.Price);
                             var lyraAmount = tradedAmount * tradedPrice;
                             mtrans = await SendFromExchangeAccountToAnotherAsync(matchedOrder.ExchangeAccountId,
-                                curOrder.ExchangeAccountId, LyraGlobal.LYRA_TICKER_CODE,
+                                curOrder.ExchangeAccountId, LyraGlobal.LYRATICKERCODE,
                                 lyraAmount);
                             ctrans = await SendFromExchangeAccountToAnotherAsync(curOrder.ExchangeAccountId,
                                 matchedOrder.ExchangeAccountId, matchedOrder.Order.TokenName,
@@ -313,7 +313,7 @@ namespace Lyra.Core.Exchange
                         int sendCount = 0;
                         foreach (var kvp in transb.Balances)
                         {
-                            if (kvp.Value > 0 && kvp.Key != LyraGlobal.LYRA_TICKER_CODE)
+                            if (kvp.Value > 0 && kvp.Key != LyraGlobal.LYRATICKERCODE)
                             {
                                 var ret = await fromWallet.Send(kvp.Value, associatedAccountId, kvp.Key, true);
                                 Trace.Assert(ret.ResultCode == APIResultCodes.Success);
@@ -323,9 +323,9 @@ namespace Lyra.Core.Exchange
 
                         sendCount++;
 
-                        if (transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - sendCount * ExchangingBlock.FEE > 0)
+                        if (transb.Balances[LyraGlobal.LYRATICKERCODE] - sendCount * ExchangingBlock.FEE > 0)
                         {
-                            var ret2 = await fromWallet.Send(transb.Balances[LyraGlobal.LYRA_TICKER_CODE] - sendCount * ExchangingBlock.FEE, associatedAccountId, LyraGlobal.LYRA_TICKER_CODE, true);
+                            var ret2 = await fromWallet.Send(transb.Balances[LyraGlobal.LYRATICKERCODE] - sendCount * ExchangingBlock.FEE, associatedAccountId, LyraGlobal.LYRATICKERCODE, true);
                             Trace.Assert(ret2.ResultCode == APIResultCodes.Success);
                         }
                     }

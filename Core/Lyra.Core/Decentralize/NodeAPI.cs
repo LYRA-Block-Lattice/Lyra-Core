@@ -56,10 +56,10 @@ namespace Lyra.Core.Decentralize
             var result = new GetVersionAPIResult()
             {
                 ResultCode = APIResultCodes.Success,
-                ApiVersion = LyraGlobal.APIVERSION,
-                NodeVersion = LyraGlobal.NodeVersion,
+                ApiVersion = LyraGlobal.ProtocolVersion,
+                NodeVersion = LyraGlobal.NodeAppName,
                 UpgradeNeeded = false,
-                MustUpgradeToConnect = apiVersion < LyraGlobal.APIVERSION
+                MustUpgradeToConnect = apiVersion < LyraGlobal.ProtocolVersion
             };
             return Task.FromResult(result);
         }

@@ -161,7 +161,7 @@ namespace Lyra.Core.Authorizers
         {
             TransactionInfoEx transaction = send_or_receice_block.GetTransaction(previousBlock);
 
-            if (transaction.TokenCode == LyraGlobal.LYRA_TICKER_CODE)
+            if (transaction.TokenCode == LyraGlobal.LYRATICKERCODE)
                 return APIResultCodes.Success;
 
             var token_block = BlockChain.Singleton.FindTokenGenesisBlock(null, transaction.TokenCode);

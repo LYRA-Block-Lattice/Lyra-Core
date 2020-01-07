@@ -127,7 +127,7 @@ namespace LyraWallet.ViewModels
                             }
                             else if (lyraUri.PathAndQuery.StartsWith("/payme"))
                             {
-                                var transPage = new TransferPage(LyraGlobal.LYRA_TICKER_CODE,
+                                var transPage = new TransferPage(LyraGlobal.LYRATICKERCODE,
                                     lyraUri.AccountID);
                                 await _thePage.Navigation.PushAsync(transPage);
                                 return;

@@ -15,9 +15,14 @@ namespace Lyra.Core.Decentralize
 		/// </summary>
 		public string From { get; set; }
 		public ChatMessageType MsgType { get; set; }
+		public int Version { get; set; }
+		public DateTime Created { get; set; } = DateTime.Now;
 
 		public virtual int Size => From.Length + 1
-			+ Hash.Length + Signature.Length;
+			+ Hash.Length + Signature.Length
+			+ sizeof(ChatMessageType)
+			+ sizeof(int)
+			+ TimeSize;
 
 		public virtual void Deserialize(BinaryReader reader)
 		{
@@ -25,6 +30,8 @@ namespace Lyra.Core.Decentralize
 			Signature = reader.ReadString();
 			From = reader.ReadString();
 			MsgType = (ChatMessageType)reader.ReadByte();
+			Version = reader.ReadInt32();
+			Created = DateTime.FromBinary(reader.ReadInt64());
 		}
 
 		public virtual void Serialize(BinaryWriter writer)
@@ -33,69 +40,21 @@ namespace Lyra.Core.Decentralize
 			writer.Write(Signature);
 			writer.Write(From);
 			writer.Write((byte)MsgType);
+			writer.Write(Version);
+			writer.Write(Created.ToBinary());
 		}
 
 		public override string GetHashInput()
 		{
-			return "";
+			return $"{From}|{MsgType}|{Version}|{DateTimeToString(Created)}";
 		}
 
 		protected override string GetExtraData()
 		{
-			return From;
+			return "";
 		}
 
-		protected TransactionBlock GetBlock(BlockTypes blockType, string json)
-		{
-			var ar = new BlockAPIResult {
-				ResultBlockType = blockType,
-				BlockData = json
-			};
-			return ar.GetBlock() as TransactionBlock;
-		}
-	}
-
-	public class ChatMsg : SourceSignedMessage
-	{
-		public string Text { get; set; }
-
-		public DateTime Created { get; set; } = DateTime.Now;
-		public int Version { get; set; }
-		public string NetworkId { get; set; }
-
-		public ChatMsg()
-		{
-			MsgType = ChatMessageType.General;
-		}
-
-		public override int Size => base.Size +
-			sizeof(ChatMessageType) +
-			Text.Length +
-			TimeSize +
-			sizeof(int) +
-			NetworkId.Length;
-
-		public override void Serialize(BinaryWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write((byte)MsgType);
-			writer.Write(Text);
-			writer.Write(Created.ToBinary());
-			writer.Write(Version);
-			writer.Write(NetworkId);
-		}
-
-		public override void Deserialize(BinaryReader reader)
-		{
-			base.Deserialize(reader);
-			MsgType = (ChatMessageType)reader.ReadByte();
-			Text = reader.ReadString();
-			Created = DateTime.FromBinary(reader.ReadInt64());
-			Version = reader.ReadInt32();
-			NetworkId = reader.ReadString();
-		}
-
-		private int TimeSize
+		protected int TimeSize
 		{
 			get
 			{
@@ -107,23 +66,40 @@ namespace Lyra.Core.Decentralize
 				return s;
 			}
 		}
+	}
 
-		public ChatMsg(string author, string msg) : this()
+	public class ChatMsg : SourceSignedMessage
+	{
+		public string Text { get; set; }
+
+		public ChatMsg()
 		{
-			From = author;
+			MsgType = ChatMessageType.General;
+		}
+		public ChatMsg(string from, string msg)
+		{
+			From = from;
 			Text = msg;
+		}
+
+		public override int Size => base.Size + Text.Length;
+
+		public override void Serialize(BinaryWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write(Text);			
+		}
+
+		public override void Deserialize(BinaryReader reader)
+		{
+			base.Deserialize(reader);
+			Text = reader.ReadString();
 		}
 
 		public override string GetHashInput()
 		{
-			return From + "|" +
-				DateTimeToString(Created) + "|" +
-				this.Version + "|" +
-				this.NetworkId + "|" +
-				this.From + "|" +
-				this.MsgType.ToString() + "|" +
-				this.Text +
-				base.GetHashInput();
+			return base.GetHashInput() + "|" +
+				this.Text;
 		}
 
 		// should be overriden in specific instance to get the correct hash claculated from the entire block data 
@@ -167,6 +143,16 @@ namespace Lyra.Core.Decentralize
 			var typ = (BlockTypes)reader.ReadByte();
 			var json = reader.ReadString();
 			Block = GetBlock(typ, json);
+		}
+
+		protected TransactionBlock GetBlock(BlockTypes blockType, string json)
+		{
+			var ar = new BlockAPIResult
+			{
+				ResultBlockType = blockType,
+				BlockData = json
+			};
+			return ar.GetBlock() as TransactionBlock;
 		}
 	}
 

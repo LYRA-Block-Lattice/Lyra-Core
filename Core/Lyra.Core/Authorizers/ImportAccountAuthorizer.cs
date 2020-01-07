@@ -109,7 +109,7 @@ namespace Lyra.Core.Authorizers
             else
             if (block.BlockType == BlockTypes.ReceiveFee || block.BlockType == BlockTypes.OpenAccountWithReceiveFee)
             {
-                sendTransaction = new TransactionInfo() { TokenCode = LyraGlobal.LYRA_TICKER_CODE, Amount = sourceBlock.Fee };
+                sendTransaction = new TransactionInfo() { TokenCode = LyraGlobal.LYRATICKERCODE, Amount = sourceBlock.Fee };
             }
             else
                 return APIResultCodes.InvalidBlockType;
