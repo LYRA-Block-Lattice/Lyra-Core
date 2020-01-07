@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Lyra.Core.Decentralize
 {
-	public enum ChatMessageType : byte { General, SeedChanged, NodeUp, NodeDown, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
+	public enum ChatMessageType  { General, NodeUp, NodeDown, StakingChanges, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
 
 	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable
 	{
@@ -29,7 +29,7 @@ namespace Lyra.Core.Decentralize
 			Hash = reader.ReadString();
 			Signature = reader.ReadString();
 			From = reader.ReadString();
-			MsgType = (ChatMessageType)reader.ReadByte();
+			MsgType = (ChatMessageType)reader.ReadInt32();
 			Version = reader.ReadInt32();
 			Created = DateTime.FromBinary(reader.ReadInt64());
 		}
@@ -39,7 +39,7 @@ namespace Lyra.Core.Decentralize
 			writer.Write(Hash);
 			writer.Write(Signature);
 			writer.Write(From);
-			writer.Write((byte)MsgType);
+			writer.Write((int)MsgType);
 			writer.Write(Version);
 			writer.Write(Created.ToBinary());
 		}

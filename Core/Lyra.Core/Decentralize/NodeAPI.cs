@@ -319,6 +319,5 @@ namespace Lyra.Core.Decentralize
             return JsonConvert.SerializeObject(o);
         }
 
-
     }
 }

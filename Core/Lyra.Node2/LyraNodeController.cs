@@ -6,6 +6,7 @@ using Lyra;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using Lyra.Exchange;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -41,6 +42,13 @@ namespace LyraLexWeb2
         {
             CheckSyncState();
             return await _node.GetSyncHeight();
+        }
+
+        [Route("GetBillboard")]
+        public async Task<BillBoard> GetBillboard()
+        {
+            CheckSyncState();
+            return await _trans.GetBillBoardAsync();
         }
 
         [Route("GetVersion")]

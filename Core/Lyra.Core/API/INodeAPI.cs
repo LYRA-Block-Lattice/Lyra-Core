@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using Lyra.Exchange;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 namespace Lyra.Core.API
 {
     public interface INodeAPI
-    { 
+    {
         #region Blocklist information methods
         Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion);
 
@@ -49,7 +50,9 @@ namespace Lyra.Core.API
     }
 
     public interface INodeTransactionAPI
-    { 
+    {
+        Task<BillBoard> GetBillBoardAsync();
+
         #region Authorization methods 
         // These methods return authorization result and authorizers' signatures if approved
 

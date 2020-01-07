@@ -25,7 +25,7 @@ namespace Lyra.Core.Decentralize
     /// </summary>
     public class ConsensusService : ReceiveActor
     {
-        public class AskForCurrentMode { }
+        public class AskForBillboard { }
         public class BlockChainSynced { }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
@@ -34,6 +34,7 @@ namespace Lyra.Core.Decentralize
 
         // hash, authState
         Dictionary<string, AuthState> _activeConsensus;
+        private BillBoard _board;
 
         private AuthorizersFactory _authorizers;
         private long _UIndexSeed = -1;
@@ -46,6 +47,7 @@ namespace Lyra.Core.Decentralize
             _log = new SimpleLogger("ConsensusService").Logger;
 
             _activeConsensus = new Dictionary<string, AuthState>();
+            _board = new BillBoard();
 
             _authorizers = new AuthorizersFactory();
             while (BlockChain.Singleton == null)
@@ -54,9 +56,11 @@ namespace Lyra.Core.Decentralize
             _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
+            Receive<AskForBillboard>((_) => Sender.Tell(_board));
+
             Receive<AuthorizingMsg>(async msg => {
                 if (msg.Version != LyraGlobal.ProtocolVersion)
-                    Context.Sender.Tell(null);
+                    Sender.Tell(null);
 
                 // first try auth locally
                 var state = CreateAuthringState(msg);
@@ -102,8 +106,10 @@ namespace Lyra.Core.Decentralize
                 {
                     From = NodeService.Instance.PosWallet.AccountId,
                     MsgType = ChatMessageType.NodeUp,
-
+                    Text = "Staking with () Lyra"
                 };
+
+                Send2P2pNetwork(msg);
             });
 
             Task.Run(async () => { 
@@ -175,19 +181,37 @@ namespace Lyra.Core.Decentralize
                 case AuthorizerCommitMsg commited:
                     OnCommit(commited);
                     break;
-                //case ChatMsg chat:
-                //    await OnChatMsg(chat);
-                //    break;
+                case ChatMsg chat when chat.MsgType == ChatMessageType.NodeUp || chat.MsgType == ChatMessageType.StakingChanges:
+                    OnNodeUp(chat);
+                    break;
                 default:
                     // log msg unknown
                     break;
             }
         }
 
-        //private async Task OnChatMsg(ChatMsg chat)
-        //{
+        private void OnNodeUp(ChatMsg chat)
+        {
+            PosNode node;
+            if (_board.AllNodes.ContainsKey(chat.From))
+                node = _board.AllNodes[chat.From];
+            else
+            {
+                node = new PosNode(chat.From);
+                _board.AllNodes.Add(chat.From, node);
+            }
+            // lookup balance
+            var block = BlockChain.Singleton.FindLatestBlock(node.AccountID);
+            if(block != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
+            {
+                node.Balance = block.Balances[LyraGlobal.LYRATICKERCODE];
+            }
 
-        //}
+            if(node.Balance < LyraGlobal.MinimalAuthorizerBalance)
+            {
+                _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Balance);
+            }
+        }
 
         private AuthState CreateAuthringState(AuthorizingMsg item)
         {

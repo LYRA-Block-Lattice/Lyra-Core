@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using Lyra.Exchange;
 using System;
 using System.Collections.Generic;
@@ -104,7 +105,12 @@ namespace Lyra.Core.API
             else
                 return true;
         }
-        
+
+        public Task<BillBoard> GetBillBoardAsync()
+        {
+            return Get<BillBoard>("GetBillboard", null);
+        }
+
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
             HttpResponseMessage response = await _client.GetAsync("GetSyncState");
@@ -348,7 +354,6 @@ namespace Lyra.Core.API
         {
             throw new NotImplementedException();
         }
-
 
     }
 }

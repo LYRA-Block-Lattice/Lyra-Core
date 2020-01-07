@@ -13,6 +13,8 @@ namespace Lyra.Core.API
 
         public const string NodeAppName = "Lyra Permisionless 1.0";
 
+        public const int MinimalAuthorizerBalance = 1000000;
+
 #if DEBUG
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
             "devnet"
