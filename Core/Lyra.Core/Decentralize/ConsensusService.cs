@@ -49,6 +49,7 @@ namespace Lyra.Core.Decentralize
 
             _activeConsensus = new Dictionary<string, AuthState>();
             _board = new BillBoard();
+            _board.Add(NodeService.Instance.PosWallet.AccountId);   // add me!
 
             _authorizers = new AuthorizersFactory();
             while (BlockChain.Singleton == null)
@@ -201,20 +202,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnNodeUp(ChatMsg chat)
         {
-            PosNode node;
-            if (_board.AllNodes.ContainsKey(chat.From))
-                node = _board.AllNodes[chat.From];
-            else
-            {
-                node = new PosNode(chat.From);
-                _board.AllNodes.Add(chat.From, node);
-            }
-            // lookup balance
-            var block = BlockChain.Singleton.FindLatestBlock(node.AccountID);
-            if(block != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
-            {
-                node.Balance = block.Balances[LyraGlobal.LYRATICKERCODE];
-            }
+            var node = _board.Add(chat.From);
 
             if(node.Balance < LyraGlobal.MinimalAuthorizerBalance)
             {
