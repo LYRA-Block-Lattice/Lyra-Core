@@ -15,7 +15,7 @@ namespace Lyra.Core.Decentralize
 		/// </summary>
 		public string From { get; set; }
 		public ChatMessageType MsgType { get; set; }
-		public int Version { get; set; }
+		public int Version { get; set; } = LyraGlobal.ProtocolVersion;
 		public DateTime Created { get; set; } = DateTime.Now;
 
 		public virtual int Size => From.Length + 1
