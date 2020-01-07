@@ -8,6 +8,7 @@ using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.IO.Actors;
+using Neo.Network.P2P;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -100,7 +101,7 @@ namespace Lyra.Core.Decentralize
             {
                 Mode = ConsensusWorkingMode.Normal;
                 _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
-
+                
                 // declare to the network
                 var msg = new ChatMsg
                 {
@@ -152,7 +153,13 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"Consensus: SendMessage Called: msg From: {msg.From}");
 
             var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
-            _log.LogInformation($"Consensus: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
+            //_log.LogInformation($"Consensus: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
+
+            while (LocalNode.Singleton.RemoteNodes.Count < 1)
+            {
+                _log.LogWarning("Not connected to Lyra Network. Delay sending... ");
+                Task.Delay(2000).Wait();
+            }
 
             _localNode.Tell(msg);
         }
