@@ -42,3 +42,12 @@ Install the ASP.NET Core runtime
 
 `dotnet Lyra.Node2.dll`
 
+9. verify
+
+https://localhost:4505/api/LyraNode/GetSyncState
+should return like:
+`{"mode":0,"newestBlockUIndex":8,"resultCode":0,"resultMessage":null}`
+mode 0 is normal, mode 1 is syncing blocks.
+
+https://localhost:4505/api/LyraNode/GetBillboard
+display all connected nodes.
