@@ -66,15 +66,15 @@ namespace Lyra
                 StartConsensus();
 
                 TheBlockchain.Tell(new BlockChain.Startup());
-            });
 
-            if(NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
-            {
-                ActorSystem.Scheduler
-                   .ScheduleTellRepeatedly(TimeSpan.FromSeconds(300),
-                             TimeSpan.FromSeconds(600),
-                             Consensus, new ConsensusService.Consolidate(), ActorRefs.NoSender); //or ActorRefs.Nobody or something else
-            }
+                if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
+                {
+                    ActorSystem.Scheduler
+                       .ScheduleTellRepeatedly(TimeSpan.FromSeconds(300),
+                                 TimeSpan.FromSeconds(600),
+                                 Consensus, new ConsensusService.Consolidate(), ActorRefs.NoSender); //or ActorRefs.Nobody or something else
+                }
+            });
         }
 
         public void StartConsensus()
