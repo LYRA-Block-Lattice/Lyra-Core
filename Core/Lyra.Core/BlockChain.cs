@@ -135,7 +135,8 @@ namespace Lyra
                     ShardId = "Primary",
                     TransferFee = 1,
                     TokenGenerationFee = 100,
-                    TradeFee = 0.1m
+                    TradeFee = 0.1m,
+                    AccountID = NodeService.Instance.PosWallet.AccountId
                 };
                 authGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                     _nodeConfig.Lyra.NetworkId, authGenesis.ShardId,
@@ -158,7 +159,8 @@ namespace Lyra
                     NetworkId = authGenesis.NetworkId,
                     ShardId = authGenesis.ShardId,
                     ServiceHash = authGenesis.Hash,
-                    LastServiceBlockHash = authGenesis.Hash
+                    LastServiceBlockHash = authGenesis.Hash,
+                    AccountID = NodeService.Instance.PosWallet.AccountId
                 };
                 consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
                     _nodeConfig.Lyra.NetworkId, authGenesis.ShardId,
