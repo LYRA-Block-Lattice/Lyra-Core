@@ -421,15 +421,18 @@ namespace Lyra.Core.Decentralize
                     var block = state.InputMsg.Block;
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
-                    // pickup UIndex
-                    try
+                    if(block.BlockType != BlockTypes.Consolidation)
                     {
-                        block.UIndex = state.ConsensusUIndex;
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.LogError("Can't get UIndex. System fail: " + ex.Message);
-                        return;
+                        // pickup UIndex
+                        try
+                        {
+                            block.UIndex = state.ConsensusUIndex;
+                        }
+                        catch (Exception ex)
+                        {
+                            _log.LogError("Can't get UIndex. System fail: " + ex.Message);
+                            return;
+                        }
                     }
 
                     if (block.UIndex != _UIndexSeed - 1)
