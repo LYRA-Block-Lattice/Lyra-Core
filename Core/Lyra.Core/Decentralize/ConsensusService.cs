@@ -156,7 +156,7 @@ namespace Lyra.Core.Decentralize
 
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
             var mt = new MerkleTree();
-            for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx ++)
+            for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx++)
             {
                 var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
                 var mhash = MerkleHash.Create(block.UHash);
