@@ -175,6 +175,11 @@ namespace Lyra
 
                 // tell consensus what happened
                 InSyncing = false;
+
+                var board = new BillBoard();
+                board.Add(NodeService.Instance.PosWallet.AccountId);   // add me!
+
+                LyraSystem.Singleton.Consensus.Tell(board);
                 LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 _log.LogInformation("Service Genesis Completed.");
             }
@@ -235,6 +240,10 @@ namespace Lyra
                     }
                     else
                     {
+                        // update latest billboard
+                        var board = await client.GetBillBoardAsync();
+                        LyraSystem.Singleton.Consensus.Tell(board);
+
                         // do sync with node
                         long startUIndex = _store.GetNewestBlockUIndex() + 1;
 

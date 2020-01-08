@@ -27,6 +27,8 @@ namespace Lyra.Core.Decentralize
                 AllNodes.Add(accountId, node);
             }
 
+            node.LastStaking = DateTime.Now;
+
             // lookup balance
             var block = BlockChain.Singleton.FindLatestBlock(node.AccountID);
             if (block != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))

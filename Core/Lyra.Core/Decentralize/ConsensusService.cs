@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.IO.Actors;
 using Neo.Network.P2P;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,6 +27,7 @@ namespace Lyra.Core.Decentralize
     /// </summary>
     public class ConsensusService : ReceiveActor
     {
+        public class Consolidate { }
         public class AskForBillboard { }
         public class BlockChainSynced { }
         public class Authorized { public bool IsSuccess { get; set; } }
@@ -40,6 +42,7 @@ namespace Lyra.Core.Decentralize
         private AuthorizersFactory _authorizers;
         private long _UIndexSeed = -1;
 
+        public bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public ConsensusWorkingMode Mode { get; private set; }
 
         public ConsensusService(IActorRef localNode)
@@ -48,8 +51,6 @@ namespace Lyra.Core.Decentralize
             _log = new SimpleLogger("ConsensusService").Logger;
 
             _activeConsensus = new Dictionary<string, AuthState>();
-            _board = new BillBoard();
-            _board.Add(NodeService.Instance.PosWallet.AccountId);   // add me!
 
             _authorizers = new AuthorizersFactory();
             while (BlockChain.Singleton == null)
@@ -57,6 +58,21 @@ namespace Lyra.Core.Decentralize
 
             _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
+
+            Receive<Consolidate>((_) =>
+            {
+                _log.LogInformation("Doing Consolidate");
+                if(IsThisNodeSeed0)
+                {
+                    // TODO Consolidate blocks
+                    BroadCastBillBoard();
+                }
+            });
+
+            Receive<BillBoard>((bb) => { 
+                _board = bb;
+                _board.Add(NodeService.Instance.PosWallet.AccountId); //always add self
+            });
 
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
 
@@ -191,8 +207,11 @@ namespace Lyra.Core.Decentralize
                 case AuthorizerCommitMsg commited:
                     OnCommit(commited);
                     break;
-                case ChatMsg chat when chat.MsgType == ChatMessageType.NodeUp || chat.MsgType == ChatMessageType.StakingChanges:
+                case ChatMsg chat when chat.MsgType == ChatMessageType.NodeUp:
                     OnNodeUp(chat);
+                    break;
+                case ChatMsg bbb when bbb.MsgType == ChatMessageType.StakingChanges:
+                    OnBillBoardBroadcast(bbb);
                     break;
                 default:
                     // log msg unknown
@@ -200,9 +219,36 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        private void OnBillBoardBroadcast(ChatMsg msg)
+        {
+            if(!IsThisNodeSeed0)
+            {
+                _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
+                _log.LogInformation("BillBoard updated!");
+            }
+        }
+
+        private void BroadCastBillBoard()
+        {
+            var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, JsonConvert.SerializeObject(_board));
+            msg.MsgType = ChatMessageType.StakingChanges;
+            Send2P2pNetwork(msg);
+        }
+
+        private void OnNodeActive(string nodeAccountId)
+        {
+            _board.Add(nodeAccountId);
+        }
+
         private void OnNodeUp(ChatMsg chat)
         {
             var node = _board.Add(chat.From);
+
+            if(IsThisNodeSeed0)
+            {
+                // broadcast billboard
+                BroadCastBillBoard();
+            }
 
             if(node.Balance < LyraGlobal.MinimalAuthorizerBalance)
             {
@@ -334,6 +380,8 @@ namespace Lyra.Core.Decentralize
 
             var state = _activeConsensus[item.BlockHash];
             state.AddCommitedResult(item);
+
+            OnNodeActive(item.From);        // track latest activities via billboard
         }
     }
 
