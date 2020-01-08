@@ -370,7 +370,7 @@ namespace Lyra.Core.Decentralize
 
             if(item.Block.BlockType == BlockTypes.Consolidation)
             {
-                result.BlockUIndex = 0;
+                // do nothing. the UIndex has already take cared of.
             }
             else
             {
