@@ -150,7 +150,7 @@ namespace Lyra.Core.Decentralize
                 NetworkId = authGenesis.NetworkId,
                 ShardId = authGenesis.ShardId,
                 ServiceHash = authGenesis.Hash,
-                AccountID = NodeService.Instance.PosWallet.AccountId
+                SvcAccountID = NodeService.Instance.PosWallet.AccountId
             };
 
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1

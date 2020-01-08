@@ -42,6 +42,8 @@ namespace Lyra.Core.Blocks
         ///// </summary>
         //public List<string> AcceptedShards { get; set; }
 
+        public string SvcAccountID { get; set; }
+
         // Amount of fee for LYRA gas and custom token transfers;
         public decimal TransferFee { get; set; }
 

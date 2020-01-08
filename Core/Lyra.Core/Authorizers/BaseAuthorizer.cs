@@ -48,12 +48,22 @@ namespace Lyra.Core.Authorizers
             //if (!Signatures.VerifySignature(block.Hash, block.AccountID, block.Signature))
             //    return APIResultCodes.BlockSignatureValidationFailed;
 
-            var result = block.VerifySignature(block.AccountID);
+            string accountId;
+            if(block is ServiceBlock)
+            {
+                accountId = (block as ServiceBlock).SvcAccountID;
+            }
+            else
+            {
+                accountId = block.AccountID;
+            }
+            
+            var result = block.VerifySignature(accountId);
             if (!result)
                 return APIResultCodes.BlockSignatureValidationFailed;
 
             // check if this Index already exists (double-spending, kind of)
-            if (BlockChain.Singleton.FindBlockByIndex(block.AccountID, block.Index) != null)
+            if (BlockChain.Singleton.FindBlockByIndex(accountId, block.Index) != null)
                 return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
             // This is the double-spending check for send block!
