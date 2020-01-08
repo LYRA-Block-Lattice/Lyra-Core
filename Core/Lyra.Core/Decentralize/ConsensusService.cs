@@ -146,6 +146,7 @@ namespace Lyra.Core.Decentralize
             var lastCons = BlockChain.Singleton.GetSyncBlock();
             var consBlock = new ConsolidationBlock
             {
+                UIndex = _UIndexSeed++,
                 NetworkId = authGenesis.NetworkId,
                 ShardId = authGenesis.ShardId,
                 ServiceHash = authGenesis.Hash,
@@ -361,12 +362,20 @@ namespace Lyra.Core.Decentralize
             var result = new AuthorizedMsg
             {
                 From = NodeService.Instance.PosWallet.AccountId,
-                MsgType = ChatMessageType.AuthorizerPrepare,
-                BlockUIndex = Mode == ConsensusWorkingMode.Normal ? _UIndexSeed++ : 0,     // if seed out of sync, then others know
+                MsgType = ChatMessageType.AuthorizerPrepare,                
                 BlockHash = item.Block.Hash,
                 Result = localAuthResult.Item1,
                 AuthSign = localAuthResult.Item2
             };            
+
+            if(item.Block.BlockType == BlockTypes.Consolidation)
+            {
+                result.BlockUIndex = 0;
+            }
+            else
+            {
+                result.BlockUIndex = Mode == ConsensusWorkingMode.Normal ? _UIndexSeed++ : 0;     // if seed out of sync, then others know
+            }
 
             return result;
         }

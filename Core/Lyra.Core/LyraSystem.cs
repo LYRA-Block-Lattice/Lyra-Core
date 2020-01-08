@@ -70,7 +70,7 @@ namespace Lyra
                 if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
                 {
                     ActorSystem.Scheduler
-                       .ScheduleTellRepeatedly(TimeSpan.FromSeconds(300),
+                       .ScheduleTellRepeatedly(TimeSpan.FromSeconds(100),
                                  TimeSpan.FromSeconds(600),
                                  Consensus, new ConsensusService.Consolidate(), ActorRefs.NoSender); //or ActorRefs.Nobody or something else
                 }
