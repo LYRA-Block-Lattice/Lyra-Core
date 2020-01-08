@@ -6,7 +6,10 @@ using System.IO;
 
 namespace Lyra.Core.Decentralize
 {
-	public enum ChatMessageType  { General, NodeUp, NodeDown, StakingChanges, AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit };
+	public enum ChatMessageType  { General, NodeUp, NodeDown, StakingChanges, 
+		AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit,
+		BlockConsolidation
+	};
 
 	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable
 	{

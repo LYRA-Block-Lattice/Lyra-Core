@@ -211,16 +211,23 @@ namespace Lyra
                         if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[i])  // self
                             continue;
 
-                        var addr = ProtocolSettings.Default.SeedList[i].Split(':')[0];
-                        var apiUrl = $"https://{addr}:4505/api/LyraNode/";
-                        client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
-                        var mode = await client.GetSyncState();
-                        if (mode.ResultCode == APIResultCodes.Success && mode.Mode == ConsensusWorkingMode.Normal)
+                        try
                         {
-                            syncWithUrl = apiUrl;
-                            if (syncToUIndex == 0)
-                                syncToUIndex = mode.NewestBlockUIndex;
-                            break;
+                            var addr = ProtocolSettings.Default.SeedList[i].Split(':')[0];
+                            var apiUrl = $"https://{addr}:4505/api/LyraNode/";
+                            client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+                            var mode = await client.GetSyncState();
+                            if (mode.ResultCode == APIResultCodes.Success && mode.Mode == ConsensusWorkingMode.Normal)
+                            {
+                                syncWithUrl = apiUrl;
+                                if (syncToUIndex == 0)
+                                    syncToUIndex = mode.NewestBlockUIndex;
+                                break;
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            _log.LogWarning($"Trying to sync.. {ex.Message}");
                         }
                     }
 

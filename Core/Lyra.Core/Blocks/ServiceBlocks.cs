@@ -104,10 +104,17 @@ namespace Lyra.Core.Blocks
     {
         // do nothing?
         public string LastServiceBlockHash { get; set; }
+        public string MerkelTreeHash { get; set; }
 
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.Consolidation;
+        }
+
+        protected override string GetExtraData()
+        {
+            return base.GetExtraData() +
+                $"|{LastServiceBlockHash}|{MerkelTreeHash}";
         }
     }
 

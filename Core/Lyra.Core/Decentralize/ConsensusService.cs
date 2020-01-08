@@ -1,9 +1,11 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
+using Clifton.Blockchain;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
+using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Neo;
@@ -62,16 +64,15 @@ namespace Lyra.Core.Decentralize
             Receive<Consolidate>((_) =>
             {
                 _log.LogInformation("Doing Consolidate");
-                if(IsThisNodeSeed0)
+                if(Mode == ConsensusWorkingMode.Normal)
                 {
-                    // TODO Consolidate blocks
                     BroadCastBillBoard();
+                    GenerateConsolidateBlock();
                 }
             });
 
             Receive<BillBoard>((bb) => { 
                 _board = bb;
-                _board.Add(NodeService.Instance.PosWallet.AccountId); //always add self
             });
 
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
@@ -137,6 +138,70 @@ namespace Lyra.Core.Decentralize
                     await Task.Delay(1000).ConfigureAwait(false);
                 }
             });
+        }
+
+        private void GenerateConsolidateBlock()
+        {
+            var authGenesis = BlockChain.Singleton.GetLastServiceBlock();
+            var lastCons = BlockChain.Singleton.GetSyncBlock();
+            var consBlock = new ConsolidationBlock
+            {
+                UIndex = _UIndexSeed++,
+                NetworkId = authGenesis.NetworkId,
+                ShardId = authGenesis.ShardId,
+                ServiceHash = authGenesis.Hash,
+                LastServiceBlockHash = authGenesis.Hash
+            };
+
+            // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
+            var mt = new MerkleTree();
+            for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx ++)
+            {
+                var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
+                var mhash = MerkleHash.Create(block.UHash);
+                mt.AppendLeaf(mhash);
+            }
+            consBlock.MerkelTreeHash = mt.BuildTree().ToString();
+
+            consBlock.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+                authGenesis.NetworkId, authGenesis.ShardId,
+                NodeService.Instance.PosWallet.AccountId);
+            //consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
+            //consBlock.Authorizations = new List<AuthorizationSignature>();
+            //consBlock.Authorizations.Add(new AuthorizationSignature
+            //{
+            //    Key = NodeService.Instance.PosWallet.AccountId,
+            //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
+            //});
+
+            //BlockChain.Singleton.AddBlock(consBlock);
+
+            //// broadcast to whole network
+            //var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, JsonConvert.SerializeObject(consBlock));
+            //msg.MsgType = ChatMessageType.BlockConsolidation;
+            //Send2P2pNetwork(msg);
+
+            // no, we do consensus
+            AuthorizingMsg msg = new AuthorizingMsg
+            {
+                From = NodeService.Instance.PosWallet.AccountId,
+                Block = consBlock,
+                MsgType = ChatMessageType.AuthorizerPrePrepare
+            };
+
+            var state = CreateAuthringState(msg);
+            var localAuthResult = LocalAuthorizingAsync(msg);
+            state.AddAuthResult(localAuthResult);
+
+            if (!localAuthResult.IsSuccess)
+            {
+                _log.LogError("Fatal Error: Consolidate block local authorization failed.");
+            }
+            else
+            {
+                Send2P2pNetwork(msg);
+                Send2P2pNetwork(localAuthResult);
+            }
         }
 
         private void StateClean()
@@ -213,9 +278,22 @@ namespace Lyra.Core.Decentralize
                 case ChatMsg bbb when bbb.MsgType == ChatMessageType.StakingChanges:
                     OnBillBoardBroadcast(bbb);
                     break;
+                case ChatMsg bcc when bcc.MsgType == ChatMessageType.BlockConsolidation:
+                    OnBlockConsolication(bcc);
+                    break;
                 default:
                     // log msg unknown
                     break;
+            }
+        }
+
+        private void OnBlockConsolication(ChatMsg msg)
+        {
+            if(!IsThisNodeSeed0)
+            {
+                var block = JsonConvert.DeserializeObject<ConsolidationBlock>(msg.Text);
+                BlockChain.Singleton.AddBlock(block);
+                _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.UIndex}");
             }
         }
 

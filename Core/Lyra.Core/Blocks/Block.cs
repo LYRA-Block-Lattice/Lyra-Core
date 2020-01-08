@@ -324,6 +324,9 @@ namespace Lyra.Core.Blocks
 
         InvalidNetworkId = 67,
 
+        // service blocks related
+        InvalidConsolidationMerkleTreeHash,
+
         DuplicateReceiveBlock = 100,
 
         InvalidTokenRenewalDate = 200,
