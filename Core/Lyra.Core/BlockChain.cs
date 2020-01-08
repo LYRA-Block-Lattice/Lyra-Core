@@ -159,7 +159,6 @@ namespace Lyra
                     NetworkId = authGenesis.NetworkId,
                     ShardId = authGenesis.ShardId,
                     ServiceHash = authGenesis.Hash,
-                    LastServiceBlockHash = authGenesis.Hash,
                     AccountID = NodeService.Instance.PosWallet.AccountId
                 };
                 consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
