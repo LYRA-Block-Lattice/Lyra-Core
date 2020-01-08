@@ -103,7 +103,6 @@ namespace Lyra.Core.Blocks
     public class ConsolidationBlock : ServiceBlock
     {
         // do nothing?
-        public string LastServiceBlockHash { get; set; }
         public string MerkelTreeHash { get; set; }
 
         public override BlockTypes GetBlockType()
@@ -114,7 +113,7 @@ namespace Lyra.Core.Blocks
         protected override string GetExtraData()
         {
             return base.GetExtraData() +
-                $"|{LastServiceBlockHash}|{MerkelTreeHash}";
+                $"|{MerkelTreeHash}";
         }
     }
 
