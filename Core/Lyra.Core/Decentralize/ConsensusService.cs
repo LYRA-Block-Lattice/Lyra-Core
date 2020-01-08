@@ -81,6 +81,8 @@ namespace Lyra.Core.Decentralize
                 if (msg.Version != LyraGlobal.ProtocolVersion)
                     Sender.Tell(null);
 
+                OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+
                 // first try auth locally
                 var state = CreateAuthringState(msg);
                 var localAuthResult = LocalAuthorizingAsync(msg);
