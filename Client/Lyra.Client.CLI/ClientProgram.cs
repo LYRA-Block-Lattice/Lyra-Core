@@ -115,6 +115,9 @@ namespace Lyra.Client.CLI
         [Option('n', "node", HelpText = "Node API URL", Required = false)]
         public string Node { get; set; }
 
+        [Option('g', "genwallet", HelpText = "Generate Wallet Only", Required = false)]
+        public string GenWalletName { get; set; }
+
         public IHost Host { get; set; }
 
         [Usage(ApplicationAlias = "dotnet lyracli.dll")]

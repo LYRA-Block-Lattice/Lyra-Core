@@ -53,6 +53,17 @@ namespace Lyra.Client.CLI
 
             Console.WriteLine("Storage Location: " + full_path);
 
+            if(options.GenWalletName != null)
+            {
+                wallet.AccountName = options.GenWalletName;
+                wallet.CreateAccountAsync(full_path, wallet.AccountName, AccountTypes.Standard);
+                var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(Base58Encoding.DecodeAccountId(wallet.AccountId), Neo.Cryptography.ECC.ECCurve.Secp256r1);
+                Console.WriteLine($"The new wallet {wallet.AccountName} for {network_id}: ");
+                Console.WriteLine(ep.ToString());
+                Console.WriteLine(wallet.AccountId);
+                return 0;
+            }
+
             CommandProcessor command = new CommandProcessor(wallet);
             string input = null;
             try
