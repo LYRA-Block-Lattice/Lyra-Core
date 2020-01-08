@@ -68,7 +68,7 @@ namespace Lyra.Core.Decentralize
             };
             var result = await ConsensusSvc.Ask<AuthState>(msg).ConfigureAwait(false);
             
-            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {result?.IsAuthoringSuccess}");
+            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {result?.IsConsensusSuccess == true}");
             return result;
         }
 
@@ -76,7 +76,7 @@ namespace Lyra.Core.Decentralize
         {
             var state1 = await PostToConsensusAsync(block1).ConfigureAwait(false);
 
-            if(state1 != null && state1.IsAuthoringSuccess)
+            if(state1 != null && state1.IsConsensusSuccess == true)
             {
                 if(OnBlockSucceed != null)
                 {
@@ -84,7 +84,7 @@ namespace Lyra.Core.Decentralize
 
                     var state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
 
-                    return state2.IsAuthoringSuccess;
+                    return state2.IsConsensusSuccess == true;
                 }
                 return true;                
             }

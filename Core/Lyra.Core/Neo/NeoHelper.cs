@@ -276,7 +276,7 @@ namespace Neo
         /// <returns>IConfigurationRoot</returns>
         public static IConfigurationRoot LoadConfig(string config)
         {
-            var env = Environment.GetEnvironmentVariable("NEO_NETWORK");
+            var env = Environment.GetEnvironmentVariable("LYRA_NETWORK");
             var configFile = string.IsNullOrWhiteSpace(env) ? $"{config}.json" : $"{config}.{env}.json";
             return new ConfigurationBuilder()
                 .AddJsonFile(configFile, true)

@@ -276,7 +276,7 @@ namespace Lyra.Core.Decentralize
 
         private void CheckAuthorizedAllOk(AuthState state)
         {
-            if (state.IsAuthoringSuccess)
+            if (state.GetIsAuthoringSuccess(_board))
             {
                 if (state.Saving)
                     return;

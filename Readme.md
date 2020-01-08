@@ -33,7 +33,7 @@ Install the ASP.NET Core runtime
 
 6. generate staking wallet by, give the wallet a name, e.g. "poswallet"
 
-   lyracli.exe --networkid testnet -p webapi
+   lyracli.exe --networkid testnet -p webapi -g poswallet
 
 7. modify lyranode2\appsettings.json, change monodb account/password, change the wallet/name to the name you created previous step.
 

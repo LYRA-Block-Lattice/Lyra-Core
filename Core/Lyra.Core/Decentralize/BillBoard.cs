@@ -48,5 +48,8 @@ namespace Lyra.Core.Decentralize
             LastStaking = DateTime.Now;
             Balance = 0;
         }
+
+        // heartbeat/consolidation block: 10 min so if 30 min no message the node die
+        public bool AbleToAuthorize => Balance >= 1000000 && DateTime.Now - LastStaking < TimeSpan.FromMinutes(30);
     }
 }
