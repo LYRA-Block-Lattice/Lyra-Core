@@ -1,6 +1,8 @@
 ﻿using Lyra.Core.API;
+using Neo;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Lyra.Core.Decentralize
@@ -50,6 +52,6 @@ namespace Lyra.Core.Decentralize
         }
 
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die
-        public bool AbleToAuthorize => Balance >= 1000000 && DateTime.Now - LastStaking < TimeSpan.FromMinutes(30);
+        public bool AbleToAuthorize => ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Balance >= 1000000 && DateTime.Now - LastStaking < TimeSpan.FromMinutes(30);
     }
 }
