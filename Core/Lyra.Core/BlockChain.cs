@@ -236,7 +236,10 @@ namespace Lyra
                         // no node to sync.
                         if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
                         {
-                            // seed0. no seed to sync. this seed must have the NORMAL blockchain                            
+                            // seed0. no seed to sync. this seed must have the NORMAL blockchain     
+                            var board = new BillBoard();
+                            board.Add(NodeService.Instance.PosWallet.AccountId);   // add me!
+                            LyraSystem.Singleton.Consensus.Tell(board);
                             break;
                         }
                         else

@@ -172,7 +172,7 @@ namespace Neo.Network.P2P
 
         protected override void OnReceive(object message)
         {
-            _log.LogInformation($"LocalNode OnReceive {message.GetType().Name}");
+            //_log.LogInformation($"LocalNode OnReceive {message.GetType().Name}");
             base.OnReceive(message);
             switch (message)
             {
