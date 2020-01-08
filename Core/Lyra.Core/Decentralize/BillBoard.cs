@@ -31,7 +31,7 @@ namespace Lyra.Core.Decentralize
 
             // lookup balance
             var block = BlockChain.Singleton.FindLatestBlock(node.AccountID);
-            if (block != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
+            if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
             {
                 node.Balance = block.Balances[LyraGlobal.LYRATICKERCODE];
             }

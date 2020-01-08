@@ -146,7 +146,6 @@ namespace Lyra.Core.Decentralize
             var lastCons = BlockChain.Singleton.GetSyncBlock();
             var consBlock = new ConsolidationBlock
             {
-                UIndex = _UIndexSeed++,
                 NetworkId = authGenesis.NetworkId,
                 ShardId = authGenesis.ShardId,
                 ServiceHash = authGenesis.Hash,

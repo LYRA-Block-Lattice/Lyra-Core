@@ -45,9 +45,9 @@ namespace Lyra.Core.Authorizers
             if (lastCons == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            //var result = VerifyBlock(block, lastCons);
-            //if (result != APIResultCodes.Success)
-            //    return result;
+            var result = VerifyBlock(block, lastCons);
+            if (result != APIResultCodes.Success)
+                return result;
 
             // recalculate merkeltree
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
