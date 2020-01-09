@@ -1,6 +1,7 @@
 # Note
 Testnet launching date is not set yet, but very soon.
 
+
 # Lyra Permissionless Node Setup
 
 1. Install Linux (Ubuntu 18.04), or Windows, macOS
@@ -51,3 +52,6 @@ mode 0 is normal, mode 1 is syncing blocks.
 
 https://localhost:4505/api/LyraNode/GetBillboard
 display all connected nodes.
+
+
+
