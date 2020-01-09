@@ -56,7 +56,7 @@ namespace Lyra.Core.Decentralize
                 string full_path = BaseAccount.GetFullPath(lyra_folder);
                 PosWallet.OpenAccount(full_path, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name);
 
-                var sys = new LyraSystem(Neo.Settings.Default.LyraNode);
+                var sys = new LyraSystem();
                 sys.Start();
 
                 if (_db == null)

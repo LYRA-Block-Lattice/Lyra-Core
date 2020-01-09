@@ -26,13 +26,13 @@ namespace Lyra.Core.Exchange
 
         public event EventHandler OnNewOrder;
 
-        public DealEngine(LyraConfig config,
+        public DealEngine(
             IMongoCollection<ExchangeAccount> exchangeAccounts,
             IMongoCollection<ExchangeOrder> queue,
             IMongoCollection<ExchangeOrder> finished
             )
         {
-            _config = config;
+            _config = Neo.Settings.Default.LyraNode;
             _exchangeAccounts = exchangeAccounts;
             _queue = queue;
             _finished = finished;

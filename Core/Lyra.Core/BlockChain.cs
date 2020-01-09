@@ -38,22 +38,24 @@ namespace Lyra
         private readonly IAccountCollection _store;
         private LyraSystem _sys;
         private ILogger _log;
-        public BlockChain(LyraSystem sys, LyraConfig nodeConfig)
+        public BlockChain(LyraSystem sys)
         {
             if (Singleton != null)
                 throw new Exception("Blockchain reinitialization");
 
             _sys = sys;
-            _store = new MongoAccountCollection(nodeConfig);
+
+            var nodeConfig = Neo.Settings.Default.LyraNode;
+            _store = new MongoAccountCollection();
             _log = new SimpleLogger("BlockChain").Logger;
             _nodeConfig = nodeConfig;
             NetworkID = nodeConfig.Lyra.NetworkId;
 
             Singleton = this;
         }
-        public static Props Props(LyraSystem system, LyraConfig nodeConfig)
+        public static Props Props(LyraSystem system)
         {
-            return Akka.Actor.Props.Create(() => new BlockChain(system, nodeConfig)).WithMailbox("blockchain-mailbox");
+            return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
         }
 
         public long GetNewestBlockUIndex() => _store.GetNewestBlockUIndex();

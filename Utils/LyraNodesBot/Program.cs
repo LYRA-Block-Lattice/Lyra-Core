@@ -24,7 +24,6 @@ namespace LyraNodesBot
                 //var api = client.Client.GetGrain<INodeAPI>(0);
                 //var height = await api.GetSyncHeight();
 
-                var config = host.Services.GetService<LyraConfig>();
                 var monitor = new NodesMonitor();
                 await monitor.StartAsync();
 
@@ -67,10 +66,6 @@ namespace LyraNodesBot
                         .AddJsonFile("appsettings.json", false)
                         .AddEnvironmentVariables()
                         .Build();
-
-                    services.Configure<LyraConfig>(Configuration.GetSection("LyraNode"));
-
-                    //services.AddHostedService<DAGClientHostedService>();
 
                     services.Configure<ConsoleLifetimeOptions>(options =>
                     {

@@ -23,16 +23,16 @@ namespace Lyra.Core.Accounts
 
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
-        public ServiceAccount(IActorRef blockChain, Wallet svcWallet, LyraConfig config)
+        public ServiceAccount(IActorRef blockChain, Wallet svcWallet)
         {
             _blockChain = blockChain;
             _svcWallet = svcWallet;
-            _config = config;
+            _config = Neo.Settings.Default.LyraNode;
         }
 
-        public static Props Props(IActorRef blockChain, Wallet svcWallet, LyraConfig config)
+        public static Props Props(IActorRef blockChain, Wallet svcWallet)
         {
-            return Akka.Actor.Props.Create(() => new ServiceAccount(blockChain, svcWallet, config));
+            return Akka.Actor.Props.Create(() => new ServiceAccount(blockChain, svcWallet));
         }
 
         public ServiceBlock GetLastServiceBlock()

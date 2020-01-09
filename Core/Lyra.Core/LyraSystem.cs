@@ -37,12 +37,12 @@ namespace Lyra
 
         public string NetworkId { get; private set; }
 
-        public LyraSystem(LyraConfig nodeConfig)
+        public LyraSystem()
         {
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
-            TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, nodeConfig));
+            TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this));
 
-            NetworkId = nodeConfig.Lyra.NetworkId;
+            NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
             Singleton = this;
         }
 

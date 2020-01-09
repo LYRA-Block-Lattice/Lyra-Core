@@ -31,9 +31,9 @@ namespace Lyra.Core.Accounts
 
         public string Cluster { get; set; }
 
-        public MongoAccountCollection(LyraConfig config)
+        public MongoAccountCollection()
         {
-            _config = config;
+            _config = Neo.Settings.Default.LyraNode;
 
             _DatabaseName = _config.Lyra.Database.DatabaseName;
 
