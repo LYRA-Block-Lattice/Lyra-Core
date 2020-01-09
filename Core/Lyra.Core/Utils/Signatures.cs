@@ -11,6 +11,11 @@ namespace Lyra.Core.Cryptography
     //
     public class Signatures
     {
+        private static bool IsMono { get; }
+        static Signatures()
+        {
+            IsMono = Type.GetType("Mono.Runtime") != null;
+        }
         public static bool ValidateAccountId(string AccountId)
         {
             try
@@ -56,6 +61,9 @@ namespace Lyra.Core.Cryptography
 
         public static bool VerifyAccountSignature(string message, string accountId, string signature)
         {
+            if (IsMono)
+                return PortableSignatures.VerifyAccountSignature(message, accountId, signature);
+
             if (string.IsNullOrWhiteSpace(message) || !ValidateAccountId(accountId) || string.IsNullOrWhiteSpace(signature))
                 return false;
 
@@ -73,6 +81,9 @@ namespace Lyra.Core.Cryptography
 
         public static string GetSignature(string privateKey, string message, string AccountId)
         {
+            if (IsMono)
+                return PortableSignatures.GetSignature(privateKey, message);
+
             var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
             var privateKeyBytes = Base58Encoding.DecodePrivateKey(privateKey);
             var signature = Neo.Cryptography.Crypto.Default.Sign(Encoding.UTF8.GetBytes(message),

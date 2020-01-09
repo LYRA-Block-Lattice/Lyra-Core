@@ -275,6 +275,10 @@ namespace Lyra
 
                                     _log.LogInformation($"BlockChain Synced Block Number: {j}");
                                 }
+                                else if(blockResult.ResultCode == APIResultCodes.BlockNotFound)
+                                {
+                                    return true;
+                                }
                                 else
                                 {
                                     // error

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Lyra.Core.Utils;
 using System.Threading;
 using Akka.Actor;
+using System.Linq;
 
 namespace Lyra.Core.Decentralize
 {
@@ -60,101 +61,73 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
             var result = await ConsensusSvc.Ask<AuthState>(msg).ConfigureAwait(false);
-            
-            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {result?.IsConsensusSuccess == true}");
+
+            var resultMsg = result.OutputMsgs.Count > 0 ? result.OutputMsgs.First().Result.ToString() : "Unknown";
+            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {result?.IsConsensusSuccess == true} with {resultMsg}");
             return result;
         }
 
-        internal async Task<bool> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)
+        internal async Task<AuthorizationAPIResult> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)
         {
+            bool IsSuccess;
+            AuthState state2 = null;
             var state1 = await PostToConsensusAsync(block1).ConfigureAwait(false);
 
             if(state1 != null && state1.IsConsensusSuccess == true)
             {
-                if(OnBlockSucceed != null)
+                IsSuccess = true;
+
+                if (OnBlockSucceed != null)
                 {
                     var block2 = await OnBlockSucceed(state1.InputMsg.Block).ConfigureAwait(false);
 
-                    var state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
-
-                    return state2.IsConsensusSuccess == true;
-                }
-                return true;                
+                    state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
+                }                           
+            }
+            else
+            {
+                IsSuccess = false;
             }
 
-            return false;
-        }
-
-        public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
-        {
             var result = new AuthorizationAPIResult();
-            if (await Pre_PrepareAsync(block, async (b) =>
+            if (IsSuccess)
             {
-                var feeResult = await ProcessTokenGenerationFee(b as LyraTokenGenesisBlock).ConfigureAwait(false);
-                return feeResult.block;
-            }).ConfigureAwait(false))
+                result.ResultCode = APIResultCodes.Success;
+            }
+            else
             {
-                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
-                return result;
+                result.ResultCode = state1.OutputMsgs.Count > 0 ? state1.OutputMsgs.First().Result : APIResultCodes.UnableToSendToConsensusNetwork;
             }
             return result;
         }
 
+        public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
+        {
+            return await Pre_PrepareAsync(block, async (b) =>
+            {
+                var feeResult = await ProcessTokenGenerationFee(b as LyraTokenGenesisBlock).ConfigureAwait(false);
+                return feeResult.block;
+            }).ConfigureAwait(false);
+        }
+
         public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
         {
-            // first send to network. 
-            if (!await Pre_PrepareAsync(openReceiveBlock).ConfigureAwait(false))
-            {
-                var result = new AuthorizationAPIResult
-                {
-                    ResultCode = APIResultCodes.UnableToSendToConsensusNetwork
-                };
-                return result;
-            }
-            else
-            {
-                var result = new AuthorizationAPIResult
-                {
-                    ResultCode = APIResultCodes.Success
-                };
-                return result;
-            }
+            return await Pre_PrepareAsync(openReceiveBlock).ConfigureAwait(false);
         }
 
 
         public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
         {
-            var result = new AuthorizationAPIResult();
-
-            // first send to network. 
-            if (!await Pre_PrepareAsync(block))
-            {
-                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
-            }
-            else
-            {
-                result.ResultCode = APIResultCodes.Success;
-            }
-            return result;
+            return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
-            var result = new AuthorizationAPIResult();
-            if (await Pre_PrepareAsync(sendBlock, async (b) =>
+            return await Pre_PrepareAsync(sendBlock, async (b) =>
             {
                 var feeResult = await ProcessTransferFee(b as SendTransferBlock);
                 return feeResult.block;
-            }))
-            {
-                result.ResultCode = APIResultCodes.Success;
-            }
-            else
-            {
-                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
-            }
-
-            return result;
+            }).ConfigureAwait(false);
         }
 
         public Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
@@ -164,33 +137,12 @@ namespace Lyra.Core.Decentralize
 
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
-            var result = new AuthorizationAPIResult();
-
-            if (!await Pre_PrepareAsync(receiveBlock))
-            {
-                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
-            }
-            else
-            {
-                result.ResultCode = APIResultCodes.Success;
-            }
-            return result;
+            return await Pre_PrepareAsync(receiveBlock).ConfigureAwait(false);
         }
 
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
-            var result = new AuthorizationAPIResult();
-
-            if (!await Pre_PrepareAsync(block))
-            {
-                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
-                return result;
-            }
-            else
-            {
-                result.ResultCode = APIResultCodes.Success;
-            }
-            return result;
+            return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
@@ -205,19 +157,11 @@ namespace Lyra.Core.Decentralize
                 return result;
             }
 
-            if (!await Pre_PrepareAsync(tokenBlock, async (b) =>
+            return await Pre_PrepareAsync(tokenBlock, async (b) =>
             {
                 var feeResult = await ProcessTokenGenerationFee(b as TokenGenesisBlock);
                 return feeResult.block;
-            }))
-            {
-                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
-            }
-            else
-            {
-                result.ResultCode = APIResultCodes.Success;
-            }
-            return result;
+            }).ConfigureAwait(false);
         }
 
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
