@@ -77,7 +77,7 @@ All nodes share evenly.  Authorizers are free to share their profits with the vo
 3) UI client - DONE
 4) Multi-node implementation (P2P communication, consensus) - In Progress
 5) TestNet -  * Launching *
-)6 DPOS - TBD
+6) DPOS - TBD
 8) Mainnet (closed loop, multi-token, single blockchain) - TBD
 9) Mainnet reference application (loyalty programs, decentralized ecommerce) - TBD
 10) Alt-chain account binding, Exchange broker - TBD
