@@ -72,8 +72,8 @@ namespace Lyra.Core.Decentralize
                     var finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
 
                     // TODO: make it DI
-                    //Dealer = new DealEngine(Neo.Settings.Default.LyraNode, _dataApi, exchangeAccounts, queue, finished);
-                    //Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
+                    Dealer = new DealEngine(exchangeAccounts, queue, finished);
+                    Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
                 }
 
                 //_watcher = new ZooKeeperWatcher(_log);

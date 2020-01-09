@@ -7,6 +7,7 @@ using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
+using Lyra.Core.Exchange;
 using Lyra.Exchange;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,15 +20,14 @@ namespace LyraLexWeb2
     {
         INodeAPI _node;
         INodeTransactionAPI _trans;
-        INodeDexAPI _dex;
+        DealEngine _dex;
         public LyraNodeController(INodeAPI node,
             INodeTransactionAPI trans
-            //INodeDexAPI dex
             )
         {
             _node = node;
             _trans = trans;
-            //_dex = dex;
+            _dex = NodeService.Dealer;
         }
         private void CheckSyncState()
         {
@@ -201,43 +201,57 @@ namespace LyraLexWeb2
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
             CheckSyncState();
-            return await _dex.CreateExchangeAccount(AccountId, Signature);
+            var acct = await _dex.AddExchangeAccount(AccountId);
+            return new ExchangeAccountAPIResult
+            {
+                AccountId = acct.AccountId,
+                ResultCode = APIResultCodes.Success
+            };
         }
 
         [Route("GetExchangeBalance")]
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
             CheckSyncState();
-            return await _dex.GetExchangeBalance(AccountId, Signature);
+            var acct = await _dex.GetExchangeAccount(AccountId, true);
+            return new ExchangeBalanceAPIResult
+            {
+                AccountId = acct.AccountId,
+                Balance = acct.Balance,
+                ResultCode = APIResultCodes.Success
+            };
         }
 
         [Route("SubmitExchangeOrder")]
         [HttpPost]
-        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
+        public async Task<CancelKey> SubmitExchangeOrder(string AccountId, TokenTradeOrder order)
         {
             CheckSyncState();
-            return await _dex.SubmitExchangeOrder(order);
+            var acct = await _dex.GetExchangeAccount(AccountId);
+            return await _dex.AddOrderAsync(acct, order);
         }
 
         [Route("CancelExchangeOrder")]
-        public async Task<APIResult> SubmitExchangeOrder(string AccountId, string Signature, string cancelKey)
+        public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
             CheckSyncState();
-            return await _dex.CancelExchangeOrder(AccountId, Signature, cancelKey);
+            await _dex.RemoveOrderAsync(cancelKey);
+            return new APIResult { ResultCode = APIResultCodes.Success };
         }
 
         [Route("RequestMarket")]
         public async Task<APIResult> RequestMarket(string TokenName)
         {
             CheckSyncState();
-            return await _dex.RequestMarket(TokenName);
+            await _dex.SendMarket(TokenName);
+            return new APIResult { ResultCode = APIResultCodes.Success };
         }
 
         [Route("GetOrdersForAccount")]
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
             CheckSyncState();
-            return await _dex.GetOrdersForAccount(AccountId, Signature);
+            return await _dex.GetOrdersForAccount(AccountId);
         }
 
         //[HttpPost]

@@ -31,7 +31,6 @@ namespace Lyra.Node2
             // the apis
             services.AddSingleton<INodeAPI, NodeAPI>();
             services.AddSingleton<INodeTransactionAPI, ApiService>();
-            //services.AddSingleton<INodeDexAPI, DealEngine>();
 
             services.AddMvc();
             services.AddControllers();

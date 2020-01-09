@@ -286,7 +286,7 @@ namespace LyraWallet.ViewModels
         {
             if(App.Container.Balances == null)
             {
-                LeXBalance = $"Lyra.LeX: 0";
+                LeXBalance = $"{LyraGlobal.LYRATICKERCODE}: 0";
                 TargetTokenBalance = $"{SelectedToken}: 0";
             }
             else
@@ -295,7 +295,7 @@ namespace LyraWallet.ViewModels
                 string exchLyraBstr = "0";
                 if (exchBalance != null && exchBalance.ContainsKey(LyraGlobal.LYRATICKERCODE))
                     exchLyraBstr = exchBalance[LyraGlobal.LYRATICKERCODE].ToString();
-                LeXBalance = $"Lyra.LeX: {App.Container.Balances["Lyra.LeX"]} ({exchLyraBstr})";
+                LeXBalance = $"{LyraGlobal.LYRATICKERCODE}: {App.Container.Balances[LyraGlobal.LYRATICKERCODE]} ({exchLyraBstr})";
                 if(SelectedToken == null)
                 {
                     TargetTokenBalance = "";

@@ -31,10 +31,6 @@ namespace LyraWallet
             if(File.Exists(App.Container.WalletFn))
             {
                 var netfn = App.Container.DataStoragePath + "network.txt";
-                if(!File.Exists(netfn))
-                {
-                    File.WriteAllText(netfn, "devnet1");
-                }
                 App.Container.CurrentNetwork = File.ReadAllText(netfn);
                 MainPage = new MainPage();
             }
