@@ -1,3 +1,4 @@
+using Lyra;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -276,7 +277,10 @@ namespace Neo
         /// <returns>IConfigurationRoot</returns>
         public static IConfigurationRoot LoadConfig(string config)
         {
-            var env = Environment.GetEnvironmentVariable("LYRA_NETWORK");
+            //var env = Environment.GetEnvironmentVariable("LYRA_NETWORK");
+            var env = LyraSystem.Singleton.NetworkId;
+            if (env == "devnet")
+                env = null;
             var configFile = string.IsNullOrWhiteSpace(env) ? $"{config}.json" : $"{config}.{env}.json";
             return new ConfigurationBuilder()
                 .AddJsonFile(configFile, true)

@@ -4,8 +4,8 @@
       "Engine": "LevelDBStore"
     },
     "P2P": {
-      "Port": 20333,
-      "WsPort": 20334
+      "Port": 4503,
+      "WsPort": 4504
     },
     "UnlockWallet": {
       "Path": "",

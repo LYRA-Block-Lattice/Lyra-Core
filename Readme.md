@@ -20,7 +20,7 @@ https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 Install the ASP.NET Core runtime
 
-4. copy LyraNode2 releases to ~/lyranode2
+4. copy Lyra releases to a folder, e.g. ~/
 
 `scp -rp ./Lyra.Node2/* user@[server address]:~/lyranode2`
 
