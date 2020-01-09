@@ -1,6 +1,8 @@
 using Neo.Wallets;
 using System;
+using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -11,10 +13,9 @@ namespace Lyra.Core.Cryptography
     //
     public class Signatures
     {
-        private static bool IsMono { get; }
         static Signatures()
         {
-            IsMono = true;// Type.GetType("Mono.Runtime") != null;
+
         }
         public static bool ValidateAccountId(string AccountId)
         {
@@ -61,9 +62,6 @@ namespace Lyra.Core.Cryptography
 
         public static bool VerifyAccountSignature(string message, string accountId, string signature)
         {
-            if (IsMono)
-                return PortableSignatures.VerifyAccountSignature(message, accountId, signature);
-
             if (string.IsNullOrWhiteSpace(message) || !ValidateAccountId(accountId) || string.IsNullOrWhiteSpace(signature))
                 return false;
 
@@ -75,23 +73,69 @@ namespace Lyra.Core.Cryptography
             var signatureBytes = Base58Encoding.Decode(signature);
             var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
 
-            return Neo.Cryptography.Crypto.Default.VerifySignature(Encoding.UTF8.GetBytes(message),
-                signatureBytes, publicKeyBytes);
+            //return Neo.Cryptography.Crypto.Default.VerifySignature(Encoding.UTF8.GetBytes(message), signatureBytes, publicKeyBytes);
+            Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(Neo.Cryptography.ECC.ECPoint.FromBytes(publicKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1));
+            var sh = new SignatureHolder(signature);
+            return sa.VerifySignature(Encoding.ASCII.GetBytes(message), sh.R, sh.S);
         }
 
         public static string GetSignature(string privateKey, string message, string AccountId)
         {
-            if (IsMono)
-                return PortableSignatures.GetSignature(privateKey, message);
-
             var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
             var privateKeyBytes = Base58Encoding.DecodePrivateKey(privateKey);
-            var signature = Neo.Cryptography.Crypto.Default.Sign(Encoding.UTF8.GetBytes(message), privateKeyBytes, publicKeyBytes);
-            return Base58Encoding.Encode(signature);
+            //var signature = Neo.Cryptography.Crypto.Default.Sign(Encoding.UTF8.GetBytes(message), privateKeyBytes, publicKeyBytes);
+            //return Base58Encoding.Encode(signature);
 
-            //Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(privateKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1);
-            //var sigInt = sa.GenerateSignature(Encoding.UTF8.GetBytes(message));
-            //sigInt.            
+            Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(privateKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1);
+            var sigInts = sa.GenerateSignature(Encoding.ASCII.GetBytes(message));
+
+            var sh = new SignatureHolder(sigInts);
+            var signature = sh.ToString();
+
+            //var vrt = VerifySignature(message, AccountId, signature);
+
+            return signature;
+        }
+
+        private class SignatureHolder
+        {
+            public BigInteger R { get; set; }
+            public BigInteger S { get; set; }
+
+            public SignatureHolder(BigInteger[] bigs) : this(bigs[0], bigs[1])
+            {
+
+            }
+
+            public SignatureHolder(BigInteger r, BigInteger s)
+            {
+                R = r;
+                S = s;
+            }
+
+            public SignatureHolder(string signature)
+            {
+                var buff = Base58Encoding.Decode(signature);
+                var b1 = new byte[buff[0]];
+                var b2 = new byte[buff[1]];
+                Buffer.BlockCopy(buff, 2, b1, 0, b1.Length);
+                Buffer.BlockCopy(buff, 2 + b1.Length, b2, 0, b2.Length);
+
+                R = new BigInteger(b1);
+                S = new BigInteger(b2);
+            }
+
+            public override string ToString()
+            {
+                var b1 = R.ToByteArray();
+                var b2 = S.ToByteArray();
+                var buff = new byte[2 + b1.Length + b2.Length];
+                buff[0] = (byte)b1.Length;
+                buff[1] = (byte)b2.Length;
+                Buffer.BlockCopy(b1, 0, buff, 2, b1.Length);
+                Buffer.BlockCopy(b2, 0, buff, 2 + b1.Length, b2.Length);
+                return Base58Encoding.Encode(buff);
+            }
         }
 
         public static (string privateKey, string AccountId) GenerateWallet()
