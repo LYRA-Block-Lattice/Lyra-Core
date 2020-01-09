@@ -75,7 +75,7 @@ namespace Lyra.Core.Cryptography
         private static bool VerifySignature(string message, byte[] public_key_bytes, string signature)
         {
 
-            var curve = SecNamedCurves.GetByName("secp256k1");
+            var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
 
             //var publicKeyBytes = Base58Encoding.Decode(publicKey);
@@ -91,7 +91,9 @@ namespace Lyra.Core.Cryptography
             ISigner signer = SignerUtilities.GetSigner("SHA-256withECDSA");
 
             signer.Init(false, keyParameters);
-            signer.BlockUpdate(Encoding.ASCII.GetBytes(message), 0, message.Length);
+
+            var msgBytes = Encoding.UTF8.GetBytes(message);
+            signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
 
             var signatureBytes = Base58Encoding.Decode(signature);
 
@@ -100,7 +102,7 @@ namespace Lyra.Core.Cryptography
 
         public static string GetSignature(string privateKey, string message)
         {
-            var curve = SecNamedCurves.GetByName("secp256k1");
+            var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
 
             //byte[] pkbytes = Base58Encoding.Decode(privateKey);
@@ -114,14 +116,17 @@ namespace Lyra.Core.Cryptography
             ISigner signer = SignerUtilities.GetSigner("SHA-256withECDSA");
 
             signer.Init(true, keyParameters);
-            signer.BlockUpdate(Encoding.ASCII.GetBytes(message), 0, message.Length);
+
+            var msgBytes = Encoding.UTF8.GetBytes(message);
+            signer.BlockUpdate(msgBytes, 0, msgBytes.Length);
+
             var signature = signer.GenerateSignature();
             return Base58Encoding.Encode(signature);
         }
 
         private static byte[] DerivePublicKeyBytes(string privateKey)
         {
-            var curve = SecNamedCurves.GetByName("secp256k1");
+            var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
 
             byte[] pkbytes = Base58Encoding.DecodePrivateKey(privateKey);

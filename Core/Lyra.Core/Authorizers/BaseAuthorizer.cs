@@ -6,6 +6,7 @@ using Lyra.Core.Utils;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Decentralize;
+using Microsoft.Extensions.Logging;
 
 namespace Lyra.Core.Authorizers
 {
@@ -22,9 +23,10 @@ namespace Lyra.Core.Authorizers
 
     public abstract class BaseAuthorizer : IAuthorizer
     {
+        ILogger _log;
         public BaseAuthorizer()
         {
-
+            _log = new SimpleLogger("BaseAuthorizer").Logger;
         }
 
         public virtual (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock)
@@ -53,13 +55,22 @@ namespace Lyra.Core.Authorizers
                 var accountId = (block as ServiceBlock).SvcAccountID;
                 var result = block.VerifySignature(accountId);
                 if (!result)
+                {
+                    _log.LogWarning($"VerifyBlock failed for ServiceBlock UIndex: {block.UIndex} by {accountId}");
                     return APIResultCodes.BlockSignatureValidationFailed;
+                }                    
             }
             else
             {
+                if(!block.VerifyHash())
+                    _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock UIndex: {block.UIndex} by {block.GetHashInput()}");
+
                 var result = block.VerifySignature(block.AccountID);
                 if (!result)
+                {
+                    _log.LogWarning($"VerifyBlock failed for TransactionBlock UIndex: {block.UIndex} Type: {block.BlockType} by {block.AccountID}");
                     return APIResultCodes.BlockSignatureValidationFailed;
+                }
 
                 // check if this Index already exists (double-spending, kind of)
                 if (BlockChain.Singleton.FindBlockByIndex(block.AccountID, block.Index) != null)

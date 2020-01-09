@@ -14,7 +14,7 @@ namespace Lyra.Core.Cryptography
         private static bool IsMono { get; }
         static Signatures()
         {
-            IsMono = Type.GetType("Mono.Runtime") != null;
+            IsMono = true;// Type.GetType("Mono.Runtime") != null;
         }
         public static bool ValidateAccountId(string AccountId)
         {
@@ -86,9 +86,12 @@ namespace Lyra.Core.Cryptography
 
             var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
             var privateKeyBytes = Base58Encoding.DecodePrivateKey(privateKey);
-            var signature = Neo.Cryptography.Crypto.Default.Sign(Encoding.UTF8.GetBytes(message),
-                privateKeyBytes, publicKeyBytes);
+            var signature = Neo.Cryptography.Crypto.Default.Sign(Encoding.UTF8.GetBytes(message), privateKeyBytes, publicKeyBytes);
             return Base58Encoding.Encode(signature);
+
+            //Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(privateKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1);
+            //var sigInt = sa.GenerateSignature(Encoding.UTF8.GetBytes(message));
+            //sigInt.            
         }
 
         public static (string privateKey, string AccountId) GenerateWallet()

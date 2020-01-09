@@ -137,13 +137,13 @@ namespace LyraWallet.ViewModels
                 }
             };
 
-            MessagingCenter.Subscribe<BalanceViewModel>(
-                this, MessengerKeys.BalanceRefreshed, async (sender) =>
-                {
-                    if(TokenList == null || TokenList.Count == 0)
-                        TokenList = await App.Container.GetTokens(FilterKeyword);
-                    await UpdateHoldings();
-                });
+            //MessagingCenter.Subscribe<BalanceViewModel>(
+            //    this, MessengerKeys.BalanceRefreshed, async (sender) =>
+            //    {
+            //        if(TokenList == null || TokenList.Count == 0)
+            //            TokenList = await App.Container.GetTokens(FilterKeyword);
+            //        await UpdateHoldings();
+            //    });
 
             BuyCommand = new Command(async () =>
             {
