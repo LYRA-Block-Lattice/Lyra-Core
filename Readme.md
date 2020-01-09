@@ -1,6 +1,7 @@
+### [About Lyra DAG](https://github.com/graft-project/LyraNetwork/wiki) | [Tokenomics](https://github.com/graft-project/LyraNetwork/wiki/Tokenomics) | [Roadmap](https://github.com/graft-project/LyraNetwork/wiki/Roadmap)
+
 # Note
 Testnet launching date is not set yet, but very soon.
-
 
 # Lyra Permissionless Node Setup
 
@@ -52,6 +53,7 @@ mode 0 is normal, mode 1 is syncing blocks.
 
 https://localhost:4505/api/LyraNode/GetBillboard
 display all connected nodes.
+
 
 
 
