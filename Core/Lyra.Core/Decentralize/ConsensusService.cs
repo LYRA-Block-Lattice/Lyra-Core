@@ -164,6 +164,17 @@ namespace Lyra.Core.Decentralize
             for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx++)      // TODO: handling "losing" block here
             {
                 var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
+                if(block == null)
+                {
+                    // block lost
+                    _log.LogError($"Block lost for No. {ndx}. Try to resync with other seeds...");
+
+                    // triggering a resync
+                    Mode = ConsensusWorkingMode.OutofSyncWaiting;
+                    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
+
+                    return;
+                }
                 var mhash = MerkleHash.Create(block.UHash);
                 mt.AppendLeaf(mhash);
             }
