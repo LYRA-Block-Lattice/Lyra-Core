@@ -171,7 +171,7 @@ namespace Lyra.Core.Decentralize
 
                     // triggering a resync
                     Mode = ConsensusWorkingMode.OutofSyncWaiting;
-                    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
+                    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = ndx });
 
                     return;
                 }
@@ -332,7 +332,8 @@ namespace Lyra.Core.Decentralize
 
         private void OnNodeActive(string nodeAccountId)
         {
-            _board.Add(nodeAccountId);
+            if(_board != null)
+                _board.Add(nodeAccountId);
         }
 
         private void OnNodeUp(ChatMsg chat)

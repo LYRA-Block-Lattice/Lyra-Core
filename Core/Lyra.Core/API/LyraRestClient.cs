@@ -42,6 +42,9 @@ namespace Lyra.Core.API
                 httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;                    
             }
 
+            System.Net.ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true;
+            httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+
             _client = new HttpClient(httpClientHandler);
             _client.BaseAddress = new Uri(url);
             _client.DefaultRequestHeaders.Accept.Clear();

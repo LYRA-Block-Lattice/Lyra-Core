@@ -220,7 +220,7 @@ namespace Lyra.Core.Authorizers
             AuthorizationSignature authSignature = new AuthorizationSignature
             {
                 Key = NodeService.Instance.PosWallet.AccountId,
-                Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, block.Hash + block.ServiceHash, block is ServiceBlock ? (block as ServiceBlock).SvcAccountID : block.AccountID)
+                Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, block.Hash + block.ServiceHash, NodeService.Instance.PosWallet.AccountId)
             };
 
             return authSignature;
