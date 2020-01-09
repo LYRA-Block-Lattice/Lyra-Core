@@ -66,7 +66,9 @@ namespace Lyra.Core.Decentralize
             Receive<Consolidate>((_) =>
             {
                 _log.LogInformation("Doing Consolidate");
-                if(Mode == ConsensusWorkingMode.Normal)
+                OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+
+                if (Mode == ConsensusWorkingMode.Normal)
                 {
                     BroadCastBillBoard();
                     GenerateConsolidateBlock();
