@@ -22,11 +22,11 @@ namespace Lyra.Core.Exchange
         private IMongoCollection<ExchangeOrder> _queue;
         private IMongoCollection<ExchangeOrder> _finished;
 
-        private LyraNodeConfig _config;
+        private LyraConfig _config;
 
         public event EventHandler OnNewOrder;
 
-        public DealEngine(LyraNodeConfig config,
+        public DealEngine(LyraConfig config,
             IMongoCollection<ExchangeAccount> exchangeAccounts,
             IMongoCollection<ExchangeOrder> queue,
             IMongoCollection<ExchangeOrder> finished

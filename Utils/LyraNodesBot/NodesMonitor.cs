@@ -26,9 +26,6 @@ namespace LyraNodesBot
         private readonly TelegramBotClient Bot = new TelegramBotClient(System.IO.File.ReadAllText(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\telegram.txt"));
 
         private ChatId _groupId = new ChatId(-1001462436848);
-        private LyraNodeConfig _config;
-
-        private ConsensusRuntimeConfig _runtimeCfg;
 
         public NodesMonitor()
         {
@@ -48,8 +45,6 @@ namespace LyraNodesBot
 
             Bot.StartReceiving(Array.Empty<UpdateType>());
             Console.WriteLine($"Start listening for @{me.Username}");
-
-            _runtimeCfg = await RefreshConfigFromZK();
         }
 
         public void Stop()
@@ -83,23 +78,7 @@ namespace LyraNodesBot
             switch(m.MsgType)
             {
                 case ChatMessageType.NodeUp:
-                    // add node to zk runtime config
-                    _runtimeCfg = await RefreshConfigFromZK();
-                    if (_runtimeCfg != null && !_runtimeCfg.GetAllNodes().Any(a => a.Address == m.From))
-                    {
-                        _runtimeCfg.VotingNodes.Add(new AuthorizerNode
-                        {
-                            Address = m.From,
-                            AccountID = m.Text,
-                            StakingAmount = 10000   // TODO: get real balance
-                        });
-                        //await UsingZookeeper(async (zk) =>
-                        //{
-                        //    var json = JsonConvert.SerializeObject(_runtimeCfg);
-                        //    var cfg = await zk.setDataAsync("/lyra", Encoding.ASCII.GetBytes(json));
-                        //});
-                        //await SendGroupMessageAsync($"*💖 Good News Everyone! 💖*\n\nA new node is up and running: {m.From}");
-                    }
+                    await SendNodesInfoToGroupAsync();
                     break;
                 case ChatMessageType.AuthorizerPrePrepare:
                 case ChatMessageType.AuthorizerPrepare:
@@ -116,6 +95,22 @@ namespace LyraNodesBot
             }
         }
 
+        private async Task SendNodesInfoToGroupAsync()
+        {
+            var wc = new WebClient();
+            var json = wc.DownloadString(LyraGlobal.SelectNode("devnet") + "LyraNode/GetBillboard");
+            var bb = JsonConvert.DeserializeObject<BillBoard>(json);
+            var sb = new StringBuilder();
+            foreach (var node in bb.AllNodes.Values)
+            {
+                sb.AppendLine($"{node.AccountID}");
+                sb.AppendLine($"Staking Balance: {node.Balance}");
+                sb.AppendLine($"Last Staking Time: {node.LastStaking}");
+                sb.AppendLine();
+            }
+            await SendGroupMessageAsync(sb.ToString());
+        }
+
         private async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
         {
             var message = messageEventArgs.Message;
@@ -125,18 +120,7 @@ namespace LyraNodesBot
             switch (message.Text.Split(' ', '@').First())
             {
                 case "/nodes":
-                    var wc = new WebClient();
-                    var json = wc.DownloadString(LyraGlobal.SelectNode("devnet") + "LyraNode/GetBillboard");
-                    var bb = JsonConvert.DeserializeObject<BillBoard>(json);
-                    var sb = new StringBuilder();
-                    foreach(var node in bb.AllNodes.Values)
-                    {
-                        sb.AppendLine($"{node.AccountID}");
-                        sb.AppendLine($"Staking Balance: {node.Balance}");
-                        sb.AppendLine($"Last Staking Time: {node.LastStaking}");
-                        sb.AppendLine();
-                    }
-                    await SendGroupMessageAsync(sb.ToString());
+                    await SendNodesInfoToGroupAsync();
                     break;
                 case "/tps":
                     await SendGroupMessageAsync("No Data");
@@ -235,26 +219,6 @@ namespace LyraNodesBot
             Console.WriteLine("Received error: {0} — {1}",
                 receiveErrorEventArgs.ApiRequestException.ErrorCode,
                 receiveErrorEventArgs.ApiRequestException.Message);
-        }
-
-        private async Task<ConsensusRuntimeConfig> RefreshConfigFromZK()
-        {
-            ConsensusRuntimeConfig result = null;
-            try
-            {
-                //await UsingZookeeper(async (zk) =>
-                //{
-                //    // get Lyra network configurations from /lyra
-                //    // {"mode":"permissioned","seeds":["node1","node2"]}
-                //    var cfg = await zk.getDataAsync("/lyra");
-                //    result = JsonConvert.DeserializeObject<ConsensusRuntimeConfig>(Encoding.ASCII.GetString(cfg.Data));
-                //});
-            }
-            catch (Exception)
-            {
-                result = null;
-            }
-            return result;
         }
 
     }

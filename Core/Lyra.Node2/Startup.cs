@@ -28,10 +28,6 @@ namespace Lyra.Node2
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            OptionsConfigurationServiceCollectionExtensions.Configure<LyraNodeConfig>(services, Configuration.GetSection("LyraNode"));
-
-            services.AddSingleton(typeof(ConsensusRuntimeConfig));
-
             // the apis
             services.AddSingleton<INodeAPI, NodeAPI>();
             services.AddSingleton<INodeTransactionAPI, ApiService>();

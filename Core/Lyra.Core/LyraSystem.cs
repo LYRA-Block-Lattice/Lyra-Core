@@ -37,7 +37,7 @@ namespace Lyra
 
         public string NetworkId { get; private set; }
 
-        public LyraSystem(LyraNodeConfig nodeConfig)
+        public LyraSystem(LyraConfig nodeConfig)
         {
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, nodeConfig));

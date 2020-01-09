@@ -12,11 +12,8 @@ namespace Lyra.Core.Decentralize
 {
     public class NodeAPI : INodeAPI
     {
-        private LyraNodeConfig _config;
-
-        public NodeAPI(IOptions<LyraNodeConfig> config)
+        public NodeAPI()
         {
-            _config = config.Value;
         }
 
         public Task<GetSyncStateAPIResult> GetSyncState()
@@ -77,7 +74,7 @@ namespace Lyra.Core.Decentralize
                 }
                 result.Height = last_sync_block.Index;
                 result.SyncHash = last_sync_block.Hash;
-                result.NetworkId = _config.Lyra.NetworkId;
+                result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
                 result.ResultCode = APIResultCodes.Success;
             }
             catch (Exception e)
@@ -122,7 +119,7 @@ namespace Lyra.Core.Decentralize
                 if (BlockChain.Singleton.AccountExists(AccountId))
                 {
                     result.Height = BlockChain.Singleton.FindLatestBlock(AccountId).Index;
-                    result.NetworkId = _config.Lyra.NetworkId;
+                    result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
                     result.SyncHash = BlockChain.Singleton.GetSyncBlock().Hash;
                     result.ResultCode = APIResultCodes.Success;
                 }

@@ -20,9 +20,9 @@ https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 Install the ASP.NET Core runtime
 
-4. copy Lyra releases to a folder, e.g. ~/
+4. download Lyra releases from https://github.com/wizd/LyraNetwork/releases to a folder, e.g. ~/lyra.permissionless-1.0.3rc.tar.gz
 
-`scp -rp ./Lyra.Node2/* user@[server address]:~/lyranode2`
+`tar -xjvf lyra.permissionless-1.0.3rc.tar.gz`
 
 5. create mongodb user
 
@@ -34,14 +34,16 @@ Install the ASP.NET Core runtime
 
 6. generate staking wallet by, give the wallet a name, e.g. "poswallet"
 
-   lyracli.exe --networkid testnet -p webapi -g poswallet
+`~/lyra/cli/lyracli.exe --networkid testnet -p webapi -g poswallet
 
-7. modify lyranode2\appsettings.json, change monodb account/password, change the wallet/name to the name you created previous step.
+7. modify ~/lyra/node/appsettings.json, modify network id to "testnet", change monodb account/password, change the wallet/name to the name you created previous step.
 
 
-8. run
+8. run. (remember to set environment variable LYRA_SYSTEM to testnet/mainnet etc.)
 
-`dotnet Lyra.Node2.dll`
+`cd ~/lyra/node
+export LYRA_SYSTEM=testnet
+dotnet Lyra.Node2.dll`
 
 9. verify
 

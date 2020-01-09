@@ -20,19 +20,12 @@ namespace Lyra.Core.Decentralize
         IActorRef ConsensusSvc;
 
         private readonly ILogger<ApiService> _log;
-        private LyraNodeConfig _config;
-        ConsensusRuntimeConfig _consensus;
 
         long _useed = -1;
 
-        public ApiService(ILogger<ApiService> logger, 
-            ConsensusRuntimeConfig consensus,
-            IOptions<LyraNodeConfig> config
-            )
+        public ApiService(ILogger<ApiService> logger)
         {
             _log = logger;
-            _config = config.Value;
-            _consensus = consensus;
 
             ConsensusSvc = LyraSystem.Singleton.Consensus;
         }

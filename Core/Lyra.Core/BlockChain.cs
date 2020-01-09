@@ -34,11 +34,11 @@ namespace Lyra
         public uint Height;
         public string NetworkID { get; private set; }
         public bool InSyncing { get; private set; }
-        private LyraNodeConfig _nodeConfig;
+        private LyraConfig _nodeConfig;
         private readonly IAccountCollection _store;
         private LyraSystem _sys;
         private ILogger _log;
-        public BlockChain(LyraSystem sys, LyraNodeConfig nodeConfig)
+        public BlockChain(LyraSystem sys, LyraConfig nodeConfig)
         {
             if (Singleton != null)
                 throw new Exception("Blockchain reinitialization");
@@ -51,7 +51,7 @@ namespace Lyra
 
             Singleton = this;
         }
-        public static Props Props(LyraSystem system, LyraNodeConfig nodeConfig)
+        public static Props Props(LyraSystem system, LyraConfig nodeConfig)
         {
             return Akka.Actor.Props.Create(() => new BlockChain(system, nodeConfig)).WithMailbox("blockchain-mailbox");
         }

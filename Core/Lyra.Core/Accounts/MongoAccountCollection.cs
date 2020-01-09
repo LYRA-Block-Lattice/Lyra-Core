@@ -17,7 +17,7 @@ namespace Lyra.Core.Accounts
     public class MongoAccountCollection : IAccountCollection
     {
         //private const string COLLECTION_DATABASE_NAME = "account_collection";
-        private LyraNodeConfig _config;
+        private LyraConfig _config;
 
         private MongoClient _Client;
 
@@ -31,7 +31,7 @@ namespace Lyra.Core.Accounts
 
         public string Cluster { get; set; }
 
-        public MongoAccountCollection(LyraNodeConfig config)
+        public MongoAccountCollection(LyraConfig config)
         {
             _config = config;
 

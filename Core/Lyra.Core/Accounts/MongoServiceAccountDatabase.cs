@@ -15,7 +15,7 @@ namespace Lyra.Core.Accounts
     // use it in client wallet and node's service account as a single account database
     public class MongoServiceAccountDatabase : IAccountDatabase
     {
-        private LyraNodeConfig _config;
+        private LyraConfig _config;
 
         private MongoClient _Client;
 
@@ -30,7 +30,7 @@ namespace Lyra.Core.Accounts
         readonly string _BlockCollectionName;
         readonly string _ParamsCollectionName;
 
-        public MongoServiceAccountDatabase(LyraNodeConfig config)
+        public MongoServiceAccountDatabase(LyraConfig config)
             //string ConnectionString, string DatabaseName, string AccountName, string NetworkId, string ShardId = "Primary")
         {
             _config = config;

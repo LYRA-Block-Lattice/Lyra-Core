@@ -17,20 +17,20 @@ namespace Lyra.Core.Accounts
 
         private readonly IActorRef _blockChain;
         private readonly Wallet _svcWallet;
-        private LyraNodeConfig _config;
+        private LyraConfig _config;
 
         public bool IsNodeFullySynced { get; set; }
 
         //public Dictionary<string, string> TokenGenesisBlocks { get; set; }
 
-        public ServiceAccount(IActorRef blockChain, Wallet svcWallet, LyraNodeConfig config)
+        public ServiceAccount(IActorRef blockChain, Wallet svcWallet, LyraConfig config)
         {
             _blockChain = blockChain;
             _svcWallet = svcWallet;
             _config = config;
         }
 
-        public static Props Props(IActorRef blockChain, Wallet svcWallet, LyraNodeConfig config)
+        public static Props Props(IActorRef blockChain, Wallet svcWallet, LyraConfig config)
         {
             return Akka.Actor.Props.Create(() => new ServiceAccount(blockChain, svcWallet, config));
         }

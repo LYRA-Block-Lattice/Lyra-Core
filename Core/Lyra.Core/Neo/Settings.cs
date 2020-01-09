@@ -1,3 +1,4 @@
+using Lyra.Core.Utils;
 using Microsoft.Extensions.Configuration;
 using Neo.Network.P2P;
 using System.Threading;
@@ -6,6 +7,7 @@ namespace Neo
 {
     public class Settings
     {
+        public LyraConfig LyraNode { get; }
         public StorageSettings Storage { get; }
         public P2PSettings P2P { get; }
         public UnlockWalletSettings UnlockWallet { get; }
@@ -39,6 +41,7 @@ namespace Neo
 
         public Settings(IConfigurationSection section)
         {
+            this.LyraNode = new LyraConfig(section.GetSection("LyraNode"));
             this.Storage = new StorageSettings(section.GetSection("Storage"));
             this.P2P = new P2PSettings(section.GetSection("P2P"));
             this.UnlockWallet = new UnlockWalletSettings(section.GetSection("UnlockWallet"));

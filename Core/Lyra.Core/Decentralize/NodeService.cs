@@ -19,7 +19,6 @@ namespace Lyra.Core.Decentralize
         public static NodeService Instance { get; private set; } 
         public static DealEngine Dealer { get; private set; }
         public Wallet PosWallet { get; private set; }
-        private LyraNodeConfig _config;
 
         private INodeAPI _dataApi;
         public MongoClient client;
@@ -29,11 +28,8 @@ namespace Lyra.Core.Decentralize
         ILogger _log;
 
         public string Leader { get; private set; }
-        private ConsensusRuntimeConfig _consensus;
 
-        public NodeService(IOptions<LyraNodeConfig> config,
-            ILogger<NodeService> logger,
-            ConsensusRuntimeConfig consensus
+        public NodeService(ILogger<NodeService> logger
             )
         {
             if (Instance == null)
@@ -41,8 +37,6 @@ namespace Lyra.Core.Decentralize
             else
                 throw new InvalidOperationException("Should not do this");
 
-            _config = config.Value;
-            _consensus = consensus;
             _log = logger;
         }
 
@@ -57,12 +51,12 @@ namespace Lyra.Core.Decentralize
                 new AuthorizersFactory().Init();
 
                 var walletStore = new LiteAccountDatabase();
-                PosWallet = new Wallet(walletStore, _config.Lyra.NetworkId);
-                string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + _config.Lyra.NetworkId);
+                PosWallet = new Wallet(walletStore, Neo.Settings.Default.LyraNode.Lyra.NetworkId);
+                string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + Neo.Settings.Default.LyraNode.Lyra.NetworkId);
                 string full_path = BaseAccount.GetFullPath(lyra_folder);
-                PosWallet.OpenAccount(full_path, _config.Lyra.Wallet.Name);
+                PosWallet.OpenAccount(full_path, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name);
 
-                var sys = new LyraSystem(_config);
+                var sys = new LyraSystem(Neo.Settings.Default.LyraNode);
                 sys.Start();
 
                 if (_db == null)
@@ -70,7 +64,7 @@ namespace Lyra.Core.Decentralize
                     //BsonSerializer.RegisterSerializer(typeof(decimal), new DecimalSerializer(BsonType.Decimal128));
                     //BsonSerializer.RegisterSerializer(typeof(decimal?), new NullableSerializer<decimal>(new DecimalSerializer(BsonType.Decimal128)));
 
-                    client = new MongoClient(_config.Lyra.Database.DexDBConnect);
+                    client = new MongoClient(Neo.Settings.Default.LyraNode.Lyra.Database.DexDBConnect);
                     _db = client.GetDatabase("Dex");
 
                     var exchangeAccounts = _db.GetCollection<ExchangeAccount>("exchangeAccounts");
@@ -78,7 +72,7 @@ namespace Lyra.Core.Decentralize
                     var finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
 
                     // TODO: make it DI
-                    //Dealer = new DealEngine(_config, _dataApi, exchangeAccounts, queue, finished);
+                    //Dealer = new DealEngine(Neo.Settings.Default.LyraNode, _dataApi, exchangeAccounts, queue, finished);
                     //Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
                 }
 
@@ -100,7 +94,7 @@ namespace Lyra.Core.Decentralize
                 //});
 
                 // all seeds do node election
-                //if (_consensus.Seeds.Contains(_config.Orleans.EndPoint.AdvertisedIPAddress))
+                //if (_consensus.Seeds.Contains(Neo.Settings.Default.LyraNode.Orleans.EndPoint.AdvertisedIPAddress))
                 //{
                     //while(true)     // we do nothing without zk
                     //{
@@ -111,7 +105,7 @@ namespace Lyra.Core.Decentralize
                     //        var stat = await zk.existsAsync(electRoot);
                     //        if (stat == null)
                     //            await zk.createAsync(electRoot, new byte[0], ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-                    //        _leader = new LeaderElectionSupport(zk, electRoot, _config.Orleans.EndPoint.AdvertisedIPAddress);
+                    //        _leader = new LeaderElectionSupport(zk, electRoot, Neo.Settings.Default.LyraNode.Orleans.EndPoint.AdvertisedIPAddress);
 
                     //        _leader.addListener(this);
                     //        await _leader.start();
@@ -154,7 +148,7 @@ namespace Lyra.Core.Decentralize
         //        case ElectionEventType.ELECTED_COMPLETE:
         //            Leader = await _leader.getLeaderHostName();
                     
-        //            if (Leader == _config.Orleans.EndPoint.AdvertisedIPAddress)
+        //            if (Leader == Neo.Settings.Default.LyraNode.Orleans.EndPoint.AdvertisedIPAddress)
         //                _serviceAccount.IsNodeFullySynced = true;
 
         //            if (Leader == _consensus.CurrentSeed)
