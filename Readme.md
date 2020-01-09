@@ -62,7 +62,7 @@ The following model is being considered for the native/gas tokens for Lyra.
 * convert portion of the GRAFT Reserve funds into LYRA and operate the first set of nodes ourselves (this will give us a chance to flush out the DPOS)
 * Once DPOS is flushed out, put together an exchange gateway that will allow GRFT holders to exchange their GRFT for Lyra.GRFT
 
-### Staking and participation
+### Participation
 
 1. Authorizers. (21-seeds) primary +21 backup nodes, run by the community
 2. Seeds and zookeepers: 3~11 nodes run by dev team.
