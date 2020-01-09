@@ -38,6 +38,7 @@ namespace Lyra.Core.Decentralize
         ILogger _log;
 
         // hash, authState
+        Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
         Dictionary<string, AuthState> _activeConsensus;
         private BillBoard _board;
 
@@ -52,6 +53,7 @@ namespace Lyra.Core.Decentralize
             _localNode = localNode;
             _log = new SimpleLogger("ConsensusService").Logger;
 
+            _outOfOrderedMessages = new Dictionary<string, List<SourceSignedMessage>>();
             _activeConsensus = new Dictionary<string, AuthState>();
 
             _authorizers = new AuthorizersFactory();
@@ -157,7 +159,7 @@ namespace Lyra.Core.Decentralize
 
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
             var mt = new MerkleTree();
-            for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx++)
+            for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx++)      // TODO: handling "losing" block here
             {
                 var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
                 var mhash = MerkleHash.Create(block.UHash);
@@ -351,6 +353,27 @@ namespace Lyra.Core.Decentralize
                 HashOfFirstBlock = ukey,
                 InputMsg = item,
             };
+
+            // add possible out of ordered messages belong to the block
+            if(_outOfOrderedMessages.ContainsKey(item.Block.Hash))
+            {
+                var msgs = _outOfOrderedMessages[item.Block.Hash];
+                _outOfOrderedMessages.Remove(item.Block.Hash);
+
+                foreach(var msg in msgs)
+                {
+                    switch(msg)
+                    {
+                        case AuthorizedMsg authorized:
+                            state.AddAuthResult(authorized);
+                            break;
+                        case AuthorizerCommitMsg committed:
+                            state.AddCommitedResult(committed);
+                            break;
+                    }
+                }
+            }
+
             _activeConsensus.Add(ukey, state);
             return state;
         }
@@ -402,10 +425,27 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"Consensus: OnPrepare Called: Block Hash: {item.BlockHash}");
 
-            var state = _activeConsensus[item.BlockHash];
-            state.AddAuthResult(item);
+            if(_activeConsensus.ContainsKey(item.BlockHash))
+            {
+                var state = _activeConsensus[item.BlockHash];
+                state.AddAuthResult(item);
 
-            CheckAuthorizedAllOk(state);
+                CheckAuthorizedAllOk(state);
+            }
+            else
+            {
+                // maybe outof ordered message
+                List<SourceSignedMessage> msgs;
+                if (_outOfOrderedMessages.ContainsKey(item.BlockHash))
+                    msgs = _outOfOrderedMessages[item.BlockHash];
+                else
+                {
+                    msgs = new List<SourceSignedMessage>();
+                    msgs.Add(item);
+                }
+
+                msgs.Add(item);
+            }
         }
 
         private void CheckAuthorizedAllOk(AuthState state)
@@ -469,10 +509,27 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"Consensus: OnCommit Called: BlockUIndex: {item.BlockIndex}");
 
-            var state = _activeConsensus[item.BlockHash];
-            state.AddCommitedResult(item);
+            if(_activeConsensus.ContainsKey(item.BlockHash))
+            {
+                var state = _activeConsensus[item.BlockHash];
+                state.AddCommitedResult(item);
 
-            OnNodeActive(item.From);        // track latest activities via billboard
+                OnNodeActive(item.From);        // track latest activities via billboard
+            }
+            else
+            {
+                // maybe outof ordered message
+                List<SourceSignedMessage> msgs;
+                if (_outOfOrderedMessages.ContainsKey(item.BlockHash))
+                    msgs = _outOfOrderedMessages[item.BlockHash];
+                else
+                {
+                    msgs = new List<SourceSignedMessage>();
+                    msgs.Add(item);
+                }
+
+                msgs.Add(item);
+            }
         }
     }
 
