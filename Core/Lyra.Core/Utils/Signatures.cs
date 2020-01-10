@@ -18,7 +18,7 @@ namespace Lyra.Core.Cryptography
         private static ILogger _log;
         static Signatures()
         {
-            _log = new SimpleLogger("BlockChain").Logger;
+            _log = new SimpleLogger("Signatures").Logger;
         }
         public static bool ValidateAccountId(string AccountId)
         {

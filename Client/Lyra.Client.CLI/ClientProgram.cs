@@ -80,6 +80,7 @@ namespace Lyra.Client.CLI
                 .ConfigureLogging(builder =>
                 {
                     builder.AddConsole();
+                    SimpleLogger.Factory = new LoggerFactory();
                 })
                 .Build();
         }
