@@ -277,7 +277,7 @@ namespace Lyra
                                 }
                                 else if(blockResult.ResultCode == APIResultCodes.BlockNotFound)
                                 {
-                                    return true;
+                                    continue;
                                 }
                                 else
                                 {

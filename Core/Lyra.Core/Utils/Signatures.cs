@@ -18,7 +18,14 @@ namespace Lyra.Core.Cryptography
         private static ILogger _log;
         static Signatures()
         {
-            _log = new SimpleLogger("BlockChain").Logger;
+            try
+            {
+                _log = new SimpleLogger("Signatures").Logger;
+            }
+            catch(Exception)
+            {
+
+            }
         }
         public static bool ValidateAccountId(string AccountId)
         {
@@ -85,7 +92,7 @@ namespace Lyra.Core.Cryptography
             }
             catch(Exception ex)
             {
-                _log.LogError("VerifySignature failed: " + ex.Message);
+                _log?.LogError("VerifySignature failed: " + ex.Message);
                 return false;
             }
         }

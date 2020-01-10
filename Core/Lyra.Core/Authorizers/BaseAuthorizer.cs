@@ -44,7 +44,7 @@ namespace Lyra.Core.Authorizers
             if (LyraSystem.Singleton.NetworkId != block.NetworkId)
                 return APIResultCodes.InvalidNetworkId;
 
-            if (!block.IsBlockValid(previousBlock))
+            if (previousBlock != null && !block.IsBlockValid(previousBlock))
                 return APIResultCodes.BlockValidationFailed;
 
             //if (!Signatures.VerifySignature(block.Hash, block.AccountID, block.Signature))
@@ -73,7 +73,7 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // check if this Index already exists (double-spending, kind of)
-                if (BlockChain.Singleton.FindBlockByIndex(block.AccountID, block.Index) != null)
+                if (block.BlockType != BlockTypes.NullTransaction && BlockChain.Singleton.FindBlockByIndex(block.AccountID, block.Index) != null)
                     return APIResultCodes.BlockWithThisIndexAlreadyExists;
             }         
 
@@ -93,7 +93,7 @@ namespace Lyra.Core.Authorizers
             if (previousBlock != null && block.Index != previousBlock.Index + 1)
                 return APIResultCodes.InvalidIndexSequence;
 
-            if(!(block is ConsolidationBlock))
+            if(!(block is ConsolidationBlock) && !(block is NullTransactionBlock))
             {
                 if (!ValidateRenewalDate(block, previousBlock))
                     return APIResultCodes.TokenExpired;
@@ -220,7 +220,7 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as TransactionBlock;
 
-            if(block.BlockType != BlockTypes.Consolidation)
+            if (block.BlockType != BlockTypes.Consolidation)
             {
                 // ServiceHash is excluded when calculating the block hash,
                 // but it is included when creating/validating the authorization signature

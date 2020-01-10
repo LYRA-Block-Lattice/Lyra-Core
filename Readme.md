@@ -3,7 +3,10 @@
 ### [Roadmap](https://github.com/graft-project/LyraNetwork/wiki/Roadmap)
 
 # Note
-Testnet is LIVE!
+Testnet Live Now! (From 10 Jan 2020)
+
+Stable Release: https://github.com/graft-project/LyraNetwork/releases
+Nightly/Testing Releases: https://github.com/wizd/LyraNetwork/releases
 
 # Lyra Permissionless Node Setup
 
