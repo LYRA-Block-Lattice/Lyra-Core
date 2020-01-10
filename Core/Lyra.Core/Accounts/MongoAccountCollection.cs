@@ -60,6 +60,7 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<ConsolidationBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
+            BsonClassMap.RegisterClassMap<NullTransactionBlock>();
 
             _blocks = GetDatabase().GetCollection<TransactionBlock>(_BlocksCollectionName);
 
