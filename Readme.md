@@ -3,7 +3,7 @@
 ### [Roadmap](https://github.com/graft-project/LyraNetwork/wiki/Roadmap)
 
 # Note
-Testnet Now!
+Testnet is LIVE!
 
 # Lyra Permissionless Node Setup
 
