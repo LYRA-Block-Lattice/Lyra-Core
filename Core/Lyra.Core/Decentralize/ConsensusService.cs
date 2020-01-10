@@ -168,10 +168,11 @@ namespace Lyra.Core.Decentralize
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to xx[consBlock.UIndex -1]xx may lost the newest block
             // if the block is old enough ( > 2 mins ), it should be replaced by NullTransactionBlock.
             // in fact we should reserve consolidate block number and wait 2min to do consolidating
-            // all null block's previous block is the last consolidate block
+            // all null block's previous block is the last consolidate block, it's index is counted from 1 related to previous block
             await Task.Delay(33 * 1000);    // the cleaner clean block old than 30 seconds.
 
             var mt = new MerkleTree();
+            int NullBlockIndex = 1;
             for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx++)      // TODO: handling "losing" block here
             {
                 var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
@@ -182,13 +183,20 @@ namespace Lyra.Core.Decentralize
 
                     var nb = new NullTransactionBlock
                     {
-                        UIndex = ndx
+                        UIndex = ndx,
+                        Index = NullBlockIndex++,
+                        NetworkId = authGenesis.NetworkId,
+                        ShardId = authGenesis.ShardId,
+                        ServiceHash = authGenesis.Hash,
+                        AccountID = NodeService.Instance.PosWallet.AccountId
                     };
                     nb.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
                         authGenesis.NetworkId, authGenesis.ShardId,
                         NodeService.Instance.PosWallet.AccountId);
-
+                    nb.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
                     SendServiceBlock(nb);
+
+                    block = nb;
                 }
                 var mhash = MerkleHash.Create(block.UHash);
                 mt.AppendLeaf(mhash);
@@ -198,6 +206,8 @@ namespace Lyra.Core.Decentralize
             consBlock.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
                 authGenesis.NetworkId, authGenesis.ShardId,
                 NodeService.Instance.PosWallet.AccountId);
+
+            consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
 
             SendServiceBlock(consBlock);
         }
