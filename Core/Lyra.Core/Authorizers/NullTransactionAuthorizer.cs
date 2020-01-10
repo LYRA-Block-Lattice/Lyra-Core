@@ -36,7 +36,7 @@ namespace Lyra.Core.Authorizers
             if (lastCons == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            if (block.PreviousHash != lastCons.Hash)
+            if (block.PreviousConsolidateHash != lastCons.Hash)
                 return APIResultCodes.PreviousBlockNotFound;
 
             var result = VerifyBlock(block, lastCons);

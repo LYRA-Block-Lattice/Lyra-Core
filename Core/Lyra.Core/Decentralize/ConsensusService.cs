@@ -188,7 +188,8 @@ namespace Lyra.Core.Decentralize
                         NetworkId = authGenesis.NetworkId,
                         ShardId = authGenesis.ShardId,
                         ServiceHash = authGenesis.Hash,
-                        AccountID = NodeService.Instance.PosWallet.AccountId
+                        AccountID = NodeService.Instance.PosWallet.AccountId,
+                        PreviousConsolidateHash = lastCons.Hash
                     };
                     nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                         authGenesis.NetworkId, authGenesis.ShardId,
