@@ -58,14 +58,11 @@ mode 0 is normal, mode 1 is syncing blocks.
 https://localhost:4505/api/LyraNode/GetBillboard
 display all connected nodes.
 
-10. refresh wallet balance
+10. refresh POS wallet balance (when node not running)
 
 `dotnet ~/lyra/cli/lyracli.dll --networkid testnet -p webapi`
-
 `poswallet`
-
 `sync`
-
 `balance`
 
 
