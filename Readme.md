@@ -61,8 +61,11 @@ display all connected nodes.
 10. refresh POS wallet balance (when node not running)
 
 `dotnet ~/lyra/cli/lyracli.dll --networkid testnet -p webapi`
+
 `poswallet`
+
 `sync`
+
 `balance`
 
 
