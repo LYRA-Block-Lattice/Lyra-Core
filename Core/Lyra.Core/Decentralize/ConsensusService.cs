@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static Neo.Network.P2P.LocalNode;
 
@@ -77,17 +78,19 @@ namespace Lyra.Core.Decentralize
                         await GenerateConsolidateBlockAsync();
                     });
 
-                    BroadCastBillBoard();                
+                    BroadCastBillBoard();
                 }
             });
 
-            Receive<BillBoard>((bb) => { 
+            Receive<BillBoard>((bb) =>
+            {
                 _board = bb;
             });
 
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
 
-            Receive<AuthorizingMsg>(async msg => {
+            Receive<AuthorizingMsg>(async msg =>
+            {
                 if (msg.Version != LyraGlobal.ProtocolVersion)
                     Sender.Tell(null);
 
@@ -97,8 +100,8 @@ namespace Lyra.Core.Decentralize
                 var state = CreateAuthringState(msg);
                 var localAuthResult = LocalAuthorizingAsync(msg);
                 state.AddAuthResult(localAuthResult);
-                
-                if(!localAuthResult.IsSuccess)
+
+                if (!localAuthResult.IsSuccess)
                 {
                     state.Done.Set();
                     Sender.Tell(state);
@@ -115,7 +118,7 @@ namespace Lyra.Core.Decentralize
                         _ = state.Done.WaitOne();
                     }).ConfigureAwait(false);
 
-                    sender.Tell(state);                    
+                    sender.Tell(state);
                 }
             });
 
@@ -131,7 +134,7 @@ namespace Lyra.Core.Decentralize
             {
                 Mode = ConsensusWorkingMode.Normal;
                 _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
-                
+
                 // declare to the network
                 var msg = new ChatMsg
                 {
@@ -143,8 +146,9 @@ namespace Lyra.Core.Decentralize
                 Send2P2pNetwork(msg);
             });
 
-            Task.Run(async () => { 
-                while(true)
+            Task.Run(async () =>
+            {
+                while (true)
                 {
                     StateClean(30);
                     await Task.Delay(1000).ConfigureAwait(false);
@@ -154,6 +158,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task GenerateConsolidateBlockAsync()
         {
+
             var authGenesis = BlockChain.Singleton.GetLastServiceBlock();
             var lastCons = BlockChain.Singleton.GetSyncBlock();
             var consBlock = new ConsolidationBlock
@@ -171,52 +176,61 @@ namespace Lyra.Core.Decentralize
             // all null block's previous block is the last consolidate block, it's index is counted from 1 related to previous block
             await Task.Delay(33 * 1000);    // the cleaner clean block old than 30 seconds.
 
-            var mt = new MerkleTree();
-            int NullBlockIndex = 1;
-            for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx++)      // TODO: handling "losing" block here
+            while (true)
             {
-                var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
-                if(block == null)
+                var mt = new MerkleTree();
+                int NullBlockIndex = 1;
+                List<AuthState> NullBlockStates = new List<AuthState>();
+                for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx++)      // TODO: handling "losing" block here
                 {
-                    // block lost
-                    _log.LogError($"Block lost for No. {ndx}. Create null transaction block.");
-
-                    var nb = new NullTransactionBlock
+                    var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
+                    if (block == null)
                     {
-                        UIndex = ndx,
-                        Index = NullBlockIndex++,
-                        NetworkId = authGenesis.NetworkId,
-                        ShardId = authGenesis.ShardId,
-                        ServiceHash = authGenesis.Hash,
-                        AccountID = NodeService.Instance.PosWallet.AccountId,
-                        PreviousConsolidateHash = lastCons.Hash
-                    };
-                    nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                        authGenesis.NetworkId, authGenesis.ShardId,
-                        NodeService.Instance.PosWallet.AccountId);
-                    nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
-                    SendServiceBlock(nb);
+                        // block lost
+                        _log.LogError($"Block lost for No. {ndx}. Create null transaction block.");
 
-                    block = nb;
+                        var nb = new NullTransactionBlock
+                        {
+                            UIndex = ndx,
+                            Index = NullBlockIndex++,
+                            NetworkId = authGenesis.NetworkId,
+                            ShardId = authGenesis.ShardId,
+                            ServiceHash = authGenesis.Hash,
+                            AccountID = NodeService.Instance.PosWallet.AccountId,
+                            PreviousConsolidateHash = lastCons.Hash
+                        };
+                        nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+                            authGenesis.NetworkId, authGenesis.ShardId,
+                            NodeService.Instance.PosWallet.AccountId);
+                        nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
+
+                        NullBlockStates.Add(SendServiceBlock(nb));
+
+                        block = nb;
+                    }
+                    var mhash = MerkleHash.Create(block.UHash);
+                    mt.AppendLeaf(mhash);
                 }
-                var mhash = MerkleHash.Create(block.UHash);
-                mt.AppendLeaf(mhash);
+                consBlock.MerkelTreeHash = mt.BuildTree().ToString();
+
+                consBlock.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+                    authGenesis.NetworkId, authGenesis.ShardId,
+                    NodeService.Instance.PosWallet.AccountId);
+
+                consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
+
+                // must wait all nulltransblock saved
+                WaitHandle.WaitAll(NullBlockStates.Select(a => a.Done).ToArray());
+                if (NullBlockStates.Any(a => a.IsConsensusSuccess != true))
+                    continue;
+                else
+                    break;
             }
-            consBlock.MerkelTreeHash = mt.BuildTree().ToString();
-
-            consBlock.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
-                authGenesis.NetworkId, authGenesis.ShardId,
-                NodeService.Instance.PosWallet.AccountId);
-
-            consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
-
-            // must wait all nulltransblock saved
-            await Task.Delay(33 * 1000);
 
             SendServiceBlock(consBlock);
         }
 
-        private void SendServiceBlock(TransactionBlock svcBlock)
+        private AuthState SendServiceBlock(TransactionBlock svcBlock)
         {
             AuthorizingMsg msg = new AuthorizingMsg
             {
@@ -238,6 +252,8 @@ namespace Lyra.Core.Decentralize
                 Send2P2pNetwork(msg);
                 Send2P2pNetwork(localAuthResult);
             }
+
+            return state;
         }
 
         private void StateClean(int seconds)
@@ -246,7 +262,7 @@ namespace Lyra.Core.Decentralize
             {
                 // first clean cleaned states
                 var cleaned = _cleanedConsensus.Values.ToArray();
-                for(int i = 0; i < cleaned.Length; i++)
+                for (int i = 0; i < cleaned.Length; i++)
                 {
                     var state = cleaned[i];
                     if (state.Created - DateTime.Now > TimeSpan.FromMinutes(10)) // consensus timeout 30 seconds
@@ -268,7 +284,7 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _log.LogError("In StateClean: " + ex.Message);
             }
@@ -338,7 +354,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnBlockConsolication(ChatMsg msg)
         {
-            if(!IsThisNodeSeed0)
+            if (!IsThisNodeSeed0)
             {
                 var block = JsonConvert.DeserializeObject<ConsolidationBlock>(msg.Text);
                 BlockChain.Singleton.AddBlock(block);
@@ -348,7 +364,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnBillBoardBroadcast(ChatMsg msg)
         {
-            if(!IsThisNodeSeed0)
+            if (!IsThisNodeSeed0)
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
                 _log.LogInformation("BillBoard updated!");
@@ -364,7 +380,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnNodeActive(string nodeAccountId)
         {
-            if(_board != null)
+            if (_board != null)
                 _board.Add(nodeAccountId);
         }
 
@@ -375,13 +391,13 @@ namespace Lyra.Core.Decentralize
 
             var node = _board.Add(chat.From);
 
-            if(IsThisNodeSeed0)
+            if (IsThisNodeSeed0)
             {
                 // broadcast billboard
                 BroadCastBillBoard();
             }
 
-            if(node.Balance < LyraGlobal.MinimalAuthorizerBalance)
+            if (node.Balance < LyraGlobal.MinimalAuthorizerBalance)
             {
                 _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Balance);
             }
@@ -404,14 +420,14 @@ namespace Lyra.Core.Decentralize
             };
 
             // add possible out of ordered messages belong to the block
-            if(_outOfOrderedMessages.ContainsKey(item.Block.Hash))
+            if (_outOfOrderedMessages.ContainsKey(item.Block.Hash))
             {
                 var msgs = _outOfOrderedMessages[item.Block.Hash];
                 _outOfOrderedMessages.Remove(item.Block.Hash);
 
-                foreach(var msg in msgs)
+                foreach (var msg in msgs)
                 {
-                    switch(msg)
+                    switch (msg)
                     {
                         case AuthorizedMsg authorized:
                             state.AddAuthResult(authorized);
@@ -435,13 +451,13 @@ namespace Lyra.Core.Decentralize
             var result = new AuthorizedMsg
             {
                 From = NodeService.Instance.PosWallet.AccountId,
-                MsgType = ChatMessageType.AuthorizerPrepare,                
+                MsgType = ChatMessageType.AuthorizerPrepare,
                 BlockHash = item.Block.Hash,
                 Result = localAuthResult.Item1,
                 AuthSign = localAuthResult.Item2
-            };            
+            };
 
-            if(item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
+            if (item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
             {
                 // do nothing. the UIndex has already take cared of.
             }
@@ -474,7 +490,7 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"Consensus: OnPrepare Called: Block Hash: {item.BlockHash}");
 
-            if(_activeConsensus.ContainsKey(item.BlockHash))
+            if (_activeConsensus.ContainsKey(item.BlockHash))
             {
                 var state = _activeConsensus[item.BlockHash];
                 state.AddAuthResult(item);
@@ -484,7 +500,7 @@ namespace Lyra.Core.Decentralize
             else
             {
                 // maybe outof ordered message
-                if(_cleanedConsensus.ContainsKey(item.BlockHash))
+                if (_cleanedConsensus.ContainsKey(item.BlockHash))
                 {
                     return;
                 }
@@ -516,7 +532,7 @@ namespace Lyra.Core.Decentralize
                     var block = state.InputMsg.Block;
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
-                    if(block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.NullTransaction && block.BlockType != BlockTypes.Service)
+                    if (block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.NullTransaction && block.BlockType != BlockTypes.Service)
                     {
                         // pickup UIndex
                         try
@@ -528,14 +544,14 @@ namespace Lyra.Core.Decentralize
                             _log.LogError("Can't get UIndex. System fail: " + ex.Message);
                             return;
                         }
-                    }
 
-                    if (block.UIndex != _UIndexSeed - 1)
-                    {
-                        // local node out of sync
-                        _UIndexSeed = block.UIndex + 1;
-                        Mode = ConsensusWorkingMode.OutofSyncWaiting;
-                        LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
+                        if (block.UIndex != _UIndexSeed - 1)
+                        {
+                            // local node out of sync
+                            _UIndexSeed = block.UIndex + 1;
+                            Mode = ConsensusWorkingMode.OutofSyncWaiting;
+                            LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
+                        }
                     }
 
                     block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
@@ -563,7 +579,7 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"Consensus: OnCommit Called: BlockUIndex: {item.BlockIndex}");
 
-            if(_activeConsensus.ContainsKey(item.BlockHash))
+            if (_activeConsensus.ContainsKey(item.BlockHash))
             {
                 var state = _activeConsensus[item.BlockHash];
                 state.AddCommitedResult(item);
@@ -607,7 +623,7 @@ namespace Lyra.Core.Decentralize
                 //case ConsensusService.SetViewNumber _:
                 //case ConsensusService.Timer _:
                 //case Blockchain.PersistCompleted _:
-//                    return true;
+                //                    return true;
                 default:
                     return false;
             }
