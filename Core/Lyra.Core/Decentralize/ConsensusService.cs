@@ -366,6 +366,9 @@ namespace Lyra.Core.Decentralize
 
         private void OnNodeUp(ChatMsg chat)
         {
+            if (_board == null)
+                return;
+
             var node = _board.Add(chat.From);
 
             if(IsThisNodeSeed0)
