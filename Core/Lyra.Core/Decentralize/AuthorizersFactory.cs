@@ -33,6 +33,7 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.ImportAccount, "ImportAccountAuthorizer");
             _authorizers.Add(BlockTypes.TokenGenesis, "NewTokenAuthorizer");
             _authorizers.Add(BlockTypes.Consolidation, "ConsolidationBlockAuthorizer");
+            _authorizers.Add(BlockTypes.NullTransaction, "NullTransactionAuthorizer");
 
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
             foreach(var kvp in _authorizers)

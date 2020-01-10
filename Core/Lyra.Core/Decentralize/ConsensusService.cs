@@ -40,6 +40,7 @@ namespace Lyra.Core.Decentralize
         // hash, authState
         Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
         Dictionary<string, AuthState> _activeConsensus;
+        Dictionary<string, AuthState> _cleanedConsensus;
         private BillBoard _board;
 
         private AuthorizersFactory _authorizers;
@@ -55,6 +56,7 @@ namespace Lyra.Core.Decentralize
 
             _outOfOrderedMessages = new Dictionary<string, List<SourceSignedMessage>>();
             _activeConsensus = new Dictionary<string, AuthState>();
+            _cleanedConsensus = new Dictionary<string, AuthState>();
 
             _authorizers = new AuthorizersFactory();
             while (BlockChain.Singleton == null)
@@ -70,8 +72,12 @@ namespace Lyra.Core.Decentralize
 
                 if (Mode == ConsensusWorkingMode.Normal)
                 {
-                    BroadCastBillBoard();
-                    GenerateConsolidateBlock();
+                    Task.Run(async () =>
+                    {
+                        await GenerateConsolidateBlockAsync();
+                    });
+
+                    BroadCastBillBoard();                
                 }
             });
 
@@ -140,13 +146,13 @@ namespace Lyra.Core.Decentralize
             Task.Run(async () => { 
                 while(true)
                 {
-                    StateClean();
+                    StateClean(30);
                     await Task.Delay(1000).ConfigureAwait(false);
                 }
             });
         }
 
-        private void GenerateConsolidateBlock()
+        private async Task GenerateConsolidateBlockAsync()
         {
             var authGenesis = BlockChain.Singleton.GetLastServiceBlock();
             var lastCons = BlockChain.Singleton.GetSyncBlock();
@@ -159,7 +165,12 @@ namespace Lyra.Core.Decentralize
                 SvcAccountID = NodeService.Instance.PosWallet.AccountId
             };
 
-            // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
+            // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to xx[consBlock.UIndex -1]xx may lost the newest block
+            // if the block is old enough ( > 2 mins ), it should be replaced by NullTransactionBlock.
+            // in fact we should reserve consolidate block number and wait 2min to do consolidating
+            // all null block's previous block is the last consolidate block
+            await Task.Delay(33 * 1000);    // the cleaner clean block old than 30 seconds.
+
             var mt = new MerkleTree();
             for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx++)      // TODO: handling "losing" block here
             {
@@ -167,13 +178,17 @@ namespace Lyra.Core.Decentralize
                 if(block == null)
                 {
                     // block lost
-                    _log.LogError($"Block lost for No. {ndx}. Try to resync with other seeds...");
+                    _log.LogError($"Block lost for No. {ndx}. Create null transaction block.");
 
-                    // triggering a resync
-                    Mode = ConsensusWorkingMode.OutofSyncWaiting;
-                    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = ndx });
+                    var nb = new NullTransactionBlock
+                    {
+                        UIndex = ndx
+                    };
+                    nb.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+                        authGenesis.NetworkId, authGenesis.ShardId,
+                        NodeService.Instance.PosWallet.AccountId);
 
-                    return;
+                    SendServiceBlock(nb);
                 }
                 var mhash = MerkleHash.Create(block.UHash);
                 mt.AppendLeaf(mhash);
@@ -183,26 +198,16 @@ namespace Lyra.Core.Decentralize
             consBlock.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
                 authGenesis.NetworkId, authGenesis.ShardId,
                 NodeService.Instance.PosWallet.AccountId);
-            //consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
-            //consBlock.Authorizations = new List<AuthorizationSignature>();
-            //consBlock.Authorizations.Add(new AuthorizationSignature
-            //{
-            //    Key = NodeService.Instance.PosWallet.AccountId,
-            //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
-            //});
 
-            //BlockChain.Singleton.AddBlock(consBlock);
+            SendServiceBlock(consBlock);
+        }
 
-            //// broadcast to whole network
-            //var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, JsonConvert.SerializeObject(consBlock));
-            //msg.MsgType = ChatMessageType.BlockConsolidation;
-            //Send2P2pNetwork(msg);
-
-            // no, we do consensus
+        private void SendServiceBlock(TransactionBlock svcBlock)
+        {
             AuthorizingMsg msg = new AuthorizingMsg
             {
                 From = NodeService.Instance.PosWallet.AccountId,
-                Block = consBlock,
+                Block = svcBlock,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
@@ -221,18 +226,31 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void StateClean()
+        private void StateClean(int seconds)
         {
             try
             {
+                // first clean cleaned states
+                var cleaned = _cleanedConsensus.Values.ToArray();
+                for(int i = 0; i < cleaned.Length; i++)
+                {
+                    var state = cleaned[i];
+                    if (state.Created - DateTime.Now > TimeSpan.FromMinutes(10)) // consensus timeout 30 seconds
+                    {
+                        _cleanedConsensus.Remove(state.InputMsg.Block.Hash);
+                    }
+                }
+
                 var states = _activeConsensus.Values.ToArray();
                 for (int i = 0; i < states.Length; i++)
                 {
                     var state = states[i];
-                    if (state.Created - DateTime.Now > TimeSpan.FromSeconds(30)) // consensus timeout 30 seconds
+                    if (state.Created - DateTime.Now > TimeSpan.FromSeconds(seconds)) // consensus timeout 30 seconds
                     {
                         _activeConsensus.Remove(state.InputMsg.Block.Hash);
                         state.Done.Set();
+
+                        _cleanedConsensus.Add(state.InputMsg.Block.Hash, state);
                     }
                 }
             }
@@ -449,6 +467,11 @@ namespace Lyra.Core.Decentralize
             else
             {
                 // maybe outof ordered message
+                if(_cleanedConsensus.ContainsKey(item.BlockHash))
+                {
+                    return;
+                }
+
                 List<SourceSignedMessage> msgs;
                 if (_outOfOrderedMessages.ContainsKey(item.BlockHash))
                     msgs = _outOfOrderedMessages[item.BlockHash];
@@ -533,6 +556,11 @@ namespace Lyra.Core.Decentralize
             else
             {
                 // maybe outof ordered message
+                if (_cleanedConsensus.ContainsKey(item.BlockHash))
+                {
+                    return;
+                }
+
                 List<SourceSignedMessage> msgs;
                 if (_outOfOrderedMessages.ContainsKey(item.BlockHash))
                     msgs = _outOfOrderedMessages[item.BlockHash];

@@ -180,6 +180,8 @@ namespace Lyra.Core.Blocks
     {
         Null = 0,
 
+        NullTransaction = 1,
+
         // Network service blocks
 
         ServiceGenesis = 10,

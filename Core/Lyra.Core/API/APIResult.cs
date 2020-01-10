@@ -174,6 +174,9 @@ namespace Lyra.Core.API
                 case BlockTypes.ExchangingTransfer:
                     block = JsonConvert.DeserializeObject<ExchangingBlock>(BlockData);
                     break;
+                case BlockTypes.NullTransaction:
+                    block = JsonConvert.DeserializeObject<NullTransactionBlock>(BlockData);
+                    break;
                 case BlockTypes.Null:
                     block = null;
                     break;
