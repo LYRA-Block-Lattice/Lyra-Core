@@ -52,6 +52,7 @@ namespace Lyra.Core.API
     public interface INodeTransactionAPI
     {
         Task<BillBoard> GetBillBoardAsync();
+        Task<List<ConsensusService.TransStat>> GetTransStatAsync();
 
         #region Authorization methods 
         // These methods return authorization result and authorizers' signatures if approved

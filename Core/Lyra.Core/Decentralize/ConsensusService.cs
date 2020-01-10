@@ -32,6 +32,7 @@ namespace Lyra.Core.Decentralize
     {
         public class Consolidate { }
         public class AskForBillboard { }
+        public class AskForStats { }
         public class BlockChainSynced { }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
@@ -50,6 +51,13 @@ namespace Lyra.Core.Decentralize
         public bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public ConsensusWorkingMode Mode { get; private set; }
 
+        public class TransStat
+        {
+            public TimeSpan TS { get; set; }
+            public BlockTypes TransType { get; set; }
+        }
+        private List<TransStat> _stats;
+
         public ConsensusService(IActorRef localNode)
         {
             _localNode = localNode;
@@ -58,6 +66,7 @@ namespace Lyra.Core.Decentralize
             _outOfOrderedMessages = new Dictionary<string, List<SourceSignedMessage>>();
             _activeConsensus = new Dictionary<string, AuthState>();
             _cleanedConsensus = new Dictionary<string, AuthState>();
+            _stats = new List<TransStat>();
 
             _authorizers = new AuthorizersFactory();
             while (BlockChain.Singleton == null)
@@ -88,6 +97,7 @@ namespace Lyra.Core.Decentralize
             });
 
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
+            Receive<AskForStats>((_) => Sender.Tell(_stats));
 
             Receive<AuthorizingMsg>(async msg =>
             {
@@ -95,6 +105,8 @@ namespace Lyra.Core.Decentralize
                     Sender.Tell(null);
 
                 OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+
+                var dtStart = DateTime.Now;
 
                 // first try auth locally
                 var state = CreateAuthringState(msg);
@@ -119,6 +131,12 @@ namespace Lyra.Core.Decentralize
                     }).ConfigureAwait(false);
 
                     sender.Tell(state);
+
+                    var ts = DateTime.Now - dtStart;
+                    if (_stats.Count > 1000)
+                        _stats.RemoveRange(0, 50);
+
+                    _stats.Add(new TransStat { TS = ts, TransType = state.InputMsg.Block.BlockType });
                 }
             });
 

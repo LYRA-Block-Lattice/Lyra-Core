@@ -26,9 +26,10 @@ namespace LyraNodesBot
         private readonly TelegramBotClient Bot = new TelegramBotClient(System.IO.File.ReadAllText(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\telegram.txt"));
 
         private ChatId _groupId = new ChatId(-1001462436848);
-
-        public NodesMonitor()
+        private string _network;
+        public NodesMonitor(string network)
         {
+            _network = network;
         }
 
         public async Task StartAsync()
@@ -95,10 +96,18 @@ namespace LyraNodesBot
             }
         }
 
+        private async Task SendHeight()
+        {
+            var wc = new WebClient();
+            var json = wc.DownloadString(LyraGlobal.SelectNode(_network) + "LyraNode/GetSyncState");
+            var bb = JsonConvert.DeserializeObject<GetSyncStateAPIResult>(json);
+
+            await SendGroupMessageAsync($"Current Height: *{bb.NewestBlockUIndex}*");
+        }
         private async Task SendNodesInfoToGroupAsync()
         {
             var wc = new WebClient();
-            var json = wc.DownloadString(LyraGlobal.SelectNode("devnet") + "LyraNode/GetBillboard");
+            var json = wc.DownloadString(LyraGlobal.SelectNode(_network) + "LyraNode/GetBillboard");
             var bb = JsonConvert.DeserializeObject<BillBoard>(json);
             var sb = new StringBuilder();
             foreach (var node in bb.AllNodes.Values)
@@ -119,6 +128,9 @@ namespace LyraNodesBot
 
             switch (message.Text.Split(' ', '@').First())
             {
+                case "/height":
+                    await SendHeight();
+                    break;
                 case "/nodes":
                     await SendNodesInfoToGroupAsync();
                     break;
@@ -128,6 +140,7 @@ namespace LyraNodesBot
                 case "/help":
                     const string usage = @"
 *User Command*:
+/height   - display Lyra BlockChain Height
 /nodes    - send status of all nodes
 /tps      - send info about TPS
 /help     - display this message

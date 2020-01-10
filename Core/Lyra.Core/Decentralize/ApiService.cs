@@ -50,6 +50,11 @@ namespace Lyra.Core.Decentralize
             return await ConsensusSvc.Ask<BillBoard>(new ConsensusService.AskForBillboard());
         }
 
+        public async Task<List<ConsensusService.TransStat>> GetTransStatAsync()
+        {
+            return await ConsensusSvc.Ask<List<ConsensusService.TransStat>>(new ConsensusService.AskForStats());
+        }
+
         private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
         {
             _log.LogInformation($"ApiService: PostToConsensusAsync Called: {block.BlockType}");

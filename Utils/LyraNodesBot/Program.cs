@@ -24,7 +24,7 @@ namespace LyraNodesBot
                 //var api = client.Client.GetGrain<INodeAPI>(0);
                 //var height = await api.GetSyncHeight();
 
-                var monitor = new NodesMonitor();
+                var monitor = new NodesMonitor(args[0]);
                 await monitor.StartAsync();
 
                 //var myName = "LyraNodeBot";
