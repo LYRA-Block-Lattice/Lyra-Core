@@ -35,7 +35,7 @@ Install the ASP.NET Core runtime
 
 6. generate staking wallet by, give the wallet a name, e.g. "poswallet"
 
-`~/lyra/cli/lyracli.exe --networkid testnet -p webapi -g poswallet`
+`dotnet ~/lyra/cli/lyracli.dll --networkid testnet -p webapi -g poswallet`
 
 7. modify ~/lyra/node/config.testnet.json, change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step.
 
@@ -43,7 +43,9 @@ Install the ASP.NET Core runtime
 8. run. (remember to set environment variable LYRA_NETWORK to testnet/mainnet etc.)
 
 `cd ~/lyra/node`
+
 `export LYRA_NETWORK=testnet`
+
 `dotnet Lyra.Node2.dll`
 
 9. verify
