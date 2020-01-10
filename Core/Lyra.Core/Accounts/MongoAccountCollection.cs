@@ -425,7 +425,7 @@ namespace Lyra.Core.Accounts
             if (FindBlockByHash(block.Hash) != null)
                 throw new Exception("AccountCollection=>AddBlock: Block with such Hash already exists!");
 
-            if (FindBlockByIndex(block.AccountID, block.Index) != null)
+            if (block.BlockType != BlockTypes.NullTransaction && FindBlockByIndex(block.AccountID, block.Index) != null)
                 throw new Exception("AccountCollection=>AddBlock: Block with such Index already exists!");
 
             _blocks.InsertOne(block);
