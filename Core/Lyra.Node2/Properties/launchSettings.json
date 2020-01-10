@@ -3,7 +3,8 @@
     "Lyra.Node2": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "LYRA_NETWORK": "testnet"
       },
       "applicationUrl": ""
     }

@@ -214,12 +214,17 @@ namespace LyraLexWeb2
         {
             CheckSyncState();
             var acct = await _dex.GetExchangeAccount(AccountId, true);
-            return new ExchangeBalanceAPIResult
+            if(acct == null)
             {
-                AccountId = acct.AccountId,
-                Balance = acct.Balance,
-                ResultCode = APIResultCodes.Success
-            };
+                return new ExchangeBalanceAPIResult { ResultCode = APIResultCodes.AccountDoesNotExist };
+            }
+            else
+                return new ExchangeBalanceAPIResult
+                {
+                    AccountId = acct.AccountId,
+                    Balance = acct?.Balance,
+                    ResultCode = APIResultCodes.Success
+                };
         }
 
         [Route("SubmitExchangeOrder")]

@@ -72,5 +72,8 @@ display all connected nodes.
 
 `balance`
 
+`stop`
+
+
 
 
