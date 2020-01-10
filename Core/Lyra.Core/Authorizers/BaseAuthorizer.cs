@@ -93,7 +93,7 @@ namespace Lyra.Core.Authorizers
             if (previousBlock != null && block.Index != previousBlock.Index + 1)
                 return APIResultCodes.InvalidIndexSequence;
 
-            if(!(block is ConsolidationBlock))
+            if(!(block is ConsolidationBlock) && !(block is NullTransactionBlock))
             {
                 if (!ValidateRenewalDate(block, previousBlock))
                     return APIResultCodes.TokenExpired;
