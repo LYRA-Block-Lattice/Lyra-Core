@@ -209,6 +209,9 @@ namespace Lyra.Core.Decentralize
 
             consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
 
+            // must wait all nulltransblock saved
+            await Task.Delay(33 * 1000);
+
             SendServiceBlock(consBlock);
         }
 
@@ -437,7 +440,7 @@ namespace Lyra.Core.Decentralize
                 AuthSign = localAuthResult.Item2
             };            
 
-            if(item.Block.BlockType == BlockTypes.Consolidation)
+            if(item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
             {
                 // do nothing. the UIndex has already take cared of.
             }
