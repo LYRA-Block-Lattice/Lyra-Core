@@ -1,4 +1,6 @@
-### [About Lyra DAG](https://github.com/graft-project/LyraNetwork/wiki) | [Tokenomics](https://github.com/graft-project/LyraNetwork/wiki/Tokenomics) | [Roadmap](https://github.com/graft-project/LyraNetwork/wiki/Roadmap)
+### [About Lyra DAG](https://github.com/graft-project/LyraNetwork/wiki)
+### [Tokenomics](https://github.com/graft-project/LyraNetwork/wiki/Tokenomics)
+### [Roadmap](https://github.com/graft-project/LyraNetwork/wiki/Roadmap)
 
 # Note
 Testnet Now!
