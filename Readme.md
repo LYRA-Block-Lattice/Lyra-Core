@@ -1,7 +1,7 @@
 ### [About Lyra DAG](https://github.com/graft-project/LyraNetwork/wiki) | [Tokenomics](https://github.com/graft-project/LyraNetwork/wiki/Tokenomics) | [Roadmap](https://github.com/graft-project/LyraNetwork/wiki/Roadmap)
 
 # Note
-Testnet launching date is not set yet, but very soon.
+Testnet Now!
 
 # Lyra Permissionless Node Setup
 
@@ -21,9 +21,9 @@ https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 Install the ASP.NET Core runtime
 
-4. download Lyra releases from https://github.com/wizd/LyraNetwork/releases to a folder, e.g. ~/lyra.permissionless-1.0.3rc.tar.gz
+4. download Lyra releases from https://github.com/graft-project/LyraNetwork/releases to a folder, e.g. ~/lyra.permissionless-1.0.6.tar.gz
 
-`tar -xjvf lyra.permissionless-1.0.3rc.tar.gz`
+`tar -xjvf lyra.permissionless-1.0.6.tar.gz`
 
 5. create mongodb user
 
@@ -37,7 +37,7 @@ Install the ASP.NET Core runtime
 
 `~/lyra/cli/lyracli.exe --networkid testnet -p webapi -g poswallet`
 
-7. modify ~/lyra/node/appsettings.json, modify network id to "testnet", change monodb account/password, change the wallet/name to the name you created previous step.
+7. modify ~/lyra/node/config.testnet.json, change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step.
 
 
 8. run. (remember to set environment variable LYRA_NETWORK to testnet/mainnet etc.)
