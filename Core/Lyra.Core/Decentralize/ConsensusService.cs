@@ -515,7 +515,7 @@ namespace Lyra.Core.Decentralize
                     var block = state.InputMsg.Block;
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
-                    if(block.BlockType != BlockTypes.Consolidation)
+                    if(block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.NullTransaction && block.BlockType != BlockTypes.Service)
                     {
                         // pickup UIndex
                         try
