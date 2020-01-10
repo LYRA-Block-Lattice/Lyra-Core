@@ -42,6 +42,10 @@ Install the ASP.NET Core runtime
 
 8. run. (remember to set environment variable LYRA_NETWORK to testnet/mainnet etc.)
 
+`dotnet dev-certs https --clean`
+
+`dotnet dev-certs https`
+
 `cd ~/lyra/node`
 
 `export LYRA_NETWORK=testnet`

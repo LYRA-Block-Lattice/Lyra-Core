@@ -1,3 +1,5 @@
+using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 using Neo.Wallets;
 using System;
 using System.IO;
@@ -13,9 +15,10 @@ namespace Lyra.Core.Cryptography
     //
     public class Signatures
     {
+        private static ILogger _log;
         static Signatures()
         {
-
+            _log = new SimpleLogger("BlockChain").Logger;
         }
         public static bool ValidateAccountId(string AccountId)
         {
@@ -70,13 +73,21 @@ namespace Lyra.Core.Cryptography
 
         private static bool VerifySignature(string message, string AccountId, string signature)
         {
-            var signatureBytes = Base58Encoding.Decode(signature);
-            var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
+            try
+            {
+                var signatureBytes = Base58Encoding.Decode(signature);
+                var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
 
-            //return Neo.Cryptography.Crypto.Default.VerifySignature(Encoding.UTF8.GetBytes(message), signatureBytes, publicKeyBytes);
-            Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(Neo.Cryptography.ECC.ECPoint.FromBytes(publicKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1));
-            var sh = new SignatureHolder(signature);
-            return sa.VerifySignature(Encoding.ASCII.GetBytes(message), sh.R, sh.S);
+                //return Neo.Cryptography.Crypto.Default.VerifySignature(Encoding.UTF8.GetBytes(message), signatureBytes, publicKeyBytes);
+                Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(Neo.Cryptography.ECC.ECPoint.FromBytes(publicKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1));
+                var sh = new SignatureHolder(signature);
+                return sa.VerifySignature(Encoding.ASCII.GetBytes(message), sh.R, sh.S);
+            }
+            catch(Exception ex)
+            {
+                _log.LogError("VerifySignature failed: " + ex.Message);
+                return false;
+            }
         }
 
         public static string GetSignature(string privateKey, string message, string AccountId)
