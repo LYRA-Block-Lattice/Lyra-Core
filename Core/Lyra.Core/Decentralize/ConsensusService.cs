@@ -241,9 +241,14 @@ namespace Lyra.Core.Decentralize
                 consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
 
                 // must wait all nulltransblock saved
-                WaitHandle.WaitAll(NullBlockStates.Select(a => a.Done).ToArray());
-                if (NullBlockStates.Any(a => a.IsConsensusSuccess != true))
-                    continue;
+                if (NullBlockStates.Count() > 0)
+                {
+                    WaitHandle.WaitAll(NullBlockStates.Select(a => a.Done).ToArray());
+                    if (NullBlockStates.Any(a => a.IsConsensusSuccess != true))
+                        continue;
+                    else
+                        break;
+                }
                 else
                     break;
             }
