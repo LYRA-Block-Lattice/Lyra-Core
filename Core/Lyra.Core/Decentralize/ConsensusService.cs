@@ -369,6 +369,8 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
+            OnNodeActive(item.From);
+
             switch (item)
             {
                 case AuthorizingMsg msg:
