@@ -101,11 +101,14 @@ namespace Lyra.Core.Decentralize
 
             Receive<AuthorizingMsg>(async msg =>
             {
-                if (msg.Version != LyraGlobal.ProtocolVersion)
-                    Sender.Tell(null);
-
                 OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
+                if (msg.Version != LyraGlobal.ProtocolVersion || _board == null || !_board.CanDoConsensus)
+                {
+                    Sender.Tell(null);
+                    return;
+                }
+                    
                 var dtStart = DateTime.Now;
 
                 // first try auth locally
@@ -130,13 +133,13 @@ namespace Lyra.Core.Decentralize
                         _ = state.Done.WaitOne();
                     });
 
-                    sender.Tell(state);
-
                     var ts = DateTime.Now - dtStart;
                     if (_stats.Count > 1000)
                         _stats.RemoveRange(0, 50);
 
                     _stats.Add(new TransStat { TS = ts, TransType = state.InputMsg.Block.BlockType });
+
+                    sender.Tell(state);
                 }
             });
 

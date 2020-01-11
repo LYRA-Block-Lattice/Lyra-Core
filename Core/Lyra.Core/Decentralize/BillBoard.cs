@@ -20,9 +20,8 @@ namespace Lyra.Core.Decentralize
         {
             get
             {
-                var topNodes = AllNodes.Values.Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(21);
-                var agreeCount = (topNodes.Count() / 3) * 2 + 1;
-                if (agreeCount >= ProtocolSettings.Default.ConsensusNumber)
+                var workingNodes = AllNodes.Values.Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(21);
+                if (workingNodes.Count() >= ProtocolSettings.Default.ConsensusNumber)
                     return true;
                 else
                     return false;
