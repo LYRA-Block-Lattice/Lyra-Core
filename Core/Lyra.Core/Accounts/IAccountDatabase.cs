@@ -42,6 +42,8 @@ namespace Lyra.Core.Accounts
         TokenGenesisBlock GetTokenInfo(string token);
 
         void Delete(string DatabaseName = null);
+
+        void Reset();
     }
 
 

@@ -28,6 +28,7 @@ namespace Lyra.Client.CLI
         public const string COMMAND_PRINT_LAST_BLOCK = "last";
         public const string COMMAND_PRINT_BLOCK = "print";
         public const string COMMAND_SYNC = "sync";
+        public const string COMMAND_RESYNC = "resync";
         public const string COMMAND_TRADE_ORDER = "trade";
         public const string COMMAND_TRADE_ORDER_SELL_TEST = "trade-sell-test";
         public const string COMMAND_TRADE_ORDER_BUY_TEST = "trade-buy-test";
@@ -76,6 +77,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Print transaction block", COMMAND_PRINT_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Print the list of active trade orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up with the node", COMMAND_SYNC));
+                        Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Exit this app", COMMAND_STOP));
                         Console.WriteLine(string.Format(@"{0,10}: Generate a network genesis block (testnet only)", COMMAND_GEN_NOTE));
 
@@ -123,6 +125,10 @@ namespace Lyra.Client.CLI
                         var sync_result = await _wallet.Sync(null);
                         Console.WriteLine("Sync Result: " + sync_result.ToString());
                         break;
+                    case COMMAND_RESYNC:
+                        var sync_result2 = await _wallet.Sync(null, true);
+                        Console.WriteLine("Sync Result: " + sync_result2.ToString());
+                        break;
                     //case COMMAND_TRADE_ORDER:
                     //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
                     //    ProcessTradeOrder();
@@ -134,14 +140,14 @@ namespace Lyra.Client.CLI
                     //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
                     //    Console.WriteLine(_wallet.PrintActiveTradeOrders());
                     //    break;
-  //                  case COMMAND_TRADE_ORDER_SELL_TEST:
-  //                      //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-  ////                    TradeOrderSellTest();
-  //                      break;
-  //                  case COMMAND_TRADE_ORDER_BUY_TEST:
-  //                      TradeOrderBuyTest();
-  //                      //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-  //                      break;
+                    //                  case COMMAND_TRADE_ORDER_SELL_TEST:
+                    //                      //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+                    ////                    TradeOrderSellTest();
+                    //                      break;
+                    //                  case COMMAND_TRADE_ORDER_BUY_TEST:
+                    //                      TradeOrderBuyTest();
+                    //                      //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+                    //                      break;
                     case COMMAND_PAY:
                     case COMMAND_SELL:
                     case COMMAND_CANCEL_TRADE_ORDER:

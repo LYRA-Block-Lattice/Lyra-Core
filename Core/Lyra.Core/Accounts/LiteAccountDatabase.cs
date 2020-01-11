@@ -35,6 +35,11 @@ namespace Lyra.Core.LiteDB
                     File.Delete(filename);
         }
 
+        public void Reset()
+        {
+            _blocks.Delete(a => true);
+        }
+
         public bool Exists(string path, string accountName)
         {
             if (string.IsNullOrEmpty(accountName))

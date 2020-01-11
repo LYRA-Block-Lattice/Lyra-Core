@@ -30,6 +30,11 @@ namespace Lyra.Core.Accounts
             // Do nothing for now
         }
 
+        public void Reset()
+        {
+            _blocks.Clear();
+        }
+
         public AccountInMemoryStorage(string PrivateKey, string AccountId, string AccountName)
         {
             _privateKey = PrivateKey;

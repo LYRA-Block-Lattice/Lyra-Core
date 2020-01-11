@@ -63,6 +63,11 @@ namespace Lyra.Core.Accounts
             GetDatabase().DropCollection(_ParamsCollectionName);
         }
 
+        public void Reset()
+        {
+            _blocks.DeleteMany(new BsonDocument { });
+        }
+
         private MongoClient GetClient()
         {
             if (_Client == null)

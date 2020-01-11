@@ -45,8 +45,12 @@ namespace Lyra.Core.Accounts
         }
 
         // one-time "manual" sync up with the node 
-        public async Task<APIResultCodes> Sync(LyraRestClient RPCClient)
+        public async Task<APIResultCodes> Sync(LyraRestClient RPCClient, bool ResetLocalDatabase = false)
         {
+            if(ResetLocalDatabase)
+            {
+                _storage.Reset();
+            }
             if (RPCClient != null)
                 _rpcClient = RPCClient;
 
