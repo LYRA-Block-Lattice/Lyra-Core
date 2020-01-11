@@ -128,7 +128,7 @@ namespace Lyra.Core.Decentralize
                     await Task.Run(() =>
                     {
                         _ = state.Done.WaitOne();
-                    }).ConfigureAwait(false);
+                    });
 
                     sender.Tell(state);
 
