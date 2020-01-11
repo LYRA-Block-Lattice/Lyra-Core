@@ -16,6 +16,19 @@ namespace Lyra.Core.Decentralize
             AllNodes = new Dictionary<string, PosNode>();
         }
 
+        public bool CanDoConsensus
+        {
+            get
+            {
+                var topNodes = AllNodes.Values.Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(21);
+                var agreeCount = (topNodes.Count() / 3) * 2 + 1;
+                if (agreeCount >= ProtocolSettings.Default.ConsensusNumber)
+                    return true;
+                else
+                    return false;
+            }
+        }
+
         public PosNode Add(string accountId)
         {
             PosNode node;

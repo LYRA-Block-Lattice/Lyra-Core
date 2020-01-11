@@ -80,15 +80,15 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation("Doing Consolidate");
                 OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
-                if (Mode == ConsensusWorkingMode.Normal)
+                if (Mode == ConsensusWorkingMode.Normal && _board != null && _board.CanDoConsensus)
                 {
                     Task.Run(async () =>
                     {
                         await GenerateConsolidateBlockAsync();
                     });
-
-                    BroadCastBillBoard();
                 }
+
+                BroadCastBillBoard();
             });
 
             Receive<BillBoard>((bb) =>
@@ -391,9 +391,12 @@ namespace Lyra.Core.Decentralize
 
         private void BroadCastBillBoard()
         {
-            var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, JsonConvert.SerializeObject(_board));
-            msg.MsgType = ChatMessageType.StakingChanges;
-            Send2P2pNetwork(msg);
+            if(_board != null)
+            {
+                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, JsonConvert.SerializeObject(_board));
+                msg.MsgType = ChatMessageType.StakingChanges;
+                Send2P2pNetwork(msg);
+            }
         }
 
         private void OnNodeActive(string nodeAccountId)
@@ -465,23 +468,40 @@ namespace Lyra.Core.Decentralize
         {
             var authorizer = _authorizers[item.Block.BlockType];
 
-            var localAuthResult = authorizer.Authorize(item.Block);
-            var result = new AuthorizedMsg
+            AuthorizedMsg result;
+            try
             {
-                From = NodeService.Instance.PosWallet.AccountId,
-                MsgType = ChatMessageType.AuthorizerPrepare,
-                BlockHash = item.Block.Hash,
-                Result = localAuthResult.Item1,
-                AuthSign = localAuthResult.Item2
-            };
+                var localAuthResult = authorizer.Authorize(item.Block);
+                result = new AuthorizedMsg
+                {
+                    From = NodeService.Instance.PosWallet.AccountId,
+                    MsgType = ChatMessageType.AuthorizerPrepare,
+                    BlockHash = item.Block.Hash,
+                    Result = localAuthResult.Item1,
+                    AuthSign = localAuthResult.Item2
+                };
 
-            if (item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
-            {
-                // do nothing. the UIndex has already take cared of.
+                if (item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
+                {
+                    // do nothing. the UIndex has already take cared of.
+                }
+                else
+                {
+                    result.BlockUIndex = Mode == ConsensusWorkingMode.Normal ? _UIndexSeed++ : 0;     // if seed out of sync, then others know
+                }
             }
-            else
+            catch(Exception e)
             {
-                result.BlockUIndex = Mode == ConsensusWorkingMode.Normal ? _UIndexSeed++ : 0;     // if seed out of sync, then others know
+                _log.LogWarning($"Consensus: LocalAuthorizingAsync Exception: {e.Message} BlockUIndex: {item.Block.UIndex}");
+
+                result = new AuthorizedMsg
+                {
+                    From = NodeService.Instance.PosWallet.AccountId,
+                    MsgType = ChatMessageType.AuthorizerPrepare,
+                    BlockHash = item.Block.Hash,
+                    Result = APIResultCodes.UnknownError,
+                    AuthSign = null
+                };
             }
 
             return result;
