@@ -15,7 +15,7 @@ namespace Lyra.Core.Authorizers
             
         }
 
-        public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock)
+        public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
         {
             var result = AuthorizeImpl(tblock);
             if (APIResultCodes.Success == result)

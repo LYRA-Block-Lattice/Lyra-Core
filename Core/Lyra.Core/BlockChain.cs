@@ -265,19 +265,33 @@ namespace Lyra
 
                         async Task<bool> DoCopyBlock()
                         {
+                            var authorizers = new AuthorizersFactory();
+
                             for (long j = startUIndex; j <= syncToUIndex; j++)
                             {
                                 var blockResult = await client.GetBlockByUIndex(j).ConfigureAwait(false);
                                 if (blockResult.ResultCode == APIResultCodes.Success)
                                 {
-                                    AddBlock(blockResult.GetBlock() as TransactionBlock);
-                                    startUIndex = j + 1;
+                                    var blockX = blockResult.GetBlock() as TransactionBlock;
+                                    if(blockX.UIndex <= 2)      // the two genesis service block
+                                    {
+                                        AddBlock(blockX);
+                                        continue;
+                                    }
 
-                                    _log.LogInformation($"BlockChain Synced Block Number: {j}");
-                                }
-                                else if(blockResult.ResultCode == APIResultCodes.BlockNotFound)
-                                {
-                                    continue;
+                                    var authorizer = authorizers[blockX.BlockType];
+                                    var localAuthResult = authorizer.Authorize(blockX, false);
+                                    if(localAuthResult.Item1 == APIResultCodes.Success)
+                                    {
+                                        AddBlock(blockX);
+                                        startUIndex = j + 1;
+                                        _log.LogInformation($"BlockChain Synced Block Number: {j}");
+                                    }
+                                    else
+                                    {
+                                        _log.LogInformation($"BlockChain Block Number: {j} verify failed for {localAuthResult.Item1}");
+                                        return false;
+                                    }
                                 }
                                 else
                                 {

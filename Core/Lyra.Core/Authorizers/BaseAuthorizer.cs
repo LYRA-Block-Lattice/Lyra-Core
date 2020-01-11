@@ -29,7 +29,7 @@ namespace Lyra.Core.Authorizers
             _log = new SimpleLogger("BaseAuthorizer").Logger;
         }
 
-        public virtual (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock)
+        public virtual (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
         {
             throw new NotImplementedException("Must override");
         }

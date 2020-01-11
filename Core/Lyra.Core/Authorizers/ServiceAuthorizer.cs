@@ -5,15 +5,17 @@ using System.Text;
 
 namespace Lyra.Core.Authorizers
 {
-    public class NullTransactionAuthorizer : BaseAuthorizer
+    public class ServiceAuthorizer : BaseAuthorizer
     {
         public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
         {
             var result = AuthorizeImpl(tblock);
-            if (APIResultCodes.Success == result)
+            if (APIResultCodes.Success == result && WithSign)
+            {
                 return (APIResultCodes.Success, Sign(tblock));
-            else
-                return (result, (AuthorizationSignature)null);
+            }                
+
+            return (result, (AuthorizationSignature)null);
         }
 
         protected override APIResultCodes ValidateFee(TransactionBlock block)
@@ -23,21 +25,17 @@ namespace Lyra.Core.Authorizers
 
         private APIResultCodes AuthorizeImpl<T>(T tblock)
         {
-            if (!(tblock is NullTransactionBlock))
+            if (!(tblock is ServiceBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as NullTransactionBlock;
+            var block = tblock as ServiceBlock;
 
             // 1. check if the block already exists
             if (null != BlockChain.Singleton.GetBlockByUIndex(block.UIndex))
                 return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
-            var lastCons = BlockChain.Singleton.GetSyncBlock();
-            if (lastCons == null)
-                return APIResultCodes.CouldNotFindLatestBlock;
-
-            if (block.PreviousConsolidateHash != lastCons.Hash)
-                return APIResultCodes.PreviousBlockNotFound;
+            // service specifice feature
+            //block.
 
             var result = VerifyBlock(block, null);
             if (result != APIResultCodes.Success)
