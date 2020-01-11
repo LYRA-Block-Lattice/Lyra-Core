@@ -253,6 +253,13 @@ namespace Lyra.Core.Decentralize
                     break;
             }
 
+            var delayCount = 60;
+            while(_board == null || !_board.CanDoConsensus)
+            {
+                await Task.Delay(1000);
+                if (delayCount-- <= 0)
+                    return;             // give up
+            }
             SendServiceBlock(consBlock);
         }
 
