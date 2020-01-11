@@ -340,7 +340,7 @@ namespace Lyra.Core.Decentralize
 
         public virtual void Send2P2pNetwork(SourceSignedMessage msg)
         {
-            _log.LogInformation($"Consensus: SendMessage Called: msg From: {msg.From}");
+            //_log.LogInformation($"Consensus: SendMessage Called: msg From: {msg.From}");
 
             var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
             //_log.LogInformation($"Consensus: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
@@ -358,7 +358,7 @@ namespace Lyra.Core.Decentralize
 
         void OnNextConsensusMessage(SourceSignedMessage item)
         {
-            _log.LogInformation($"Consensus: OnNextAsyncImpl Called: msg From: {item.From}");
+            //_log.LogInformation($"Consensus: OnNextAsyncImpl Called: msg From: {item.From}");
 
             // verify the signatures of msg. make sure it is from the right node.
             //var nodeConfig = null;
@@ -585,6 +585,17 @@ namespace Lyra.Core.Decentralize
 
         private void CheckAuthorizedAllOk(AuthState state)
         {
+            // check state
+            // debug: show all states
+            var sb = new StringBuilder();
+            sb.AppendLine();
+            foreach(var msg in state.OutputMsgs)
+            {
+                sb.AppendLine(string.Format("Block: {0} Result: {1} By: {2} CanAuth: {3} {4}", 
+                    Shorten(state.InputMsg.Block.Hash), msg.IsSuccess, Shorten(msg.From), _board.AllNodes[msg.From].AbleToAuthorize, msg.Result));
+            }
+            _log.LogInformation(sb.ToString());
+
             if (state.GetIsAuthoringSuccess(_board))
             {
                 if (state.Saving)
@@ -670,6 +681,14 @@ namespace Lyra.Core.Decentralize
 
                 msgs.Add(item);
             }
+        }
+
+        private string Shorten(string addr)
+        {
+            if (string.IsNullOrWhiteSpace(addr) || addr.Length < 10)
+                return addr;
+
+            return $"{addr.Substring(0, 3)}...{addr.Substring(addr.Length - 6, 6)}";
         }
     }
 
