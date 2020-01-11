@@ -131,29 +131,14 @@ namespace Lyra.Client.CLI
                         wallet.OpenAccount(full_path, wallet.AccountName);
                 }
 
-                //INodeAPI rpcClient;
-                //if (client == null)
-                var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a");//await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
-                //else
-                //    rpcClient = new DAGAPIClient(client);
-
-                //if (WEB)
-                //{
-                //    string node_address;
-                //    if (!string.IsNullOrWhiteSpace(options.Node))
-                //        node_address = options.Node;
-                //    else
-                //        node_address = SelectNode(network_id);
-                //    rpcClient = new WebAPIClient(node_address);
-                //}
-                //else
-                //{
-                //    rpcClient = new RPCClient(wallet.AccountId);
-                //}
-
-                //var sync_result = await wallet.Sync(rpcClient);
-                //Console.WriteLine("Sync Result: " + sync_result.ToString());
-                //wallet.Launch(rpcClient);
+                LyraRestClient rpcClient;
+                if (!string.IsNullOrWhiteSpace(options.Node))
+                {
+                    var apiUrl = $"https://{options.Node}:4505/api/LyraNode/";
+                    rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a", apiUrl);
+                }
+                else
+                    rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a");//await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
 
                 Console.WriteLine("Type 'help' to see the list of available commands");
                 Console.WriteLine("");

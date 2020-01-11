@@ -113,7 +113,7 @@ namespace Lyra.Client.CLI
         [Option('p', "protocol", HelpText = "Communication protocol with the node", Required = false)]
         public string Protocol { get; set; }
 
-        [Option('n', "node", HelpText = "Node API URL", Required = false)]
+        [Option('u', "node", HelpText = "Node API URL", Required = false)]
         public string Node { get; set; }
 
         [Option('g', "genwallet", HelpText = "Generate Wallet Only", Required = false)]
