@@ -589,10 +589,10 @@ namespace Lyra.Core.Decentralize
             // debug: show all states
             var sb = new StringBuilder();
             sb.AppendLine();
+            sb.AppendLine($"Block {Shorten(state.InputMsg.Block.AccountID)} {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {Shorten(state.InputMsg.Block.Hash)}");
             foreach(var msg in state.OutputMsgs)
             {
-                sb.AppendLine(string.Format("Block: {0} Result: {1} By: {2} CanAuth: {3} {4}", 
-                    Shorten(state.InputMsg.Block.Hash), msg.IsSuccess, Shorten(msg.From), _board.AllNodes[msg.From].AbleToAuthorize, msg.Result));
+                sb.AppendLine($"Result: {msg.IsSuccess} By: {Shorten(msg.From)} CanAuth: {_board.AllNodes[msg.From].AbleToAuthorize} {msg.Result}");
             }
             _log.LogInformation(sb.ToString());
 
