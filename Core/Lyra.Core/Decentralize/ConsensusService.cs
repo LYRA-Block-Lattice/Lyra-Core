@@ -195,13 +195,20 @@ namespace Lyra.Core.Decentralize
             // if the block is old enough ( > 2 mins ), it should be replaced by NullTransactionBlock.
             // in fact we should reserve consolidate block number and wait 2min to do consolidating
             // all null block's previous block is the last consolidate block, it's index is counted from 1 related to previous block
-            await Task.Delay(33 * 1000);    // the cleaner clean block old than 30 seconds.
 
+            var newstBlock = _activeConsensus.Values.OrderByDescending(a => a.Created).FirstOrDefault();
+            if(newstBlock != null)
+            {
+                var secnds = 33 - (DateTime.Now - newstBlock.Created).TotalSeconds;
+                if(secnds > 0)
+                    await Task.Delay((int)secnds * 1000);    // the cleaner clean block old than 30 seconds.
+            }            
+
+            List<AuthState> NullBlockStates = new List<AuthState>();
             while (true)
             {
                 var mt = new MerkleTree();
                 int NullBlockIndex = 1;
-                List<AuthState> NullBlockStates = new List<AuthState>();
                 for (var ndx = lastCons.UIndex; ndx < consBlock.UIndex; ndx++)      // TODO: handling "losing" block here
                 {
                     var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
@@ -260,6 +267,9 @@ namespace Lyra.Core.Decentralize
                 if (delayCount-- <= 0)
                     return;             // give up
             }
+
+            if (NullBlockStates.Count() > 0)
+                await Task.Delay(2000);     // make sure all client has time to receive nulltrans blocks
             SendServiceBlock(consBlock);
         }
 
