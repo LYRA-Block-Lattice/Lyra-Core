@@ -9,6 +9,7 @@ using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.Serialization.Options;
 using System.Linq;
 using Lyra.Core.Utils;
+using System.Linq.Expressions;
 
 namespace Lyra.Core.Accounts
 {
@@ -150,9 +151,15 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public TransactionBlock FindLatestBlock(string AccountId)
+        public TransactionBlock FindLatestBlock(string AccountId = null)
         {
-            var result = _blocks.Find(x => x.AccountID == AccountId).SortByDescending(y => y.Index).Limit(1);
+            Expression<Func<TransactionBlock, bool>> predicate;
+            if (AccountId == null)
+                predicate = a => true;
+            else
+                predicate = a => a.AccountID == AccountId;
+
+            var result = _blocks.Find(predicate).SortByDescending(y => y.Index).Limit(1);
             if (result.Any())
                 return result.First();
             else

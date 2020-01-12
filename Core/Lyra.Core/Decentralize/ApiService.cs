@@ -105,6 +105,10 @@ namespace Lyra.Core.Decentralize
             {
                 result.ResultCode = APIResultCodes.Success;
             }
+            else if(state1 == null)
+            {
+                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
+            }
             else
             {
                 result.ResultCode = state1.OutputMsgs.Count > 0 ? state1.OutputMsgs.First().Result : APIResultCodes.UnableToSendToConsensusNetwork;

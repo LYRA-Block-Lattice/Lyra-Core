@@ -19,7 +19,7 @@ namespace Lyra.Core.Accounts
         long GetBlockCount(string AccountId);
         //int GetTotalBlockCount();
         bool AccountExists(string AccountId);
-        TransactionBlock FindLatestBlock(string AccountId);
+        TransactionBlock FindLatestBlock(string AccountId = null);
         TokenGenesisBlock FindTokenGenesisBlock(string Hash, string Ticker);
         List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword);
         NullTransactionBlock FindNullTransBlockByHash(string hash);

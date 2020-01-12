@@ -91,7 +91,6 @@ namespace Lyra.Core.Decentralize
             while (BlockChain.Singleton == null)
                 Task.Delay(100).Wait();
 
-            USeed = BlockChain.Singleton.GetBlockCount() + 1;
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
             Receive<Consolidate>((_) =>
@@ -178,7 +177,7 @@ namespace Lyra.Core.Decentralize
             Receive<BlockChainSynced>(_ =>
             {
                 Mode = ConsensusWorkingMode.Normal;
-                USeed = BlockChain.Singleton.GetBlockCount() + 1;
+                USeed = BlockChain.Singleton.FindLatestBlock().UIndex + 1;
 
                 // declare to the network
                 var msg = new ChatMsg
@@ -559,7 +558,8 @@ namespace Lyra.Core.Decentralize
                 }
                 else
                 {
-                    result.BlockUIndex = Mode == ConsensusWorkingMode.Normal ? USeed++ : 0;     // if seed out of sync, then others know
+                    _log.LogWarning($"Give UIndex {USeed} to block {Shorten(item.Block.Hash)} of Type {item.Block.BlockType}");
+                    result.BlockUIndex = USeed++;
                 }
             }
             catch(Exception e)
@@ -670,13 +670,12 @@ namespace Lyra.Core.Decentralize
                             return;
                         }
 
-                        if (!IsThisNodeSeed0 && block.UIndex != USeed - 1)
-                        {
-                            // local node out of sync
-                            USeed = block.UIndex + 1;
-                            Mode = ConsensusWorkingMode.OutofSyncWaiting;
-                            LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
-                        }
+                        //if (!IsThisNodeSeed0 && block.UIndex != USeed - 1)
+                        //{
+                        //    // local node out of sync
+                        //    Mode = ConsensusWorkingMode.OutofSyncWaiting;
+                        //    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
+                        //}
                     }
 
                     block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
