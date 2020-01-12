@@ -179,6 +179,8 @@ namespace Lyra.Core.Decentralize
                 Mode = ConsensusWorkingMode.Normal;
                 USeed = BlockChain.Singleton.FindLatestBlock().UIndex + 1;
 
+                _log.LogInformation($"The USeed is {USeed}");
+
                 // declare to the network
                 var msg = new ChatMsg
                 {

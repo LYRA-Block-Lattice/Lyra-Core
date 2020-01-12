@@ -151,15 +151,24 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public TransactionBlock FindLatestBlock(string AccountId = null)
+        public TransactionBlock FindLatestBlock()
         {
-            Expression<Func<TransactionBlock, bool>> predicate;
-            if (AccountId == null)
-                predicate = a => true;
-            else
-                predicate = a => a.AccountID == AccountId;
+            //Expression<Func<TransactionBlock, bool>> predicate;
+            //if (AccountId == null)
+            //    predicate = a => true;
+            //else
+            //    predicate = a => a.AccountID == AccountId;
 
-            var result = _blocks.Find(predicate).SortByDescending(y => y.Index).Limit(1);
+            var result = _blocks.Find(a => true).SortByDescending(y => y.UIndex).Limit(1);
+            if (result.Any())
+                return result.First();
+            else
+                return null;
+        }
+
+        public TransactionBlock FindLatestBlock(string AccountId)
+        {
+            var result = _blocks.Find(a => a.AccountID == AccountId).SortByDescending(y => y.Index).Limit(1);
             if (result.Any())
                 return result.First();
             else

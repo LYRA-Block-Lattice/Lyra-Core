@@ -393,5 +393,10 @@ namespace Lyra.Core.LiteDB
         {
             throw new NotImplementedException();
         }
+
+        public TransactionBlock FindLatestBlock()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
