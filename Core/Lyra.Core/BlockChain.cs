@@ -264,11 +264,11 @@ namespace Lyra
 
                         _log.LogInformation($"BlockChain Doing sync from {startUIndex} to {syncToUIndex} from node {syncWithUrl}");
 
-                        async Task<bool> DoCopyBlock()
+                        async Task<bool> DoCopyBlock(long fromUIndex, long toUIndex)
                         {
                             var authorizers = new AuthorizersFactory();
 
-                            for (long j = startUIndex; j <= syncToUIndex; j++)
+                            for (long j = fromUIndex; j <= toUIndex; j++)
                             {
                                 var blockResult = await client.GetBlockByUIndex(j).ConfigureAwait(false);
                                 if (blockResult.ResultCode == APIResultCodes.Success)
@@ -285,7 +285,7 @@ namespace Lyra
                                     if(localAuthResult.Item1 == APIResultCodes.Success)
                                     {
                                         AddBlock(blockX);
-                                        startUIndex = j + 1;
+                                        fromUIndex = j + 1;
                                         _log.LogInformation($"BlockChain Synced Block Number: {j}");
                                     }
                                     else
@@ -304,9 +304,18 @@ namespace Lyra
                             return true;
                         }
 
-                        var copyOK = await DoCopyBlock().ConfigureAwait(false);
+                        var copyOK = await DoCopyBlock(startUIndex, syncToUIndex).ConfigureAwait(false);
                         if(copyOK)
                         {
+                            // check missing block
+                            for(long k = 1; k <= syncToUIndex; k++)
+                            {
+                                if(BlockChain.Singleton.GetBlockByUIndex(k) == null)
+                                {
+                                    _log.LogError($"syncing one missing block: {k}");
+                                    await DoCopyBlock(k, k).ConfigureAwait(false);
+                                }
+                            }
                             break;
                         }
                         else
