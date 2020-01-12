@@ -6,7 +6,7 @@ using System.IO;
 
 namespace Lyra.Core.Decentralize
 {
-	public enum ChatMessageType  { General, NodeUp, NodeDown, StakingChanges, 
+	public enum ChatMessageType  { General, NodeUp, NodeDown, StakingChanges, HeartBeat,
 		AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit,
 		BlockConsolidation
 	};

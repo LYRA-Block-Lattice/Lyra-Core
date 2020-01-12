@@ -204,6 +204,16 @@ namespace Lyra.Core.Decentralize
                         GenerateConsolidateBlock();
                     }
 
+                    // declare to the network
+                    var msg = new ChatMsg
+                    {
+                        From = NodeService.Instance.PosWallet.AccountId,
+                        MsgType = ChatMessageType.HeartBeat,
+                        Text = "I'm live"
+                    };
+
+                    Send2P2pNetwork(msg);
+
                     await Task.Delay(30000).ConfigureAwait(false);
                 }
             });
@@ -412,6 +422,9 @@ namespace Lyra.Core.Decentralize
                 case AuthorizerCommitMsg commited:
                     OnCommit(commited);
                     break;
+                case ChatMsg chat when chat.MsgType == ChatMessageType.HeartBeat:
+                    OnHeartBeat(chat);
+                    break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.NodeUp:
                     OnNodeUp(chat);
                     break;
@@ -439,7 +452,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnBillBoardBroadcast(ChatMsg msg)
         {
-            if (!IsThisNodeSeed0)
+            if (!IsThisNodeSeed0) //TODO: only accept bbb from seeds
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
                 _log.LogInformation("BillBoard updated!");
@@ -460,6 +473,14 @@ namespace Lyra.Core.Decentralize
         {
             if (_board != null)
                 _board.Add(nodeAccountId);
+        }
+
+        private void OnHeartBeat(ChatMsg chat)
+        {
+            if (_board == null)
+                return;
+
+            var node = _board.Add(chat.From);
         }
 
         private void OnNodeUp(ChatMsg chat)

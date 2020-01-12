@@ -110,6 +110,7 @@ namespace Neo.Network.P2P
                 case ChatMessageType.General:
                 case ChatMessageType.NodeUp:
                 case ChatMessageType.NodeDown:
+                case ChatMessageType.HeartBeat:
                 case ChatMessageType.StakingChanges:
                     return data.AsSerializable<ChatMsg>();
                 default:
