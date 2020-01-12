@@ -248,6 +248,7 @@ namespace Lyra.Core.Blocks
         UnknownError = 1,
         // default error code
         UndefinedError = 1000,
+        BlockWithThisUIndexAlreadyExists = 1001,
         BlockWithThisIndexAlreadyExists = 2,
         AccountAlreadyExists = 3,
         AccountDoesNotExist = 4,

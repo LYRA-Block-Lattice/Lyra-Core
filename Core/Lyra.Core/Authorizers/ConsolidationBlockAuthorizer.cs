@@ -39,7 +39,7 @@ namespace Lyra.Core.Authorizers
 
             // 1. check if the block already exists
             if (null != BlockChain.Singleton.GetBlockByUIndex(block.UIndex))
-                return APIResultCodes.BlockWithThisIndexAlreadyExists;
+                return APIResultCodes.BlockWithThisUIndexAlreadyExists;
 
             var lastCons = BlockChain.Singleton.GetSyncBlock();
             if (lastCons == null)

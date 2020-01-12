@@ -432,6 +432,9 @@ namespace Lyra.Core.Accounts
 
         public void AddBlock(TransactionBlock block)
         {
+            if(null != GetBlockByUIndex(block.UIndex))
+                throw new Exception("AccountCollection=>AddBlock: Block with such UIndex already exists!");
+
             if (FindBlockByHash(block.Hash) != null)
                 throw new Exception("AccountCollection=>AddBlock: Block with such Hash already exists!");
 

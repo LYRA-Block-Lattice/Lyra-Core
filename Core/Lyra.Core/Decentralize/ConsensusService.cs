@@ -353,7 +353,7 @@ namespace Lyra.Core.Decentralize
 
             if (!localAuthResult.IsSuccess)
             {
-                _log.LogError("Fatal Error: Consolidate block local authorization failed.");
+                _log.LogError($"Fatal Error: Consolidate block local authorization failed: {localAuthResult.Result}");
             }
             else
             {

@@ -370,7 +370,7 @@ namespace Lyra.Client.CLI
 
             if (result.ResultCode != APIResultCodes.Success)
             {
-                Console.WriteLine("Token generation failed with code: " + result.ToString());
+                Console.WriteLine("Token generation failed with code: " + result.ResultCode.ToString());
             }
             else
             {
