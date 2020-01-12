@@ -11,7 +11,9 @@ namespace Neo
         public byte AddressVersion { get; }
         public string[] StandbyValidators { get; }
         public string[] SeedList { get; }
-        public uint ConsensusNumber { get; }
+        public int ConsensusNumber { get; }
+        public int ConsensusWinNumber => ConsensusNumber * 2 + 1;
+        public int ConsensusTotalNumber => ConsensusNumber * 3 + 1;
         public int MemoryPoolMaxTransactions { get; }
 
         static ProtocolSettings _default;
@@ -67,7 +69,7 @@ namespace Neo
                 {
                     "seed.devnet.lyrashops.com:4503"
                 };
-            this.ConsensusNumber = section.GetValue("ConsensusNumber", 17u);
+            this.ConsensusNumber = (int)section.GetValue("ConsensusNumber", 1);
             this.MemoryPoolMaxTransactions = Math.Max(1, section.GetValue("MemoryPoolMaxTransactions", 50_000));
         }
     }

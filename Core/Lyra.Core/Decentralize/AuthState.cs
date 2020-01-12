@@ -52,16 +52,23 @@ namespace Lyra.Core.Decentralize
             if (billBoard == null)
                 throw new Exception("The BillBoard mustn't be null!");
 
-            var topNodes = billBoard.AllNodes.Values.Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(21);
-            var agreeCount = (topNodes.Count() / 3) * 2 + 1;
-            if (agreeCount < ProtocolSettings.Default.ConsensusNumber)
-                agreeCount = (int)ProtocolSettings.Default.ConsensusNumber;      // we must do genesis when authorizers are there
+            // wait for a proper UID
+            if (!OutputMsgs.Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]))
+            {
+                return false;
+            }                
+
+            var selectedNodes = billBoard.AllNodes.Values.Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber);
 
             var q = from m in OutputMsgs
-                    where m.IsSuccess && billBoard.AllNodes.ContainsKey(m.From) && billBoard.AllNodes[m.From].AbleToAuthorize
+                    where m.IsSuccess && selectedNodes.Any(a => a.AccountID == m.From)
                     select m;
 
-            IsConsensusSuccess = q.Count() >= agreeCount;
+#if DEBUG
+            IsConsensusSuccess = q.Count() >= 2;
+#else
+            IsConsensusSuccess = q.Count() >= ProtocolSettings.Default.ConsensusWinNumber;
+#endif
             return IsConsensusSuccess == true;
         }
 
