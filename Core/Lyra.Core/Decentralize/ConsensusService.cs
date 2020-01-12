@@ -587,7 +587,8 @@ namespace Lyra.Core.Decentralize
             foreach(var msg in state.OutputMsgs)
             {
                 var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
-                sb.AppendLine($"Result: {msg.IsSuccess} By: {Shorten(msg.From)}{seed0} CanAuth: {_board.AllNodes[msg.From].AbleToAuthorize} {msg.Result}");
+                var voice = msg.IsSuccess ? "Yay" : "Nay";
+                sb.AppendLine($"{voice} {msg.Result} By: {Shorten(msg.From)} CanAuth: {_board.AllNodes[msg.From].AbleToAuthorize} {seed0}");
             }
             _log.LogInformation(sb.ToString());
 
