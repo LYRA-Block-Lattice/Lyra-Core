@@ -40,7 +40,7 @@ namespace Lyra.Core.Decentralize
         public void AddCommitedResult(AuthorizerCommitMsg msg)
         {
             CommitMsgs.Add(msg);
-            if (CommitMsgs.Count() >= ProtocolSettings.Default.ConsensusNumber)
+            if (CommitMsgs.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
             {
                 Settled = true;
                 Done.Set();
@@ -90,7 +90,7 @@ namespace Lyra.Core.Decentralize
                 var consensusedSeed = OutputMsgs.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
                     .OrderByDescending(b => b.Froms.Count)
                     .First();
-                if (consensusedSeed.Froms.Count >= ProtocolSettings.Default.ConsensusNumber)
+                if (consensusedSeed.Froms.Count >= ProtocolSettings.Default.ConsensusWinNumber)
                 {
                     return consensusedSeed.UIndex;
                 }
