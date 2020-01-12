@@ -299,7 +299,7 @@ namespace Lyra
                                 {
                                     // error
                                     _log.LogError($"Error syncing block: {blockResult.ResultCode}");
-                                    return false;
+                                    continue;
                                 }
                             }
                             return true;
@@ -309,7 +309,7 @@ namespace Lyra
                         if(copyOK)
                         {
                             // check missing block
-                            for(long k = 1; k <= syncToUIndex; k++)
+                            for(long k = 1; k <= startUIndex; k++)
                             {
                                 if(BlockChain.Singleton.GetBlockByUIndex(k) == null)
                                 {
