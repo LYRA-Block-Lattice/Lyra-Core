@@ -64,11 +64,8 @@ namespace Lyra.Core.Decentralize
                     where m.IsSuccess && selectedNodes.Any(a => a.AccountID == m.From)
                     select m;
 
-#if DEBUG
-            IsConsensusSuccess = q.Count() >= 2;
-#else
             IsConsensusSuccess = q.Count() >= ProtocolSettings.Default.ConsensusWinNumber;
-#endif
+
             return IsConsensusSuccess == true;
         }
 
