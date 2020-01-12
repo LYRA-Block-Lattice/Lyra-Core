@@ -71,6 +71,7 @@ namespace Lyra
         // bellow readonly access
         public bool AccountExists(string AccountId) => _store.AccountExists(AccountId);
         public TransactionBlock FindLatestBlock(string AccountId) => _store.FindLatestBlock(AccountId);
+        public NullTransactionBlock FindNullTransBlockByHash(string hash) => _store.FindNullTransBlockByHash(hash);
         public TransactionBlock FindBlockByHash(string hash) => _store.FindBlockByHash(hash);
         public TransactionBlock FindBlockByHash(string AccountId, string hash) => _store.FindBlockByHash(AccountId, hash);
         public List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword) => _store.FindTokenGenesisBlocks(keyword);

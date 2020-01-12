@@ -388,5 +388,10 @@ namespace Lyra.Core.LiteDB
         {
             throw new NotImplementedException();
         }
+
+        public NullTransactionBlock FindNullTransBlockByHash(string hash)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

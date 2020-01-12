@@ -6,6 +6,7 @@ namespace Lyra.Core.Blocks
 {
     public class NullTransactionBlock : TransactionBlock
     {
+        public string FailedBlockHash { get; set; }
         public string PreviousConsolidateHash { get; set; }
 
         public override TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
@@ -20,7 +21,7 @@ namespace Lyra.Core.Blocks
 
         protected override string GetExtraData()
         {
-            return $"{base.GetExtraData()}|{PreviousConsolidateHash}";
+            return $"{base.GetExtraData()}|{PreviousConsolidateHash}|{FailedBlockHash}";
         }
     }
 }

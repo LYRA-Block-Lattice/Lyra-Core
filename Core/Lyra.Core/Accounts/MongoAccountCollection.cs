@@ -200,6 +200,15 @@ namespace Lyra.Core.Accounts
             }
         }
 
+        public NullTransactionBlock FindNullTransBlockByHash(string hash)
+        {
+            var result = _blocks.AsQueryable<TransactionBlock>().OfType<NullTransactionBlock>().Where(a => a.FailedBlockHash == hash);
+            if (result.Any())
+                return result.First();
+            else
+                return null;
+        }
+
         public TransactionBlock FindBlockByHash(string hash)
         {
             var result = _blocks.Find(x => x.Hash.Equals(hash));
@@ -452,5 +461,6 @@ namespace Lyra.Core.Accounts
             var result = _blocks.Find(x => x.UIndex == uindex);
             return result.FirstOrDefault();
         }
+
     }
 }

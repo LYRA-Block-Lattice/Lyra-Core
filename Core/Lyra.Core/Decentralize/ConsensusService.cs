@@ -113,6 +113,11 @@ namespace Lyra.Core.Decentralize
 
                 // first try auth locally
                 var state = CreateAuthringState(msg);
+                if(state == null)
+                {
+                    Sender.Tell(null);
+                    return;
+                }
                 var localAuthResult = LocalAuthorizingAsync(msg);
                 state.AddAuthResult(localAuthResult);
 
@@ -201,7 +206,7 @@ namespace Lyra.Core.Decentralize
                 for (int i = 0; i < cleaned.Length; i++)
                 {
                     var state = cleaned[i];
-                    if (DateTime.Now - state.Created > TimeSpan.FromMinutes(10)) // consensus timeout 30 seconds
+                    if (DateTime.Now - state.Created > TimeSpan.FromMinutes(2)) // 2 mins
                     {
                         _cleanedConsensus.Remove(state.InputMsg.Block.Hash);
                     }
@@ -218,6 +223,9 @@ namespace Lyra.Core.Decentralize
 
                         _cleanedConsensus.Add(state.InputMsg.Block.Hash, state);
 
+                        if (state.IsConsensusSuccess == true)
+                            continue;
+
                         // replace the failed block with nulltrans
                         var myAuthResult = state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
                         if (myAuthResult == null)
@@ -228,10 +236,19 @@ namespace Lyra.Core.Decentralize
                         }
 
                         var ndx = myAuthResult.BlockUIndex;
+
+                        // check if the block is orphaned success block
+                        var existingBlock = BlockChain.Singleton.GetBlockByUIndex(ndx);
+                        if(existingBlock != null)
+                        {
+                            _log.LogInformation($"in GenerateConsolidateBlock: orphaned message for {ndx} detected.");
+                        }
+
                         var nb = new NullTransactionBlock
                         {
                             UIndex = ndx,
                             Index = 0,
+                            FailedBlockHash = myAuthResult.BlockHash,
                             NetworkId = lastCons.NetworkId,
                             ShardId = lastCons.ShardId,
                             ServiceHash = lastCons.ServiceHash,
@@ -447,6 +464,21 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
+            // check if block existing
+            if (null != BlockChain.Singleton.FindBlockByHash(item.Block.Hash))
+            {
+                _log.LogInformation("CreateAuthringState: Block is already in database.");
+                return null;
+            }
+                
+
+            // check if block was replaced by nulltrans
+            if (null != BlockChain.Singleton.FindNullTransBlockByHash(item.Block.Hash))
+            {
+                _log.LogInformation("CreateAuthringState: Block is already consolidated by nulltrans.");
+                return null;
+            }
+
             _activeConsensus.Add(ukey, state);
             return state;
         }
@@ -499,6 +531,8 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"Consensus: OnPrePrepare Called: BlockUIndex: {item.Block.UIndex}");
 
             var state = CreateAuthringState(item);
+            if (state == null)
+                return;
 
             _ = Task.Run(() =>
             {
