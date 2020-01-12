@@ -439,7 +439,10 @@ namespace Lyra.Core.Accounts
 
         public void AddBlock(TransactionBlock block)
         {
-            if(null != GetBlockByUIndex(block.UIndex))
+            if(block.Index == 0 || block.UIndex == 0)
+                throw new Exception("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
+
+            if (null != GetBlockByUIndex(block.UIndex))
                 throw new Exception("AccountCollection=>AddBlock: Block with such UIndex already exists!");
 
             if (FindBlockByHash(block.Hash) != null)

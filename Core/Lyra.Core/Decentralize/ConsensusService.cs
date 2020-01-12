@@ -266,12 +266,15 @@ namespace Lyra.Core.Decentralize
                         }
 
                         var ndx = myAuthResult.BlockUIndex;
+                        if (ndx == 0)    // not got yet
+                            continue;
 
                         // check if the block is orphaned success block
                         var existingBlock = BlockChain.Singleton.GetBlockByUIndex(ndx);
                         if (existingBlock != null)
                         {
                             _log.LogInformation($"in GenerateConsolidateBlock: orphaned message for {ndx} detected.");
+                            continue;
                         }
 
                         var nb = new NullTransactionBlock
@@ -445,8 +448,15 @@ namespace Lyra.Core.Decentralize
             if (!IsThisNodeSeed0)
             {
                 var block = JsonConvert.DeserializeObject<ConsolidationBlock>(msg.Text);
-                BlockChain.Singleton.AddBlock(block);
-                _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.UIndex}");
+                try
+                {
+                    BlockChain.Singleton.AddBlock(block);
+                    _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.UIndex}");
+                }
+                catch(Exception e)
+                {
+                    _log.LogInformation($"OnBlockConsolication UIndex: {block.UIndex} Failed: {e.Message}");
+                }                
             }
         }
 
@@ -701,7 +711,16 @@ namespace Lyra.Core.Decentralize
 
                     block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
-                    BlockChain.Singleton.AddBlock(block);
+                    try
+                    {
+                        BlockChain.Singleton.AddBlock(block);
+                        _log.LogInformation($"CheckAuthorizedAllOk of UIndex: {block.UIndex}");
+                    }
+                    catch (Exception e)
+                    {
+                        _log.LogInformation($"CheckAuthorizedAllOk Failed UIndex: {block.UIndex} Why: {e.Message}");
+                        return;
+                    }
 
                     var msg = new AuthorizerCommitMsg
                     {
