@@ -47,6 +47,25 @@ namespace Lyra.Core.Decentralize
 
         private AuthorizersFactory _authorizers;
         private long _UIndexSeed = -1;
+        private object _seedLocker = new object();
+
+        private long USeed
+        {
+            get
+            {
+                lock (_seedLocker)
+                {
+                    return _UIndexSeed;
+                }
+            }
+            set
+            {
+                lock(_seedLocker)
+                {
+                    _UIndexSeed = value;
+                }
+            }
+        }
 
         public bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public ConsensusWorkingMode Mode { get; private set; }
@@ -72,7 +91,7 @@ namespace Lyra.Core.Decentralize
             while (BlockChain.Singleton == null)
                 Task.Delay(100).Wait();
 
-            _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
+            USeed = BlockChain.Singleton.GetBlockCount() + 1;
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
             Receive<Consolidate>((_) =>
@@ -159,7 +178,7 @@ namespace Lyra.Core.Decentralize
             Receive<BlockChainSynced>(_ =>
             {
                 Mode = ConsensusWorkingMode.Normal;
-                _UIndexSeed = BlockChain.Singleton.GetBlockCount() + 1;
+                USeed = BlockChain.Singleton.GetBlockCount() + 1;
 
                 // declare to the network
                 var msg = new ChatMsg
@@ -198,9 +217,11 @@ namespace Lyra.Core.Decentralize
             // next time do clean, if no null block before the consolidate block, then send out the consolidate block.
             // 2 phase consolidation
             var lastCons = BlockChain.Singleton.GetSyncBlock();
-
+            ConsolidationBlock currentCons = null;
             try
             {
+                Monitor.Enter(_seedLocker);
+
                 // first clean cleaned states
                 var cleaned = _cleanedConsensus.Values.ToArray();
                 for (int i = 0; i < cleaned.Length; i++)
@@ -239,7 +260,7 @@ namespace Lyra.Core.Decentralize
 
                         // check if the block is orphaned success block
                         var existingBlock = BlockChain.Singleton.GetBlockByUIndex(ndx);
-                        if(existingBlock != null)
+                        if (existingBlock != null)
                         {
                             _log.LogInformation($"in GenerateConsolidateBlock: orphaned message for {ndx} detected.");
                         }
@@ -247,7 +268,6 @@ namespace Lyra.Core.Decentralize
                         var nb = new NullTransactionBlock
                         {
                             UIndex = ndx,
-                            Index = 0,
                             FailedBlockHash = myAuthResult.BlockHash,
                             NetworkId = lastCons.NetworkId,
                             ShardId = lastCons.ShardId,
@@ -263,25 +283,59 @@ namespace Lyra.Core.Decentralize
                         SendServiceBlock(nb);
                     }
                 }
+
+                //// if necessary, insert a new ConsolidateBlock
+                //if (USeed - lastCons.UIndex > 1024 || DateTime.Now - lastCons.TimeStamp > TimeSpan.FromMinutes(10))
+                //{
+                //    var authGenesis = BlockChain.Singleton.GetLastServiceBlock();
+                //    currentCons = new ConsolidationBlock
+                //    {
+                //        UIndex = USeed++,
+                //        NetworkId = authGenesis.NetworkId,
+                //        ShardId = authGenesis.ShardId,
+                //        ServiceHash = authGenesis.Hash,
+                //        SvcAccountID = NodeService.Instance.PosWallet.AccountId
+                //    };
+                //}
             }
             catch (Exception ex)
             {
                 _log.LogError("In GenerateConsolidateBlock: " + ex.Message);
             }
+            finally
+            {
+                Monitor.Exit(_seedLocker);
+            }
 
-            //var consBlock = new ConsolidationBlock
+            //if (currentCons != null)
             //{
-            //    UIndex = _UIndexSeed++,
-            //    NetworkId = authGenesis.NetworkId,
-            //    ShardId = authGenesis.ShardId,
-            //    ServiceHash = authGenesis.Hash,
-            //    SvcAccountID = NodeService.Instance.PosWallet.AccountId
-            //};
+            //    var mt = new MerkleTree();
+            //    for (var ndx = lastCons.UIndex + 1; ndx < currentCons.UIndex; ndx++)      // TODO: handling "losing" block here
+            //    {
+            //        var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
+            //        if (block == null)
+            //        {
+            //            _log.LogError("GenerateConsolidateBlock Fatal Error!!! should not happend.");
+            //            Task.Delay(100000000).Wait();
+            //        }
+            //        var mhash = MerkleHash.Create(block.UHash);
+            //        mt.AppendLeaf(mhash);
+            //    }
 
-            // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to xx[consBlock.UIndex -1]xx may lost the newest block
-            // if the block is old enough ( > 2 mins ), it should be replaced by NullTransactionBlock.
-            // in fact we should reserve consolidate block number and wait 2min to do consolidating
-            // all null block's previous block is the last consolidate block, it's index is counted from 1 related to previous block
+            //    currentCons.MerkelTreeHash = mt.BuildTree().ToString();
+            //    currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+            //        currentCons.NetworkId, currentCons.ShardId,
+            //        NodeService.Instance.PosWallet.AccountId);
+
+            //    currentCons.UHash = SignableObject.CalculateHash($"{currentCons.UIndex}|{currentCons.Index}|{currentCons.Hash}");
+
+            //    SendServiceBlock(currentCons);
+
+            //    // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to xx[consBlock.UIndex -1]xx may lost the newest block
+            //    // if the block is old enough ( > 2 mins ), it should be replaced by NullTransactionBlock.
+            //    // in fact we should reserve consolidate block number and wait 2min to do consolidating
+            //    // all null block's previous block is the last consolidate block, it's index is counted from 1 related to previous block
+            //}
         }
 
         private AuthState SendServiceBlock(TransactionBlock svcBlock)
@@ -469,8 +523,7 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation("CreateAuthringState: Block is already in database.");
                 return null;
-            }
-                
+            }                
 
             // check if block was replaced by nulltrans
             if (null != BlockChain.Singleton.FindNullTransBlockByHash(item.Block.Hash))
@@ -506,7 +559,7 @@ namespace Lyra.Core.Decentralize
                 }
                 else
                 {
-                    result.BlockUIndex = Mode == ConsensusWorkingMode.Normal ? _UIndexSeed++ : 0;     // if seed out of sync, then others know
+                    result.BlockUIndex = Mode == ConsensusWorkingMode.Normal ? USeed++ : 0;     // if seed out of sync, then others know
                 }
             }
             catch(Exception e)
@@ -617,10 +670,10 @@ namespace Lyra.Core.Decentralize
                             return;
                         }
 
-                        if (!IsThisNodeSeed0 && block.UIndex != _UIndexSeed - 1)
+                        if (!IsThisNodeSeed0 && block.UIndex != USeed - 1)
                         {
                             // local node out of sync
-                            _UIndexSeed = block.UIndex + 1;
+                            USeed = block.UIndex + 1;
                             Mode = ConsensusWorkingMode.OutofSyncWaiting;
                             LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
                         }
