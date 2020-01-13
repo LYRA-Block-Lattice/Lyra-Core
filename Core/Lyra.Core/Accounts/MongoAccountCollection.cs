@@ -10,6 +10,7 @@ using MongoDB.Bson.Serialization.Options;
 using System.Linq;
 using Lyra.Core.Utils;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Lyra.Core.Accounts
 {
@@ -67,11 +68,28 @@ namespace Lyra.Core.Accounts
 
             Cluster = GetDatabase().Client.Cluster.ToString();
 
-            //_blocks.EnsureIndex(x => x.AccountID);
-            //_blocks.EnsureIndex(x => x.Index);
-            //_blocks.EnsureIndex(x => x.BlockType);
-            //_blocks.EnsureIndex(x => x.Hash);
-            //_blocks.EnsureIndex(x => x.PreviousHash);
+            async Task CreateIndexes()
+            {
+                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
+                    .IndexKeys.Ascending(x => x.UIndex))).ConfigureAwait(false);
+
+                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
+                    .IndexKeys.Ascending(x => x.Index))).ConfigureAwait(false);
+
+                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
+                    .IndexKeys.Ascending(x => x.AccountID))).ConfigureAwait(false);
+
+                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
+                    .IndexKeys.Ascending(x => x.BlockType))).ConfigureAwait(false);
+
+                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
+                    .IndexKeys.Ascending(x => x.Hash))).ConfigureAwait(false);
+
+                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
+                    .IndexKeys.Ascending(x => x.PreviousHash))).ConfigureAwait(false);
+            }
+
+            CreateIndexes().Wait();
         }
 
         /// <summary>
