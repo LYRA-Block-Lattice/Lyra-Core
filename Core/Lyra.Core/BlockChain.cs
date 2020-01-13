@@ -298,7 +298,7 @@ namespace Lyra
                                 else
                                 {
                                     // error
-                                    _log.LogError($"Error syncing block: {blockResult.ResultCode}");
+                                    _log.LogInformation($"Error syncing block: {blockResult.ResultCode}");
                                     continue;
                                 }
                             }
@@ -313,7 +313,7 @@ namespace Lyra
                             {
                                 if(BlockChain.Singleton.GetBlockByUIndex(k) == null)
                                 {
-                                    _log.LogError($"syncing one missing block: {k}");
+                                    _log.LogInformation($"syncing one missing block: {k}");
                                     await DoCopyBlock(k, k).ConfigureAwait(false);
                                 }
                             }

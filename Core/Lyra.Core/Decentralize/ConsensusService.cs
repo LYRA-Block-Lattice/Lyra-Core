@@ -72,7 +72,7 @@ namespace Lyra.Core.Decentralize
 
         public class TransStat
         {
-            public TimeSpan TS { get; set; }
+            public double totalSeconds { get; set; }
             public BlockTypes TransType { get; set; }
         }
         private List<TransStat> _stats;
@@ -157,10 +157,10 @@ namespace Lyra.Core.Decentralize
                     });
 
                     var ts = DateTime.Now - dtStart;
-                    if (_stats.Count > 1000)
-                        _stats.RemoveRange(0, 50);
+                    if (_stats.Count > 10000)
+                        _stats.RemoveRange(0, 2000);
 
-                    _stats.Add(new TransStat { TS = ts, TransType = state.InputMsg.Block.BlockType });
+                    _stats.Add(new TransStat { totalSeconds = ts.TotalSeconds, TransType = state.InputMsg.Block.BlockType });
 
                     sender.Tell(state);
                 }
@@ -194,31 +194,44 @@ namespace Lyra.Core.Decentralize
 
             Task.Run(async () =>
             {
+                int count = 0;
                 while (true)
                 {
-                    OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
-
-                    if (IsThisNodeSeed0 && Mode == ConsensusWorkingMode.Normal && _board != null && _board.CanDoConsensus)
+                    if (Mode == ConsensusWorkingMode.Normal)
                     {
-                        _log.LogInformation("Doing Consolidate");
-                        BroadCastBillBoard();
-
                         GenerateConsolidateBlock();
                     }
 
-                    // declare to the network
-                    var msg = new ChatMsg
+                    await Task.Delay(10000).ConfigureAwait(false);
+                    count++;
+
+                    if(count >= 3)
                     {
-                        From = NodeService.Instance.PosWallet.AccountId,
-                        MsgType = ChatMessageType.HeartBeat,
-                        Text = "I'm live"
-                    };
-
-                    Send2P2pNetwork(msg);
-
-                    await Task.Delay(30000).ConfigureAwait(false);
+                        HeartBeat();
+                        count = 0;
+                    }
                 }
             });
+        }
+
+        private void HeartBeat()
+        {
+            OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+
+            // declare to the network
+            var msg = new ChatMsg
+            {
+                From = NodeService.Instance.PosWallet.AccountId,
+                MsgType = ChatMessageType.HeartBeat,
+                Text = "I'm live"
+            };
+
+            Send2P2pNetwork(msg);
+
+            if(IsThisNodeSeed0)
+            {
+                BroadCastBillBoard();
+            }
         }
 
         private void GenerateConsolidateBlock()
@@ -248,53 +261,55 @@ namespace Lyra.Core.Decentralize
                 for (int i = 0; i < states.Length; i++)
                 {
                     var state = states[i];
-                    if (DateTime.Now - state.Created > TimeSpan.FromSeconds(30)) // consensus timeout 30 seconds
+                    if (DateTime.Now - state.Created > TimeSpan.FromSeconds(10)) // consensus timeout
                     {
+                        var finalResult = state.GetIsAuthoringSuccess(_board);
                         _activeConsensus.Remove(state.InputMsg.Block.Hash);
                         state.Done.Set();
 
                         _cleanedConsensus.Add(state.InputMsg.Block.Hash, state);
 
-                        if (state.IsConsensusSuccess == true)
-                            continue;
+                        //if (finalResult == true)
+                        //    continue;
 
-                        // replace the failed block with nulltrans
-                        var myAuthResult = state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
-                        if (myAuthResult == null)
-                        {
-                            // fatal error. should not happen
-                            _log.LogError("No auth result from seed0. should not happen.");
-                            continue;
-                        }
+                        //// replace the failed block with nulltrans
+                        //var myAuthResult = state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
+                        //if (myAuthResult == null)
+                        //{
+                        //    // fatal error. should not happen
+                        //    _log.LogError("No auth result from seed0. should not happen.");
+                        //    continue;
+                        //}
 
-                        var ndx = myAuthResult.BlockUIndex;
-                        if (ndx == 0)    // not got yet
-                            continue;
+                        //var ndx = myAuthResult.BlockUIndex;
+                        //if (ndx == 0)    // not got yet
+                        //    continue;
 
-                        // check if the block is orphaned success block
-                        var existingBlock = BlockChain.Singleton.GetBlockByUIndex(ndx);
-                        if (existingBlock != null)
-                        {
-                            _log.LogInformation($"in GenerateConsolidateBlock: orphaned message for {ndx} detected.");
-                            continue;
-                        }
+                        //// check if the block is orphaned success block
+                        //var existingBlock = BlockChain.Singleton.GetBlockByUIndex(ndx);
+                        //if (existingBlock != null)
+                        //{
+                        //    _log.LogInformation($"in GenerateConsolidateBlock: orphaned message for {ndx} detected.");
+                        //    continue;
+                        //}
+                        
+                        // no need for this. just leave it as hole
+                        //var nb = new NullTransactionBlock
+                        //{
+                        //    UIndex = ndx,
+                        //    FailedBlockHash = myAuthResult.BlockHash,
+                        //    NetworkId = lastCons.NetworkId,
+                        //    ShardId = lastCons.ShardId,
+                        //    ServiceHash = lastCons.ServiceHash,
+                        //    AccountID = NodeService.Instance.PosWallet.AccountId,
+                        //    PreviousConsolidateHash = lastCons.Hash
+                        //};
+                        //nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+                        //    lastCons.NetworkId, lastCons.ShardId,
+                        //    NodeService.Instance.PosWallet.AccountId);
+                        //nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
 
-                        var nb = new NullTransactionBlock
-                        {
-                            UIndex = ndx,
-                            FailedBlockHash = myAuthResult.BlockHash,
-                            NetworkId = lastCons.NetworkId,
-                            ShardId = lastCons.ShardId,
-                            ServiceHash = lastCons.ServiceHash,
-                            AccountID = NodeService.Instance.PosWallet.AccountId,
-                            PreviousConsolidateHash = lastCons.Hash
-                        };
-                        nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                            lastCons.NetworkId, lastCons.ShardId,
-                            NodeService.Instance.PosWallet.AccountId);
-                        nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
-
-                        SendServiceBlock(nb);
+                        //SendServiceBlock(nb);
                     }
                 }
 
@@ -314,7 +329,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                _log.LogError("In GenerateConsolidateBlock: " + ex.Message);
+                _log.LogError("Error In GenerateConsolidateBlock: " + ex.Message);
             }
             finally
             {
@@ -673,10 +688,11 @@ namespace Lyra.Core.Decentralize
             foreach(var msg in state.OutputMsgs)
             {
                 var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
+                string me = "";
                 if (msg.From == NodeService.Instance.PosWallet.AccountId)
-                    seed0 = "[me]";
+                    me = "[me]";
                 var voice = msg.IsSuccess ? "Yay" : "Nay";
-                sb.AppendLine($"{voice} {msg.Result} By: {Shorten(msg.From)} CanAuth: {_board.AllNodes[msg.From].AbleToAuthorize} {seed0}");
+                sb.AppendLine($"{voice} {msg.Result} By: {Shorten(msg.From)} CanAuth: {_board.AllNodes[msg.From].AbleToAuthorize} {seed0}{me}");
             }
             _log.LogInformation(sb.ToString());
 
