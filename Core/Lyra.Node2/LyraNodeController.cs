@@ -51,11 +51,11 @@ namespace LyraLexWeb2
             return await _trans.GetBillBoardAsync();
         }
 
-        [Route("GetTransStat")]
-        public async Task<List<ConsensusService.TransStat>> GetTransStat()
+        [Route("GetTransStats")]
+        public async Task<List<ConsensusService.TransStats>> GetTransStats()
         {
             CheckSyncState();
-            return await _trans.GetTransStatAsync();
+            return await _trans.GetTransStatsAsync();
         }
 
         [Route("GetVersion")]

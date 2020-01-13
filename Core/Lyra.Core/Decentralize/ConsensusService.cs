@@ -70,12 +70,12 @@ namespace Lyra.Core.Decentralize
         public bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public ConsensusWorkingMode Mode { get; private set; }
 
-        public class TransStat
+        public class TransStats
         {
             public double totalSeconds { get; set; }
             public BlockTypes TransType { get; set; }
         }
-        private List<TransStat> _stats;
+        private List<TransStats> _stats;
 
         public ConsensusService(IActorRef localNode)
         {
@@ -85,7 +85,7 @@ namespace Lyra.Core.Decentralize
             _outOfOrderedMessages = new Dictionary<string, List<SourceSignedMessage>>();
             _activeConsensus = new Dictionary<string, AuthState>();
             _cleanedConsensus = new Dictionary<string, AuthState>();
-            _stats = new List<TransStat>();
+            _stats = new List<TransStats>();
 
             _authorizers = new AuthorizersFactory();
             while (BlockChain.Singleton == null)
@@ -160,7 +160,7 @@ namespace Lyra.Core.Decentralize
                     if (_stats.Count > 10000)
                         _stats.RemoveRange(0, 2000);
 
-                    _stats.Add(new TransStat { totalSeconds = ts.TotalSeconds, TransType = state.InputMsg.Block.BlockType });
+                    _stats.Add(new TransStats { totalSeconds = ts.TotalSeconds, TransType = state.InputMsg.Block.BlockType });
 
                     sender.Tell(state);
                 }
@@ -684,7 +684,7 @@ namespace Lyra.Core.Decentralize
             // debug: show all states
             var sb = new StringBuilder();
             sb.AppendLine();
-            sb.AppendLine($"* Transaction From {Shorten(state.InputMsg.Block.AccountID)} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {Shorten(state.InputMsg.Block.Hash)}");
+            sb.AppendLine($"* Transaction From Node {Shorten(state.InputMsg.Block.AccountID)} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {Shorten(state.InputMsg.Block.Hash)}");
             foreach(var msg in state.OutputMsgs)
             {
                 var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
