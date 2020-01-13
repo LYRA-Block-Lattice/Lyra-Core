@@ -585,6 +585,7 @@ namespace Lyra.Core.Decentralize
 
         private AuthorizedMsg LocalAuthorizingAsync(AuthorizingMsg item)
         {
+            var dtStart = DateTime.Now;
             var authorizer = _authorizers[item.Block.BlockType];
 
             AuthorizedMsg result;
@@ -623,7 +624,7 @@ namespace Lyra.Core.Decentralize
                     AuthSign = null
                 };
             }
-
+            _log.LogInformation($"LocalAuthorizingAsync takes {(DateTime.Now - dtStart).TotalSeconds} seconds.");
             return result;
         }
 

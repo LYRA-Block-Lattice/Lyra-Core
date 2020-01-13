@@ -41,7 +41,7 @@ namespace Friday
 
             var rich10 = JsonConvert.DeserializeObject<List<WalletBalance>>(File.ReadAllText(workingFolder + @"\balances.json"));
             var realRich10 = rich10.Where(a => a.balance.ContainsKey(lyraCoin) && a.balance.ContainsKey(testCoin))
-                .Where(a => a.balance[testCoin] > 10000).ToDictionary(a => a.privateKey, a => a.balance);
+                .Where(a => a.balance[testCoin] >= 10000).ToDictionary(a => a.privateKey, a => a.balance);
 
             var rich90 = wallets.Where(a => !realRich10.ContainsKey(a.Value)).Take(90);
             File.WriteAllText(workingFolder + @"\rich90.json", JsonConvert.SerializeObject(rich90));
