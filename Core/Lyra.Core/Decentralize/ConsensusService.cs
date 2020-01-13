@@ -669,7 +669,7 @@ namespace Lyra.Core.Decentralize
             // debug: show all states
             var sb = new StringBuilder();
             sb.AppendLine();
-            sb.AppendLine($"Block {Shorten(state.InputMsg.Block.AccountID)} {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {Shorten(state.InputMsg.Block.Hash)}");
+            sb.AppendLine($"* Transaction From {Shorten(state.InputMsg.Block.AccountID)} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {Shorten(state.InputMsg.Block.Hash)}");
             foreach(var msg in state.OutputMsgs)
             {
                 var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
