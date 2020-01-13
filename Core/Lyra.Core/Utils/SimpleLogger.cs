@@ -10,7 +10,8 @@ namespace Lyra.Core.Utils
         public static ILoggerFactory Factory { get; set; }
         public SimpleLogger(string catagory)
         {
-            Logger = Factory.CreateLogger(catagory);
+            if(Factory != null)
+                Logger = Factory.CreateLogger(catagory);
         }
 
         public ILogger Logger { get; private set; }
