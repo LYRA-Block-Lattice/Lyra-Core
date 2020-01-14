@@ -80,7 +80,7 @@ namespace Lyra
 
         public void StartConsensus()
         {
-            var props = Props.Create<ConsensusService>().WithRouter(new RoundRobinPool(5));
+            var props = Props.Create<ConsensusService>(() => new ConsensusService(this.LocalNode)).WithRouter(new RoundRobinPool(5));
             Consensus = ActorSystem.ActorOf(props, "consensusSvc");
 
             //Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode));
