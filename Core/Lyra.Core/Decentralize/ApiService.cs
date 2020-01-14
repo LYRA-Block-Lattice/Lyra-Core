@@ -67,7 +67,12 @@ namespace Lyra.Core.Decentralize
             };
             var result = await ConsensusSvc.Ask<AuthState>(msg).ConfigureAwait(false);
 
-            if(result == null)
+            await Task.Run(() =>
+            {
+                _ = result.Done.WaitOne();
+            });
+
+            if (result == null)
             {
                 _log.LogInformation($"ApiService: PostToConsensusAsync got null result. the network is not ready.");
                 return null;

@@ -132,18 +132,18 @@ namespace Lyra.Core.Decentralize
 
                 // first try auth locally
                 var state = CreateAuthringState(msg);
-                if(state == null)
+                Sender.Tell(state);
+                if (state == null)
                 {
-                    Sender.Tell(null);
                     return;
                 }
+
                 var localAuthResult = LocalAuthorizingAsync(msg);
                 state.AddAuthResult(localAuthResult);
 
                 if (!localAuthResult.IsSuccess)
                 {
                     state.Done.Set();
-                    Sender.Tell(state);
                 }
                 else
                 {
@@ -152,18 +152,11 @@ namespace Lyra.Core.Decentralize
 
                     var sender = Context.Sender;
 
-                    await Task.Run(() =>
-                    {
-                        _ = state.Done.WaitOne();
-                    });
-
                     stopwatch.Stop();
                     if (_stats.Count > 10000)
                         _stats.RemoveRange(0, 2000);
 
                     _stats.Add(new TransStats { ms = stopwatch.ElapsedMilliseconds, trans = state.InputMsg.Block.BlockType });
-
-                    sender.Tell(state);
                 }
             });
 
