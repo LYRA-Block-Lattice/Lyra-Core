@@ -12,6 +12,7 @@ using Neo.Cryptography.ECC;
 using Neo.IO.Actors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -281,8 +282,14 @@ namespace Lyra
                                         continue;
                                     }
 
+                                    var stopwatch = Stopwatch.StartNew();
+
                                     var authorizer = authorizers[blockX.BlockType];
                                     var localAuthResult = authorizer.Authorize(blockX, false);
+
+                                    stopwatch.Stop();
+                                    _log.LogInformation($"Authorize takes {stopwatch.ElapsedMilliseconds} ms");
+
                                     if(localAuthResult.Item1 == APIResultCodes.Success)
                                     {
                                         AddBlock(blockX);

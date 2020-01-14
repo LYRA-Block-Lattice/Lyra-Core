@@ -14,6 +14,7 @@ using Neo.Network.P2P;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -72,8 +73,8 @@ namespace Lyra.Core.Decentralize
 
         public class TransStats
         {
-            public double totalSeconds { get; set; }
-            public BlockTypes TransType { get; set; }
+            public long ms { get; set; }
+            public BlockTypes trans { get; set; }
         }
         private List<TransStats> _stats;
 
@@ -126,8 +127,8 @@ namespace Lyra.Core.Decentralize
                     Sender.Tell(null);
                     return;
                 }
-                    
-                var dtStart = DateTime.Now;
+
+                var stopwatch = Stopwatch.StartNew();
 
                 // first try auth locally
                 var state = CreateAuthringState(msg);
@@ -156,11 +157,11 @@ namespace Lyra.Core.Decentralize
                         _ = state.Done.WaitOne();
                     });
 
-                    var ts = DateTime.Now - dtStart;
+                    stopwatch.Stop();
                     if (_stats.Count > 10000)
                         _stats.RemoveRange(0, 2000);
 
-                    _stats.Add(new TransStats { totalSeconds = ts.TotalSeconds, TransType = state.InputMsg.Block.BlockType });
+                    _stats.Add(new TransStats { ms = stopwatch.ElapsedMilliseconds, trans = state.InputMsg.Block.BlockType });
 
                     sender.Tell(state);
                 }
@@ -585,7 +586,7 @@ namespace Lyra.Core.Decentralize
 
         private AuthorizedMsg LocalAuthorizingAsync(AuthorizingMsg item)
         {
-            var dtStart = DateTime.Now;
+            var stopwatch = Stopwatch.StartNew();
             var authorizer = _authorizers[item.Block.BlockType];
 
             AuthorizedMsg result;
@@ -624,7 +625,8 @@ namespace Lyra.Core.Decentralize
                     AuthSign = null
                 };
             }
-            _log.LogInformation($"LocalAuthorizingAsync takes {(DateTime.Now - dtStart).TotalSeconds} seconds.");
+            stopwatch.Stop();
+            _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms.");
             return result;
         }
 
