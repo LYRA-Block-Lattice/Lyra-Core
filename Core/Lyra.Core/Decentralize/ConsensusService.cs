@@ -128,8 +128,6 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
-                var stopwatch = Stopwatch.StartNew();
-
                 // first try auth locally
                 var state = CreateAuthringState(msg);
                 Sender.Tell(state);
@@ -138,26 +136,12 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
+                Send2P2pNetwork(msg);
+
                 var localAuthResult = LocalAuthorizingAsync(msg);
                 state.AddAuthResult(localAuthResult);
 
-                if (!localAuthResult.IsSuccess)
-                {
-                    state.Done.Set();
-                }
-                else
-                {
-                    Send2P2pNetwork(msg);
-                    Send2P2pNetwork(localAuthResult);
-
-                    var sender = Context.Sender;
-
-                    stopwatch.Stop();
-                    if (_stats.Count > 10000)
-                        _stats.RemoveRange(0, 2000);
-
-                    _stats.Add(new TransStats { ms = stopwatch.ElapsedMilliseconds, trans = state.InputMsg.Block.BlockType });
-                }
+                Send2P2pNetwork(localAuthResult);
             });
 
             Receive<SignedMessageRelay>(relayMsg =>
@@ -700,6 +684,12 @@ namespace Lyra.Core.Decentralize
                 state.Saving = true;
                 _ = Task.Run(() =>
                 {
+                    var ts = DateTime.Now - state.Created;
+                    if (_stats.Count > 10000)
+                        _stats.RemoveRange(0, 2000);
+
+                    _stats.Add(new TransStats { ms = (long)ts.TotalMilliseconds, trans = state.InputMsg.Block.BlockType });
+
                     // do commit
                     var block = state.InputMsg.Block;
                     block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
