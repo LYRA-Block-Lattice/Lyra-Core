@@ -79,7 +79,7 @@ namespace Friday
                 var start = i * 10;
                 var tsk = Task.Run(async () =>
                 {
-                    for (int j = start; j < start + 10; j++)
+                    for (int j = start; j < start + 200; j++)
                     {
                         var wt = targetAddrs[j];
                         foreach (var amount in amounts)

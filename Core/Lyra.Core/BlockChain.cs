@@ -315,15 +315,15 @@ namespace Lyra
                         var copyOK = await DoCopyBlock(startUIndex, syncToUIndex).ConfigureAwait(false);
                         if(copyOK)
                         {
-                            // check missing block
-                            for(long k = 1; k <= startUIndex; k++)
-                            {
-                                if(BlockChain.Singleton.GetBlockByUIndex(k) == null)
-                                {
-                                    _log.LogInformation($"syncing one missing block: {k}");
-                                    await DoCopyBlock(k, k).ConfigureAwait(false);
-                                }
-                            }
+                            //// check missing block
+                            //for(long k = 1; k <= startUIndex; k++)
+                            //{
+                            //    if(BlockChain.Singleton.GetBlockByUIndex(k) == null)
+                            //    {
+                            //        _log.LogInformation($"syncing one missing block: {k}");
+                            //        await DoCopyBlock(k, k).ConfigureAwait(false);
+                            //    }
+                            //}
                             break;
                         }
                         else

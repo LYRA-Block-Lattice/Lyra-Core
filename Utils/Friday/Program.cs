@@ -46,9 +46,10 @@ namespace Friday
 
             //var rich90 = wallets.Where(a => !realRich10.ContainsKey(a.Value)).Take(90);
             var rich90 = JsonConvert.DeserializeObject<List<KeyValuePair<string, string>>>(File.ReadAllText(workingFolder + @"\\rich90.json"));
-            File.WriteAllText(workingFolder + @"\rich90.json", JsonConvert.SerializeObject(rich90));
+            //File.WriteAllText(workingFolder + @"\rich90.json", JsonConvert.SerializeObject(rich90));
 
-            await tt.MultiThreadedSendAsync(realRich10.Keys.ToArray(), rich90.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { testCoin, 1 } });
+            var poors = wallets.Where(a => !rich90.Any(x => x.Key == a.Key));
+            await tt.MultiThreadedSendAsync(rich90.Select(a => a.Value).ToArray(), poors.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { testCoin, 1 } });
 
             //var masterWallet = new Wallet(new LiteAccountDatabase(), network_id);
             //masterWallet.AccountName = "My Account";
