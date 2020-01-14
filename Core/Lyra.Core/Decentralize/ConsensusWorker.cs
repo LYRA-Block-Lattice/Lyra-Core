@@ -28,7 +28,7 @@ namespace Lyra.Core.Decentralize
             _log = new SimpleLogger("ConsensusWorker").Logger;
             _authorizers = new AuthorizersFactory();
 
-            Receive<AuthorizingMsg>(async msg =>
+            Receive<AuthorizingMsg>(msg =>
             {
                 _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
@@ -56,6 +56,16 @@ namespace Lyra.Core.Decentralize
 
                     _context.Send2P2pNetwork(localAuthResult);
                 });
+            });
+
+            Receive<AuthorizedMsg>(msg =>
+            {
+                OnPrepare(msg);
+            });
+
+            Receive<AuthorizerCommitMsg>(msg =>
+            {
+                OnCommit(msg);
             });
         }
 
@@ -234,6 +244,8 @@ namespace Lyra.Core.Decentralize
                     return;
 
                 state.Saving = true;
+
+                state.Done.Set();
                 _ = Task.Run(() =>
                 {
                     var ts = DateTime.Now - state.Created;

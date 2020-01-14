@@ -104,7 +104,9 @@ namespace Lyra.Core.Decentralize
                 _ => null,
             });
 
-            _router = LyraSystem.Singleton.ActorSystem.ActorOf(Akka.Actor.Props.Create<ConsensusWorker>()
+            _router = LyraSystem.Singleton.ActorSystem.ActorOf(Akka.Actor.Props.Create<ConsensusWorker>(() => 
+                new ConsensusWorker(this)
+                )
                 .WithRouter(pool), "some-pool");
 
             Receive<Consolidate>((_) =>
@@ -155,6 +157,18 @@ namespace Lyra.Core.Decentralize
                 };
 
                 Send2P2pNetwork(msg);
+            });
+
+            Receive<TransactionBlock>(async block => {
+                AuthorizingMsg msg = new AuthorizingMsg
+                {
+                    From = NodeService.Instance.PosWallet.AccountId,
+                    Block = block,
+                    MsgType = ChatMessageType.AuthorizerPrePrepare
+                };
+
+                var result = _router.Ask(msg);
+                await result.PipeTo(Sender, Self);
             });
 
             Task.Run(async () =>
