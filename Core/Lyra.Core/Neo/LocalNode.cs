@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Lyra;
+using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
@@ -163,7 +164,7 @@ namespace Neo.Network.P2P
             else
             {
                 // Will call AddPeers with default SeedList set cached on <see cref="ProtocolSettings"/>.
-                // It will try to add those, sequentially, to the list of currently uncconected ones.
+                // It will try to add those, sequentially, to the list of currently unconnected ones.
 
                 Random rand = new Random();
                 AddPeers(SeedList.Where(u => u != null).OrderBy(p => rand.Next()).Take(count));
@@ -212,7 +213,22 @@ namespace Neo.Network.P2P
             system.TheBlockchain.Tell(inventory);
         }
 
-        private void OnRelayDirectly(IInventory inventory) => SendToRemoteNodes(new RemoteNode.Relay { Inventory = inventory });
+        private void OnRelayDirectly(IInventory inventory)
+        {
+            var message = new RemoteNode.Relay { Inventory = inventory };
+            // When relaying a block, if the block's index is greater than 'LastBlockIndex' of the RemoteNode, relay the block;
+            // otherwise, don't relay.
+            if (inventory is Block block)
+            {
+                foreach (KeyValuePair<IActorRef, RemoteNode> kvp in RemoteNodes)
+                {
+                    if (block.Index > kvp.Value.LastBlockIndex)
+                        kvp.Key.Tell(message);
+                }
+            }
+            else
+                SendToRemoteNodes(message);
+        }
 
         private void OnSendDirectly(IInventory inventory) => SendToRemoteNodes(inventory);
 

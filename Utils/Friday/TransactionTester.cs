@@ -55,14 +55,13 @@ namespace Friday
             Console.WriteLine($"Single thread, {singleThreadBatch} Send, Avg: {(dtEnd - dtStart).TotalSeconds / singleThreadBatch}");
         }
 
-        public async Task MultiThreadedSendAsync(string[] masterKeys, string[] targetAddrs, Dictionary<string, decimal> amounts)
+        public async Task MultiThreadedSendAsync(string[] masterKeys, string[] targetAddrs, Dictionary<string, decimal> amounts, bool oneTime = false)
         {
             var multiThreadBatch = masterKeys.Length;
             Console.WriteLine($"Multiple Thread Test for {multiThreadBatch} Send.");
 
             var dtStart = DateTime.Now;
 
-            var stopwatch = Stopwatch.StartNew();
             var threads = new List<Task>();
             var rand = new Random();
 
@@ -71,24 +70,36 @@ namespace Friday
                 var tsk = Task.Run(async () =>
                 {
                     var fromWallet = await RefreshBalanceAsync(masterKey);
+
+                    var block = fromWallet.GetLatestBlock();
+                    if (block.Balances == null)
+                        return;
+
                     while (true)
                     {
-                        var block = fromWallet.GetLatestBlock();
-                        if (block.Balances == null)
-                            break;
-
                         var j = rand.Next(0, targetAddrs.Length - 1);
                         var wt = targetAddrs[j];
                         foreach (var amount in amounts)
                         {
                             if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key] > amount.Value)
                             {
+                                var stopwatch = Stopwatch.StartNew();
                                 var result = await fromWallet.Send(amount.Value, wt, amount.Key);
-                                Console.WriteLine($"Trans: {result.ResultCode}");
+                                stopwatch.Stop();
+                                Console.WriteLine($"Send: {stopwatch.ElapsedMilliseconds} ms. Result: {result.ResultCode}");
+
+                                if (result.ResultCode != Lyra.Core.Blocks.APIResultCodes.Success)
+                                {
+                                    Console.WriteLine($"Error: {result.ResultCode} Quit Thread.");
+                                    return;
+                                }                                    
                             }
                             else
                                 return;
                         }
+
+                        if (oneTime)
+                            break;
                     }
                 });
                 await Task.Delay(200);
@@ -97,8 +108,7 @@ namespace Friday
 
             Task.WaitAll(threads.ToArray());
 
-            stopwatch.Stop();
-            Console.WriteLine($"Multiple thread, {multiThreadBatch} Send, Avg: {stopwatch.ElapsedMilliseconds / (10 * multiThreadBatch)}");
+
         }
 
         private async Task<Wallet> RefreshBalanceAsync(string masterKey)

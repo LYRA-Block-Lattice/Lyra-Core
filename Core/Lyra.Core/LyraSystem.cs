@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
+using Akka.Routing;
 using Lyra.Core.Accounts;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
@@ -79,7 +80,10 @@ namespace Lyra
 
         public void StartConsensus()
         {
-            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode));
+            var props = Props.Create<ConsensusService>().WithRouter(new RoundRobinPool(5));
+            Consensus = ActorSystem.ActorOf(props, "consensusSvc");
+
+            //Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode));
             //Consensus.Tell(new ConsensusService.Start { IgnoreRecoveryLogs = ignoreRecoveryLogs }, Blockchain);
         }
 
