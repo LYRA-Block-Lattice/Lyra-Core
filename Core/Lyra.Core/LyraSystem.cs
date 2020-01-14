@@ -80,10 +80,10 @@ namespace Lyra
 
         public void StartConsensus()
         {
-            var props = Props.Create<ConsensusService>().WithRouter(new RoundRobinPool(5));
-            Consensus = ActorSystem.ActorOf(props, "consensusSvc");
+            //var props = Props.Create<ConsensusService>().WithRouter(new RoundRobinPool(5));
+            //Consensus = ActorSystem.ActorOf(props, "consensusSvc");
 
-            //Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode));
+            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode));
             //Consensus.Tell(new ConsensusService.Start { IgnoreRecoveryLogs = ignoreRecoveryLogs }, Blockchain);
         }
 

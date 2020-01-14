@@ -52,7 +52,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetTransStats")]
-        public async Task<List<ConsensusService.TransStats>> GetTransStats()
+        public async Task<List<TransStats>> GetTransStats()
         {
             CheckSyncState();
             return await _trans.GetTransStatsAsync();

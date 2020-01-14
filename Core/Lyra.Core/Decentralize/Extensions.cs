@@ -19,5 +19,13 @@ namespace Lyra.Core.Decentralize
             }
             return ret;
         }
+
+        public static string Shorten(this string addr)
+        {
+            if (string.IsNullOrWhiteSpace(addr) || addr.Length < 10)
+                return addr;
+
+            return $"{addr.Substring(0, 3)}...{addr.Substring(addr.Length - 6, 6)}";
+        }
     }
 }
