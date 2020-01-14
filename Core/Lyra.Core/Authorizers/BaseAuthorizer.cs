@@ -132,7 +132,8 @@ namespace Lyra.Core.Authorizers
                 // verify the entire account chain to make sure all account's blocks are valid
                 TransactionBlock prevBlock, thisBlock = block;
                 //while (thisBlock.BlockType != BlockTypes.OpenWithReceiveTransfer && thisBlock.BlockType != BlockTypes.OpenWithReceiveFee)
-                while (!(thisBlock is IOpeningBlock))
+                //while (!(thisBlock is IOpeningBlock))
+                if (!(thisBlock is IOpeningBlock))      //save time
                 {
                     prevBlock = BlockChain.Singleton.FindBlockByHash(thisBlock.PreviousHash);
                     if (!thisBlock.IsBlockValid(prevBlock))

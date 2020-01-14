@@ -148,7 +148,7 @@ namespace Lyra.Core.Accounts
 
         public bool AccountExists(string AccountId)
         {
-            return GetBlockCount(AccountId) > 0;
+            return _blocks.Find(a => a.AccountID == AccountId).Any();
         }
 
         public ServiceBlock GetLastServiceBlock()
