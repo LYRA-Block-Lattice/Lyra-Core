@@ -136,12 +136,15 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
-                Send2P2pNetwork(msg);
+                _ = Task.Run(() =>
+                {
+                    Send2P2pNetwork(msg);
 
-                var localAuthResult = LocalAuthorizingAsync(msg);
-                state.AddAuthResult(localAuthResult);
+                    var localAuthResult = LocalAuthorizingAsync(msg);
+                    state.AddAuthResult(localAuthResult);
 
-                Send2P2pNetwork(localAuthResult);
+                    Send2P2pNetwork(localAuthResult);
+                });                
             });
 
             Receive<SignedMessageRelay>(relayMsg =>

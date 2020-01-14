@@ -62,33 +62,36 @@ namespace Friday
 
             var dtStart = DateTime.Now;
 
-            var fromWallets = new List<Wallet>();
-            foreach(var masterKey in masterKeys)
-            {
-                fromWallets.Add(await RefreshBalanceAsync(masterKey));
-            }
-
-            Console.WriteLine($"Sync balance takes {(DateTime.Now - dtStart).TotalSeconds} seconds");
-
             var stopwatch = Stopwatch.StartNew();
             var threads = new List<Task>();
+            var rand = new Random();
 
-            for(int i = 0; i < fromWallets.Count; i++)
+            foreach (var masterKey in masterKeys)
             {
-                var fromWallet = fromWallets[i];
-                var start = i * 10;
                 var tsk = Task.Run(async () =>
                 {
-                    for (int j = start; j < start + 200; j++)
+                    var fromWallet = await RefreshBalanceAsync(masterKey);
+                    while (true)
                     {
+                        var block = fromWallet.GetLatestBlock();
+                        if (block.Balances == null)
+                            break;
+
+                        var j = rand.Next(0, targetAddrs.Length - 1);
                         var wt = targetAddrs[j];
                         foreach (var amount in amounts)
                         {
-                            var result = await fromWallet.Send(amount.Value, wt, amount.Key);
-                            Console.WriteLine($"Trans {i}: {result.ResultCode}");
+                            if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key] > amount.Value)
+                            {
+                                var result = await fromWallet.Send(amount.Value, wt, amount.Key);
+                                Console.WriteLine($"Trans: {result.ResultCode}");
+                            }
+                            else
+                                return;
                         }
                     }
                 });
+                await Task.Delay(200);
                 threads.Add(tsk);
             }
 
