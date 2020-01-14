@@ -34,6 +34,7 @@ namespace Friday
             var wallets = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(workingFolder + @"\\wallets.json"));
 
             var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a", "https://192.168.3.62:4505/api/LyraNode/");
+            //var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a");
             var tt = new TransactionTester(rpcClient);
 
             //var all = await tt.RefreshBalancesAsync(wallets.Select(a => new KeyPair(Base58Encoding.DecodePrivateKey(a.Value))).ToArray());
@@ -43,10 +44,11 @@ namespace Friday
             var realRich10 = rich10.Where(a => a.balance.ContainsKey(lyraCoin) && a.balance.ContainsKey(testCoin))
                 .Where(a => a.balance[testCoin] >= 10000).ToDictionary(a => a.privateKey, a => a.balance);
 
-            var rich90 = wallets.Where(a => !realRich10.ContainsKey(a.Value)).Take(90);
+            //var rich90 = wallets.Where(a => !realRich10.ContainsKey(a.Value)).Take(90);
+            var rich90 = JsonConvert.DeserializeObject<List<KeyValuePair<string, string>>>(File.ReadAllText(workingFolder + @"\\rich90.json"));
             File.WriteAllText(workingFolder + @"\rich90.json", JsonConvert.SerializeObject(rich90));
 
-            await tt.MultiThreadedSendAsync(realRich10.Keys.ToArray(), rich90.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { testCoin, 100000 } });
+            await tt.MultiThreadedSendAsync(realRich10.Keys.ToArray(), rich90.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { testCoin, 1 } });
 
             //var masterWallet = new Wallet(new LiteAccountDatabase(), network_id);
             //masterWallet.AccountName = "My Account";

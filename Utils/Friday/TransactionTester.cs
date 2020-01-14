@@ -4,6 +4,7 @@ using Lyra.Core.Cryptography;
 using Neo.Wallets;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -58,6 +59,7 @@ namespace Friday
         {
             var multiThreadBatch = masterKeys.Length;
             Console.WriteLine($"Multiple Thread Test for {multiThreadBatch} Send.");
+
             var dtStart = DateTime.Now;
 
             var fromWallets = new List<Wallet>();
@@ -68,7 +70,7 @@ namespace Friday
 
             Console.WriteLine($"Sync balance takes {(DateTime.Now - dtStart).TotalSeconds} seconds");
 
-            dtStart = DateTime.Now;
+            var stopwatch = Stopwatch.StartNew();
             var threads = new List<Task>();
 
             for(int i = 0; i < fromWallets.Count; i++)
@@ -92,8 +94,8 @@ namespace Friday
 
             Task.WaitAll(threads.ToArray());
 
-            var dtEnd = DateTime.Now;
-            Console.WriteLine($"Multiple thread, {multiThreadBatch} Send, Avg: {(dtEnd - dtStart).TotalSeconds / multiThreadBatch}");
+            stopwatch.Stop();
+            Console.WriteLine($"Multiple thread, {multiThreadBatch} Send, Avg: {stopwatch.ElapsedMilliseconds / (10 * multiThreadBatch)}");
         }
 
         private async Task<Wallet> RefreshBalanceAsync(string masterKey)
