@@ -150,12 +150,7 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"The USeed is {USeed}");
 
                 // declare to the network
-                var msg = new ChatMsg
-                {
-                    From = NodeService.Instance.PosWallet.AccountId,
-                    MsgType = ChatMessageType.NodeUp,
-                    Text = "Staking with () Lyra"
-                };
+                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, "Staking with () Lyra");
                 msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
                 Send2P2pNetwork(msg);
@@ -476,8 +471,7 @@ namespace Lyra.Core.Decentralize
         {
             if(_board != null)
             {
-                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, JsonConvert.SerializeObject(_board));
-                msg.MsgType = ChatMessageType.StakingChanges;
+                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
                 msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
                 Send2P2pNetwork(msg);
             }

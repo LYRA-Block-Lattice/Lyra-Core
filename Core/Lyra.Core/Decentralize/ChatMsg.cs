@@ -79,9 +79,10 @@ namespace Lyra.Core.Decentralize
 		{
 			MsgType = ChatMessageType.General;
 		}
-		public ChatMsg(string from, string msg)
+		public ChatMsg(string from, ChatMessageType msgType, string msg)
 		{
 			From = from;
+			MsgType = msgType;
 			Text = msg;
 		}
 
