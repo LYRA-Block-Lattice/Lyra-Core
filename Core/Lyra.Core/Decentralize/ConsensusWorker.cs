@@ -6,6 +6,7 @@ using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Neo;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -20,6 +21,8 @@ namespace Lyra.Core.Decentralize
         ILogger _log;
         private AuthorizersFactory _authorizers;
 
+        ConcurrentQueue<SourceSignedMessage> _outOfOrderedMessages;
+
         AuthState _state;
 
         public ConsensusWorker(ConsensusService context)
@@ -27,6 +30,7 @@ namespace Lyra.Core.Decentralize
             _context = context;
             _log = new SimpleLogger("ConsensusWorker").Logger;
             _authorizers = new AuthorizersFactory();
+            _outOfOrderedMessages = new ConcurrentQueue<SourceSignedMessage>();
 
             Receive<AuthorizingMsg>(msg =>
             {
@@ -40,6 +44,23 @@ namespace Lyra.Core.Decentralize
                 // first try auth locally
                 //if(_state == null)
                 _state = CreateAuthringState(msg);
+
+                if(_outOfOrderedMessages.Count > 0)
+                {
+                    SourceSignedMessage queuedMsg;
+                    while (_outOfOrderedMessages.TryDequeue(out queuedMsg))
+                    {
+                        switch(queuedMsg)
+                        {
+                            case AuthorizedMsg msg1:
+                                OnPrepare(msg1);
+                                break;
+                            case AuthorizerCommitMsg msg2:
+                                OnCommit(msg2);
+                                break;
+                        }
+                    }
+                }
 
                 _context.Send2P2pNetwork(msg);
 
@@ -62,12 +83,18 @@ namespace Lyra.Core.Decentralize
 
             Receive<AuthorizedMsg>(msg =>
             {
-                OnPrepare(msg);
+                if (_state == null)
+                    _outOfOrderedMessages.Enqueue(msg);
+                else
+                    OnPrepare(msg);
             });
 
             Receive<AuthorizerCommitMsg>(msg =>
             {
-                OnCommit(msg);
+                if (_state == null)
+                    _outOfOrderedMessages.Enqueue(msg);
+                else
+                    OnCommit(msg);
             });
         }
 
