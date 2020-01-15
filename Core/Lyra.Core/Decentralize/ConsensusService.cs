@@ -156,6 +156,7 @@ namespace Lyra.Core.Decentralize
                     MsgType = ChatMessageType.NodeUp,
                     Text = "Staking with () Lyra"
                 };
+                msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
                 Send2P2pNetwork(msg);
             });
@@ -171,6 +172,7 @@ namespace Lyra.Core.Decentralize
                     Block = block,
                     MsgType = ChatMessageType.AuthorizerPrePrepare
                 };
+                msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
                 var state = new AuthState
                 {
@@ -217,6 +219,7 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.HeartBeat,
                 Text = "I'm live"
             };
+            msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
             Send2P2pNetwork(msg);
 
@@ -392,9 +395,6 @@ namespace Lyra.Core.Decentralize
 
         public virtual void Send2P2pNetwork(SourceSignedMessage msg)
         {
-            msg.From = NodeService.Instance.PosWallet.AccountId;
-            var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
-
             int waitCount = 5;
             while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
             {
@@ -478,6 +478,7 @@ namespace Lyra.Core.Decentralize
             {
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, JsonConvert.SerializeObject(_board));
                 msg.MsgType = ChatMessageType.StakingChanges;
+                msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
                 Send2P2pNetwork(msg);
             }
         }

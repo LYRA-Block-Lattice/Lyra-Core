@@ -169,6 +169,7 @@ namespace Lyra.Core.Decentralize
                     Result = localAuthResult.Item1,
                     AuthSign = localAuthResult.Item2
                 };
+                result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
 
                 if (item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
                 {
@@ -192,6 +193,7 @@ namespace Lyra.Core.Decentralize
                     Result = APIResultCodes.UnknownError,
                     AuthSign = null
                 };
+                result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
             }
             stopwatch.Stop();
             _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms.");
@@ -323,6 +325,7 @@ namespace Lyra.Core.Decentralize
                     BlockIndex = block.UIndex,
                     Commited = true
                 };
+                msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
                 state.AddCommitedResult(msg);
                 _context.Send2P2pNetwork(msg);
