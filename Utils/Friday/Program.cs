@@ -34,8 +34,8 @@ namespace Friday
             // key is account id
             var wallets = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(workingFolder + @"\\wallets.json"));
 
-            var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a", "https://192.168.3.62:4505/api/LyraNode/");
-            //var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a");
+            //var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a", "https://192.168.3.62:4505/api/LyraNode/");
+            var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a");
             var tt = new TransactionTester(rpcClient);
 
             var masterWallet = new Wallet(new LiteAccountDatabase(), network_id);
@@ -70,7 +70,7 @@ namespace Friday
 
             var poors = wallets.Where(a => !rich90.Any(x => x.Key == a.Key));
 
-            var testGroup1 = rich90.Take(2);
+            var testGroup1 = rich90.Take(5);
             await tt.MultiThreadedSendAsync(new [] { masterWallet.PrivateKey }, testGroup1.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { lyraCoin, 50 } }, true);
             await tt.MultiThreadedSendAsync(testGroup1.Select(a => a.Value).ToArray(), poors.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { lyraCoin, 1 } });
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
+using System.Diagnostics;
 
 namespace Lyra.Core.Authorizers
 {
@@ -30,15 +31,19 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as SendTransferBlock;
 
-            // 1. check if the account already exists
-            if (!BlockChain.Singleton.AccountExists(block.AccountID))
-                return APIResultCodes.AccountDoesNotExist;
+            //// 1. check if the account already exists
+            //if (!BlockChain.Singleton.AccountExists(block.AccountID))
+            //    return APIResultCodes.AccountDoesNotExist;
 
             TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
+            var stopwatch = Stopwatch.StartNew();
             var result = VerifyBlock(block, lastBlock);
+            stopwatch.Stop();
+            Console.WriteLine($"SendTransfer VerifyBlock takes {stopwatch.ElapsedMilliseconds} ms.");
+
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -49,16 +54,23 @@ namespace Lyra.Core.Authorizers
             if (!Signatures.ValidateAccountId(block.DestinationAccountId))
                 return APIResultCodes.InvalidDestinationAccountId;
 
+            var stopwatch2 = Stopwatch.StartNew();
             result = VerifyTransactionBlock(block);
+            stopwatch2.Stop();
+            Console.WriteLine($"SendTransfer VerifyTransactionBlock takes {stopwatch2.ElapsedMilliseconds} ms.");
             if (result != APIResultCodes.Success)
                 return result;
 
+            var stopwatch3 = Stopwatch.StartNew();
             if (!block.ValidateTransaction(lastBlock))
                 return APIResultCodes.SendTransactionValidationFailed;
 
             result = ValidateNonFungible(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
+
+            stopwatch3.Stop();
+            Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 
             return APIResultCodes.Success;
         }

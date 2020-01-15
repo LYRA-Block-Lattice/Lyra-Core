@@ -47,15 +47,12 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
-                _ = Task.Run(() =>
-                {
-                    _context.Send2P2pNetwork(msg);
+                _context.Send2P2pNetwork(msg);
 
-                    var localAuthResult = LocalAuthorizingAsync(msg);
-                    _state.AddAuthResult(localAuthResult);
+                var localAuthResult = LocalAuthorizingAsync(msg);
+                _state.AddAuthResult(localAuthResult);
 
-                    _context.Send2P2pNetwork(localAuthResult);
-                });
+                _context.Send2P2pNetwork(localAuthResult);
             });
 
             Receive<AuthorizedMsg>(msg =>
@@ -177,15 +174,12 @@ namespace Lyra.Core.Decentralize
             if (state == null)
                 return;
 
-            _ = Task.Run(() =>
-            {
-                var result = LocalAuthorizingAsync(item);
+            var result = LocalAuthorizingAsync(item);
 
-                _context.Send2P2pNetwork(result);
-                state.AddAuthResult(result);
-                CheckAuthorizedAllOk(state);
-                _log.LogInformation($"Consensus: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.IsSuccess}");
-            });
+            _context.Send2P2pNetwork(result);
+            state.AddAuthResult(result);
+            CheckAuthorizedAllOk(state);
+            _log.LogInformation($"Consensus: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.IsSuccess}");
         }
 
         private void OnPrepare(AuthorizedMsg item)
@@ -195,9 +189,9 @@ namespace Lyra.Core.Decentralize
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
-                _state.AddAuthResult(item);
+            _state.AddAuthResult(item);
 
-                CheckAuthorizedAllOk(_state);
+            CheckAuthorizedAllOk(_state);
             //}
             //else
             //{
@@ -246,66 +240,64 @@ namespace Lyra.Core.Decentralize
                 state.Saving = true;
 
                 state.Done.Set();
-                _ = Task.Run(() =>
+
+                var ts = DateTime.Now - state.Created;
+                if (_context.Stats.Count > 10000)
+                    _context.Stats.RemoveRange(0, 2000);
+
+                _context.Stats.Add(new TransStats { ms = (long)ts.TotalMilliseconds, trans = state.InputMsg.Block.BlockType });
+
+                // do commit
+                var block = state.InputMsg.Block;
+                block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
+
+                if (block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.NullTransaction && block.BlockType != BlockTypes.Service)
                 {
-                    var ts = DateTime.Now - state.Created;
-                    if (_context.Stats.Count > 10000)
-                        _context.Stats.RemoveRange(0, 2000);
-
-                    _context.Stats.Add(new TransStats { ms = (long)ts.TotalMilliseconds, trans = state.InputMsg.Block.BlockType });
-
-                    // do commit
-                    var block = state.InputMsg.Block;
-                    block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
-
-                    if (block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.NullTransaction && block.BlockType != BlockTypes.Service)
-                    {
-                        // pickup UIndex
-                        try
-                        {
-                            block.UIndex = state.ConsensusUIndex;
-                        }
-                        catch (Exception ex)
-                        {
-                            _log.LogError("Can't get UIndex. System fail: " + ex.Message);
-                            return;
-                        }
-
-                        //if (!IsThisNodeSeed0 && block.UIndex != USeed - 1)
-                        //{
-                        //    // local node out of sync
-                        //    Mode = ConsensusWorkingMode.OutofSyncWaiting;
-                        //    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
-                        //}
-                    }
-
-                    block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
-
+                    // pickup UIndex
                     try
                     {
-                        BlockChain.Singleton.AddBlock(block);
-                        _log.LogInformation($"CheckAuthorizedAllOk of UIndex: {block.UIndex}");
+                        block.UIndex = state.ConsensusUIndex;
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        _log.LogInformation($"CheckAuthorizedAllOk Failed UIndex: {block.UIndex} Why: {e.Message}");
+                        _log.LogError("Can't get UIndex. System fail: " + ex.Message);
                         return;
                     }
 
-                    var msg = new AuthorizerCommitMsg
-                    {
-                        From = NodeService.Instance.PosWallet.AccountId,
-                        MsgType = ChatMessageType.AuthorizerCommit,
-                        BlockHash = state.InputMsg.Block.Hash,
-                        BlockIndex = block.UIndex,
-                        Commited = true
-                    };
+                    //if (!IsThisNodeSeed0 && block.UIndex != USeed - 1)
+                    //{
+                    //    // local node out of sync
+                    //    Mode = ConsensusWorkingMode.OutofSyncWaiting;
+                    //    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
+                    //}
+                }
 
-                    state.AddCommitedResult(msg);
-                    _context.Send2P2pNetwork(msg);
+                block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
-                    _log.LogInformation($"Consensus: OnPrepare Commited: BlockUIndex: {msg.BlockHash}");
-                });
+                try
+                {
+                    BlockChain.Singleton.AddBlock(block);
+                    _log.LogInformation($"CheckAuthorizedAllOk of UIndex: {block.UIndex}");
+                }
+                catch (Exception e)
+                {
+                    _log.LogInformation($"CheckAuthorizedAllOk Failed UIndex: {block.UIndex} Why: {e.Message}");
+                    return;
+                }
+
+                var msg = new AuthorizerCommitMsg
+                {
+                    From = NodeService.Instance.PosWallet.AccountId,
+                    MsgType = ChatMessageType.AuthorizerCommit,
+                    BlockHash = state.InputMsg.Block.Hash,
+                    BlockIndex = block.UIndex,
+                    Commited = true
+                };
+
+                state.AddCommitedResult(msg);
+                _context.Send2P2pNetwork(msg);
+
+                _log.LogInformation($"Consensus: OnPrepare Commited: BlockUIndex: {msg.BlockHash}");
             }
         }
 
@@ -316,9 +308,9 @@ namespace Lyra.Core.Decentralize
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
-                _state.AddCommitedResult(item);
+            _state.AddCommitedResult(item);
 
-                _context.OnNodeActive(item.From);        // track latest activities via billboard
+            _context.OnNodeActive(item.From);        // track latest activities via billboard
             //}
             //else
             //{

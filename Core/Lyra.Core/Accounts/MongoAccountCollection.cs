@@ -11,6 +11,7 @@ using System.Linq;
 using Lyra.Core.Utils;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace Lyra.Core.Accounts
 {
@@ -245,11 +246,8 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock FindBlockByHash(string hash)
         {
-            var result = _blocks.Find(x => x.Hash.Equals(hash));
-            if (result.Any()) 
-                return result.First();
-            else
-                return null;
+            var block = _blocks.Find(x => x.Hash.Equals(hash)).FirstOrDefault();
+            return block;
         }
 
         public List<NonFungibleToken> GetNonFungibleTokens(string AccountId)

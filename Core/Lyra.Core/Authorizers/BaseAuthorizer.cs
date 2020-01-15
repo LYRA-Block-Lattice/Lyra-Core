@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Decentralize;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Lyra.Core.Authorizers
 {
@@ -62,8 +63,10 @@ namespace Lyra.Core.Authorizers
             }
             else
             {
-                if(!block.VerifyHash())
+                if (!block.VerifyHash())
                     _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock UIndex: {block.UIndex} by {block.GetHashInput()}");
+
+                
 
                 var result = block.VerifySignature(block.AccountID);
                 if (!result)
@@ -71,6 +74,8 @@ namespace Lyra.Core.Authorizers
                     _log.LogWarning($"VerifyBlock failed for TransactionBlock UIndex: {block.UIndex} Type: {block.BlockType} by {block.AccountID}");
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
+
+
 
                 // check if this Index already exists (double-spending, kind of)
                 if (block.BlockType != BlockTypes.NullTransaction && BlockChain.Singleton.FindBlockByIndex(block.AccountID, block.Index) != null)
@@ -155,14 +160,15 @@ namespace Lyra.Core.Authorizers
                         return APIResultCodes.AccountChainBalanceValidationFailed;
                 }
 
-                // Verify fee
-                if (block.BlockType == BlockTypes.SendTransfer)
-                    if ((block as SendTransferBlock).Fee != BlockChain.Singleton.GetLastServiceBlock().TransferFee)
-                        return APIResultCodes.InvalidFeeAmount;
+                // TODO: fee aggregation
+                //// Verify fee
+                //if (block.BlockType == BlockTypes.SendTransfer)
+                //    if ((block as SendTransferBlock).Fee != BlockChain.Singleton.GetLastServiceBlock().TransferFee)
+                //        return APIResultCodes.InvalidFeeAmount;
 
-                if (block.BlockType == BlockTypes.TokenGenesis)
-                    if ((block as TokenGenesisBlock).Fee != BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
-                        return APIResultCodes.InvalidFeeAmount;
+                //if (block.BlockType == BlockTypes.TokenGenesis)
+                //    if ((block as TokenGenesisBlock).Fee != BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
+                //        return APIResultCodes.InvalidFeeAmount;
             }
 
             var res = ValidateFee(block);
