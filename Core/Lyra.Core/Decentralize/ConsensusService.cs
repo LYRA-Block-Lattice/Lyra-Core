@@ -134,13 +134,13 @@ namespace Lyra.Core.Decentralize
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
             Receive<AskForStats>((_) => Sender.Tell(_stats));
 
-            //Receive<SignedMessageRelay>(relayMsg =>
-            //{
-            //    if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
-            //        OnNextConsensusMessage(relayMsg.signedMessage);
-            //    else
-            //        _log.LogWarning("Protocol Version Mismatch. Do nothing.");
-            //});
+            Receive<SignedMessageRelay>(relayMsg =>
+            {
+                if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
+                    OnNextConsensusMessage(relayMsg.signedMessage);
+                else
+                    _log.LogWarning("Protocol Version Mismatch. Do nothing.");
+            });
 
             Receive<BlockChainSynced>(_ =>
             {
