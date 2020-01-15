@@ -76,7 +76,7 @@ namespace Lyra.Core.Decentralize
             bool success = false;
             await Task.Run(() =>
             {
-                success = result.Done.WaitOne(30 * 1000);
+                success = result.Done.WaitOne();  // TODO: if a block lost/hung, should have a process.
             });
 
             var resultMsg = result.OutputMsgs.Count > 0 ? result.OutputMsgs.First().Result.ToString() : "Unknown";
