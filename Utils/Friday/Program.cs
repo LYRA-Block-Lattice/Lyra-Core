@@ -22,8 +22,10 @@ namespace Friday
         static async System.Threading.Tasks.Task Main(string[] args)
         {
             var workingFolder = @"C:\working\Friday";
-            var network_id = "testnet";            
+            var network_id = "devnet";            
             var lyraFolder = BaseAccount.GetFullFolderName("Lyra-CLI-" + network_id);
+
+            await Task.Delay(10000); // wait for node up
 
             // create and save wallets
             //var tt = new TransactionTester();
