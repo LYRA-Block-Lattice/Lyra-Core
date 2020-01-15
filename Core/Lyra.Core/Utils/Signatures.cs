@@ -83,18 +83,10 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                var stopwatch = Stopwatch.StartNew();
-
                 var signatureBytes = Base58Encoding.Decode(signature);
                 var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
 
                 var result = Neo.Cryptography.Crypto.Default.VerifySignature(Encoding.UTF8.GetBytes(message), signatureBytes, publicKeyBytes);
-                //Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(Neo.Cryptography.ECC.ECPoint.FromBytes(publicKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1));
-                //var sh = new SignatureHolder(signature);
-                //var result = sa.VerifySignature(Encoding.ASCII.GetBytes(message), sh.R, sh.S);
-
-                stopwatch.Stop();
-                Console.WriteLine($"Signatures VerifySignature takes {stopwatch.ElapsedMilliseconds} ms.");
 
                 return result;
             }

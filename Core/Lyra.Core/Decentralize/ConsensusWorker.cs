@@ -333,7 +333,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnCommit(AuthorizerCommitMsg item)
         {
-            _log.LogInformation($"Consensus: OnCommit Called: BlockUIndex: {item.BlockIndex}");
+            //_log.LogInformation($"Consensus: OnCommit Called: BlockUIndex: {item.BlockIndex}");
 
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{

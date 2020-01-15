@@ -75,7 +75,7 @@ namespace Friday
             var poors = wallets.Where(a => !rich90.Any(x => x.Key == a.Key));
 
             var testGroup1 = rich90.Take(5);
-            await tt.MultiThreadedSendAsync(new [] { masterWallet.PrivateKey }, testGroup1.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { lyraCoin, 50 } }, true);
+            await tt.MultiThreadedSendAsync(new [] { masterWallet.PrivateKey }, testGroup1.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { lyraCoin, 500 } }, true);
 
             Console.WriteLine("Coin distribute OK. Press Enter to continue...");
             Console.ReadLine();

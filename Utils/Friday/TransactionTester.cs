@@ -70,38 +70,44 @@ namespace Friday
                 var tsk = Task.Run(async () =>
                 {
                     var fromWallet = await RefreshBalanceAsync(masterKey);
-
                     var block = fromWallet.GetLatestBlock();
                     if (block == null || block.Balances == null)
                     {
                         Console.WriteLine("No last block!");
-                    }                        
+                    }
                     else
-                    while (true)
                     {
-                        var j = rand.Next(0, targetAddrs.Length - 1);
-                        var wt = targetAddrs[j];
-                        foreach (var amount in amounts)
+                        while (true)
                         {
-                            if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key] > amount.Value)
+                            foreach (var wt in targetAddrs)
                             {
-                                var stopwatch = Stopwatch.StartNew();
-                                var result = await fromWallet.Send(amount.Value, wt, amount.Key);
-                                stopwatch.Stop();
-                                Console.WriteLine($"Send: {stopwatch.ElapsedMilliseconds} ms. Result: {result.ResultCode}");
-
-                                if (result.ResultCode != Lyra.Core.Blocks.APIResultCodes.Success)
+                                foreach (var amount in amounts)
                                 {
-                                    Console.WriteLine($"Error: {result.ResultCode} Quit Thread.");
-                                    break;
-                                }                                    
+                                    if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key] > amount.Value)
+                                    {
+                                        var stopwatch = Stopwatch.StartNew();
+                                        var result = await fromWallet.Send(amount.Value, wt, amount.Key);
+                                        stopwatch.Stop();
+                                        Console.WriteLine($"Send: {stopwatch.ElapsedMilliseconds} ms. Result: {result.ResultCode}");
+
+                                        if (result.ResultCode != Lyra.Core.Blocks.APIResultCodes.Success)
+                                        {
+                                            Console.WriteLine($"Error: {result.ResultCode} Quit Thread.");
+                                            oneTime = true;
+                                            break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        oneTime = true;
+                                        break;
+                                    }
+                                }
                             }
-                            else
+                            if (oneTime)
                                 break;
                         }
 
-                        if (oneTime)
-                            break;
                     }
                 });
                 await Task.Delay(200);

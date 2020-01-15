@@ -96,7 +96,7 @@ namespace Lyra.Core.Decentralize
 
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
-            var pool = new ConsistentHashingPool(10).WithHashMapping(o => o switch
+            var pool = new ConsistentHashingPool(50).WithHashMapping(o => o switch
             {
                 AuthorizingMsg msg1 => msg1.Block.Hash,
                 AuthorizedMsg msg2 => msg2.BlockHash,
@@ -392,6 +392,11 @@ namespace Lyra.Core.Decentralize
         public virtual void Send2P2pNetwork(SourceSignedMessage msg)
         {
             //_log.LogInformation($"Consensus: SendMessage Called: msg From: {msg.From}");
+            if (string.IsNullOrWhiteSpace(msg.From))
+                _log.LogError("Send2P2pNetwork: No From.");
+
+            if (msg.From != NodeService.Instance.PosWallet.AccountId)
+                _log.LogError("Send2P2pNetwork: From field Should from wallet account.");
 
             var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
             //_log.LogInformation($"Consensus: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
