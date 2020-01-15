@@ -271,8 +271,6 @@ namespace Lyra.Core.Decentralize
 
                 state.Saving = true;
 
-                state.Done.Set();
-
                 var ts = DateTime.Now - state.Created;
                 if (_context.Stats.Count > 10000)
                     _context.Stats.RemoveRange(0, 2000);

@@ -76,9 +76,13 @@ namespace Friday
 
             var testGroup1 = rich90.Take(5);
             await tt.MultiThreadedSendAsync(new [] { masterWallet.PrivateKey }, testGroup1.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { lyraCoin, 50 } }, true);
+
+            Console.WriteLine("Coin distribute OK. Press Enter to continue...");
+            Console.ReadLine();
+            
             await tt.MultiThreadedSendAsync(testGroup1.Select(a => a.Value).ToArray(), poors.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { lyraCoin, 1 } });
 
-
+            Console.ReadLine();
 
             //foreach(var b in masterWallet.GetLatestBlock().Balances)
             //{

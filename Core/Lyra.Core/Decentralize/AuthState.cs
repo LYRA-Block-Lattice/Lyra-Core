@@ -69,6 +69,7 @@ namespace Lyra.Core.Decentralize
             return IsConsensusSuccess == true;
         }
 
+
         public long ConsensusUIndex
         {
             get

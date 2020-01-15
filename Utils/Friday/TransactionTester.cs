@@ -75,9 +75,8 @@ namespace Friday
                     if (block == null || block.Balances == null)
                     {
                         Console.WriteLine("No last block!");
-                        return;
                     }                        
-
+                    else
                     while (true)
                     {
                         var j = rand.Next(0, targetAddrs.Length - 1);
@@ -94,11 +93,11 @@ namespace Friday
                                 if (result.ResultCode != Lyra.Core.Blocks.APIResultCodes.Success)
                                 {
                                     Console.WriteLine($"Error: {result.ResultCode} Quit Thread.");
-                                    return;
+                                    break;
                                 }                                    
                             }
                             else
-                                return;
+                                break;
                         }
 
                         if (oneTime)
