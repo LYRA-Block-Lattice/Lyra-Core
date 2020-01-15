@@ -19,13 +19,13 @@ namespace Lyra.Core.Decentralize
 		public string From { get; set; }
 		public ChatMessageType MsgType { get; set; }
 		public int Version { get; set; } = LyraGlobal.ProtocolVersion;
-		public DateTime Created { get; set; } = DateTime.Now;
+		//public DateTime Created { get; set; } = DateTime.Now;
 
 		public virtual int Size => From.Length + 1
 			+ Hash.Length + Signature.Length
 			+ sizeof(ChatMessageType)
-			+ sizeof(int)
-			+ TimeSize;
+			+ sizeof(int);
+			//+ TimeSize;
 
 		public virtual void Deserialize(BinaryReader reader)
 		{
@@ -34,7 +34,7 @@ namespace Lyra.Core.Decentralize
 			From = reader.ReadString();
 			MsgType = (ChatMessageType)reader.ReadInt32();
 			Version = reader.ReadInt32();
-			Created = DateTime.FromBinary(reader.ReadInt64());
+			//Created = DateTime.FromBinary(reader.ReadInt64());
 		}
 
 		public virtual void Serialize(BinaryWriter writer)
@@ -44,12 +44,12 @@ namespace Lyra.Core.Decentralize
 			writer.Write(From);
 			writer.Write((int)MsgType);
 			writer.Write(Version);
-			writer.Write(Created.ToBinary());
+			//writer.Write(Created.ToBinary());
 		}
 
 		public override string GetHashInput()
 		{
-			return $"{From}|{MsgType}|{Version}|{DateTimeToString(Created)}";
+			return $"{From}|{MsgType}|{Version}";
 		}
 
 		protected override string GetExtraData()

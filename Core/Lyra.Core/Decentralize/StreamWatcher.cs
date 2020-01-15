@@ -33,22 +33,22 @@ namespace Lyra.Core.Decentralize
             return Task.CompletedTask;
         }
 
-        public virtual Task OnNextAsync(SourceSignedMessage msg)
-        {
-            var item = msg as ChatMsg;
-            if (item != null)
-            {
-                var info = $"=={item.Created}==         {item.From} said: {item.Text}";
-                Console.WriteLine(info);
+        //public virtual Task OnNextAsync(SourceSignedMessage msg)
+        //{
+        //    var item = msg as ChatMsg;
+        //    if (item != null)
+        //    {
+        //        var info = $"=={item.Created}==         {item.From} said: {item.Text}";
+        //        Console.WriteLine(info);
 
-                OnNodeChat?.Invoke(item);
-            }
-            return Task.CompletedTask;
-        }
+        //        OnNodeChat?.Invoke(item);
+        //    }
+        //    return Task.CompletedTask;
+        //}
 
-        public virtual async Task SendMessage(ChatMsg msg)
-        {
+        //public virtual async Task SendMessage(ChatMsg msg)
+        //{
 
-        }
+        //}
     }
 }
