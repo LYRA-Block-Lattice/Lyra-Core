@@ -36,7 +36,7 @@ namespace Lyra.Core.Decentralize
             {
                 _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
-                if (msg.Version != LyraGlobal.ProtocolVersion || _context.Board == null || !_context.Board.CanDoConsensus)
+                if (msg.Version != LyraGlobal.ProtocolVersion)
                 {
                     return;
                 }

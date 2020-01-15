@@ -161,6 +161,9 @@ namespace Lyra.Core.Decentralize
             });
 
             Receive<TransactionBlock>(async block => {
+
+                //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
+
                 AuthorizingMsg msg = new AuthorizingMsg
                 {
                     From = NodeService.Instance.PosWallet.AccountId,
