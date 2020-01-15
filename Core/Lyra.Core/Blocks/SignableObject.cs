@@ -13,9 +13,9 @@ namespace Lyra.Core.Blocks
 {
     abstract public class SignableObject
     {
-        public string Hash { get; protected set; }
+        public string Hash { get; set; }
 
-        public string Signature { get; protected set; }
+        public string Signature { get; set; }
 
         public abstract string GetHashInput();
 
