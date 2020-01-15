@@ -160,7 +160,8 @@ namespace Lyra.Core.Decentralize
                 Send2P2pNetwork(msg);
             });
 
-            Receive<TransactionBlock>(async block => {
+            Receive<TransactionBlock>(block =>
+            {
 
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
 
@@ -391,15 +392,8 @@ namespace Lyra.Core.Decentralize
 
         public virtual void Send2P2pNetwork(SourceSignedMessage msg)
         {
-            //_log.LogInformation($"Consensus: SendMessage Called: msg From: {msg.From}");
-            if (string.IsNullOrWhiteSpace(msg.From))
-                _log.LogError("Send2P2pNetwork: No From.");
-
-            if (msg.From != NodeService.Instance.PosWallet.AccountId)
-                _log.LogError("Send2P2pNetwork: From field Should from wallet account.");
-
+            msg.From = NodeService.Instance.PosWallet.AccountId;
             var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
-            //_log.LogInformation($"Consensus: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
 
             int waitCount = 5;
             while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
