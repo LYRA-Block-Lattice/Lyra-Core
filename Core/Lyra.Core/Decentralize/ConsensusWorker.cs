@@ -34,7 +34,6 @@ namespace Lyra.Core.Decentralize
 
                 if (msg.Version != LyraGlobal.ProtocolVersion || _context.Board == null || !_context.Board.CanDoConsensus)
                 {
-                    Sender.Tell(null);
                     return;
                 }
 
