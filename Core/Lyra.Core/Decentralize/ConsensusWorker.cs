@@ -28,28 +28,39 @@ namespace Lyra.Core.Decentralize
             _log = new SimpleLogger("ConsensusWorker").Logger;
             _authorizers = new AuthorizersFactory();
 
-            Receive<AuthorizingMsg>(msg =>
+            //Receive<AuthorizingMsg>(msg =>
+            //{
+            //    _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+
+            //    if (msg.Version != LyraGlobal.ProtocolVersion || _context.Board == null || !_context.Board.CanDoConsensus)
+            //    {
+            //        Sender.Tell(null);
+            //        return;
+            //    }
+
+            //    // first try auth locally
+            //    //if(_state == null)
+            //    _state = CreateAuthringState(msg);
+            //    Sender.Tell(_state);
+            //    if (_state == null)
+            //    {
+            //        return;
+            //    }
+
+            //    _context.Send2P2pNetwork(msg);
+
+            //    var localAuthResult = LocalAuthorizingAsync(msg);
+            //    _state.AddAuthResult(localAuthResult);
+
+            //    _context.Send2P2pNetwork(localAuthResult);
+            //});
+
+            Receive<AuthState>(state =>
             {
-                _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+                _state = state;
+                _context.Send2P2pNetwork(_state.InputMsg);
 
-                if (msg.Version != LyraGlobal.ProtocolVersion || _context.Board == null || !_context.Board.CanDoConsensus)
-                {
-                    Sender.Tell(null);
-                    return;
-                }
-
-                // first try auth locally
-                //if(_state == null)
-                _state = CreateAuthringState(msg);
-                Sender.Tell(_state);
-                if (_state == null)
-                {
-                    return;
-                }
-
-                _context.Send2P2pNetwork(msg);
-
-                var localAuthResult = LocalAuthorizingAsync(msg);
+                var localAuthResult = LocalAuthorizingAsync(_state.InputMsg);
                 _state.AddAuthResult(localAuthResult);
 
                 _context.Send2P2pNetwork(localAuthResult);

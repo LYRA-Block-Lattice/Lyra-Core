@@ -101,6 +101,7 @@ namespace Lyra.Core.Decentralize
                 AuthorizingMsg msg1 => msg1.Block.Hash,
                 AuthorizedMsg msg2 => msg2.BlockHash,
                 AuthorizerCommitMsg msg3 => msg3.BlockHash,
+                AuthState state => state.HashOfFirstBlock,
                 _ => null,
             });
 
@@ -167,8 +168,14 @@ namespace Lyra.Core.Decentralize
                     MsgType = ChatMessageType.AuthorizerPrePrepare
                 };
 
-                var result = _router.Ask(msg);
-                await result.PipeTo(Sender, Self);
+                var state = new AuthState
+                {
+                    HashOfFirstBlock = msg.Block.Hash,
+                    InputMsg = msg
+                };
+
+                _router.Tell(state);
+                Sender.Tell(state, Self);
             });
 
             Task.Run(async () =>

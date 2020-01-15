@@ -58,20 +58,26 @@ namespace Lyra.Core.Decentralize
         private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
         {
             _log.LogInformation($"ApiService: PostToConsensusAsync Called: {block.BlockType}");
-            
+
+            //AuthorizingMsg msg = new AuthorizingMsg
+            //{
+            //    From = NodeService.Instance.PosWallet.AccountId,
+            //    Block = block,
+            //    MsgType = ChatMessageType.AuthorizerPrePrepare
+            //};
+
             var result = await ConsensusSvc.Ask<AuthState>(block);
+            if (result == null)
+            {
+                _log.LogInformation($"ApiService: PostToConsensusAsync got null result. the network is not ready.");
+                return null;
+            }
 
             bool success = false;
             await Task.Run(() =>
             {
                 success = result.Done.WaitOne(30 * 1000);
             });
-
-            if (!success || result == null)
-            {
-                _log.LogInformation($"ApiService: PostToConsensusAsync got null result. the network is not ready.");
-                return null;
-            }
 
             var resultMsg = result.OutputMsgs.Count > 0 ? result.OutputMsgs.First().Result.ToString() : "Unknown";
             _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {result?.IsConsensusSuccess == true} with {resultMsg}");
