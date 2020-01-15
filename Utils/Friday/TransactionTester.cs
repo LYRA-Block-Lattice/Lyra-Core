@@ -72,8 +72,11 @@ namespace Friday
                     var fromWallet = await RefreshBalanceAsync(masterKey);
 
                     var block = fromWallet.GetLatestBlock();
-                    if (block.Balances == null)
+                    if (block == null || block.Balances == null)
+                    {
+                        Console.WriteLine("No last block!");
                         return;
+                    }                        
 
                     while (true)
                     {
@@ -115,7 +118,7 @@ namespace Friday
         {
             // create wallet and update balance
             var memStor = new AccountInMemoryStorage();
-            var acctWallet = new ExchangeAccountWallet(memStor, "testnet");
+            var acctWallet = new ExchangeAccountWallet(memStor, Program.network_id);
             acctWallet.AccountName = "tmpAcct";
             await acctWallet.RestoreAccountAsync("", masterKey);
             acctWallet.OpenAccount("", acctWallet.AccountName);

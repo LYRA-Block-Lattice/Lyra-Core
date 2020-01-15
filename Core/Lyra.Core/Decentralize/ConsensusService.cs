@@ -183,6 +183,7 @@ namespace Lyra.Core.Decentralize
 
             Task.Run(async () =>
             {
+                HeartBeat();
                 int count = 0;
                 while (true)
                 {

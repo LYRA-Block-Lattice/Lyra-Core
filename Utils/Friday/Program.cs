@@ -12,20 +12,22 @@ using System.Threading.Tasks;
 
 namespace Friday
 {
-    class Program
+    public class Program
     {
         static string testCoin = "Friday.Coin";
         static string lyraCoin = "Lyra.Coin";
+        public static string network_id = "devnet";
 
         // args: [number] the tps to simulate
         // 
         static async System.Threading.Tasks.Task Main(string[] args)
         {
             var workingFolder = @"C:\working\Friday";
-            var network_id = "devnet";            
+                      
             var lyraFolder = BaseAccount.GetFullFolderName("Lyra-CLI-" + network_id);
 
-            await Task.Delay(10000); // wait for node up
+            Console.WriteLine("Press enter to begin.");
+            Console.ReadLine();
 
             // create and save wallets
             //var tt = new TransactionTester();
