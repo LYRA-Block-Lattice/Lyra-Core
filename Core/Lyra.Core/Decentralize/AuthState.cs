@@ -41,7 +41,7 @@ namespace Lyra.Core.Decentralize
         public void AddAuthResult(AuthorizedMsg msg)
         {
             // check repeated message
-            if (OutputMsgs.Any(a => a.From == msg.From))
+            if (OutputMsgs.ToList().Any(a => a.From == msg.From))
                 return;
 
             OutputMsgs.Add(msg);
@@ -50,7 +50,7 @@ namespace Lyra.Core.Decentralize
         public void AddCommitedResult(AuthorizerCommitMsg msg)
         {
             // check repeated message
-            if (CommitMsgs.Any(a => a.From == msg.From))
+            if (CommitMsgs.ToList().Any(a => a.From == msg.From))
                 return;
 
             CommitMsgs.Add(msg);
@@ -68,7 +68,7 @@ namespace Lyra.Core.Decentralize
                 throw new Exception("The BillBoard mustn't be null!");
 
             // wait for a proper UID
-            if (!OutputMsgs.Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]))
+            if (!OutputMsgs.ToList().Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]))
             {
                 return false;
             }                
