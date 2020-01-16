@@ -496,6 +496,8 @@ namespace Lyra.Core.Accounts
         public async Task<long> GetNewestBlockUIndexAsync()
         {
             var result = await FindLatestBlockAsync();
+            if (result == null)
+                return 0;
             return result.UIndex;
         }
 
