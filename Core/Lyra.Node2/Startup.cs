@@ -45,7 +45,7 @@ namespace Lyra.Node2
                     : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
 
             var path = $"{homePath}/Logs/";
-            //loggerFactory.AddFile(path + "LyraNode2-{Date}.txt");
+            loggerFactory.AddFile(path + "LyraNode2-{Date}.txt");
 
             SimpleLogger.Factory = loggerFactory;
 

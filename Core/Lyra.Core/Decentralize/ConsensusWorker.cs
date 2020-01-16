@@ -70,10 +70,12 @@ namespace Lyra.Core.Decentralize
 
             _ = Task.Run(async () =>
             {
+                state.T1 = DateTime.Now;
                 var localAuthResult = await LocalAuthorizingAsync(_state.InputMsg);
                 _state.AddAuthResult(localAuthResult);
 
                 _context.Send2P2pNetwork(localAuthResult);
+                state.T2 = DateTime.Now;
             });
         }
 
@@ -243,6 +245,9 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
+            if (_state.T3 == null)
+                _state.T3 = DateTime.Now;
+
             _log.LogInformation($"OnPrepare: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
             //if (_activeConsensus.ContainsKey(item.BlockHash))
@@ -300,6 +305,8 @@ namespace Lyra.Core.Decentralize
                     return;
 
                 state.Saving = true;
+
+                state.T4 = DateTime.Now;
 
                 _log.LogInformation($"Saving: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
@@ -362,6 +369,9 @@ namespace Lyra.Core.Decentralize
                 _outOfOrderedMessages.Enqueue(item);
                 return;
             }
+
+            if (_state.T5 == null)
+                _state.T5 = DateTime.Now;
 
             _log.LogInformation($"OnCommit: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 

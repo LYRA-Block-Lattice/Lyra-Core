@@ -13,6 +13,13 @@ namespace Lyra.Core.Decentralize
     {
         public DateTime Created { get; private set; }
 
+        public DateTime T1 { get; set; }
+        public DateTime T2 { get; set; }
+        public DateTime T3 { get; set; }
+        public DateTime T4 { get; set; }
+
+        public DateTime T5 { get; set; }
+
         public string HashOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
         public List<AuthorizedMsg> OutputMsgs { get; set; }
