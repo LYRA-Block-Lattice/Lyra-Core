@@ -66,26 +66,34 @@ namespace Lyra.Core.Decentralize
             //    MsgType = ChatMessageType.AuthorizerPrePrepare
             //};
 
-            var result = await ConsensusSvc.Ask<AuthState>(block);
-            if (result == null)
+            AuthorizingMsg msg = new AuthorizingMsg
             {
-                _log.LogInformation($"ApiService: PostToConsensusAsync got null result. the network is not ready.");
+                From = NodeService.Instance.PosWallet.AccountId,
+                Block = block,
+                MsgType = ChatMessageType.AuthorizerPrePrepare
+            };
+
+            var state = new AuthState
+            {
+                HashOfFirstBlock = msg.Block.Hash,
+                InputMsg = msg
+            };
+
+            ConsensusSvc.Tell(state);
+
+            await state.Done.AsTask();
+
+            var resultMsg = state.OutputMsgs.Count > 0 ? state.OutputMsgs.First().Result.ToString() : "Unknown";
+            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.IsConsensusSuccess == true} with {resultMsg}");
+            
+            if (state.IsConsensusSuccess == true)
+            {
+                return state;
+            }
+            else
+            {
                 return null;
             }
-
-            bool success = false;
-            await Task.Run(() =>
-            {
-                success = result.Done.WaitOne();  // TODO: if a block lost/hung, should have a process.
-            });
-
-            var resultMsg = result.OutputMsgs.Count > 0 ? result.OutputMsgs.First().Result.ToString() : "Unknown";
-            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {result?.IsConsensusSuccess == true} with {resultMsg}");
-
-            if (success)
-                return result;
-            else
-                return null;
         }
 
         internal async Task<AuthorizationAPIResult> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)

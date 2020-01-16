@@ -163,28 +163,12 @@ namespace Lyra.Core.Decentralize
                 Send2P2pNetwork(msg);
             });
 
-            Receive<TransactionBlock>(block =>
+            Receive<AuthState>(state =>
             {
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
-
-                AuthorizingMsg msg = new AuthorizingMsg
-                {
-                    From = NodeService.Instance.PosWallet.AccountId,
-                    Block = block,
-                    MsgType = ChatMessageType.AuthorizerPrePrepare
-                };
-
-                var state = new AuthState
-                {
-                    HashOfFirstBlock = msg.Block.Hash,
-                    InputMsg = msg
-                };
-
                 var worker = new ConsensusWorker(this);
-                _activeConsensus.Add(block.Hash, worker);
+                _activeConsensus.Add(state.InputMsg.Block.Hash, worker);
                 worker.Create(state);
-                //_router.Tell(state);
-                Sender.Tell(state, Self);
             });
 
             Task.Run(async () =>
