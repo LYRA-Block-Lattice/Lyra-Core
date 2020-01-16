@@ -129,7 +129,8 @@ namespace Friday
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            await acctWallet.Sync(_client);
+            var rpcClient = await LyraRestClient.CreateAsync(Program.network_id, "Windows", "Lyra Client Cli", "1.0a");
+            await acctWallet.Sync(rpcClient);
             return acctWallet;
         }
 

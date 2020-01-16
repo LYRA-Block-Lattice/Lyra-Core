@@ -176,7 +176,7 @@ namespace Lyra.Core.Decentralize
                 }
                 else
                 {
-                    _log.LogWarning($"Give UIndex {_context.USeed} to block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
+                    _log.LogInformation($"Give UIndex {_context.USeed} to block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
                     result.BlockUIndex = _context.USeed++;
                 }
             }
