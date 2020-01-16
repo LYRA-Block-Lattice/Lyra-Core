@@ -46,7 +46,7 @@ namespace Lyra.Core.Decentralize
             Singleton = this;
         }
 
-        public IAuthorizer this[BlockTypes blockType] => _authorizerInstances[blockType];
+        //public IAuthorizer this[BlockTypes blockType] => _authorizerInstances[blockType];
 
         public IAuthorizer Create(BlockTypes blockType)
         {

@@ -284,7 +284,7 @@ namespace Lyra
 
                                     var stopwatch = Stopwatch.StartNew();
 
-                                    var authorizer = authorizers[blockX.BlockType];
+                                    var authorizer = authorizers.Create(blockX.BlockType);
                                     var localAuthResult = authorizer.Authorize(blockX, false);
 
                                     stopwatch.Stop();

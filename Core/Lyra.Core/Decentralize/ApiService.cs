@@ -81,7 +81,11 @@ namespace Lyra.Core.Decentralize
 
             var resultMsg = result.OutputMsgs.Count > 0 ? result.OutputMsgs.First().Result.ToString() : "Unknown";
             _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {result?.IsConsensusSuccess == true} with {resultMsg}");
-            return result;
+
+            if (success)
+                return result;
+            else
+                return null;
         }
 
         internal async Task<AuthorizationAPIResult> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)
