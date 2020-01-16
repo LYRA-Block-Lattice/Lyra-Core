@@ -151,7 +151,6 @@ namespace Lyra.Core.Decentralize
 
                 // declare to the network
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, "Staking with () Lyra");
-                msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
                 Send2P2pNetwork(msg);
             });
@@ -167,7 +166,6 @@ namespace Lyra.Core.Decentralize
                     Block = block,
                     MsgType = ChatMessageType.AuthorizerPrePrepare
                 };
-                msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
                 var state = new AuthState
                 {
@@ -214,7 +212,6 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.HeartBeat,
                 Text = "I'm live"
             };
-            msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
             Send2P2pNetwork(msg);
 
@@ -390,18 +387,7 @@ namespace Lyra.Core.Decentralize
 
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
-            //int waitCount = 5;
-            //while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
-            //{
-            //    _log.LogWarning("Not connected to Lyra Network. Delay sending... ");
-            //    Task.Delay(1000).Wait();
-            //    waitCount--;
-            //}
-            if (!item.VerifySignature(item.From))
-            {
-                _log.LogInformation($"Consensus Send2P2pNetwork: bad signature: {item.MsgType} Hash: {item.Hash.Shorten()} by pubKey: {item.From.Shorten()}");
-                return;
-            }
+            //item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
             _localNode.Tell(item);
         }
 
@@ -411,11 +397,11 @@ namespace Lyra.Core.Decentralize
 
             // verify the signatures of msg. make sure it is from the right node.
             //var nodeConfig = null;
-            if (!item.VerifySignature(item.From))
-            {
-                _log.LogInformation($"Consensus: bad signature: {item.MsgType} Hash: {item.Hash.Shorten()} by pubKey: {item.From.Shorten()}");
-                return;
-            }
+            //if (!item.VerifySignature(item.From))
+            //{
+            //    _log.LogInformation($"Consensus: bad signature: {item.MsgType} Hash: {item.Hash.Shorten()} by pubKey: {item.From.Shorten()}");
+            //    return;
+            //}
 
             OnNodeActive(item.From);
 
@@ -475,7 +461,6 @@ namespace Lyra.Core.Decentralize
             if(_board != null)
             {
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
-                msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
                 Send2P2pNetwork(msg);
             }
         }

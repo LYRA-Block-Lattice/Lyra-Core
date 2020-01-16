@@ -193,7 +193,6 @@ namespace Lyra.Core.Decentralize
                     AuthSign = null
                 };
             }
-            result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
 
             stopwatch.Stop();
             if(result.Result == APIResultCodes.Success)
@@ -325,7 +324,6 @@ namespace Lyra.Core.Decentralize
                     BlockIndex = block.UIndex,
                     Commited = true
                 };
-                msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
                 _context.Send2P2pNetwork(msg);
                 state.AddCommitedResult(msg);
