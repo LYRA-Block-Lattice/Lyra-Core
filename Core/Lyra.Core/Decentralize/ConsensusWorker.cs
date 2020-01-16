@@ -169,7 +169,6 @@ namespace Lyra.Core.Decentralize
                     Result = localAuthResult.Item1,
                     AuthSign = localAuthResult.Item2
                 };
-                result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
 
                 if (item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
                 {
@@ -195,6 +194,8 @@ namespace Lyra.Core.Decentralize
                 };
                 result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
             }
+            result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
+
             stopwatch.Stop();
             _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms.");
             return result;
