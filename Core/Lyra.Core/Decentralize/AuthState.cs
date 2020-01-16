@@ -40,11 +40,19 @@ namespace Lyra.Core.Decentralize
 
         public void AddAuthResult(AuthorizedMsg msg)
         {
+            // check repeated message
+            if (OutputMsgs.Any(a => a.From == msg.From))
+                return;
+
             OutputMsgs.Add(msg);
         }
 
         public void AddCommitedResult(AuthorizerCommitMsg msg)
         {
+            // check repeated message
+            if (CommitMsgs.Any(a => a.From == msg.From))
+                return;
+
             CommitMsgs.Add(msg);
             if (CommitMsgs.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
             {
