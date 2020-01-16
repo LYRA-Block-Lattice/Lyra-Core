@@ -15,15 +15,15 @@ namespace Lyra.Core.Authorizers
         {
         }
 
-        public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
         {
-            var result = AuthorizeImpl(tblock);
+            var result = await AuthorizeImplAsync(tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, await SignAsync(tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is ReceiveTransferBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -31,56 +31,56 @@ namespace Lyra.Core.Authorizers
             var block = tblock as ReceiveTransferBlock;
 
             // 1. check if the account already exists
-            if (!BlockChain.Singleton.AccountExists(block.AccountID))
+            if (!await BlockChain.Singleton.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
-            TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
+            TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlockAsync(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            var result = VerifyBlock(block, lastBlock);
+            var result = await VerifyBlockAsync(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = VerifyTransactionBlock(block);
+            result = await VerifyTransactionBlockAsync(block);
             if (result != APIResultCodes.Success)
                 return result;
 
             if (!block.ValidateTransaction(lastBlock))
                 return APIResultCodes.ReceiveTransactionValidationFailed;
 
-            result = ValidateReceiveTransAmount(block, block.GetTransaction(lastBlock));
+            result = await ValidateReceiveTransAmountAsync(block, block.GetTransaction(lastBlock));
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = ValidateNonFungible(block, lastBlock);
+            result = await ValidateNonFungibleAsync(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
             // Check duplicate receives (kind of double spending up down)
-            var duplicate_block = BlockChain.Singleton.FindBlockBySourceHash(block.SourceHash);
+            var duplicate_block = BlockChain.Singleton.FindBlockBySourceHashAsync(block.SourceHash);
             if (duplicate_block != null)
                 return APIResultCodes.DuplicateReceiveBlock;
 
             return APIResultCodes.Success;
         }
 
-        protected override APIResultCodes ValidateFee(TransactionBlock block)
-        {
-            if (block.FeeType != AuthorizationFeeTypes.NoFee)
-                return APIResultCodes.InvalidFeeAmount;
+        //protected override Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
+        //{
+        //    if (block.FeeType != AuthorizationFeeTypes.NoFee)
+        //        return Task.FromResult(APIResultCodes.InvalidFeeAmount);
 
-            if (block.Fee != 0)
-                return APIResultCodes.InvalidFeeAmount;
+        //    if (block.Fee != 0)
+        //        return Task.FromResult(APIResultCodes.InvalidFeeAmount);
 
-            return APIResultCodes.Success;
-        }
+        //    return Task.FromResult(APIResultCodes.Success);
+        //}
 
 
-        protected APIResultCodes ValidateReceiveTransAmount(ReceiveTransferBlock block, TransactionInfo receiveTransaction)
+        protected async Task<APIResultCodes> ValidateReceiveTransAmountAsync(ReceiveTransferBlock block, TransactionInfo receiveTransaction)
         {
             //find the corresponding send block and validate the added transaction amount
-            var sourceBlock = BlockChain.Singleton.FindBlockByHash(block.SourceHash);
+            var sourceBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.SourceHash);
             if (sourceBlock == null)
                 return APIResultCodes.SourceSendBlockNotFound;
 
@@ -92,7 +92,7 @@ namespace Lyra.Core.Authorizers
                 if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
                     return APIResultCodes.InvalidDestinationAccountId;
 
-                TransactionBlock prevToSendBlock = BlockChain.Singleton.FindBlockByHash(sourceBlock.PreviousHash);
+                TransactionBlock prevToSendBlock = await BlockChain.Singleton.FindBlockByHashAsync(sourceBlock.PreviousHash);
                 if (prevToSendBlock == null)
                     return APIResultCodes.CouldNotTraceSendBlockChain;
 
@@ -121,16 +121,16 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected override APIResultCodes ValidateNonFungible(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        protected override async Task<APIResultCodes> ValidateNonFungibleAsync(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
-            var result = base.ValidateNonFungible(send_or_receice_block, previousBlock);
+            var result = await base.ValidateNonFungibleAsync(send_or_receice_block, previousBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
             if (send_or_receice_block.NonFungibleToken == null)
                 return APIResultCodes.Success;
 
-            var originBlock = BlockChain.Singleton.FindBlockByHash((send_or_receice_block as ReceiveTransferBlock).SourceHash);
+            var originBlock = await BlockChain.Singleton.FindBlockByHashAsync((send_or_receice_block as ReceiveTransferBlock).SourceHash);
             if (originBlock == null)
                 return APIResultCodes.OriginNonFungibleBlockNotFound;
 

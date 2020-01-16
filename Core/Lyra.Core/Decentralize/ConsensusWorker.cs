@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public class ConsensusWorker : ReceiveActor
+    public class ConsensusWorker// : ReceiveActor
     {
         ConsensusService _context;
         ILogger _log;
@@ -25,6 +25,8 @@ namespace Lyra.Core.Decentralize
 
         AuthState _state;
 
+        public AuthState State { get => _state; set => _state = value; }
+
         public ConsensusWorker(ConsensusService context)
         {
             _context = context;
@@ -32,72 +34,46 @@ namespace Lyra.Core.Decentralize
             _authorizers = new AuthorizersFactory();
             _outOfOrderedMessages = new ConcurrentQueue<SourceSignedMessage>();
 
-            Receive<AuthorizingMsg>(msg =>
+            //Receive<AuthorizingMsg>(msg =>
+            //{
+            //    OnPrePrepare(msg);
+            //});
+
+            //Receive<AuthState>(state =>
+            //{
+
+            //});
+
+            //Receive<AuthorizedMsg>(msg =>
+            //{
+            //    if (_state == null)
+            //        _outOfOrderedMessages.Enqueue(msg);
+            //    else
+            //        OnPrepare(msg);
+            //});
+
+            //Receive<AuthorizerCommitMsg>(msg =>
+            //{
+            //    if (_state == null)
+            //        _outOfOrderedMessages.Enqueue(msg);
+            //    else
+            //        OnCommit(msg);
+            //});
+        }
+
+        public void Create(AuthState state)
+        {
+            _state = state;
+            _log.LogInformation($"Receive AuthState: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+
+            _context.Send2P2pNetwork(_state.InputMsg);
+
+            Task.Run(async () =>
             {
-                _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.UIndex}/{msg.Block.Index}/{msg.Block.Hash}");
-
-                _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
-
-                if (msg.Version != LyraGlobal.ProtocolVersion)
-                {
-                    return;
-                }
-
-                // first try auth locally
-                //if(_state == null)
-                _state = CreateAuthringState(msg);
-
-                if(_outOfOrderedMessages.Count > 0)
-                {
-                    SourceSignedMessage queuedMsg;
-                    while (_outOfOrderedMessages.TryDequeue(out queuedMsg))
-                    {
-                        switch(queuedMsg)
-                        {
-                            case AuthorizedMsg msg1:
-                                OnPrepare(msg1);
-                                break;
-                            case AuthorizerCommitMsg msg2:
-                                OnCommit(msg2);
-                                break;
-                        }
-                    }
-                }
-
-                //_context.Send2P2pNetwork(msg);
-
-                var localAuthResult = LocalAuthorizingAsync(msg);
+                var localAuthResult = await LocalAuthorizingAsync(_state.InputMsg);
                 _state.AddAuthResult(localAuthResult);
 
                 _context.Send2P2pNetwork(localAuthResult);
-            });
-
-            Receive<AuthState>(state =>
-            {
-                _log.LogInformation($"Receive AuthState: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
-                _state = state;
-                _context.Send2P2pNetwork(_state.InputMsg);
-
-                var localAuthResult = LocalAuthorizingAsync(_state.InputMsg);
-                _state.AddAuthResult(localAuthResult);
-
-                _context.Send2P2pNetwork(localAuthResult);
-            });
-
-            Receive<AuthorizedMsg>(msg =>
-            {
-                if (_state == null)
-                    _outOfOrderedMessages.Enqueue(msg);
-                else
-                    OnPrepare(msg);
-            });
-
-            Receive<AuthorizerCommitMsg>(msg =>
-            {
-                if (_state == null)
-                    _outOfOrderedMessages.Enqueue(msg);
-                else
-                    OnCommit(msg);
             });
         }
 
@@ -155,7 +131,7 @@ namespace Lyra.Core.Decentralize
             return state;
         }
 
-        private AuthorizedMsg LocalAuthorizingAsync(AuthorizingMsg item)
+        private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)
         {
             _log.LogInformation($"LocalAuthorizingAsync: {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
 
@@ -165,7 +141,7 @@ namespace Lyra.Core.Decentralize
             AuthorizedMsg result;
             try
             {
-                var localAuthResult = authorizer.Authorize(item.Block);
+                var localAuthResult = await authorizer.AuthorizeAsync(item.Block);
                 result = new AuthorizedMsg
                 {
                     From = NodeService.Instance.PosWallet.AccountId,
@@ -215,33 +191,63 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        private void OnPrePrepare(AuthorizingMsg item)
+        public async Task OnPrePrepareAsync(AuthorizingMsg msg)
         {
-            //_log.LogInformation($"Consensus: OnPrePrepare Called: BlockUIndex: {item.Block.UIndex}");
+            _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.UIndex}/{msg.Block.Index}/{msg.Block.Hash}");
+            await _context.OnNodeActiveAsync(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
-            var state = CreateAuthringState(item);
-            if (state == null)
+            if (msg.Version != LyraGlobal.ProtocolVersion)
+            {
                 return;
+            }
 
-            var result = LocalAuthorizingAsync(item);
+            // first try auth locally
+            //if(_state == null)
+            _state = CreateAuthringState(msg);
 
-            _context.Send2P2pNetwork(result);
-            state.AddAuthResult(result);
-            CheckAuthorizedAllOk(state);
-            if(!result.IsSuccess)
-                _log.LogInformation($"Consensus: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.Result}");
+            if (_outOfOrderedMessages.Count > 0)
+            {
+                SourceSignedMessage queuedMsg;
+                while (_outOfOrderedMessages.TryDequeue(out queuedMsg))
+                {
+                    switch (queuedMsg)
+                    {
+                        case AuthorizedMsg msg1:
+                            await OnPrepareAsync(msg1);
+                            break;
+                        case AuthorizerCommitMsg msg2:
+                            await OnCommitAsync(msg2);
+                            break;
+                    }
+                }
+            }
+
+            //_context.Send2P2pNetwork(msg);
+            _ = Task.Run(async () =>
+              {
+                  var localAuthResult = await LocalAuthorizingAsync(msg);
+                  _state.AddAuthResult(localAuthResult);
+
+                  _context.Send2P2pNetwork(localAuthResult);
+              });
         }
 
-        private void OnPrepare(AuthorizedMsg item)
+        public async Task OnPrepareAsync(AuthorizedMsg item)
         {
             _log.LogInformation($"OnPrepare: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+
+            if (_state == null)
+            {
+                _outOfOrderedMessages.Enqueue(item);
+                return;
+            }
 
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
             _state.AddAuthResult(item);
 
-            CheckAuthorizedAllOk(_state);
+            await CheckAuthorizedAllOkAsync(_state);
             //}
             //else
             //{
@@ -264,7 +270,7 @@ namespace Lyra.Core.Decentralize
             //}
         }
 
-        private void CheckAuthorizedAllOk(AuthState state)
+        private async Task CheckAuthorizedAllOkAsync(AuthState state)
         {
             // check state
             // debug: show all states
@@ -328,7 +334,7 @@ namespace Lyra.Core.Decentralize
 
                 block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
-                if (!BlockChain.Singleton.AddBlock(block))
+                if (!await BlockChain.Singleton.AddBlockAsync(block))
                     _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
                 else
                     _log.LogInformation($"Block saved: {block.UIndex}/{block.Index}/{block.Hash}");
@@ -347,16 +353,22 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void OnCommit(AuthorizerCommitMsg item)
+        public async Task OnCommitAsync(AuthorizerCommitMsg item)
         {
             _log.LogInformation($"OnCommit: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+
+            if (_state == null)
+            {
+                _outOfOrderedMessages.Enqueue(item);
+                return;
+            }
 
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
             _state.AddCommitedResult(item);
 
-            _context.OnNodeActive(item.From);        // track latest activities via billboard
+            await _context.OnNodeActiveAsync(item.From);        // track latest activities via billboard
             //}
             //else
             //{

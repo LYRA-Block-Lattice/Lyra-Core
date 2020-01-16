@@ -280,7 +280,7 @@ namespace Lyra.Core.Decentralize
                 if(sendBlock.Fee != ExchangingBlock.FEE)
                     return (APIResultCodes.InvalidFeeAmount, null);
             }
-            else if (sendBlock.Fee != BlockChain.Singleton.GetLastServiceBlock().TransferFee)
+            else if (sendBlock.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TransferFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
@@ -288,7 +288,7 @@ namespace Lyra.Core.Decentralize
 
         async Task<(APIResultCodes result, TransactionBlock block)> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
         {
-            if (tokenBlock.Fee != BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
+            if (tokenBlock.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TokenGenerationFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(tokenBlock.Hash, tokenBlock.Fee);
@@ -299,7 +299,7 @@ namespace Lyra.Core.Decentralize
             var callresult = APIResultCodes.Success;
             TransactionBlock blockresult = null;
 
-            TransactionBlock latestBlock = BlockChain.Singleton.FindLatestBlock(NodeService.Instance.PosWallet.AccountId);
+            TransactionBlock latestBlock = await BlockChain.Singleton.FindLatestBlockAsync(NodeService.Instance.PosWallet.AccountId);
             if(latestBlock == null)
             {
                 var receiveBlock = new OpenWithReceiveFeeBlock

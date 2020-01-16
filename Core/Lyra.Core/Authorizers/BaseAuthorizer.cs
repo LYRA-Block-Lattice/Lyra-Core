@@ -30,7 +30,7 @@ namespace Lyra.Core.Authorizers
             _log = new SimpleLogger("BaseAuthorizer").Logger;
         }
 
-        public virtual (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
+        public virtual Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
         {
             throw new NotImplementedException("Must override");
         }
@@ -40,7 +40,7 @@ namespace Lyra.Core.Authorizers
             throw new NotImplementedException("Must override");
         }
 
-        protected APIResultCodes VerifyBlock(TransactionBlock block, TransactionBlock previousBlock)
+        protected async Task<APIResultCodes> VerifyBlockAsync(TransactionBlock block, TransactionBlock previousBlock)
         {
             if (LyraSystem.Singleton.NetworkId != block.NetworkId)
                 return APIResultCodes.InvalidNetworkId;
@@ -78,12 +78,12 @@ namespace Lyra.Core.Authorizers
 
 
                 // check if this Index already exists (double-spending, kind of)
-                if (block.BlockType != BlockTypes.NullTransaction && BlockChain.Singleton.FindBlockByIndex(block.AccountID, block.Index) != null)
+                if (block.BlockType != BlockTypes.NullTransaction && BlockChain.Singleton.FindBlockByIndexAsync(block.AccountID, block.Index) != null)
                     return APIResultCodes.BlockWithThisIndexAlreadyExists;
             }         
 
             // This is the double-spending check for send block!
-            if (!string.IsNullOrEmpty(block.PreviousHash) && BlockChain.Singleton.FindBlockByPreviousBlockHash(block.PreviousHash) != null)
+            if (!string.IsNullOrEmpty(block.PreviousHash) && BlockChain.Singleton.FindBlockByPreviousBlockHashAsync(block.PreviousHash) != null)
                 return APIResultCodes.BlockWithThisPreviousHashAlreadyExists;
 
             if (block.Index <= 0)
@@ -100,14 +100,14 @@ namespace Lyra.Core.Authorizers
 
             if(!(block is ConsolidationBlock) && !(block is NullTransactionBlock))
             {
-                if (!ValidateRenewalDate(block, previousBlock))
+                if (!await ValidateRenewalDateAsync(block, previousBlock))
                     return APIResultCodes.TokenExpired;
             }
 
             return APIResultCodes.Success;
         }
 
-        protected bool ValidateRenewalDate(TransactionBlock block, TransactionBlock previousBlock)
+        protected async Task<bool> ValidateRenewalDateAsync(TransactionBlock block, TransactionBlock previousBlock)
         {
             if (previousBlock == null)
                 return true;
@@ -117,7 +117,7 @@ namespace Lyra.Core.Authorizers
             if (trs.Amount <= 0)
                 return true;
 
-            var token = BlockChain.Singleton.FindTokenGenesisBlock(null, trs.TokenCode);
+            var token = await BlockChain.Singleton.FindTokenGenesisBlockAsync(null, trs.TokenCode);
             if (token != null)
                 if (token.RenewalDate < DateTime.Now)
                     return false;
@@ -126,7 +126,7 @@ namespace Lyra.Core.Authorizers
         }
 
         // common validations for Send and Receive blocks
-        protected APIResultCodes VerifyTransactionBlock(TransactionBlock block)
+        protected async Task<APIResultCodes> VerifyTransactionBlockAsync(TransactionBlock block)
         {
             // Validate the account id
             if (!Signatures.ValidateAccountId(block.AccountID))
@@ -140,7 +140,7 @@ namespace Lyra.Core.Authorizers
                 //while (!(thisBlock is IOpeningBlock))
                 if (!(thisBlock is IOpeningBlock))      //save time
                 {
-                    prevBlock = BlockChain.Singleton.FindBlockByHash(thisBlock.PreviousHash);
+                    prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(thisBlock.PreviousHash);
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
@@ -152,7 +152,7 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // verify the spending
-                TransactionBlock previousTransaction = BlockChain.Singleton.FindBlockByHash(block.PreviousHash);
+                TransactionBlock previousTransaction = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
                 foreach (var prevbalance in previousTransaction.Balances)
                 {
                     // make sure all balances from the previous block are present in a new block even if they are unchanged
@@ -171,31 +171,37 @@ namespace Lyra.Core.Authorizers
                 //        return APIResultCodes.InvalidFeeAmount;
             }
 
-            var res = ValidateFee(block);
+            var res = await ValidateFeeAsync(block);
             if (res != APIResultCodes.Success)
                 return res;
 
             return APIResultCodes.Success;
         }
 
-        protected abstract APIResultCodes ValidateFee(TransactionBlock block);
+        //protected abstract Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block);
 
-        //protected virtual APIResultCodes ValidateFee(TransactionBlock block)
-        //{
-        //    if (block.Fee == 0 && block.FeeType != AuthorizationFeeTypes.NoFee)
-        //        return APIResultCodes.InvalidFeeAmount;
+        protected virtual Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
+        {
+            APIResultCodes result;
+            if (block.FeeType != AuthorizationFeeTypes.NoFee)
+                result = APIResultCodes.InvalidFeeAmount;
 
-        //    return APIResultCodes.Success;
-        //}
+            if (block.Fee != 0)
+                result = APIResultCodes.InvalidFeeAmount;
 
-        protected virtual APIResultCodes ValidateNonFungible(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+            result = APIResultCodes.Success;
+
+            return Task.FromResult(result);
+        }
+
+        protected virtual async Task<APIResultCodes> ValidateNonFungibleAsync(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
             TransactionInfoEx transaction = send_or_receice_block.GetTransaction(previousBlock);
 
             if (transaction.TokenCode == LyraGlobal.LYRATICKERCODE)
                 return APIResultCodes.Success;
 
-            var token_block = BlockChain.Singleton.FindTokenGenesisBlock(null, transaction.TokenCode);
+            var token_block = await BlockChain.Singleton.FindTokenGenesisBlockAsync(null, transaction.TokenCode);
             if (token_block == null)
                 return APIResultCodes.TokenGenesisBlockNotFound;
 
@@ -220,7 +226,7 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected AuthorizationSignature Sign<T>(T tblock)
+        protected async Task<AuthorizationSignature> SignAsync<T>(T tblock)
         {
             if (!(tblock is TransactionBlock))
                 throw new System.ApplicationException("APIResultCodes.InvalidBlockType");
@@ -231,7 +237,7 @@ namespace Lyra.Core.Authorizers
             {
                 // ServiceHash is excluded when calculating the block hash,
                 // but it is included when creating/validating the authorization signature
-                block.ServiceHash = BlockChain.Singleton.GetSyncBlock().Hash;
+                block.ServiceHash = (await BlockChain.Singleton.GetSyncBlockAsync()).Hash;
             }
 
             // sign with the authorizer key

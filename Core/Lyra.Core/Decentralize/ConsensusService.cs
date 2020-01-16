@@ -44,14 +44,15 @@ namespace Lyra.Core.Decentralize
         public class BlockChainSynced { }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
-        private readonly IActorRef _router;
+        //private readonly ConsistentHashingPool _pool;
+        //private readonly IActorRef _router;
 
         ILogger _log;
 
         // hash, authState
         Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
-        Dictionary<string, AuthState> _activeConsensus;
-        Dictionary<string, AuthState> _cleanedConsensus;
+        Dictionary<string, ConsensusWorker> _activeConsensus;
+        Dictionary<string, ConsensusWorker> _cleanedConsensus;
         private BillBoard _board;
         private List<TransStats> _stats;
 
@@ -87,8 +88,8 @@ namespace Lyra.Core.Decentralize
             _log = new SimpleLogger("ConsensusService").Logger;
 
             _outOfOrderedMessages = new Dictionary<string, List<SourceSignedMessage>>();
-            _activeConsensus = new Dictionary<string, AuthState>();
-            _cleanedConsensus = new Dictionary<string, AuthState>();
+            _activeConsensus = new Dictionary<string, ConsensusWorker>();
+            _cleanedConsensus = new Dictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
 
             while (BlockChain.Singleton == null)
@@ -96,19 +97,19 @@ namespace Lyra.Core.Decentralize
 
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
-            var pool = new ConsistentHashingPool(50).WithHashMapping(o => o switch
-            {
-                AuthorizingMsg msg1 => msg1.Block.Hash,
-                AuthorizedMsg msg2 => msg2.BlockHash,
-                AuthorizerCommitMsg msg3 => msg3.BlockHash,
-                AuthState state => state.HashOfFirstBlock,
-                _ => null,
-            });
+            //_pool = new ConsistentHashingPool(50).WithHashMapping(o => o switch
+            //{
+            //    AuthorizingMsg msg1 => msg1.Block.Hash,
+            //    AuthorizedMsg msg2 => msg2.BlockHash,
+            //    AuthorizerCommitMsg msg3 => msg3.BlockHash,
+            //    AuthState state => state.HashOfFirstBlock,
+            //    _ => null,
+            //});
 
-            _router = LyraSystem.Singleton.ActorSystem.ActorOf(Akka.Actor.Props.Create<ConsensusWorker>(() => 
-                new ConsensusWorker(this)
-                )
-                .WithRouter(pool), "some-pool");
+            //_router = LyraSystem.Singleton.ActorSystem.ActorOf(Akka.Actor.Props.Create<ConsensusWorker>(() => 
+            //    new ConsensusWorker(this)
+            //    )
+            //    .WithRouter(_pool), "some-pool");
 
             Receive<Consolidate>((_) =>
             {
@@ -134,18 +135,18 @@ namespace Lyra.Core.Decentralize
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
             Receive<AskForStats>((_) => Sender.Tell(_stats));
 
-            Receive<SignedMessageRelay>(relayMsg =>
+            Receive<SignedMessageRelay>(async relayMsg =>
             {
                 if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
-                    OnNextConsensusMessage(relayMsg.signedMessage);
+                    await OnNextConsensusMessageAsync(relayMsg.signedMessage);
                 else
                     _log.LogWarning("Protocol Version Mismatch. Do nothing.");
             });
 
-            Receive<BlockChainSynced>(_ =>
+            Receive<BlockChainSynced>(async _ =>
             {
                 Mode = ConsensusWorkingMode.Normal;
-                USeed = BlockChain.Singleton.FindLatestBlock().UIndex + 1;
+                USeed = (await BlockChain.Singleton.FindLatestBlockAsync()).UIndex + 1;
 
                 _log.LogInformation($"The USeed is {USeed}");
 
@@ -157,7 +158,6 @@ namespace Lyra.Core.Decentralize
 
             Receive<TransactionBlock>(block =>
             {
-
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
 
                 AuthorizingMsg msg = new AuthorizingMsg
@@ -173,13 +173,16 @@ namespace Lyra.Core.Decentralize
                     InputMsg = msg
                 };
 
-                _router.Tell(state);
+                var worker = new ConsensusWorker(this);
+                _activeConsensus.Add(block.Hash, worker);
+                worker.Create(state);
+                //_router.Tell(state);
                 Sender.Tell(state, Self);
             });
 
             Task.Run(async () =>
             {
-                HeartBeat();
+                await HeartBeatAsync();
                 int count = 0;
                 while (true)
                 {
@@ -193,17 +196,21 @@ namespace Lyra.Core.Decentralize
 
                     if(count >= 3)
                     {
-                        HeartBeat();
+                        await HeartBeatAsync();
                         count = 0;
                     }
                 }
             });
         }
 
-
-        private void HeartBeat()
+        private void GetAllWorkers()
         {
-            OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+
+        }
+
+        private async Task HeartBeatAsync()
+        {
+            await OnNodeActiveAsync(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
             // declare to the network
             var msg = new ChatMsg
@@ -227,7 +234,7 @@ namespace Lyra.Core.Decentralize
             // after clean, if necessary, insert a consolidate block into the queue
             // next time do clean, if no null block before the consolidate block, then send out the consolidate block.
             // 2 phase consolidation
-            var lastCons = BlockChain.Singleton.GetSyncBlock();
+            var lastCons = BlockChain.Singleton.GetSyncBlockAsync();
             ConsolidationBlock currentCons = null;
             try
             {
@@ -237,7 +244,7 @@ namespace Lyra.Core.Decentralize
                 var cleaned = _cleanedConsensus.Values.ToArray();
                 for (int i = 0; i < cleaned.Length; i++)
                 {
-                    var state = cleaned[i];
+                    var state = cleaned[i].State;
                     if (DateTime.Now - state.Created > TimeSpan.FromMinutes(2)) // 2 mins
                     {
                         _cleanedConsensus.Remove(state.InputMsg.Block.Hash);
@@ -247,14 +254,14 @@ namespace Lyra.Core.Decentralize
                 var states = _activeConsensus.Values.ToArray();
                 for (int i = 0; i < states.Length; i++)
                 {
-                    var state = states[i];
+                    var state = states[i].State;
                     if (DateTime.Now - state.Created > TimeSpan.FromSeconds(10)) // consensus timeout
                     {
                         var finalResult = state.GetIsAuthoringSuccess(_board);
                         _activeConsensus.Remove(state.InputMsg.Block.Hash);
                         state.Done.Set();
 
-                        _cleanedConsensus.Add(state.InputMsg.Block.Hash, state);
+                        _cleanedConsensus.Add(state.InputMsg.Block.Hash, states[i]);
 
                         //if (finalResult == true)
                         //    continue;
@@ -391,7 +398,19 @@ namespace Lyra.Core.Decentralize
             _localNode.Tell(item);
         }
 
-        void OnNextConsensusMessage(SourceSignedMessage item)
+        private ConsensusWorker GetWorker(string hash)
+        {
+            if(_activeConsensus.ContainsKey(hash))
+                return _activeConsensus[hash];
+            else
+            {
+                var worker = new ConsensusWorker(this);
+                _activeConsensus.Add(hash, worker);
+                return worker;
+            }
+        }
+
+        async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
             //_log.LogInformation($"Consensus: OnNextAsyncImpl Called: msg From: {item.From}");
 
@@ -403,26 +422,33 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            OnNodeActive(item.From);
+            await OnNodeActiveAsync(item.From);
 
             switch (item)
             {
-                case AuthorizingMsg _:
-                case AuthorizedMsg _:
-                case AuthorizerCommitMsg _:
-                    _router.Tell(item);
+                case AuthorizingMsg msg1:
+                    var worker = GetWorker(msg1.Block.Hash);
+                    await worker.OnPrePrepareAsync(msg1);
+                    break;
+                case AuthorizedMsg msg2:
+                    var worker2 = GetWorker(msg2.BlockHash);
+                    await worker2.OnPrepareAsync(msg2);
+                    break;
+                case AuthorizerCommitMsg msg3:
+                    var worker3 = GetWorker(msg3.BlockHash);
+                    await worker3.OnCommitAsync(msg3);
                     break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.HeartBeat:
-                    OnHeartBeat(chat);
+                    await OnHeartBeatAsync(chat);
                     break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.NodeUp:
-                    OnNodeUp(chat);
+                    await OnNodeUpAsync(chat);
                     break;
                 case ChatMsg bbb when bbb.MsgType == ChatMessageType.StakingChanges:
                     OnBillBoardBroadcast(bbb);
                     break;
                 case ChatMsg bcc when bcc.MsgType == ChatMessageType.BlockConsolidation:
-                    OnBlockConsolication(bcc);
+                    await OnBlockConsolicationAsync(bcc);
                     break;
                 default:
                     // log msg unknown
@@ -430,14 +456,14 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void OnBlockConsolication(ChatMsg msg)
+        private async Task OnBlockConsolicationAsync(ChatMsg msg)
         {
             if (!IsThisNodeSeed0)
             {
                 var block = JsonConvert.DeserializeObject<ConsolidationBlock>(msg.Text);
                 try
                 {
-                    BlockChain.Singleton.AddBlock(block);
+                    await BlockChain.Singleton.AddBlockAsync(block);
                     _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.UIndex}");
                 }
                 catch(Exception e)
@@ -465,26 +491,26 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public void OnNodeActive(string nodeAccountId)
+        public async Task OnNodeActiveAsync(string nodeAccountId)
         {
             if (_board != null)
-                _board.Add(nodeAccountId);
+                await _board.AddAsync(nodeAccountId);
         }
 
-        private void OnHeartBeat(ChatMsg chat)
+        private async Task OnHeartBeatAsync(ChatMsg chat)
         {
             if (_board == null)
                 return;
 
-            var node = _board.Add(chat.From);
+            var node = await _board.AddAsync(chat.From);
         }
 
-        private void OnNodeUp(ChatMsg chat)
+        private async Task OnNodeUpAsync(ChatMsg chat)
         {
             if (_board == null)
                 return;
 
-            var node = _board.Add(chat.From);
+            var node = await _board.AddAsync(chat.From);
 
             if (IsThisNodeSeed0)
             {

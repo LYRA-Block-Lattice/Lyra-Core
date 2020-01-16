@@ -16,15 +16,15 @@ namespace Lyra.Core.Authorizers
         {
         }
 
-        public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
         {
-            var result = AuthorizeImpl(tblock);
+            var result = await AuthorizeImplAsync(tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, await SignAsync(tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is SendTransferBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -40,7 +40,7 @@ namespace Lyra.Core.Authorizers
             int count = 50;
             while(count-- > 0)
             {
-                lastBlock = BlockChain.Singleton.FindBlockByHash(block.PreviousHash);
+                lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
                 if (lastBlock != null)
                     break;
                 Task.Delay(100).Wait();
@@ -50,7 +50,7 @@ namespace Lyra.Core.Authorizers
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
             
-            var result = VerifyBlock(block, lastBlock);
+            var result = await VerifyBlockAsync(block, lastBlock);
             stopwatch.Stop();
             Console.WriteLine($"SendTransfer VerifyBlock takes {stopwatch.ElapsedMilliseconds} ms.");
 
@@ -65,7 +65,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidDestinationAccountId;
 
             var stopwatch2 = Stopwatch.StartNew();
-            result = VerifyTransactionBlock(block);
+            result = await VerifyTransactionBlockAsync(block);
             stopwatch2.Stop();
             Console.WriteLine($"SendTransfer VerifyTransactionBlock takes {stopwatch2.ElapsedMilliseconds} ms.");
             if (result != APIResultCodes.Success)
@@ -75,7 +75,7 @@ namespace Lyra.Core.Authorizers
             if (!block.ValidateTransaction(lastBlock))
                 return APIResultCodes.SendTransactionValidationFailed;
 
-            result = ValidateNonFungible(block, lastBlock);
+            result = await ValidateNonFungibleAsync(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -85,20 +85,23 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected override APIResultCodes ValidateFee(TransactionBlock block)
+        protected override async Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
         {
+            APIResultCodes result;
             if (block.FeeType != AuthorizationFeeTypes.Regular)
-                return APIResultCodes.InvalidFeeAmount;
+                result = APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != BlockChain.Singleton.GetLastServiceBlock().TransferFee)
-                return APIResultCodes.InvalidFeeAmount;
+            if (block.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TransferFee)
+                result = APIResultCodes.InvalidFeeAmount;
 
-            return APIResultCodes.Success;
+            result = APIResultCodes.Success;
+
+            return result;
         }
 
-        protected override APIResultCodes ValidateNonFungible(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        protected override async Task<APIResultCodes> ValidateNonFungibleAsync(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
-            var result = base.ValidateNonFungible(send_or_receice_block, previousBlock);
+            var result = await base.ValidateNonFungibleAsync(send_or_receice_block, previousBlock);
             if (result != APIResultCodes.Success)
                 return result;
 

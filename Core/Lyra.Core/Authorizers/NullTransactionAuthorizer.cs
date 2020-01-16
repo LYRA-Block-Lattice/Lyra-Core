@@ -2,26 +2,27 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
     public class NullTransactionAuthorizer : BaseAuthorizer
     {
-        public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
         {
-            var result = AuthorizeImpl(tblock);
+            var result = await AuthorizeImplAsync(tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, await SignAsync(tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
 
-        protected override APIResultCodes ValidateFee(TransactionBlock block)
+        protected override Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
         {
-            return APIResultCodes.Success;
+            return Task.FromResult(APIResultCodes.Success);
         }
 
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is NullTransactionBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -29,17 +30,17 @@ namespace Lyra.Core.Authorizers
             var block = tblock as NullTransactionBlock;
 
             // 1. check if the block already exists
-            if (null != BlockChain.Singleton.GetBlockByUIndex(block.UIndex))
+            if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
                 return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
-            var lastCons = BlockChain.Singleton.GetSyncBlock();
+            var lastCons = await BlockChain.Singleton.GetSyncBlockAsync();
             if (lastCons == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
             if (block.PreviousConsolidateHash != lastCons.Hash)
                 return APIResultCodes.PreviousBlockNotFound;
 
-            var result = VerifyBlock(block, null);
+            var result = await VerifyBlockAsync(block, null);
             if (result != APIResultCodes.Success)
                 return result;
 

@@ -20,7 +20,7 @@ namespace Lyra.Core.Decentralize
         public static DealEngine Dealer { get; private set; }
         public Wallet PosWallet { get; private set; }
 
-        private INodeAPI _dataApi;
+        //private INodeAPI _dataApi;
         public MongoClient client;
         private IMongoDatabase _db;
 
