@@ -192,7 +192,6 @@ namespace Lyra.Core.Decentralize
                     Result = APIResultCodes.UnknownError,
                     AuthSign = null
                 };
-                result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
             }
             result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
 
