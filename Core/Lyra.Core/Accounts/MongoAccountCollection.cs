@@ -347,7 +347,7 @@ namespace Lyra.Core.Accounts
 
                 var result = await( await _blocks.FindAsync(filterDefinition1)).FirstOrDefaultAsync();
 
-                if (result != null)
+                if (result == null)
                     return sendBlock;
 
                 //var any_receive_block_with_this_source = FindBlockBySourceHash(sendBlock.Hash);
