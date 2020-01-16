@@ -133,7 +133,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)
         {
-            _log.LogInformation($"LocalAuthorizingAsync: {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
+            //_log.LogInformation($"LocalAuthorizingAsync: {item.Block.BlockType} {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
 
             var stopwatch = Stopwatch.StartNew();
             var authorizer = _authorizers.Create(item.Block.BlockType);
@@ -177,7 +177,7 @@ namespace Lyra.Core.Decentralize
 
             stopwatch.Stop();
             if(result.Result == APIResultCodes.Success)
-                _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
+                _log.LogInformation($"LocalAuthorizingAsync {item.Block.BlockType} takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
             else
             {
                 if(result.Result == APIResultCodes.CouldNotFindLatestBlock)

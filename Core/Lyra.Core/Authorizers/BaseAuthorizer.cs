@@ -74,12 +74,12 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // check if this Index already exists (double-spending, kind of)
-                if (block.BlockType != BlockTypes.NullTransaction && await BlockChain.Singleton.FindBlockByIndexAsync(block.AccountID, block.Index) != null)
+                if (block.BlockType != BlockTypes.NullTransaction && await (BlockChain.Singleton.FindBlockByIndexAsync(block.AccountID, block.Index)) != null)
                     return APIResultCodes.BlockWithThisIndexAlreadyExists;
             }         
 
             // This is the double-spending check for send block!
-            if (!string.IsNullOrEmpty(block.PreviousHash) && await BlockChain.Singleton.FindBlockByPreviousBlockHashAsync(block.PreviousHash) != null)
+            if (!string.IsNullOrEmpty(block.PreviousHash) && (await BlockChain.Singleton.FindBlockByPreviousBlockHashAsync(block.PreviousHash)) != null)
                 return APIResultCodes.BlockWithThisPreviousHashAlreadyExists;
 
             if (block.Index <= 0)
