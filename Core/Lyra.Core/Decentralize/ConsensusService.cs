@@ -388,6 +388,9 @@ namespace Lyra.Core.Decentralize
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
             //item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
+            // fake sign
+            item.Hash = "aa";
+            item.Signature = "bb";
             _localNode.Tell(item);
         }
 
