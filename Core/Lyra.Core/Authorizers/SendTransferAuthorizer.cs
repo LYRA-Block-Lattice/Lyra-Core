@@ -34,12 +34,22 @@ namespace Lyra.Core.Authorizers
             //// 1. check if the account already exists
             //if (!BlockChain.Singleton.AccountExists(block.AccountID))
             //    return APIResultCodes.AccountDoesNotExist;
+            var stopwatch = Stopwatch.StartNew();
 
-            TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
+            TransactionBlock lastBlock = null;
+            int count = 50;
+            while(count-- > 0)
+            {
+                lastBlock = BlockChain.Singleton.FindBlockByHash(block.PreviousHash);
+                if (lastBlock != null)
+                    break;
+                Task.Delay(100).Wait();
+            }
+
+            //TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
-
-            var stopwatch = Stopwatch.StartNew();
+            
             var result = VerifyBlock(block, lastBlock);
             stopwatch.Stop();
             Console.WriteLine($"SendTransfer VerifyBlock takes {stopwatch.ElapsedMilliseconds} ms.");
