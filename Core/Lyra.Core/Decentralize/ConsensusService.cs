@@ -135,7 +135,7 @@ namespace Lyra.Core.Decentralize
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
             Receive<AskForStats>((_) => Sender.Tell(_stats));
 
-            Receive<SignedMessageRelay>(async relayMsg =>
+            ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
                 if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
                     try
@@ -150,7 +150,7 @@ namespace Lyra.Core.Decentralize
                     _log.LogWarning("Protocol Version Mismatch. Do nothing.");
             });
 
-            Receive<BlockChainSynced>(async _ =>
+            ReceiveAsync<BlockChainSynced>(async _ =>
             {
                 Mode = ConsensusWorkingMode.Normal;
                 USeed = (await BlockChain.Singleton.FindLatestBlockAsync()).UIndex + 1;
