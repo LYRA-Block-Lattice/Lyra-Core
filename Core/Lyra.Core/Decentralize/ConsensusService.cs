@@ -188,7 +188,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (Mode == ConsensusWorkingMode.Normal)
                     {
-                        GenerateConsolidateBlockAsync();
+                        //await GenerateConsolidateBlockAsync();
                     }
 
                     await Task.Delay(10000).ConfigureAwait(false);
@@ -254,7 +254,7 @@ namespace Lyra.Core.Decentralize
                 var states = _activeConsensus.Values.ToArray();
                 for (int i = 0; i < states.Length; i++)
                 {
-                    var state = states[i].State;
+                    var state = states[i].State;    // TODO: check null
                     if (DateTime.Now - state.Created > TimeSpan.FromSeconds(10)) // consensus timeout
                     {
                         var finalResult = state.GetIsAuthoringSuccess(_board);
