@@ -201,24 +201,27 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
+            if(_state != null)
+            {
+                _log.LogError("State exists.");
+                return;
+            }
+
             // first try auth locally
             //if(_state == null)
             _state = CreateAuthringState(msg);
 
-            if (_outOfOrderedMessages.Count > 0)
+            SourceSignedMessage queuedMsg;
+            while (_outOfOrderedMessages.TryDequeue(out queuedMsg))
             {
-                SourceSignedMessage queuedMsg;
-                while (_outOfOrderedMessages.TryDequeue(out queuedMsg))
+                switch (queuedMsg)
                 {
-                    switch (queuedMsg)
-                    {
-                        case AuthorizedMsg msg1:
-                            await OnPrepareAsync(msg1);
-                            break;
-                        case AuthorizerCommitMsg msg2:
-                            await OnCommitAsync(msg2);
-                            break;
-                    }
+                    case AuthorizedMsg msg1:
+                        await OnPrepareAsync(msg1);
+                        break;
+                    case AuthorizerCommitMsg msg2:
+                        await OnCommitAsync(msg2);
+                        break;
                 }
             }
 
