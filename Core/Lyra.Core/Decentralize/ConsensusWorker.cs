@@ -319,7 +319,8 @@ namespace Lyra.Core.Decentralize
                 catch (Exception e)
                 {
                     _log.LogInformation($"Block Save Failed UIndex: {block.UIndex} Why: {e.Message}");
-                    return;
+                    //return;
+                    // the exception only shows repeated block. so its ok to continue.
                 }
 
                 var msg = new AuthorizerCommitMsg
