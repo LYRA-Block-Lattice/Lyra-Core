@@ -389,8 +389,8 @@ namespace Lyra.Core.Decentralize
         {
             //item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
             // fake sign
-            item.Hash = "aa";
-            item.Signature = "bb";
+            item.Hash = "aaaaaaaaaa";
+            item.Signature = "bbbbbbbbbbb";
             _localNode.Tell(item);
         }
 
