@@ -387,10 +387,7 @@ namespace Lyra.Core.Decentralize
 
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
-            //item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
-            // fake sign
-            item.Hash = "aaaaaaaaaa";
-            item.Signature = "bbbbbbbbbbb";
+            item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
             _localNode.Tell(item);
         }
 
@@ -400,11 +397,11 @@ namespace Lyra.Core.Decentralize
 
             // verify the signatures of msg. make sure it is from the right node.
             //var nodeConfig = null;
-            //if (!item.VerifySignature(item.From))
-            //{
-            //    _log.LogInformation($"Consensus: bad signature: {item.MsgType} Hash: {item.Hash.Shorten()} by pubKey: {item.From.Shorten()}");
-            //    return;
-            //}
+            if (!item.VerifySignature(item.From))
+            {
+                _log.LogInformation($"Consensus: bad signature: {item.MsgType} Hash: {item.Hash.Shorten()} by pubKey: {item.From.Shorten()}");
+                return;
+            }
 
             OnNodeActive(item.From);
 

@@ -96,6 +96,8 @@ namespace Friday
                                             oneTime = true;
                                             break;
                                         }
+
+                                        await fromWallet.Sync(null);
                                     }
                                     else
                                     {

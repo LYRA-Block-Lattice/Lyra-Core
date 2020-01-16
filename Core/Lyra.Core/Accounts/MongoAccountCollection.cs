@@ -183,20 +183,14 @@ namespace Lyra.Core.Accounts
             //else
             //    predicate = a => a.AccountID == AccountId;
 
-            var result = _blocks.Find(a => true).SortByDescending(y => y.UIndex).Limit(1);
-            if (result.Any())
-                return result.First();
-            else
-                return null;
+            var result = _blocks.Find(a => true).SortByDescending(y => y.UIndex).Limit(1).FirstOrDefault();
+            return result;
         }
 
         public TransactionBlock FindLatestBlock(string AccountId)
         {
-            var result = _blocks.Find(a => a.AccountID == AccountId).SortByDescending(y => y.Index).Limit(1);
-            if (result.Any())
-                return result.First();
-            else
-                return null;
+            var result = _blocks.Find(a => a.AccountID == AccountId).SortByDescending(y => y.Index).Limit(1).FirstOrDefault();
+            return result;
         }
 
         public TokenGenesisBlock FindTokenGenesisBlock(string Hash, string Ticker)
@@ -285,20 +279,14 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock FindBlockByHash(string AccountId, string hash)
         {
-            var result = _blocks.Find(x => x.AccountID == AccountId && x.Hash == hash);
-            if (result.Any())
-                return result.First();
-            else
-                return null;
+            var result = _blocks.Find(x => x.AccountID == AccountId && x.Hash == hash).FirstOrDefault();
+            return result;
         }
 
         public TransactionBlock FindBlockByPreviousBlockHash(string previousBlockHash)
         {
-            var result = _blocks.Find(x => x.PreviousHash.Equals(previousBlockHash));
-            if (result.Any())
-                return result.First();
-            else
-                return null;
+            var result = _blocks.Find(x => x.PreviousHash.Equals(previousBlockHash)).FirstOrDefault();
+            return result;
         }
 
         /// <summary>
@@ -326,11 +314,8 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock FindBlockByIndex(string AccountId, Int64 index)
         {
-            var result = _blocks.Find(x => x.AccountID == AccountId && x.Index == index);
-            if (result.Any())
-                return result.First();
-            else
-                return null;
+            var result = _blocks.Find(x => x.AccountID == AccountId && x.Index == index).FirstOrDefault();
+            return result;
         }
 
         public SendTransferBlock FindUnsettledSendBlock(string AccountId)
