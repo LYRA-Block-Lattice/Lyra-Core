@@ -202,7 +202,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnPrePrepare(AuthorizingMsg item)
         {
-            _log.LogInformation($"Consensus: OnPrePrepare Called: BlockUIndex: {item.Block.UIndex}");
+            //_log.LogInformation($"Consensus: OnPrePrepare Called: BlockUIndex: {item.Block.UIndex}");
 
             var state = CreateAuthringState(item);
             if (state == null)
@@ -213,12 +213,13 @@ namespace Lyra.Core.Decentralize
             _context.Send2P2pNetwork(result);
             state.AddAuthResult(result);
             CheckAuthorizedAllOk(state);
-            _log.LogInformation($"Consensus: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.IsSuccess}");
+            if(!result.IsSuccess)
+                _log.LogInformation($"Consensus: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.Result}");
         }
 
         private void OnPrepare(AuthorizedMsg item)
         {
-            _log.LogInformation($"Consensus: OnPrepare Called: Block Hash: {item.BlockHash}");
+            //_log.LogInformation($"Consensus: OnPrepare Called: Block Hash: {item.BlockHash}");
 
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
@@ -252,6 +253,10 @@ namespace Lyra.Core.Decentralize
         {
             // check state
             // debug: show all states
+            if(state.OutputMsgs.Count > 2)
+            {
+
+            }
             var sb = new StringBuilder();
             sb.AppendLine();
             sb.AppendLine($"* Transaction From Node {state.InputMsg.Block.AccountID.Shorten()} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {state.InputMsg.Block.Hash.Shorten()}");
@@ -309,11 +314,11 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     BlockChain.Singleton.AddBlock(block);
-                    _log.LogInformation($"CheckAuthorizedAllOk of UIndex: {block.UIndex}");
+                    _log.LogInformation($"Block Saved of UIndex: {block.UIndex}");
                 }
                 catch (Exception e)
                 {
-                    _log.LogInformation($"CheckAuthorizedAllOk Failed UIndex: {block.UIndex} Why: {e.Message}");
+                    _log.LogInformation($"Block Save Failed UIndex: {block.UIndex} Why: {e.Message}");
                     return;
                 }
 
@@ -329,8 +334,6 @@ namespace Lyra.Core.Decentralize
 
                 state.AddCommitedResult(msg);
                 _context.Send2P2pNetwork(msg);
-
-                _log.LogInformation($"Consensus: OnPrepare Commited: BlockUIndex: {msg.BlockHash}");
             }
         }
 

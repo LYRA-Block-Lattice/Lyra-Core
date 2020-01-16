@@ -388,17 +388,21 @@ namespace Lyra.Core.Decentralize
             return Akka.Actor.Props.Create(() => new ConsensusService(localNode)).WithMailbox("consensus-service-mailbox");
         }
 
-        public virtual void Send2P2pNetwork(SourceSignedMessage msg)
+        public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
-            int waitCount = 5;
-            while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
+            //int waitCount = 5;
+            //while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
+            //{
+            //    _log.LogWarning("Not connected to Lyra Network. Delay sending... ");
+            //    Task.Delay(1000).Wait();
+            //    waitCount--;
+            //}
+            if (!item.VerifySignature(item.From))
             {
-                _log.LogWarning("Not connected to Lyra Network. Delay sending... ");
-                Task.Delay(1000).Wait();
-                waitCount--;
+                _log.LogInformation($"Consensus Send2P2pNetwork: bad signature: {item.MsgType} Hash: {item.Hash.Shorten()} by pubKey: {item.From.Shorten()}");
+                return;
             }
-
-            _localNode.Tell(msg);
+            _localNode.Tell(item);
         }
 
         void OnNextConsensusMessage(SourceSignedMessage item)
@@ -409,8 +413,7 @@ namespace Lyra.Core.Decentralize
             //var nodeConfig = null;
             if (!item.VerifySignature(item.From))
             {
-                _log.LogInformation($"Consensus: bad signature: {item.Hash} sign: {item.Signature} by pubKey: {item.From}");
-                _log.LogInformation($"Consensus: hash: {item.Hash} rehash: {item.CalculateHash()}");
+                _log.LogInformation($"Consensus: bad signature: {item.MsgType} Hash: {item.Hash.Shorten()} by pubKey: {item.From.Shorten()}");
                 return;
             }
 

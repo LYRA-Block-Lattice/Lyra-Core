@@ -26,8 +26,6 @@ namespace Lyra.Core.Blocks
         {
             string record = GetHashInput();
 
-            Console.WriteLine($"CalculateHash {record}");
-
             using (SHA256Managed sha = new SHA256Managed())
             {
                 byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(record));
