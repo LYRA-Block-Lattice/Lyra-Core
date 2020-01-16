@@ -196,7 +196,7 @@ namespace Lyra.Core.Decentralize
             result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
 
             stopwatch.Stop();
-            _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms.");
+            _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
             return result;
         }
 
@@ -311,17 +311,8 @@ namespace Lyra.Core.Decentralize
 
                 block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
-                try
-                {
-                    BlockChain.Singleton.AddBlock(block);
-                    _log.LogInformation($"Block Saved of UIndex: {block.UIndex}");
-                }
-                catch (Exception e)
-                {
-                    _log.LogInformation($"Block Save Failed UIndex: {block.UIndex} Why: {e.Message}");
-                    //return;
-                    // the exception only shows repeated block. so its ok to continue.
-                }
+                if(!BlockChain.Singleton.AddBlock(block))
+                    _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
 
                 var msg = new AuthorizerCommitMsg
                 {

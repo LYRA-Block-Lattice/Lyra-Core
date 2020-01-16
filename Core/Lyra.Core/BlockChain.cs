@@ -66,7 +66,7 @@ namespace Lyra
 
         // forward api. should have more control here.
         //public ServiceAccount ServiceAccount => _serviceAccount;
-        public void AddBlock(TransactionBlock block) => _store.AddBlock(block);
+        public bool AddBlock(TransactionBlock block) => _store.AddBlock(block);
         public void AddBlock(ServiceBlock serviceBlock) => _store.AddBlock(serviceBlock);
 
         // bellow readonly access

@@ -56,7 +56,7 @@ namespace Lyra.Core.Accounts
         // returns the list of hashes (order IDs) of all cancelled trade order blocks
         List<string> GetExecutedTradeOrderBlocks();
 
-        void AddBlock(TransactionBlock block);
+        bool AddBlock(TransactionBlock block);
 
         /// <summary>
         /// Cleans up or deletes blocks collection.

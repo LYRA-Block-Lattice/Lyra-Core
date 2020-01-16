@@ -12,6 +12,7 @@ using Lyra.Core.Utils;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace Lyra.Core.Accounts
 {
@@ -32,10 +33,14 @@ namespace Lyra.Core.Accounts
 
         readonly string _DatabaseName;
 
+        ILogger _log;
+
         public string Cluster { get; set; }
 
         public MongoAccountCollection()
         {
+            _log = new SimpleLogger("Mongo").Logger;
+
             _config = Neo.Settings.Default.LyraNode;
 
             _DatabaseName = _config.Lyra.Database.DatabaseName;
@@ -462,21 +467,35 @@ namespace Lyra.Core.Accounts
             return list;
         }
 
-        public void AddBlock(TransactionBlock block)
+        public bool AddBlock(TransactionBlock block)
         {
             if(block.Index == 0 || block.UIndex == 0)
-                throw new Exception("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
+                return false;
+            }                
 
             if (null != GetBlockByUIndex(block.UIndex))
-                throw new Exception("AccountCollection=>AddBlock: Block with such UIndex already exists!");
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
+                return false;
+            }            
 
             if (FindBlockByHash(block.Hash) != null)
-                throw new Exception("AccountCollection=>AddBlock: Block with such Hash already exists!");
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+                return false;
+            }
+            
 
             if (block.BlockType != BlockTypes.NullTransaction && FindBlockByIndex(block.AccountID, block.Index) != null)
-                throw new Exception("AccountCollection=>AddBlock: Block with such Index already exists!");
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
+                return false;
+            }            
 
             _blocks.InsertOne(block);
+            return true;
         }
 
         public void Dispose()
