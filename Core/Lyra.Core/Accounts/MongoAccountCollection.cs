@@ -466,19 +466,19 @@ namespace Lyra.Core.Accounts
                 return false;
             }                
 
-            if (null != GetBlockByUIndexAsync(block.UIndex))
+            if (null != await GetBlockByUIndexAsync(block.UIndex))
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
                 return false;
             }            
 
-            if (FindBlockByHashAsync(block.Hash) != null)
+            if (await FindBlockByHashAsync(block.Hash) != null)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
                 return false;
             }            
 
-            if (block.BlockType != BlockTypes.NullTransaction && FindBlockByIndexAsync(block.AccountID, block.Index) != null)
+            if (block.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block.AccountID, block.Index) != null)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
                 return false;
