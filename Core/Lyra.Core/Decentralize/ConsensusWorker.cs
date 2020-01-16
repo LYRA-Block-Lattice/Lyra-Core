@@ -196,7 +196,10 @@ namespace Lyra.Core.Decentralize
             result.Sign(NodeService.Instance.PosWallet.PrivateKey, result.From);
 
             stopwatch.Stop();
-            _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
+            if(result.Result == APIResultCodes.Success)
+                _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
+            else
+                _log.LogError($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
             return result;
         }
 
