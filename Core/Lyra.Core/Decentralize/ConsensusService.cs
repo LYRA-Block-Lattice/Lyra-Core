@@ -138,7 +138,14 @@ namespace Lyra.Core.Decentralize
             Receive<SignedMessageRelay>(async relayMsg =>
             {
                 if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
-                    await OnNextConsensusMessageAsync(relayMsg.signedMessage);
+                    try
+                    {
+                        await OnNextConsensusMessageAsync(relayMsg.signedMessage);
+                    }
+                    catch(Exception ex)
+                    {
+                        _log.LogCritical("OnNextConsensusMessageAsync!!! " + ex.Message);
+                    }
                 else
                     _log.LogWarning("Protocol Version Mismatch. Do nothing.");
             });

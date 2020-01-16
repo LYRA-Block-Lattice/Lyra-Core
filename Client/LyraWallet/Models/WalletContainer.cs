@@ -110,7 +110,7 @@ namespace LyraWallet.Models
             {
                 AccountName = "My Account"
             };
-            wallet.CreateAccountAsync(path, wallet.AccountName, AccountTypes.Standard);
+            wallet.CreateAccount(path, wallet.AccountName, AccountTypes.Standard);
         }
 
         public async Task CreateByPrivateKey(string network_id, string privatekey)
