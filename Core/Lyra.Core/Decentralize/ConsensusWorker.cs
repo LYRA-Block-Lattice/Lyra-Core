@@ -313,8 +313,10 @@ namespace Lyra.Core.Decentralize
 
                 block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
-                if(!BlockChain.Singleton.AddBlock(block))
+                if (!BlockChain.Singleton.AddBlock(block))
                     _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
+                else
+                    _log.LogInformation($"Block saved: {block.UIndex}/{block.Index}/{block.Hash}");
 
                 var msg = new AuthorizerCommitMsg
                 {
