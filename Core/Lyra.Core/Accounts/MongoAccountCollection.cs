@@ -485,8 +485,7 @@ namespace Lyra.Core.Accounts
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
                 return false;
-            }
-            
+            }            
 
             if (block.BlockType != BlockTypes.NullTransaction && FindBlockByIndex(block.AccountID, block.Index) != null)
             {

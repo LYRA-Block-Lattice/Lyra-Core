@@ -327,8 +327,8 @@ namespace Lyra.Core.Decentralize
                 };
                 msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
 
-                state.AddCommitedResult(msg);
                 _context.Send2P2pNetwork(msg);
+                state.AddCommitedResult(msg);
             }
         }
 

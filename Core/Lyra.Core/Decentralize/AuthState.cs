@@ -1,4 +1,6 @@
-﻿using Neo;
+﻿using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
+using Neo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +24,12 @@ namespace Lyra.Core.Decentralize
 
         public bool? IsConsensusSuccess { get; private set; }
 
+        ILogger _log;
+
         public AuthState()
         {
+            _log = new SimpleLogger("AuthState").Logger;
+
             Created = DateTime.Now;
 
             OutputMsgs = new List<AuthorizedMsg>();
@@ -42,6 +48,7 @@ namespace Lyra.Core.Decentralize
             CommitMsgs.Add(msg);
             if (CommitMsgs.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
             {
+                _log.LogInformation($"Committed: {ConsensusUIndex}/{InputMsg.Block.Index} Yay: {CommitMsgs.Count} of {CommitMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + ", " + y)}");
                 Settled = true;
                 Done.Set();
             }                
