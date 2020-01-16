@@ -34,6 +34,8 @@ namespace Lyra.Core.Decentralize
 
             Receive<AuthorizingMsg>(msg =>
             {
+                _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.UIndex}/{msg.Block.Index}/{msg.Block.Hash}");
+
                 _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
                 if (msg.Version != LyraGlobal.ProtocolVersion)
@@ -72,6 +74,7 @@ namespace Lyra.Core.Decentralize
 
             Receive<AuthState>(state =>
             {
+                _log.LogInformation($"Receive AuthState: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
                 _state = state;
                 _context.Send2P2pNetwork(_state.InputMsg);
 
