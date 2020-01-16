@@ -50,7 +50,7 @@ namespace Lyra.Core.Decentralize
 
         public IAuthorizer Create(BlockTypes blockType)
         {
-            return (IAuthorizer)Activator.CreateInstance(Type.GetType("Lyra.Core.Authorizers." + blockType));
+            return (IAuthorizer)Activator.CreateInstance(Type.GetType("Lyra.Core.Authorizers." + _authorizers[blockType]));
         }
     }
 }
