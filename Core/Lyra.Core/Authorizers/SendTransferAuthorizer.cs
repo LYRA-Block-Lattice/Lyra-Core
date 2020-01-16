@@ -32,7 +32,7 @@ namespace Lyra.Core.Authorizers
             var block = tblock as SendTransferBlock;
 
             //// 1. check if the account already exists
-            //if (!BlockChain.Singleton.AccountExists(block.AccountID))
+            //if (!await BlockChain.Singleton.AccountExists(block.AccountID))
             //    return APIResultCodes.AccountDoesNotExist;
             var stopwatch = Stopwatch.StartNew();
 
@@ -46,7 +46,7 @@ namespace Lyra.Core.Authorizers
                 Task.Delay(100).Wait();
             }
 
-            //TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
+            //TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
             

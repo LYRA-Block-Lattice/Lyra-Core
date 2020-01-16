@@ -202,7 +202,7 @@ namespace Lyra.Core.Decentralize
                 if (!await BlockChain.Singleton.AccountExistsAsync(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var list = BlockChain.Singleton.GetNonFungibleTokensAsync(AccountId);
+                var list = await BlockChain.Singleton.GetNonFungibleTokensAsync(AccountId);
                 if (list != null)
                 {
                     result.ListDataSerialized = Json(list);

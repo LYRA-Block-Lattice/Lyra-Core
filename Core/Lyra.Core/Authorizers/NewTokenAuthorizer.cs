@@ -56,7 +56,7 @@ namespace Lyra.Core.Authorizers
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
             //if (genesis_blocks.FindTokenGenesisBlock(testTokenGenesisBlock) != null)
-            if (BlockChain.Singleton.FindTokenGenesisBlockAsync(block.Hash, block.Ticker) != null)
+            if (await BlockChain.Singleton.FindTokenGenesisBlockAsync(block.Hash, block.Ticker) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
             if (block.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TokenGenerationFee)

@@ -188,7 +188,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (Mode == ConsensusWorkingMode.Normal)
                     {
-                        GenerateConsolidateBlock();
+                        GenerateConsolidateBlockAsync();
                     }
 
                     await Task.Delay(10000).ConfigureAwait(false);
@@ -228,13 +228,13 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void GenerateConsolidateBlock()
+        private async Task GenerateConsolidateBlockAsync()
         {
             // should lock the uindex seed here.
             // after clean, if necessary, insert a consolidate block into the queue
             // next time do clean, if no null block before the consolidate block, then send out the consolidate block.
             // 2 phase consolidation
-            var lastCons = BlockChain.Singleton.GetSyncBlockAsync();
+            var lastCons = await BlockChain.Singleton.GetSyncBlockAsync();
             ConsolidationBlock currentCons = null;
             try
             {

@@ -66,8 +66,6 @@ namespace Lyra.Core.Authorizers
                 if (!block.VerifyHash())
                     _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock UIndex: {block.UIndex} by {block.GetHashInput()}");
 
-                
-
                 var result = block.VerifySignature(block.AccountID);
                 if (!result)
                 {
@@ -75,15 +73,13 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
 
-
-
                 // check if this Index already exists (double-spending, kind of)
-                if (block.BlockType != BlockTypes.NullTransaction && BlockChain.Singleton.FindBlockByIndexAsync(block.AccountID, block.Index) != null)
+                if (block.BlockType != BlockTypes.NullTransaction && await BlockChain.Singleton.FindBlockByIndexAsync(block.AccountID, block.Index) != null)
                     return APIResultCodes.BlockWithThisIndexAlreadyExists;
             }         
 
             // This is the double-spending check for send block!
-            if (!string.IsNullOrEmpty(block.PreviousHash) && BlockChain.Singleton.FindBlockByPreviousBlockHashAsync(block.PreviousHash) != null)
+            if (!string.IsNullOrEmpty(block.PreviousHash) && await BlockChain.Singleton.FindBlockByPreviousBlockHashAsync(block.PreviousHash) != null)
                 return APIResultCodes.BlockWithThisPreviousHashAlreadyExists;
 
             if (block.Index <= 0)
@@ -163,11 +159,11 @@ namespace Lyra.Core.Authorizers
                 // TODO: fee aggregation
                 //// Verify fee
                 //if (block.BlockType == BlockTypes.SendTransfer)
-                //    if ((block as SendTransferBlock).Fee != BlockChain.Singleton.GetLastServiceBlock().TransferFee)
+                //    if ((block as SendTransferBlock).Fee != await BlockChain.Singleton.GetLastServiceBlock().TransferFee)
                 //        return APIResultCodes.InvalidFeeAmount;
 
                 //if (block.BlockType == BlockTypes.TokenGenesis)
-                //    if ((block as TokenGenesisBlock).Fee != BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
+                //    if ((block as TokenGenesisBlock).Fee != await BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
                 //        return APIResultCodes.InvalidFeeAmount;
             }
 
@@ -252,13 +248,13 @@ namespace Lyra.Core.Authorizers
 
         //protected async Task<bool> VerifyAuthorizationSignaturesAsync(TransactionBlock block)
         //{
-        //    //block.ServiceHash = BlockChain.Singleton.ServiceAccount.GetLatestBlock(block.ServiceHash);
+        //    //block.ServiceHash = await BlockChain.Singleton.ServiceAccount.GetLatestBlock(block.ServiceHash);
 
         //    // TO DO - support multy nodes
         //    if (block.Authorizations == null || block.Authorizations.Count != 1)
         //        return false;
 
-        //    if (block.Authorizations[0].Key != BlockChain.Singleton.ServiceAccount.AccountId)
+        //    if (block.Authorizations[0].Key != await BlockChain.Singleton.ServiceAccount.AccountId)
         //        return false;
 
         //    return Signatures.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);

@@ -58,7 +58,7 @@ namespace Lyra.Core.Authorizers
                 return result;
 
             // Check duplicate receives (kind of double spending up down)
-            var duplicate_block = BlockChain.Singleton.FindBlockBySourceHashAsync(block.SourceHash);
+            var duplicate_block = await BlockChain.Singleton.FindBlockBySourceHashAsync(block.SourceHash);
             if (duplicate_block != null)
                 return APIResultCodes.DuplicateReceiveBlock;
 
