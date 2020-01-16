@@ -206,7 +206,7 @@ namespace Lyra.Core.Decentralize
             {
                 if(result.Result == APIResultCodes.CouldNotFindLatestBlock)
                 {
-                    _log.LogInformation($"LocalAuthorizingAsync state: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash} Previous Block Hash: {_state.InputMsg.Block.PreviousHash}");
+                    _log.LogInformation($"CouldNotFindLatestBlock!! state: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash} Previous Block Hash: {_state.InputMsg.Block.PreviousHash}");
                 }
                 _log.LogError($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
                 _log.LogInformation($"LocalAuthorizingAsync state: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
