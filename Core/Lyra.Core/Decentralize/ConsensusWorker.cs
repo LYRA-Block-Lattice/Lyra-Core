@@ -248,9 +248,8 @@ namespace Lyra.Core.Decentralize
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
-            _state.AddAuthResult(item);
-
-            await CheckAuthorizedAllOkAsync(_state);
+            if(_state.AddAuthResult(item))
+                await CheckAuthorizedAllOkAsync(_state);
             //}
             //else
             //{

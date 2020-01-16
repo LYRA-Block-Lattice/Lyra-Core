@@ -38,20 +38,21 @@ namespace Lyra.Core.Decentralize
             Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 
-        public void AddAuthResult(AuthorizedMsg msg)
+        public bool AddAuthResult(AuthorizedMsg msg)
         {
             // check repeated message
             if (OutputMsgs.ToList().Any(a => a.From == msg.From))
-                return;
+                return false;
 
             OutputMsgs.Add(msg);
+            return true;
         }
 
-        public void AddCommitedResult(AuthorizerCommitMsg msg)
+        public bool AddCommitedResult(AuthorizerCommitMsg msg)
         {
             // check repeated message
             if (CommitMsgs.ToList().Any(a => a.From == msg.From))
-                return;
+                return false;
 
             CommitMsgs.Add(msg);
             if (CommitMsgs.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
@@ -59,7 +60,8 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"Committed: {ConsensusUIndex}/{InputMsg.Block.Index} Yay: {CommitMsgs.Count} of {CommitMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + ", " + y)}");
                 Settled = true;
                 Done.Set();
-            }                
+            }
+            return true;
         }
 
         public bool GetIsAuthoringSuccess(BillBoard billBoard)
