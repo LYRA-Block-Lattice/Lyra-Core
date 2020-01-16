@@ -157,6 +157,8 @@ namespace Lyra.Core.Decentralize
 
         private AuthorizedMsg LocalAuthorizingAsync(AuthorizingMsg item)
         {
+            _log.LogInformation($"LocalAuthorizingAsync: {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
+
             var stopwatch = Stopwatch.StartNew();
             var authorizer = _authorizers.Create(item.Block.BlockType);
 
@@ -201,7 +203,11 @@ namespace Lyra.Core.Decentralize
             if(result.Result == APIResultCodes.Success)
                 _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
             else
+            {
                 _log.LogError($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
+                _log.LogInformation($"LocalAuthorizingAsync state: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+            }
+                
             return result;
         }
 
@@ -224,7 +230,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnPrepare(AuthorizedMsg item)
         {
-            //_log.LogInformation($"Consensus: OnPrepare Called: Block Hash: {item.BlockHash}");
+            _log.LogInformation($"OnPrepare: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
@@ -283,6 +289,8 @@ namespace Lyra.Core.Decentralize
 
                 state.Saving = true;
 
+                _log.LogInformation($"Saving: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+
                 var ts = DateTime.Now - state.Created;
                 if (_context.Stats.Count > 10000)
                     _context.Stats.RemoveRange(0, 2000);
@@ -337,7 +345,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnCommit(AuthorizerCommitMsg item)
         {
-            //_log.LogInformation($"Consensus: OnCommit Called: BlockUIndex: {item.BlockIndex}");
+            _log.LogInformation($"OnCommit: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
