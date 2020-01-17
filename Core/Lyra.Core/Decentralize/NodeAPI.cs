@@ -16,21 +16,21 @@ namespace Lyra.Core.Decentralize
         {
         }
 
-        public Task<GetSyncStateAPIResult> GetSyncState()
+        public async Task<GetSyncStateAPIResult> GetSyncState()
         {
             var result = new GetSyncStateAPIResult
             {
                 ResultCode = APIResultCodes.Success,
                 Mode = BlockChain.Singleton.InSyncing ? ConsensusWorkingMode.OutofSyncWaiting : ConsensusWorkingMode.Normal,
-                NewestBlockUIndex = BlockChain.Singleton.GetNewestBlockUIndex()
+                NewestBlockUIndex = await BlockChain.Singleton.GetNewestBlockUIndexAsync()
             };
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<BlockAPIResult> GetBlockByUIndex(long uindex)
+        public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
         {
             BlockAPIResult result;
-            var block = BlockChain.Singleton.GetBlockByUIndex(uindex);
+            var block = await BlockChain.Singleton.GetBlockByUIndexAsync(uindex);
             if(block == null)
             {
                 result = new BlockAPIResult { ResultCode = APIResultCodes.BlockNotFound };
@@ -45,7 +45,7 @@ namespace Lyra.Core.Decentralize
                 };
             }
 
-            return Task.FromResult(result);
+            return result;
         }
 
         public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
@@ -61,12 +61,12 @@ namespace Lyra.Core.Decentralize
             return Task.FromResult(result);
         }
 
-        public Task<AccountHeightAPIResult> GetSyncHeight()
+        public async Task<AccountHeightAPIResult> GetSyncHeight()
         {
             var result = new AccountHeightAPIResult();
             try
             {
-                var last_sync_block = BlockChain.Singleton.GetSyncBlock();
+                var last_sync_block = await BlockChain.Singleton.GetSyncBlockAsync();
                 if(last_sync_block == null)
                 {
                     // empty database. 
@@ -77,14 +77,14 @@ namespace Lyra.Core.Decentralize
                 result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
                 result.ResultCode = APIResultCodes.Success;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 result.ResultCode = APIResultCodes.UnknownError;
             }
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
             var result = new GetTokenNamesAPIResult();
 
@@ -93,7 +93,7 @@ namespace Lyra.Core.Decentralize
                 //if (!BlockChain.Singleton.AccountExists(AccountId))
                 //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var blocks = BlockChain.Singleton.FindTokenGenesisBlocks(keyword == "(null)" ? null : keyword);
+                var blocks = await BlockChain.Singleton.FindTokenGenesisBlocksAsync(keyword == "(null)" ? null : keyword);
                 if (blocks != null)
                 {
                     result.TokenNames = blocks.Select(a => a.Ticker).ToList();
@@ -108,19 +108,19 @@ namespace Lyra.Core.Decentralize
                 result.ResultCode = APIResultCodes.UnknownError;
             }
 
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
+        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
         {
             var result = new AccountHeightAPIResult();
             try
             {
-                if (BlockChain.Singleton.AccountExists(AccountId))
+                if (await BlockChain.Singleton.AccountExistsAsync(AccountId))
                 {
-                    result.Height = BlockChain.Singleton.FindLatestBlock(AccountId).Index;
+                    result.Height = (await BlockChain.Singleton.FindLatestBlockAsync(AccountId)).Index;
                     result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
-                    result.SyncHash = BlockChain.Singleton.GetSyncBlock().Hash;
+                    result.SyncHash = (await BlockChain.Singleton.GetSyncBlockAsync()).Hash;
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else
@@ -128,22 +128,22 @@ namespace Lyra.Core.Decentralize
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 result.ResultCode = APIResultCodes.UnknownError;
             }
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index, string Signature)
+        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index, string Signature)
         {
             var result = new BlockAPIResult();
 
             try
             {
-                if (BlockChain.Singleton.AccountExists(AccountId))
+                if (await BlockChain.Singleton.AccountExistsAsync(AccountId))
                 {
-                    var block = BlockChain.Singleton.FindBlockByIndex(AccountId, Index);
+                    var block = await BlockChain.Singleton.FindBlockByIndexAsync(AccountId, Index);
                     if (block != null)
                     {
                         result.BlockData = Json(block);
@@ -162,19 +162,19 @@ namespace Lyra.Core.Decentralize
                 result.ResultCode = APIResultCodes.UnknownError;
             }
 
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             var result = new BlockAPIResult();
 
             try
             {
-                if (!BlockChain.Singleton.AccountExists(AccountId))
+                if (!await BlockChain.Singleton.AccountExistsAsync(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = BlockChain.Singleton.FindBlockByHash(AccountId, Hash);
+                var block = await BlockChain.Singleton.FindBlockByHashAsync(AccountId, Hash);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -190,19 +190,19 @@ namespace Lyra.Core.Decentralize
                 result.ResultCode = APIResultCodes.UnknownError;
             }
 
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
             var result = new NonFungibleListAPIResult();
 
             try
             {
-                if (!BlockChain.Singleton.AccountExists(AccountId))
+                if (!await BlockChain.Singleton.AccountExistsAsync(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var list = BlockChain.Singleton.GetNonFungibleTokens(AccountId);
+                var list = await BlockChain.Singleton.GetNonFungibleTokensAsync(AccountId);
                 if (list != null)
                 {
                     result.ListDataSerialized = Json(list);
@@ -217,10 +217,10 @@ namespace Lyra.Core.Decentralize
                 result.ResultCode = APIResultCodes.UnknownError;
             }
 
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
             var result = new BlockAPIResult();
 
@@ -229,7 +229,7 @@ namespace Lyra.Core.Decentralize
                 //if (!BlockChain.Singleton.AccountExists(AccountId))
                 //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = BlockChain.Singleton.FindTokenGenesisBlock(null, TokenTicker);
+                var block = await BlockChain.Singleton.FindTokenGenesisBlockAsync(null, TokenTicker);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -245,19 +245,19 @@ namespace Lyra.Core.Decentralize
                 result.ResultCode = APIResultCodes.UnknownError;
             }
 
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
+        public async Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
         {
             var result = new BlockAPIResult();
 
             try
             {
-                if (!BlockChain.Singleton.AccountExists(AccountId))
+                if (!await BlockChain.Singleton.AccountExistsAsync(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = BlockChain.Singleton.GetLastServiceBlock();
+                var block = await BlockChain.Singleton.GetLastServiceBlockAsync();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -273,19 +273,19 @@ namespace Lyra.Core.Decentralize
                 result.ResultCode = APIResultCodes.UnknownError;
             }
 
-            return Task.FromResult(result);
+            return result;
         }
 
-        public Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
             NewTransferAPIResult transfer_info = new NewTransferAPIResult();
             try
             {
-                SendTransferBlock sendBlock = BlockChain.Singleton.FindUnsettledSendBlock(AccountId);
+                SendTransferBlock sendBlock = await BlockChain.Singleton.FindUnsettledSendBlockAsync(AccountId);
 
                 if (sendBlock != null)
                 {
-                    TransactionBlock previousBlock = BlockChain.Singleton.FindBlockByHash(sendBlock.PreviousHash);
+                    TransactionBlock previousBlock = await BlockChain.Singleton.FindBlockByHashAsync(sendBlock.PreviousHash);
                     if (previousBlock == null)
                         transfer_info.ResultCode = APIResultCodes.CouldNotTraceSendBlockChain;
                     else
@@ -299,11 +299,11 @@ namespace Lyra.Core.Decentralize
                 else
                     transfer_info.ResultCode = APIResultCodes.NoNewTransferFound;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 transfer_info.ResultCode = APIResultCodes.UnknownError;
             }
-            return Task.FromResult(transfer_info);
+            return transfer_info;
         }
 
         // util 

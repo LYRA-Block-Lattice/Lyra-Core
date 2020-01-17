@@ -95,7 +95,7 @@ namespace Lyra.Node2.Services
                     };
                 }
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 // network timeout etc.
                 result = new GetNotificationAPIResult()

@@ -13,8 +13,6 @@ namespace Lyra.Core.Accounts
         public const string SERVICE_ACCOUNT_NAME = "service_account";
         public string DatabasePath { get; set; }
 
-        Timer timer = null;
-
         private readonly IActorRef _blockChain;
         private readonly Wallet _svcWallet;
         private LyraConfig _config;
@@ -35,9 +33,9 @@ namespace Lyra.Core.Accounts
             return Akka.Actor.Props.Create(() => new ServiceAccount(blockChain, svcWallet));
         }
 
-        public ServiceBlock GetLastServiceBlock()
+        public async Task<ServiceBlock> GetLastServiceBlockAsync()
         {
-            return BlockChain.Singleton.GetLastServiceBlock();
+            return await BlockChain.Singleton.GetLastServiceBlockAsync();
             ////var lstServiceBlock = base._storage. _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("SourceHash", sendBlock.Hash)));
             //Block lastBlock = GetLatestBlock();
             //if (lastBlock.BlockType == BlockTypes.Service)

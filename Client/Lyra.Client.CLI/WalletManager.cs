@@ -56,7 +56,7 @@ namespace Lyra.Client.CLI
             if(options.GenWalletName != null)
             {
                 wallet.AccountName = options.GenWalletName;
-                wallet.CreateAccountAsync(full_path, wallet.AccountName, AccountTypes.Standard);
+                wallet.CreateAccount(full_path, wallet.AccountName, AccountTypes.Standard);
                 var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(Base58Encoding.DecodeAccountId(wallet.AccountId), Neo.Cryptography.ECC.ECCurve.Secp256r1);
                 Console.WriteLine($"The new wallet {wallet.AccountName} for {network_id}: ");
                 Console.WriteLine(ep.ToString());
@@ -104,7 +104,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine("Local account data not found. Would you like to create a new account? (Y/n): ");
                         if (command.ReadYesNoAnswer())
                         {
-                            wallet.CreateAccountAsync(full_path, wallet.AccountName, AccountTypes.Standard);
+                            wallet.CreateAccount(full_path, wallet.AccountName, AccountTypes.Standard);
                         }
                         else
                         {

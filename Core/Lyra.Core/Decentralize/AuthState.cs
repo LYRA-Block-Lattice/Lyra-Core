@@ -1,4 +1,6 @@
-﻿using Neo;
+﻿using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
+using Neo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,13 @@ namespace Lyra.Core.Decentralize
     {
         public DateTime Created { get; private set; }
 
+        public DateTime T1 { get; set; }
+        public DateTime T2 { get; set; }
+        public DateTime T3 { get; set; }
+        public DateTime T4 { get; set; }
+
+        public DateTime T5 { get; set; }
+
         public string HashOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
         public List<AuthorizedMsg> OutputMsgs { get; set; }
@@ -22,8 +31,12 @@ namespace Lyra.Core.Decentralize
 
         public bool? IsConsensusSuccess { get; private set; }
 
+        ILogger _log;
+
         public AuthState()
         {
+            _log = new SimpleLogger("AuthState").Logger;
+
             Created = DateTime.Now;
 
             OutputMsgs = new List<AuthorizedMsg>();
@@ -32,19 +45,30 @@ namespace Lyra.Core.Decentralize
             Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 
-        public void AddAuthResult(AuthorizedMsg msg)
+        public bool AddAuthResult(AuthorizedMsg msg)
         {
+            // check repeated message
+            if (OutputMsgs.ToList().Any(a => a.From == msg.From))
+                return false;
+
             OutputMsgs.Add(msg);
+            return true;
         }
 
-        public void AddCommitedResult(AuthorizerCommitMsg msg)
+        public bool AddCommitedResult(AuthorizerCommitMsg msg)
         {
+            // check repeated message
+            if (CommitMsgs.ToList().Any(a => a.From == msg.From))
+                return false;
+
             CommitMsgs.Add(msg);
             if (CommitMsgs.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
             {
+                _log.LogInformation($"Committed: {ConsensusUIndex}/{InputMsg.Block.Index} Yay: {CommitMsgs.Count} of {CommitMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + ", " + y)}");
                 Settled = true;
                 Done.Set();
-            }                
+            }
+            return true;
         }
 
         public bool GetIsAuthoringSuccess(BillBoard billBoard)
@@ -53,7 +77,7 @@ namespace Lyra.Core.Decentralize
                 throw new Exception("The BillBoard mustn't be null!");
 
             // wait for a proper UID
-            if (!OutputMsgs.Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]))
+            if (!OutputMsgs.ToList().Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]))
             {
                 return false;
             }                
@@ -68,6 +92,7 @@ namespace Lyra.Core.Decentralize
 
             return IsConsensusSuccess == true;
         }
+
 
         public long ConsensusUIndex
         {

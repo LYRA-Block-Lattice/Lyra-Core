@@ -15,15 +15,15 @@ namespace Lyra.Core.Authorizers
             
         }
 
-        public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
         {
-            var result = AuthorizeImpl(tblock);
+            var result = await AuthorizeImplAsync(tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, await SignAsync(tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is CancelTradeOrderBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -31,22 +31,22 @@ namespace Lyra.Core.Authorizers
             var block = tblock as CancelTradeOrderBlock;
 
             // 1. check if the account exists
-            if (!BlockChain.Singleton.AccountExists(block.AccountID))
+            if (!BlockChain.Singleton.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
-            TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlock(block.AccountID);
+            TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlockAsync(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            var result = VerifyBlock(block, lastBlock);
+            var result = VerifyBlockAsync(block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = VerifyTransactionBlock(block);
+            result = VerifyTransactionBlockAsync(block);
             if (result != APIResultCodes.Success)
                 return result;
 
-            var original_order = BlockChain.Singleton.FindBlockByHash(block.AccountID, block.TradeOrderId) as TradeOrderBlock;
+            var original_order = BlockChain.Singleton.FindBlockByHashAsync(block.AccountID, block.TradeOrderId) as TradeOrderBlock;
             if (original_order == null)
                 return APIResultCodes.NoTradesFound;
 
@@ -61,7 +61,7 @@ namespace Lyra.Core.Authorizers
         // Thus, it should take the balance from the latest block and add the balamce (transactin amount) locked by the order block.
         APIResultCodes ValidateCancellationBalance(CancelTradeOrderBlock block, TransactionBlock lastBlock, TradeOrderBlock original_order)
         {
-            var order_previous_block = BlockChain.Singleton.FindBlockByHash(original_order.PreviousHash);
+            var order_previous_block = BlockChain.Singleton.FindBlockByHashAsync(original_order.PreviousHash);
 
             var order_transaction = original_order.GetTransaction(order_previous_block);
             var cancel_transaction = block.GetTransaction(lastBlock);
@@ -72,16 +72,7 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected override APIResultCodes ValidateFee(TransactionBlock block)
-        {
-            if (block.FeeType != AuthorizationFeeTypes.NoFee)
-                return APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != 0)
-                return APIResultCodes.InvalidFeeAmount;
-
-            return APIResultCodes.Success;
-        }
 
     }
 }

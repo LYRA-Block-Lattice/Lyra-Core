@@ -2,6 +2,7 @@ using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Neo.Wallets;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -85,10 +86,9 @@ namespace Lyra.Core.Cryptography
                 var signatureBytes = Base58Encoding.Decode(signature);
                 var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
 
-                //return Neo.Cryptography.Crypto.Default.VerifySignature(Encoding.UTF8.GetBytes(message), signatureBytes, publicKeyBytes);
-                Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(Neo.Cryptography.ECC.ECPoint.FromBytes(publicKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1));
-                var sh = new SignatureHolder(signature);
-                return sa.VerifySignature(Encoding.ASCII.GetBytes(message), sh.R, sh.S);
+                var result = Neo.Cryptography.Crypto.Default.VerifySignature(Encoding.UTF8.GetBytes(message), signatureBytes, publicKeyBytes);
+
+                return result;
             }
             catch(Exception ex)
             {
@@ -101,18 +101,18 @@ namespace Lyra.Core.Cryptography
         {
             var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
             var privateKeyBytes = Base58Encoding.DecodePrivateKey(privateKey);
-            //var signature = Neo.Cryptography.Crypto.Default.Sign(Encoding.UTF8.GetBytes(message), privateKeyBytes, publicKeyBytes);
-            //return Base58Encoding.Encode(signature);
+            var signature = Neo.Cryptography.Crypto.Default.Sign(Encoding.UTF8.GetBytes(message), privateKeyBytes, publicKeyBytes);
+            return Base58Encoding.Encode(signature);
 
-            Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(privateKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1);
-            var sigInts = sa.GenerateSignature(Encoding.ASCII.GetBytes(message));
+            //Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(privateKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1);
+            //var sigInts = sa.GenerateSignature(Encoding.ASCII.GetBytes(message));
 
-            var sh = new SignatureHolder(sigInts);
-            var signature = sh.ToString();
+            //var sh = new SignatureHolder(sigInts);
+            //var signature = sh.ToString();
 
-            //var vrt = VerifySignature(message, AccountId, signature);
+            ////var vrt = VerifySignature(message, AccountId, signature);
 
-            return signature;
+            //return signature;
         }
 
         private class SignatureHolder

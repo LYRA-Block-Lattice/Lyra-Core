@@ -1,5 +1,7 @@
 ﻿using Akka.Actor;
+using Akka.Cluster.Routing;
 using Akka.Configuration;
+using Akka.Routing;
 using Clifton.Blockchain;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
@@ -17,6 +19,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +28,11 @@ using static Neo.Network.P2P.LocalNode;
 
 namespace Lyra.Core.Decentralize
 {
+    public class TransStats
+    {
+        public long ms { get; set; }
+        public BlockTypes trans { get; set; }
+    }
     // when out of sync, we adjust useed, continue to save blocks, and told blockchain to do sync.
     public enum ConsensusWorkingMode { Normal, OutofSyncWaiting }
     /// <summary>
@@ -37,20 +46,22 @@ namespace Lyra.Core.Decentralize
         public class BlockChainSynced { }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
+        //private readonly ConsistentHashingPool _pool;
+        //private readonly IActorRef _router;
 
         ILogger _log;
 
         // hash, authState
         Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
-        Dictionary<string, AuthState> _activeConsensus;
-        Dictionary<string, AuthState> _cleanedConsensus;
+        Dictionary<string, ConsensusWorker> _activeConsensus;
+        Dictionary<string, ConsensusWorker> _cleanedConsensus;
         private BillBoard _board;
+        private List<TransStats> _stats;
 
-        private AuthorizersFactory _authorizers;
         private long _UIndexSeed = -1;
         private object _seedLocker = new object();
 
-        private long USeed
+        public long USeed
         {
             get
             {
@@ -70,13 +81,8 @@ namespace Lyra.Core.Decentralize
 
         public bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public ConsensusWorkingMode Mode { get; private set; }
-
-        public class TransStats
-        {
-            public long ms { get; set; }
-            public BlockTypes trans { get; set; }
-        }
-        private List<TransStats> _stats;
+        public BillBoard Board { get => _board; set => _board = value; }
+        public List<TransStats> Stats { get => _stats; set => _stats = value; }
 
         public ConsensusService(IActorRef localNode)
         {
@@ -84,15 +90,28 @@ namespace Lyra.Core.Decentralize
             _log = new SimpleLogger("ConsensusService").Logger;
 
             _outOfOrderedMessages = new Dictionary<string, List<SourceSignedMessage>>();
-            _activeConsensus = new Dictionary<string, AuthState>();
-            _cleanedConsensus = new Dictionary<string, AuthState>();
+            _activeConsensus = new Dictionary<string, ConsensusWorker>();
+            _cleanedConsensus = new Dictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
 
-            _authorizers = new AuthorizersFactory();
             while (BlockChain.Singleton == null)
                 Task.Delay(100).Wait();
 
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
+
+            //_pool = new ConsistentHashingPool(50).WithHashMapping(o => o switch
+            //{
+            //    AuthorizingMsg msg1 => msg1.Block.Hash,
+            //    AuthorizedMsg msg2 => msg2.BlockHash,
+            //    AuthorizerCommitMsg msg3 => msg3.BlockHash,
+            //    AuthState state => state.HashOfFirstBlock,
+            //    _ => null,
+            //});
+
+            //_router = LyraSystem.Singleton.ActorSystem.ActorOf(Akka.Actor.Props.Create<ConsensusWorker>(() => 
+            //    new ConsensusWorker(this)
+            //    )
+            //    .WithRouter(_pool), "some-pool");
 
             Receive<Consolidate>((_) =>
             {
@@ -118,89 +137,53 @@ namespace Lyra.Core.Decentralize
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
             Receive<AskForStats>((_) => Sender.Tell(_stats));
 
-            Receive<AuthorizingMsg>(async msg =>
-            {
-                OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
-
-                if (msg.Version != LyraGlobal.ProtocolVersion || _board == null || !_board.CanDoConsensus)
-                {
-                    Sender.Tell(null);
-                    return;
-                }
-
-                var stopwatch = Stopwatch.StartNew();
-
-                // first try auth locally
-                var state = CreateAuthringState(msg);
-                if(state == null)
-                {
-                    Sender.Tell(null);
-                    return;
-                }
-                var localAuthResult = LocalAuthorizingAsync(msg);
-                state.AddAuthResult(localAuthResult);
-
-                if (!localAuthResult.IsSuccess)
-                {
-                    state.Done.Set();
-                    Sender.Tell(state);
-                }
-                else
-                {
-                    Send2P2pNetwork(msg);
-                    Send2P2pNetwork(localAuthResult);
-
-                    var sender = Context.Sender;
-
-                    await Task.Run(() =>
-                    {
-                        _ = state.Done.WaitOne();
-                    });
-
-                    stopwatch.Stop();
-                    if (_stats.Count > 10000)
-                        _stats.RemoveRange(0, 2000);
-
-                    _stats.Add(new TransStats { ms = stopwatch.ElapsedMilliseconds, trans = state.InputMsg.Block.BlockType });
-
-                    sender.Tell(state);
-                }
-            });
-
-            Receive<SignedMessageRelay>(relayMsg =>
+            ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
                 if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
-                    OnNextConsensusMessage(relayMsg.signedMessage);
+                    try
+                    {
+                        await OnNextConsensusMessageAsync(relayMsg.signedMessage);
+                    }
+                    catch(Exception ex)
+                    {
+                        _log.LogCritical("OnNextConsensusMessageAsync!!! " + ex.Message);
+                    }
                 else
                     _log.LogWarning("Protocol Version Mismatch. Do nothing.");
             });
 
-            Receive<BlockChainSynced>(_ =>
+            ReceiveAsync<BlockChainSynced>(async _ =>
             {
                 Mode = ConsensusWorkingMode.Normal;
-                USeed = BlockChain.Singleton.FindLatestBlock().UIndex + 1;
+                USeed = (await BlockChain.Singleton.FindLatestBlockAsync()).UIndex + 1;
 
                 _log.LogInformation($"The USeed is {USeed}");
 
                 // declare to the network
-                var msg = new ChatMsg
-                {
-                    From = NodeService.Instance.PosWallet.AccountId,
-                    MsgType = ChatMessageType.NodeUp,
-                    Text = "Staking with () Lyra"
-                };
+                PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
+                me.IP = LocalIPAddress().ToString();
+                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
 
                 Send2P2pNetwork(msg);
             });
 
+            Receive<AuthState>(state =>
+            {
+                //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
+                var worker = new ConsensusWorker(this);
+                _activeConsensus.Add(state.InputMsg.Block.Hash, worker);
+                worker.Create(state);
+            });
+
             Task.Run(async () =>
             {
+                await HeartBeatAsync();
                 int count = 0;
                 while (true)
                 {
                     if (Mode == ConsensusWorkingMode.Normal)
                     {
-                        GenerateConsolidateBlock();
+                        //await GenerateConsolidateBlockAsync();
                     }
 
                     await Task.Delay(10000).ConfigureAwait(false);
@@ -208,16 +191,21 @@ namespace Lyra.Core.Decentralize
 
                     if(count >= 3)
                     {
-                        HeartBeat();
+                        await HeartBeatAsync();
                         count = 0;
                     }
                 }
             });
         }
 
-        private void HeartBeat()
+        private void GetAllWorkers()
         {
-            OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+
+        }
+
+        private async Task HeartBeatAsync()
+        {
+            await OnNodeActiveAsync(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
             // declare to the network
             var msg = new ChatMsg
@@ -235,13 +223,13 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void GenerateConsolidateBlock()
+        private async Task GenerateConsolidateBlockAsync()
         {
             // should lock the uindex seed here.
             // after clean, if necessary, insert a consolidate block into the queue
             // next time do clean, if no null block before the consolidate block, then send out the consolidate block.
             // 2 phase consolidation
-            var lastCons = BlockChain.Singleton.GetSyncBlock();
+            var lastCons = await BlockChain.Singleton.GetSyncBlockAsync();
             ConsolidationBlock currentCons = null;
             try
             {
@@ -251,7 +239,7 @@ namespace Lyra.Core.Decentralize
                 var cleaned = _cleanedConsensus.Values.ToArray();
                 for (int i = 0; i < cleaned.Length; i++)
                 {
-                    var state = cleaned[i];
+                    var state = cleaned[i].State;
                     if (DateTime.Now - state.Created > TimeSpan.FromMinutes(2)) // 2 mins
                     {
                         _cleanedConsensus.Remove(state.InputMsg.Block.Hash);
@@ -261,14 +249,14 @@ namespace Lyra.Core.Decentralize
                 var states = _activeConsensus.Values.ToArray();
                 for (int i = 0; i < states.Length; i++)
                 {
-                    var state = states[i];
+                    var state = states[i].State;    // TODO: check null
                     if (DateTime.Now - state.Created > TimeSpan.FromSeconds(10)) // consensus timeout
                     {
                         var finalResult = state.GetIsAuthoringSuccess(_board);
                         _activeConsensus.Remove(state.InputMsg.Block.Hash);
                         state.Done.Set();
 
-                        _cleanedConsensus.Add(state.InputMsg.Block.Hash, state);
+                        _cleanedConsensus.Add(state.InputMsg.Block.Hash, states[i]);
 
                         //if (finalResult == true)
                         //    continue;
@@ -368,56 +356,56 @@ namespace Lyra.Core.Decentralize
             //}
         }
 
-        private AuthState SendServiceBlock(TransactionBlock svcBlock)
-        {
-            AuthorizingMsg msg = new AuthorizingMsg
-            {
-                From = NodeService.Instance.PosWallet.AccountId,
-                Block = svcBlock,
-                MsgType = ChatMessageType.AuthorizerPrePrepare
-            };
+        //private AuthState SendServiceBlock(TransactionBlock svcBlock)
+        //{
+        //    AuthorizingMsg msg = new AuthorizingMsg
+        //    {
+        //        From = NodeService.Instance.PosWallet.AccountId,
+        //        Block = svcBlock,
+        //        MsgType = ChatMessageType.AuthorizerPrePrepare
+        //    };
 
-            var state = CreateAuthringState(msg);
-            var localAuthResult = LocalAuthorizingAsync(msg);
-            state.AddAuthResult(localAuthResult);
+        //    var state = CreateAuthringState(msg);
+        //    var localAuthResult = LocalAuthorizingAsync(msg);
+        //    state.AddAuthResult(localAuthResult);
 
-            if (!localAuthResult.IsSuccess)
-            {
-                _log.LogError($"Fatal Error: Consolidate block local authorization failed: {localAuthResult.Result}");
-            }
-            else
-            {
-                Send2P2pNetwork(msg);
-                Send2P2pNetwork(localAuthResult);
-            }
+        //    if (!localAuthResult.IsSuccess)
+        //    {
+        //        _log.LogError($"Fatal Error: Consolidate block local authorization failed: {localAuthResult.Result}");
+        //    }
+        //    else
+        //    {
+        //        Send2P2pNetwork(msg);
+        //        Send2P2pNetwork(localAuthResult);
+        //    }
 
-            return state;
-        }
+        //    return state;
+        //}
 
         public static Props Props(IActorRef localNode)
         {
             return Akka.Actor.Props.Create(() => new ConsensusService(localNode)).WithMailbox("consensus-service-mailbox");
         }
 
-        public virtual void Send2P2pNetwork(SourceSignedMessage msg)
+        public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
-            //_log.LogInformation($"Consensus: SendMessage Called: msg From: {msg.From}");
-
-            var sign = msg.Sign(NodeService.Instance.PosWallet.PrivateKey, msg.From);
-            //_log.LogInformation($"Consensus: Sign {msg.Hash} got: {sign} by prvKey: {NodeService.Instance.PosWallet.PrivateKey} pubKey: {msg.From}");
-
-            int waitCount = 5;
-            while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
-            {
-                _log.LogWarning("Not connected to Lyra Network. Delay sending... ");
-                Task.Delay(1000).Wait();
-                waitCount--;
-            }
-
-            _localNode.Tell(msg);
+            item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
+            _localNode.Tell(item);
         }
 
-        void OnNextConsensusMessage(SourceSignedMessage item)
+        private ConsensusWorker GetWorker(string hash)
+        {
+            if(_activeConsensus.ContainsKey(hash))
+                return _activeConsensus[hash];
+            else
+            {
+                var worker = new ConsensusWorker(this);
+                _activeConsensus.Add(hash, worker);
+                return worker;
+            }
+        }
+
+        async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
             //_log.LogInformation($"Consensus: OnNextAsyncImpl Called: msg From: {item.From}");
 
@@ -425,35 +413,37 @@ namespace Lyra.Core.Decentralize
             //var nodeConfig = null;
             if (!item.VerifySignature(item.From))
             {
-                _log.LogInformation($"Consensus: bad signature: {item.Hash} sign: {item.Signature} by pubKey: {item.From}");
-                _log.LogInformation($"Consensus: hash: {item.Hash} rehash: {item.CalculateHash()}");
+                _log.LogInformation($"Consensus: bad signature: {item.MsgType} Hash: {item.Hash.Shorten()} by pubKey: {item.From.Shorten()}");
                 return;
             }
 
-            OnNodeActive(item.From);
+            await OnNodeActiveAsync(item.From);
 
             switch (item)
             {
-                case AuthorizingMsg msg:
-                    OnPrePrepare(msg);
+                case AuthorizingMsg msg1:
+                    var worker = GetWorker(msg1.Block.Hash);
+                    await worker.OnPrePrepareAsync(msg1);
                     break;
-                case AuthorizedMsg authed:
-                    OnPrepare(authed);
+                case AuthorizedMsg msg2:
+                    var worker2 = GetWorker(msg2.BlockHash);
+                    await worker2.OnPrepareAsync(msg2);
                     break;
-                case AuthorizerCommitMsg commited:
-                    OnCommit(commited);
+                case AuthorizerCommitMsg msg3:
+                    var worker3 = GetWorker(msg3.BlockHash);
+                    await worker3.OnCommitAsync(msg3);
                     break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.HeartBeat:
-                    OnHeartBeat(chat);
+                    await OnHeartBeatAsync(chat);
                     break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.NodeUp:
-                    OnNodeUp(chat);
+                    await OnNodeUpAsync(chat);
                     break;
                 case ChatMsg bbb when bbb.MsgType == ChatMessageType.StakingChanges:
                     OnBillBoardBroadcast(bbb);
                     break;
                 case ChatMsg bcc when bcc.MsgType == ChatMessageType.BlockConsolidation:
-                    OnBlockConsolication(bcc);
+                    await OnBlockConsolicationAsync(bcc);
                     break;
                 default:
                     // log msg unknown
@@ -461,14 +451,14 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void OnBlockConsolication(ChatMsg msg)
+        private async Task OnBlockConsolicationAsync(ChatMsg msg)
         {
             if (!IsThisNodeSeed0)
             {
                 var block = JsonConvert.DeserializeObject<ConsolidationBlock>(msg.Text);
                 try
                 {
-                    BlockChain.Singleton.AddBlock(block);
+                    await BlockChain.Singleton.AddBlockAsync(block);
                     _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.UIndex}");
                 }
                 catch(Exception e)
@@ -491,32 +481,31 @@ namespace Lyra.Core.Decentralize
         {
             if(_board != null)
             {
-                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, JsonConvert.SerializeObject(_board));
-                msg.MsgType = ChatMessageType.StakingChanges;
+                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
                 Send2P2pNetwork(msg);
             }
         }
 
-        private void OnNodeActive(string nodeAccountId)
+        public async Task OnNodeActiveAsync(string nodeAccountId)
         {
             if (_board != null)
-                _board.Add(nodeAccountId);
+                await _board.AddAsync(nodeAccountId);
         }
 
-        private void OnHeartBeat(ChatMsg chat)
+        private async Task OnHeartBeatAsync(ChatMsg chat)
         {
             if (_board == null)
                 return;
 
-            var node = _board.Add(chat.From);
+            var node = await _board.AddAsync(chat.From);
         }
 
-        private void OnNodeUp(ChatMsg chat)
+        private async Task OnNodeUpAsync(ChatMsg chat)
         {
             if (_board == null)
                 return;
 
-            var node = _board.Add(chat.From);
+            var node = await _board.AddAsync(chat.From);
 
             if (IsThisNodeSeed0)
             {
@@ -530,276 +519,18 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private AuthState CreateAuthringState(AuthorizingMsg item)
+        private IPAddress LocalIPAddress()
         {
-            _log.LogInformation($"Consensus: CreateAuthringState Called: BlockUIndex: {item.Block.UIndex}");
-
-            var ukey = item.Block.Hash;
-            if (_activeConsensus.ContainsKey(ukey))
+            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
-                return _activeConsensus[ukey];
-            }
-
-            var state = new AuthState
-            {
-                HashOfFirstBlock = ukey,
-                InputMsg = item,
-            };
-
-            // add possible out of ordered messages belong to the block
-            if (_outOfOrderedMessages.ContainsKey(item.Block.Hash))
-            {
-                var msgs = _outOfOrderedMessages[item.Block.Hash];
-                _outOfOrderedMessages.Remove(item.Block.Hash);
-
-                foreach (var msg in msgs)
-                {
-                    switch (msg)
-                    {
-                        case AuthorizedMsg authorized:
-                            state.AddAuthResult(authorized);
-                            break;
-                        case AuthorizerCommitMsg committed:
-                            state.AddCommitedResult(committed);
-                            break;
-                    }
-                }
-            }
-
-            // check if block existing
-            if (null != BlockChain.Singleton.FindBlockByHash(item.Block.Hash))
-            {
-                _log.LogInformation("CreateAuthringState: Block is already in database.");
-                return null;
-            }                
-
-            // check if block was replaced by nulltrans
-            if (null != BlockChain.Singleton.FindNullTransBlockByHash(item.Block.Hash))
-            {
-                _log.LogInformation("CreateAuthringState: Block is already consolidated by nulltrans.");
                 return null;
             }
 
-            _activeConsensus.Add(ukey, state);
-            return state;
-        }
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
 
-        private AuthorizedMsg LocalAuthorizingAsync(AuthorizingMsg item)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            var authorizer = _authorizers[item.Block.BlockType];
-
-            AuthorizedMsg result;
-            try
-            {
-                var localAuthResult = authorizer.Authorize(item.Block);
-                result = new AuthorizedMsg
-                {
-                    From = NodeService.Instance.PosWallet.AccountId,
-                    MsgType = ChatMessageType.AuthorizerPrepare,
-                    BlockHash = item.Block.Hash,
-                    Result = localAuthResult.Item1,
-                    AuthSign = localAuthResult.Item2
-                };
-
-                if (item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
-                {
-                    // do nothing. the UIndex has already been take cared of.
-                }
-                else
-                {
-                    _log.LogWarning($"Give UIndex {USeed} to block {Shorten(item.Block.Hash)} of Type {item.Block.BlockType}");
-                    result.BlockUIndex = USeed++;
-                }
-            }
-            catch(Exception e)
-            {
-                _log.LogWarning($"Consensus: LocalAuthorizingAsync Exception: {e.Message} BlockUIndex: {item.Block.UIndex}");
-
-                result = new AuthorizedMsg
-                {
-                    From = NodeService.Instance.PosWallet.AccountId,
-                    MsgType = ChatMessageType.AuthorizerPrepare,
-                    BlockHash = item.Block.Hash,
-                    Result = APIResultCodes.UnknownError,
-                    AuthSign = null
-                };
-            }
-            stopwatch.Stop();
-            _log.LogInformation($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms.");
-            return result;
-        }
-
-        private void OnPrePrepare(AuthorizingMsg item)
-        {
-            _log.LogInformation($"Consensus: OnPrePrepare Called: BlockUIndex: {item.Block.UIndex}");
-
-            var state = CreateAuthringState(item);
-            if (state == null)
-                return;
-
-            _ = Task.Run(() =>
-            {
-                var result = LocalAuthorizingAsync(item);
-
-                Send2P2pNetwork(result);
-                state.AddAuthResult(result);
-                CheckAuthorizedAllOk(state);
-                _log.LogInformation($"Consensus: OnPrePrepare LocalAuthorized: {item.Block.UIndex}: {result.IsSuccess}");
-            });
-        }
-
-        private void OnPrepare(AuthorizedMsg item)
-        {
-            _log.LogInformation($"Consensus: OnPrepare Called: Block Hash: {item.BlockHash}");
-
-            if (_activeConsensus.ContainsKey(item.BlockHash))
-            {
-                var state = _activeConsensus[item.BlockHash];
-                state.AddAuthResult(item);
-
-                CheckAuthorizedAllOk(state);
-            }
-            else
-            {
-                // maybe outof ordered message
-                if (_cleanedConsensus.ContainsKey(item.BlockHash))
-                {
-                    return;
-                }
-
-                List<SourceSignedMessage> msgs;
-                if (_outOfOrderedMessages.ContainsKey(item.BlockHash))
-                    msgs = _outOfOrderedMessages[item.BlockHash];
-                else
-                {
-                    msgs = new List<SourceSignedMessage>();
-                    msgs.Add(item);
-                }
-
-                msgs.Add(item);
-            }
-        }
-
-        private void CheckAuthorizedAllOk(AuthState state)
-        {
-            // check state
-            // debug: show all states
-            var sb = new StringBuilder();
-            sb.AppendLine();
-            sb.AppendLine($"* Transaction From Node {Shorten(state.InputMsg.Block.AccountID)} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {Shorten(state.InputMsg.Block.Hash)}");
-            foreach(var msg in state.OutputMsgs)
-            {
-                var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
-                string me = "";
-                if (msg.From == NodeService.Instance.PosWallet.AccountId)
-                    me = "[me]";
-                var voice = msg.IsSuccess ? "Yay" : "Nay";
-                sb.AppendLine($"{voice} {msg.Result} By: {Shorten(msg.From)} CanAuth: {_board.AllNodes[msg.From].AbleToAuthorize} {seed0}{me}");
-            }
-            _log.LogInformation(sb.ToString());
-
-            if (state.GetIsAuthoringSuccess(_board))
-            {
-                if (state.Saving)
-                    return;
-
-                state.Saving = true;
-                _ = Task.Run(() =>
-                {
-                    // do commit
-                    var block = state.InputMsg.Block;
-                    block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
-
-                    if (block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.NullTransaction && block.BlockType != BlockTypes.Service)
-                    {
-                        // pickup UIndex
-                        try
-                        {
-                            block.UIndex = state.ConsensusUIndex;
-                        }
-                        catch (Exception ex)
-                        {
-                            _log.LogError("Can't get UIndex. System fail: " + ex.Message);
-                            return;
-                        }
-
-                        //if (!IsThisNodeSeed0 && block.UIndex != USeed - 1)
-                        //{
-                        //    // local node out of sync
-                        //    Mode = ConsensusWorkingMode.OutofSyncWaiting;
-                        //    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
-                        //}
-                    }
-
-                    block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
-
-                    try
-                    {
-                        BlockChain.Singleton.AddBlock(block);
-                        _log.LogInformation($"CheckAuthorizedAllOk of UIndex: {block.UIndex}");
-                    }
-                    catch (Exception e)
-                    {
-                        _log.LogInformation($"CheckAuthorizedAllOk Failed UIndex: {block.UIndex} Why: {e.Message}");
-                        return;
-                    }
-
-                    var msg = new AuthorizerCommitMsg
-                    {
-                        From = NodeService.Instance.PosWallet.AccountId,
-                        MsgType = ChatMessageType.AuthorizerCommit,
-                        BlockHash = state.InputMsg.Block.Hash,
-                        BlockIndex = block.UIndex,
-                        Commited = true
-                    };
-
-                    state.AddCommitedResult(msg);
-                    Send2P2pNetwork(msg);
-
-                    _log.LogInformation($"Consensus: OnPrepare Commited: BlockUIndex: {msg.BlockHash}");
-                });
-            }
-        }
-
-        private void OnCommit(AuthorizerCommitMsg item)
-        {
-            _log.LogInformation($"Consensus: OnCommit Called: BlockUIndex: {item.BlockIndex}");
-
-            if (_activeConsensus.ContainsKey(item.BlockHash))
-            {
-                var state = _activeConsensus[item.BlockHash];
-                state.AddCommitedResult(item);
-
-                OnNodeActive(item.From);        // track latest activities via billboard
-            }
-            else
-            {
-                // maybe outof ordered message
-                if (_cleanedConsensus.ContainsKey(item.BlockHash))
-                {
-                    return;
-                }
-
-                List<SourceSignedMessage> msgs;
-                if (_outOfOrderedMessages.ContainsKey(item.BlockHash))
-                    msgs = _outOfOrderedMessages[item.BlockHash];
-                else
-                {
-                    msgs = new List<SourceSignedMessage>();
-                    msgs.Add(item);
-                }
-
-                msgs.Add(item);
-            }
-        }
-
-        private string Shorten(string addr)
-        {
-            if (string.IsNullOrWhiteSpace(addr) || addr.Length < 10)
-                return addr;
-
-            return $"{addr.Substring(0, 3)}...{addr.Substring(addr.Length - 6, 6)}";
+            return host
+                .AddressList
+                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
     }
 

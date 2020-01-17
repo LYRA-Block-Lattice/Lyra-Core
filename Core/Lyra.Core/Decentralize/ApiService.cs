@@ -34,7 +34,7 @@ namespace Lyra.Core.Decentralize
         //public async Task OnActivateAsync()
         //{
         //    _log.LogInformation("ApiService: Activated");
-        //    _useed = BlockChain.Singleton.GetBlockCount();
+        //    _useed = await BlockChain.Singleton.GetBlockCount();
 
         //    //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
         //}
@@ -50,32 +50,58 @@ namespace Lyra.Core.Decentralize
             return await ConsensusSvc.Ask<BillBoard>(new ConsensusService.AskForBillboard());
         }
 
-        public async Task<List<ConsensusService.TransStats>> GetTransStatsAsync()
+        public async Task<List<TransStats>> GetTransStatsAsync()
         {
-            return await ConsensusSvc.Ask<List<ConsensusService.TransStats>>(new ConsensusService.AskForStats());
+            return await ConsensusSvc.Ask<List<TransStats>>(new ConsensusService.AskForStats());
         }
 
         private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
         {
             _log.LogInformation($"ApiService: PostToConsensusAsync Called: {block.BlockType}");
-            
+
+            //AuthorizingMsg msg = new AuthorizingMsg
+            //{
+            //    From = NodeService.Instance.PosWallet.AccountId,
+            //    Block = block,
+            //    MsgType = ChatMessageType.AuthorizerPrePrepare
+            //};
+
             AuthorizingMsg msg = new AuthorizingMsg
             {
                 From = NodeService.Instance.PosWallet.AccountId,
                 Block = block,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
-            var result = await ConsensusSvc.Ask<AuthState>(msg).ConfigureAwait(false);
 
-            if(result == null)
+            var state = new AuthState
             {
-                _log.LogInformation($"ApiService: PostToConsensusAsync got null result. the network is not ready.");
+                HashOfFirstBlock = msg.Block.Hash,
+                InputMsg = msg
+            };
+
+            ConsensusSvc.Tell(state);
+
+            await state.Done.AsTask();
+
+            var ts1 = state.T1 == null ? "" : ((int)(DateTime.Now - state.T1).TotalMilliseconds).ToString();
+            var ts2 = state.T2 == null ? "" : ((int)(DateTime.Now - state.T2).TotalMilliseconds).ToString();
+            var ts3 = state.T3 == null ? "" : ((int)(DateTime.Now - state.T3).TotalMilliseconds).ToString();
+            var ts4 = state.T4 == null ? "" : ((int)(DateTime.Now - state.T4).TotalMilliseconds).ToString();
+            var ts5 = state.T5 == null ? "" : ((int)(DateTime.Now - state.T5).TotalMilliseconds).ToString();
+
+            _log.LogInformation($"ApiService Timing:\n{ts1}\n{ts2}\n{ts3}\n{ts4}\n{ts5}\n");
+
+            var resultMsg = state.OutputMsgs.Count > 0 ? state.OutputMsgs.First().Result.ToString() : "Unknown";
+            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.IsConsensusSuccess == true} with {resultMsg}");
+            
+            if (state.IsConsensusSuccess == true)
+            {
+                return state;
+            }
+            else
+            {
                 return null;
             }
-
-            var resultMsg = result.OutputMsgs.Count > 0 ? result.OutputMsgs.First().Result.ToString() : "Unknown";
-            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {result?.IsConsensusSuccess == true} with {resultMsg}");
-            return result;
         }
 
         internal async Task<AuthorizationAPIResult> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)
@@ -88,12 +114,13 @@ namespace Lyra.Core.Decentralize
             {
                 IsSuccess = true;
 
-                if (OnBlockSucceed != null)
-                {
-                    var block2 = await OnBlockSucceed(state1.InputMsg.Block).ConfigureAwait(false);
+                // fee is the bottle neck!!! must do lazy fee collection by consolidation
+                //if (OnBlockSucceed != null)
+                //{
+                //    var block2 = await OnBlockSucceed(state1.InputMsg.Block).ConfigureAwait(false);
 
-                    state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
-                }                           
+                //    state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
+                //}                           
             }
             else
             {
@@ -269,7 +296,7 @@ namespace Lyra.Core.Decentralize
                 if(sendBlock.Fee != ExchangingBlock.FEE)
                     return (APIResultCodes.InvalidFeeAmount, null);
             }
-            else if (sendBlock.Fee != BlockChain.Singleton.GetLastServiceBlock().TransferFee)
+            else if (sendBlock.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TransferFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
@@ -277,7 +304,7 @@ namespace Lyra.Core.Decentralize
 
         async Task<(APIResultCodes result, TransactionBlock block)> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
         {
-            if (tokenBlock.Fee != BlockChain.Singleton.GetLastServiceBlock().TokenGenerationFee)
+            if (tokenBlock.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TokenGenerationFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(tokenBlock.Hash, tokenBlock.Fee);
@@ -288,7 +315,7 @@ namespace Lyra.Core.Decentralize
             var callresult = APIResultCodes.Success;
             TransactionBlock blockresult = null;
 
-            TransactionBlock latestBlock = BlockChain.Singleton.FindLatestBlock(NodeService.Instance.PosWallet.AccountId);
+            TransactionBlock latestBlock = await BlockChain.Singleton.FindLatestBlockAsync(NodeService.Instance.PosWallet.AccountId);
             if(latestBlock == null)
             {
                 var receiveBlock = new OpenWithReceiveFeeBlock

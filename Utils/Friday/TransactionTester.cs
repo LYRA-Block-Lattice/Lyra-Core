@@ -4,6 +4,7 @@ using Lyra.Core.Cryptography;
 using Neo.Wallets;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -54,59 +55,84 @@ namespace Friday
             Console.WriteLine($"Single thread, {singleThreadBatch} Send, Avg: {(dtEnd - dtStart).TotalSeconds / singleThreadBatch}");
         }
 
-        public async Task MultiThreadedSendAsync(string[] masterKeys, string[] targetAddrs, Dictionary<string, decimal> amounts)
+        public async Task MultiThreadedSendAsync(string[] masterKeys, string[] targetAddrs, Dictionary<string, decimal> amounts, bool oneTime = false)
         {
             var multiThreadBatch = masterKeys.Length;
             Console.WriteLine($"Multiple Thread Test for {multiThreadBatch} Send.");
+
             var dtStart = DateTime.Now;
 
-            var fromWallets = new List<Wallet>();
-            foreach(var masterKey in masterKeys)
-            {
-                fromWallets.Add(await RefreshBalanceAsync(masterKey));
-            }
-
-            Console.WriteLine($"Sync balance takes {(DateTime.Now - dtStart).TotalSeconds} seconds");
-
-            dtStart = DateTime.Now;
             var threads = new List<Task>();
+            var rand = new Random();
 
-            for(int i = 0; i < fromWallets.Count; i++)
+            foreach (var masterKey in masterKeys)
             {
-                var fromWallet = fromWallets[i];
-                var start = i * 10;
                 var tsk = Task.Run(async () =>
                 {
-                    for (int j = start; j < start + 10; j++)
+                    var fromWallet = await RefreshBalanceAsync(masterKey);
+                    var block = fromWallet.GetLatestBlock();
+                    if (block == null || block.Balances == null)
                     {
-                        var wt = targetAddrs[j];
-                        foreach (var amount in amounts)
+                        Console.WriteLine("No last block!");
+                    }
+                    else
+                    {
+                        while (true)
                         {
-                            var result = await fromWallet.Send(amount.Value, wt, amount.Key);
-                            Console.WriteLine($"Trans {i}: {result.ResultCode}");
+                            foreach (var wt in targetAddrs)
+                            {
+                                foreach (var amount in amounts)
+                                {
+                                    if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key] > amount.Value)
+                                    {
+                                        var stopwatch = Stopwatch.StartNew();
+                                        var result = await fromWallet.Send(amount.Value, wt, amount.Key);
+                                        stopwatch.Stop();
+                                        Console.WriteLine($"Send: {stopwatch.ElapsedMilliseconds} ms. Result: {result.ResultCode}");
+
+                                        if (result.ResultCode != Lyra.Core.Blocks.APIResultCodes.Success)
+                                        {
+                                            Console.WriteLine($"Error: {result.ResultCode} Quit Thread.");
+                                            oneTime = true;
+                                            break;
+                                        }
+
+                                        await fromWallet.Sync(null);
+                                    }
+                                    else
+                                    {
+                                        oneTime = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (oneTime)
+                                break;
                         }
+
                     }
                 });
+                await Task.Delay(200);
                 threads.Add(tsk);
             }
 
             Task.WaitAll(threads.ToArray());
 
-            var dtEnd = DateTime.Now;
-            Console.WriteLine($"Multiple thread, {multiThreadBatch} Send, Avg: {(dtEnd - dtStart).TotalSeconds / multiThreadBatch}");
+
         }
 
         private async Task<Wallet> RefreshBalanceAsync(string masterKey)
         {
             // create wallet and update balance
             var memStor = new AccountInMemoryStorage();
-            var acctWallet = new ExchangeAccountWallet(memStor, "testnet");
+            var acctWallet = new ExchangeAccountWallet(memStor, Program.network_id);
             acctWallet.AccountName = "tmpAcct";
             await acctWallet.RestoreAccountAsync("", masterKey);
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            await acctWallet.Sync(_client);
+            var rpcClient = await LyraRestClient.CreateAsync(Program.network_id, "Windows", "Lyra Client Cli", "1.0a");
+            await acctWallet.Sync(rpcClient);
             return acctWallet;
         }
 

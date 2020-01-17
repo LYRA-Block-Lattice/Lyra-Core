@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
+using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
@@ -13,15 +14,18 @@ namespace Lyra.Core.Authorizers
 
         }
 
-        protected override APIResultCodes ValidateFee(TransactionBlock block)
+        protected override Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
         {
+            APIResultCodes result;
             if (block.FeeType != AuthorizationFeeTypes.Regular)
-                return APIResultCodes.InvalidFeeAmount;
+                result = APIResultCodes.InvalidFeeAmount;
 
             if (block.Fee != ExchangingBlock.FEE)
-                return APIResultCodes.InvalidFeeAmount;
+                result = APIResultCodes.InvalidFeeAmount;
 
-            return APIResultCodes.Success;
+            result = APIResultCodes.Success;
+
+            return Task.FromResult(result);
         }
     }
 }

@@ -13,15 +13,15 @@ namespace Lyra.Core.Authorizers
         {
         }
 
-        public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
         {
-            var result = AuthorizeImpl(tblock);
+            var result = await AuthorizeImplAsync(tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, await SignAsync(tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is LyraTokenGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -33,33 +33,33 @@ namespace Lyra.Core.Authorizers
 
             // Local node validations - before it sends it out to the authorization sample:
             // 1. check if the account already exists
-                if (BlockChain.Singleton.AccountExists(block.AccountID))
+                if (await BlockChain.Singleton.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists; // 
 
             // 2. Validate blocks
-            var result = VerifyBlock(block, null);
+            var result = await VerifyBlockAsync(block, null);
             if (result != APIResultCodes.Success)
                 return result;
 
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
             //if (genesis_blocks.FindTokenGenesisBlock(testTokenGenesisBlock) != null)
-            if (BlockChain.Singleton.FindTokenGenesisBlock(block.Hash, LyraGlobal.LYRATICKERCODE) != null)
+            if (await BlockChain.Singleton.FindTokenGenesisBlockAsync(block.Hash, LyraGlobal.LYRATICKERCODE) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
             return APIResultCodes.Success;
         }
 
-        protected override APIResultCodes ValidateFee(TransactionBlock block)
-        {
-            if (block.FeeType != AuthorizationFeeTypes.NoFee)
-                return APIResultCodes.InvalidFeeAmount;
+        //protected override APIResultCodes ValidateFeeAsync(TransactionBlock block)
+        //{
+        //    if (block.FeeType != AuthorizationFeeTypes.NoFee)
+        //        return APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != 0)
-                return APIResultCodes.InvalidFeeAmount;
+        //    if (block.Fee != 0)
+        //        return APIResultCodes.InvalidFeeAmount;
 
-            return APIResultCodes.Success;
-        }
+        //    return APIResultCodes.Success;
+        //}
 
 
 

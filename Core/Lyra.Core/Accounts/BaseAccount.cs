@@ -117,7 +117,7 @@ namespace Lyra.Core.Accounts
 
         // Create a new account (AccountName is the local wallet name)
         // Returns wallet address
-        public string CreateAccountAsync(string path, string accountName, AccountTypes accountType)
+        public string CreateAccount(string path, string accountName, AccountTypes accountType)
         {
             if (AccountExistsLocally(path, accountName))
                 throw new ApplicationException(String.Format(@"Account with name ""{0}"" already exists", AccountName));

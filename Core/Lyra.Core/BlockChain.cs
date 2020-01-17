@@ -36,7 +36,7 @@ namespace Lyra
         public string NetworkID { get; private set; }
         public bool InSyncing { get; private set; }
         private LyraConfig _nodeConfig;
-        private readonly IAccountCollection _store;
+        private readonly IAccountCollectionAsync _store;
         private LyraSystem _sys;
         private ILogger _log;
         public BlockChain(LyraSystem sys)
@@ -59,31 +59,31 @@ namespace Lyra
             return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
         }
 
-        public long GetNewestBlockUIndex() => _store.GetNewestBlockUIndex();
-        public TransactionBlock GetBlockByUIndex(long uindex) => _store.GetBlockByUIndex(uindex);
-        internal ConsolidationBlock GetSyncBlock() => _store.GetSyncBlock();
-        internal ServiceBlock GetLastServiceBlock() => _store.GetLastServiceBlock();
+        public async Task<long> GetNewestBlockUIndexAsync() => await _store.GetNewestBlockUIndexAsync();
+        public async Task<TransactionBlock> GetBlockByUIndexAsync(long uindex) => await _store.GetBlockByUIndexAsync(uindex);
+        internal async Task<ConsolidationBlock> GetSyncBlockAsync() => await _store.GetSyncBlockAsync();
+        internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await _store.GetLastServiceBlockAsync();
 
         // forward api. should have more control here.
         //public ServiceAccount ServiceAccount => _serviceAccount;
-        public void AddBlock(TransactionBlock block) => _store.AddBlock(block);
-        public void AddBlock(ServiceBlock serviceBlock) => _store.AddBlock(serviceBlock);
+        public async Task<bool> AddBlockAsync(TransactionBlock block) => await _store.AddBlockAsync(block);
+        public async Task AddBlockAsync(ServiceBlock serviceBlock) => await _store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
-        public bool AccountExists(string AccountId) => _store.AccountExists(AccountId);
-        public TransactionBlock FindLatestBlock() => _store.FindLatestBlock();
-        public TransactionBlock FindLatestBlock(string AccountId) => _store.FindLatestBlock(AccountId);
-        public NullTransactionBlock FindNullTransBlockByHash(string hash) => _store.FindNullTransBlockByHash(hash);
-        public TransactionBlock FindBlockByHash(string hash) => _store.FindBlockByHash(hash);
-        public TransactionBlock FindBlockByHash(string AccountId, string hash) => _store.FindBlockByHash(AccountId, hash);
-        public List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword) => _store.FindTokenGenesisBlocks(keyword);
-        public TokenGenesisBlock FindTokenGenesisBlock(string Hash, string Ticker) => _store.FindTokenGenesisBlock(Hash, Ticker);
-        public ReceiveTransferBlock FindBlockBySourceHash(string hash) => _store.FindBlockBySourceHash(hash);
-        public long GetBlockCount() => _store.GetBlockCount();
-        public TransactionBlock FindBlockByIndex(string AccountId, long index) => _store.FindBlockByIndex(AccountId, index);
-        public List<NonFungibleToken> GetNonFungibleTokens(string AccountId) => _store.GetNonFungibleTokens(AccountId);
-        public SendTransferBlock FindUnsettledSendBlock(string AccountId) => _store.FindUnsettledSendBlock(AccountId);
-        public TransactionBlock FindBlockByPreviousBlockHash(string previousBlockHash) => _store.FindBlockByPreviousBlockHash(previousBlockHash);
+        public async Task<bool> AccountExistsAsync(string AccountId) => await _store.AccountExistsAsync(AccountId);
+        public async Task<TransactionBlock> FindLatestBlockAsync() => await _store.FindLatestBlockAsync();
+        public async Task<TransactionBlock> FindLatestBlockAsync(string AccountId) => await _store.FindLatestBlockAsync(AccountId);
+        public async Task<NullTransactionBlock> FindNullTransBlockByHashAsync(string hash) => await _store.FindNullTransBlockByHashAsync(hash);
+        public async Task<TransactionBlock> FindBlockByHashAsync(string hash) => await _store.FindBlockByHashAsync(hash);
+        public async Task<TransactionBlock> FindBlockByHashAsync(string AccountId, string hash) => await _store.FindBlockByHashAsync(AccountId, hash);
+        public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword) => await _store.FindTokenGenesisBlocksAsync(keyword);
+        public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker) => await _store.FindTokenGenesisBlockAsync(Hash, Ticker);
+        public async Task<ReceiveTransferBlock> FindBlockBySourceHashAsync(string hash) => await _store.FindBlockBySourceHashAsync(hash);
+        public async Task<long> GetBlockCountAsync() => await _store.GetBlockCountAsync();
+        public async Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, long index) => await _store.FindBlockByIndexAsync(AccountId, index);
+        public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId) => await _store.GetNonFungibleTokensAsync(AccountId);
+        public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId) => await _store.FindUnsettledSendBlockAsync(AccountId);
+        public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash) => await _store.FindBlockByPreviousBlockHashAsync(previousBlockHash);
 
         protected override void OnReceive(object message)
         {
@@ -93,7 +93,7 @@ namespace Lyra
                     SyncBlocksFromSeeds(cmd.ToUIndex);
                     break;
                 case Startup _:
-                    StartInit();
+                    StartInitAsync().Wait();
                     break;
             //    case Import import:
             //        OnImport(import.Blocks);
@@ -126,9 +126,9 @@ namespace Lyra
             }
         }
 
-        private void StartInit()
+        private async Task StartInitAsync()
         {
-            if (0 == GetBlockCount() && NodeService.Instance.PosWallet.AccountId ==
+            if (0 == await GetBlockCountAsync() && NodeService.Instance.PosWallet.AccountId ==
     ProtocolSettings.Default.StandbyValidators[0])
             {
                 // do genesis
@@ -155,7 +155,7 @@ namespace Lyra
                 });
                 // TODO: add more seed's auth info
 
-                _store.AddBlock(authGenesis);
+                await _store.AddBlockAsync(authGenesis);
 
                 // the first consolidate block
                 var consBlock = new ConsolidationBlock
@@ -177,13 +177,13 @@ namespace Lyra
                     Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
                 });
 
-                _store.AddBlock(consBlock);
+                await _store.AddBlockAsync(consBlock);
 
                 // tell consensus what happened
                 InSyncing = false;
 
                 var board = new BillBoard();
-                board.Add(NodeService.Instance.PosWallet.AccountId);   // add me!
+                await board.AddAsync(NodeService.Instance.PosWallet.AccountId);   // add me!
 
                 LyraSystem.Singleton.Consensus.Tell(board);
                 LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
@@ -245,7 +245,7 @@ namespace Lyra
                         {
                             // seed0. no seed to sync. this seed must have the NORMAL blockchain     
                             var board = new BillBoard();
-                            board.Add(NodeService.Instance.PosWallet.AccountId);   // add me!
+                            await board.AddAsync(NodeService.Instance.PosWallet.AccountId);   // add me!
                             LyraSystem.Singleton.Consensus.Tell(board);
                             break;
                         }
@@ -262,7 +262,7 @@ namespace Lyra
                         LyraSystem.Singleton.Consensus.Tell(board);
 
                         // do sync with node
-                        long startUIndex = _store.GetNewestBlockUIndex() + 1;
+                        long startUIndex = await _store.GetNewestBlockUIndexAsync() + 1;
 
                         _log.LogInformation($"BlockChain Doing sync from {startUIndex} to {syncToUIndex} from node {syncWithUrl}");
 
@@ -278,21 +278,21 @@ namespace Lyra
                                     var blockX = blockResult.GetBlock() as TransactionBlock;
                                     if(blockX.UIndex <= 2)      // the two genesis service block
                                     {
-                                        AddBlock(blockX);
+                                        await AddBlockAsync(blockX);
                                         continue;
                                     }
 
                                     var stopwatch = Stopwatch.StartNew();
 
-                                    var authorizer = authorizers[blockX.BlockType];
-                                    var localAuthResult = authorizer.Authorize(blockX, false);
+                                    var authorizer = authorizers.Create(blockX.BlockType);
+                                    var localAuthResult = await authorizer.AuthorizeAsync(blockX, false);
 
                                     stopwatch.Stop();
                                     _log.LogInformation($"Authorize takes {stopwatch.ElapsedMilliseconds} ms");
 
                                     if(localAuthResult.Item1 == APIResultCodes.Success)
                                     {
-                                        AddBlock(blockX);
+                                        await AddBlockAsync(blockX);
                                         fromUIndex = j + 1;
                                         _log.LogInformation($"BlockChain Synced Block Number: {j}");
                                     }
@@ -315,15 +315,15 @@ namespace Lyra
                         var copyOK = await DoCopyBlock(startUIndex, syncToUIndex).ConfigureAwait(false);
                         if(copyOK)
                         {
-                            // check missing block
-                            for(long k = 1; k <= startUIndex; k++)
-                            {
-                                if(BlockChain.Singleton.GetBlockByUIndex(k) == null)
-                                {
-                                    _log.LogInformation($"syncing one missing block: {k}");
-                                    await DoCopyBlock(k, k).ConfigureAwait(false);
-                                }
-                            }
+                            //// check missing block
+                            //for(long k = 1; k <= startUIndex; k++)
+                            //{
+                            //    if(await BlockChain.Singleton.GetBlockByUIndex(k) == null)
+                            //    {
+                            //        _log.LogInformation($"syncing one missing block: {k}");
+                            //        await DoCopyBlock(k, k).ConfigureAwait(false);
+                            //    }
+                            //}
                             break;
                         }
                         else

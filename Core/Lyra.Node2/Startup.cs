@@ -12,6 +12,7 @@ using Lyra.Core.API;
 using Lyra.Core.Exchange;
 using System;
 using System.IO;
+using Lyra.Node2.Services;
 
 namespace Lyra.Node2
 {
@@ -34,6 +35,12 @@ namespace Lyra.Node2
 
             services.AddMvc();
             services.AddControllers();
+
+            // for grpc
+            services.AddSingleton<ServerGrpcSubscribers>();
+            services.AddSingleton<MessageProcessor>();
+
+            services.AddGrpc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -58,7 +65,7 @@ namespace Lyra.Node2
 
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapGrpcService<ApiService>();
+                endpoints.MapGrpcService<DuplexService>();
                 endpoints.MapControllers();
                 endpoints.MapGet("/", async context =>
                 {

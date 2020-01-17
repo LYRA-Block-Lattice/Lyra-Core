@@ -50,7 +50,7 @@ namespace Neo.Network.P2P
             //foreach (IP2PPlugin plugin in Plugin.P2PPlugins)
             //    if (!plugin.OnP2PMessage(msg))
             //        return;
-            if (version == null)
+            if (version == null && msg.Command == MessageCommand.Version)
             {
                 if (msg.Command != MessageCommand.Version)
                     throw new ProtocolViolationException();

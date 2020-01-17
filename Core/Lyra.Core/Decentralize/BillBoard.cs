@@ -28,7 +28,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public PosNode Add(string accountId)
+        public async System.Threading.Tasks.Task<PosNode> AddAsync(string accountId)
         {
             PosNode node;
             if (AllNodes.ContainsKey(accountId))
@@ -42,7 +42,7 @@ namespace Lyra.Core.Decentralize
             node.LastStaking = DateTime.Now;
 
             // lookup balance
-            var block = BlockChain.Singleton.FindLatestBlock(node.AccountID);
+            var block = await BlockChain.Singleton.FindLatestBlockAsync(node.AccountID);
             if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
             {
                 node.Balance = block.Balances[LyraGlobal.LYRATICKERCODE];
@@ -55,6 +55,7 @@ namespace Lyra.Core.Decentralize
     public class PosNode
     {
         public string AccountID { get; set; }
+        public string IP { get; set; }
         public decimal Balance { get; set; }
         public DateTime LastStaking { get; set; }
 

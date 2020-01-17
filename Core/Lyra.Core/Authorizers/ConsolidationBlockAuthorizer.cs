@@ -16,21 +16,21 @@ namespace Lyra.Core.Authorizers
         {
         }
 
-        public override (APIResultCodes, AuthorizationSignature) Authorize<T>(T tblock, bool WithSign = true)
+        public async override Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
         {
-            var result = AuthorizeImpl(tblock);
+            var result = await AuthorizeImplAsync(tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, await SignAsync(tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
 
-        protected override APIResultCodes ValidateFee(TransactionBlock block)
+        protected override Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
         {
-            return APIResultCodes.Success;
+            return Task.FromResult(APIResultCodes.Success);
         }
 
-        private APIResultCodes AuthorizeImpl<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
         {
             if (!(tblock is ConsolidationBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -38,14 +38,14 @@ namespace Lyra.Core.Authorizers
             var block = tblock as ConsolidationBlock;
 
             // 1. check if the block already exists
-            if (null != BlockChain.Singleton.GetBlockByUIndex(block.UIndex))
+            if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
                 return APIResultCodes.BlockWithThisUIndexAlreadyExists;
 
-            var lastCons = BlockChain.Singleton.GetSyncBlock();
+            var lastCons = await BlockChain.Singleton.GetSyncBlockAsync();
             if (lastCons == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            var result = VerifyBlock(block, lastCons);
+            var result = await VerifyBlockAsync(block, lastCons);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -54,7 +54,7 @@ namespace Lyra.Core.Authorizers
             var mt = new MerkleTree();
             for (var ndx = lastCons.UIndex; ndx < block.UIndex; ndx++)
             {
-                var bndx = BlockChain.Singleton.GetBlockByUIndex(ndx);
+                var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
                 var mhash = MerkleHash.Create(bndx.UHash);
                 mt.AppendLeaf(mhash);
             }

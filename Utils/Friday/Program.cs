@@ -8,21 +8,26 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Friday
 {
-    class Program
+    public class Program
     {
         static string testCoin = "Friday.Coin";
         static string lyraCoin = "Lyra.Coin";
+        public static string network_id = "devnet";
 
         // args: [number] the tps to simulate
         // 
         static async System.Threading.Tasks.Task Main(string[] args)
         {
             var workingFolder = @"C:\working\Friday";
-            var network_id = "testnet";            
+                      
             var lyraFolder = BaseAccount.GetFullFolderName("Lyra-CLI-" + network_id);
+
+            Console.WriteLine("Press enter to begin.");
+            Console.ReadLine();
 
             // create and save wallets
             //var tt = new TransactionTester();
@@ -33,8 +38,28 @@ namespace Friday
             // key is account id
             var wallets = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(workingFolder + @"\\wallets.json"));
 
-            var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a", "https://192.168.3.62:4505/api/LyraNode/");
+            //var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a", "https://192.168.3.62:4505/api/LyraNode/");
+            var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a");
             var tt = new TransactionTester(rpcClient);
+
+            var masterWallet = new Wallet(new LiteAccountDatabase(), network_id);
+            masterWallet.AccountName = "My Account";
+            masterWallet.OpenAccount(BaseAccount.GetFullPath(lyraFolder), masterWallet.AccountName);
+            await masterWallet.Sync(rpcClient);
+
+            _ = Task.Run(async () =>
+              {
+                  while (true)
+                  {
+                      var state = await rpcClient.GetSyncState();
+                      await Task.Delay(10000);
+                      var state2 = await rpcClient.GetSyncState();
+
+                      var tps = state2.NewestBlockUIndex - state.NewestBlockUIndex;
+
+                      Console.WriteLine($"\n============> TPS: {tps} / 10\n");
+                  }
+              });
 
             //var all = await tt.RefreshBalancesAsync(wallets.Select(a => new KeyPair(Base58Encoding.DecodePrivateKey(a.Value))).ToArray());
             //File.WriteAllText(workingFolder + @"\balances.json", JsonConvert.SerializeObject(all));
@@ -43,16 +68,21 @@ namespace Friday
             var realRich10 = rich10.Where(a => a.balance.ContainsKey(lyraCoin) && a.balance.ContainsKey(testCoin))
                 .Where(a => a.balance[testCoin] >= 10000).ToDictionary(a => a.privateKey, a => a.balance);
 
-            var rich90 = wallets.Where(a => !realRich10.ContainsKey(a.Value)).Take(90);
-            File.WriteAllText(workingFolder + @"\rich90.json", JsonConvert.SerializeObject(rich90));
+            //var rich90 = wallets.Where(a => !realRich10.ContainsKey(a.Value)).Take(90);
+            var rich90 = JsonConvert.DeserializeObject<List<KeyValuePair<string, string>>>(File.ReadAllText(workingFolder + @"\\rich90.json"));
+            //File.WriteAllText(workingFolder + @"\rich90.json", JsonConvert.SerializeObject(rich90));
 
-            await tt.MultiThreadedSendAsync(realRich10.Keys.ToArray(), rich90.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { testCoin, 100000 } });
+            var poors = wallets.Where(a => !rich90.Any(x => x.Key == a.Key));
 
-            //var masterWallet = new Wallet(new LiteAccountDatabase(), network_id);
-            //masterWallet.AccountName = "My Account";
-            //masterWallet.OpenAccount(BaseAccount.GetFullPath(lyraFolder), masterWallet.AccountName);
+            var testGroup1 = rich90.Take(50);
+            await tt.MultiThreadedSendAsync(new [] { masterWallet.PrivateKey }, testGroup1.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { lyraCoin, 50000 } }, true);
 
-            //await masterWallet.Sync(rpcClient);
+            Console.WriteLine("Coin distribute OK. Press Enter to continue...");
+            Console.ReadLine();
+            
+            await tt.MultiThreadedSendAsync(testGroup1.Select(a => a.Value).ToArray(), poors.Select(a => a.Key).ToArray(), new Dictionary<string, decimal> { { lyraCoin, 1 } });
+
+            Console.ReadLine();
 
             //foreach(var b in masterWallet.GetLatestBlock().Balances)
             //{

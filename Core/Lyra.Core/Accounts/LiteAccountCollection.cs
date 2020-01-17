@@ -328,7 +328,7 @@ namespace Lyra.Core.LiteDB
             return list;
         }
 
-        public void AddBlock(TransactionBlock block)
+        public bool AddBlock(TransactionBlock block)
         {
             if (FindBlockByHash(block.Hash) != null)
                 throw new Exception("NewAccountCollection: Block with such Hash already exists!");
@@ -337,6 +337,8 @@ namespace Lyra.Core.LiteDB
                 throw new Exception("NewAccountCollection: Block with such Index already exists!");
 
             _blocks.Insert(block);
+
+            return true;
         }
 
         //public AccountData GetAccount(string AccountId)
