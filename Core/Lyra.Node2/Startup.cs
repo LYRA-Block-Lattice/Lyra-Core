@@ -41,6 +41,9 @@ namespace Lyra.Node2
             services.AddSingleton<MessageProcessor>();
 
             services.AddGrpc();
+
+            // for consensus
+            services.AddSingleton<IPBFTNet, PBFTNetwork>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

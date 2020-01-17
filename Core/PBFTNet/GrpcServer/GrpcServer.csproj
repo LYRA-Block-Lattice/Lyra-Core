@@ -1,25 +1,25 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore.Server" Version="0.1.21-pre1" />
-    <PackageReference Include="Google.Protobuf" Version="3.8.0" />
-
-    <PackageReference Include="Grpc.Tools" Version="1.21.0" PrivateAssets="All" />
-  </ItemGroup>
-  
   <!-- PROTO: The following section was added manually -->
   <ItemGroup>
-	<Protobuf Include="..\Protos\*.proto" GrpcServices="Server" />
-	<Content Include="..\Protos\communication.proto">
-	  <GrpcServices>GrpcServer</GrpcServices>
-	  <LinkBase></LinkBase>
-	</Content>
+    <Protobuf Include="..\Protos\*.proto" GrpcServices="Server" />
+    <Content Include="..\Protos\communication.proto">
+      <GrpcServices>GrpcServer</GrpcServices>
+      <LinkBase></LinkBase>
+    </Content>
   </ItemGroup>
-  
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.11.2" />
+    <PackageReference Include="Grpc.Tools" Version="2.26.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Helpers\GrpcServerHelper\GrpcServerHelper.csproj" />
   </ItemGroup>

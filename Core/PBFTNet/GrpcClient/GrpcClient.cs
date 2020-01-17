@@ -27,7 +27,7 @@ namespace GrpcClient
                 MessageId = $"{Guid.NewGuid()}",
                 Type = MessageType.Ordinary,
                 Time = DateTime.UtcNow.Ticks,
-                Response = payload.Contains('?') ? ResponseType.Required : ResponseType.NotRequired,
+                Response = payload.Contains("?") ? ResponseType.Required : ResponseType.NotRequired,
                 Payload = payload
             };
         }
