@@ -161,7 +161,7 @@ namespace Lyra.Core.Decentralize
 
                 // declare to the network
                 PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
-                me.IP = LocalIPAddress().ToString();
+                me.IP = Utilities.LocalIPAddress().ToString();
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
 
                 Send2P2pNetwork(msg);
@@ -506,6 +506,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = await _board.AddAsync(chat.From);
+            node.IP = JsonConvert.DeserializeObject<PosNode>(chat.Text).IP;
 
             if (IsThisNodeSeed0)
             {
@@ -517,20 +518,6 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Balance);
             }
-        }
-
-        private IPAddress LocalIPAddress()
-        {
-            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-            {
-                return null;
-            }
-
-            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
-
-            return host
-                .AddressList
-                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
     }
 
