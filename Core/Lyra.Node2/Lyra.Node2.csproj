@@ -24,6 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.11.2" />
+    <PackageReference Include="Grpc.AspNetCore.Server" Version="2.26.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.26.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.0" />
@@ -39,8 +45,18 @@
     <PackageReference Include="System.Reactive.Linq" Version="4.3.2" />
   </ItemGroup>
 
+  <!-- PROTO: The following section was added manually -->
+  <ItemGroup>
+    <Protobuf Include="..\PBFTNet\Protos\*.proto" GrpcServices="Server" />
+    <Content Include="..\PBFTNet\Protos\communication.proto">
+      <GrpcServices>GrpcServer</GrpcServices>
+      <LinkBase></LinkBase>
+    </Content>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
+    <ProjectReference Include="..\PBFTNet\Helpers\GrpcServerHelper\GrpcServerHelper.csproj" />
   </ItemGroup>
 
   <ItemGroup>

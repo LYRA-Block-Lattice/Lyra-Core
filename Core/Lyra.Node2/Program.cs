@@ -12,11 +12,14 @@ using System.Threading;
 using Lyra.Core.Utils;
 using System.Diagnostics;
 using Lyra.Core.Decentralize;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace Lyra.Node2
 {
     public class Program
     {
+        const int PORT = 4505;
+
         static CancellationTokenSource _cancel;
         public static async Task Main(string[] args)
         {
@@ -43,7 +46,17 @@ namespace Lyra.Node2
                 .UseSystemd()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>()
+                    .ConfigureKestrel(options =>
+                    {
+                        options.Limits.MinRequestBodyDataRate = null;
+                        options.Listen(IPAddress.Any, PORT,
+                        listenOptions =>
+                        {
+                            listenOptions.UseHttps("grpcServer.pfx", "1511");
+                            listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                        });
+                    });
                 })
                 .ConfigureServices(services =>
                 {
