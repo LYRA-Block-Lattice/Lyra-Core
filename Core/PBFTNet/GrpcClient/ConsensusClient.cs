@@ -5,7 +5,7 @@ using Grpc.Core;
 
 namespace GrpcClient
 {
-    class ConsensusClient
+    public class ConsensusClient
     {
         const int PORT = 4505;
 

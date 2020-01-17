@@ -183,7 +183,7 @@ namespace Lyra
                 InSyncing = false;
 
                 var board = new BillBoard();
-                await board.AddAsync(NodeService.Instance.PosWallet.AccountId);   // add me!
+                await board.AddMeAsync();   // add me!
 
                 LyraSystem.Singleton.Consensus.Tell(board);
                 LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
@@ -245,7 +245,7 @@ namespace Lyra
                         {
                             // seed0. no seed to sync. this seed must have the NORMAL blockchain     
                             var board = new BillBoard();
-                            await board.AddAsync(NodeService.Instance.PosWallet.AccountId);   // add me!
+                            await board.AddMeAsync();   // add me!
                             LyraSystem.Singleton.Consensus.Tell(board);
                             break;
                         }

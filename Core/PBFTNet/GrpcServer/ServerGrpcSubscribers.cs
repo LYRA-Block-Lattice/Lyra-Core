@@ -2,7 +2,7 @@
 using GrpcServerHelper;
 using Communication;
 
-namespace GrpcServer
+namespace Lyra.Node2
 {
     public class ServerGrpcSubscribers : ServerGrpcSubscribersBase<ResponseMessage>
     {
