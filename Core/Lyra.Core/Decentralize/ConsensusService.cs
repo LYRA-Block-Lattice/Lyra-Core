@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -158,7 +160,9 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"The USeed is {USeed}");
 
                 // declare to the network
-                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, "Staking with () Lyra");
+                PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
+                me.IP = LocalIPAddress().ToString();
+                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
 
                 Send2P2pNetwork(msg);
             });
@@ -513,6 +517,20 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Balance);
             }
+        }
+
+        private IPAddress LocalIPAddress()
+        {
+            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+            {
+                return null;
+            }
+
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+
+            return host
+                .AddressList
+                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
     }
 

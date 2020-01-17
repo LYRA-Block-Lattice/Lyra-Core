@@ -5,16 +5,16 @@ using Grpc.Core;
 
 namespace GrpcClient
 {
-    class Program
+    class ConsensusClient
     {
         const int PORT = 4505;
 
-        static async Task<int> Main(string[] args)
+        async Task<int> Start(string nodeAddress)
         {
             Console.WriteLine("GrpcClient started.");
 
             var channelCredentials = new SslCredentials(File.ReadAllText(@"Certs\certificate.crt"));
-            var channel = new Channel($"localhost:{PORT}", channelCredentials);
+            var channel = new Channel($"{nodeAddress}:{PORT}", channelCredentials);
 
             var nl = Environment.NewLine;
             var orgTextColor = Console.ForegroundColor;

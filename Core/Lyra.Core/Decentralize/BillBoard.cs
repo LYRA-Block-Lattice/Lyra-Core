@@ -55,6 +55,7 @@ namespace Lyra.Core.Decentralize
     public class PosNode
     {
         public string AccountID { get; set; }
+        public string IP { get; set; }
         public decimal Balance { get; set; }
         public DateTime LastStaking { get; set; }
 
