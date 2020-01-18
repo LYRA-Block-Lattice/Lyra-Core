@@ -18,7 +18,7 @@ namespace GrpcClient
             ClientId = accountId;
         }
 
-        public override AsyncDuplexStreamingCall<RequestMessage, ResponseMessage> CreateDuplexClient(GrpcChannel channel) =>
+        public override AsyncDuplexStreamingCall<RequestMessage, ResponseMessage> CreateDuplexClient(ChannelBase channel) =>
             new Messaging.MessagingClient(channel).CreateStreaming();
 
         public void SendObject(object o)
