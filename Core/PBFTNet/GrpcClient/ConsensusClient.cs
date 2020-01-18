@@ -62,7 +62,7 @@ namespace GrpcClient
 
         public void SendMessage(object o)
         {
-            _client.SendObject(o);
+            _client?.SendObject(o);
         }
     }
 }
