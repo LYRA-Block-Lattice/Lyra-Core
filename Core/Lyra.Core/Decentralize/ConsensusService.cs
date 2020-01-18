@@ -133,6 +133,10 @@ namespace Lyra.Core.Decentralize
             Receive<BillBoard>((bb) =>
             {
                 _board = bb;
+                Task.Run(async () => { 
+                foreach (var node in _board.AllNodes.Values)
+                    await _pBFTNet.AddPosNodeAsync(node);
+                });
             });
 
             Receive<AskForBillboard>((_) => Sender.Tell(_board));

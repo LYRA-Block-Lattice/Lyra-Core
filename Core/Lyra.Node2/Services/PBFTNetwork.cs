@@ -30,12 +30,24 @@ namespace Lyra.Node2.Services
 
         public async Task AddPosNodeAsync(PosNode node)
         {
+            if (_remoteNodes.ContainsKey(node.AccountID))
+                return;
+
             var client = new ConsensusClient();
             _remoteNodes.Add(node.AccountID, client);
 
             // do it
             client.OnMessage += (o, json) => OnMessage(this, json.UnJson<SourceSignedMessage>());
-            await client.Start(node.IP, node.AccountID);
+
+            try
+            {
+                client.Start(node.IP, node.AccountID);
+                client.SendMessage("hello");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         public void RemovePosNode(PosNode node)
