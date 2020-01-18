@@ -13,6 +13,7 @@ using Lyra.Core.Utils;
 using System.Threading;
 using Akka.Actor;
 using System.Linq;
+using Lyra.Shared;
 
 namespace Lyra.Core.Decentralize
 {

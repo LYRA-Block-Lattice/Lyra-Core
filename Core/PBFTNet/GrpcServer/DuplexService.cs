@@ -21,6 +21,15 @@ namespace Lyra.Node2.Services
             await _gs.CreateDuplexStreaming(requestStream, responseStream, context);
         }
 
+        public Task BroadcastAsync(string json)
+        {
+            var msg = new ResponseMessage
+            {
+                Payload = json
+            };
+            return _gs.BroadcastAsync(msg);
+        }
+
         public void Dispose()
         {
             _gs.Dispose();

@@ -13,7 +13,7 @@ namespace GrpcClientHelper
 
         public abstract string MessagePayload { get; }
 
-        public async Task Do(Channel channel, Action onConnection = null, Action onShuttingDown = null)
+        public async Task Do(Channel channel, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
         {
             using (var duplex = CreateDuplexClient(channel))
             {
@@ -21,10 +21,17 @@ namespace GrpcClientHelper
 
                 var responseTask = Task.Run(async () =>
                 {
+                    // receive pump
                     while (await duplex.ResponseStream.MoveNext(CancellationToken.None))
-                        Console.WriteLine($"{duplex.ResponseStream.Current}");
+                    {
+                        var msg = duplex.ResponseStream.Current;
+                        Console.WriteLine($"{msg}");
+                        if(onMessage != null)
+                            onMessage(msg);
+                    }                        
                 });
 
+                // send pump
                 string payload;
                 while (!string.IsNullOrEmpty(payload = MessagePayload))
                     await duplex.RequestStream.WriteAsync(CreateMessage(payload));

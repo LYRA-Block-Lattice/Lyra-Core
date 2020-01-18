@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.Utils
+namespace Lyra.Shared
 {
     public static class Extensions
     {
@@ -26,6 +27,16 @@ namespace Lyra.Core.Utils
             }, tcs, timeout, executeOnlyOnce: true);
             tcs.Task.ContinueWith((_, state) => ((RegisteredWaitHandle)state).Unregister(null), registration, TaskScheduler.Default);
             return tcs.Task;
+        }
+
+        public static string Json(this object o)
+        {
+            return JsonConvert.SerializeObject(o);
+        }
+
+        public static T UnJson<T>(this string json)
+        {
+            return JsonConvert.DeserializeObject<T>(json);
         }
     }
 }

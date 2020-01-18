@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Utils;
+using Lyra.Shared;
 using Neo;
 using System;
 using System.Collections.Generic;

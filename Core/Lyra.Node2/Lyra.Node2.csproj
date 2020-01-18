@@ -51,6 +51,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
+    <ProjectReference Include="..\Lyra.Shared\Lyra.Shared.csproj" />
     <ProjectReference Include="..\PBFTNet\GrpcClient\GrpcClient.csproj" />
     <ProjectReference Include="..\PBFTNet\GrpcServer\GrpcServer.csproj" />
   </ItemGroup>

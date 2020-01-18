@@ -8,4 +8,8 @@
     <PackageReference Include="Grpc.Core" Version="2.26.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Lyra.Shared\Lyra.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

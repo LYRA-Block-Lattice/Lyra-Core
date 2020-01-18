@@ -211,8 +211,11 @@ namespace Lyra
                     string syncWithUrl = null;
                     LyraRestClient client = null;
                     long syncToUIndex = ToUIndex;
-
+#if DEBUG
+                    for (int i = 0; i < 2; i++)         // save time 
+#else
                     for (int i = 0; i < ProtocolSettings.Default.SeedList.Length; i++)
+#endif
                     {
                         if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[i])  // self
                             continue;

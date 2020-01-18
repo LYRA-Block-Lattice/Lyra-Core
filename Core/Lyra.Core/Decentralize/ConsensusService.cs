@@ -9,6 +9,7 @@ using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
+using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.IO.Actors;
@@ -102,7 +103,7 @@ namespace Lyra.Core.Decentralize
 
             _pBFTNet = pBFTNet;
 
-            _pBFTNet.OnMessage += _pBFTNet_OnMessage;
+            _pBFTNet.OnMessage += (o, msg) => OnNextConsensusMessageAsync(msg).Wait();
 
             //Observable.FromEvent<EventHandler<SourceSignedMessage>, SourceSignedMessage>(h => _pBFTNet.OnMessage += h, h => _pBFTNet.OnMessage -= h)
             //    .Subscribe((msg) => {
@@ -212,11 +213,6 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             });
-        }
-
-        private void _pBFTNet_OnMessage(object sender, SourceSignedMessage e)
-        {
-            OnNextConsensusMessageAsync(e).Wait();
         }
 
         private void GetAllWorkers()
@@ -412,7 +408,7 @@ namespace Lyra.Core.Decentralize
         {
             item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
 
-            _pBFTNet.BroadCastMessage(item);
+            _pBFTNet.BroadCastMessageAsync(item);
         }
 
         private ConsensusWorker GetWorker(string hash)
@@ -528,7 +524,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = await _board.AddAsync(chat.From);
-            _pBFTNet.AddPosNode(node);
+            _pBFTNet.AddPosNodeAsync(node);
 
             node.IP = JsonConvert.DeserializeObject<PosNode>(chat.Text).IP;
 

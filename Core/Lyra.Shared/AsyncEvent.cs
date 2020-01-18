@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.Utils
+namespace Lyra.Shared
 {
     // https://stackoverflow.com/questions/12451609/how-to-await-raising-an-eventhandler-event
     public class AsyncEvent<TEventArgs> where TEventArgs : EventArgs

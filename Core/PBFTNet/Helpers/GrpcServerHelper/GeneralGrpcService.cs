@@ -59,6 +59,11 @@ namespace GrpcServerHelper
             Logger.LogInformation($"{clientId} disconnected");
         }
 
+        public Task BroadcastAsync(TResponse resultMessage)
+        {
+            return _serverGrpcSubscribers.BroadcastMessageAsync(resultMessage);
+        }
+
         public void Dispose()
         {
             Logger.LogInformation("Cleaning up");

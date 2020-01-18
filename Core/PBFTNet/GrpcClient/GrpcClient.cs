@@ -2,20 +2,28 @@
 using Grpc.Core;
 using GrpcClientHelper;
 using Communication;
+using System.Collections.Concurrent;
+using Lyra.Shared;
 
 namespace GrpcClient
 {
     public class Client : GrpcClientBase<RequestMessage, ResponseMessage>
     {
+        readonly BlockingCollection<object> _sendQueue = new BlockingCollection<object>();
         public string ClientId { get; }
 
-        public Client()
+        public Client(string accountId)
         {
-            ClientId = $"{Guid.NewGuid()}";
+            ClientId = accountId;
         }
 
         public override AsyncDuplexStreamingCall<RequestMessage, ResponseMessage> CreateDuplexClient(Channel channel) =>
             new Messaging.MessagingClient(channel).CreateStreaming();
+
+        public void SendObject(object o)
+        {
+            _sendQueue.Add(o);
+        }
 
         public override RequestMessage CreateMessage(object ob)
         {
@@ -27,14 +35,18 @@ namespace GrpcClient
                 MessageId = $"{Guid.NewGuid()}",
                 Type = MessageType.Ordinary,
                 Time = DateTime.UtcNow.Ticks,
-                Response = payload.Contains("?") ? ResponseType.Required : ResponseType.NotRequired,
+                Response = ResponseType.Required,
                 Payload = payload
             };
         }
 
         public override string MessagePayload
         {
-            get => Console.ReadLine();
+            get 
+            {
+                object msg = _sendQueue.Take();
+                return msg.Json();
+            }
         }
     }
 }

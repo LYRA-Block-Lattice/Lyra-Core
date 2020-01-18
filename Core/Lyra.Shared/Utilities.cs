@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Lyra.Core.Utils
+namespace Lyra.Shared
 {
     public class Utilities
     {

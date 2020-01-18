@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lyra.Shared;
+using Communication;
+using Newtonsoft.Json;
 
 namespace Lyra.Node2.Services
 {
@@ -11,31 +14,28 @@ namespace Lyra.Node2.Services
     {
         public event EventHandler<SourceSignedMessage> OnMessage;
 
-        MessageProcessor _local;
+        DuplexService _local;
 
-        Dictionary<string, ConsensusClient> _remoteNodes;
+        readonly Dictionary<string, ConsensusClient> _remoteNodes = new Dictionary<string, ConsensusClient>();
 
-        public PBFTNetwork(MessageProcessor messageProcessor)
+        public PBFTNetwork(DuplexService duplexService)
         {
-            _local = messageProcessor;
-            _remoteNodes = new Dictionary<string, ConsensusClient>();
-
-            // _local.NewMsg += (msg) => OnMessage?(msg);
+            _local = duplexService;
         }
 
-        public void BroadCastMessage(SourceSignedMessage msg)
+        public async Task BroadCastMessageAsync(SourceSignedMessage msg)
         {
-            foreach(var client in _remoteNodes.Values)
-            {
-                // client.Send(msg);
-            }
+            await _local.BroadcastAsync(JsonConvert.SerializeObject(msg));
         }
 
-        public void AddPosNode(PosNode node)
+        public async Task AddPosNodeAsync(PosNode node)
         {
             var client = new ConsensusClient();
             _remoteNodes.Add(node.AccountID, client);
+
             // do it
+            client.OnMessage += (o, json) => OnMessage(this, json.UnJson<SourceSignedMessage>());
+            await client.Start(node.IP, node.AccountID);
         }
 
         public void RemovePosNode(PosNode node)
