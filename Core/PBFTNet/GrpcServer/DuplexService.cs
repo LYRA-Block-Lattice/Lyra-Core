@@ -22,11 +22,11 @@ namespace Lyra.Node2.Services
             await _gs.CreateDuplexStreaming(requestStream, responseStream, context);
         }
 
-        public Task BroadcastAsync(byte[] payload)
+        public Task BroadcastAsync(string msgtype, byte[] payload)
         {
             var msg = new ResponseMessage
             {
-                MessageId = "",
+                MessageId = msgtype,
                 Type = MessageType.Payload,
                 Payload = ByteString.CopyFrom(payload),
             };

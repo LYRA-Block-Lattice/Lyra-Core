@@ -24,9 +24,9 @@ namespace Lyra.Node2.Services
             _local = duplexService;
         }
 
-        public async Task BroadCastMessageAsync(Neo.IO.ISerializable msg)
+        public async Task BroadCastMessageAsync(SourceSignedMessage msg)
         {
-            await _local.BroadcastAsync(msg.ToArray());
+            await _local.BroadcastAsync(msg.MsgType.ToString(), msg.ToArray());
         }
 
         public void AddPosNode(PosNode node)
@@ -76,8 +76,21 @@ namespace Lyra.Node2.Services
             // do it
             client.OnMessage += (o, msg) =>
             {
-                if(msg.MessageId == "")
-                    OnMessage(this, msg.Payload.ToArray().AsSerializable<SourceSignedMessage>());
+                switch(msg.MessageId)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
+                {
+                    case "AuthorizerPrePrepare":
+                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizingMsg>());
+                        break;
+                    case "AuthorizerPrepare":
+                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizedMsg>());
+                        break;
+                    case "AuthorizerCommit":
+                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizerCommitMsg>());
+                        break;
+                    default:
+                        Console.WriteLine("unknown message from pbft node");
+                        break;
+                }                
             };
 
             client.OnShutdown += (o, a) =>
