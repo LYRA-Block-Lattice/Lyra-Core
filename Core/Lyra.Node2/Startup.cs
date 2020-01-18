@@ -43,6 +43,7 @@ namespace Lyra.Node2
             services.AddGrpc();
 
             // for consensus
+            services.AddSingleton<DuplexService>();
             services.AddSingleton<IPBFTNet, PBFTNetwork>();
         }
 
