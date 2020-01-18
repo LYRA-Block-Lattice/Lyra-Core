@@ -451,7 +451,8 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            await OnNodeActiveAsync(item.From);
+            if(item.MsgType != ChatMessageType.NodeUp)
+                await OnNodeActiveAsync(item.From);
 
             switch (item)
             {
