@@ -62,7 +62,10 @@ namespace GrpcClient
 
         public void SendMessage(object o)
         {
-            _client?.SendObject(o);
+            if(_client == null)
+                OnShutdown?.Invoke(this, _accountId);
+            else
+                _client.SendObject(o);
         }
     }
 }
