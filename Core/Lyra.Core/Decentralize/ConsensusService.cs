@@ -165,6 +165,14 @@ namespace Lyra.Core.Decentralize
 
                 _log.LogInformation($"The USeed is {USeed}");
 
+                int waitCount = 60;
+                while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
+                {
+                    _log.LogWarning("Not connected to Lyra Network. Delay sending... ");
+                    await Task.Delay(1000);
+                    waitCount--;
+                }
+
                 // declare to the network
                 PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
                 me.IP = Utilities.LocalIPAddress().ToString();
@@ -524,6 +532,8 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = await _board.AddAsync(chat.From);
+
+            _pBFTNet.PingNode(_board.AllNodes[chat.From]);
         }
 
         private async Task OnNodeUpAsync(ChatMsg chat)

@@ -10,7 +10,7 @@ namespace GrpcClient
     public class ConsensusClient
     {
         const int PORT = 4505;
-        Client _client;
+        GrpcClient _client;
 
         public event EventHandler<string> OnMessage;
 
@@ -30,7 +30,7 @@ namespace GrpcClient
             var nl = Environment.NewLine;
             var orgTextColor = Console.ForegroundColor;
 
-            _client = new Client(accountId);
+            _client = new GrpcClient(accountId);
 
             _ = Task.Run(async () =>
             {

@@ -33,6 +33,33 @@ namespace Lyra.Node2.Services
             if (_remoteNodes.ContainsKey(node.AccountID))
                 return;
 
+            CreateClientFor(node);
+        }
+
+        public void RemovePosNode(PosNode node)
+        {
+            var client = _remoteNodes[node.AccountID];
+            // client.Close();
+            _remoteNodes.Remove(node.AccountID);
+        }
+
+        public void PingNode(PosNode node)
+        {
+            if (_remoteNodes.ContainsKey(node.AccountID))
+            {
+                var client = _remoteNodes[node.AccountID];
+                client.SendMessage("ping");
+                return;
+            }
+            else
+            {
+                // recreate it
+                CreateClientFor(node);
+            }
+        }
+
+        private void CreateClientFor(PosNode node)
+        {
             var client = new ConsensusClient();
             _remoteNodes.Add(node.AccountID, client);
 
@@ -52,13 +79,6 @@ namespace Lyra.Node2.Services
             {
                 Console.WriteLine(ex.Message);
             }
-        }
-
-        public void RemovePosNode(PosNode node)
-        {
-            var client = _remoteNodes[node.AccountID];
-            // client.Close();
-            _remoteNodes.Remove(node.AccountID);
         }
     }
 }

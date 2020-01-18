@@ -8,12 +8,12 @@ using Grpc.Net.Client;
 
 namespace GrpcClient
 {
-    public class Client : GrpcClientBase<RequestMessage, ResponseMessage>
+    public class GrpcClient : GrpcClientBase<RequestMessage, ResponseMessage>
     {
         readonly BlockingCollection<object> _sendQueue = new BlockingCollection<object>();
         public string ClientId { get; }
 
-        public Client(string accountId)
+        public GrpcClient(string accountId)
         {
             ClientId = accountId;
         }
