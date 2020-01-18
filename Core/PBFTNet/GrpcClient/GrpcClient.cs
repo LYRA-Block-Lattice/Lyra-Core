@@ -5,6 +5,8 @@ using Communication;
 using System.Collections.Concurrent;
 using Lyra.Shared;
 using Grpc.Net.Client;
+using Google.Protobuf;
+using System.Text;
 
 namespace GrpcClient
 {
@@ -28,17 +30,31 @@ namespace GrpcClient
 
         public override RequestMessage CreateMessage(object ob)
         {
-            var payload = $"{ob}";
-
-            return new RequestMessage
+            if (ob is byte[])
             {
-                ClientId = ClientId,
-                MessageId = $"{Guid.NewGuid()}",
-                Type = MessageType.Ordinary,
-                Time = DateTime.UtcNow.Ticks,
-                Response = ResponseType.Required,
-                Payload = payload
-            };
+                return new RequestMessage
+                {
+                    ClientId = ClientId,
+                    MessageId = $"{Guid.NewGuid()}",
+                    Type = MessageType.Payload,
+                    Time = DateTime.UtcNow.Ticks,
+                    Response = ResponseType.Required,
+                    Payload = ByteString.CopyFrom((byte[])ob)
+                };
+            }
+            else
+            {
+                var payload = $"{ob}";
+                return new RequestMessage
+                {
+                    ClientId = ClientId,
+                    MessageId = $"{Guid.NewGuid()}",
+                    Type = MessageType.Ordinary,
+                    Time = DateTime.UtcNow.Ticks,
+                    Response = ResponseType.Required,
+                    Payload = ByteString.CopyFrom(payload, Encoding.UTF8)
+                };
+            }
         }
 
         public override string MessagePayload

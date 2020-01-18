@@ -14,7 +14,7 @@ message RequestMessage
   MessageType type = 3;
   int64 time = 4;
   ResponseType response = 5;
-  string payload = 6;
+  bytes payload = 6;
 }
 
 message ResponseMessage 
@@ -24,7 +24,7 @@ message ResponseMessage
   MessageType type = 3;
   int64 time = 4;
   MessageStatus status = 5;
-  string payload = 6;
+  bytes payload = 6;
 }
 
 enum MessageType
@@ -32,6 +32,8 @@ enum MessageType
     MESSAGETYPE_UNDEFINED = 0;
     MESSAGETYPE_ORDINARY = 1;
     MESSAGETYPE_IMPORTANT = 2;
+    MESSAGETYPE_PINGPONG = 3;
+    MESSAGETYPE_PAYLOAD = 4;
 }
 
 enum MessageStatus

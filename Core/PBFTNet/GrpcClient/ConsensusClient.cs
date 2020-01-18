@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Communication;
 using Grpc.Core;
 using Grpc.Net.Client;
 
@@ -13,7 +14,7 @@ namespace GrpcClient
         GrpcClient _client;
         string _accountId;
 
-        public event EventHandler<string> OnMessage;
+        public event EventHandler<ResponseMessage> OnMessage;
         public event EventHandler<string> OnShutdown;
 
         public void Start(string nodeAddress, string accountId)
@@ -50,7 +51,7 @@ namespace GrpcClient
                             $"You will get response if your message will contain question mark '?'.{nl}" +
                             $"Enter empty message to quit.{nl}");
                     },
-                    (resp) => { OnMessage(this, resp.Payload); },
+                    (resp) => { OnMessage(this, resp); },
                     () =>
                     {
                         Console.WriteLine("Shutting down...");

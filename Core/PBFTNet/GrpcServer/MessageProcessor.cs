@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using GrpcServerHelper;
 using Communication;
+using Google.Protobuf;
 
 namespace Lyra.Node2
 {
@@ -17,8 +18,8 @@ namespace Lyra.Node2
         // this default process becomes heartbeat.
         public override ResponseMessage Process(RequestMessage message)
         {
-            if (string.IsNullOrEmpty(message.Payload))
-                return null;
+            //if (string.IsNullOrEmpty(message.Payload))
+            //    return null;
 
             Logger.LogInformation($"To be processed: {message}");
 
@@ -39,7 +40,7 @@ namespace Lyra.Node2
                     MessageId = message.MessageId,
                     Type = message.Type,
                     Time = timestamp,
-                    Payload = message.Payload == "\"ping\"" ? "\"pong\"" : $"\"Response to {message.Payload}\"",
+                    Payload = ByteString.CopyFromUtf8(message.Payload.ToStringUtf8() == "\"ping\"" ? "\"pong\"" : $"\"Response to {message.Payload}\""),
                     Status = MessageStatus.Processed,
                 };
             }
@@ -51,7 +52,7 @@ namespace Lyra.Node2
                     MessageId = message.MessageId,
                     Type = message.Type,
                     Time = timestamp,
-                    Payload = e.Message,
+                    Payload = ByteString.CopyFromUtf8(e.Message),
                     Status = MessageStatus.Error,
                 };
             }

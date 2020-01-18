@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Lyra.Shared;
 using Communication;
 using Newtonsoft.Json;
+using Neo.IO;
 
 namespace Lyra.Node2.Services
 {
@@ -23,9 +24,9 @@ namespace Lyra.Node2.Services
             _local = duplexService;
         }
 
-        public async Task BroadCastMessageAsync(SourceSignedMessage msg)
+        public async Task BroadCastMessageAsync(Neo.IO.ISerializable msg)
         {
-            await _local.BroadcastAsync(JsonConvert.SerializeObject(msg));
+            await _local.BroadcastAsync(msg.ToArray());
         }
 
         public void AddPosNode(PosNode node)
@@ -73,10 +74,10 @@ namespace Lyra.Node2.Services
             _remoteNodes.Add(node.AccountID, client);
 
             // do it
-            client.OnMessage += (o, json) =>
+            client.OnMessage += (o, msg) =>
             {
-                if (json != "\"pong\"")
-                    OnMessage(this, json.UnJson<SourceSignedMessage>());
+                if(msg.MessageId == null)
+                    OnMessage(this, msg.Payload.ToArray().AsSerializable<SourceSignedMessage>());
             };
 
             client.OnShutdown += (o, a) =>
