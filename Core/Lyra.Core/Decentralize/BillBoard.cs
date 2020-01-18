@@ -40,15 +40,11 @@ namespace Lyra.Core.Decentralize
             return node;
         }
 
-        public async Task<PosNode> AddAsync(string accountId)
+        public async Task<PosNode> AddAsync(PosNode node)
         {
-            PosNode node;
-            if (AllNodes.ContainsKey(accountId))
-                node = AllNodes[accountId];
-            else
+            if (!AllNodes.ContainsKey(node.AccountID))
             {
-                node = new PosNode(accountId);
-                AllNodes.Add(accountId, node);
+                AllNodes.Add(node.AccountID, node);
             }
 
             node.LastStaking = DateTime.Now;
@@ -61,6 +57,19 @@ namespace Lyra.Core.Decentralize
             }
 
             return node;
+        }
+        public async Task<PosNode> AddAsync(string accountId)
+        {
+            PosNode node;
+            if (AllNodes.ContainsKey(accountId))
+                node = AllNodes[accountId];
+            else
+            {
+                node = new PosNode(accountId);
+                AllNodes.Add(accountId, node);
+            }
+
+            return await AddAsync(node);
         }
     }
 

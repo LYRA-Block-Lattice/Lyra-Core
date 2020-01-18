@@ -541,7 +541,8 @@ namespace Lyra.Core.Decentralize
             if (_board == null)
                 return;
 
-            var node = await _board.AddAsync(chat.From);
+            var node = chat.Text.UnJson<PosNode>();
+            _ = await _board.AddAsync(node);
             _pBFTNet.AddPosNode(node);
 
             node.IP = JsonConvert.DeserializeObject<PosNode>(chat.Text).IP;
