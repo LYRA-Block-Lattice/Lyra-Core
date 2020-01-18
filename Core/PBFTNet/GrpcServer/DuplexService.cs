@@ -26,7 +26,7 @@ namespace Lyra.Node2.Services
         {
             var msg = new ResponseMessage
             {
-                MessageId = null,
+                MessageId = "",
                 Type = MessageType.Payload,
                 Payload = ByteString.CopyFrom(payload),
             };

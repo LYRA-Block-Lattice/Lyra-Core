@@ -76,7 +76,7 @@ namespace Lyra.Node2.Services
             // do it
             client.OnMessage += (o, msg) =>
             {
-                if(msg.MessageId == null)
+                if(msg.MessageId == "")
                     OnMessage(this, msg.Payload.ToArray().AsSerializable<SourceSignedMessage>());
             };
 
