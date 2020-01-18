@@ -135,7 +135,10 @@ namespace Lyra.Core.Decentralize
                 _board = bb;
                 Task.Run(async () => { 
                 foreach (var node in _board.AllNodes.Values)
-                    await _pBFTNet.AddPosNodeAsync(node);
+                    {
+                        if(node.AccountID != NodeService.Instance.PosWallet.AccountId)
+                            await _pBFTNet.AddPosNodeAsync(node);
+                    }                    
                 });
             });
 

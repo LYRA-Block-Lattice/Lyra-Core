@@ -13,6 +13,7 @@ using Lyra.Core.Utils;
 using System.Diagnostics;
 using Lyra.Core.Decentralize;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Https;
 
 namespace Lyra.Node2
 {
@@ -53,9 +54,20 @@ namespace Lyra.Node2
                         options.Listen(IPAddress.Any, PORT,
                         listenOptions =>
                         {
-                            listenOptions.UseHttps("grpcServer.pfx", "1511");
+                            var httpsConnectionAdapterOptions = new HttpsConnectionAdapterOptions()
+                            {
+                                ClientCertificateMode = ClientCertificateMode.AllowCertificate,
+                                SslProtocols = System.Security.Authentication.SslProtocols.Tls,
+                            };
+
+                            listenOptions.UseHttps("grpcServer.pfx", "1511", (o) => 
+                            {
+                                o.ClientCertificateMode = ClientCertificateMode.AllowCertificate;
+                                o.SslProtocols = System.Security.Authentication.SslProtocols.Tls;
+                            });
+
                             listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-                        });
+                        });                       
                     });
                 })
                 .ConfigureServices(services =>

@@ -2,18 +2,19 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
+using Grpc.Net.Client;
 
 namespace GrpcClientHelper
 {
     public abstract class GrpcClientBase<TRequest, TResponse>
     {
-        public abstract AsyncDuplexStreamingCall<TRequest, TResponse> CreateDuplexClient(Channel channel);
+        public abstract AsyncDuplexStreamingCall<TRequest, TResponse> CreateDuplexClient(ChannelBase channel);
 
         public abstract TRequest CreateMessage(object ob);
 
         public abstract string MessagePayload { get; }
 
-        public async Task Do(Channel channel, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
+        public async Task Do(ChannelBase channel, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
         {
             using (var duplex = CreateDuplexClient(channel))
             {
@@ -40,7 +41,8 @@ namespace GrpcClientHelper
             }
 
             onShuttingDown?.Invoke();
-            await channel.ShutdownAsync();
+            //await channel.ShutdownAsync();
+            (channel as GrpcChannel).Dispose();
         }
     }
 }

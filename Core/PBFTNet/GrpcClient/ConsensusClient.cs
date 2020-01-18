@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Grpc.Core;
+using Grpc.Net.Client;
 
 namespace GrpcClient
 {
@@ -16,8 +18,14 @@ namespace GrpcClient
         {
             Console.WriteLine("GrpcClient started.");
 
+            var httpClientHandler = new HttpClientHandler();
+            // Return `true` to allow certificates that are untrusted/invalid
+            httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+            var httpClient = new HttpClient(httpClientHandler);
+
             var channelCredentials = new SslCredentials(File.ReadAllText(@"Certs\certificate.crt"));
-            var channel = new Channel($"{nodeAddress}:{PORT}", channelCredentials);
+            //var channel = new Channel($"{nodeAddress}:{PORT}", channelCredentials);
+            var channel = GrpcChannel.ForAddress($"https://{nodeAddress}:{PORT}", new GrpcChannelOptions { HttpClient = httpClient });
 
             var nl = Environment.NewLine;
             var orgTextColor = Console.ForegroundColor;
