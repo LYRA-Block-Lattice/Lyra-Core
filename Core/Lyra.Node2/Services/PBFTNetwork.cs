@@ -39,7 +39,7 @@ namespace Lyra.Node2.Services
             // do it
             client.OnMessage += (o, json) =>
             {
-                if (json != "pong")
+                if (json != "\"pong\"")
                     OnMessage(this, json.UnJson<SourceSignedMessage>());
             };
 

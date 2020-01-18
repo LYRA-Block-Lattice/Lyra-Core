@@ -39,7 +39,7 @@ namespace Lyra.Node2
                     MessageId = message.MessageId,
                     Type = message.Type,
                     Time = timestamp,
-                    Payload = message.Payload == "ping" ? "pong" : $"Response to \"{message.Payload}\"",
+                    Payload = message.Payload == "\"ping\"" ? "\"pong\"" : $"\"Response to {message.Payload}\"",
                     Status = MessageStatus.Processed,
                 };
             }
