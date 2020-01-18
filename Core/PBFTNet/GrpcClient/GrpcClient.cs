@@ -4,6 +4,7 @@ using GrpcClientHelper;
 using Communication;
 using System.Collections.Concurrent;
 using Lyra.Shared;
+using Grpc.Net.Client;
 
 namespace GrpcClient
 {
@@ -17,7 +18,7 @@ namespace GrpcClient
             ClientId = accountId;
         }
 
-        public override AsyncDuplexStreamingCall<RequestMessage, ResponseMessage> CreateDuplexClient(ChannelBase channel) =>
+        public override AsyncDuplexStreamingCall<RequestMessage, ResponseMessage> CreateDuplexClient(GrpcChannel channel) =>
             new Messaging.MessagingClient(channel).CreateStreaming();
 
         public void SendObject(object o)
