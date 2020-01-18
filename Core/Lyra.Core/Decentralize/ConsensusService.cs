@@ -413,7 +413,10 @@ namespace Lyra.Core.Decentralize
         {
             item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
 
-            _pBFTNet.BroadCastMessageAsync(item);
+            if (item is ChatMsg)
+                _localNode.Tell(item);
+            else
+                _pBFTNet.BroadCastMessageAsync(item);
         }
 
         private ConsensusWorker GetWorker(string hash)
