@@ -11,12 +11,16 @@ namespace GrpcClient
     {
         const int PORT = 4505;
         GrpcClient _client;
+        string _accountId;
 
         public event EventHandler<string> OnMessage;
+        public event EventHandler<string> OnShutdown;
 
         public void Start(string nodeAddress, string accountId)
         {
             Console.WriteLine("GrpcClient started.");
+
+            _accountId = accountId;
 
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
@@ -47,7 +51,11 @@ namespace GrpcClient
                             $"Enter empty message to quit.{nl}");
                     },
                     (resp) => { OnMessage(this, resp.Payload); },
-                    () => Console.WriteLine("Shutting down...")
+                    () =>
+                    {
+                        Console.WriteLine("Shutting down...");
+                        OnShutdown?.Invoke(this, _accountId);
+                    }
                 );
             });
         }

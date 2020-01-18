@@ -79,6 +79,11 @@ namespace Lyra.Node2.Services
                     OnMessage(this, json.UnJson<SourceSignedMessage>());
             };
 
+            client.OnShutdown += (o, a) =>
+            {
+                _remoteNodes.Remove(a);
+            };
+
             try
             {
                 client.Start(node.IP, node.AccountID);

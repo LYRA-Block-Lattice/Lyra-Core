@@ -35,7 +35,17 @@ namespace GrpcClientHelper
                 // send pump
                 string payload;
                 while (!string.IsNullOrEmpty(payload = MessagePayload))
-                    await duplex.RequestStream.WriteAsync(CreateMessage(payload));
+                {
+                    try
+                    {
+                        await duplex.RequestStream.WriteAsync(CreateMessage(payload));
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        break;  //shutdown
+                    }
+                }                   
 
                 await duplex.RequestStream.CompleteAsync();
             }
