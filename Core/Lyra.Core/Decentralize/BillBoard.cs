@@ -1,9 +1,14 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Utils;
+using Lyra.Shared;
 using Neo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
@@ -28,7 +33,14 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async System.Threading.Tasks.Task<PosNode> AddAsync(string accountId)
+        public async Task<PosNode> AddMeAsync()
+        {
+            var node = await AddAsync(NodeService.Instance.PosWallet.AccountId);
+            node.IP = Utilities.LocalIPAddress().ToString();
+            return node;
+        }
+
+        public async Task<PosNode> AddAsync(string accountId)
         {
             PosNode node;
             if (AllNodes.ContainsKey(accountId))
@@ -55,6 +67,7 @@ namespace Lyra.Core.Decentralize
     public class PosNode
     {
         public string AccountID { get; set; }
+        public string IP { get; set; }
         public decimal Balance { get; set; }
         public DateTime LastStaking { get; set; }
 

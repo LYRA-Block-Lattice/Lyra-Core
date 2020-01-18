@@ -47,7 +47,7 @@ namespace Lyra
             Singleton = this;
         }
 
-        public void Start()
+        public void Start(IPBFTNet pBFTNet)
         {
             StartNode(new ChannelsConfig
             {
@@ -64,7 +64,7 @@ namespace Lyra
                 {
                     await Task.Delay(100);
                 }
-                StartConsensus();
+                StartConsensus(pBFTNet);
 
                 TheBlockchain.Tell(new BlockChain.Startup());
 
@@ -78,9 +78,9 @@ namespace Lyra
             });
         }
 
-        public void StartConsensus()
+        public void StartConsensus(IPBFTNet pBFTNet)
         {
-            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode));
+            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode, pBFTNet));
             //Consensus.Tell(new ConsensusService.Start { IgnoreRecoveryLogs = ignoreRecoveryLogs }, Blockchain);
         }
 

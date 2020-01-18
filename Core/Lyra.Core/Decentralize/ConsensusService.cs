@@ -9,6 +9,7 @@ using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
+using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.IO.Actors;
@@ -19,6 +20,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,10 +48,10 @@ namespace Lyra.Core.Decentralize
         public class BlockChainSynced { }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
-        //private readonly ConsistentHashingPool _pool;
-        //private readonly IActorRef _router;
 
         ILogger _log;
+
+        IPBFTNet _pBFTNet;
 
         // hash, authState
         Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
@@ -82,7 +86,7 @@ namespace Lyra.Core.Decentralize
         public BillBoard Board { get => _board; set => _board = value; }
         public List<TransStats> Stats { get => _stats; set => _stats = value; }
 
-        public ConsensusService(IActorRef localNode)
+        public ConsensusService(IActorRef localNode, IPBFTNet pBFTNet)
         {
             _localNode = localNode;
             _log = new SimpleLogger("ConsensusService").Logger;
@@ -97,19 +101,18 @@ namespace Lyra.Core.Decentralize
 
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
-            //_pool = new ConsistentHashingPool(50).WithHashMapping(o => o switch
-            //{
-            //    AuthorizingMsg msg1 => msg1.Block.Hash,
-            //    AuthorizedMsg msg2 => msg2.BlockHash,
-            //    AuthorizerCommitMsg msg3 => msg3.BlockHash,
-            //    AuthState state => state.HashOfFirstBlock,
-            //    _ => null,
-            //});
+            _pBFTNet = pBFTNet;
 
-            //_router = LyraSystem.Singleton.ActorSystem.ActorOf(Akka.Actor.Props.Create<ConsensusWorker>(() => 
-            //    new ConsensusWorker(this)
-            //    )
-            //    .WithRouter(_pool), "some-pool");
+            _pBFTNet.OnMessage += (o, msg) => OnNextConsensusMessageAsync(msg).Wait();
+
+            //Observable.FromEvent<EventHandler<SourceSignedMessage>, SourceSignedMessage>(h => _pBFTNet.OnMessage += h, h => _pBFTNet.OnMessage -= h)
+            //    .Subscribe((msg) => {
+            //        OnNextConsensusMessageAsync(msg).Wait();
+            //    });
+                
+            //_pBFTNet.OnMessage += (o, msg) => {
+            //    await OnNextConsensusMessageAsync(relayMsg.signedMessage);
+            //};
 
             Receive<Consolidate>((_) =>
             {
@@ -130,6 +133,10 @@ namespace Lyra.Core.Decentralize
             Receive<BillBoard>((bb) =>
             {
                 _board = bb;
+                Task.Run(async () => { 
+                foreach (var node in _board.AllNodes.Values)
+                    await _pBFTNet.AddPosNodeAsync(node);
+                });
             });
 
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
@@ -158,7 +165,9 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"The USeed is {USeed}");
 
                 // declare to the network
-                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, "Staking with () Lyra");
+                PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
+                me.IP = Utilities.LocalIPAddress().ToString();
+                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
 
                 Send2P2pNetwork(msg);
             });
@@ -180,6 +189,22 @@ namespace Lyra.Core.Decentralize
                     if (Mode == ConsensusWorkingMode.Normal)
                     {
                         //await GenerateConsolidateBlockAsync();
+                    }
+
+                    // remove unresponsible node
+                    if(_board != null)
+                    {
+                        bool changed = false;
+                        foreach(var node in _board.AllNodes.Values.Where(a => !a.AbleToAuthorize).ToArray())
+                        {
+                            _board.AllNodes.Remove(node.AccountID);
+                            _pBFTNet.RemovePosNode(node);
+                            changed = true;
+                        }
+                        if(changed)
+                        {
+                            BroadCastBillBoard();
+                        }
                     }
 
                     await Task.Delay(10000).ConfigureAwait(false);
@@ -378,15 +403,16 @@ namespace Lyra.Core.Decentralize
         //    return state;
         //}
 
-        public static Props Props(IActorRef localNode)
+        public static Props Props(IActorRef localNode, IPBFTNet pBFTNet)
         {
-            return Akka.Actor.Props.Create(() => new ConsensusService(localNode)).WithMailbox("consensus-service-mailbox");
+            return Akka.Actor.Props.Create(() => new ConsensusService(localNode, pBFTNet)).WithMailbox("consensus-service-mailbox");
         }
 
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
             item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
-            _localNode.Tell(item);
+
+            _pBFTNet.BroadCastMessageAsync(item);
         }
 
         private ConsensusWorker GetWorker(string hash)
@@ -502,6 +528,9 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = await _board.AddAsync(chat.From);
+            _pBFTNet.AddPosNodeAsync(node);
+
+            node.IP = JsonConvert.DeserializeObject<PosNode>(chat.Text).IP;
 
             if (IsThisNodeSeed0)
             {

@@ -183,7 +183,7 @@ namespace Lyra
                 InSyncing = false;
 
                 var board = new BillBoard();
-                await board.AddAsync(NodeService.Instance.PosWallet.AccountId);   // add me!
+                await board.AddMeAsync();   // add me!
 
                 LyraSystem.Singleton.Consensus.Tell(board);
                 LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
@@ -211,8 +211,11 @@ namespace Lyra
                     string syncWithUrl = null;
                     LyraRestClient client = null;
                     long syncToUIndex = ToUIndex;
-
+#if DEBUG
+                    for (int i = 0; i < 2; i++)         // save time 
+#else
                     for (int i = 0; i < ProtocolSettings.Default.SeedList.Length; i++)
+#endif
                     {
                         if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[i])  // self
                             continue;
@@ -245,7 +248,7 @@ namespace Lyra
                         {
                             // seed0. no seed to sync. this seed must have the NORMAL blockchain     
                             var board = new BillBoard();
-                            await board.AddAsync(NodeService.Instance.PosWallet.AccountId);   // add me!
+                            await board.AddMeAsync();   // add me!
                             LyraSystem.Singleton.Consensus.Tell(board);
                             break;
                         }
