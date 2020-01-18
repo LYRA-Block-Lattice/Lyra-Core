@@ -48,8 +48,17 @@ namespace Lyra.Node2.Services
             if (_remoteNodes.ContainsKey(node.AccountID))
             {
                 var client = _remoteNodes[node.AccountID];
-                client.SendMessage("ping");
-                return;
+                if(client == null)
+                {
+                    _remoteNodes.Remove(node.AccountID);
+
+                    CreateClientFor(node);
+                }
+                else
+                {
+                    client.SendMessage("ping");
+                    return;
+                }
             }
             else
             {
