@@ -14,6 +14,7 @@ namespace Lyra.Node2
 
         public override string GetClientId(RequestMessage message) => message.ClientId;
 
+        // this default process becomes heartbeat.
         public override ResponseMessage Process(RequestMessage message)
         {
             if (string.IsNullOrEmpty(message.Payload))
@@ -38,7 +39,7 @@ namespace Lyra.Node2
                     MessageId = message.MessageId,
                     Type = message.Type,
                     Time = timestamp,
-                    Payload = $"Response to \"{message.Payload}\"",
+                    Payload = message.Payload == "ping" ? "pong" : $"Response to \"{message.Payload}\"",
                     Status = MessageStatus.Processed,
                 };
             }

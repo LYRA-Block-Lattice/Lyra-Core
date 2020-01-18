@@ -9,7 +9,7 @@ namespace Lyra.Core.Decentralize
     {
         Task BroadCastMessageAsync(SourceSignedMessage msg);
         event EventHandler<SourceSignedMessage> OnMessage;
-        Task AddPosNodeAsync(PosNode node);
+        void AddPosNode(PosNode node);
         void RemovePosNode(PosNode node);
     }
 }

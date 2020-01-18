@@ -30,6 +30,7 @@ namespace GrpcServerHelper
             var httpContext = context.GetHttpContext();
             Logger.LogInformation($"Connection id: {httpContext.Connection.Id}");
 
+            // handshake. client send his id and signature.
             if (!await requestStream.MoveNext(context.CancellationToken))
                 return;
 

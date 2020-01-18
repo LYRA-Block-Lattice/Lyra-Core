@@ -28,7 +28,7 @@ namespace Lyra.Node2.Services
             await _local.BroadcastAsync(JsonConvert.SerializeObject(msg));
         }
 
-        public async Task AddPosNodeAsync(PosNode node)
+        public void AddPosNode(PosNode node)
         {
             if (_remoteNodes.ContainsKey(node.AccountID))
                 return;
@@ -37,14 +37,18 @@ namespace Lyra.Node2.Services
             _remoteNodes.Add(node.AccountID, client);
 
             // do it
-            client.OnMessage += (o, json) => OnMessage(this, json.UnJson<SourceSignedMessage>());
+            client.OnMessage += (o, json) =>
+            {
+                if (json != "pong")
+                    OnMessage(this, json.UnJson<SourceSignedMessage>());
+            };
 
             try
             {
                 client.Start(node.IP, node.AccountID);
-                client.SendMessage("hello");
+                client.SendMessage("ping");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }

@@ -133,13 +133,11 @@ namespace Lyra.Core.Decentralize
             Receive<BillBoard>((bb) =>
             {
                 _board = bb;
-                Task.Run(async () => { 
                 foreach (var node in _board.AllNodes.Values)
                     {
                         if(node.AccountID != NodeService.Instance.PosWallet.AccountId)
-                            await _pBFTNet.AddPosNodeAsync(node);
+                            _pBFTNet.AddPosNode(node);
                     }                    
-                });
             });
 
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
@@ -531,7 +529,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = await _board.AddAsync(chat.From);
-            _pBFTNet.AddPosNodeAsync(node);
+            _pBFTNet.AddPosNode(node);
 
             node.IP = JsonConvert.DeserializeObject<PosNode>(chat.Text).IP;
 
