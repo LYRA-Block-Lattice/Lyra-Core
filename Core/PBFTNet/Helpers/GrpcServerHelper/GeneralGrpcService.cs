@@ -53,7 +53,7 @@ namespace GrpcServerHelper
                 if (resultMessage == null)
                     continue;
 
-                //await _serverGrpcSubscribers.BroadcastMessageAsync(resultMessage);
+                await _serverGrpcSubscribers.BroadcastMessageAsync(resultMessage);
             } while (await requestStream.MoveNext(context.CancellationToken));
 
             _serverGrpcSubscribers.RemoveSubscriber(subscriber);
