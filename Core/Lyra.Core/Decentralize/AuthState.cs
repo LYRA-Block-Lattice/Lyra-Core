@@ -27,6 +27,7 @@ namespace Lyra.Core.Decentralize
         public List<AuthorizedMsg> OutputMsgs { get; set; }
         public List<AuthorizerCommitMsg> CommitMsgs { get; set; }
 
+        public SemaphoreSlim Semaphore { get; }
         public EventWaitHandle Done { get; set; }
         public bool Settled { get; set; }
         public bool Saving { get; set; }
@@ -46,6 +47,7 @@ namespace Lyra.Core.Decentralize
             OutputMsgs = new List<AuthorizedMsg>();
             CommitMsgs = new List<AuthorizerCommitMsg>();
 
+            Semaphore = new SemaphoreSlim(1, 1);
             Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 

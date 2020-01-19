@@ -305,83 +305,95 @@ namespace Lyra.Core.Decentralize
 
             if (state.GetIsConsensusSuccess(_context.Board))
             {
-                if (state.Saving)
-                    return;
-
-                state.Saving = true;
-
-                state.T4 = DateTime.Now;
-
-                _log.LogInformation($"Saving {state.Consensus}: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
-
-                var ts = DateTime.Now - state.Created;
-                if (_context.Stats.Count > 10000)
-                    _context.Stats.RemoveRange(0, 2000);
-
-                _context.Stats.Add(new TransStats { ms = (long)ts.TotalMilliseconds, trans = state.InputMsg.Block.BlockType });
-
-                var block = state.InputMsg.Block;
-                if (state.Consensus == ConsensusResult.Yay)
+                await state.Semaphore.WaitAsync();
+                try
                 {
-                    // do commit
-                    block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
+                    if (state.Saving)
+                        return;
 
-                    if (block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.NullTransaction && block.BlockType != BlockTypes.Service)
+                    state.Saving = true;
+
+                    state.T4 = DateTime.Now;
+
+                    _log.LogInformation($"Saving {state.Consensus}: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+
+                    var ts = DateTime.Now - state.Created;
+                    if (_context.Stats.Count > 10000)
+                        _context.Stats.RemoveRange(0, 2000);
+
+                    _context.Stats.Add(new TransStats { ms = (long)ts.TotalMilliseconds, trans = state.InputMsg.Block.BlockType });
+
+                    var block = state.InputMsg.Block;
+                    if (state.Consensus == ConsensusResult.Yay)
                     {
-                        // pickup UIndex
-                        try
+                        // do commit
+                        block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
+
+                        if (block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.NullTransaction && block.BlockType != BlockTypes.Service)
                         {
-                            block.UIndex = state.ConsensusUIndex;
-                        }
-                        catch (Exception ex)
-                        {
-                            _log.LogError("Can't get UIndex. System fail: " + ex.Message);
-                            return;
+                            // pickup UIndex
+                            try
+                            {
+                                block.UIndex = state.ConsensusUIndex;
+                            }
+                            catch (Exception ex)
+                            {
+                                _log.LogError("Can't get UIndex. System fail: " + ex.Message);
+                                return;
+                            }
+
+                            //if (!IsThisNodeSeed0 && block.UIndex != USeed - 1)
+                            //{
+                            //    // local node out of sync
+                            //    Mode = ConsensusWorkingMode.OutofSyncWaiting;
+                            //    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
+                            //}
                         }
 
-                        //if (!IsThisNodeSeed0 && block.UIndex != USeed - 1)
-                        //{
-                        //    // local node out of sync
-                        //    Mode = ConsensusWorkingMode.OutofSyncWaiting;
-                        //    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
-                        //}
+                        block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
+
+                        if (!await BlockChain.Singleton.AddBlockAsync(block))
+                            _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
+                        else
+                            _log.LogInformation($"Block saved: {block.UIndex}/{block.Index}/{block.Hash}");
+
+                        var msg = new AuthorizerCommitMsg
+                        {
+                            From = NodeService.Instance.PosWallet.AccountId,
+                            MsgType = ChatMessageType.AuthorizerCommit,
+                            BlockHash = state.InputMsg.Block.Hash,
+                            BlockIndex = block.UIndex,
+                            Commited = true
+                        };
+
+                        _context.Send2P2pNetwork(msg);
+                        state.AddCommitedResult(msg);
                     }
-
-                    block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
-
-                    if (!await BlockChain.Singleton.AddBlockAsync(block))
-                        _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
                     else
-                        _log.LogInformation($"Block saved: {block.UIndex}/{block.Index}/{block.Hash}");
-
-                    var msg = new AuthorizerCommitMsg
                     {
-                        From = NodeService.Instance.PosWallet.AccountId,
-                        MsgType = ChatMessageType.AuthorizerCommit,
-                        BlockHash = state.InputMsg.Block.Hash,
-                        BlockIndex = block.UIndex,
-                        Commited = true
-                    };
-
-                    _context.Send2P2pNetwork(msg);
-                    state.AddCommitedResult(msg);
+                        // nay
+                        var nb = new NullTransactionBlock
+                        {
+                            UIndex = state.ConsensusUIndex,
+                            FailedBlockHash = block.Hash,
+                            NetworkId = block.NetworkId,
+                            ShardId = block.ShardId,
+                            ServiceHash = block.ServiceHash,
+                            AccountID = block.AccountID
+                        };
+                        nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+                            nb.NetworkId, nb.ShardId,
+                            NodeService.Instance.PosWallet.AccountId);
+                        nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
+                    }
                 }
-                else
+                catch(Exception ex)
                 {
-                    // nay
-                    var nb = new NullTransactionBlock
-                    {
-                        UIndex = state.ConsensusUIndex,
-                        FailedBlockHash = block.Hash,
-                        NetworkId = block.NetworkId,
-                        ShardId = block.ShardId,
-                        ServiceHash = block.ServiceHash,
-                        AccountID = block.AccountID
-                    };
-                    nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                        nb.NetworkId, nb.ShardId,
-                        NodeService.Instance.PosWallet.AccountId);
-                    nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
+                    _log.LogError($"CheckAuthorizedAllOkAsync: {ex.Message}");
+                }
+                finally
+                {
+                    state.Semaphore.Release();
                 }
             }
         }
