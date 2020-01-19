@@ -482,8 +482,9 @@ namespace Lyra.Core.Accounts
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
                 return false;
-            }            
+            }
 
+            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index}");
             await _blocks.InsertOneAsync(block);
             return true;
         }
