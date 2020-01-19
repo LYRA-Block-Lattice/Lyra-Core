@@ -21,16 +21,13 @@ namespace Lyra.Node2
         // this default process becomes heartbeat.
         public override ResponseMessage Process(RequestMessage message)
         {
-            //if (string.IsNullOrEmpty(message.Payload))
-            //    return null;
-
             switch(message.Type)
             {
                 case "AuthorizerPrePrepare":
                 case "AuthorizerPrepare":
                 case "AuthorizerCommit":
                     OnPayload?.Invoke(this, (message.Type, message.Payload.ToByteArray()));
-                    return null;
+                    break;
             }
 
             Logger.LogInformation($"To be processed: {message.MessageId} from {message.ClientId.Shorten()}");
