@@ -24,12 +24,12 @@ namespace Lyra.Node2
             //if (string.IsNullOrEmpty(message.Payload))
             //    return null;
 
-            switch(message.MessageId)
+            switch(message.Type)
             {
                 case "AuthorizerPrePrepare":
                 case "AuthorizerPrepare":
                 case "AuthorizerCommit":
-                    OnPayload?.Invoke(this, (message.MessageId, message.Payload.ToByteArray()));
+                    OnPayload?.Invoke(this, (message.Type, message.Payload.ToByteArray()));
                     return null;
             }
 
@@ -42,32 +42,14 @@ namespace Lyra.Node2
             if (message.Response != ResponseType.Required)
                 return null;
             
-            var timestamp = DateTime.UtcNow.Ticks;
-
-            try
+            return new ResponseMessage
             {
-                return new ResponseMessage
-                {
-                    ClientId = message.ClientId,
-                    MessageId = message.MessageId == "ping" ? "pong" : "unknown",
-                    Type = message.Type,
-                    Time = timestamp,
-                    Payload = ByteString.CopyFromUtf8(message.Payload.ToStringUtf8() == "\"ping\"" ? "\"pong\"" : $"\"Response to {message.Payload}\""),
-                    Status = MessageStatus.Processed,
-                };
-            }
-            catch (Exception e)
-            {
-                return new ResponseMessage
-                {
-                    ClientId = message.ClientId,
-                    MessageId = "failed",
-                    Type = message.Type,
-                    Time = timestamp,
-                    Payload = ByteString.CopyFromUtf8(e.Message),
-                    Status = MessageStatus.Error,
-                };
-            }
+                ClientId = message.ClientId,
+                MessageId = message.MessageId,
+                Type = message.Type,
+                Payload = ByteString.Empty,
+                Status = MessageStatus.Processed,
+            };
         }
     }
 }

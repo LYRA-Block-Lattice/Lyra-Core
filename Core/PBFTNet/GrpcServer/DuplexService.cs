@@ -25,12 +25,12 @@ namespace Lyra.Node2.Services
             context.CancellationToken.ThrowIfCancellationRequested();
         }
 
-        public Task BroadcastAsync(string msgtype, byte[] payload)
+        public Task BroadcastAsync(string id, string msgtype, byte[] payload)
         {
             var msg = new ResponseMessage
             {
-                MessageId = msgtype,
-                Type = MessageType.Payload,
+                MessageId = id,
+                Type = msgtype,
                 Payload = ByteString.CopyFrom(payload),
             };
             return _gs.BroadcastAsync(msg);

@@ -11,20 +11,18 @@ message RequestMessage
 {
   string clientId = 1;
   string messageId = 2;
-  MessageType type = 3;
-  int64 time = 4;
-  ResponseType response = 5;
-  bytes payload = 6;
+  string type = 3;
+  ResponseType response = 4;
+  bytes payload = 5;
 }
 
 message ResponseMessage 
 {
   string clientId = 1;
   string messageId = 2;
-  MessageType type = 3;
-  int64 time = 4;
-  MessageStatus status = 5;
-  bytes payload = 6;
+  string type = 3;
+  MessageStatus status = 4;
+  bytes payload = 5;
 }
 
 enum MessageType
