@@ -32,7 +32,7 @@ namespace GrpcClient
             _sendQueue.Add((type, payload));
         }
 
-        protected override void Confirm(string id)
+        public override void Confirm(string id)
         {
             PendingMessage pm;
             _pendingMessages.TryRemove(id, out pm);

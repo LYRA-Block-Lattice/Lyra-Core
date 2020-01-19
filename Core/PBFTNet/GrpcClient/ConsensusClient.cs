@@ -62,7 +62,7 @@ namespace GrpcClient
                                                 //    $"You will get response if your message will contain question mark '?'.{nl}" +
                                                 //    $"Enter empty message to quit.{nl}");
                                             },
-                            (resp) => { OnMessage(this, resp); }
+                            (resp) => { _client.Confirm(resp.MessageId); OnMessage(this, resp); }
                         );
                 }
                 catch(Exception ex)
