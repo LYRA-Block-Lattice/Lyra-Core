@@ -203,7 +203,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task OnPrePrepareAsync(AuthorizingMsg msg)
+        public async Task OnPrePrepareAsync(AuthorizingMsg msg, WaitHandle waitHandle = null)
         {
             _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.UIndex}/{msg.Block.Index}/{msg.Block.Hash}");
             _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
@@ -240,6 +240,9 @@ namespace Lyra.Core.Decentralize
             //_context.Send2P2pNetwork(msg);
             _ = Task.Run(async () =>
               {
+                  if (waitHandle != null)
+                      await waitHandle.AsTask();
+
                   var localAuthResult = await LocalAuthorizingAsync(msg);
                   _state.AddAuthResult(localAuthResult);
 

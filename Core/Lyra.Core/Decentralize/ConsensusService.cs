@@ -474,7 +474,14 @@ namespace Lyra.Core.Decentralize
                 case AuthorizingMsg msg1:
                     var worker = GetWorker(msg1.Block.Hash);
                     if(worker != null)
-                        await worker.OnPrePrepareAsync(msg1);
+                    {
+                        if (msg1.Block.PreviousHash != null && _activeConsensus.ContainsKey(msg1.Block.PreviousHash))
+                        {
+                            await worker.OnPrePrepareAsync(msg1, _activeConsensus[msg1.Block.PreviousHash].State.Done);
+                        }
+                        else
+                            await worker.OnPrePrepareAsync(msg1);
+                    }
                     break;
                 case AuthorizedMsg msg2:
                     var worker2 = GetWorker(msg2.BlockHash);
