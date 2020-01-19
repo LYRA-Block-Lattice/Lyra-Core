@@ -36,11 +36,11 @@ namespace GrpcServerHelper
 
             var clientId = _messageProcessor.GetClientId(requestStream.Current);
             Logger.LogInformation($"{clientId} connected");
-            var subscriber = new SubscribersModel<TResponse>
-            {
-                Subscriber = responseStream,
-                Id = $"{clientId}"
-            };
+            //var subscriber = new SubscribersModel<TResponse>
+            //{
+            //    Subscriber = responseStream,
+            //    Id = $"{clientId}"
+            //};
 
             //_serverGrpcSubscribers.AddSubscriber(subscriber);
 
@@ -53,7 +53,8 @@ namespace GrpcServerHelper
                 if (resultMessage == null)
                     continue;
 
-                await _serverGrpcSubscribers.BroadcastMessageAsync(resultMessage);
+                await responseStream.WriteAsync(resultMessage);
+                //await _serverGrpcSubscribers.BroadcastMessageAsync(resultMessage);
             } while (await requestStream.MoveNext(context.CancellationToken));
 
             //_serverGrpcSubscribers.RemoveSubscriber(subscriber);

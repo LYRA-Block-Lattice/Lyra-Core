@@ -29,13 +29,20 @@ namespace GrpcClientHelper
 
                 var responseTask = Task.Run(async () =>
                 {
-                    // receive pump
-                    while (await duplex.ResponseStream.MoveNext(Stop.Token))
+                    try
                     {
-                        var msg = duplex.ResponseStream.Current;
-                        if(onMessage != null)
-                            onMessage(msg);
-                    }                        
+                        // receive pump
+                        while (await duplex.ResponseStream.MoveNext(Stop.Token))
+                        {
+                            var msg = duplex.ResponseStream.Current;
+                            if (onMessage != null)
+                                onMessage(msg);
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine($"In receive pump: {ex.ToString()}");
+                    }
                 });
 
                 // send pump
