@@ -19,8 +19,6 @@ namespace GrpcClient
         string _accountId;
         string _ip;
 
-        CancellationTokenSource _stop;
-
         public event EventHandler<ResponseMessage> OnMessage;
         public event EventHandler<(string ip, string accountId)> OnShutdown;
 
@@ -32,8 +30,7 @@ namespace GrpcClient
             Console.WriteLine($"GrpcClient started for {nodeAddress}");
 
             _accountId = accountId;
-            _ip = nodeAddress;
-            _stop = new CancellationTokenSource();
+            _ip = nodeAddress;            
 
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
@@ -51,32 +48,15 @@ namespace GrpcClient
         private void Connect()
         {
             Console.Write($"Trying to connect to remote node {_ip}");
-            _client = new GrpcClient(_accountId, _ip);
-            _client.FeedMessage += (sender) =>
-            {
-                var retryOne = _pendingMessages.Values.FirstOrDefault(a => DateTime.Now - a.sent > TimeSpan.FromSeconds(2));
-                if (retryOne == null)
-                {
-                    var msg = _sendQueue.Take();
-                    var guid = Guid.NewGuid().ToString();
-                    _pendingMessages.TryAdd(guid, new PendingMessage { id = guid, type = msg.type, payload = msg.payload });
-                    return (guid, msg.type, msg.payload);
-                }
-                else
-                {
-                    Console.WriteLine($"Retry send one message to {_ip} {retryOne.id}");
-                    retryOne.sent = DateTime.Now;
-                    return (retryOne.id, retryOne.type, retryOne.payload);
-                }
-            };
-
             _ = Task.Run(async () =>
             {
+                _client = new GrpcClient(_accountId, _ip);
+                _client.FeedMessage += (sender) => FeedMessageTo(sender);
+
                 try
                 {
                     await _client.Do(
                             _channel,
-                            _stop.Token,
                             () =>
                             {
                                 Console.Write($"Connected to remote node {_ip}");
@@ -84,7 +64,7 @@ namespace GrpcClient
                             (resp) => { ConfirmMessage(resp.MessageId); OnMessage(this, resp); },
                             () => {
                                 Console.Write($"Disconnected from remote node {_ip}");
-                                if (!_stop.IsCancellationRequested)
+                                if (!_client.Stop.IsCancellationRequested)
                                     Connect(); 
                                 else
                                 {
@@ -101,12 +81,31 @@ namespace GrpcClient
             });
         }
 
+        private (string id, string type, byte[] payload) FeedMessageTo(object sender)
+        {
+            var retryOne = _pendingMessages.Values.FirstOrDefault(a => DateTime.Now - a.sent > TimeSpan.FromSeconds(2));
+            if (retryOne == null)
+            {
+                var msg = _sendQueue.Take();
+                var guid = Guid.NewGuid().ToString();
+                _pendingMessages.TryAdd(guid, new PendingMessage { id = guid, type = msg.type, payload = msg.payload });
+                return (guid, msg.type, msg.payload);
+            }
+            else
+            {
+                Console.WriteLine($"Retry send one message to {_ip} {retryOne.id}");
+                retryOne.sent = DateTime.Now;
+                retryOne.times++;
+                return (retryOne.id, retryOne.type, retryOne.payload);
+            }
+        }
+
         public void Close()
         {
             Console.WriteLine("Disconnected.");
             if (_client != null)
             {
-                _stop.Cancel();
+                _client.Stop.Cancel();
                 _channel.Dispose();
                 _channel = null;
                 _client = null;
@@ -120,6 +119,14 @@ namespace GrpcClient
             else
             {
                 _sendQueue.Add((type, payload));
+
+                if(_pendingMessages.Values.Any(a => a.times > 10))
+                {
+                    // retry connection
+                    Console.WriteLine($"Retry 10 times. Connection to {_ip} is broken. reconnect... ");
+                    _client.Stop.Cancel();
+                    Connect();
+                }
             }
         }
 
@@ -137,5 +144,6 @@ namespace GrpcClient
         public string type { get; set; }
         public byte[] payload { get; set; }
         public DateTime sent { get; set; } = DateTime.Now;
+        public int times { get; set; } = 0;
     }
 }

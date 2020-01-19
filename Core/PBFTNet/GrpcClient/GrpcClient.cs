@@ -8,6 +8,7 @@ using Grpc.Net.Client;
 using Google.Protobuf;
 using System.Text;
 using System.Linq;
+using System.Threading;
 
 namespace GrpcClient
 {

@@ -8,13 +8,20 @@ namespace GrpcClientHelper
 {
     public abstract class GrpcClientBase<TRequest, TResponse>
     {
+        public CancellationTokenSource Stop { get; }
+
         public abstract AsyncDuplexStreamingCall<TRequest, TResponse> CreateDuplexClient(GrpcChannel channel);
 
         public abstract TRequest CreateMessage(string id, string type, byte[] payload);
 
         public abstract (string id, string type, byte[] payload) MessagePayload { get; }
 
-        public async Task Do(GrpcChannel channel, CancellationToken cancellation, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
+        public GrpcClientBase()
+        {
+            Stop = new CancellationTokenSource();
+        }
+
+        public async Task Do(GrpcChannel channel, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
         {
             using (var duplex = CreateDuplexClient(channel))
             {
@@ -23,7 +30,7 @@ namespace GrpcClientHelper
                 var responseTask = Task.Run(async () =>
                 {
                     // receive pump
-                    while (await duplex.ResponseStream.MoveNext(cancellation))
+                    while (await duplex.ResponseStream.MoveNext(Stop.Token))
                     {
                         var msg = duplex.ResponseStream.Current;
                         if(onMessage != null)
@@ -32,7 +39,7 @@ namespace GrpcClientHelper
                 });
 
                 // send pump
-                while (!cancellation.IsCancellationRequested)
+                while (!Stop.Token.IsCancellationRequested)
                 {
                     try
                     {

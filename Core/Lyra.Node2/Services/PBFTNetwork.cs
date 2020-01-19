@@ -120,7 +120,6 @@ namespace Lyra.Node2.Services
                 else
                 {
                     client.SendMessage("ping", Encoding.ASCII.GetBytes("ping"));
-                    return;
                 }
             }
             else
