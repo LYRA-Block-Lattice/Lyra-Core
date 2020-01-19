@@ -21,7 +21,7 @@ namespace GrpcClient
         }
 
         public override AsyncDuplexStreamingCall<RequestMessage, ResponseMessage> CreateDuplexClient(GrpcChannel channel) =>
-            new Messaging.MessagingClient(channel).CreateStreaming(new CallOptions(deadline: DateTime.Now.AddHours(1)));
+            new Messaging.MessagingClient(channel).CreateStreaming(/*new CallOptions(deadline: DateTime.Now.AddHours(1))*/);
 
         public void SendObject(object o)
         {

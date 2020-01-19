@@ -34,7 +34,7 @@ namespace GrpcClient
             // Return `true` to allow certificates that are untrusted/invalid
             httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
             var httpClient = new HttpClient(httpClientHandler);
-            httpClient.Timeout = TimeSpan.FromMinutes(5);
+            //httpClient.Timeout = TimeSpan.FromMinutes(5);
 
             var channelCredentials = new SslCredentials(File.ReadAllText(@"Certs\certificate.crt"));
             //var channel = new Channel($"{nodeAddress}:{PORT}", channelCredentials);
@@ -47,21 +47,28 @@ namespace GrpcClient
 
             _ = Task.Run(async () =>
             {
-                await _client.Do(
-                    _channel,
-                    _stop.Token,
-                    () =>
-                    {
-                        Console.Write($"Connected to server.{nl}ClientId = ");
-                        //Console.ForegroundColor = ConsoleColor.Cyan;
-                        //Console.Write($"{_client.ClientId}");
-                        //Console.ForegroundColor = orgTextColor;
-                        //Console.WriteLine($".{nl}Enter string message to server.{nl}" +
-                        //    $"You will get response if your message will contain question mark '?'.{nl}" +
-                        //    $"Enter empty message to quit.{nl}");
-                    },
-                    (resp) => { OnMessage(this, resp); }
-                );
+                try
+                {
+                    await _client.Do(
+                            _channel,
+                            _stop.Token,
+                            () =>
+                            {
+                                Console.Write($"Connected to server.{nl}ClientId = ");
+                                                //Console.ForegroundColor = ConsoleColor.Cyan;
+                                                //Console.Write($"{_client.ClientId}");
+                                                //Console.ForegroundColor = orgTextColor;
+                                                //Console.WriteLine($".{nl}Enter string message to server.{nl}" +
+                                                //    $"You will get response if your message will contain question mark '?'.{nl}" +
+                                                //    $"Enter empty message to quit.{nl}");
+                                            },
+                            (resp) => { OnMessage(this, resp); }
+                        );
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"_client.Do: {ex.Message}");
+                }
 
                 Close();
                 OnShutdown?.Invoke(this, (_ip, _accountId));
