@@ -21,7 +21,7 @@ namespace Lyra.Node2
             //if (string.IsNullOrEmpty(message.Payload))
             //    return null;
 
-            Logger.LogInformation($"To be processed: {message}");
+            //Logger.LogInformation($"To be processed: {message}");
 
             //
             // Request message processing should be placed here

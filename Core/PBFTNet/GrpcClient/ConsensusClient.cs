@@ -44,17 +44,17 @@ namespace GrpcClient
                     () =>
                     {
                         Console.Write($"Connected to server.{nl}ClientId = ");
-                        Console.ForegroundColor = ConsoleColor.Cyan;
-                        Console.Write($"{_client.ClientId}");
-                        Console.ForegroundColor = orgTextColor;
-                        Console.WriteLine($".{nl}Enter string message to server.{nl}" +
-                            $"You will get response if your message will contain question mark '?'.{nl}" +
-                            $"Enter empty message to quit.{nl}");
+                        //Console.ForegroundColor = ConsoleColor.Cyan;
+                        //Console.Write($"{_client.ClientId}");
+                        //Console.ForegroundColor = orgTextColor;
+                        //Console.WriteLine($".{nl}Enter string message to server.{nl}" +
+                        //    $"You will get response if your message will contain question mark '?'.{nl}" +
+                        //    $"Enter empty message to quit.{nl}");
                     },
                     (resp) => { OnMessage(this, resp); },
                     () =>
                     {
-                        Console.WriteLine("Shutting down...");
+                        Console.WriteLine("Disconnected.");
                         OnShutdown?.Invoke(this, _accountId);
                     }
                 );
