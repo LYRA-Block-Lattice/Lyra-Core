@@ -473,15 +473,18 @@ namespace Lyra.Core.Decentralize
             {
                 case AuthorizingMsg msg1:
                     var worker = GetWorker(msg1.Block.Hash);
-                    await worker?.OnPrePrepareAsync(msg1);
+                    if(worker != null)
+                        await worker.OnPrePrepareAsync(msg1);
                     break;
                 case AuthorizedMsg msg2:
                     var worker2 = GetWorker(msg2.BlockHash);
-                    await worker2?.OnPrepareAsync(msg2);
+                    if (worker2 != null)
+                        await worker2.OnPrepareAsync(msg2);
                     break;
                 case AuthorizerCommitMsg msg3:
                     var worker3 = GetWorker(msg3.BlockHash);
-                    worker3?.OnCommit(msg3);
+                    if (worker3 != null)
+                        worker3.OnCommit(msg3);
                     break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.HeartBeat:
                     OnHeartBeat(chat);
