@@ -393,7 +393,7 @@ namespace Lyra.Core.Decentralize
                 }
                 catch(Exception ex)
                 {
-                    _log.LogError($"CheckAuthorizedAllOkAsync: {ex.Message}");
+                    _log.LogError($"CheckAuthorizedAllOkAsync: {ex.ToString()}");
                 }
                 finally
                 {
