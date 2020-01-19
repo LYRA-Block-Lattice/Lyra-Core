@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using GrpcServerHelper;
 using Communication;
 using Google.Protobuf;
+using Lyra.Shared;
 
 namespace Lyra.Node2
 {
@@ -32,7 +33,7 @@ namespace Lyra.Node2
                     return null;
             }
 
-            Logger.LogInformation($"To be processed: {message}");
+            Logger.LogInformation($"To be processed: {message.MessageId} from {message.ClientId.Shorten()}");
 
             //
             // Request message processing should be placed here

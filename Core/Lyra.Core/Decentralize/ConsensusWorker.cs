@@ -3,6 +3,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
+using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
 using System;

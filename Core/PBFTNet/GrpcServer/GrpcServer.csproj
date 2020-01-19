@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Lyra.Shared\Lyra.Shared.csproj" />
     <ProjectReference Include="..\Helpers\GrpcServerHelper\GrpcServerHelper.csproj" />
   </ItemGroup>
 
