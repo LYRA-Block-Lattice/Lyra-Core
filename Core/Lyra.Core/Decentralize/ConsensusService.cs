@@ -191,7 +191,7 @@ namespace Lyra.Core.Decentralize
 
             Task.Run(async () =>
             {
-                await HeartBeatAsync();
+                HeartBeat();
                 int count = 0;
                 while (true)
                 {
@@ -221,7 +221,7 @@ namespace Lyra.Core.Decentralize
 
                     if(count >= 3)
                     {
-                        await HeartBeatAsync();
+                        HeartBeat();
                         count = 0;
                     }
                 }
@@ -233,9 +233,9 @@ namespace Lyra.Core.Decentralize
 
         }
 
-        private async Task HeartBeatAsync()
+        private void HeartBeat()
         {
-            await OnNodeActiveAsync(NodeService.Instance.PosWallet.AccountId);     // update billboard
+            OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
             // declare to the network
             var msg = new ChatMsg
@@ -247,7 +247,7 @@ namespace Lyra.Core.Decentralize
 
             Send2P2pNetwork(msg);
 
-            if(IsThisNodeSeed0)
+            if (IsThisNodeSeed0)
             {
                 BroadCastBillBoard();
             }
@@ -452,7 +452,7 @@ namespace Lyra.Core.Decentralize
             }
 
             if(item.MsgType != ChatMessageType.NodeUp)
-                await OnNodeActiveAsync(item.From);
+                OnNodeActive(item.From);
 
             switch (item)
             {
@@ -466,10 +466,10 @@ namespace Lyra.Core.Decentralize
                     break;
                 case AuthorizerCommitMsg msg3:
                     var worker3 = GetWorker(msg3.BlockHash);
-                    await worker3.OnCommitAsync(msg3);
+                    worker3.OnCommit(msg3);
                     break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.HeartBeat:
-                    await OnHeartBeatAsync(chat);
+                    OnHeartBeat(chat);
                     break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.NodeUp:
                     await OnNodeUpAsync(chat);
@@ -521,20 +521,21 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async Task OnNodeActiveAsync(string nodeAccountId)
+        public void OnNodeActive(string nodeAccountId)
         {
             if (_board != null)
-                await _board.AddAsync(nodeAccountId);
+                _board.RefreshAsync(nodeAccountId);
         }
 
-        private async Task OnHeartBeatAsync(ChatMsg chat)
+        private void OnHeartBeat(ChatMsg chat)
         {
-            if (_board == null)
-                return;
+            if (_board != null)
+            {
+                _board.RefreshAsync(chat.From);
 
-            var node = await _board.AddAsync(chat.From);
-
-            _pBFTNet.PingNode(_board.AllNodes[chat.From]);
+                if (_board.HasNode(chat.From))
+                    _pBFTNet.PingNode(_board.GetNode(chat.From));
+            }
         }
 
         private async Task OnNodeUpAsync(ChatMsg chat)

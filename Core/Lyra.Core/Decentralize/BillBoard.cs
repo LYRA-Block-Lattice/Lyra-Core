@@ -33,11 +33,14 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        public bool HasNode(string accountId) { return AllNodes.ContainsKey(accountId); }
+        public PosNode GetNode(string accountId) { return AllNodes[accountId]; }
+ 
         public async Task<PosNode> AddMeAsync()
         {
-            var node = await AddAsync(NodeService.Instance.PosWallet.AccountId);
+            var node = new PosNode(NodeService.Instance.PosWallet.AccountId);
             node.IP = Utilities.LocalIPAddress().ToString();
-            return node;
+            return await AddAsync(node);
         }
 
         public async Task<PosNode> AddAsync(PosNode node)
@@ -58,18 +61,14 @@ namespace Lyra.Core.Decentralize
 
             return node;
         }
-        public async Task<PosNode> AddAsync(string accountId)
+        public void RefreshAsync(string accountId)
         {
             PosNode node;
             if (AllNodes.ContainsKey(accountId))
-                node = AllNodes[accountId];
-            else
             {
-                node = new PosNode(accountId);
-                AllNodes.Add(accountId, node);
+                node = AllNodes[accountId];
+                node.LastStaking = DateTime.Now;
             }
-
-            return await AddAsync(node);
         }
     }
 

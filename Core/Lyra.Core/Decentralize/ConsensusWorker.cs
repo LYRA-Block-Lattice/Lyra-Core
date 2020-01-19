@@ -198,7 +198,7 @@ namespace Lyra.Core.Decentralize
         public async Task OnPrePrepareAsync(AuthorizingMsg msg)
         {
             _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.UIndex}/{msg.Block.Index}/{msg.Block.Hash}");
-            await _context.OnNodeActiveAsync(NodeService.Instance.PosWallet.AccountId);     // update billboard
+            _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
             if (msg.Version != LyraGlobal.ProtocolVersion)
             {
@@ -224,7 +224,7 @@ namespace Lyra.Core.Decentralize
                         await OnPrepareAsync(msg1);
                         break;
                     case AuthorizerCommitMsg msg2:
-                        await OnCommitAsync(msg2);
+                        OnCommit(msg2);
                         break;
                 }
             }
@@ -364,7 +364,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async Task OnCommitAsync(AuthorizerCommitMsg item)
+        public void OnCommit(AuthorizerCommitMsg item)
         {
             if (_state == null)
             {
@@ -382,7 +382,7 @@ namespace Lyra.Core.Decentralize
             //    var state = _activeConsensus[item.BlockHash];
             _state.AddCommitedResult(item);
 
-            await _context.OnNodeActiveAsync(item.From);        // track latest activities via billboard
+            _context.OnNodeActive(item.From);        // track latest activities via billboard
             //}
             //else
             //{
