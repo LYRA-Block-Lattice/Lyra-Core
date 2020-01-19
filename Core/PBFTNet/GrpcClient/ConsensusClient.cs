@@ -27,6 +27,7 @@ namespace GrpcClient
             // Return `true` to allow certificates that are untrusted/invalid
             httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
             var httpClient = new HttpClient(httpClientHandler);
+            httpClient.Timeout = TimeSpan.FromMinutes(5);
 
             var channelCredentials = new SslCredentials(File.ReadAllText(@"Certs\certificate.crt"));
             //var channel = new Channel($"{nodeAddress}:{PORT}", channelCredentials);
