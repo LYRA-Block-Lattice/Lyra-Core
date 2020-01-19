@@ -87,12 +87,12 @@ namespace GrpcClient
             }
         }
 
-        public void SendMessage(object o)
+        public void SendMessage(string type, byte[] payload)
         {
             if(_client == null)
                 OnShutdown?.Invoke(this, (_ip, _accountId));
             else
-                _client.SendObject(o);
+                _client.SendObject(type, payload);
         }
     }
 }

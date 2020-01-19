@@ -12,7 +12,7 @@ namespace GrpcClient
 {
     public class GrpcClient : GrpcClientBase<RequestMessage, ResponseMessage>
     {
-        readonly BlockingCollection<object> _sendQueue = new BlockingCollection<object>();
+        readonly BlockingCollection<(string type, byte[] payload)> _sendQueue = new BlockingCollection<(string type, byte[] payload)>();
         public string ClientId { get; }
 
         public GrpcClient(string accountId)
@@ -23,46 +23,30 @@ namespace GrpcClient
         public override AsyncDuplexStreamingCall<RequestMessage, ResponseMessage> CreateDuplexClient(GrpcChannel channel) =>
             new Messaging.MessagingClient(channel).CreateStreaming(/*new CallOptions(deadline: DateTime.Now.AddHours(1))*/);
 
-        public void SendObject(object o)
+        public void SendObject(string type, byte[] payload)
         {
-            _sendQueue.Add(o);
+            _sendQueue.Add((type, payload));
         }
 
-        public override RequestMessage CreateMessage(object ob)
+        public override RequestMessage CreateMessage(string type, byte[] payload)
         {
-            if (ob is byte[])
+            return new RequestMessage
             {
-                return new RequestMessage
-                {
-                    ClientId = ClientId,
-                    MessageId = $"{Guid.NewGuid()}",
-                    Type = MessageType.Payload,
-                    Time = DateTime.UtcNow.Ticks,
-                    Response = ResponseType.Required,
-                    Payload = ByteString.CopyFrom((byte[])ob)
-                };
-            }
-            else
-            {
-                var payload = $"{ob}";
-                return new RequestMessage
-                {
-                    ClientId = ClientId,
-                    MessageId = $"{Guid.NewGuid()}",
-                    Type = MessageType.Ordinary,
-                    Time = DateTime.UtcNow.Ticks,
-                    Response = ResponseType.Required,
-                    Payload = ByteString.CopyFrom(payload, Encoding.UTF8)
-                };
-            }
+                ClientId = ClientId,
+                MessageId = type,
+                Type = MessageType.Payload,
+                Time = DateTime.UtcNow.Ticks,
+                Response = ResponseType.Required,
+                Payload = ByteString.CopyFrom(payload)
+            };
         }
 
-        public override string MessagePayload
+        public override (string type, byte[] payload) MessagePayload
         {
             get 
             {
-                object msg = _sendQueue.Take();
-                return msg.Json();
+                var msg = _sendQueue.Take();
+                return msg;
             }
         }
     }

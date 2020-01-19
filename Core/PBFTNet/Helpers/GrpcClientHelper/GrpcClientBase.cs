@@ -10,9 +10,9 @@ namespace GrpcClientHelper
     {
         public abstract AsyncDuplexStreamingCall<TRequest, TResponse> CreateDuplexClient(GrpcChannel channel);
 
-        public abstract TRequest CreateMessage(object ob);
+        public abstract TRequest CreateMessage(string type, byte[] payload);
 
-        public abstract string MessagePayload { get; }
+        public abstract (string type, byte[] payload) MessagePayload { get; }
 
         public async Task Do(GrpcChannel channel, CancellationToken cancellation, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
         {
@@ -33,12 +33,12 @@ namespace GrpcClientHelper
                 });
 
                 // send pump
-                string payload;
-                while (!string.IsNullOrEmpty(payload = MessagePayload))
+                while (!cancellation.IsCancellationRequested)
                 {
                     try
                     {
-                        await duplex.RequestStream.WriteAsync(CreateMessage(payload));
+                        var msg = MessagePayload;
+                        await duplex.RequestStream.WriteAsync(CreateMessage(msg.type, msg.payload));
                     }
                     catch(Exception ex)
                     {

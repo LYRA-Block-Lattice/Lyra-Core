@@ -8,6 +8,7 @@ using Lyra.Shared;
 using Communication;
 using Newtonsoft.Json;
 using Neo.IO;
+using System.Text;
 
 namespace Lyra.Node2.Services
 {
@@ -50,7 +51,7 @@ namespace Lyra.Node2.Services
             {
                 try
                 {
-                    client.SendMessage(msg);
+                    client.SendMessage(msg.MsgType.ToString(), msg.ToArray());
                 }
                 catch (Exception e)
                 {
@@ -118,7 +119,7 @@ namespace Lyra.Node2.Services
                 }
                 else
                 {
-                    client.SendMessage("ping");
+                    client.SendMessage("ping", Encoding.ASCII.GetBytes("ping"));
                     return;
                 }
             }
@@ -149,7 +150,7 @@ namespace Lyra.Node2.Services
             try
             {
                 client.Start(IP, accoundId);
-                client.SendMessage("ping");
+                client.SendMessage("ping", Encoding.ASCII.GetBytes("ping"));
             }
             catch (Exception ex)
             {
