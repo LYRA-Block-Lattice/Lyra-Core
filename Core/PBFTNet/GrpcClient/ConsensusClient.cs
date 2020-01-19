@@ -116,10 +116,11 @@ namespace GrpcClient
         {
             _sendQueue.Add((type, payload));
 
-            if (_pendingMessages.Values.Any(a => a.times > 10))
+            if (_pendingMessages.Values.Any(a => a.times > 10) || 
+                _pendingMessages.Values.Any(a => DateTime.Now - a.sent > TimeSpan.FromSeconds(20)))
             {
                 // retry connection
-                Console.WriteLine($"Retry 10 times. Connection to {_ip} is broken. reconnect... ");
+                Console.WriteLine($"Connection to {_ip} is broken. reconnect... ");
                 _client.Stop.Cancel();
                 Connect();
             }
