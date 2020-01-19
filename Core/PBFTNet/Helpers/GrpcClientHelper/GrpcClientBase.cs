@@ -26,7 +26,6 @@ namespace GrpcClientHelper
                     while (await duplex.ResponseStream.MoveNext(cancellation))
                     {
                         var msg = duplex.ResponseStream.Current;
-                        Console.WriteLine($"{msg}");
                         if(onMessage != null)
                             onMessage(msg);
                     }                        
