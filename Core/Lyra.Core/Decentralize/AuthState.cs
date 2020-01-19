@@ -32,14 +32,12 @@ namespace Lyra.Core.Decentralize
         public bool Settled { get; set; }
         public bool Saving { get; set; }
 
-        public ConsensusResult Consensus { get; private set; }
+        public ConsensusResult Consensus => GetConsensusSuccess(ConsensusService.Board);
 
         ILogger _log;
 
         public AuthState()
         {
-            Consensus = ConsensusResult.Uncertain;
-
             _log = new SimpleLogger("AuthState").Logger;
 
             Created = DateTime.Now;
@@ -79,16 +77,16 @@ namespace Lyra.Core.Decentralize
             return true;
         }
 
-        public bool GetIsConsensusSuccess(BillBoard billBoard)
+        private ConsensusResult GetConsensusSuccess(BillBoard billBoard)
         {
             if (billBoard == null)
                 throw new Exception("The BillBoard mustn't be null!");
 
-            // wait for a proper UID
-            if (!OutputMsgs.ToList().Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]))
-            {
-                return false;
-            }                
+            //// wait for a proper UID
+            //if (!OutputMsgs.ToList().Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]))
+            //{
+            //    return false;
+            //}                
 
             var selectedNodes = billBoard.AllNodes.Values.Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber);
 
@@ -101,11 +99,11 @@ namespace Lyra.Core.Decentralize
                     select m;
 
             if (q.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
-                Consensus = ConsensusResult.Yay;
+                return ConsensusResult.Yay;
             else if (q2.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
-                Consensus = ConsensusResult.Nay;
-
-            return Consensus != ConsensusResult.Uncertain;
+                return ConsensusResult.Nay;
+            else
+                return ConsensusResult.Uncertain;
         }
 
 

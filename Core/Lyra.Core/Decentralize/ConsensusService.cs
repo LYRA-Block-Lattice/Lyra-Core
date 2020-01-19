@@ -16,6 +16,7 @@ using Neo.IO.Actors;
 using Neo.Network.P2P;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -55,9 +56,9 @@ namespace Lyra.Core.Decentralize
 
         // hash, authState
         Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
-        Dictionary<string, ConsensusWorker> _activeConsensus;
+        ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         Dictionary<string, ConsensusWorker> _cleanedConsensus;
-        private BillBoard _board;
+        private static BillBoard _board;
         private List<TransStats> _stats;
 
         private long _UIndexSeed = -1;
@@ -83,7 +84,7 @@ namespace Lyra.Core.Decentralize
 
         public bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public ConsensusWorkingMode Mode { get; private set; }
-        public BillBoard Board { get => _board; set => _board = value; }
+        public static BillBoard Board { get => _board; set => _board = value; }
         public List<TransStats> Stats { get => _stats; set => _stats = value; }
 
         public ConsensusService(IActorRef localNode, IPBFTNet pBFTNet)
@@ -92,7 +93,7 @@ namespace Lyra.Core.Decentralize
             _log = new SimpleLogger("ConsensusService").Logger;
 
             _outOfOrderedMessages = new Dictionary<string, List<SourceSignedMessage>>();
-            _activeConsensus = new Dictionary<string, ConsensusWorker>();
+            _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _cleanedConsensus = new Dictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
 
@@ -185,7 +186,7 @@ namespace Lyra.Core.Decentralize
             {
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
                 var worker = new ConsensusWorker(this);
-                _activeConsensus.Add(state.InputMsg.Block.Hash, worker);
+                _activeConsensus.TryAdd(state.InputMsg.Block.Hash, worker);
                 worker.Create(state);
             });
 
@@ -282,8 +283,8 @@ namespace Lyra.Core.Decentralize
                     var state = states[i].State;    // TODO: check null
                     if (DateTime.Now - state.Created > TimeSpan.FromSeconds(10)) // consensus timeout
                     {
-                        var finalResult = state.GetIsConsensusSuccess(_board);
-                        _activeConsensus.Remove(state.InputMsg.Block.Hash);
+                        var finalResult = state.Consensus;
+                        _activeConsensus.TryRemove(state.InputMsg.Block.Hash, out _);
                         state.Done.Set();
 
                         _cleanedConsensus.Add(state.InputMsg.Block.Hash, states[i]);
@@ -434,7 +435,7 @@ namespace Lyra.Core.Decentralize
             else
             {
                 var worker = new ConsensusWorker(this);
-                _activeConsensus.Add(hash, worker);
+                _activeConsensus.TryAdd(hash, worker);
                 return worker;
             }
         }
