@@ -16,15 +16,14 @@ namespace Lyra.Node2.Services
     {
         public event EventHandler<SourceSignedMessage> OnMessage;
 
-        DuplexService _local;
-
         readonly Dictionary<string, PosNode> _targetNodes = new Dictionary<string, PosNode>();
         readonly Dictionary<string, ConsensusClient> _remoteNodes = new Dictionary<string, ConsensusClient>();
 
-        public PBFTNetwork(DuplexService duplexService)
+        MessageProcessor _srvMsgProcessor;
+        public PBFTNetwork(MessageProcessor messageProcessor)
         {
-            _local = duplexService;
-            _local.Processor.OnPayload += (o, msg) =>
+            _srvMsgProcessor = messageProcessor;
+            _srvMsgProcessor.OnPayload += (o, msg) =>
             {
                 switch (msg.type)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
                 {
