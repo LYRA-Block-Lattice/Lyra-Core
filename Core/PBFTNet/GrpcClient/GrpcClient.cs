@@ -18,10 +18,12 @@ namespace GrpcClient
         readonly ConcurrentDictionary<string, PendingMessage> _pendingMessages = new ConcurrentDictionary<string, PendingMessage>();
         
         public string ClientId { get; }
+        public string Ip { get; }
 
-        public GrpcClient(string accountId)
+        public GrpcClient(string accountId, string IP)
         {
             ClientId = accountId;
+            Ip = IP;
         }
 
         public override AsyncDuplexStreamingCall<RequestMessage, ResponseMessage> CreateDuplexClient(GrpcChannel channel) =>
@@ -64,7 +66,7 @@ namespace GrpcClient
                 }
                 else
                 {
-                    Console.WriteLine("Retry send one");
+                    Console.WriteLine($"Retry send one message to {Ip}");
                     retryOne.sent = DateTime.Now;
                     return (retryOne.id, retryOne.type, retryOne.payload);
                 }

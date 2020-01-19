@@ -43,7 +43,7 @@ namespace GrpcClient
             var nl = Environment.NewLine;
             var orgTextColor = Console.ForegroundColor;
 
-            _client = new GrpcClient(accountId);
+            _client = new GrpcClient(accountId, nodeAddress);
 
             _ = Task.Run(async () =>
             {
