@@ -102,47 +102,44 @@ namespace Lyra.Node2.Services
 
         private void CreateClientFor(string accoundId, string IP)
         {
-            Task.Run(() =>
+            var client = new ConsensusClient();
+            _remoteNodes.Add(accoundId, client);
+
+            // do it
+            client.OnMessage += (o, msg) =>
             {
-                var client = new ConsensusClient();
-                _remoteNodes.Add(accoundId, client);
-
-                // do it
-                client.OnMessage += (o, msg) =>
+                switch (msg.MessageId)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
                 {
-                    switch (msg.MessageId)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
-                {
-                        case "AuthorizerPrePrepare":
-                            OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizingMsg>());
-                            break;
-                        case "AuthorizerPrepare":
-                            OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizedMsg>());
-                            break;
-                        case "AuthorizerCommit":
-                            OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizerCommitMsg>());
-                            break;
-                        default:
-                            Console.WriteLine("unknown message from pbft node");
-                            break;
-                    }
-                };
-
-                client.OnShutdown += (o, a) =>
-                {
-                    _remoteNodes.Remove(a.accountId);
-                    Task.Run(() => { CreateClientFor(a.accountId, a.ip); });
-                };
-
-                try
-                {
-                    client.Start(IP, accoundId);
-                    client.SendMessage("ping");
+                    case "AuthorizerPrePrepare":
+                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizingMsg>());
+                        break;
+                    case "AuthorizerPrepare":
+                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizedMsg>());
+                        break;
+                    case "AuthorizerCommit":
+                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizerCommitMsg>());
+                        break;
+                    default:
+                        Console.WriteLine("unknown message from pbft node");
+                        break;
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-            });
+            };
+
+            client.OnShutdown += (o, a) =>
+            {
+                _remoteNodes.Remove(a.accountId);
+                Task.Run(() => { CreateClientFor(a.accountId, a.ip); });
+            };
+
+            try
+            {
+                client.Start(IP, accoundId);
+                client.SendMessage("ping");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

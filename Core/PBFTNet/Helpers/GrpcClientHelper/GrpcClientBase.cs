@@ -14,7 +14,7 @@ namespace GrpcClientHelper
 
         public abstract string MessagePayload { get; }
 
-        public async Task Do(GrpcChannel channel, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
+        public async Task Do(GrpcChannel channel, CancellationToken cancellation, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
         {
             using (var duplex = CreateDuplexClient(channel))
             {
@@ -23,7 +23,7 @@ namespace GrpcClientHelper
                 var responseTask = Task.Run(async () =>
                 {
                     // receive pump
-                    while (await duplex.ResponseStream.MoveNext(CancellationToken.None))
+                    while (await duplex.ResponseStream.MoveNext(cancellation))
                     {
                         var msg = duplex.ResponseStream.Current;
                         Console.WriteLine($"{msg}");
@@ -49,10 +49,6 @@ namespace GrpcClientHelper
 
                 await duplex.RequestStream.CompleteAsync();
             }
-
-            onShuttingDown?.Invoke();
-            //await channel.ShutdownAsync();
-            channel.Dispose();
         }
     }
 }

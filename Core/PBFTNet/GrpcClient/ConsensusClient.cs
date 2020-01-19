@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Communication;
 using Grpc.Core;
@@ -16,15 +17,18 @@ namespace GrpcClient
         string _accountId;
         string _ip;
 
+        CancellationTokenSource _stop;
+
         public event EventHandler<ResponseMessage> OnMessage;
         public event EventHandler<(string ip, string accountId)> OnShutdown;
 
         public void Start(string nodeAddress, string accountId)
         {
-            Console.WriteLine("GrpcClient started.");
+            Console.WriteLine($"GrpcClient started for {nodeAddress}");
 
             _accountId = accountId;
             _ip = nodeAddress;
+            _stop = new CancellationTokenSource();
 
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
@@ -45,6 +49,7 @@ namespace GrpcClient
             {
                 await _client.Do(
                     _channel,
+                    _stop.Token,
                     () =>
                     {
                         Console.Write($"Connected to server.{nl}ClientId = ");
@@ -55,19 +60,24 @@ namespace GrpcClient
                         //    $"You will get response if your message will contain question mark '?'.{nl}" +
                         //    $"Enter empty message to quit.{nl}");
                     },
-                    (resp) => { OnMessage(this, resp); },
-                    () =>
-                    {
-                        Console.WriteLine("Disconnected.");
-                        OnShutdown?.Invoke(this, (_ip, _accountId));
-                    }
+                    (resp) => { OnMessage(this, resp); }
                 );
+
+                Close();
+                OnShutdown?.Invoke(this, (_ip, _accountId));
             });
         }
 
         public void Close()
         {
-            _channel.Dispose();
+            Console.WriteLine("Disconnected.");
+            if (_client != null)
+            {
+                _stop.Cancel();
+                _channel.Dispose();
+                _channel = null;
+                _client = null;
+            }
         }
 
         public void SendMessage(object o)
