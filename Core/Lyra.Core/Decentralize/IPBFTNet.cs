@@ -7,7 +7,7 @@ namespace Lyra.Core.Decentralize
 {
     public interface IPBFTNet
     {
-        Task BroadCastMessageAsync(SourceSignedMessage msg);
+        void BroadCastMessage(SourceSignedMessage msg);
         event EventHandler<SourceSignedMessage> OnMessage;
 
         void PingNode(PosNode node);

@@ -424,7 +424,7 @@ namespace Lyra.Core.Decentralize
             if (item is ChatMsg)
                 _localNode.Tell(item);
             else
-                _pBFTNet.BroadCastMessageAsync(item);
+                _pBFTNet.BroadCastMessage(item);
         }
 
         private ConsensusWorker GetWorker(string hash)

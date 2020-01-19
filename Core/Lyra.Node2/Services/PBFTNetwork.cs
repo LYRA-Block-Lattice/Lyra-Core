@@ -23,11 +23,40 @@ namespace Lyra.Node2.Services
         public PBFTNetwork(DuplexService duplexService)
         {
             _local = duplexService;
+            _local.Processor.OnPayload += (o, msg) =>
+            {
+                switch (msg.type)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
+                {
+                    case "AuthorizerPrePrepare":
+                        OnMessage(this, msg.payload.AsSerializable<AuthorizingMsg>());
+                        break;
+                    case "AuthorizerPrepare":
+                        OnMessage(this, msg.payload.AsSerializable<AuthorizedMsg>());
+                        break;
+                    case "AuthorizerCommit":
+                        OnMessage(this, msg.payload.AsSerializable<AuthorizerCommitMsg>());
+                        break;
+                    default:
+                        Console.WriteLine("unknown message from pbft node");
+                        break;
+                }
+            };
         }
 
-        public async Task BroadCastMessageAsync(SourceSignedMessage msg)
+        public void BroadCastMessage(SourceSignedMessage msg)
         {
-            await _local.BroadcastAsync(msg.MsgType.ToString(), msg.ToArray());
+            //await _local.BroadcastAsync(msg.MsgType.ToString(), msg.ToArray());
+            foreach (var client in _remoteNodes.Values)
+            {
+                try
+                {
+                    client.SendMessage(msg);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Sending to other pbft node: {e.Message}");
+                }
+            }
         }
 
         public void AddPosNode(PosNode node)
@@ -108,21 +137,7 @@ namespace Lyra.Node2.Services
             // do it
             client.OnMessage += (o, msg) =>
             {
-                switch (msg.MessageId)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
-                {
-                    case "AuthorizerPrePrepare":
-                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizingMsg>());
-                        break;
-                    case "AuthorizerPrepare":
-                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizedMsg>());
-                        break;
-                    case "AuthorizerCommit":
-                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizerCommitMsg>());
-                        break;
-                    default:
-                        Console.WriteLine("unknown message from pbft node");
-                        break;
-                }
+
             };
 
             client.OnShutdown += (o, a) =>

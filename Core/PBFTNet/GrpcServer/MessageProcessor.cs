@@ -8,6 +8,8 @@ namespace Lyra.Node2
 {
     public class MessageProcessor : MessageProcessorBase<RequestMessage, ResponseMessage>
     {
+        public event EventHandler<(string type, byte[] payload)> OnPayload;
+
         public MessageProcessor(ILoggerFactory loggerFactory)
             : base(loggerFactory)
         {
@@ -21,7 +23,16 @@ namespace Lyra.Node2
             //if (string.IsNullOrEmpty(message.Payload))
             //    return null;
 
-            //Logger.LogInformation($"To be processed: {message}");
+            switch(message.MessageId)
+            {
+                case "AuthorizerPrePrepare":
+                case "AuthorizerPrepare":
+                case "AuthorizerCommit":
+                    OnPayload?.Invoke(this, (message.MessageId, message.Payload.ToByteArray()));
+                    return null;
+            }
+
+            Logger.LogInformation($"To be processed: {message}");
 
             //
             // Request message processing should be placed here

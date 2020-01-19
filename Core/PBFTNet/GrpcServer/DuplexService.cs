@@ -11,9 +11,11 @@ namespace Lyra.Node2.Services
     public class DuplexService : Messaging.MessagingBase, IDisposable
     {
         private GeneralGrpcService<RequestMessage, ResponseMessage> _gs;
+        public MessageProcessor Processor { get; set; }
 
         public DuplexService(ILoggerFactory loggerFactory, ServerGrpcSubscribers serverGrpcSubscribers, MessageProcessor messageProcessor)
         {
+            Processor = messageProcessor;
             _gs = new GeneralGrpcService<RequestMessage, ResponseMessage>(loggerFactory, serverGrpcSubscribers, messageProcessor);
         }
 
