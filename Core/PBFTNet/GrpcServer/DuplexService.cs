@@ -21,8 +21,14 @@ namespace Lyra.Node2.Services
 
         public override async Task CreateStreaming(IAsyncStreamReader<RequestMessage> requestStream, IServerStreamWriter<ResponseMessage> responseStream, ServerCallContext context)
         {
-            await _gs.CreateDuplexStreaming(requestStream, responseStream, context);
-            context.CancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                await _gs.CreateDuplexStreaming(requestStream, responseStream, context);
+            }
+            catch(Exception ex)
+            {
+                context.CancellationToken.ThrowIfCancellationRequested();
+            }            
         }
 
         public Task BroadcastAsync(string id, string msgtype, byte[] payload)
