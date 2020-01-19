@@ -47,7 +47,7 @@ namespace GrpcClient
 
         private void Connect()
         {
-            Console.Write($"Trying to connect to remote node {_ip}");
+            Console.WriteLine($"Trying to connect to remote node {_ip}");
             _ = Task.Run(async () =>
             {
                 _client = new GrpcClient(_accountId, _ip);
@@ -59,11 +59,11 @@ namespace GrpcClient
                             _channel,
                             () =>
                             {
-                                Console.Write($"Connected to remote node {_ip}");
+                                Console.WriteLine($"Connected to remote node {_ip}");
                             },
                             (resp) => { ConfirmMessage(resp.MessageId); OnMessage(this, resp); },
                             () => {
-                                Console.Write($"Disconnected from remote node {_ip}");
+                                Console.WriteLine($"Disconnected from remote node {_ip}");
                                 if (!_client.Stop.IsCancellationRequested)
                                     Connect(); 
                                 else
@@ -114,19 +114,14 @@ namespace GrpcClient
 
         public void SendMessage(string type, byte[] payload)
         {
-            if (_client == null)
-                OnShutdown?.Invoke(this, (_ip, _accountId));
-            else
-            {
-                _sendQueue.Add((type, payload));
+            _sendQueue.Add((type, payload));
 
-                if(_pendingMessages.Values.Any(a => a.times > 10))
-                {
-                    // retry connection
-                    Console.WriteLine($"Retry 10 times. Connection to {_ip} is broken. reconnect... ");
-                    _client.Stop.Cancel();
-                    Connect();
-                }
+            if (_pendingMessages.Values.Any(a => a.times > 10))
+            {
+                // retry connection
+                Console.WriteLine($"Retry 10 times. Connection to {_ip} is broken. reconnect... ");
+                _client.Stop.Cancel();
+                Connect();
             }
         }
 
