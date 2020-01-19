@@ -188,7 +188,7 @@ namespace Lyra.Core.Decentralize
                 var worker = new ConsensusWorker(this);
                 if(_activeConsensus.TryAdd(state.InputMsg.Block.Hash, worker))
                 {
-                    if(_activeConsensus.ContainsKey(state.InputMsg.Block.PreviousHash))
+                    if(state.InputMsg.Block.PreviousHash != null && _activeConsensus.ContainsKey(state.InputMsg.Block.PreviousHash))
                     {
                         worker.Create(state, _activeConsensus[state.InputMsg.Block.PreviousHash].State.Done);
                     }
@@ -290,7 +290,7 @@ namespace Lyra.Core.Decentralize
                 for (int i = 0; i < states.Length; i++)
                 {
                     var state = states[i].State;    // TODO: check null
-                    if (DateTime.Now - state.Created > TimeSpan.FromSeconds(15)) // consensus timeout
+                    if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(15)) // consensus timeout
                     {
                         var finalResult = state.Consensus;
                         _activeConsensus.TryRemove(state.InputMsg.Block.Hash, out _);

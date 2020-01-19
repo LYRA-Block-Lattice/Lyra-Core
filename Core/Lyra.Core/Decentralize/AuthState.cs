@@ -67,8 +67,10 @@ namespace Lyra.Core.Decentralize
                 return false;
 
             CommitMsgs.Add(msg);
-            if (CommitMsgs.Count(a => a.Consensus == ConsensusResult.Yay) >= ProtocolSettings.Default.ConsensusWinNumber
-                || CommitMsgs.Count(a => a.Consensus == ConsensusResult.Nay) >= ProtocolSettings.Default.ConsensusWinNumber)
+
+            var CommitMsgList = CommitMsgs.ToList();
+            if (CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay) >= ProtocolSettings.Default.ConsensusWinNumber
+                || CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay) >= ProtocolSettings.Default.ConsensusWinNumber)
             {
                 _log.LogInformation($"Committed: {ConsensusUIndex}/{InputMsg.Block.Index} Yay: {CommitMsgs.Count(a => a.Consensus == ConsensusResult.Yay)} of {CommitMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + ", " + y)}");
                 Settled = true;
@@ -88,7 +90,7 @@ namespace Lyra.Core.Decentralize
             //    return false;
             //}                
 
-            var selectedNodes = billBoard.AllNodes.Values.Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber);
+            var selectedNodes = billBoard.AllNodes.Values.ToList().Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber);
 
             var q = from m in OutputMsgs
                     where m.IsSuccess && selectedNodes.Any(a => a.AccountID == m.From)
@@ -113,16 +115,18 @@ namespace Lyra.Core.Decentralize
             {
                 // implicty GetIsAuthoringSuccess true
                 // get from seed node. so we must keep seeds synced in perfect state.
+                var outputMsgsList = OutputMsgs.ToList();
+
                 for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
                 {
-                    var authenSeed = OutputMsgs.FirstOrDefault(a => a.From == ProtocolSettings.Default.StandbyValidators[i]);
+                    var authenSeed = outputMsgsList.FirstOrDefault(a => a.From == ProtocolSettings.Default.StandbyValidators[i]);
                     if (authenSeed != null && authenSeed.BlockUIndex != 0)
                     {
                         return authenSeed.BlockUIndex;
                     }
                 }
 
-                var consensusedSeed = OutputMsgs.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
+                var consensusedSeed = outputMsgsList.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
                     .OrderByDescending(b => b.Froms.Count)
                     .First();
                 if (consensusedSeed.Froms.Count >= ProtocolSettings.Default.ConsensusWinNumber)
