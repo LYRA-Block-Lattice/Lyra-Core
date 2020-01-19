@@ -49,7 +49,7 @@ namespace Lyra.Node2
                 return new ResponseMessage
                 {
                     ClientId = message.ClientId,
-                    MessageId = message.MessageId,
+                    MessageId = message.MessageId == "ping" ? "pong" : "unknown",
                     Type = message.Type,
                     Time = timestamp,
                     Payload = ByteString.CopyFromUtf8(message.Payload.ToStringUtf8() == "\"ping\"" ? "\"pong\"" : $"\"Response to {message.Payload}\""),
@@ -61,7 +61,7 @@ namespace Lyra.Node2
                 return new ResponseMessage
                 {
                     ClientId = message.ClientId,
-                    MessageId = message.MessageId,
+                    MessageId = "failed",
                     Type = message.Type,
                     Time = timestamp,
                     Payload = ByteString.CopyFromUtf8(e.Message),
