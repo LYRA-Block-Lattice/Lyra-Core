@@ -214,6 +214,7 @@ namespace Lyra.Core.Decentralize
 		public long BlockIndex { get; set; }
 		public string BlockHash { get; set; }
 		public bool Commited { get; set; }
+		public ConsensusResult Consensus { get; set; }
 
 		public AuthorizerCommitMsg()
 		{
@@ -224,7 +225,7 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{BlockHash}|{BlockIndex}|{Commited}" + base.GetHashInput();
+			return $"{BlockHash}|{BlockIndex}|{Commited}|{Consensus}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
@@ -235,7 +236,8 @@ namespace Lyra.Core.Decentralize
 		public override int Size => base.Size +
 			sizeof(long) +
 			BlockHash.Length +
-			sizeof(bool);
+			sizeof(bool) +
+			sizeof(ConsensusResult);
 
 		public override void Serialize(BinaryWriter writer)
 		{
@@ -243,6 +245,7 @@ namespace Lyra.Core.Decentralize
 			writer.Write(BlockIndex);
 			writer.Write(BlockHash);
 			writer.Write(Commited);
+			writer.Write((int)Consensus);
 		}
 
 		public override void Deserialize(BinaryReader reader)
@@ -251,6 +254,7 @@ namespace Lyra.Core.Decentralize
 			BlockIndex = reader.ReadInt64();
 			BlockHash = reader.ReadString();
 			Commited = reader.ReadBoolean();
+			Consensus = (ConsensusResult)reader.ReadInt32();
 		}
 	}
 }

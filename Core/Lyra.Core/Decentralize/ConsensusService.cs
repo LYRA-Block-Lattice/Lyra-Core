@@ -282,7 +282,7 @@ namespace Lyra.Core.Decentralize
                     var state = states[i].State;    // TODO: check null
                     if (DateTime.Now - state.Created > TimeSpan.FromSeconds(10)) // consensus timeout
                     {
-                        var finalResult = state.GetIsAuthoringSuccess(_board);
+                        var finalResult = state.GetIsConsensusSuccess(_board);
                         _activeConsensus.Remove(state.InputMsg.Block.Hash);
                         state.Done.Set();
 

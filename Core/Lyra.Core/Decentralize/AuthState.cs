@@ -10,6 +10,7 @@ using System.Threading;
 
 namespace Lyra.Core.Decentralize
 {
+    public enum ConsensusResult { Uncertain, Yay, Nay }
     public class AuthState
     {
         public DateTime Created { get; private set; }
@@ -30,12 +31,14 @@ namespace Lyra.Core.Decentralize
         public bool Settled { get; set; }
         public bool Saving { get; set; }
 
-        public bool? IsConsensusSuccess { get; private set; }
+        public ConsensusResult Consensus { get; private set; }
 
         ILogger _log;
 
         public AuthState()
         {
+            Consensus = ConsensusResult.Uncertain;
+
             _log = new SimpleLogger("AuthState").Logger;
 
             Created = DateTime.Now;
@@ -63,16 +66,17 @@ namespace Lyra.Core.Decentralize
                 return false;
 
             CommitMsgs.Add(msg);
-            if (CommitMsgs.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
+            if (CommitMsgs.Count(a => a.Consensus == ConsensusResult.Yay) >= ProtocolSettings.Default.ConsensusWinNumber
+                || CommitMsgs.Count(a => a.Consensus == ConsensusResult.Nay) >= ProtocolSettings.Default.ConsensusWinNumber)
             {
-                _log.LogInformation($"Committed: {ConsensusUIndex}/{InputMsg.Block.Index} Yay: {CommitMsgs.Count} of {CommitMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + ", " + y)}");
+                _log.LogInformation($"Committed: {ConsensusUIndex}/{InputMsg.Block.Index} Yay: {CommitMsgs.Count(a => a.Consensus == ConsensusResult.Yay)} of {CommitMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + ", " + y)}");
                 Settled = true;
                 Done.Set();
             }
             return true;
         }
 
-        public bool GetIsAuthoringSuccess(BillBoard billBoard)
+        public bool GetIsConsensusSuccess(BillBoard billBoard)
         {
             if (billBoard == null)
                 throw new Exception("The BillBoard mustn't be null!");
@@ -89,9 +93,16 @@ namespace Lyra.Core.Decentralize
                     where m.IsSuccess && selectedNodes.Any(a => a.AccountID == m.From)
                     select m;
 
-            IsConsensusSuccess = q.Count() >= ProtocolSettings.Default.ConsensusWinNumber;
+            var q2 = from m in OutputMsgs
+                    where m.IsSuccess && selectedNodes.Any(a => a.AccountID == m.From)
+                    select m;
 
-            return IsConsensusSuccess == true;
+            if (q.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
+                Consensus = ConsensusResult.Yay;
+            else if (q2.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
+                Consensus = ConsensusResult.Nay;
+
+            return Consensus != ConsensusResult.Uncertain;
         }
 
 
