@@ -14,8 +14,6 @@ namespace GrpcClientHelper
 
         public abstract (string id, string type, byte[] payload) MessagePayload { get; }
 
-        public abstract void Confirm(string id);
-
         public async Task Do(GrpcChannel channel, CancellationToken cancellation, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
         {
             using (var duplex = CreateDuplexClient(channel))

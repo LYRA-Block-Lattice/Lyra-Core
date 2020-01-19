@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +24,9 @@ namespace GrpcClient
         public event EventHandler<ResponseMessage> OnMessage;
         public event EventHandler<(string ip, string accountId)> OnShutdown;
 
+        readonly BlockingCollection<(string type, byte[] payload)> _sendQueue = new BlockingCollection<(string type, byte[] payload)>();
+        readonly ConcurrentDictionary<string, PendingMessage> _pendingMessages = new ConcurrentDictionary<string, PendingMessage>();
+
         public void Start(string nodeAddress, string accountId)
         {
             Console.WriteLine($"GrpcClient started for {nodeAddress}");
@@ -40,10 +45,30 @@ namespace GrpcClient
             //var channel = new Channel($"{nodeAddress}:{PORT}", channelCredentials);
             _channel = GrpcChannel.ForAddress($"https://{nodeAddress}:{PORT}", new GrpcChannelOptions { HttpClient = httpClient });
 
-            var nl = Environment.NewLine;
-            var orgTextColor = Console.ForegroundColor;
+            Connect();
+        }
 
-            _client = new GrpcClient(accountId, nodeAddress);
+        private void Connect()
+        {
+            Console.Write($"Trying to connect to remote node {_ip}");
+            _client = new GrpcClient(_accountId, _ip);
+            _client.FeedMessage += (sender) =>
+            {
+                var retryOne = _pendingMessages.Values.FirstOrDefault(a => DateTime.Now - a.sent > TimeSpan.FromSeconds(2));
+                if (retryOne == null)
+                {
+                    var msg = _sendQueue.Take();
+                    var guid = Guid.NewGuid().ToString();
+                    _pendingMessages.TryAdd(guid, new PendingMessage { id = guid, type = msg.type, payload = msg.payload });
+                    return (guid, msg.type, msg.payload);
+                }
+                else
+                {
+                    Console.WriteLine($"Retry send one message to {_ip} {retryOne.id}");
+                    retryOne.sent = DateTime.Now;
+                    return (retryOne.id, retryOne.type, retryOne.payload);
+                }
+            };
 
             _ = Task.Run(async () =>
             {
@@ -54,24 +79,25 @@ namespace GrpcClient
                             _stop.Token,
                             () =>
                             {
-                                Console.Write($"Connected to server.{nl}ClientId = ");
-                                                //Console.ForegroundColor = ConsoleColor.Cyan;
-                                                //Console.Write($"{_client.ClientId}");
-                                                //Console.ForegroundColor = orgTextColor;
-                                                //Console.WriteLine($".{nl}Enter string message to server.{nl}" +
-                                                //    $"You will get response if your message will contain question mark '?'.{nl}" +
-                                                //    $"Enter empty message to quit.{nl}");
-                                            },
-                            (resp) => { _client.Confirm(resp.MessageId); OnMessage(this, resp); }
+                                Console.Write($"Connected to remote node {_ip}");
+                            },
+                            (resp) => { ConfirmMessage(resp.MessageId); OnMessage(this, resp); },
+                            () => {
+                                Console.Write($"Disconnected from remote node {_ip}");
+                                if (!_stop.IsCancellationRequested)
+                                    Connect(); 
+                                else
+                                {
+                                    Close();
+                                    OnShutdown?.Invoke(this, (_ip, _accountId));
+                                }
+                            }
                         );
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine($"_client.Do: {ex.Message}");
                 }
-
-                Close();
-                OnShutdown?.Invoke(this, (_ip, _accountId));
             });
         }
 
@@ -89,10 +115,27 @@ namespace GrpcClient
 
         public void SendMessage(string type, byte[] payload)
         {
-            if(_client == null)
+            if (_client == null)
                 OnShutdown?.Invoke(this, (_ip, _accountId));
             else
-                _client.SendObject(type, payload);
+            {
+                _sendQueue.Add((type, payload));
+            }
         }
+
+        private void ConfirmMessage(string id)
+        {
+            PendingMessage pm;
+            _pendingMessages.TryRemove(id, out pm);
+            Console.WriteLine($"Confirmed from  {_ip} {id}");
+        }
+    }
+
+    public class PendingMessage
+    {
+        public string id { get; set; }
+        public string type { get; set; }
+        public byte[] payload { get; set; }
+        public DateTime sent { get; set; } = DateTime.Now;
     }
 }
