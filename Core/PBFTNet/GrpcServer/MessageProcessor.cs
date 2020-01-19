@@ -30,7 +30,7 @@ namespace Lyra.Node2
                     break;
             }
 
-            Logger.LogInformation($"To be processed: {message.MessageId} from {message.ClientId.Shorten()}");
+            //Logger.LogInformation($"To be processed: {message.MessageId} from {message.ClientId.Shorten()}");
 
             //
             // Request message processing should be placed here

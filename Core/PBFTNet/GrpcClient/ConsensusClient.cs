@@ -93,7 +93,7 @@ namespace GrpcClient
             }
             else
             {
-                Console.WriteLine($"Retry send one message to {_ip} {retryOne.id}");
+                //Console.WriteLine($"Retry send one message to {_ip} {retryOne.id}");
                 retryOne.sent = DateTime.Now;
                 retryOne.times++;
                 return (retryOne.id, retryOne.type, retryOne.payload);
