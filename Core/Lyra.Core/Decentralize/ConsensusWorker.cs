@@ -294,14 +294,14 @@ namespace Lyra.Core.Decentralize
         {
             // check state
             // debug: show all states
-            if(state.OutputMsgs.Count > 2)
+            if(state.OutputMsgs.Count <= 2)
             {
-
+                return;
             }
             var sb = new StringBuilder();
             sb.AppendLine();
             sb.AppendLine($"* Transaction From Node {state.InputMsg.Block.AccountID.Shorten()} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {state.InputMsg.Block.Hash.Shorten()}");
-            foreach (var msg in state.OutputMsgs)
+            foreach (var msg in state.OutputMsgs.ToList())
             {
                 var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
                 string me = "";
