@@ -143,7 +143,8 @@ namespace Lyra.Node2.Services
 
             client.OnShutdown += (o, a) =>
             {
-                _remoteNodes.Remove(a.accountId);
+                if(_remoteNodes.ContainsKey(a.accountId))
+                    _remoteNodes.Remove(a.accountId);
                 Task.Run(() => { CreateClientFor(a.accountId, a.ip); });
             };
 
