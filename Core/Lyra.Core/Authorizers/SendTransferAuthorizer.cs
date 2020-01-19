@@ -36,15 +36,17 @@ namespace Lyra.Core.Authorizers
             //    return APIResultCodes.AccountDoesNotExist;
             var stopwatch = Stopwatch.StartNew();
 
-            TransactionBlock lastBlock = null;
-            int count = 50;
-            while(count-- > 0)
-            {
-                lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
-                if (lastBlock != null)
-                    break;
-                Task.Delay(100).Wait();
-            }
+            //TransactionBlock lastBlock = null;
+            //int count = 50;
+            //while(count-- > 0)
+            //{
+            //    lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+            //    if (lastBlock != null)
+            //        break;
+            //    Task.Delay(100).Wait();
+            //}
+
+            TransactionBlock lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
 
             //TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
