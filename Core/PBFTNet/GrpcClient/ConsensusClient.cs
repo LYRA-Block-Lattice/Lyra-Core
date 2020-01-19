@@ -11,17 +11,20 @@ namespace GrpcClient
     public class ConsensusClient
     {
         const int PORT = 4505;
+        GrpcChannel _channel;
         GrpcClient _client;
         string _accountId;
+        string _ip;
 
         public event EventHandler<ResponseMessage> OnMessage;
-        public event EventHandler<string> OnShutdown;
+        public event EventHandler<(string ip, string accountId)> OnShutdown;
 
         public void Start(string nodeAddress, string accountId)
         {
             Console.WriteLine("GrpcClient started.");
 
             _accountId = accountId;
+            _ip = nodeAddress;
 
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
@@ -31,7 +34,7 @@ namespace GrpcClient
 
             var channelCredentials = new SslCredentials(File.ReadAllText(@"Certs\certificate.crt"));
             //var channel = new Channel($"{nodeAddress}:{PORT}", channelCredentials);
-            var channel = GrpcChannel.ForAddress($"https://{nodeAddress}:{PORT}", new GrpcChannelOptions { HttpClient = httpClient });
+            _channel = GrpcChannel.ForAddress($"https://{nodeAddress}:{PORT}", new GrpcChannelOptions { HttpClient = httpClient });
 
             var nl = Environment.NewLine;
             var orgTextColor = Console.ForegroundColor;
@@ -41,7 +44,7 @@ namespace GrpcClient
             _ = Task.Run(async () =>
             {
                 await _client.Do(
-                    channel,
+                    _channel,
                     () =>
                     {
                         Console.Write($"Connected to server.{nl}ClientId = ");
@@ -56,16 +59,21 @@ namespace GrpcClient
                     () =>
                     {
                         Console.WriteLine("Disconnected.");
-                        OnShutdown?.Invoke(this, _accountId);
+                        OnShutdown?.Invoke(this, (_ip, _accountId));
                     }
                 );
             });
         }
 
+        public void Close()
+        {
+            _channel.Dispose();
+        }
+
         public void SendMessage(object o)
         {
             if(_client == null)
-                OnShutdown?.Invoke(this, _accountId);
+                OnShutdown?.Invoke(this, (_ip, _accountId));
             else
                 _client.SendObject(o);
         }

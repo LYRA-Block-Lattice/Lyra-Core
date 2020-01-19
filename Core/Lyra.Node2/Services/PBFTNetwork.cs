@@ -17,6 +17,7 @@ namespace Lyra.Node2.Services
 
         DuplexService _local;
 
+        readonly Dictionary<string, PosNode> _targetNodes = new Dictionary<string, PosNode>();
         readonly Dictionary<string, ConsensusClient> _remoteNodes = new Dictionary<string, ConsensusClient>();
 
         public PBFTNetwork(DuplexService duplexService)
@@ -31,17 +32,48 @@ namespace Lyra.Node2.Services
 
         public void AddPosNode(PosNode node)
         {
+            if (_targetNodes.ContainsKey(node.AccountID))
+            {
+                var oldNode = _targetNodes[node.AccountID];
+                _targetNodes[node.AccountID] = node;
+                if (oldNode.IP == node.IP)
+                    return;
+            }
+            else
+            {
+                _targetNodes.Add(node.AccountID, node);
+            }
+
             if (_remoteNodes.ContainsKey(node.AccountID))
                 return;
 
-            CreateClientFor(node);
+            try
+            {
+                CreateClientFor(node.AccountID, node.IP);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"In AddPosNode: {e.Message}");
+            }
         }
 
         public void RemovePosNode(PosNode node)
         {
-            var client = _remoteNodes[node.AccountID];
-            // client.Close();
-            _remoteNodes.Remove(node.AccountID);
+            if (_targetNodes.ContainsKey(node.AccountID))
+            {
+                _targetNodes.Remove(node.AccountID);
+
+                try
+                {
+                    var client = _remoteNodes[node.AccountID];
+                    client.Close();
+                    _remoteNodes.Remove(node.AccountID);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"In RemovePosNode: {e.Message}");
+                }
+            }
         }
 
         public void PingNode(PosNode node)
@@ -49,11 +81,11 @@ namespace Lyra.Node2.Services
             if (_remoteNodes.ContainsKey(node.AccountID))
             {
                 var client = _remoteNodes[node.AccountID];
-                if(client == null)
+                if (client == null)
                 {
                     _remoteNodes.Remove(node.AccountID);
 
-                    CreateClientFor(node);
+                    CreateClientFor(node.AccountID, node.IP);
                 }
                 else
                 {
@@ -64,49 +96,53 @@ namespace Lyra.Node2.Services
             else
             {
                 // recreate it
-                CreateClientFor(node);
+                CreateClientFor(node.AccountID, node.IP);
             }
         }
 
-        private void CreateClientFor(PosNode node)
+        private void CreateClientFor(string accoundId, string IP)
         {
-            var client = new ConsensusClient();
-            _remoteNodes.Add(node.AccountID, client);
-
-            // do it
-            client.OnMessage += (o, msg) =>
+            Task.Run(() =>
             {
-                switch(msg.MessageId)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
+                var client = new ConsensusClient();
+                _remoteNodes.Add(accoundId, client);
+
+                // do it
+                client.OnMessage += (o, msg) =>
                 {
-                    case "AuthorizerPrePrepare":
-                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizingMsg>());
-                        break;
-                    case "AuthorizerPrepare":
-                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizedMsg>());
-                        break;
-                    case "AuthorizerCommit":
-                        OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizerCommitMsg>());
-                        break;
-                    default:
-                        Console.WriteLine("unknown message from pbft node");
-                        break;
-                }                
-            };
+                    switch (msg.MessageId)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
+                {
+                        case "AuthorizerPrePrepare":
+                            OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizingMsg>());
+                            break;
+                        case "AuthorizerPrepare":
+                            OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizedMsg>());
+                            break;
+                        case "AuthorizerCommit":
+                            OnMessage(this, msg.Payload.ToArray().AsSerializable<AuthorizerCommitMsg>());
+                            break;
+                        default:
+                            Console.WriteLine("unknown message from pbft node");
+                            break;
+                    }
+                };
 
-            client.OnShutdown += (o, a) =>
-            {
-                _remoteNodes.Remove(a);
-            };
+                client.OnShutdown += (o, a) =>
+                {
+                    _remoteNodes.Remove(a.accountId);
+                    Task.Run(() => { CreateClientFor(a.accountId, a.ip); });
+                };
 
-            try
-            {
-                client.Start(node.IP, node.AccountID);
-                client.SendMessage("ping");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+                try
+                {
+                    client.Start(IP, accoundId);
+                    client.SendMessage("ping");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            });
         }
     }
 }
