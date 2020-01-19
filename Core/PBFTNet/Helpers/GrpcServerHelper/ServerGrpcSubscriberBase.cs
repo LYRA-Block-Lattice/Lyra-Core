@@ -50,8 +50,8 @@ namespace GrpcServerHelper
             foreach (var subscriber in Subscribers.Values)
             {
                 var item = await SendMessageToSubscriber(subscriber, message);
-                if (item != null)
-                    RemoveSubscriber(item);
+                //if (item != null)
+                //    RemoveSubscriber(item);
             }
         }
 

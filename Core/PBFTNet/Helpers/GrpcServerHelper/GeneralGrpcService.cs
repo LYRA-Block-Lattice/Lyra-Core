@@ -42,7 +42,7 @@ namespace GrpcServerHelper
                 Id = $"{clientId}"
             };
 
-            _serverGrpcSubscribers.AddSubscriber(subscriber);
+            //_serverGrpcSubscribers.AddSubscriber(subscriber);
 
             do
             {
@@ -56,7 +56,7 @@ namespace GrpcServerHelper
                 await _serverGrpcSubscribers.BroadcastMessageAsync(resultMessage);
             } while (await requestStream.MoveNext(context.CancellationToken));
 
-            _serverGrpcSubscribers.RemoveSubscriber(subscriber);
+            //_serverGrpcSubscribers.RemoveSubscriber(subscriber);
             Logger.LogInformation($"{clientId} disconnected");
         }
 
