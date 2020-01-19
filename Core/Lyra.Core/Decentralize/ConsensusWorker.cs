@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
@@ -62,15 +63,21 @@ namespace Lyra.Core.Decentralize
             //});
         }
 
-        public void Create(AuthState state)
+        public void Create(AuthState state, WaitHandle waitHandle = null)
         {
             _state = state;
             _log.LogInformation($"Receive AuthState: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
-            _context.Send2P2pNetwork(_state.InputMsg);
-
             _ = Task.Run(async () =>
             {
+                if (waitHandle != null)
+                {
+                    _log.LogWarning($"Consensus Create: Wait for previous block to get its consensus result...");
+                    await waitHandle.AsTask();
+                }                    
+
+                _context.Send2P2pNetwork(_state.InputMsg);
+
                 state.T1 = DateTime.Now;
 
                 var localAuthResult = await LocalAuthorizingAsync(_state.InputMsg);

@@ -186,8 +186,17 @@ namespace Lyra.Core.Decentralize
             {
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
                 var worker = new ConsensusWorker(this);
-                _activeConsensus.TryAdd(state.InputMsg.Block.Hash, worker);
-                worker.Create(state);
+                if(_activeConsensus.TryAdd(state.InputMsg.Block.Hash, worker))
+                {
+                    if(_activeConsensus.ContainsKey(state.InputMsg.Block.PreviousHash))
+                    {
+                        worker.Create(state, _activeConsensus[state.InputMsg.Block.PreviousHash].State.Done);
+                    }
+                    else
+                    {
+                        worker.Create(state);
+                    }
+                }                    
             });
 
             Task.Run(async () =>
@@ -198,7 +207,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (Mode == ConsensusWorkingMode.Normal)
                     {
-                        //await GenerateConsolidateBlockAsync();
+                        await GenerateConsolidateBlockAsync();
                     }
 
                     // remove unresponsible node
@@ -281,7 +290,7 @@ namespace Lyra.Core.Decentralize
                 for (int i = 0; i < states.Length; i++)
                 {
                     var state = states[i].State;    // TODO: check null
-                    if (DateTime.Now - state.Created > TimeSpan.FromSeconds(10)) // consensus timeout
+                    if (DateTime.Now - state.Created > TimeSpan.FromSeconds(15)) // consensus timeout
                     {
                         var finalResult = state.Consensus;
                         _activeConsensus.TryRemove(state.InputMsg.Block.Hash, out _);
@@ -430,13 +439,18 @@ namespace Lyra.Core.Decentralize
 
         private ConsensusWorker GetWorker(string hash)
         {
+            if (_cleanedConsensus.ContainsKey(hash))        // > 2min outdated.
+                return null;
+
             if(_activeConsensus.ContainsKey(hash))
                 return _activeConsensus[hash];
             else
             {
                 var worker = new ConsensusWorker(this);
-                _activeConsensus.TryAdd(hash, worker);
-                return worker;
+                if (_activeConsensus.TryAdd(hash, worker))
+                    return worker;
+                else
+                    return _activeConsensus[hash];
             }
         }
 
@@ -459,15 +473,15 @@ namespace Lyra.Core.Decentralize
             {
                 case AuthorizingMsg msg1:
                     var worker = GetWorker(msg1.Block.Hash);
-                    await worker.OnPrePrepareAsync(msg1);
+                    await worker?.OnPrePrepareAsync(msg1);
                     break;
                 case AuthorizedMsg msg2:
                     var worker2 = GetWorker(msg2.BlockHash);
-                    await worker2.OnPrepareAsync(msg2);
+                    await worker2?.OnPrepareAsync(msg2);
                     break;
                 case AuthorizerCommitMsg msg3:
                     var worker3 = GetWorker(msg3.BlockHash);
-                    worker3.OnCommit(msg3);
+                    worker3?.OnCommit(msg3);
                     break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.HeartBeat:
                     OnHeartBeat(chat);

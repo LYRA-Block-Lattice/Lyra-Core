@@ -130,7 +130,7 @@ namespace GrpcClient
         {
             PendingMessage pm;
             _pendingMessages.TryRemove(id, out pm);
-            Console.WriteLine($"Confirmed from  {_ip} {id}");
+            //Console.WriteLine($"Confirmed from  {_ip} {id}");
         }
     }
 
