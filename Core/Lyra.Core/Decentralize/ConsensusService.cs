@@ -104,7 +104,7 @@ namespace Lyra.Core.Decentralize
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
             _orphange = new Orphanage(
-                    async (state) => { var worker = new ConsensusWorker(this); worker.Create(state); },
+                    async (state) => { var worker = GetWorker(state.InputMsg.Hash); worker.Create(state); },
                     async (msg1) => {
                         await OnNextConsensusMessageAsync(msg1);
                     },
@@ -226,7 +226,7 @@ namespace Lyra.Core.Decentralize
                 if (await _orphange.TryAddOneAsync(state))
                     return;
 
-                var worker = new ConsensusWorker(this);
+                var worker = GetWorker(state.InputMsg.Hash);
                 worker.Create(state);
             });
 
