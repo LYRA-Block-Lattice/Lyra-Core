@@ -252,14 +252,14 @@ namespace Lyra.Core.Decentralize
 
         public async Task OnPrepareAsync(AuthorizedMsg item)
         {
-            _log.LogInformation($"OnPrepare: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
-
             if (_state == null)
             {
                 _outOfOrderedMessages.Enqueue(item);
-                _log.LogWarning($"OnPrepare: _state null for {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+                _log.LogWarning($"OnPrepareAsync: _state null for {item.BlockUIndex}/{item.BlockHash.Shorten()}");
                 return;
             }
+
+            _log.LogInformation($"OnPrepareAsync: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
             if (_state.T3 == default)
                 _state.T3 = DateTime.Now;
