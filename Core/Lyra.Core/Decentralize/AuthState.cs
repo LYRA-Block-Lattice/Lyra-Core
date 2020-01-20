@@ -28,7 +28,7 @@ namespace Lyra.Core.Decentralize
         public List<AuthorizerCommitMsg> CommitMsgs { get; set; }
 
         public SemaphoreSlim Semaphore { get; }
-        public EventWaitHandle Done { get; set; }
+        public EventWaitHandle Done { get; }
         public bool Settled { get; set; }
         public bool Saving { get; set; }
 
