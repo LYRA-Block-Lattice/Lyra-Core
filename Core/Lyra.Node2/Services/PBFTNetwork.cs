@@ -14,7 +14,7 @@ namespace Lyra.Node2.Services
 {
     public class PBFTNetwork : IPBFTNet
     {
-        public event EventHandler<SourceSignedMessage> OnMessage;
+        private Func<SourceSignedMessage, Task> OnMessage;
 
         readonly Dictionary<string, PosNode> _targetNodes = new Dictionary<string, PosNode>();
         readonly Dictionary<string, ConsensusClient> _remoteNodes = new Dictionary<string, ConsensusClient>();
@@ -23,24 +23,24 @@ namespace Lyra.Node2.Services
         public PBFTNetwork(MessageProcessor messageProcessor)
         {
             _srvMsgProcessor = messageProcessor;
-            _srvMsgProcessor.OnPayload += (o, msg) =>
+            _srvMsgProcessor.RegisterPayloadHandler(async (msg) =>
             {
                 switch (msg.type)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
                 {
                     case "AuthorizerPrePrepare":
-                        OnMessage(this, msg.payload.AsSerializable<AuthorizingMsg>());
+                        await OnMessage(msg.payload.AsSerializable<AuthorizingMsg>());
                         break;
                     case "AuthorizerPrepare":
-                        OnMessage(this, msg.payload.AsSerializable<AuthorizedMsg>());
+                        await OnMessage(msg.payload.AsSerializable<AuthorizedMsg>());
                         break;
                     case "AuthorizerCommit":
-                        OnMessage(this, msg.payload.AsSerializable<AuthorizerCommitMsg>());
+                        await OnMessage(msg.payload.AsSerializable<AuthorizerCommitMsg>());
                         break;
                     default:
                         Console.WriteLine("unknown message from pbft node");
                         break;
                 }
-            };
+            });
         }
 
         public void BroadCastMessage(SourceSignedMessage msg)
@@ -155,6 +155,11 @@ namespace Lyra.Node2.Services
             {
                 Console.WriteLine(ex.Message);
             }
+        }
+
+        public void RegisterMessageHandler(Func<SourceSignedMessage, Task> onMessage)
+        {
+            OnMessage = onMessage;
         }
     }
 }

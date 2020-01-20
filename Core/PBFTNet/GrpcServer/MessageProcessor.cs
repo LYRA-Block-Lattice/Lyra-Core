@@ -4,29 +4,35 @@ using GrpcServerHelper;
 using Communication;
 using Google.Protobuf;
 using Lyra.Shared;
+using System.Threading.Tasks;
 
 namespace Lyra.Node2
 {
     public class MessageProcessor : MessageProcessorBase<RequestMessage, ResponseMessage>
     {
-        public event EventHandler<(string type, byte[] payload)> OnPayload;
+        private Func<(string type, byte[] payload), Task> OnPayload;
 
         public MessageProcessor(ILoggerFactory loggerFactory)
             : base(loggerFactory)
         {
         }
 
+        public void RegisterPayloadHandler(Func<(string type, byte[] payload), Task> onPayload)
+        {
+            OnPayload = onPayload;
+        }
+
         public override string GetClientId(RequestMessage message) => message.ClientId;
 
         // this default process becomes heartbeat.
-        public override ResponseMessage Process(RequestMessage message)
+        public override async Task<ResponseMessage> ProcessAsync(RequestMessage message)
         {
             switch(message.Type)
             {
                 case "AuthorizerPrePrepare":
                 case "AuthorizerPrepare":
                 case "AuthorizerCommit":
-                    OnPayload?.Invoke(this, (message.Type, message.Payload.ToByteArray()));
+                    await OnPayload((message.Type, message.Payload.ToByteArray()));
                     break;
             }
 

@@ -53,6 +53,7 @@ namespace Lyra.Core.Decentralize
         ILogger _log;
 
         IPBFTNet _pBFTNet;
+        Orphanage _orphange;
 
         // hash, authState
         Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
@@ -102,18 +103,42 @@ namespace Lyra.Core.Decentralize
 
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
+            _orphange = new Orphanage(
+                    async (state) => { var worker = new ConsensusWorker(this); worker.Create(state); },
+                    async (msg1) => {
+                        var worker = GetWorker(msg1.Block.Hash);
+                        if (worker != null)
+                            await worker.OnPrePrepareAsync(msg1);
+                    },
+                    async (msg2s) => {
+                        foreach(var msg2 in msg2s)
+                        {
+                            var worker2 = GetWorker(msg2.BlockHash);
+                            if (worker2 != null)
+                                await worker2.OnPrepareAsync(msg2);
+                        }
+                    },
+                    async (msg3s) => {
+                        foreach(var msg3 in msg3s)
+                        {
+                            var worker3 = GetWorker(msg3.BlockHash);
+                            if (worker3 != null)
+                                worker3.OnCommit(msg3);
+                        }
+                    }
+                );
+
             _pBFTNet = pBFTNet;
+            _pBFTNet.RegisterMessageHandler(async (msg) =>
+               {
+                   if (await _orphange.TryAddOneAsync(msg))
+                       return;
+                   await OnNextConsensusMessageAsync(msg);
+               });
 
-            _pBFTNet.OnMessage += (o, msg) => OnNextConsensusMessageAsync(msg).Wait();
-
-            //Observable.FromEvent<EventHandler<SourceSignedMessage>, SourceSignedMessage>(h => _pBFTNet.OnMessage += h, h => _pBFTNet.OnMessage -= h)
-            //    .Subscribe((msg) => {
-            //        OnNextConsensusMessageAsync(msg).Wait();
-            //    });
-                
-            //_pBFTNet.OnMessage += (o, msg) => {
-            //    await OnNextConsensusMessageAsync(relayMsg.signedMessage);
-            //};
+            ReceiveAsync<BlockChain.BlockAdded>(async (ba) => {
+                await _orphange.BlockAddedAsync(ba.hash);
+            });
 
             Receive<Consolidate>((_) =>
             {
@@ -182,21 +207,20 @@ namespace Lyra.Core.Decentralize
                 Send2P2pNetwork(msg);
             });
 
+
+            // if missing blocks
+            // the block may be in a consens process. so we wait for 30 seconds to allow it to arrive.
+            // the queue of orphan. 
+            // when some block is done, the orphan queue is weaken to finish it's journey.
+
             Receive<AuthState>(state =>
             {
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
+                if (_orphange.TryAddOneAsync(state).Result)
+                    return;
+
                 var worker = new ConsensusWorker(this);
-                if(_activeConsensus.TryAdd(state.InputMsg.Block.Hash, worker))
-                {
-                    if(state.InputMsg.Block.PreviousHash != null && _activeConsensus.ContainsKey(state.InputMsg.Block.PreviousHash))
-                    {
-                        worker.Create(state, _activeConsensus[state.InputMsg.Block.PreviousHash].State.Done);
-                    }
-                    else
-                    {
-                        worker.Create(state);
-                    }
-                }                    
+                worker.Create(state);
             });
 
             Task.Run(async () =>
@@ -474,14 +498,7 @@ namespace Lyra.Core.Decentralize
                 case AuthorizingMsg msg1:
                     var worker = GetWorker(msg1.Block.Hash);
                     if(worker != null)
-                    {
-                        if (msg1.Block.PreviousHash != null && _activeConsensus.ContainsKey(msg1.Block.PreviousHash))
-                        {
-                            await worker.OnPrePrepareAsync(msg1, _activeConsensus[msg1.Block.PreviousHash].State.Done);
-                        }
-                        else
-                            await worker.OnPrePrepareAsync(msg1);
-                    }
+                        await worker.OnPrePrepareAsync(msg1);
                     break;
                 case AuthorizedMsg msg2:
                     var worker2 = GetWorker(msg2.BlockHash);

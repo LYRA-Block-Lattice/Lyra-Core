@@ -49,7 +49,7 @@ namespace GrpcServerHelper
                 if (requestStream.Current == null)
                     continue;
 
-                var resultMessage = _messageProcessor.Process(requestStream.Current);
+                var resultMessage = await _messageProcessor.ProcessAsync(requestStream.Current);
                 if (resultMessage == null)
                     continue;
 

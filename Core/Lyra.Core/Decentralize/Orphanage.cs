@@ -1,0 +1,108 @@
+﻿using Lyra.Core.Blocks;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Lyra.Core.Decentralize
+{
+    public class Orphanage
+    {
+        private Func<AuthState, Task> OnAuthStateReady;
+        private Func<AuthorizingMsg, Task> OnAuthorizingMsgReady;
+        private Func<List<AuthorizedMsg>, Task> OnAuthorizedMsgReady;
+        private Func<List<AuthorizerCommitMsg>, Task> OnAuthorizerCommitMsgReady;
+
+        ConcurrentDictionary<string, AuthState> _orphanAuthStates { get; } = new ConcurrentDictionary<string, AuthState>();
+        ConcurrentDictionary<string, AuthorizingMsg> _orphanAuthorizingMsg { get; } = new ConcurrentDictionary<string, AuthorizingMsg>();
+        ConcurrentDictionary<string, List<AuthorizedMsg>> _orphanAuthorizedMsg { get; } = new ConcurrentDictionary<string, List<AuthorizedMsg>>();
+        ConcurrentDictionary<string, List<AuthorizerCommitMsg>> _orphanAuthorizerCommitMsg { get; } = new ConcurrentDictionary<string, List<AuthorizerCommitMsg>>();
+        
+        public Orphanage(Func<AuthState, Task> onAuthStateReady,
+                        Func<AuthorizingMsg, Task> onAuthorizingMsgReady,
+                        Func<List<AuthorizedMsg>, Task> onAuthorizedMsgReady,
+                        Func<List<AuthorizerCommitMsg>, Task> onAuthorizerCommitMsgReady)
+        {
+            OnAuthStateReady = onAuthStateReady;
+            OnAuthorizingMsgReady = onAuthorizingMsgReady;
+            OnAuthorizedMsgReady = onAuthorizedMsgReady;
+            OnAuthorizerCommitMsgReady = onAuthorizerCommitMsgReady;
+        }
+
+        public async Task<bool> TryAddOneAsync<T>(T orphan)
+        {
+            switch(orphan)
+            {
+                case AuthState authState:
+                    if (await IsThisPrevHashExists(authState.InputMsg.Block.Hash))
+                        return false;
+                    return _orphanAuthStates.TryAdd(authState.InputMsg.Block.Hash, authState);
+                case AuthorizingMsg msg1:
+                    if (await IsThisPrevHashExists(msg1.Hash))
+                        return false;
+                    return _orphanAuthorizingMsg.TryAdd(msg1.Hash, msg1);
+                case AuthorizedMsg msg2:
+                    if (await IsThisPrevHashExists(msg2.Hash))
+                        return false;
+                    if (_orphanAuthorizedMsg.ContainsKey(msg2.Hash))
+                    {
+                        var list = _orphanAuthorizedMsg[msg2.Hash];
+                        list.Add(msg2);
+                        return true;
+                    }
+                    else
+                    {
+                        var list = new List<AuthorizedMsg>();
+                        list.Add(msg2);
+                        return _orphanAuthorizedMsg.TryAdd(msg2.Hash, list);
+                    }
+                case AuthorizerCommitMsg msg3:
+                    if (await IsThisPrevHashExists(msg3.Hash))
+                        return false;
+                    if (_orphanAuthorizerCommitMsg.ContainsKey(msg3.Hash))
+                    {
+                        var list = _orphanAuthorizerCommitMsg[msg3.Hash];
+                        list.Add(msg3);
+                        return true;
+                    }
+                    else
+                    {
+                        var list = new List<AuthorizerCommitMsg>();
+                        list.Add(msg3);
+                        return _orphanAuthorizerCommitMsg.TryAdd(msg3.Hash, list);
+                    }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="hash">Block Hash</param>
+        public async Task BlockAddedAsync(string hash)
+        {
+            await PickupLuckyOneAsync(hash, _orphanAuthStates, OnAuthStateReady);
+            await PickupLuckyOneAsync(hash, _orphanAuthorizingMsg, OnAuthorizingMsgReady);
+            await PickupLuckyOneAsync(hash, _orphanAuthorizedMsg, OnAuthorizedMsgReady);
+            await PickupLuckyOneAsync(hash, _orphanAuthorizerCommitMsg, OnAuthorizerCommitMsgReady);
+        }
+
+        private async Task PickupLuckyOneAsync<T>(string hash, ConcurrentDictionary<string, T> orphans, Func<T, Task> handler)
+        {
+            if(orphans.ContainsKey(hash))
+            {
+                T luckone;
+                if (orphans.TryRemove(hash, out luckone))
+                    await handler(luckone);
+            }
+        }
+
+        public static async Task<bool> IsThisPrevHashExists(string hash)
+        {
+            var prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(hash);
+            return prevBlock != null;
+        }
+    }
+}

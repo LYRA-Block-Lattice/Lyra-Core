@@ -27,6 +27,7 @@ namespace Lyra
         public class ImportCompleted { }
         public class FillMemoryPool { public IEnumerable<Transaction> Transactions; }
         public class FillCompleted { }
+        public class BlockAdded { public string hash { get; set; } }
 
         public static BlockChain Singleton;
         public static readonly ECPoint[] StandbyValidators = ProtocolSettings.Default.StandbyValidators.OfType<string>().Select(p => //ECPoint.DecodePoint(p.HexToBytes(), ECCurve.Secp256r1)).ToArray();
@@ -66,7 +67,15 @@ namespace Lyra
 
         // forward api. should have more control here.
         //public ServiceAccount ServiceAccount => _serviceAccount;
-        public async Task<bool> AddBlockAsync(TransactionBlock block) => await _store.AddBlockAsync(block);
+        public async Task<bool> AddBlockAsync(TransactionBlock block)
+        {
+            var result = await _store.AddBlockAsync(block);
+            if(result)
+            {
+                LyraSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash });
+            }
+            return result;
+        }
         public async Task AddBlockAsync(ServiceBlock serviceBlock) => await _store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
