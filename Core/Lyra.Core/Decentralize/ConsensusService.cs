@@ -238,7 +238,8 @@ namespace Lyra.Core.Decentralize
                 {
                     if (Mode == ConsensusWorkingMode.Normal)
                     {
-                        await GenerateConsolidateBlockAsync();
+                        // DEBUG
+                        //await GenerateConsolidateBlockAsync();
                     }
 
                     // remove unresponsible node
