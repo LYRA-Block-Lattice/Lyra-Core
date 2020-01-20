@@ -106,9 +106,7 @@ namespace Lyra.Core.Decentralize
             _orphange = new Orphanage(
                     async (state) => { var worker = new ConsensusWorker(this); worker.Create(state); },
                     async (msg1) => {
-                        var worker = GetWorker(msg1.Block.Hash);
-                        if (worker != null)
-                            await worker.OnPrePrepareAsync(msg1);
+                        await OnNextConsensusMessageAsync(msg1);
                     },
                     async (msg2s) => {
                         foreach(var msg2 in msg2s)
@@ -131,8 +129,16 @@ namespace Lyra.Core.Decentralize
             _pBFTNet = pBFTNet;
             _pBFTNet.RegisterMessageHandler(async (msg) =>
                {
+                   // verify the signatures of msg. make sure it is from the right node.
+                   if (!msg.VerifySignature(msg.From))
+                   {
+                       _log.LogInformation($"Consensus: bad signature: {msg.MsgType} Hash: {msg.Hash.Shorten()} by pubKey: {msg.From.Shorten()}");
+                       return;
+                   }
+
                    if (await _orphange.TryAddOneAsync(msg))
                        return;
+
                    await OnNextConsensusMessageAsync(msg);
                });
 
@@ -213,10 +219,10 @@ namespace Lyra.Core.Decentralize
             // the queue of orphan. 
             // when some block is done, the orphan queue is weaken to finish it's journey.
 
-            Receive<AuthState>(state =>
+            ReceiveAsync<AuthState>(async state =>
             {
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
-                if (_orphange.TryAddOneAsync(state).Result)
+                if (await _orphange.TryAddOneAsync(state))
                     return;
 
                 var worker = new ConsensusWorker(this);
@@ -481,14 +487,6 @@ namespace Lyra.Core.Decentralize
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
             //_log.LogInformation($"Consensus: OnNextAsyncImpl Called: msg From: {item.From}");
-
-            // verify the signatures of msg. make sure it is from the right node.
-            //var nodeConfig = null;
-            if (!item.VerifySignature(item.From))
-            {
-                _log.LogInformation($"Consensus: bad signature: {item.MsgType} Hash: {item.Hash.Shorten()} by pubKey: {item.From.Shorten()}");
-                return;
-            }
 
             if(item.MsgType != ChatMessageType.NodeUp)
                 OnNodeActive(item.From);

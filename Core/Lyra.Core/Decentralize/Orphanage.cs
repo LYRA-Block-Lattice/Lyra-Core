@@ -35,43 +35,43 @@ namespace Lyra.Core.Decentralize
             switch(orphan)
             {
                 case AuthState authState:
-                    if (await IsThisPrevHashExists(authState.InputMsg.Block.Hash))
-                        return false;
-                    return _orphanAuthStates.TryAdd(authState.InputMsg.Block.Hash, authState);
+                    if (await IsThisBlockOrphan(authState.InputMsg.Block))
+                        return _orphanAuthStates.TryAdd(authState.InputMsg.Block.Hash, authState);
+                    return false;                    
                 case AuthorizingMsg msg1:
-                    if (await IsThisPrevHashExists(msg1.Hash))
-                        return false;
-                    return _orphanAuthorizingMsg.TryAdd(msg1.Hash, msg1);
-                case AuthorizedMsg msg2:
-                    if (await IsThisPrevHashExists(msg2.Hash))
-                        return false;
-                    if (_orphanAuthorizedMsg.ContainsKey(msg2.Hash))
-                    {
-                        var list = _orphanAuthorizedMsg[msg2.Hash];
-                        list.Add(msg2);
-                        return true;
-                    }
-                    else
-                    {
-                        var list = new List<AuthorizedMsg>();
-                        list.Add(msg2);
-                        return _orphanAuthorizedMsg.TryAdd(msg2.Hash, list);
-                    }
-                case AuthorizerCommitMsg msg3:
-                    if (await IsThisPrevHashExists(msg3.Hash))
-                        return false;
-                    if (_orphanAuthorizerCommitMsg.ContainsKey(msg3.Hash))
-                    {
-                        var list = _orphanAuthorizerCommitMsg[msg3.Hash];
-                        list.Add(msg3);
-                        return true;
-                    }
-                    else
-                    {
-                        var list = new List<AuthorizerCommitMsg>();
-                        list.Add(msg3);
-                        return _orphanAuthorizerCommitMsg.TryAdd(msg3.Hash, list);
-                    }
+                    if (await IsThisBlockOrphan(msg1.Block))                      
+                        return _orphanAuthorizingMsg.TryAdd(msg1.Hash, msg1);
+                    return false;
+                //case AuthorizedMsg msg2:
+                //    if (await IsThisPrevHashExists(msg2.BlockHash))
+                //        return false;
+                //    if (_orphanAuthorizedMsg.ContainsKey(msg2.Hash))
+                //    {
+                //        var list = _orphanAuthorizedMsg[msg2.Hash];
+                //        list.Add(msg2);
+                //        return true;
+                //    }
+                //    else
+                //    {
+                //        var list = new List<AuthorizedMsg>();
+                //        list.Add(msg2);
+                //        return _orphanAuthorizedMsg.TryAdd(msg2.Hash, list);
+                //    }
+                //case AuthorizerCommitMsg msg3:
+                //    if (await IsThisPrevHashExists(msg3.BlockHash))
+                //        return false;
+                //    if (_orphanAuthorizerCommitMsg.ContainsKey(msg3.Hash))
+                //    {
+                //        var list = _orphanAuthorizerCommitMsg[msg3.Hash];
+                //        list.Add(msg3);
+                //        return true;
+                //    }
+                //    else
+                //    {
+                //        var list = new List<AuthorizerCommitMsg>();
+                //        list.Add(msg3);
+                //        return _orphanAuthorizerCommitMsg.TryAdd(msg3.Hash, list);
+                //    }
             }
             return false;
         }
@@ -85,8 +85,8 @@ namespace Lyra.Core.Decentralize
         {
             await PickupLuckyOneAsync(hash, _orphanAuthStates, OnAuthStateReady);
             await PickupLuckyOneAsync(hash, _orphanAuthorizingMsg, OnAuthorizingMsgReady);
-            await PickupLuckyOneAsync(hash, _orphanAuthorizedMsg, OnAuthorizedMsgReady);
-            await PickupLuckyOneAsync(hash, _orphanAuthorizerCommitMsg, OnAuthorizerCommitMsgReady);
+            //await PickupLuckyOneAsync(hash, _orphanAuthorizedMsg, OnAuthorizedMsgReady);
+            //await PickupLuckyOneAsync(hash, _orphanAuthorizerCommitMsg, OnAuthorizerCommitMsgReady);
         }
 
         private async Task PickupLuckyOneAsync<T>(string hash, ConcurrentDictionary<string, T> orphans, Func<T, Task> handler)
@@ -99,10 +99,15 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public static async Task<bool> IsThisPrevHashExists(string hash)
+        public static async Task<bool> IsThisBlockOrphan(TransactionBlock block)
         {
-            var prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(hash);
-            return prevBlock != null;
+            if(block.PreviousHash != null)
+            {
+                var prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+                return prevBlock == null;
+            }
+
+            return false;
         }
     }
 }
