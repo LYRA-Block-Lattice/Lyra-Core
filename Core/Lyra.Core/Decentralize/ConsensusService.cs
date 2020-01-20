@@ -495,6 +495,7 @@ namespace Lyra.Core.Decentralize
             if(item.MsgType != ChatMessageType.NodeUp)
                 OnNodeActive(item.From);
 
+            _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 2 {item.MsgType}");
             switch (item)
             {
                 case AuthorizingMsg msg1:
@@ -503,9 +504,11 @@ namespace Lyra.Core.Decentralize
                         await worker.OnPrePrepareAsync(msg1);
                     break;
                 case AuthorizedMsg msg2:
+                    _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 3 {item.MsgType}");
                     var worker2 = GetWorker(msg2.BlockHash);
                     if (worker2 != null)
                         await worker2.OnPrepareAsync(msg2);
+                    _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 4 {item.MsgType}");
                     break;
                 case AuthorizerCommitMsg msg3:
                     var worker3 = GetWorker(msg3.BlockHash);
