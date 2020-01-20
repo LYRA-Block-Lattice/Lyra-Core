@@ -95,7 +95,10 @@ namespace Lyra.Core.Decentralize
             {
                 T luckone;
                 if (orphans.TryRemove(hash, out luckone))
+                {
+                    Console.WriteLine("Released an orphan!");
                     await handler(luckone);
+                }                    
             }
         }
 
@@ -104,6 +107,10 @@ namespace Lyra.Core.Decentralize
             if(block.PreviousHash != null)
             {
                 var prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+                if(prevBlock == null)
+                {
+                    Console.WriteLine("Found an orphan!");
+                }
                 return prevBlock == null;
             }
 
