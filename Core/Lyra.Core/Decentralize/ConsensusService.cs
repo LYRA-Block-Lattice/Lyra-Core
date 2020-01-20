@@ -311,7 +311,7 @@ namespace Lyra.Core.Decentralize
                 for (int i = 0; i < cleaned.Length; i++)
                 {
                     var state = cleaned[i].State;
-                    if (DateTime.Now - state.Created > TimeSpan.FromMinutes(2)) // 2 mins
+                    if (DateTime.Now - state.Created > TimeSpan.FromMinutes(15)) // 2 mins
                     {
                         _cleanedConsensus.Remove(state.InputMsg.Block.Hash);
                     }
@@ -321,7 +321,7 @@ namespace Lyra.Core.Decentralize
                 for (int i = 0; i < states.Length; i++)
                 {
                     var state = states[i].State;    // TODO: check null
-                    if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(15)) // consensus timeout
+                    if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(180)) // consensus timeout
                     {
                         var finalResult = state.Consensus;
                         _activeConsensus.TryRemove(state.InputMsg.Block.Hash, out _);
