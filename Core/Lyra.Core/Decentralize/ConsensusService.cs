@@ -471,7 +471,10 @@ namespace Lyra.Core.Decentralize
         private ConsensusWorker GetWorker(string hash)
         {
             if (_cleanedConsensus.ContainsKey(hash))        // > 2min outdated.
+            {
+                _log.LogWarning($"GetWorker: no worker for expired hash: {hash.Shorten()}");
                 return null;
+            }
 
             if(_activeConsensus.ContainsKey(hash))
                 return _activeConsensus[hash];
@@ -487,7 +490,7 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            //_log.LogInformation($"Consensus: OnNextAsyncImpl Called: msg From: {item.From}");
+            _log.LogInformation($"Consensus: OnNextConsensusMessageAsync Called: {item.MsgType} From: {item.From.Shorten()}");
 
             if(item.MsgType != ChatMessageType.NodeUp)
                 OnNodeActive(item.From);
