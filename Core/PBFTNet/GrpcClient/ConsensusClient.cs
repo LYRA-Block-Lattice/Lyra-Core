@@ -83,7 +83,7 @@ namespace GrpcClient
 
         private (string id, string type, byte[] payload) FeedMessageTo(object sender)
         {
-            var retryOne = _pendingMessages.Values.FirstOrDefault(a => DateTime.Now - a.sent > TimeSpan.FromMilliseconds(450));
+            var retryOne = _pendingMessages.Values.OrderBy(x => x.sent).FirstOrDefault(a => DateTime.Now - a.sent > TimeSpan.FromMilliseconds(450));
             if (retryOne == null)
             {
                 var msg = _sendQueue.Take();
