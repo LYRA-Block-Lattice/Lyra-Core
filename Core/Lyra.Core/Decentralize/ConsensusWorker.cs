@@ -245,8 +245,8 @@ namespace Lyra.Core.Decentralize
 
                   var localAuthResult = await LocalAuthorizingAsync(msg);
                   _state.AddAuthResult(localAuthResult);
-
                   _context.Send2P2pNetwork(localAuthResult);
+                  await CheckAuthorizedAllOkAsync(_state);
               });
         }
 
