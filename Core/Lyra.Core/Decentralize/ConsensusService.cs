@@ -208,7 +208,7 @@ namespace Lyra.Core.Decentralize
 
                 // declare to the network
                 PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
-                me.IP = Utilities.LocalIPAddress().ToString();
+                me.IP = $"{await DuckDuckGoIPAddress.PublicIPAddressAsync()}";
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
 
                 Send2P2pNetwork(msg);

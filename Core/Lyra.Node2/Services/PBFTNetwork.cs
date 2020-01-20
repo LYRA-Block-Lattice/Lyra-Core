@@ -157,7 +157,7 @@ namespace Lyra.Node2.Services
 
             try
             {
-                client.Start(IP);
+                client.Start(IP, accoundId.Shorten());
                 client.SendMessage("ping", Encoding.ASCII.GetBytes("ping"));
             }
             catch (Exception ex)

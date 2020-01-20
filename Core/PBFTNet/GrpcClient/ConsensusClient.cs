@@ -26,11 +26,11 @@ namespace GrpcClient
         readonly BlockingCollection<(string type, byte[] payload)> _sendQueue = new BlockingCollection<(string type, byte[] payload)>();
         readonly ConcurrentDictionary<string, PendingMessage> _pendingMessages = new ConcurrentDictionary<string, PendingMessage>();
 
-        public void Start(string nodeAddress)
+        public void Start(string nodeAddress, string AccountId)
         {
             Console.WriteLine($"GrpcClient started for {nodeAddress}");
 
-            _accountId = Utilities.LocalIPAddress().ToString();
+            _accountId = AccountId;
             _ip = nodeAddress;            
 
             var httpClientHandler = new HttpClientHandler();

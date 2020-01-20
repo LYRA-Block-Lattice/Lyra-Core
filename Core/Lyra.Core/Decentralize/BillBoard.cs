@@ -39,7 +39,7 @@ namespace Lyra.Core.Decentralize
         public async Task<PosNode> AddMeAsync()
         {
             var node = new PosNode(NodeService.Instance.PosWallet.AccountId);
-            node.IP = Utilities.LocalIPAddress().ToString();
+            node.IP = $"{await DuckDuckGoIPAddress.PublicIPAddressAsync()}";
             return await AddAsync(node);
         }
 
