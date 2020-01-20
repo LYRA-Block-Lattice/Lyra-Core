@@ -29,7 +29,7 @@ namespace Lyra.Node2
         public override async Task<ResponseMessage> ProcessAsync(RequestMessage message)
         {
             var stopwatch = Stopwatch.StartNew();
-            Logger.LogInformation($"To be processed: {message.MessageId} from {message.ClientId.Shorten()}");
+            Logger.LogInformation($"To be processed: {message.Type} {message.MessageId.Shorten()} from {message.ClientId}");
             switch (message.Type)
             {
                 case "AuthorizerPrePrepare":
@@ -40,7 +40,7 @@ namespace Lyra.Node2
             }
 
             stopwatch.Stop();
-            Logger.LogInformation($"To be processed (after payload): {message.MessageId} from {message.ClientId.Shorten()} OnPlayload uses: {stopwatch.ElapsedMilliseconds} ms");
+            Logger.LogInformation($"To be processed (after payload): {message.Type} {message.MessageId.Shorten()} from {message.ClientId} OnPlayload uses: {stopwatch.ElapsedMilliseconds} ms");
 
             //
             // Request message processing should be placed here

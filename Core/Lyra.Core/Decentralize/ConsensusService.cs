@@ -129,6 +129,7 @@ namespace Lyra.Core.Decentralize
             _pBFTNet = pBFTNet;
             _pBFTNet.RegisterMessageHandler(async (msg) =>
                {
+                   _log.LogInformation($"Consensus: Got a pbft message: {msg.MsgType}");
                    // verify the signatures of msg. make sure it is from the right node.
                    if (!msg.VerifySignature(msg.From))
                    {

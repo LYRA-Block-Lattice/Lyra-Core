@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Communication;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Lyra.Shared;
 
 namespace GrpcClient
 {
@@ -25,11 +26,11 @@ namespace GrpcClient
         readonly BlockingCollection<(string type, byte[] payload)> _sendQueue = new BlockingCollection<(string type, byte[] payload)>();
         readonly ConcurrentDictionary<string, PendingMessage> _pendingMessages = new ConcurrentDictionary<string, PendingMessage>();
 
-        public void Start(string nodeAddress, string accountId)
+        public void Start(string nodeAddress)
         {
             Console.WriteLine($"GrpcClient started for {nodeAddress}");
 
-            _accountId = accountId;
+            _accountId = Utilities.LocalIPAddress().ToString();
             _ip = nodeAddress;            
 
             var httpClientHandler = new HttpClientHandler();
