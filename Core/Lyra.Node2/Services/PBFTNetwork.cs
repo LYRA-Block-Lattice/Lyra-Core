@@ -9,6 +9,7 @@ using Communication;
 using Newtonsoft.Json;
 using Neo.IO;
 using System.Text;
+using System.Collections.Concurrent;
 
 namespace Lyra.Node2.Services
 {
@@ -19,26 +20,34 @@ namespace Lyra.Node2.Services
         readonly Dictionary<string, PosNode> _targetNodes = new Dictionary<string, PosNode>();
         readonly Dictionary<string, ConsensusClient> _remoteNodes = new Dictionary<string, ConsensusClient>();
 
+        readonly BlockingCollection<(string type, byte[] payload)> _incomingMsgQueue = new BlockingCollection<(string type, byte[] payload)>();
+
         MessageProcessor _srvMsgProcessor;
         public PBFTNetwork(MessageProcessor messageProcessor)
         {
             _srvMsgProcessor = messageProcessor;
-            _srvMsgProcessor.RegisterPayloadHandler(async (msg) =>
-            {
-                switch (msg.type)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
+            _srvMsgProcessor.OnPayload += (o, msg) => _incomingMsgQueue.TryAdd(msg);
+
+            Task.Run(async () => { 
+                while(true)
                 {
-                    case "AuthorizerPrePrepare":
-                        await OnMessage(msg.payload.AsSerializable<AuthorizingMsg>());
-                        break;
-                    case "AuthorizerPrepare":
-                        await OnMessage(msg.payload.AsSerializable<AuthorizedMsg>());
-                        break;
-                    case "AuthorizerCommit":
-                        await OnMessage(msg.payload.AsSerializable<AuthorizerCommitMsg>());
-                        break;
-                    default:
-                        Console.WriteLine("unknown message from pbft node");
-                        break;
+                    var msg = _incomingMsgQueue.Take();
+
+                    switch (msg.type)       //AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit, BlockConsolidation
+                    {
+                        case "AuthorizerPrePrepare":
+                            await OnMessage(msg.payload.AsSerializable<AuthorizingMsg>());
+                            break;
+                        case "AuthorizerPrepare":
+                            await OnMessage(msg.payload.AsSerializable<AuthorizedMsg>());
+                            break;
+                        case "AuthorizerCommit":
+                            await OnMessage(msg.payload.AsSerializable<AuthorizerCommitMsg>());
+                            break;
+                        default:
+                            Console.WriteLine("unknown message from pbft node");
+                            break;
+                    }
                 }
             });
         }

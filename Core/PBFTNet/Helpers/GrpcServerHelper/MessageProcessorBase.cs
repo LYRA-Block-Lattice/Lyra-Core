@@ -14,7 +14,7 @@ namespace GrpcServerHelper
 
         public abstract string GetClientId(TRequest message);
 
-        public abstract Task<TResponse> ProcessAsync(TRequest message);
+        public abstract TResponse Process(TRequest message);
     }
 }
 

@@ -11,22 +11,23 @@ namespace Lyra.Node2
 {
     public class MessageProcessor : MessageProcessorBase<RequestMessage, ResponseMessage>
     {
-        private Func<(string type, byte[] payload), Task> OnPayload;
+        //private Func<(string type, byte[] payload), Task> OnPayload;
+        public event EventHandler<(string type, byte[] payload)> OnPayload;
 
         public MessageProcessor(ILoggerFactory loggerFactory)
             : base(loggerFactory)
         {
         }
 
-        public void RegisterPayloadHandler(Func<(string type, byte[] payload), Task> onPayload)
-        {
-            OnPayload = onPayload;
-        }
+        //public void RegisterPayloadHandler(Func<(string type, byte[] payload), Task> onPayload)
+        //{
+        //    OnPayload = onPayload;
+        //}
 
         public override string GetClientId(RequestMessage message) => message.ClientId;
 
         // this default process becomes heartbeat.
-        public override async Task<ResponseMessage> ProcessAsync(RequestMessage message)
+        public override ResponseMessage Process(RequestMessage message)
         {
             var stopwatch = Stopwatch.StartNew();
             Logger.LogInformation($"To be processed: {message.Type} {message.MessageId.Shorten()} from {message.ClientId}");
@@ -35,7 +36,7 @@ namespace Lyra.Node2
                 case "AuthorizerPrePrepare":
                 case "AuthorizerPrepare":
                 case "AuthorizerCommit":
-                    await OnPayload((message.Type, message.Payload.ToByteArray()));
+                    OnPayload?.Invoke(this, (message.Type, message.Payload.ToByteArray()));
                     break;
             }
 
