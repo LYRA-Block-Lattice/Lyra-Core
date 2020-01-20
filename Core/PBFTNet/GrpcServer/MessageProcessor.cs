@@ -5,6 +5,7 @@ using Communication;
 using Google.Protobuf;
 using Lyra.Shared;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace Lyra.Node2
 {
@@ -27,7 +28,9 @@ namespace Lyra.Node2
         // this default process becomes heartbeat.
         public override async Task<ResponseMessage> ProcessAsync(RequestMessage message)
         {
-            switch(message.Type)
+            var stopwatch = Stopwatch.StartNew();
+            Logger.LogInformation($"To be processed: {message.MessageId} from {message.ClientId.Shorten()}");
+            switch (message.Type)
             {
                 case "AuthorizerPrePrepare":
                 case "AuthorizerPrepare":
@@ -36,7 +39,8 @@ namespace Lyra.Node2
                     break;
             }
 
-            //Logger.LogInformation($"To be processed: {message.MessageId} from {message.ClientId.Shorten()}");
+            stopwatch.Stop();
+            Logger.LogInformation($"To be processed (after payload): {message.MessageId} from {message.ClientId.Shorten()} OnPlayload uses: {stopwatch.ElapsedMilliseconds} ms");
 
             //
             // Request message processing should be placed here
