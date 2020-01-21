@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Lyra.Core.Accounts;
+using Lyra.Core.API;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
@@ -126,7 +127,8 @@ namespace LyraNodesBot
 
             if (message == null || message.Type != MessageType.Text || !message.Text.StartsWith('/')) return;
 
-            switch (message.Text.Split(' ', '@').First())
+            var args = message.Text.Split(' ', '@');
+            switch (args.First())
             {
                 case "/height":
                     await SendHeight();
@@ -137,20 +139,30 @@ namespace LyraNodesBot
                 case "/tps":
                     await SendGroupMessageAsync("No Data");
                     break;
+                case "/send":
+                    if (args.Length != 2)
+                        await SendGroupMessageAsync("*Example*\n\n/send [[your wallet address here]]");
+                    else
+                    {
+                        var ret = await SendEvalCoin(args.Skip(1).First());
+                        await SendGroupMessageAsync(ret);
+                    }
+                    break;
                 case "/help":
                     const string usage = @"
 *User Command*:
 /height   - display Lyra BlockChain Height
 /nodes    - send status of all nodes
 /tps      - send info about TPS
-/help     - display this message
-*Authorizer Node Owner Command*:
-/authlist _AccountId_ _SignedMessage_ - List a node to authorizers list
-/authdelist _AccountId_ _SignedMessage_ - Delist a node from authorizers list
-*Admim Command*:
-/seed _AccountId_ - approve a authorizer node to seed node
-/deseed _AccountId_ - disapprove a seed node
-";
+/send     - send testnet Lyra Coin to address
+/help     - display this message";
+//*Authorizer Node Owner Command*:
+///authlist _AccountId_ _SignedMessage_ - List a node to authorizers list
+///authdelist _AccountId_ _SignedMessage_ - Delist a node from authorizers list
+//*Admim Command*:
+///seed _AccountId_ - approve a authorizer node to seed node
+///deseed _AccountId_ - disapprove a seed node
+//";
                     await SendGroupMessageAsync(usage);
                     break;
                 case "/authlist":
@@ -172,6 +184,47 @@ namespace LyraNodesBot
                     await SendGroupMessageAsync("Unknown command. Please reference to: /help");
                     break;
             }
+        }
+
+        private async Task<string> SendEvalCoin(string address)
+        {
+            try
+            {
+                var walletKey = Environment.GetEnvironmentVariable("LYRA_BOT_WALLET_KEY");
+                if (string.IsNullOrWhiteSpace(walletKey))
+                    return "Wallet not found.";
+
+                var wallet = await RefreshBalanceAsync(walletKey);
+                var sendResult = await wallet.Send(200, address);
+                if (sendResult.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
+                {
+                    var sendResult2 = await wallet.Send(500, address, "Custom.Bitcoin");
+                    return $"Succeful sent 200 Lyra.Coin to {address}.";
+                }
+                else
+                {
+                    return $"Failed to send coin: {sendResult.ResultCode}";
+                }
+            }
+            catch(Exception ex)
+            {
+                return $"Fatal error: {ex.Message}";
+            }
+        }
+
+        private async Task<Wallet> RefreshBalanceAsync(string masterKey)
+        {
+            // create wallet and update balance
+            var memStor = new AccountInMemoryStorage();
+            var acctWallet = new ExchangeAccountWallet(memStor, _network);
+            acctWallet.AccountName = "tmpAcct";
+            await acctWallet.RestoreAccountAsync("", masterKey);
+            acctWallet.OpenAccount("", acctWallet.AccountName);
+
+            Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
+            var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a");
+            await acctWallet.Sync(rpcClient);
+            return acctWallet;
         }
 
         private async void BotOnCallbackQueryReceived(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
