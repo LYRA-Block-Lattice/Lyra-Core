@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
+using Lyra.Core.Cryptography;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
@@ -140,12 +141,14 @@ namespace LyraNodesBot
                     await SendGroupMessageAsync("No Data");
                     break;
                 case "/send":
-                    if (args.Length != 2)
-                        await SendGroupMessageAsync("*Example*\n\n/send [[your wallet address here]]");
-                    else
+                    if (args.Length == 2 && Signatures.ValidateAccountId(args[1]))
                     {
                         var ret = await SendEvalCoin(args.Skip(1).First());
                         await SendGroupMessageAsync(ret);
+                    }
+                    else
+                    {
+                        await SendGroupMessageAsync("*Example*\n\n/send [[your wallet address here]]");
                     }
                     break;
                 case "/help":
@@ -195,11 +198,11 @@ namespace LyraNodesBot
                     return "Wallet not found.";
 
                 var wallet = await RefreshBalanceAsync(walletKey);
-                var sendResult = await wallet.Send(200, address);
+                var sendResult = await wallet.Send(1000, address);
                 if (sendResult.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
                 {
                     var sendResult2 = await wallet.Send(500, address, "Custom.Bitcoin");
-                    return $"Succeful sent 200 Lyra.Coin to {address}.";
+                    return $"Succeful sent 1000 Lyra.Coin to {address}.";
                 }
                 else
                 {
