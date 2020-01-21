@@ -116,7 +116,7 @@ namespace Lyra.Core.Cryptography
             signer.Init(true, keyParameters);
             signer.BlockUpdate(Encoding.UTF8.GetBytes(message), 0, message.Length);
             var signature = signer.GenerateSignature();
-            var netformat = SignatureHelper.Der2Net(signature);
+            var netformat = SignatureHelper.ConvertDerToP1393(signature);
             return Base58Encoding.Encode(netformat);
         }
 
