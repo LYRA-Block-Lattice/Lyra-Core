@@ -569,7 +569,9 @@ namespace Lyra.Core.Decentralize
             {
                 // update mesh network status first
                 foreach (var node in _board.AllNodes.Keys.ToList())
-                    if (_board.AllNodes[node].AccountID != NodeService.Instance.PosWallet.AccountId)
+                    if (_board.AllNodes[node].AccountID == NodeService.Instance.PosWallet.AccountId)
+                        _board.AllNodes[node].UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);
+                    else
                         _board.AllNodes[node].UpdateNetStatus(_pBFTNet.GetNodeMeshNetworkStatus(node));
             }
         }
