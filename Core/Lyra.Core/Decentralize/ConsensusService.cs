@@ -113,7 +113,7 @@ namespace Lyra.Core.Decentralize
                         await OnNextConsensusMessageAsync(msg1);
                     },
                     async (msg2s) => {
-                        foreach(var msg2 in msg2s)
+                        foreach (var msg2 in msg2s)
                         {
                             var worker2 = GetWorker(msg2.BlockHash);
                             if (worker2 != null)
@@ -121,7 +121,7 @@ namespace Lyra.Core.Decentralize
                         }
                     },
                     async (msg3s) => {
-                        foreach(var msg3 in msg3s)
+                        foreach (var msg3 in msg3s)
                         {
                             var worker3 = GetWorker(msg3.BlockHash);
                             if (worker3 != null)
@@ -177,7 +177,7 @@ namespace Lyra.Core.Decentralize
                 //    }                    
             });
 
-            Receive<AskForBillboard>((_) => Sender.Tell(_board));
+            Receive<AskForBillboard>((_) => { RefreshBillBoardNetworkStatus(); Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
@@ -563,15 +563,21 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void BroadCastBillBoard()
+        private void RefreshBillBoardNetworkStatus()
         {
             if(_board != null)
             {
                 // update mesh network status first
                 foreach (var node in _board.AllNodes.Keys.ToList())
-                    if(_board.AllNodes[node].AccountID != NodeService.Instance.PosWallet.AccountId)
+                    if (_board.AllNodes[node].AccountID != NodeService.Instance.PosWallet.AccountId)
                         _board.AllNodes[node].UpdateNetStatus(_pBFTNet.GetNodeMeshNetworkStatus(node));
-
+            }
+        }
+        private void BroadCastBillBoard()
+        {
+            if(_board != null)
+            {
+                RefreshBillBoardNetworkStatus();
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
                 Send2P2pNetwork(msg);
             }

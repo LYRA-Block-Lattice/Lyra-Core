@@ -184,7 +184,7 @@ namespace Lyra.Node2.Services
             {
                 if (_clientActivityTime.ContainsKey(clientId))
                 {
-                    if (DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(30))
+                    if (DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(90))
                         return MeshNetworkConnecStatus.FulllyConnected;
                     else
                         return MeshNetworkConnecStatus.Stalled;
@@ -196,7 +196,7 @@ namespace Lyra.Node2.Services
             {
                 if (_clientActivityTime.ContainsKey(clientId))
                 {
-                    if (DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(30))
+                    if (DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(90))
                         return MeshNetworkConnecStatus.OutBoundOnly;
                     else
                         return MeshNetworkConnecStatus.Disconnected;
