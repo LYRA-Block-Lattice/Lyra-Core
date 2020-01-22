@@ -180,23 +180,30 @@ namespace Lyra.Node2.Services
 
         public MeshNetworkConnecStatus GetNodeMeshNetworkStatus(string clientId)
         {
-            if (_remoteNodes.ContainsKey(clientId) && _remoteNodes[clientId].Connected 
-                && _clientActivityTime.ContainsKey(clientId) && DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(30))
-                return MeshNetworkConnecStatus.FulllyConnected;
-
-            if (_remoteNodes.ContainsKey(clientId) && !_remoteNodes[clientId].Connected && !_clientActivityTime.ContainsKey(clientId))
-                return MeshNetworkConnecStatus.Unreachable;
-
-            if (_remoteNodes.ContainsKey(clientId) && !_remoteNodes[clientId].Connected && 
-                _clientActivityTime.ContainsKey(clientId) && DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(30))
-                return MeshNetworkConnecStatus.OutBoundOnly;
-
-            if (_remoteNodes.ContainsKey(clientId) && _remoteNodes[clientId].Connected && !_clientActivityTime.ContainsKey(clientId))
-                return MeshNetworkConnecStatus.InBoundOnly;
-
-            if (_remoteNodes.ContainsKey(clientId) && !_remoteNodes[clientId].Connected
-                    && _clientActivityTime.ContainsKey(clientId) && DateTime.Now - _clientActivityTime[clientId] > TimeSpan.FromSeconds(30))
-                return MeshNetworkConnecStatus.Disconnected;
+            if (_remoteNodes.ContainsKey(clientId) && _remoteNodes[clientId].Connected)
+            {
+                if (_clientActivityTime.ContainsKey(clientId))
+                {
+                    if (DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(30))
+                        return MeshNetworkConnecStatus.FulllyConnected;
+                    else
+                        return MeshNetworkConnecStatus.Stalled;
+                }
+                else
+                    return MeshNetworkConnecStatus.InBoundOnly;                    
+            }
+            else if (_remoteNodes.ContainsKey(clientId) && !_remoteNodes[clientId].Connected)
+            {
+                if (_clientActivityTime.ContainsKey(clientId))
+                {
+                    if (DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(30))
+                        return MeshNetworkConnecStatus.OutBoundOnly;
+                    else
+                        return MeshNetworkConnecStatus.Disconnected;
+                }
+                else
+                    return MeshNetworkConnecStatus.Unreachable;
+            }
 
             return MeshNetworkConnecStatus.Unknown;
         }
