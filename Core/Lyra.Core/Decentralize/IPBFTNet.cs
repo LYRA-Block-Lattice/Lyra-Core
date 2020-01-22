@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
+    public enum MeshNetworkConnecStatus { Unknown, Unreachable, OutBoundOnly, InBoundOnly, FulllyConnected, Disconnected }
     public interface IPBFTNet
     {
         void BroadCastMessage(SourceSignedMessage msg);
@@ -13,5 +14,7 @@ namespace Lyra.Core.Decentralize
         void PingNode(PosNode node);
         void AddPosNode(PosNode node);
         void RemovePosNode(PosNode node);
+
+        MeshNetworkConnecStatus GetNodeMeshNetworkStatus(string clientId);
     }
 }

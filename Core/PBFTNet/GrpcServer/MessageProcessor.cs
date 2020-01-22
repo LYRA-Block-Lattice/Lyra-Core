@@ -12,7 +12,7 @@ namespace Lyra.Node2
     public class MessageProcessor : MessageProcessorBase<RequestMessage, ResponseMessage>
     {
         //private Func<(string type, byte[] payload), Task> OnPayload;
-        public event EventHandler<(string type, byte[] payload)> OnPayload;
+        public event EventHandler<(string clientId, string type, byte[] payload)> OnPayload;
 
         public MessageProcessor(ILoggerFactory loggerFactory)
             : base(loggerFactory)
@@ -36,7 +36,7 @@ namespace Lyra.Node2
                 case "AuthorizerPrePrepare":
                 case "AuthorizerPrepare":
                 case "AuthorizerCommit":
-                    OnPayload?.Invoke(this, (message.Type, message.Payload.ToByteArray()));
+                    OnPayload?.Invoke(this, (message.ClientId, message.Type, message.Payload.ToByteArray()));
                     break;
             }
 

@@ -26,6 +26,13 @@ namespace GrpcClient
         readonly BlockingCollection<(string type, byte[] payload)> _sendQueue = new BlockingCollection<(string type, byte[] payload)>();
         readonly ConcurrentDictionary<string, PendingMessage> _pendingMessages = new ConcurrentDictionary<string, PendingMessage>();
 
+        // status
+        private bool _connected;
+        private bool _hasConfirmation;
+
+        public bool Connected { get => _connected; }
+        public bool HasConfirmation { get => _hasConfirmation;}
+
         public void Start(string nodeAddress, string AccountId)
         {
             Console.WriteLine($"GrpcClient started for {nodeAddress}");
@@ -49,6 +56,9 @@ namespace GrpcClient
         private void Connect()
         {
             Console.WriteLine($"Trying to connect to remote node {_ip}");
+            _connected = false;
+            _hasConfirmation = false;
+
             _ = Task.Run(async () =>
             {
                 _client = new GrpcClient(_accountId, _ip);
@@ -60,6 +70,7 @@ namespace GrpcClient
                             _channel,
                             () =>
                             {
+                                _connected = true;
                                 Console.WriteLine($"Connected to remote node {_ip}");
                             },
                             (resp) => { ConfirmMessage(resp.MessageId); OnMessage(this, resp); },
@@ -131,6 +142,7 @@ namespace GrpcClient
         {
             PendingMessage pm;
             _pendingMessages.TryRemove(id, out pm);
+            _hasConfirmation = true;
             //Console.WriteLine($"Confirmed from  {_ip} {id}");
         }
     }

@@ -79,6 +79,8 @@ namespace Lyra.Core.Decentralize
         public decimal Balance { get; set; }
         public DateTime LastStaking { get; set; }
 
+        public MeshNetworkConnecStatus NetStatus { get; set; }
+
         public PosNode(string accountId)
         {
             AccountID = accountId;

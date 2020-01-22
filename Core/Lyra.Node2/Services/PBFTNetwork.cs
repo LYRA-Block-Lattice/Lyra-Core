@@ -20,13 +20,20 @@ namespace Lyra.Node2.Services
         readonly Dictionary<string, PosNode> _targetNodes = new Dictionary<string, PosNode>();
         readonly Dictionary<string, ConsensusClient> _remoteNodes = new Dictionary<string, ConsensusClient>();
 
-        readonly BlockingCollection<(string type, byte[] payload)> _incomingMsgQueue = new BlockingCollection<(string type, byte[] payload)>();
+        readonly BlockingCollection<(string clientId, string type, byte[] payload)> _incomingMsgQueue = new BlockingCollection<(string clientId, string type, byte[] payload)>();
+
+        // status
+        ConcurrentDictionary<string, DateTime> _clientActivityTime = new ConcurrentDictionary<string, DateTime>();
 
         MessageProcessor _srvMsgProcessor;
         public PBFTNetwork(MessageProcessor messageProcessor)
         {
             _srvMsgProcessor = messageProcessor;
-            _srvMsgProcessor.OnPayload += (o, msg) => _incomingMsgQueue.TryAdd(msg);
+            _srvMsgProcessor.OnPayload += (o, msg) =>
+            {
+                _incomingMsgQueue.TryAdd(msg);
+                _clientActivityTime.AddOrUpdate(msg.clientId, DateTime.Now, (k, t) => t = DateTime.Now);
+            };
 
             Task.Run(async () => { 
                 while(true)
@@ -169,6 +176,29 @@ namespace Lyra.Node2.Services
         public void RegisterMessageHandler(Func<SourceSignedMessage, Task> onMessage)
         {
             OnMessage = onMessage;
+        }
+
+        public MeshNetworkConnecStatus GetNodeMeshNetworkStatus(string clientId)
+        {
+            if (_remoteNodes.ContainsKey(clientId) && _remoteNodes[clientId].Connected 
+                && _clientActivityTime.ContainsKey(clientId) && DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(30))
+                return MeshNetworkConnecStatus.FulllyConnected;
+
+            if (_remoteNodes.ContainsKey(clientId) && !_remoteNodes[clientId].Connected && !_clientActivityTime.ContainsKey(clientId))
+                return MeshNetworkConnecStatus.Unreachable;
+
+            if (_remoteNodes.ContainsKey(clientId) && !_remoteNodes[clientId].Connected && 
+                _clientActivityTime.ContainsKey(clientId) && DateTime.Now - _clientActivityTime[clientId] < TimeSpan.FromSeconds(30))
+                return MeshNetworkConnecStatus.OutBoundOnly;
+
+            if (_remoteNodes.ContainsKey(clientId) && _remoteNodes[clientId].Connected && !_clientActivityTime.ContainsKey(clientId))
+                return MeshNetworkConnecStatus.InBoundOnly;
+
+            if (_remoteNodes.ContainsKey(clientId) && !_remoteNodes[clientId].Connected
+                    && _clientActivityTime.ContainsKey(clientId) && DateTime.Now - _clientActivityTime[clientId] > TimeSpan.FromSeconds(30))
+                return MeshNetworkConnecStatus.Disconnected;
+
+            return MeshNetworkConnecStatus.Unknown;
         }
     }
 }
