@@ -20,6 +20,8 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
+using Lyra.Shared;
+using Neo;
 
 namespace LyraNodesBot
 {
@@ -110,13 +112,25 @@ namespace LyraNodesBot
         {
             var wc = new WebClient();
             var json = wc.DownloadString(LyraGlobal.SelectNode(_network) + "LyraNode/GetBillboard");
-            var bb = JsonConvert.DeserializeObject<BillBoard>(json);
+            var bb = JsonConvert.DeserializeObject<BillBoardData>(json);
             var sb = new StringBuilder();
+
+            sb.AppendLine($"*Consensus Algorithm (PBFT) Settings*");
+            sb.AppendLine($"Total Needed Minimal Node Number: {ProtocolSettings.Default.ConsensusTotalNumber}");
+            sb.AppendLine($"Consensus Win Number: {ProtocolSettings.Default.ConsensusWinNumber}");
+            sb.AppendLine($"Maxmimum Failed Node Number: {ProtocolSettings.Default.ConsensusNumber}");
+            sb.AppendLine($"Current Running Node Count: {bb.AllNodes.Count}");
+            var cando = bb.canDoConsensus ? "Yes" : "No";
+            sb.AppendLine($"Consensus Can be Made Now: {cando}");
+            sb.AppendLine("\n*Nodes List*\n");
+            
             foreach (var node in bb.AllNodes.Values)
             {
-                sb.AppendLine($"{node.AccountID}");
-                sb.AppendLine($"Staking Balance: {node.Balance}");
-                sb.AppendLine($"Last Staking Time: {node.LastStaking}");
+                sb.AppendLine($"POS Wallet Address: *{node.accountID.Shorten()}*");
+                sb.AppendLine($"Able to Authorize: {node.ableToAuthorize}");
+                sb.AppendLine($"Staking Balance: {node.balance}");
+                sb.AppendLine($"Network Status: {node.netStatus}");
+                sb.AppendLine($"Last Staking Time: {node.lastStaking}");
                 sb.AppendLine();
             }
             await SendGroupMessageAsync(sb.ToString());

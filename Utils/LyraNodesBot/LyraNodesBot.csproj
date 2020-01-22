@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,6 +7,15 @@
 
   <ItemGroup>
     <Content Include="..\..\Client\Lyra.Client.CLI\appsettings.json" Link="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Core\Lyra.Node2\protocol.json" Link="protocol.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Core\Lyra.Node2\protocol.mainnet.json" Link="protocol.mainnet.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Core\Lyra.Node2\protocol.testnet.json" Link="protocol.testnet.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -21,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Client\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
+    <ProjectReference Include="..\..\Core\Lyra.Shared\Lyra.Shared.csproj" />
   </ItemGroup>
 
 </Project>
