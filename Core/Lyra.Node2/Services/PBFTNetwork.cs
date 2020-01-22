@@ -52,7 +52,7 @@ namespace Lyra.Node2.Services
                             await OnMessage(msg.payload.AsSerializable<AuthorizerCommitMsg>());
                             break;
                         default:
-                            Console.WriteLine("unknown message from pbft node");
+                            //Console.WriteLine("unknown message from pbft node");
                             break;
                     }
                 }
@@ -164,7 +164,7 @@ namespace Lyra.Node2.Services
 
             try
             {
-                client.Start(IP, accoundId);
+                client.Start(IP, accoundId, NodeService.Instance.PosWallet.AccountId);
                 client.SendMessage("ping", Encoding.ASCII.GetBytes("ping"));
             }
             catch (Exception ex)

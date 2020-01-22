@@ -19,9 +19,9 @@ namespace GrpcClient
         public string ClientId { get; }
         public string Ip { get; }
 
-        public GrpcClient(string accountId, string IP)
+        public GrpcClient(string clientId, string IP)
         {
-            ClientId = accountId;
+            ClientId = clientId;
             Ip = IP;
         }
 

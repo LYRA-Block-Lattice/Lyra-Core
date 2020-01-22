@@ -17,6 +17,7 @@ namespace GrpcClient
         const int PORT = 4505;
         GrpcChannel _channel;
         GrpcClient _client;
+        string _clientId;
         string _accountId;
         string _ip;
 
@@ -33,12 +34,13 @@ namespace GrpcClient
         public bool Connected { get => _connected; }
         public bool HasConfirmation { get => _hasConfirmation;}
 
-        public void Start(string nodeAddress, string AccountId)
+        public void Start(string nodeAddress, string AccountId, string clientId)
         {
             Console.WriteLine($"GrpcClient started for {nodeAddress}");
 
             _accountId = AccountId;
-            _ip = nodeAddress;            
+            _ip = nodeAddress;
+            _clientId = clientId;
 
             var httpClientHandler = new HttpClientHandler();
             // Return `true` to allow certificates that are untrusted/invalid
@@ -61,7 +63,7 @@ namespace GrpcClient
 
             _ = Task.Run(async () =>
             {
-                _client = new GrpcClient(_accountId, _ip);
+                _client = new GrpcClient(_clientId, _ip);
                 _client.FeedMessage += (sender) => FeedMessageTo(sender);
 
                 try
