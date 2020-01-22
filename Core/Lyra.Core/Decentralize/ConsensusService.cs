@@ -59,7 +59,7 @@ namespace Lyra.Core.Decentralize
         Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         Dictionary<string, ConsensusWorker> _cleanedConsensus;
-        private static BillBoard _board;
+        private static BillBoard _board = new BillBoard();
         private List<TransStats> _stats;
 
         private long _UIndexSeed = -1;
@@ -85,8 +85,8 @@ namespace Lyra.Core.Decentralize
 
         public bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public ConsensusWorkingMode Mode { get; private set; }
-        public static BillBoard Board { get => _board; set => _board = value; }
-        public List<TransStats> Stats { get => _stats; set => _stats = value; }
+        public static BillBoard Board { get => _board; }
+        public List<TransStats> Stats { get => _stats; }
 
         public ConsensusService(IActorRef localNode, IPBFTNet pBFTNet)
         {
@@ -165,12 +165,12 @@ namespace Lyra.Core.Decentralize
 
             Receive<BillBoard>((bb) =>
             {
-                _board = bb;
-                foreach (var node in _board.AllNodes.Values)
-                    {
-                        if(node.AccountID != NodeService.Instance.PosWallet.AccountId)
-                            _pBFTNet.AddPosNode(node);
-                    }                    
+                //_board = bb;
+                //foreach (var node in _board.AllNodes.Values)
+                //    {
+                //        if(node.AccountID != NodeService.Instance.PosWallet.AccountId)
+                //            _pBFTNet.AddPosNode(node);
+                //    }                    
             });
 
             Receive<AskForBillboard>((_) => Sender.Tell(_board));
@@ -209,8 +209,9 @@ namespace Lyra.Core.Decentralize
                 // declare to the network
                 PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
                 me.IP = $"{await DuckDuckGoIPAddress.PublicIPAddressAsync()}";
+                me.UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);        // make sure of this!!!
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
-
+                await _board.AddAsync(me);
                 Send2P2pNetwork(msg);
             });
 
@@ -241,21 +242,21 @@ namespace Lyra.Core.Decentralize
                         await GenerateConsolidateBlockAsync();
                     }
 
-                    // remove unresponsible node
-                    if(_board != null)
-                    {
-                        bool changed = false;
-                        foreach(var node in _board.AllNodes.Values.Where(a => !a.AbleToAuthorize).ToArray())
-                        {
-                            _board.AllNodes.Remove(node.AccountID);
-                            _pBFTNet.RemovePosNode(node);
-                            changed = true;
-                        }
-                        if(changed)
-                        {
-                            BroadCastBillBoard();
-                        }
-                    }
+                    //// remove unresponsible node
+                    //if(_board != null)
+                    //{
+                    //    bool changed = false;
+                    //    foreach(var node in _board.AllNodes.Values.Where(a => !a.AbleToAuthorize).ToArray())
+                    //    {
+                    //        _board.AllNodes.Remove(node.AccountID);
+                    //        _pBFTNet.RemovePosNode(node);
+                    //        changed = true;
+                    //    }
+                    //    if(changed)
+                    //    {
+                    //        BroadCastBillBoard();
+                    //    }
+                    //}
 
                     await Task.Delay(10000).ConfigureAwait(false);
                     count++;
@@ -565,9 +566,7 @@ namespace Lyra.Core.Decentralize
             {
                 // update mesh network status first
                 foreach (var node in _board.AllNodes.Keys.ToList())
-                    if(_board.AllNodes[node].AccountID == NodeService.Instance.PosWallet.AccountId)
-                        _board.AllNodes[node].UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected); // make sure of this!!!
-                    else
+                    if(_board.AllNodes[node].AccountID != NodeService.Instance.PosWallet.AccountId)
                         _board.AllNodes[node].UpdateNetStatus(_pBFTNet.GetNodeMeshNetworkStatus(node));
 
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));

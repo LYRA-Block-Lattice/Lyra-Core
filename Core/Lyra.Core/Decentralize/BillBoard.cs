@@ -12,13 +12,17 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
+    // billboard is declaresive. 
+    // if it has been broadcasted, it is treated as a pbft node.
+    // if the pbft node can do authorize, it will be added into pbftnet.
+    // if the node is dead for a long time (> 45 seconds), it will be put into freezing pool
     public class BillBoard
     {
-        public Dictionary<string, PosNode> AllNodes { get; private set; }
+        public Dictionary<string, PosNode> AllNodes { get; } = new Dictionary<string, PosNode>();
 
         public BillBoard()
         {
-            AllNodes = new Dictionary<string, PosNode>();
+
         }
 
         public bool CanDoConsensus
@@ -36,13 +40,6 @@ namespace Lyra.Core.Decentralize
         public bool HasNode(string accountId) { return AllNodes.ContainsKey(accountId); }
         public PosNode GetNode(string accountId) { return AllNodes[accountId]; }
  
-        public async Task<PosNode> AddMeAsync()
-        {
-            var node = new PosNode(NodeService.Instance.PosWallet.AccountId);
-            node.IP = $"{await DuckDuckGoIPAddress.PublicIPAddressAsync()}";
-            return await AddAsync(node);
-        }
-
         public async Task<PosNode> AddAsync(PosNode node)
         {
             if (!AllNodes.ContainsKey(node.AccountID))
@@ -91,6 +88,6 @@ namespace Lyra.Core.Decentralize
 
         public void UpdateNetStatus(MeshNetworkConnecStatus status) => _netStatus = status;
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die
-        public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Balance >= 1000000) && (DateTime.Now - LastStaking < TimeSpan.FromMinutes(12));
+        public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Balance >= 1000000) && (DateTime.Now - LastStaking < TimeSpan.FromMinutes(12) && _netStatus == MeshNetworkConnecStatus.FulllyConnected);
     }
 }

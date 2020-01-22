@@ -191,10 +191,6 @@ namespace Lyra
                 // tell consensus what happened
                 InSyncing = false;
 
-                var board = new BillBoard();
-                await board.AddMeAsync();   // add me!
-
-                LyraSystem.Singleton.Consensus.Tell(board);
                 LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 _log.LogInformation("Service Genesis Completed.");
             }
@@ -256,9 +252,6 @@ namespace Lyra
                         if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
                         {
                             // seed0. no seed to sync. this seed must have the NORMAL blockchain     
-                            var board = new BillBoard();
-                            await board.AddMeAsync();   // add me!
-                            LyraSystem.Singleton.Consensus.Tell(board);
                             break;
                         }
                         else
