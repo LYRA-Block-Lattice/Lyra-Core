@@ -29,23 +29,25 @@ namespace Lyra.Node2
         // this default process becomes heartbeat.
         public override ResponseMessage Process(RequestMessage message)
         {
-            var stopwatch = Stopwatch.StartNew();
-            Logger.LogInformation($"To be processed: {message.Type} {message.MessageId.Shorten()} from {message.ClientId}");
-            switch (message.Type)
-            {
-                case "AuthorizerPrePrepare":
-                case "AuthorizerPrepare":
-                case "AuthorizerCommit":
-                    OnPayload?.Invoke(this, (message.ClientId, message.Type, message.Payload.ToByteArray()));
-                    break;
-            }
+            //var stopwatch = Stopwatch.StartNew();
+            //Logger.LogInformation($"To be processed: {message.Type} {message.MessageId.Shorten()} from {message.ClientId}");
+            //switch (message.Type)
+            //{
+            //    case "AuthorizerPrePrepare":
+            //    case "AuthorizerPrepare":
+            //    case "AuthorizerCommit":
+            //        OnPayload?.Invoke(this, (message.ClientId, message.Type, message.Payload.ToByteArray()));
+            //        break;
+            //}
 
-            stopwatch.Stop();
-            Logger.LogInformation($"To be processed (after payload): {message.Type} {message.MessageId.Shorten()} from {message.ClientId} OnPlayload uses: {stopwatch.ElapsedMilliseconds} ms");
+            //stopwatch.Stop();
+            //Logger.LogInformation($"To be processed (after payload): {message.Type} {message.MessageId.Shorten()} from {message.ClientId} OnPlayload uses: {stopwatch.ElapsedMilliseconds} ms");
 
             //
             // Request message processing should be placed here
             //
+
+            OnPayload?.Invoke(this, (message.ClientId, message.Type, message.Payload.ToByteArray()));
 
             if (message.Response != ResponseType.Required)
                 return null;

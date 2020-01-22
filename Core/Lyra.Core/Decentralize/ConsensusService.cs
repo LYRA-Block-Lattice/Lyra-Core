@@ -565,7 +565,7 @@ namespace Lyra.Core.Decentralize
             {
                 // update mesh network status first
                 foreach (var node in _board.AllNodes.Keys.ToList())
-                    _board.AllNodes[node].NetStatus = _pBFTNet.GetNodeMeshNetworkStatus(node);
+                    _board.AllNodes[node].UpdateNetStatus(_pBFTNet.GetNodeMeshNetworkStatus(node));
 
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
                 Send2P2pNetwork(msg);
