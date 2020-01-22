@@ -30,6 +30,7 @@ namespace GrpcClient
         // status
         private bool _connected;
         private bool _hasConfirmation;
+        private int _retryConnectCount;
 
         public bool Connected { get => _connected; }
         public bool HasConfirmation { get => _hasConfirmation;}
@@ -52,6 +53,7 @@ namespace GrpcClient
             //var channel = new Channel($"{nodeAddress}:{PORT}", channelCredentials);
             _channel = GrpcChannel.ForAddress($"https://{nodeAddress}:{PORT}", new GrpcChannelOptions { HttpClient = httpClient });
 
+            _retryConnectCount = -1;
             Connect();
         }
 
@@ -63,6 +65,8 @@ namespace GrpcClient
 
             _ = Task.Run(async () =>
             {
+                _retryConnectCount++;
+                await Task.Delay(_retryConnectCount * 1000);        // prevent hammer
                 _client = new GrpcClient(_clientId, _ip);
                 _client.FeedMessage += (sender) => FeedMessageTo(sender);
 

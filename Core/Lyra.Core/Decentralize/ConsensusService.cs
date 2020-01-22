@@ -84,6 +84,10 @@ namespace Lyra.Core.Decentralize
         }
 
         public bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
+        public bool IsMessageFromSeed0(SourceSignedMessage msg)
+        {
+            return msg.From == ProtocolSettings.Default.StandbyValidators[0];
+        }
         public ConsensusWorkingMode Mode { get; private set; }
         public static BillBoard Board { get => _board; }
         public List<TransStats> Stats { get => _stats; }
@@ -206,13 +210,7 @@ namespace Lyra.Core.Decentralize
                     waitCount--;
                 }
 
-                // declare to the network
-                PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
-                me.IP = $"{await DuckDuckGoIPAddress.PublicIPAddressAsync()}";
-                me.UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);        // make sure of this!!!
-                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
-                await _board.AddAsync(me);
-                Send2P2pNetwork(msg);
+                await DeclareConsensusNodeAsync();
             });
 
 
@@ -270,9 +268,15 @@ namespace Lyra.Core.Decentralize
             });
         }
 
-        private void GetAllWorkers()
+        private async Task DeclareConsensusNodeAsync()
         {
-
+            // declare to the network
+            PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
+            me.IP = $"{await DuckDuckGoIPAddress.PublicIPAddressAsync()}";
+            me.UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);        // make sure of this!!!
+            var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
+            await _board.AddAsync(me);
+            Send2P2pNetwork(msg);
         }
 
         private void HeartBeat()
@@ -491,12 +495,11 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            _log.LogInformation($"Consensus: OnNextConsensusMessageAsync Called: {item.MsgType} From: {item.From.Shorten()}");
+            //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync Called: {item.MsgType} From: {item.From.Shorten()}");
 
             if(item.MsgType != ChatMessageType.NodeUp)
                 OnNodeActive(item.From);
 
-            _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 2 {item.MsgType}");
             switch (item)
             {
                 case AuthorizingMsg msg1:
@@ -603,6 +606,11 @@ namespace Lyra.Core.Decentralize
                 _pBFTNet.AddPosNode(node);
 
             node.IP = JsonConvert.DeserializeObject<PosNode>(chat.Text).IP;
+
+            if(IsMessageFromSeed0(chat))
+            {
+                await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
+            }
 
             if (IsThisNodeSeed0)
             {
