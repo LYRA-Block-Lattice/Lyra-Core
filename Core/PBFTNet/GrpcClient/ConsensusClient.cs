@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using Communication;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Lyra.Core.Utils;
 using Lyra.Shared;
+using Microsoft.Extensions.Logging;
 
 namespace GrpcClient
 {
@@ -17,6 +19,7 @@ namespace GrpcClient
         const int PORT = 4505;
         GrpcChannel _channel;
         GrpcClient _client;
+        ILogger _log;
         string _clientId;
         string _accountId;
         string _ip;
@@ -34,10 +37,13 @@ namespace GrpcClient
 
         public bool Connected { get => _connected; }
         public bool HasConfirmation { get => _hasConfirmation;}
+        public string Ip { get => _ip; }
 
         public void Start(string nodeAddress, string AccountId, string clientId)
         {
-            Console.WriteLine($"GrpcClient started for {nodeAddress}");
+            _log = new SimpleLogger("ConsensusClient").Logger;
+
+            _log.LogInformation($"GrpcClient started for {nodeAddress}");
 
             _accountId = AccountId;
             _ip = nodeAddress;
@@ -59,7 +65,7 @@ namespace GrpcClient
 
         private void Connect()
         {
-            Console.WriteLine($"Trying to connect to remote node {_ip}");
+            _log.LogInformation($"Trying to connect to remote node {_ip}");
             _connected = false;
             _hasConfirmation = false;
 
@@ -77,11 +83,11 @@ namespace GrpcClient
                             () =>
                             {
                                 _connected = true;
-                                Console.WriteLine($"Connected to remote node {_ip}");
+                                _log.LogInformation($"Connected to remote node {_ip}");
                             },
                             (resp) => { ConfirmMessage(resp.MessageId); OnMessage(this, resp); },
                             () => {
-                                Console.WriteLine($"Disconnected from remote node {_ip}");
+                                _log.LogInformation($"Disconnected from remote node {_ip}");
                                 if (!_client.Stop.IsCancellationRequested)
                                     Connect(); 
                                 else
@@ -94,7 +100,7 @@ namespace GrpcClient
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"_client.Do: {ex.Message}");
+                    _log.LogInformation($"_client.Do: {ex.Message}");
                 }
             });
         }
@@ -111,7 +117,7 @@ namespace GrpcClient
             }
             else
             {
-                Console.WriteLine($"Retry send one message to {_ip} {retryOne.id}. Pending: {_pendingMessages.Count} In Queue: {_sendQueue.Count}");
+                _log.LogInformation($"Retry send one message to {_ip} {retryOne.id}. Pending: {_pendingMessages.Count} In Queue: {_sendQueue.Count}");
                 retryOne.sent = DateTime.Now;
                 retryOne.times++;
                 return (retryOne.id, retryOne.type, retryOne.payload);
@@ -120,7 +126,7 @@ namespace GrpcClient
 
         public void Close()
         {
-            Console.WriteLine("Disconnected.");
+            _log.LogInformation("Disconnected.");
             if (_client != null)
             {
                 _client.Stop.Cancel();
@@ -138,7 +144,7 @@ namespace GrpcClient
                 _pendingMessages.Values.Any(a => DateTime.Now - a.sent > TimeSpan.FromSeconds(20)))
             {
                 // retry connection
-                Console.WriteLine($"Connection to {_ip} is broken. reconnect... ");
+                _log.LogInformation($"Connection to {_ip} is broken. reconnect... ");
                 _client.Stop.Cancel();
                 Connect();
             }
@@ -149,7 +155,7 @@ namespace GrpcClient
             PendingMessage pm;
             _pendingMessages.TryRemove(id, out pm);
             _hasConfirmation = true;
-            //Console.WriteLine($"Confirmed from  {_ip} {id}");
+            //_log.LogInformation($"Confirmed from  {_ip} {id}");
         }
     }
 

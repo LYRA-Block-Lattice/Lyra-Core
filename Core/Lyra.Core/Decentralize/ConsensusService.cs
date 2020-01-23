@@ -468,7 +468,14 @@ namespace Lyra.Core.Decentralize
             item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
 
             if (item is ChatMsg)
+            {
+                while(LocalNode.Singleton.ConnectedCount < 1)
+                {
+                    _log.LogInformation("p2p network not connected. delay sending message...");
+                    Task.Delay(1000).Wait();
+                }
                 _localNode.Tell(item);
+            }                
             else
                 _pBFTNet.BroadCastMessage(item);
         }

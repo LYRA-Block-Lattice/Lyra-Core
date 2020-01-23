@@ -3,6 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace GrpcClientHelper
 {
@@ -16,9 +18,12 @@ namespace GrpcClientHelper
 
         public abstract (string id, string type, byte[] payload) MessagePayload { get; }
 
+        protected ILogger _log;
+
         public GrpcClientBase()
         {
             Stop = new CancellationTokenSource();
+            _log = new SimpleLogger("GrpcClientBase").Logger;
         }
 
         public async Task Do(GrpcChannel channel, Action onConnection = null, Action<TResponse> onMessage = null, Action onShuttingDown = null)
@@ -41,7 +46,7 @@ namespace GrpcClientHelper
                     }
                     catch(Exception ex)
                     {
-                        Console.WriteLine($"In receive pump: {ex.ToString()}");
+                        _log.LogInformation($"In receive pump: {ex.ToString()}");
                     }
                 });
 
@@ -55,7 +60,7 @@ namespace GrpcClientHelper
                     }
                     catch(Exception ex)
                     {
-                        Console.WriteLine(ex.Message);
+                        _log.LogInformation($"In send pump: {ex.Message}");
                         break;  //shutdown
                     }
                 }                   

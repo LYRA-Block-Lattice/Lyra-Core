@@ -54,7 +54,7 @@ namespace Lyra.Core.Authorizers
             
             var result = await VerifyBlockAsync(block, lastBlock);
             stopwatch.Stop();
-            Console.WriteLine($"SendTransfer VerifyBlock takes {stopwatch.ElapsedMilliseconds} ms.");
+            //Console.WriteLine($"SendTransfer VerifyBlock takes {stopwatch.ElapsedMilliseconds} ms.");
 
             if (result != APIResultCodes.Success)
                 return result;
@@ -69,7 +69,7 @@ namespace Lyra.Core.Authorizers
             var stopwatch2 = Stopwatch.StartNew();
             result = await VerifyTransactionBlockAsync(block);
             stopwatch2.Stop();
-            Console.WriteLine($"SendTransfer VerifyTransactionBlock takes {stopwatch2.ElapsedMilliseconds} ms.");
+            //Console.WriteLine($"SendTransfer VerifyTransactionBlock takes {stopwatch2.ElapsedMilliseconds} ms.");
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -82,7 +82,7 @@ namespace Lyra.Core.Authorizers
                 return result;
 
             stopwatch3.Stop();
-            Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
+            //Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 
             return APIResultCodes.Success;
         }

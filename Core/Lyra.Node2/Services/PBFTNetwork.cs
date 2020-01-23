@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Neo.IO;
 using System.Text;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace Lyra.Node2.Services
 {
@@ -26,8 +27,11 @@ namespace Lyra.Node2.Services
         ConcurrentDictionary<string, DateTime> _clientActivityTime = new ConcurrentDictionary<string, DateTime>();
 
         MessageProcessor _srvMsgProcessor;
-        public PBFTNetwork(MessageProcessor messageProcessor)
+
+        ILogger<PBFTNetwork> _log;
+        public PBFTNetwork(MessageProcessor messageProcessor, ILogger<PBFTNetwork> logger)
         {
+            _log = logger;
             _srvMsgProcessor = messageProcessor;
             _srvMsgProcessor.OnPayload += (o, msg) =>
             {
@@ -52,7 +56,7 @@ namespace Lyra.Node2.Services
                             await OnMessage(msg.payload.AsSerializable<AuthorizerCommitMsg>());
                             break;
                         default:
-                            //Console.WriteLine("unknown message from pbft node");
+                            //_log.LogInformation("unknown message from pbft node");
                             break;
                     }
                 }
@@ -70,7 +74,7 @@ namespace Lyra.Node2.Services
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Sending to other pbft node: {e.Message}");
+                    _log.LogInformation($"Error sending to pbft node {client.Ip}: {e.Message}");
                 }
             }
         }
@@ -98,7 +102,7 @@ namespace Lyra.Node2.Services
             }
             catch (Exception e)
             {
-                Console.WriteLine($"In AddPosNode: {e.Message}");
+                _log.LogInformation($"In AddPosNode: {e.Message}");
             }
         }
 
@@ -116,7 +120,7 @@ namespace Lyra.Node2.Services
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"In RemovePosNode: {e.Message}");
+                    _log.LogInformation($"In RemovePosNode: {e.Message}");
                 }
             }
         }
@@ -169,7 +173,7 @@ namespace Lyra.Node2.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                _log.LogInformation(ex.Message);
             }
         }
 

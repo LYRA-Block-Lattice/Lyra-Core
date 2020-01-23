@@ -1,4 +1,6 @@
 ﻿using Lyra.Core.Blocks;
+using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ namespace Lyra.Core.Decentralize
 {
     public class Orphanage
     {
+        ILogger _log;
         private Func<AuthState, Task> OnAuthStateReady;
         private Func<AuthorizingMsg, Task> OnAuthorizingMsgReady;
         private Func<List<AuthorizedMsg>, Task> OnAuthorizedMsgReady;
@@ -24,6 +27,8 @@ namespace Lyra.Core.Decentralize
                         Func<List<AuthorizedMsg>, Task> onAuthorizedMsgReady,
                         Func<List<AuthorizerCommitMsg>, Task> onAuthorizerCommitMsgReady)
         {
+            _log = new SimpleLogger("Orphanage").Logger;
+
             OnAuthStateReady = onAuthStateReady;
             OnAuthorizingMsgReady = onAuthorizingMsgReady;
             OnAuthorizedMsgReady = onAuthorizedMsgReady;
@@ -96,20 +101,20 @@ namespace Lyra.Core.Decentralize
                 T luckone;
                 if (orphans.TryRemove(hash, out luckone))
                 {
-                    Console.WriteLine("Released an orphan!");
+                    _log.LogInformation("Released an orphan!");
                     await handler(luckone);
                 }                    
             }
         }
 
-        public static async Task<bool> IsThisBlockOrphan(TransactionBlock block)
+        public async Task<bool> IsThisBlockOrphan(TransactionBlock block)
         {
             if(block.PreviousHash != null)
             {
                 var prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
                 if(prevBlock == null)
                 {
-                    Console.WriteLine("Found an orphan!");
+                    _log.LogInformation("Found an orphan!");
                 }
                 return prevBlock == null;
             }

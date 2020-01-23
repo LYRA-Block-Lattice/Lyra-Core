@@ -418,6 +418,7 @@ namespace Lyra.Core.Decentralize
             if (_state == null)
             {
                 _outOfOrderedMessages.Enqueue(item);
+                _log.LogWarning($"OnCommit: _state null for {item.BlockHash.Shorten()}");
                 return;
             }
 
