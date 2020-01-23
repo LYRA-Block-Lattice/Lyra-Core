@@ -533,7 +533,7 @@ namespace Lyra.Core.Decentralize
                     await OnNodeUpAsync(chat);
                     break;
                 case ChatMsg bbb when bbb.MsgType == ChatMessageType.StakingChanges:
-                    OnBillBoardBroadcast(bbb);
+                    await OnBillBoardBroadcastAsync(bbb);
                     break;
                 case ChatMsg bcc when bcc.MsgType == ChatMessageType.BlockConsolidation:
                     await OnBlockConsolicationAsync(bcc);
@@ -561,11 +561,15 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void OnBillBoardBroadcast(ChatMsg msg)
+        private async Task OnBillBoardBroadcastAsync(ChatMsg msg)
         {
             if (!IsThisNodeSeed0) //TODO: only accept bbb from seeds
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
+
+                if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId))  // no me?
+                    await DeclareConsensusNodeAsync();
+
                 RefreshBillBoardNetworkStatus();
                 _log.LogInformation("BillBoard updated!");
             }
