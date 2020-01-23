@@ -592,6 +592,11 @@ namespace Lyra.Core.Decentralize
             if(_board != null)
             {
                 RefreshBillBoardNetworkStatus();
+                var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
+                foreach(var node in deadNodes)
+                {
+                    _board.AllNodes.Remove(node.AccountID);
+                }
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
                 Send2P2pNetwork(msg);
             }

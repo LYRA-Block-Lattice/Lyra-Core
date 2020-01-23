@@ -11,6 +11,8 @@ using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using Lyra.Core.Exchange;
 using Lyra.Core.LiteDB;
+using Neo;
+using System.Linq;
 
 namespace Lyra.Core.Decentralize
 {
@@ -55,10 +57,31 @@ namespace Lyra.Core.Decentralize
                 new AuthorizersFactory().Init();
 
                 var walletStore = new LiteAccountDatabase();
-                PosWallet = new Wallet(walletStore, Neo.Settings.Default.LyraNode.Lyra.NetworkId);
+                var tmpWallet = new Wallet(walletStore, Neo.Settings.Default.LyraNode.Lyra.NetworkId);
                 string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + Neo.Settings.Default.LyraNode.Lyra.NetworkId);
                 string full_path = BaseAccount.GetFullPath(lyra_folder);
-                PosWallet.OpenAccount(full_path, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name);
+                tmpWallet.OpenAccount(full_path, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name);
+
+                if(ProtocolSettings.Default.StandbyValidators.Any(a => a == tmpWallet.AccountId))
+                {
+                    // not update balance for seed nodes.
+                    PosWallet = tmpWallet;
+                }
+                else
+                {
+                    // create wallet and update balance
+                    var memStor = new AccountInMemoryStorage();
+                    var acctWallet = new ExchangeAccountWallet(memStor, Neo.Settings.Default.LyraNode.Lyra.NetworkId);
+                    acctWallet.AccountName = "tmpAcct";
+                    await acctWallet.RestoreAccountAsync("", tmpWallet.PrivateKey);
+                    acctWallet.OpenAccount("", acctWallet.AccountName);
+
+                    Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
+                    var rpcClient = await LyraRestClient.CreateAsync(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "Lyra Client Cli", "1.0a");
+                    await acctWallet.Sync(rpcClient);
+
+                    PosWallet = acctWallet;
+                }              
 
                 var sys = new LyraSystem();
                 sys.Start(_pBFTNet);
