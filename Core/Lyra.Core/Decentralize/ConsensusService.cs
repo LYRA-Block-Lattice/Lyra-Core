@@ -596,6 +596,7 @@ namespace Lyra.Core.Decentralize
                 foreach(var node in deadNodes)
                 {
                     _board.AllNodes.Remove(node.AccountID);
+                    _pBFTNet.RemovePosNode(node);
                 }
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
                 Send2P2pNetwork(msg);
