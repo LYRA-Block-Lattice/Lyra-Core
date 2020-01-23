@@ -314,11 +314,14 @@ namespace Lyra.Core.Decentralize
             }
             _log.LogInformation(sb.ToString());
 
+            _log.LogInformation($"state.Consensus is {state.Consensus}");
             if (ConsensusResult.Uncertain != state.Consensus)
-            {
+            {                
                 await state.Semaphore.WaitAsync();
                 try
                 {
+                    _log.LogInformation($"got Semaphore. is it saving? {state.Saving}");
+
                     if (state.Saving)
                         return;
 
