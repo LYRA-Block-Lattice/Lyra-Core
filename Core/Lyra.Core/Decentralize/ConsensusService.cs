@@ -177,7 +177,7 @@ namespace Lyra.Core.Decentralize
                 //    }                    
             });
 
-            Receive<AskForBillboard>((_) => { RefreshBillBoardNetworkStatus(); Sender.Tell(_board); });
+            Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
@@ -566,6 +566,7 @@ namespace Lyra.Core.Decentralize
             if (!IsThisNodeSeed0) //TODO: only accept bbb from seeds
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
+                RefreshBillBoardNetworkStatus();
                 _log.LogInformation("BillBoard updated!");
             }
         }

@@ -146,6 +146,17 @@ namespace Lyra.Core.Decentralize
         private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)
         {
             //_log.LogInformation($"LocalAuthorizingAsync: {item.Block.BlockType} {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
+            if(!ConsensusService.Board.CanDoConsensus)
+            {
+                var result0 = new AuthorizedMsg
+                {
+                    From = NodeService.Instance.PosWallet.AccountId,
+                    MsgType = ChatMessageType.AuthorizerPrepare,
+                    BlockHash = item.Block.Hash,
+                    Result = APIResultCodes.PBFTNetworkNotReadyForConsensus
+                };
+                return result0;
+            }
 
             var stopwatch = Stopwatch.StartNew();
             var authorizer = _authorizers.Create(item.Block.BlockType);
