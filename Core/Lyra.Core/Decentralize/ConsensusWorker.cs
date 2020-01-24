@@ -1,5 +1,4 @@
-﻿using Akka.Actor;
-using Lyra.Core.API;
+﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
@@ -17,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public class ConsensusWorker// : ReceiveActor
+    public class ConsensusWorker
     {
         ConsensusService _context;
         ILogger _log;
@@ -35,32 +34,6 @@ namespace Lyra.Core.Decentralize
             _log = new SimpleLogger("ConsensusWorker").Logger;
             _authorizers = new AuthorizersFactory();
             _outOfOrderedMessages = new ConcurrentQueue<SourceSignedMessage>();
-
-            //Receive<AuthorizingMsg>(msg =>
-            //{
-            //    OnPrePrepare(msg);
-            //});
-
-            //Receive<AuthState>(state =>
-            //{
-
-            //});
-
-            //Receive<AuthorizedMsg>(msg =>
-            //{
-            //    if (_state == null)
-            //        _outOfOrderedMessages.Enqueue(msg);
-            //    else
-            //        OnPrepare(msg);
-            //});
-
-            //Receive<AuthorizerCommitMsg>(msg =>
-            //{
-            //    if (_state == null)
-            //        _outOfOrderedMessages.Enqueue(msg);
-            //    else
-            //        OnCommit(msg);
-            //});
         }
 
         public void Create(AuthState state, WaitHandle waitHandle = null)
@@ -181,7 +154,7 @@ namespace Lyra.Core.Decentralize
                 else
                 {
                     _log.LogInformation($"Give UIndex {_context.USeed} to block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
-                    result.BlockUIndex = _context.USeed++;
+                    result.BlockUIndex = _context.GenSeed();
                 }
             }
             catch (Exception e)

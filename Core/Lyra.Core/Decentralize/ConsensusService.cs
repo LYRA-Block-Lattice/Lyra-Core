@@ -65,21 +65,12 @@ namespace Lyra.Core.Decentralize
         private long _UIndexSeed = -1;
         private object _seedLocker = new object();
 
-        public long USeed
+        public long USeed => _UIndexSeed;
+        public long GenSeed()
         {
-            get
+            lock(_seedLocker)
             {
-                lock (_seedLocker)
-                {
-                    return _UIndexSeed;
-                }
-            }
-            set
-            {
-                lock(_seedLocker)
-                {
-                    _UIndexSeed = value;
-                }
+                return _UIndexSeed++;
             }
         }
 
@@ -163,8 +154,6 @@ namespace Lyra.Core.Decentralize
                 //        await GenerateConsolidateBlockAsync();
                 //    });
                 //}
-
-                //BroadCastBillBoard();
             });
 
             Receive<BillBoard>((bb) =>
@@ -198,7 +187,7 @@ namespace Lyra.Core.Decentralize
             ReceiveAsync<BlockChainSynced>(async _ =>
             {
                 Mode = ConsensusWorkingMode.Normal;
-                USeed = (await BlockChain.Singleton.FindLatestBlockAsync()).UIndex + 1;
+                _UIndexSeed = (await BlockChain.Singleton.FindLatestBlockAsync()).UIndex + 1;
 
                 _log.LogInformation($"The USeed is {USeed}");
 
@@ -301,10 +290,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task GenerateConsolidateBlockAsync()
         {
-            // should lock the uindex seed here.
-            // after clean, if necessary, insert a consolidate block into the queue
-            // next time do clean, if no null block before the consolidate block, then send out the consolidate block.
-            // 2 phase consolidation
+            // expire partial transaction.
+            // "patch" the exmpty UIndex
+            // collec fees and do redistribute
             var lastCons = await BlockChain.Singleton.GetSyncBlockAsync();
             ConsolidationBlock currentCons = null;
             try
