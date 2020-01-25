@@ -9,7 +9,7 @@ namespace Lyra.Shared
 {
     public class DuckDuckGoIPAddress
     {
-        static string url = "http://api.infoip.io/ip";
+        static string url = "https://api.ipify.org";
 
         public static async System.Threading.Tasks.Task<IPAddress> PublicIPAddressAsync()
         {
