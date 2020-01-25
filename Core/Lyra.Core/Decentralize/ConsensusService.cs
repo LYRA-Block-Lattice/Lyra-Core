@@ -567,7 +567,9 @@ namespace Lyra.Core.Decentralize
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
 
-                if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId))  // no me?
+                var myip = await DuckDuckGoIPAddress.PublicIPAddressAsync();
+                if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId)
+                    || _board.AllNodes[NodeService.Instance.PosWallet.AccountId].IP != myip.ToString())  // no me?
                     await DeclareConsensusNodeAsync();
 
                 RefreshBillBoardNetworkStatus();
