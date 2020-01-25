@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Lyra.Shared
 {
-    public class DuckDuckGoIPAddress
+    public class GetPublicIPAddress
     {
         static string url = "https://api.ipify.org";
         static IPAddress _myIp;
