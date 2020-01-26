@@ -261,7 +261,7 @@ namespace Lyra.Core.Decentralize
         {
             // declare to the network
             PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
-            me.IP = $"{await DuckDuckGoIPAddress.PublicIPAddressAsync()}";
+            me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync()}";
             me.UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);        // make sure of this!!!
             var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
             await _board.AddAsync(me);
@@ -551,11 +551,13 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnBillBoardBroadcastAsync(ChatMsg msg)
         {
-            if (!IsThisNodeSeed0) //TODO: only accept bbb from seeds
+            if (!IsThisNodeSeed0 && IsMessageFromSeed0(msg)) // only accept bbb from seeds
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
 
-                if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId))  // no me?
+                var myip = await GetPublicIPAddress.PublicIPAddressAsync();
+                if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId)
+                    || _board.AllNodes[NodeService.Instance.PosWallet.AccountId].IP != myip.ToString())  // no me?
                     await DeclareConsensusNodeAsync();
 
                 RefreshBillBoardNetworkStatus();
@@ -614,12 +616,15 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = chat.Text.UnJson<PosNode>();
+            if (string.IsNullOrWhiteSpace(node.IP) ||
+                node.IP.StartsWith("192.168.") ||
+                node.IP.StartsWith("10."))
+                return;
+
             _ = await _board.AddAsync(node);
 
             if (node.AccountID != NodeService.Instance.PosWallet.AccountId)
                 _pBFTNet.AddPosNode(node);
-
-            node.IP = JsonConvert.DeserializeObject<PosNode>(chat.Text).IP;
 
             if(IsMessageFromSeed0(chat))
             {

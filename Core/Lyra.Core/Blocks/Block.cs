@@ -224,6 +224,7 @@ namespace Lyra.Core.Blocks
         // Imports an account into current account
         ImportAccount = 34,
 
+        ReceiveMultipleFee = 35,
         // Trading blocks
 
         // Put Sell or Buy trade order to exchange tokens
