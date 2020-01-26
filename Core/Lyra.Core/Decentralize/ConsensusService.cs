@@ -616,12 +616,13 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = chat.Text.UnJson<PosNode>();
-            if (string.IsNullOrWhiteSpace(node.IP) ||
-                node.IP.StartsWith("192.168.") ||
-                node.IP.StartsWith("10."))
+            if (Utilities.IsPrivate(node.IP))
                 return;
 
             _ = await _board.AddAsync(node);
+
+            if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IP == node.IP)
+                return;
 
             if (node.AccountID != NodeService.Instance.PosWallet.AccountId)
                 _pBFTNet.AddPosNode(node);
