@@ -25,11 +25,11 @@ namespace LyraNodesBot
             get
             {
                 if (balance < 1000000)
-                    yield return "Not enough balance";
+                    yield return "Low Balance";
                 if (DateTime.Now - lastStaking > TimeSpan.FromMinutes(12))
-                    yield return "Not active for a while";
+                    yield return "Inactive";
                 if (netStatus != "FulllyConnected")
-                    yield return "Not fully connected: " + netStatus;
+                    yield return "Net Error: " + netStatus;
             }
         }
     }
