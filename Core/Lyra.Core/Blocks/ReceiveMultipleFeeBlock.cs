@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Lyra.Core.Blocks
 {
-    public class ReceiveMultipleFeeBlock : TransactionBlock
+    public class ReceiveMultipleFeeBlock : ServiceBlock
     {
 
         // Hash of the send block
