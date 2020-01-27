@@ -30,7 +30,6 @@ namespace LyraNodesBot
                     yield return "Not active for a while";
                 if (netStatus != "FulllyConnected")
                     yield return "Not fully connected: " + netStatus;
-                yield return "";
             }
         }
     }

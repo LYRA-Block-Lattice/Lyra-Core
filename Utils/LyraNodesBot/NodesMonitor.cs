@@ -127,15 +127,15 @@ namespace LyraNodesBot
 
             sb.AppendLine("\n*Fully Functional Nodes List*\n");
 
-            sb.AppendLine(bb.AllNodes.Values.Where(a => a.ableToAuthorize)
-                .Select(b => b.accountID.Shorten()).Aggregate((c, d) => c + "\n" + d));
+            sb.AppendLine("`" + bb.AllNodes.Values.Where(a => a.ableToAuthorize)
+                .Select(b => b.accountID.Shorten()).Aggregate((c, d) => c + "\n" + d) + "`");
 
             sb.AppendLine("\n*Nodes which has trouble*\n");
 
-            sb.AppendLine(bb.AllNodes.Values.Where(a => !a.ableToAuthorize)
+            sb.AppendLine("`" + bb.AllNodes.Values.Where(a => !a.ableToAuthorize)
                 .Aggregate(new StringBuilder(), 
-                    (c, n) => c.AppendLine(n.accountID.Shorten() + " [" + n.FailReasons.Aggregate((a, b) => $"[{a}][{b}]") + "]" ), 
-                    sb => sb.ToString()));
+                    (c, n) => c.AppendLine(n.accountID.Shorten() + ": " + n.FailReasons.Select(a => "[" + a + "]").Aggregate((a, b) => a + b)), 
+                    sb => sb.ToString()) + "`");
 
             await SendGroupMessageAsync(chatid, sb.ToString());
         }
