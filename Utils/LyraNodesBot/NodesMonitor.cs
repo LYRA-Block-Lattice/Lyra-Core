@@ -121,19 +121,22 @@ namespace LyraNodesBot
             sb.AppendLine($"Consensus Win Number: {ProtocolSettings.Default.ConsensusWinNumber}");
             sb.AppendLine($"Maxmimum Failed Node Number: {ProtocolSettings.Default.ConsensusNumber}");
             sb.AppendLine($"Current Running Node Count: {bb.AllNodes.Count}");
+            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.Value.ableToAuthorize)}");
             var cando = bb.canDoConsensus ? "Yes" : "No";
             sb.AppendLine($"Consensus Can be Made Now: {cando}");
-            sb.AppendLine("\n*Nodes List*\n");
-            
-            foreach (var node in bb.AllNodes.Values)
-            {
-                sb.AppendLine($"POS Wallet Address: *{node.accountID.Shorten()}*");
-                sb.AppendLine($"Able to Authorize: {node.ableToAuthorize}");
-                sb.AppendLine($"Staking Balance: {node.balance}");
-                sb.AppendLine($"Network Status: {node.netStatus}");
-                sb.AppendLine($"Last Staking Time: {node.lastStaking}");
-                sb.AppendLine();
-            }
+
+            sb.AppendLine("\n*Fully Functional Nodes List*\n");
+
+            sb.AppendLine(bb.AllNodes.Values.Where(a => a.ableToAuthorize)
+                .Select(b => b.accountID.Shorten()).Aggregate((c, d) => c + "\n" + d));
+
+            sb.AppendLine("\n*Nodes which has trouble*\n");
+
+            sb.AppendLine(bb.AllNodes.Values.Where(a => !a.ableToAuthorize)
+                .Aggregate(new StringBuilder(), 
+                    (c, n) => c.AppendLine(n.accountID.Shorten() + " [" + n.FailReasons.Aggregate((a, b) => $"[{a}][{b}]") + "]" ), 
+                    sb => sb.ToString()));
+
             await SendGroupMessageAsync(chatid, sb.ToString());
         }
 
