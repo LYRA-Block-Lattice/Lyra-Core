@@ -22,6 +22,7 @@ using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
 using Lyra.Shared;
 using Neo;
+using System.Net.Http;
 
 namespace LyraNodesBot
 {
@@ -57,14 +58,14 @@ namespace LyraNodesBot
             Bot.StopReceiving();
         }
 
-        public async Task SendGroupMessageAsync(string msg)
+        public async Task SendGroupMessageAsync(ChatId chatid, string msg)
         {
             var retryCount = 5;
             while(retryCount-- > 0)
             {
                 try
                 {
-                    await Bot.SendTextMessageAsync(_groupId, msg, ParseMode.Markdown);
+                    await Bot.SendTextMessageAsync(chatid, msg, ParseMode.Markdown);
                     break;
                 }
                 catch(Exception)
@@ -74,7 +75,7 @@ namespace LyraNodesBot
             }            
         }
 
-        public async Task OnGossipMessageAsync(SourceSignedMessage msg)
+        public async Task OnGossipMessageAsync(ChatId chatid, SourceSignedMessage msg)
         {
             var m = msg as ChatMsg;
             if (m == null)
@@ -83,7 +84,7 @@ namespace LyraNodesBot
             switch(m.MsgType)
             {
                 case ChatMessageType.NodeUp:
-                    await SendNodesInfoToGroupAsync();
+                    await SendNodesInfoToGroupAsync(chatid);
                     break;
                 case ChatMessageType.AuthorizerPrePrepare:
                 case ChatMessageType.AuthorizerPrepare:
@@ -95,20 +96,20 @@ namespace LyraNodesBot
                 default:
                     var typStr2 = string.Join(" ", Regex.Split(m.MsgType.ToString(), @"(?<!^)(?=[A-Z])"));
                     var text2 = $"*From*: {m.From}\n*Event*: {typStr2}\n*Text*: {m.Text}";
-                    await SendGroupMessageAsync(text2);
+                    await SendGroupMessageAsync(chatid, text2);
                     break;
             }
         }
 
-        private async Task SendHeight()
+        private async Task SendHeight(ChatId chatid)
         {
             var wc = new WebClient();
             var json = wc.DownloadString(LyraGlobal.SelectNode(_network) + "LyraNode/GetSyncState");
             var bb = JsonConvert.DeserializeObject<GetSyncStateAPIResult>(json);
 
-            await SendGroupMessageAsync($"Current Height: *{bb.NewestBlockUIndex}*");
+            await SendGroupMessageAsync(chatid, $"Current Height: *{bb.NewestBlockUIndex}*");
         }
-        private async Task SendNodesInfoToGroupAsync()
+        private async Task SendNodesInfoToGroupAsync(ChatId chatid)
         {
             var wc = new WebClient();
             var json = wc.DownloadString(LyraGlobal.SelectNode(_network) + "LyraNode/GetBillboard");
@@ -133,7 +134,7 @@ namespace LyraNodesBot
                 sb.AppendLine($"Last Staking Time: {node.lastStaking}");
                 sb.AppendLine();
             }
-            await SendGroupMessageAsync(sb.ToString());
+            await SendGroupMessageAsync(chatid, sb.ToString());
         }
 
         private async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
@@ -146,23 +147,23 @@ namespace LyraNodesBot
             switch (args.First())
             {
                 case "/height":
-                    await SendHeight();
+                    await SendHeight(message.Chat.Id);
                     break;
                 case "/nodes":
-                    await SendNodesInfoToGroupAsync();
+                    await SendNodesInfoToGroupAsync(message.Chat.Id);
                     break;
                 case "/tps":
-                    await SendGroupMessageAsync("No Data");
+                    await SendGroupMessageAsync(message.Chat.Id, "No Data");
                     break;
                 case "/send":
                     if (args.Length == 2 && Signatures.ValidateAccountId(args[1]))
                     {
                         var ret = await SendEvalCoin(args.Skip(1).First());
-                        await SendGroupMessageAsync(ret);
+                        await SendGroupMessageAsync(message.Chat.Id, ret);
                     }
                     else
                     {
-                        await SendGroupMessageAsync("*Example*\n\n/send [[your wallet address here]]");
+                        await SendGroupMessageAsync(message.Chat.Id, "*Example*\n\n/send [[your wallet address here]]");
                     }
                     break;
                 case "/help":
@@ -180,29 +181,36 @@ namespace LyraNodesBot
 ///seed _AccountId_ - approve a authorizer node to seed node
 ///deseed _AccountId_ - disapprove a seed node
 //";
-                    await SendGroupMessageAsync(usage);
+                    await SendGroupMessageAsync(message.Chat.Id, usage);
                     break;
                 case "/authlist":
                 case "/authdelist":
-                    await SendGroupMessageAsync("Under Construction");
+                    await SendGroupMessageAsync(message.Chat.Id, "Under Construction");
                     break;
                 case "/seed":
                 case "/deseed":
                     if(message.From.Id == 397968968)      // @jfkwn
                     {
-                        await SendGroupMessageAsync("Code todo");
+                        await SendGroupMessageAsync(message.Chat.Id, "Code todo");
                     }
                     else
                     {
-                        await SendGroupMessageAsync("Only admins can do this");
+                        await SendGroupMessageAsync(message.Chat.Id, "Only admins can do this");
                     }
                     break;
                 default:
-                    await SendGroupMessageAsync("Unknown command. Please reference to: /help");
+                    await SendGroupMessageAsync(message.Chat.Id, "Unknown command. Please reference to: /help");
                     break;
             }
         }
 
+        private async Task<string> SendTpsAsync()
+        {
+            var url = "https://seed.testnet.lyrashops.com:4505/api/LyraNode/GetTransStats";
+            var wc = new HttpClient();
+            var json = await wc.GetStringAsync(url);
+            return json;
+        }
         private async Task<string> SendEvalCoin(string address)
         {
             try
