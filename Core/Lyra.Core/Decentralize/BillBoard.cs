@@ -46,6 +46,10 @@ namespace Lyra.Core.Decentralize
             {
                 AllNodes.Add(node.AccountID, node);
             }
+            else
+            {
+                AllNodes[node.AccountID].IP = node.IP;      // support for dynamic IP address
+            }
 
             node.LastStaking = DateTime.Now;
 
