@@ -14,6 +14,7 @@ namespace Lyra.Core.Decentralize
         void PingNode(PosNode node);
         void AddPosNode(PosNode node);
         void RemovePosNode(PosNode node);
+        List<PosNode> GetConnections();
 
         MeshNetworkConnecStatus GetNodeMeshNetworkStatus(string clientId);
     }

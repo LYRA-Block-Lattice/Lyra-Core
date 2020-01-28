@@ -63,6 +63,11 @@ namespace Lyra.Node2.Services
             });
         }
 
+        public List<PosNode> GetConnections()
+        {
+            return _targetNodes.Values.ToList();
+        }
+
         public void BroadCastMessage(SourceSignedMessage msg)
         {
             //await _local.BroadcastAsync(msg.MsgType.ToString(), msg.ToArray());

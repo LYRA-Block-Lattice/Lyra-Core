@@ -562,6 +562,16 @@ namespace Lyra.Core.Decentralize
 
                 RefreshBillBoardNetworkStatus();
                 _log.LogInformation("BillBoard updated!");
+
+                // remove outdated node from pbftnet
+                var conns = _pBFTNet.GetConnections();
+                foreach(var conn in conns)
+                {
+                    if (_board.AllNodes.Values.Any(a => a.IP == conn.IP))
+                        continue;
+                    else
+                        _pBFTNet.RemovePosNode(conn);
+                }
             }
         }
 
