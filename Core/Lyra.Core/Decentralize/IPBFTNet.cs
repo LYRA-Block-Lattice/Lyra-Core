@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public enum MeshNetworkConnecStatus { Unknown, Unreachable, OutBoundOnly, InBoundOnly, FulllyConnected, Disconnected, Stalled }
+    public enum MeshNetworkConnecStatus { Unknown, Unreachable, OutBoundOnly, InBoundOnly, FulllyConnected, Disconnected, Stalled, ViaP2p }
     public interface IPBFTNet
     {
         void BroadCastMessage(SourceSignedMessage msg);

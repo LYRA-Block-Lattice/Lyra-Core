@@ -51,6 +51,7 @@ namespace Lyra.Core.Decentralize
         private readonly IActorRef _localNode;
 
         ILogger _log;
+        private bool _usePBFTNet = false;
 
         IPBFTNet _pBFTNet;
         Orphanage _orphange;
@@ -122,21 +123,13 @@ namespace Lyra.Core.Decentralize
                 );
 
             _pBFTNet = pBFTNet;
-            _pBFTNet.RegisterMessageHandler(async (msg) =>
-               {
-                   _log.LogInformation($"Consensus: Got a pbft message: {msg.MsgType}");
-                   // verify the signatures of msg. make sure it is from the right node.
-                   if (!msg.VerifySignature(msg.From))
-                   {
-                       _log.LogInformation($"Consensus: bad signature: {msg.MsgType} Hash: {msg.Hash.Shorten()} by pubKey: {msg.From.Shorten()}");
-                       return;
-                   }
-
-                   if (await _orphange.TryAddOneAsync(msg))
-                       return;
-
-                   await OnNextConsensusMessageAsync(msg);
-               });
+            if(_usePBFTNet)
+            {
+                _pBFTNet.RegisterMessageHandler(async (msg) =>
+                {
+                    await ProcessMessageFromPeers(msg);
+                });
+            }
 
             ReceiveAsync<BlockChain.BlockAdded>(async (ba) => {
                 await _orphange.BlockAddedAsync(ba.hash);
@@ -255,6 +248,22 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             });
+        }
+
+        private async Task ProcessMessageFromPeers(SourceSignedMessage msg)
+        {
+            _log.LogInformation($"Consensus: Got a pbft message: {msg.MsgType}");
+            // verify the signatures of msg. make sure it is from the right node.
+            if (!msg.VerifySignature(msg.From))
+            {
+                _log.LogInformation($"Consensus: bad signature: {msg.MsgType} Hash: {msg.Hash.Shorten()} by pubKey: {msg.From.Shorten()}");
+                return;
+            }
+
+            if (await _orphange.TryAddOneAsync(msg))
+                return;
+
+            await OnNextConsensusMessageAsync(msg);
         }
 
         private async Task DeclareConsensusNodeAsync()
@@ -455,17 +464,29 @@ namespace Lyra.Core.Decentralize
         {
             item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
 
-            if (item is ChatMsg)
+            if(_usePBFTNet)
             {
-                while(LocalNode.Singleton.ConnectedCount < 1)
+                if (item is ChatMsg)
+                {
+                    while (LocalNode.Singleton.ConnectedCount < 1)
+                    {
+                        _log.LogInformation("p2p network not connected. delay sending message...");
+                        Task.Delay(1000).Wait();
+                    }
+                    _localNode.Tell(item);
+                }
+                else
+                    _pBFTNet.BroadCastMessage(item);
+            }
+            else
+            {
+                while (LocalNode.Singleton.ConnectedCount < 1)
                 {
                     _log.LogInformation("p2p network not connected. delay sending message...");
                     Task.Delay(1000).Wait();
                 }
                 _localNode.Tell(item);
-            }                
-            else
-                _pBFTNet.BroadCastMessage(item);
+            }
         }
 
         private ConsensusWorker GetWorker(string hash)
@@ -563,14 +584,17 @@ namespace Lyra.Core.Decentralize
                 RefreshBillBoardNetworkStatus();
                 _log.LogInformation("BillBoard updated!");
 
-                // remove outdated node from pbftnet
-                var conns = _pBFTNet.GetConnections();
-                foreach(var conn in conns)
+                if(_usePBFTNet)
                 {
-                    if (_board.AllNodes.Values.Any(a => a.IP == conn.IP))
-                        continue;
-                    else
-                        _pBFTNet.RemovePosNode(conn);
+                    // remove outdated node from pbftnet
+                    var conns = _pBFTNet.GetConnections();
+                    foreach (var conn in conns)
+                    {
+                        if (_board.AllNodes.Values.Any(a => a.IP == conn.IP))
+                            continue;
+                        else
+                            _pBFTNet.RemovePosNode(conn);
+                    }
                 }
             }
         }
@@ -584,7 +608,12 @@ namespace Lyra.Core.Decentralize
                     if (_board.AllNodes[node].AccountID == NodeService.Instance.PosWallet.AccountId)
                         _board.AllNodes[node].UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);
                     else
-                        _board.AllNodes[node].UpdateNetStatus(_pBFTNet.GetNodeMeshNetworkStatus(node));
+                    {
+                        if (_usePBFTNet)
+                            _board.AllNodes[node].UpdateNetStatus(_pBFTNet.GetNodeMeshNetworkStatus(node));
+                        else
+                            _board.AllNodes[node].UpdateNetStatus(MeshNetworkConnecStatus.ViaP2p);
+                    }
             }
         }
         private void BroadCastBillBoard()
@@ -596,7 +625,8 @@ namespace Lyra.Core.Decentralize
                 foreach(var node in deadNodes)
                 {
                     _board.AllNodes.Remove(node.AccountID);
-                    _pBFTNet.RemovePosNode(node);
+                    if(_usePBFTNet)
+                        _pBFTNet.RemovePosNode(node);
                 }
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
                 Send2P2pNetwork(msg);
@@ -615,7 +645,7 @@ namespace Lyra.Core.Decentralize
             {
                 _board.RefreshAsync(chat.From);
 
-                if (_board.HasNode(chat.From))
+                if (_usePBFTNet && _board.HasNode(chat.From))
                     _pBFTNet.PingNode(_board.GetNode(chat.From));
             }
         }
@@ -634,7 +664,7 @@ namespace Lyra.Core.Decentralize
             if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IP == node.IP)
                 return;
 
-            if (node.AccountID != NodeService.Instance.PosWallet.AccountId)
+            if (_usePBFTNet && node.AccountID != NodeService.Instance.PosWallet.AccountId)
                 _pBFTNet.AddPosNode(node);
 
             if(IsMessageFromSeed0(chat))
