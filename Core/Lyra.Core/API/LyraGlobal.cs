@@ -31,7 +31,7 @@ namespace Lyra.Core.API
             {
 #if DEBUG
                 case "devnet":
-                    return "https://seed.devnet.lyrashops.com:4505/api/";
+                    return "https://192.168.3.77:4505/api/";
 #endif
                 case "testnet":
                     return "https://seed.testnet.lyrashops.com:4505/api/";
