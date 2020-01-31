@@ -53,10 +53,7 @@ namespace Lyra.Core.Decentralize
 
                 state.T1 = DateTime.Now;
 
-                var localAuthResult = await LocalAuthorizingAsync(_state.InputMsg);
-                _state.AddAuthResult(localAuthResult);
-
-                _context.Send2P2pNetwork(localAuthResult);
+                await AuthorizeAsync(_state.InputMsg);
 
                 state.T2 = DateTime.Now;
             });
@@ -227,11 +224,16 @@ namespace Lyra.Core.Decentralize
                   if (waitHandle != null)
                       await waitHandle.AsTask();
 
-                  var localAuthResult = await LocalAuthorizingAsync(msg);
-                  _state.AddAuthResult(localAuthResult);
-                  _context.Send2P2pNetwork(localAuthResult);
-                  await CheckAuthorizedAllOkAsync(_state);
+                  await AuthorizeAsync(msg);
               });
+        }
+
+        private async Task AuthorizeAsync(AuthorizingMsg msg)
+        {
+            var localAuthResult = await LocalAuthorizingAsync(msg);
+            _state.AddAuthResult(localAuthResult);
+            _context.Send2P2pNetwork(localAuthResult);
+            await CheckAuthorizedAllOkAsync(_state);
         }
 
         public async Task OnPrepareAsync(AuthorizedMsg item)
@@ -279,10 +281,10 @@ namespace Lyra.Core.Decentralize
         {
             // check state
             // debug: show all states
-            if(state.OutputMsgs.Count <= 2)
-            {
-                return;
-            }
+            //if(state.OutputMsgs.Count <= 2)
+            //{
+            //    return;
+            //}
             var sb = new StringBuilder();
             sb.AppendLine();
             sb.AppendLine($"* Transaction From Node {state.InputMsg.Block.AccountID.Shorten()} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {state.InputMsg.Block.Hash.Shorten()}");
