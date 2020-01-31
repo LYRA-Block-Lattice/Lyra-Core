@@ -46,7 +46,7 @@ namespace Lyra.Core.Decentralize
         // hash, authState
         Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
-        Dictionary<string, ConsensusWorker> _cleanedConsensus;
+        ConcurrentDictionary<string, ConsensusWorker> _cleanedConsensus;
         private static BillBoard _board = new BillBoard();
         private List<TransStats> _stats;
 
@@ -78,7 +78,7 @@ namespace Lyra.Core.Decentralize
 
             _outOfOrderedMessages = new Dictionary<string, List<SourceSignedMessage>>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
-            _cleanedConsensus = new Dictionary<string, ConsensusWorker>();
+            _cleanedConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
 
             while (BlockChain.Singleton == null)
@@ -296,7 +296,7 @@ namespace Lyra.Core.Decentralize
                         var finalResult = state.Consensus;
                         if (finalResult == ConsensusResult.Uncertain)
                             _log.LogWarning($"Permanent remove timeouted Uncertain block: {state.InputMsg.Block.Hash}");
-                        _cleanedConsensus.Remove(state.InputMsg.Block.Hash);
+                        _cleanedConsensus.TryRemove(state.InputMsg.Block.Hash, out _);
                     }
                 }
 
@@ -313,7 +313,7 @@ namespace Lyra.Core.Decentralize
                         _activeConsensus.TryRemove(state.InputMsg.Block.Hash, out _);
                         state.Done.Set();
 
-                        _cleanedConsensus.Add(state.InputMsg.Block.Hash, states[i]);
+                        _cleanedConsensus.TryAdd(state.InputMsg.Block.Hash, states[i]);
 
                         //if (finalResult == true)
                         //    continue;
@@ -487,14 +487,18 @@ namespace Lyra.Core.Decentralize
             {
                 case AuthorizingMsg msg1:
                     var worker = GetWorker(msg1.Block.Hash);
-                    if(worker != null)
+                    if (worker != null)
                         await worker.OnPrePrepareAsync(msg1);
+                    else
+                        _log.LogError($"No worker1 for {msg1.Block.Hash}");
                     break;
                 case AuthorizedMsg msg2:
                     _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 3 {item.MsgType}");
                     var worker2 = GetWorker(msg2.BlockHash);
                     if (worker2 != null)
                         await worker2.OnPrepareAsync(msg2);
+                    else
+                        _log.LogError($"No worker2 for {msg2.BlockHash}");
                     _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 4 {item.MsgType}");
                     break;
                 case AuthorizerCommitMsg msg3:

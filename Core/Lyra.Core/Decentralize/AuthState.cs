@@ -3,6 +3,7 @@ using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,8 +25,8 @@ namespace Lyra.Core.Decentralize
 
         public string HashOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
-        public List<AuthorizedMsg> OutputMsgs { get; set; }
-        public List<AuthorizerCommitMsg> CommitMsgs { get; set; }
+        public ConcurrentBag<AuthorizedMsg> OutputMsgs { get; set; }
+        public ConcurrentBag<AuthorizerCommitMsg> CommitMsgs { get; set; }
 
         public SemaphoreSlim Semaphore { get; }
         public EventWaitHandle Done { get; }
@@ -42,8 +43,8 @@ namespace Lyra.Core.Decentralize
 
             Created = DateTime.Now;
 
-            OutputMsgs = new List<AuthorizedMsg>();
-            CommitMsgs = new List<AuthorizerCommitMsg>();
+            OutputMsgs = new ConcurrentBag<AuthorizedMsg>();
+            CommitMsgs = new ConcurrentBag<AuthorizerCommitMsg>();
 
             Semaphore = new SemaphoreSlim(1, 1);
             Done = new EventWaitHandle(false, EventResetMode.ManualReset);

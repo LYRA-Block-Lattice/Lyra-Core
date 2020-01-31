@@ -47,7 +47,7 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogWarning($"Consensus Create: Wait for previous block to get its consensus result...");
                     await waitHandle.AsTask();
-                }                    
+                }
 
                 _context.Send2P2pNetwork(_state.InputMsg);
 
@@ -116,7 +116,7 @@ namespace Lyra.Core.Decentralize
         private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)
         {
             //_log.LogInformation($"LocalAuthorizingAsync: {item.Block.BlockType} {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
-            if(!ConsensusService.Board.CanDoConsensus)
+            if (!ConsensusService.Board.CanDoConsensus)
             {
                 var result0 = new AuthorizedMsg
                 {
@@ -169,18 +169,18 @@ namespace Lyra.Core.Decentralize
             }
 
             stopwatch.Stop();
-            if(result.Result == APIResultCodes.Success)
+            if (result.Result == APIResultCodes.Success)
                 _log.LogInformation($"LocalAuthorizingAsync {item.Block.BlockType} takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
             else
             {
-                if(result.Result == APIResultCodes.CouldNotFindLatestBlock)
+                if (result.Result == APIResultCodes.CouldNotFindLatestBlock)
                 {
                     _log.LogInformation($"CouldNotFindLatestBlock!! state: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash} Previous Block Hash: {_state.InputMsg.Block.PreviousHash}");
                 }
                 _log.LogError($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
                 _log.LogInformation($"LocalAuthorizingAsync state: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
             }
-                
+
             return result;
         }
 
@@ -194,7 +194,7 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if(_state != null)
+            if (_state != null)
             {
                 _log.LogError("State exists.");
                 return;
@@ -253,7 +253,7 @@ namespace Lyra.Core.Decentralize
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
-            if(_state.AddAuthResult(item))
+            if (_state.AddAuthResult(item))
                 await CheckAuthorizedAllOkAsync(_state);
             //}
             //else
@@ -285,27 +285,28 @@ namespace Lyra.Core.Decentralize
             //{
             //    return;
             //}
-            var sb = new StringBuilder();
-            sb.AppendLine();
-            sb.AppendLine($"* Transaction From Node {state.InputMsg.Block.AccountID.Shorten()} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {state.InputMsg.Block.Hash.Shorten()}");
-            foreach (var msg in state.OutputMsgs.ToList())
+            await state.Semaphore.WaitAsync();
+            try
             {
-                var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
-                string me = "";
-                if (msg.From == NodeService.Instance.PosWallet.AccountId)
-                    me = "[me]";
-                var voice = msg.IsSuccess ? "Yay" : "Nay";
-                var canAuth = ConsensusService.Board.AllNodes.ContainsKey(msg.From) ? ConsensusService.Board.AllNodes[msg.From].AbleToAuthorize.ToString() : "Unknown";
-                sb.AppendLine($"{voice} {msg.Result} By: {msg.From.Shorten()} CanAuth: {canAuth} {seed0}{me}");
-            }
-            _log.LogInformation(sb.ToString());
-
-            _log.LogInformation($"state.Consensus is {state.Consensus}");
-            if (ConsensusResult.Uncertain != state.Consensus)
-            {                
-                await state.Semaphore.WaitAsync();
-                try
+                var sb = new StringBuilder();
+                sb.AppendLine();
+                sb.AppendLine($"* Transaction From Node {state.InputMsg.Block.AccountID.Shorten()} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {state.InputMsg.Block.Hash.Shorten()}");
+                foreach (var msg in state.OutputMsgs.ToList())
                 {
+                    var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
+                    string me = "";
+                    if (msg.From == NodeService.Instance.PosWallet.AccountId)
+                        me = "[me]";
+                    var voice = msg.IsSuccess ? "Yay" : "Nay";
+                    var canAuth = ConsensusService.Board.AllNodes.ContainsKey(msg.From) ? ConsensusService.Board.AllNodes[msg.From].AbleToAuthorize.ToString() : "Unknown";
+                    sb.AppendLine($"{voice} {msg.Result} By: {msg.From.Shorten()} CanAuth: {canAuth} {seed0}{me}");
+                }
+                _log.LogInformation(sb.ToString());
+
+                _log.LogInformation($"state.Consensus is {state.Consensus}");
+                if (ConsensusResult.Uncertain != state.Consensus)
+                {
+
                     _log.LogInformation($"got Semaphore. is it saving? {state.Saving}");
 
                     if (state.Saving)
@@ -390,15 +391,16 @@ namespace Lyra.Core.Decentralize
 
                     _context.Send2P2pNetwork(msg);
                     state.AddCommitedResult(msg);
+
                 }
-                catch(Exception ex)
-                {
-                    _log.LogError($"CheckAuthorizedAllOkAsync: {ex.ToString()}");
-                }
-                finally
-                {
-                    state.Semaphore.Release();
-                }
+            }
+            catch (Exception ex)
+            {
+                _log.LogError($"CheckAuthorizedAllOkAsync: {ex.ToString()}");
+            }
+            finally
+            {
+                state.Semaphore.Release();
             }
         }
 
