@@ -270,7 +270,7 @@ namespace Lyra.Core.Decentralize
         {
             // declare to the network
             PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
-            me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync()}";
+            me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync(_usePBFTNet)}";
 
             if (_usePBFTNet)
                 me.UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);        // make sure of this!!!
@@ -581,7 +581,7 @@ namespace Lyra.Core.Decentralize
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
 
-                var myip = await GetPublicIPAddress.PublicIPAddressAsync();
+                var myip = await GetPublicIPAddress.PublicIPAddressAsync(_usePBFTNet);
                 if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId)
                     || _board.AllNodes[NodeService.Instance.PosWallet.AccountId].IP != myip.ToString())  // no me?
                     await DeclareConsensusNodeAsync();
@@ -666,7 +666,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = chat.Text.UnJson<PosNode>();
-            if (Utilities.IsPrivate(node.IP))
+            if (_usePBFTNet && Utilities.IsPrivate(node.IP))
                 return;
 
             _ = await _board.AddAsync(node);

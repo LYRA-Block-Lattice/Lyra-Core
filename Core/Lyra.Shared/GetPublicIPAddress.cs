@@ -12,7 +12,7 @@ namespace Lyra.Shared
         static string url = "https://api.ipify.org";
         static IPAddress _myIp;
 
-        public static async System.Threading.Tasks.Task<IPAddress> PublicIPAddressAsync()
+        public static async System.Threading.Tasks.Task<IPAddress> PublicIPAddressAsync(bool getPublicIP)
         {
             if (_myIp == null)  // no hammer on get ip service.
                 try
@@ -20,7 +20,7 @@ namespace Lyra.Shared
                     var env = Environment.GetEnvironmentVariable("LYRA_NETWORK");
                     if (string.IsNullOrWhiteSpace(env) || env == "devnet")
                     {
-                        _myIp = Utilities.LocalIPAddress();
+                        _myIp = Utilities.LocalIPAddress(getPublicIP);
                     }
                     else
                     {
@@ -32,7 +32,7 @@ namespace Lyra.Shared
                 catch (Exception ex)
                 {
                     Console.WriteLine($"In getting IP: {ex.Message}");
-                    _myIp = Utilities.LocalIPAddress();
+                    _myIp = Utilities.LocalIPAddress(getPublicIP);
                 }
             return _myIp;
         }

@@ -9,7 +9,7 @@ namespace Lyra.Shared
 {
     public class Utilities
     {
-        public static IPAddress LocalIPAddress()
+        public static IPAddress LocalIPAddress(bool getPublicIP)
         {
             if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
@@ -21,7 +21,7 @@ namespace Lyra.Shared
             return host
                 .AddressList
                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
-                .FirstOrDefault(b => !IsPrivate(b.ToString()));
+                .FirstOrDefault(b => getPublicIP ? !IsPrivate(b.ToString()) : true);
         }
 
         public static bool IsPrivate(string ipAddress)
