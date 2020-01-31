@@ -28,6 +28,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static Neo.Network.P2P.LocalNode;
+using Settings = Neo.Settings;
 
 namespace Lyra.Core.Decentralize
 {
@@ -270,7 +271,7 @@ namespace Lyra.Core.Decentralize
         {
             // declare to the network
             PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
-            me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync(_usePBFTNet)}";
+            me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync(_usePBFTNet && Settings.Default.LyraNode.Lyra.NetworkId != "devnet")}";
 
             if (_usePBFTNet)
                 me.UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);        // make sure of this!!!
@@ -666,7 +667,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = chat.Text.UnJson<PosNode>();
-            if (_usePBFTNet && Utilities.IsPrivate(node.IP))
+            if (_usePBFTNet && Utilities.IsPrivate(node.IP) && Settings.Default.LyraNode.Lyra.NetworkId != "devnet")
                 return;
 
             _ = await _board.AddAsync(node);
