@@ -51,7 +51,7 @@ namespace Lyra.Core.Decentralize
         private readonly IActorRef _localNode;
 
         ILogger _log;
-        private bool _usePBFTNet = false;
+        private bool _usePBFTNet = true;
 
         IPBFTNet _pBFTNet;
         Orphanage _orphange;

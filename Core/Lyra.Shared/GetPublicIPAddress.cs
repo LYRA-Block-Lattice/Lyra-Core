@@ -14,23 +14,26 @@ namespace Lyra.Shared
 
         public static async System.Threading.Tasks.Task<IPAddress> PublicIPAddressAsync()
         {
-            if(_myIp == null)  // no hammer on get ip service.
-            try
-            {
-                var env = Environment.GetEnvironmentVariable("LYRA_NETWORK");
-                if (string.IsNullOrWhiteSpace(env) || env == "devnet")
+            if (_myIp == null)  // no hammer on get ip service.
+                try
                 {
+                    var env = Environment.GetEnvironmentVariable("LYRA_NETWORK");
+                    if (string.IsNullOrWhiteSpace(env) || env == "devnet")
+                    {
+                        _myIp = Utilities.LocalIPAddress();
+                    }
+                    else
+                    {
+                        var wc = new HttpClient();
+                        var json = await wc.GetStringAsync(url);
+                        _myIp = IPAddress.Parse(json);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"In getting IP: {ex.Message}");
                     _myIp = Utilities.LocalIPAddress();
                 }
-                var wc = new HttpClient();
-                var json = await wc.GetStringAsync(url);
-                _myIp = IPAddress.Parse(json);
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine($"In getting IP: {ex.Message}");
-                _myIp = Utilities.LocalIPAddress();
-            }
             return _myIp;
         }
     }
