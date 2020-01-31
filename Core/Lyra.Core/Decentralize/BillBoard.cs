@@ -80,9 +80,6 @@ namespace Lyra.Core.Decentralize
         public decimal Balance { get; set; }
         public DateTime LastStaking { get; set; }
 
-        private MeshNetworkConnecStatus _netStatus;
-        public string NetStatus { get => _netStatus.ToString(); set => Enum.TryParse(value, out MeshNetworkConnecStatus _netStatus); }
-
         public PosNode(string accountId)
         {
             AccountID = accountId;
@@ -90,8 +87,7 @@ namespace Lyra.Core.Decentralize
             Balance = 0;
         }
 
-        public void UpdateNetStatus(MeshNetworkConnecStatus status) => _netStatus = status;
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die
-        public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Balance >= 1000000) && (DateTime.Now - LastStaking < TimeSpan.FromMinutes(12) && (_netStatus == MeshNetworkConnecStatus.FulllyConnected || _netStatus == MeshNetworkConnecStatus.ViaP2p));
+        public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Balance >= 1000000) && (DateTime.Now - LastStaking < TimeSpan.FromMinutes(12));
     }
 }

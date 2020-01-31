@@ -29,13 +29,9 @@ namespace Lyra.Core.Decentralize
         AutoResetEvent _waitOrder;
         ILogger _log;
 
-        IPBFTNet _pBFTNet;
-
         public string Leader { get; private set; }
 
-        public NodeService(ILogger<NodeService> logger,
-            IPBFTNet pBFTNet
-            )
+        public NodeService(ILogger<NodeService> logger)
         {
             if (Instance == null)
                 Instance = this;
@@ -43,7 +39,6 @@ namespace Lyra.Core.Decentralize
                 throw new InvalidOperationException("Should not do this");
 
             _log = logger;
-            _pBFTNet = pBFTNet;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -84,7 +79,7 @@ namespace Lyra.Core.Decentralize
                 }              
 
                 var sys = new LyraSystem();
-                sys.Start(_pBFTNet);
+                sys.Start();
 
                 if (_db == null)
                 {

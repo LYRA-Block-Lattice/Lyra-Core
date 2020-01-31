@@ -36,14 +36,7 @@ namespace Lyra.Node2
             services.AddMvc();
             services.AddControllers();
 
-            // for grpc
-            services.AddSingleton<ServerGrpcSubscribers>();
-            services.AddSingleton<MessageProcessor>();
-
             services.AddGrpc();
-
-            // for consensus
-            services.AddSingleton<IPBFTNet, PBFTNetwork>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -68,7 +61,7 @@ namespace Lyra.Node2
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<DuplexService>();
+                //endpoints.MapGrpcService<DuplexService>();
                 endpoints.MapControllers();
                 endpoints.MapGet("/", async context =>
                 {
