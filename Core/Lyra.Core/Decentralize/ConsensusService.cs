@@ -293,7 +293,9 @@ namespace Lyra.Core.Decentralize
                     var state = cleaned[i].State;
                     if (DateTime.Now - state.Created > TimeSpan.FromMinutes(5)) // 2 mins
                     {
-                        _log.LogWarning($"Permanent remove timeouted block: {state.InputMsg.Block.Hash}");
+                        var finalResult = state.Consensus;
+                        if (finalResult == ConsensusResult.Uncertain)
+                            _log.LogWarning($"Permanent remove timeouted Uncertain block: {state.InputMsg.Block.Hash}");
                         _cleanedConsensus.Remove(state.InputMsg.Block.Hash);
                     }
                 }
@@ -305,7 +307,8 @@ namespace Lyra.Core.Decentralize
                     if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(60)) // consensus timeout
                     {
                         var finalResult = state.Consensus;
-                        _log.LogWarning($"Temproray remove timeouted block: {state.InputMsg.Block.Hash}");
+                        if(finalResult == ConsensusResult.Uncertain)
+                            _log.LogWarning($"temporary remove timeouted Uncertain block: {state.InputMsg.Block.Hash}");
 
                         _activeConsensus.TryRemove(state.InputMsg.Block.Hash, out _);
                         state.Done.Set();
