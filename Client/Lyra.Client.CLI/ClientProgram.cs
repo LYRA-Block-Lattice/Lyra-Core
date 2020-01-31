@@ -20,7 +20,7 @@ namespace Lyra.Client.CLI
 {
     class ClientProgram
     {
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             Console.WriteLine("LYRA Command Line Client");
             Console.WriteLine("Version: " + "0.5.3");

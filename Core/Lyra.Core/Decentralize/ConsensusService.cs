@@ -271,7 +271,12 @@ namespace Lyra.Core.Decentralize
             // declare to the network
             PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
             me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync()}";
-            me.UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);        // make sure of this!!!
+
+            if (_usePBFTNet)
+                me.UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);        // make sure of this!!!
+            else
+                me.UpdateNetStatus(MeshNetworkConnecStatus.ViaP2p);
+
             var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
             await _board.AddAsync(me);
             Send2P2pNetwork(msg);
@@ -606,7 +611,12 @@ namespace Lyra.Core.Decentralize
                 // update mesh network status first
                 foreach (var node in _board.AllNodes.Keys.ToList())
                     if (_board.AllNodes[node].AccountID == NodeService.Instance.PosWallet.AccountId)
-                        _board.AllNodes[node].UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);
+                    {
+                        if(_usePBFTNet)
+                            _board.AllNodes[node].UpdateNetStatus(MeshNetworkConnecStatus.FulllyConnected);
+                        else
+                            _board.AllNodes[node].UpdateNetStatus(MeshNetworkConnecStatus.ViaP2p);
+                    }                        
                     else
                     {
                         if (_usePBFTNet)

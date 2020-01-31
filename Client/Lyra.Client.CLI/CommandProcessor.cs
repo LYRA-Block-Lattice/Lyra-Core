@@ -85,8 +85,8 @@ namespace Lyra.Client.CLI
                         //Console.WriteLine(string.Format("{0,15}: Sync up the account with the node to check if there are incoming transactions", COMMAND_SYNC));
                         break;
                     case COMMAND_ACCOUNT_ID:
-                        var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(Base58Encoding.DecodeAccountId(_wallet.AccountId), Neo.Cryptography.ECC.ECCurve.Secp256r1);
-                        Console.WriteLine(ep.ToString());
+                        //var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(Base58Encoding.DecodeAccountId(_wallet.AccountId), Neo.Cryptography.ECC.ECCurve.Secp256r1);
+                        //Console.WriteLine(ep.ToString());
                         Console.WriteLine(_wallet.AccountId);
                         break;
                     case COMMAND_BALANCE:
