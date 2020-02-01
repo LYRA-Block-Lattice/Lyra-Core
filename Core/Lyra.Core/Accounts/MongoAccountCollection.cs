@@ -471,27 +471,35 @@ namespace Lyra.Core.Accounts
                 return false;
             }                
 
-            if (null != await GetBlockByUIndexAsync(block.UIndex))
-            {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
-                return false;
-            }            
+            //if (null != await GetBlockByUIndexAsync(block.UIndex))
+            //{
+            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
+            //    return false;
+            //}            
 
-            if (await FindBlockByHashAsync(block.Hash) != null)
-            {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
-                return false;
-            }            
+            //if (await FindBlockByHashAsync(block.Hash) != null)
+            //{
+            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+            //    return false;
+            //}            
 
-            if (block.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block.AccountID, block.Index) != null)
+            //if (block.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block.AccountID, block.Index) != null)
+            //{
+            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
+            //    return false;
+            //}
+
+            try
             {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
+                _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index}");
+                await _blocks.InsertOneAsync(block);
+                return true;
+            }
+            catch(Exception e)
+            {
+                _log.LogCritical($"Failed AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index} {e.Message}");
                 return false;
             }
-
-            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index}");
-            await _blocks.InsertOneAsync(block);
-            return true;
         }
 
         public void Dispose()
