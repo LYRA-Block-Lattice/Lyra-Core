@@ -244,18 +244,21 @@ namespace Lyra.Core.Accounts
 
         public async Task<TransactionBlock> FindBlockByHashAsync(string hash)
         {
-            var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.Hash, hash);
+            var block = await _blocks.Find(_ => _.Hash == hash).SingleOrDefaultAsync();
 
-            var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+            //var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.Hash, hash);
+            //var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
             return block;
         }
 
         public async Task<TransactionBlock> FindBlockByHashAsync(string AccountId, string hash)
         {
-            var builder = new FilterDefinitionBuilder<TransactionBlock>();
-            var filter = builder.Eq(a => a.Hash, hash) & builder.Eq(a => a.AccountID, AccountId);
+            var block = await _blocks.Find(_ => _.Hash == hash && _.AccountID == AccountId).SingleOrDefaultAsync();
 
-            var block = await(await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+            //var builder = new FilterDefinitionBuilder<TransactionBlock>();
+            //var filter = builder.Eq(a => a.Hash, hash) & builder.Eq(a => a.AccountID, AccountId);
+
+            //var block = await(await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
             return block;
         }
 
@@ -317,10 +320,12 @@ namespace Lyra.Core.Accounts
 
         public async Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index)
         {
-            var builder = new FilterDefinitionBuilder<TransactionBlock>();
-            var filter = builder.Eq(a => a.AccountID, AccountId) & builder.Eq(a => a.Index, index);
+            var block = await _blocks.Find(_ => _.AccountID == AccountId && _.Index == index).SingleOrDefaultAsync();
 
-            var block = await(await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+            //var builder = new FilterDefinitionBuilder<TransactionBlock>();
+            //var filter = builder.Eq(a => a.AccountID, AccountId) & builder.Eq(a => a.Index, index);
+
+            //var block = await(await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
             return block;
         }
 
@@ -504,9 +509,10 @@ namespace Lyra.Core.Accounts
 
         public async Task<TransactionBlock> GetBlockByUIndexAsync(long uindex)
         {
-            var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq(a => a.UIndex, uindex);
+            var block = await _blocks.Find(_ => _.UIndex == uindex).SingleOrDefaultAsync();
+            //var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq(a => a.UIndex, uindex);
 
-            var block = await(await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+            //var block = await(await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
             return block;
         }
 

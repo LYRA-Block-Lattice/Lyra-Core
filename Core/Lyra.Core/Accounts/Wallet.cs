@@ -618,10 +618,10 @@ namespace Lyra.Core.Accounts
                 result = await _rpcClient.SendExchangeTransfer((ExchangingBlock)sendBlock);
             else
             {
-                var stopwatch = Stopwatch.StartNew();
+                //var stopwatch = Stopwatch.StartNew();
                 result = await _rpcClient.SendTransfer(sendBlock);
-                stopwatch.Stop();
-                Console.WriteLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
+                //stopwatch.Stop();
+                //Console.WriteLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
             }
                 
 

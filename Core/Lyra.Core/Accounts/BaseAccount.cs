@@ -91,7 +91,7 @@ namespace Lyra.Core.Accounts
 
             _storage.AddBlock(block);
             //LatestBlock = block;
-            Console.WriteLine(string.Format("Stored block -> type: {0} index: {1} ", block.BlockType.ToString(), block.Index.ToString()));
+            //Console.WriteLine(string.Format("Stored block -> type: {0} index: {1} ", block.BlockType.ToString(), block.Index.ToString()));
         }
 
         //public bool AccountExistsLocally()
