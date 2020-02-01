@@ -583,6 +583,7 @@ namespace Lyra.Core.Decentralize
                 {
                     _board.AllNodes.Remove(node.AccountID);
                 }
+                AuthorizerShapshot = _board.AllNodes.Values.ToList().Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber).Select(node => node.AccountID).ToHashSet();
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
                 Send2P2pNetwork(msg);
             }
