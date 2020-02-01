@@ -41,7 +41,8 @@ namespace Lyra.Core.Decentralize
                 if (!Settled)
                 {
                     _consensusResult = GetConsensusSuccess();
-                    Settled = true;                    
+                    if(_consensusResult != ConsensusResult.Uncertain)
+                        Settled = true;                    
                 }
                 return _consensusResult;
             }        
