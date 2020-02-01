@@ -71,6 +71,9 @@ namespace Lyra.Core.Decentralize
         public static BillBoard Board { get => _board; }
         public List<TransStats> Stats { get => _stats; }
 
+        // authorizer snapshot
+        public static HashSet<string> AuthorizerShapshot { get; private set; }
+
         public ConsensusService(IActorRef localNode)
         {
             _localNode = localNode;
@@ -494,6 +497,10 @@ namespace Lyra.Core.Decentralize
                     break;
                 case AuthorizedMsg msg2:
                     _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 3 {item.MsgType}");
+
+                    if (!AuthorizerShapshot.Contains(msg2.From))
+                        return;
+
                     var worker2 = GetWorker(msg2.BlockHash);
                     if (worker2 != null)
                         await worker2.OnPrepareAsync(msg2);
@@ -502,6 +509,9 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 4 {item.MsgType}");
                     break;
                 case AuthorizerCommitMsg msg3:
+                    if (!AuthorizerShapshot.Contains(msg3.From))
+                        return;
+
                     var worker3 = GetWorker(msg3.BlockHash);
                     if (worker3 != null)
                         await worker3.OnCommitAsync(msg3);
@@ -548,6 +558,7 @@ namespace Lyra.Core.Decentralize
             if (!IsThisNodeSeed0 && IsMessageFromSeed0(msg)) // only accept bbb from seeds
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
+                AuthorizerShapshot = _board.AllNodes.Values.ToList().Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber).Select(node => node.AccountID).ToHashSet();
 
                 var myip = await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId != "devnet");
                 if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId)

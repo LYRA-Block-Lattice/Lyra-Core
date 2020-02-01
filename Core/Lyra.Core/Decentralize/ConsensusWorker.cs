@@ -392,6 +392,7 @@ namespace Lyra.Core.Decentralize
                     _context.Send2P2pNetwork(msg);
                     state.AddCommitedResult(msg);
 
+                    state.Done.Set();
                 }
             }
             catch (Exception ex)
