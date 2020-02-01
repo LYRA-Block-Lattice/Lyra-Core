@@ -104,7 +104,7 @@ namespace Lyra.Core.Decentralize
                         {
                             var worker3 = GetWorker(msg3.BlockHash);
                             if (worker3 != null)
-                                worker3.OnCommit(msg3);
+                                await worker3.OnCommitAsync(msg3);
                         }
                     }
                 );
@@ -504,7 +504,9 @@ namespace Lyra.Core.Decentralize
                 case AuthorizerCommitMsg msg3:
                     var worker3 = GetWorker(msg3.BlockHash);
                     if (worker3 != null)
-                        worker3.OnCommit(msg3);
+                        await worker3.OnCommitAsync(msg3);
+                    else
+                        _log.LogError($"No worker3 for {msg3.BlockHash}");
                     break;
                 case ChatMsg chat when chat.MsgType == ChatMessageType.HeartBeat:
                     OnHeartBeat(chat);

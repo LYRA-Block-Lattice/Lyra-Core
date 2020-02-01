@@ -213,7 +213,7 @@ namespace Lyra.Core.Decentralize
                         await OnPrepareAsync(msg1);
                         break;
                     case AuthorizerCommitMsg msg2:
-                        OnCommit(msg2);
+                        await OnCommitAsync(msg2);
                         break;
                 }
             }
@@ -404,7 +404,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public void OnCommit(AuthorizerCommitMsg item)
+        public async Task OnCommitAsync(AuthorizerCommitMsg item)
         {
             if (_state == null)
             {
@@ -421,7 +421,8 @@ namespace Lyra.Core.Decentralize
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
-            _state.AddCommitedResult(item);
+            if(_state.AddCommitedResult(item))
+                await CheckAuthorizedAllOkAsync(_state);
 
             _context.OnNodeActive(item.From);        // track latest activities via billboard
             //}
