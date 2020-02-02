@@ -14,11 +14,11 @@ namespace Lyra.Core.LiteDB
     {
         protected LiteDatabase _db = null;
 
-        private LiteCollection<Block> _blocks = null;
+        private ILiteCollection<Block> _blocks = null;
 
-        protected LiteCollection<AccountParam> _params = null;
+        protected ILiteCollection<AccountParam> _params = null;
 
-        protected LiteCollection<TokenGenesisBlock> _tokeninfo = null;
+        protected ILiteCollection<TokenGenesisBlock> _tokeninfo = null;
 
         protected string _DatabaseName; 
 
@@ -37,7 +37,7 @@ namespace Lyra.Core.LiteDB
 
         public void Reset()
         {
-            _blocks.Delete(a => true);
+            _blocks.DeleteMany(a => true);
         }
 
         public bool Exists(string path, string accountName)
@@ -59,7 +59,7 @@ namespace Lyra.Core.LiteDB
                 var fileName = accountName + ".db";
                 if (!string.IsNullOrWhiteSpace(path))
                     fileName = path + fileName;
-                string connectionString = "Filename=" + fileName + ";Mode=Exclusive";
+                string connectionString = $"Filename={fileName};Upgrade=true";
                 _db = new LiteDatabase(connectionString);
                 _blocks = _db.GetCollection<Block>("blocks");
 
@@ -79,11 +79,12 @@ namespace Lyra.Core.LiteDB
         {
             //var count = GetBlockCount();
             //var result = FindBlockByIndex(count);
-            int max = 0;
+            long max = 0;
 
             var m = _blocks.Max(x => x.Index);
-            if (m != null)
-                max = m.AsInt32;
+            max = m;
+            //if (m != null)
+            //    max = m.AsInt32;
 
             if (max > 0)
                 return (Block)_blocks.FindOne(Query.EQ("Index", max));
@@ -141,7 +142,7 @@ namespace Lyra.Core.LiteDB
 
         public string GetPrivateKey()
         {
-            var result = GetParamsCollection().FindOne(x => x.Name.Equals("PrivateKey"));
+            var result = GetParamsCollection().FindOne(x => x.Name == "PrivateKey");
             if (result != null)
                 return result.Value;
             else
@@ -150,7 +151,7 @@ namespace Lyra.Core.LiteDB
 
         public string GetAccountId()
         {
-            var result = GetParamsCollection().FindOne(x => x.Name.Equals("AccountId"));
+            var result = GetParamsCollection().FindOne(x => x.Name == "AccountId");
             if (result != null)
                 return result.Value;
             else
@@ -175,14 +176,14 @@ namespace Lyra.Core.LiteDB
             return null;
         }
 
-        private LiteCollection<AccountParam> GetParamsCollection()
+        private ILiteCollection<AccountParam> GetParamsCollection()
         {
             if (_params == null)
                 _params = _db.GetCollection<AccountParam>("params");
             return _params;
         }
 
-        private LiteCollection<TokenGenesisBlock> GetTokenInfoCollection()
+        private ILiteCollection<TokenGenesisBlock> GetTokenInfoCollection()
         {
             if (_tokeninfo == null)
                 _tokeninfo = _db.GetCollection<TokenGenesisBlock>("tokeninfo");

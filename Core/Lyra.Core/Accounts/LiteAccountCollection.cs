@@ -7,7 +7,7 @@ using Lyra.Core.Accounts;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Lyra.Core.LiteDB
+namespace Lyra.Core.Accounts
 {
     // this is account collection (collection of block chains) used on the node side only
     // 
@@ -17,7 +17,7 @@ namespace Lyra.Core.LiteDB
 
         private LiteDatabase _db = null;
 
-        public LiteCollection<TransactionBlock> _blocks = null;
+        public ILiteCollection<TransactionBlock> _blocks = null;
 
         private string FileName;
 
@@ -27,7 +27,7 @@ namespace Lyra.Core.LiteDB
         public LiteAccountCollection(string Path)
         {
             FileName = Path + COLLECTION_DATABASE_NAME + ".db";
-            string connectionString = "Filename=" + FileName + ";Mode=Exclusive";
+            string connectionString = "Filename=" + FileName;
             _db = new LiteDatabase(connectionString);
             _blocks = _db.GetCollection<TransactionBlock>("blocks");
             _blocks.EnsureIndex(x => x.AccountID);
@@ -46,8 +46,9 @@ namespace Lyra.Core.LiteDB
 
         public long GetBlockCount()
         {
-            return (long) _blocks.Count();
+            return (long)_blocks.LongCount();
         }
+
         public long GetBlockCount(string AccountId)
         {
             //var count = _blocks.Count(Query.EQ("AccountId", AccountId));
@@ -61,7 +62,7 @@ namespace Lyra.Core.LiteDB
             //        count = count + 1;
             //}
 
-            var count = _blocks.Count(x => x.AccountID == AccountId);
+            var count = _blocks.LongCount(x => x.AccountID == AccountId);
 
             return count;
         }
@@ -126,7 +127,7 @@ namespace Lyra.Core.LiteDB
 
         public TransactionBlock FindBlockByHash(string hash)
         {
-            var result = _blocks.FindOne(x => x.Hash.Equals(hash));
+            var result = _blocks.FindOne(x => x.Hash == hash);
             return (TransactionBlock)result;
         }
 
@@ -279,7 +280,7 @@ namespace Lyra.Core.LiteDB
                     continue;
 
                 if (!string.IsNullOrEmpty(BuyTokenCode) && BuyTokenCode != trade.BuyTokenCode)
-                        continue;
+                    continue;
 
                 if (!string.IsNullOrEmpty(SellTokenCode) && SellTokenCode != trade.SellTokenCode)
                     continue;
@@ -373,32 +374,45 @@ namespace Lyra.Core.LiteDB
 
         public ServiceBlock GetLastServiceBlock()
         {
-            throw new NotImplementedException();
+            var finds = _blocks.Find(a => a.BlockType == BlockTypes.Service)
+                .OrderBy(b => b.UIndex)
+                .Last();
+            return finds as ServiceBlock;
         }
 
         public ConsolidationBlock GetSyncBlock()
         {
-            throw new NotImplementedException();
+            var finds = _blocks.Find(a => a.BlockType == BlockTypes.Consolidation)
+                    .OrderBy(b => b.UIndex)
+                    .Last();
+            return finds as ConsolidationBlock;
         }
 
         public long GetNewestBlockUIndex()
         {
-            throw new NotImplementedException();
+            var result = FindLatestBlock();
+            if (result == null)
+                return 0;
+            return result.UIndex;
         }
 
-        public TransactionBlock GetBlockByUIndex(long index)
+        public TransactionBlock GetBlockByUIndex(long uindex)
         {
-            throw new NotImplementedException();
+            var block = _blocks.Find(_ => _.UIndex == uindex).FirstOrDefault();
+            return block;
         }
 
         public NullTransactionBlock FindNullTransBlockByHash(string hash)
         {
-            throw new NotImplementedException();
+            var finds = _blocks.Find(a => a.BlockType == BlockTypes.NullTransaction && (a as NullTransactionBlock).FailedBlockHash == hash)
+                    .FirstOrDefault();
+            return finds as NullTransactionBlock;
         }
 
         public TransactionBlock FindLatestBlock()
         {
-            throw new NotImplementedException();
+            var block = _blocks.FindAll().OrderByDescending(a => a.UIndex).FirstOrDefault();
+            return block;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace LyraWallet.Services
             if(_db == null)
             {
                 var dbFn = DependencyService.Get<IPlatformSvc>().GetStoragePath() + "pos.db";
-                string connectionString = "Filename=" + dbFn + ";Mode=Exclusive";
+                string connectionString = "Filename=" + dbFn;
                 _db = new LiteDatabase(connectionString);
             }
         }
@@ -28,14 +28,14 @@ namespace LyraWallet.Services
         {
             var coll = _db.GetCollection<T>();
             var maxID = coll.Max(a => a.ID);
-            item.ID = maxID.AsInt32 + 1;
+            item.ID = maxID + 1;
             coll.Insert(item);
             return Task.FromResult(true);
         }
 
         public Task<int> DeleteItemAsync(int id)
         {
-            var ret = _db.GetCollection<T>().Delete(a => a.ID == id);
+            var ret = _db.GetCollection<T>().DeleteMany(a => a.ID == id);
             return Task.FromResult(ret);
         }
 

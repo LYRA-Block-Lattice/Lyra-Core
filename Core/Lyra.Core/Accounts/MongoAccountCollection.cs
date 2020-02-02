@@ -93,6 +93,9 @@ namespace Lyra.Core.Accounts
 
                 await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
                     .IndexKeys.Ascending(x => x.PreviousHash))).ConfigureAwait(false);
+
+                //await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<SendTransferBlock>(Builders<SendTransferBlock>
+                //    .IndexKeys.Ascending(x => x.DestinationAccountId))).ConfigureAwait(false);
             }
 
             CreateIndexes().Wait();
