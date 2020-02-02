@@ -37,8 +37,7 @@ namespace Lyra.Core.LiteDB
 
         public void Reset()
         {
-            _db.DropCollection("blocks");
-            _blocks = _db.GetCollection<Block>("blocks");
+            _blocks.DeleteMany(x => x.Index > 0);
         }
 
         public bool Exists(string path, string accountName)
@@ -72,24 +71,15 @@ namespace Lyra.Core.LiteDB
 
         public Block FindFirstBlock()
         {
-            var result = _blocks.FindOne(x => x.Index == 1);
+            var result = _blocks.FindOne(Query.All(Query.Ascending));
             return result;
         }
 
         public Block FindLatestBlock()
         {
-            //var count = GetBlockCount();
-            //var result = FindBlockByIndex(count);
-            long max = 0;
+            var block = _blocks.FindOne(Query.All(Query.Descending));
 
-            var m = _blocks.Max(x => x.Index);
-            max = m;
-            //if (m != null)
-            //    max = m.AsInt32;
-
-            if (max > 0)
-                return (Block)_blocks.FindOne(Query.EQ("Index", max));
-            return null;
+            return block;
         }
 
         public TokenGenesisBlock FindTokenGenesisBlockByTicker(string Ticker)

@@ -32,6 +32,7 @@ namespace Lyra.Core.Accounts
             _blocks = _db.GetCollection<TransactionBlock>("blocks");
             _blocks.EnsureIndex(x => x.AccountID);
             _blocks.EnsureIndex(x => x.Index);
+            _blocks.EnsureIndex(x => x.UIndex);
             _blocks.EnsureIndex(x => x.BlockType);
             _blocks.EnsureIndex(x => x.Hash);
             _blocks.EnsureIndex(x => x.PreviousHash);
@@ -82,9 +83,7 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock FindLatestBlock(string AccountId)
         {
-            var block = _blocks.Find(a => a.AccountID == AccountId)
-                .OrderByDescending(b => b.Index)
-                .FirstOrDefault();
+            var block = _blocks.FindOne(Query.All(Query.Descending));
 
             return block;
         }
@@ -113,7 +112,7 @@ namespace Lyra.Core.Accounts
 
         public List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword)
         {
-            var result = _blocks.Find(Query.EQ("_t", "TokenGenesisBlock"));
+            var result = _blocks.Find(Query.EQ("BlockType", "TokenGenesisBlock"));
             var genBlocks = result.Cast<TokenGenesisBlock>();
 
             if (string.IsNullOrEmpty(keyword))
@@ -128,7 +127,7 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock FindBlockByHash(string hash)
         {
-            var result = _blocks.FindOne(x => x.Hash == hash);
+            var result = _blocks.FindOne(Query.EQ("Hash", hash));
             return (TransactionBlock)result;
         }
 
@@ -194,24 +193,19 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock FindBlockByHash(string AccountId, string hash)
         {
-            //var result = _blocks.FindOne(x => x.Hash.Equals(hash));
-            var result = _blocks.FindOne(x => x.AccountID == AccountId && x.Hash == hash);
+            var result = _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("Hash", hash)));
             return (TransactionBlock)result;
         }
 
         public TransactionBlock FindBlockByPreviousBlockHash(string previousBlockHash)
         {
-            var result = _blocks.FindOne(x => x.PreviousHash.Equals(previousBlockHash));
+            var result = _blocks.FindOne(Query.EQ("PreviousHash", previousBlockHash));
             return (TransactionBlock)result;
         }
 
         public TransactionBlock FindBlockByIndex(string AccountId, long index)
         {
-            //IEnumerable<TransactionBlock> result = _blocks.Find(x => x.AccountID == AccountId && x.Index == index);
-            //IEnumerator<TransactionBlock> enumerator = result.GetEnumerator();
-            //enumerator.MoveNext();
-            //TransactionBlock block = enumerator.Current;
-            var block = _blocks.FindOne(x => x.AccountID == AccountId && x.Index == index);
+            var block = _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("Index", index)));
             return block;
         }
 
