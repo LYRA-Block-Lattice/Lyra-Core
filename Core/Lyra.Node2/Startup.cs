@@ -43,12 +43,16 @@ namespace Lyra.Node2
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             string homePath = (Environment.OSVersion.Platform == PlatformID.Unix ||
-                   Environment.OSVersion.Platform == PlatformID.MacOSX)
-                    ? Environment.GetEnvironmentVariable("HOME")
-                    : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+                       Environment.OSVersion.Platform == PlatformID.MacOSX)
+                        ? Environment.GetEnvironmentVariable("HOME")
+                        : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
 
-            var path = $"{homePath}/Logs/";
-            loggerFactory.AddFile(path + "LyraNode2-{Date}.txt");
+            var path = $"{homePath}/.Lyra/";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            var logPath = $"{path}Logs/";
+            loggerFactory.AddFile(logPath + "LyraNode2-{Date}.txt");
 
             SimpleLogger.Factory = loggerFactory;
 
