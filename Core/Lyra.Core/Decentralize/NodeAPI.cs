@@ -77,9 +77,10 @@ namespace Lyra.Core.Decentralize
                 result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
                 result.ResultCode = APIResultCodes.Success;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = ex.Message;
             }
             return result;
         }

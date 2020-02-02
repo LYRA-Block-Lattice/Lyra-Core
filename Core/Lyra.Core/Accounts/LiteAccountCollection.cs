@@ -375,17 +375,19 @@ namespace Lyra.Core.Accounts
 
         public ServiceBlock GetLastServiceBlock()
         {
-            var finds = _blocks.Find(a => a.BlockType == BlockTypes.Service)
-                .OrderBy(b => b.UIndex)
-                .Last();
+            var finds = _blocks.Find(Query.EQ("BlockType", "Service"))
+                .OrderByDescending(b => b.UIndex)
+                .First();
             return finds as ServiceBlock;
         }
 
         public ConsolidationBlock GetSyncBlock()
         {
-            var finds = _blocks.Find(a => a.BlockType == BlockTypes.Consolidation)
-                    .OrderBy(b => b.UIndex)
-                    .Last();
+            var xx = _blocks.FindAll().ToList();
+
+            var finds = _blocks.Find(Query.EQ("BlockType", "Consolidation"))
+                    .OrderByDescending(b => b.UIndex)
+                    .First();
             return finds as ConsolidationBlock;
         }
 
@@ -399,7 +401,7 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock GetBlockByUIndex(long uindex)
         {
-            var block = _blocks.Find(_ => _.UIndex == uindex).FirstOrDefault();
+            var block = _blocks.Find(Query.EQ("UIndex", uindex)).FirstOrDefault();
             return block;
         }
 

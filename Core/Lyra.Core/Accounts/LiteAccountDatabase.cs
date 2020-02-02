@@ -37,7 +37,8 @@ namespace Lyra.Core.LiteDB
 
         public void Reset()
         {
-            _blocks.DeleteMany(a => true);
+            _db.DropCollection("blocks");
+            _blocks = _db.GetCollection<Block>("blocks");
         }
 
         public bool Exists(string path, string accountName)
