@@ -14,11 +14,11 @@ namespace Lyra.Core.LiteDB
     {
         protected LiteDatabase _db = null;
 
-        private ILiteCollection<Block> _blocks = null;
+        private LiteCollection<Block> _blocks = null;
 
-        protected ILiteCollection<AccountParam> _params = null;
+        protected LiteCollection<AccountParam> _params = null;
 
-        protected ILiteCollection<TokenGenesisBlock> _tokeninfo = null;
+        protected LiteCollection<TokenGenesisBlock> _tokeninfo = null;
 
         protected string _DatabaseName; 
 
@@ -37,7 +37,7 @@ namespace Lyra.Core.LiteDB
 
         public void Reset()
         {
-            _blocks.DeleteMany(x => x.Index > 0);
+            _blocks.Delete(x => x.Index > 0);
         }
 
         public bool Exists(string path, string accountName)
@@ -167,14 +167,14 @@ namespace Lyra.Core.LiteDB
             return null;
         }
 
-        private ILiteCollection<AccountParam> GetParamsCollection()
+        private LiteCollection<AccountParam> GetParamsCollection()
         {
             if (_params == null)
                 _params = _db.GetCollection<AccountParam>("params");
             return _params;
         }
 
-        private ILiteCollection<TokenGenesisBlock> GetTokenInfoCollection()
+        private LiteCollection<TokenGenesisBlock> GetTokenInfoCollection()
         {
             if (_tokeninfo == null)
                 _tokeninfo = _db.GetCollection<TokenGenesisBlock>("tokeninfo");

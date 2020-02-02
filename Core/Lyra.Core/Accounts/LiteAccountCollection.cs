@@ -17,7 +17,7 @@ namespace Lyra.Core.Accounts
 
         private LiteDatabase _db = null;
 
-        public ILiteCollection<TransactionBlock> _blocks = null;
+        public LiteCollection<TransactionBlock> _blocks = null;
 
         private string FileName;
 

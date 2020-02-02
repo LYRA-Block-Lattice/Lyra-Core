@@ -35,7 +35,7 @@ namespace LyraWallet.Services
 
         public Task<int> DeleteItemAsync(int id)
         {
-            var ret = _db.GetCollection<T>().DeleteMany(a => a.ID == id);
+            var ret = _db.GetCollection<T>().Delete(a => a.ID == id);
             return Task.FromResult(ret);
         }
 
