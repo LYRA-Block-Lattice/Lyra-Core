@@ -82,10 +82,11 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock FindLatestBlock(string AccountId)
         {
-            var count = GetBlockCount(AccountId);
-            //var result = _blocks.FindOne(x => x.Index.Equals(count));
-            var result = _blocks.FindOne(x => x.AccountID == AccountId && x.Index.Equals(count));
-            return (TransactionBlock)result;
+            var block = _blocks.Find(a => a.AccountID == AccountId)
+                .OrderByDescending(b => b.Index)
+                .FirstOrDefault();
+
+            return block;
         }
 
         public TokenGenesisBlock FindTokenGenesisBlock(string Hash, string Ticker)
