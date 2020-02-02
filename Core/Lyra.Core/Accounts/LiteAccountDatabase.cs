@@ -72,7 +72,7 @@ namespace Lyra.Core.LiteDB
 
         public Block FindFirstBlock()
         {
-            var result = _blocks.FindOne(x => x.Index.Equals(1));
+            var result = _blocks.FindOne(x => x.Index == 1);
             return result;
         }
 
@@ -108,13 +108,13 @@ namespace Lyra.Core.LiteDB
 
         public Block FindBlockByHash(string hash)
         {
-            var result = _blocks.FindOne(x => x.Hash.Equals(hash));
+            var result = _blocks.FindOne(x => x.Hash == hash);
             return (Block)result;
         }
 
         public Block FindBlockByIndex(long index)
         {
-            var result = _blocks.FindOne(x => x.Index.Equals(index));
+            var result = _blocks.FindOne(x => x.Index == index);
             return (Block)result;
         }
 
