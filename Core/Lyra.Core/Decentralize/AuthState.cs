@@ -50,7 +50,7 @@ namespace Lyra.Core.Decentralize
 
         ILogger _log;
 
-        public AuthState()
+        public AuthState(bool haveWaiter = false)
         {
             _log = new SimpleLogger("AuthState").Logger;
 
@@ -60,7 +60,8 @@ namespace Lyra.Core.Decentralize
             CommitMsgs = new ConcurrentBag<AuthorizerCommitMsg>();
 
             Semaphore = new SemaphoreSlim(1, 1);
-            Done = new EventWaitHandle(false, EventResetMode.ManualReset);
+            if(haveWaiter)
+                Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 
         public bool AddAuthResult(AuthorizedMsg msg)

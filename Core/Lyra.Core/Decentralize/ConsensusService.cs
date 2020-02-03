@@ -347,7 +347,7 @@ namespace Lyra.Core.Decentralize
                             _log.LogWarning($"temporary remove timeouted Uncertain block: {state.InputMsg.Block.Hash}");
 
                         _activeConsensus.TryRemove(state.InputMsg.Block.Hash, out _);
-                        state.Done.Set();
+                        state.Done?.Set();
 
                         _cleanedConsensus.TryAdd(state.InputMsg.Block.Hash, states[i]);
 
