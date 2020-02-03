@@ -92,7 +92,7 @@ namespace Lyra.Core.Accounts
             }
 
             CreateIndexes("Hash", true).Wait();
-            CreateIndexes("PreviousHash", true).Wait();
+            CreateIndexes("PreviousHash", false).Wait();
             CreateIndexes("AccountID", false).Wait();
             CreateNoneStringIndex("UIndex", true).Wait();
             CreateNoneStringIndex("Index", false).Wait();
