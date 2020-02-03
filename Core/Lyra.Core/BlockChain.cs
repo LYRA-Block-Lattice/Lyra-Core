@@ -6,6 +6,7 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
+using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.Cryptography.ECC;
@@ -72,14 +73,7 @@ namespace Lyra
             return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
         }
 
-        public async Task<long> GetNewestBlockUIndexAsync() => await _store.GetNewestBlockUIndexAsync();
-        public async Task<TransactionBlock> GetBlockByUIndexAsync(long uindex) => await _store.GetBlockByUIndexAsync(uindex);
-        internal async Task<ConsolidationBlock> GetSyncBlockAsync() => await _store.GetSyncBlockAsync();
-        internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await _store.GetLastServiceBlockAsync();
-
-        // forward api. should have more control here.
-        //public ServiceAccount ServiceAccount => _serviceAccount;
-        public async Task<bool> AddBlockAsync(TransactionBlock block)
+        private async Task<bool> AddBlockImplAsync(TransactionBlock block)
         {
             var result = await _store.AddBlockAsync(block);
             if (result)
@@ -88,23 +82,32 @@ namespace Lyra
             }
             return result;
         }
-        public async Task AddBlockAsync(ServiceBlock serviceBlock) => await _store.AddBlockAsync(serviceBlock);
+
+        public async Task<long> GetNewestBlockUIndexAsync() => await StopWatcher.Track(_store.GetNewestBlockUIndexAsync(), StopWatcher.GetCurrentMethod());
+        public async Task<TransactionBlock> GetBlockByUIndexAsync(long uindex) => await StopWatcher.Track(_store.GetBlockByUIndexAsync(uindex), StopWatcher.GetCurrentMethod());//_store.GetBlockByUIndexAsync(uindex);
+        internal async Task<ConsolidationBlock> GetSyncBlockAsync() => await StopWatcher.Track(_store.GetSyncBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
+        internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await StopWatcher.Track(_store.GetLastServiceBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetLastServiceBlockAsync();
+
+        // forward api. should have more control here.
+        public async Task<bool> AddBlockAsync(TransactionBlock block) => await StopWatcher.Track(AddBlockImplAsync(block), StopWatcher.GetCurrentMethod());
+
+        public async Task AddBlockAsync(ServiceBlock serviceBlock) => await StopWatcher.Track(_store.AddBlockAsync(serviceBlock), StopWatcher.GetCurrentMethod());//_store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
-        public async Task<bool> AccountExistsAsync(string AccountId) => await _store.AccountExistsAsync(AccountId);
-        public async Task<TransactionBlock> FindLatestBlockAsync() => await _store.FindLatestBlockAsync();
-        public async Task<TransactionBlock> FindLatestBlockAsync(string AccountId) => await _store.FindLatestBlockAsync(AccountId);
-        public async Task<NullTransactionBlock> FindNullTransBlockByHashAsync(string hash) => await _store.FindNullTransBlockByHashAsync(hash);
-        public async Task<TransactionBlock> FindBlockByHashAsync(string hash) => await _store.FindBlockByHashAsync(hash);
-        public async Task<TransactionBlock> FindBlockByHashAsync(string AccountId, string hash) => await _store.FindBlockByHashAsync(AccountId, hash);
-        public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword) => await _store.FindTokenGenesisBlocksAsync(keyword);
-        public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker) => await _store.FindTokenGenesisBlockAsync(Hash, Ticker);
-        public async Task<ReceiveTransferBlock> FindBlockBySourceHashAsync(string hash) => await _store.FindBlockBySourceHashAsync(hash);
-        public async Task<long> GetBlockCountAsync() => await _store.GetBlockCountAsync();
-        public async Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, long index) => await _store.FindBlockByIndexAsync(AccountId, index);
-        public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId) => await _store.GetNonFungibleTokensAsync(AccountId);
-        public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId) => await _store.FindUnsettledSendBlockAsync(AccountId);
-        public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash) => await _store.FindBlockByPreviousBlockHashAsync(previousBlockHash);
+        public async Task<bool> AccountExistsAsync(string AccountId) => await StopWatcher.Track(_store.AccountExistsAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.AccountExistsAsync(AccountId);
+        public async Task<TransactionBlock> FindLatestBlockAsync() => await StopWatcher.Track(_store.FindLatestBlockAsync(), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync();
+        public async Task<TransactionBlock> FindLatestBlockAsync(string AccountId) => await StopWatcher.Track(_store.FindLatestBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync(AccountId);
+        public async Task<NullTransactionBlock> FindNullTransBlockByHashAsync(string hash) => await StopWatcher.Track(_store.FindNullTransBlockByHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindNullTransBlockByHashAsync(hash);
+        public async Task<TransactionBlock> FindBlockByHashAsync(string hash) => await StopWatcher.Track(_store.FindBlockByHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(hash);
+        public async Task<TransactionBlock> FindBlockByHashAsync(string AccountId, string hash) => await StopWatcher.Track(_store.FindBlockByHashAsync(AccountId, hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(AccountId, hash);
+        public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword) => await StopWatcher.Track(_store.FindTokenGenesisBlocksAsync(keyword), StopWatcher.GetCurrentMethod());//_store.FindTokenGenesisBlocksAsync(keyword);
+        public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker) => await StopWatcher.Track(_store.FindTokenGenesisBlockAsync(Hash, Ticker), StopWatcher.GetCurrentMethod());//_store.FindTokenGenesisBlockAsync(Hash, Ticker);
+        public async Task<ReceiveTransferBlock> FindBlockBySourceHashAsync(string hash) => await StopWatcher.Track(_store.FindBlockBySourceHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindBlockBySourceHashAsync(hash);
+        public async Task<long> GetBlockCountAsync() => await StopWatcher.Track(_store.GetBlockCountAsync(), StopWatcher.GetCurrentMethod());//_store.GetBlockCountAsync();
+        public async Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, long index) => await StopWatcher.Track(_store.FindBlockByIndexAsync(AccountId, index), StopWatcher.GetCurrentMethod());//_store.FindBlockByIndexAsync(AccountId, index);
+        public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId) => await StopWatcher.Track(_store.GetNonFungibleTokensAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.GetNonFungibleTokensAsync(AccountId);
+        public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId) => await StopWatcher.Track(_store.FindUnsettledSendBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindUnsettledSendBlockAsync(AccountId);
+        public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash) => await StopWatcher.Track(_store.FindBlockByPreviousBlockHashAsync(previousBlockHash), StopWatcher.GetCurrentMethod());//_store.FindBlockByPreviousBlockHashAsync(previousBlockHash);
 
         protected override void OnReceive(object message)
         {
@@ -299,13 +302,13 @@ namespace Lyra
                                         continue;
                                     }
 
-                                    var stopwatch = Stopwatch.StartNew();
+                                    //var stopwatch = Stopwatch.StartNew();
 
                                     var authorizer = authorizers.Create(blockX.BlockType);
                                     var localAuthResult = await authorizer.AuthorizeAsync(blockX, false);
 
-                                    stopwatch.Stop();
-                                    _log.LogInformation($"Authorize takes {stopwatch.ElapsedMilliseconds} ms");
+                                    //stopwatch.Stop();
+                                    //_log.LogInformation($"Authorize takes {stopwatch.ElapsedMilliseconds} ms");
 
                                     if(localAuthResult.Item1 == APIResultCodes.Success)
                                     {

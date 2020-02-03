@@ -8,6 +8,7 @@ using Neo.Cryptography.ECC;
 using Lyra.Core.Cryptography;
 using System.Linq;
 using System.Security.Cryptography;
+using Lyra.Shared;
 
 namespace Lyra.Client.CLI
 {
@@ -313,7 +314,6 @@ namespace Lyra.Client.CLI
                 Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
-
         }
 
         async Task ProcessNewTokenAsync()

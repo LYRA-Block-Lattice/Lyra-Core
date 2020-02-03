@@ -14,6 +14,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static Neo.Network.P2P.LocalNode;
@@ -226,9 +227,36 @@ namespace Lyra.Core.Decentralize
                     {
                         HeartBeat();
                         count = 0;
-                    }
+                        PrintProfileInfo();
+                    }                    
                 }
             });
+        }
+
+        private void PrintProfileInfo()
+        {
+            // debug: measure time
+            // debug only
+            var dat = StopWatcher.Data;
+
+            var sbLog = new StringBuilder();
+
+            var q = dat.Select(g => new
+             {
+                 name = g.Key,
+                 times = g.Value.Count(),
+                 totalTime = g.Value.Sum(t => t.MS),
+                 avgTime = g.Value.Sum(t => t.MS) / g.Value.Count()
+            })
+             .OrderByDescending(b => b.totalTime);
+            foreach (var d in q)
+            {
+                sbLog.AppendLine($"Total time: {d.totalTime} times: {d.times} avg: {d.avgTime} ms. Method Name: {d.name}  ");
+            }
+
+            _log.LogInformation("\n------------------------\n" + sbLog.ToString() + "\n------------------------\\n");
+
+            StopWatcher.Reset();
         }
 
         private async Task ProcessMessageFromPeers(SourceSignedMessage msg)

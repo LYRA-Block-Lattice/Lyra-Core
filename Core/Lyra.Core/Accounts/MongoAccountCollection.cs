@@ -91,6 +91,7 @@ namespace Lyra.Core.Accounts
                 await _blocks.Indexes.CreateOneAsync(codeIndexModel);
             }
 
+            CreateIndexes("_t", false).Wait();
             CreateIndexes("Hash", true).Wait();
             CreateIndexes("PreviousHash", false).Wait();
             CreateIndexes("AccountID", false).Wait();
@@ -203,19 +204,22 @@ namespace Lyra.Core.Accounts
                     return result as TokenGenesisBlock;
             }
 
-            // to do - try to replace this by indexed search using BlockType indexed field (since we can't index Ticker field):
-            // find all GenesysBlocks first, then check if one of them has the right ticker
-            if (!string.IsNullOrEmpty(Ticker))
-            {
-                var builder = Builders<TransactionBlock>.Filter;
-                var filterDefinition = builder.Eq("Ticker", Ticker);
+            var list = await FindTokenGenesisBlocksAsync(Ticker);
+            return list.FirstOrDefault();
 
-                var result = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
-                if (result != null)
-                    return result as TokenGenesisBlock;
-            }
+            //// to do - try to replace this by indexed search using BlockType indexed field (since we can't index Ticker field):
+            //// find all GenesysBlocks first, then check if one of them has the right ticker
+            //if (!string.IsNullOrEmpty(Ticker))
+            //{
+            //    var builder = Builders<TransactionBlock>.Filter;
+            //    var filterDefinition = builder.Eq("Ticker", Ticker) & builder.Eq("_t", )
 
-            return null;
+            //    var result = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
+            //    if (result != null)
+            //        return result as TokenGenesisBlock;
+            //}
+
+            //return null;
         }
 
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword)
@@ -467,23 +471,23 @@ namespace Lyra.Core.Accounts
                 return false;
             }
 
-            if (null != await GetBlockByUIndexAsync(block.UIndex))
-            {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
-                return false;
-            }
+            //if (null != await GetBlockByUIndexAsync(block.UIndex))
+            //{
+            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
+            //    return false;
+            //}
 
-            if (await FindBlockByHashAsync(block.Hash) != null)
-            {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
-                return false;
-            }
+            //if (await FindBlockByHashAsync(block.Hash) != null)
+            //{
+            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+            //    return false;
+            //}
 
-            if (block.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block.AccountID, block.Index) != null)
-            {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
-                return false;
-            }
+            //if (block.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block.AccountID, block.Index) != null)
+            //{
+            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
+            //    return false;
+            //}
 
             _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index}");
             await _blocks.InsertOneAsync(block);
