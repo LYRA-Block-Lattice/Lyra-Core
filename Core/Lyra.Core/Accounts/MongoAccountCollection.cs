@@ -39,7 +39,7 @@ namespace Lyra.Core.Accounts
 
         public MongoAccountCollection()
         {
-            _log = new SimpleLogger("Mongodb Ledge").Logger;
+            _log = new SimpleLogger("Mongo").Logger;
 
             _config = Neo.Settings.Default.LyraNode;
 
@@ -93,9 +93,6 @@ namespace Lyra.Core.Accounts
 
                 await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
                     .IndexKeys.Ascending(x => x.PreviousHash))).ConfigureAwait(false);
-
-                //await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<SendTransferBlock>(Builders<SendTransferBlock>
-                //    .IndexKeys.Ascending(x => x.DestinationAccountId))).ConfigureAwait(false);
             }
 
             CreateIndexes().Wait();
@@ -162,13 +159,13 @@ namespace Lyra.Core.Accounts
             return list.Last() as ConsolidationBlock;
         }
 
-        //private async Task<List<TransactionBlock>> GetAccountBlockListAsync(string AccountId)
-        //{
-        //    var finds = await _blocks.FindAsync(x => x.AccountID == AccountId);
-        //    var list = await finds.ToListAsync();
-        //    var result = list.OrderBy(y => y.Index).ToList();
-        //    return result;
-        //}
+        private async Task<List<TransactionBlock>> GetAccountBlockListAsync(string AccountId)
+        {
+            var finds = await _blocks.FindAsync(x => x.AccountID == AccountId);
+            var list = await finds.ToListAsync();
+            var result = list.OrderBy(y => y.Index).ToList();
+            return result;
+        }
 
         public async Task<TransactionBlock> FindLatestBlockAsync()
         {
@@ -191,7 +188,7 @@ namespace Lyra.Core.Accounts
             };
             var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.AccountID, AccountId);
 
-            var result = await(await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
+            var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
             return result;
         }
 
@@ -200,7 +197,7 @@ namespace Lyra.Core.Accounts
             //TokenGenesisBlock result = null;
             if (!string.IsNullOrEmpty(Hash))
             {
-                var result = await(await _blocks.FindAsync(x => x.Hash == Hash)).FirstOrDefaultAsync();
+                var result = await (await _blocks.FindAsync(x => x.Hash == Hash)).FirstOrDefaultAsync();
                 if (result != null)
                     return result as TokenGenesisBlock;
             }
@@ -247,21 +244,18 @@ namespace Lyra.Core.Accounts
 
         public async Task<TransactionBlock> FindBlockByHashAsync(string hash)
         {
-            var block = await _blocks.Find(_ => _.Hash == hash).SingleOrDefaultAsync();
+            var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.Hash, hash);
 
-            //var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.Hash, hash);
-            //var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+            var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
             return block;
         }
 
         public async Task<TransactionBlock> FindBlockByHashAsync(string AccountId, string hash)
         {
-            var block = await _blocks.Find(_ => _.Hash == hash && _.AccountID == AccountId).SingleOrDefaultAsync();
+            var builder = new FilterDefinitionBuilder<TransactionBlock>();
+            var filter = builder.Eq(a => a.Hash, hash) & builder.Eq(a => a.AccountID, AccountId);
 
-            //var builder = new FilterDefinitionBuilder<TransactionBlock>();
-            //var filter = builder.Eq(a => a.Hash, hash) & builder.Eq(a => a.AccountID, AccountId);
-
-            //var block = await(await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+            var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
             return block;
         }
 
@@ -277,7 +271,7 @@ namespace Lyra.Core.Accounts
             var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("AccountID", AccountId), builder.Ne("NonFungibleToken", BsonNull.Value)));
 
             var allNonFungibleReceiveBlocks = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
-           
+
             var the_list = new List<NonFungibleToken>();
 
             foreach (TransactionBlock receiveBlock in allNonFungibleReceiveBlocks)
@@ -323,12 +317,10 @@ namespace Lyra.Core.Accounts
 
         public async Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index)
         {
-            var block = await _blocks.Find(_ => _.AccountID == AccountId && _.Index == index).SingleOrDefaultAsync();
+            var builder = new FilterDefinitionBuilder<TransactionBlock>();
+            var filter = builder.Eq(a => a.AccountID, AccountId) & builder.Eq(a => a.Index, index);
 
-            //var builder = new FilterDefinitionBuilder<TransactionBlock>();
-            //var filter = builder.Eq(a => a.AccountID, AccountId) & builder.Eq(a => a.Index, index);
-
-            //var block = await(await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+            var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
             return block;
         }
 
@@ -353,7 +345,7 @@ namespace Lyra.Core.Accounts
                 var builder1 = Builders<TransactionBlock>.Filter;
                 var filterDefinition1 = builder1.And(builder1.In("BlockType", p1), builder1.And(builder1.Eq("AccountID", AccountId), builder1.Eq("SourceHash", sendBlock.Hash)));
 
-                var result = await( await _blocks.FindAsync(filterDefinition1)).FirstOrDefaultAsync();
+                var result = await (await _blocks.FindAsync(filterDefinition1)).FirstOrDefaultAsync();
 
                 if (result == null)
                     return sendBlock;
@@ -409,7 +401,7 @@ namespace Lyra.Core.Accounts
                     continue;
 
                 if (!string.IsNullOrEmpty(BuyTokenCode) && BuyTokenCode != trade.BuyTokenCode)
-                        continue;
+                    continue;
 
                 if (!string.IsNullOrEmpty(SellTokenCode) && SellTokenCode != trade.SellTokenCode)
                     continue;
@@ -428,7 +420,7 @@ namespace Lyra.Core.Accounts
             var builder = Builders<TransactionBlock>.Filter;
             var filterDefinition = builder.Eq("BlockType", BlockTypes.TradeOrder.ToString());
             var trade_blocks = _blocks.Find(filterDefinition).ToList();
-            
+
             foreach (TradeOrderBlock block in trade_blocks)
                 list.Add(block);
 
@@ -468,7 +460,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(TransactionBlock block)
         {
-            if(block.Index == 0 || block.UIndex == 0)
+            if (block.Index == 0 || block.UIndex == 0)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
                 return false;
@@ -492,22 +484,14 @@ namespace Lyra.Core.Accounts
                 return false;
             }
 
-            try
-            {
-                _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index}");
-                await _blocks.InsertOneAsync(block);
-                return true;
-            }
-            catch(Exception e)
-            {
-                _log.LogCritical($"Failed AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index} {e.Message}");
-                return false;
-            }
+            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index}");
+            await _blocks.InsertOneAsync(block);
+            return true;
         }
 
         public void Dispose()
         {
-           // nothing to dispose
+            // nothing to dispose
         }
 
         public async Task<long> GetNewestBlockUIndexAsync()
@@ -520,10 +504,9 @@ namespace Lyra.Core.Accounts
 
         public async Task<TransactionBlock> GetBlockByUIndexAsync(long uindex)
         {
-            var block = await _blocks.Find(_ => _.UIndex == uindex).SingleOrDefaultAsync();
-            //var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq(a => a.UIndex, uindex);
+            var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq(a => a.UIndex, uindex);
 
-            //var block = await(await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+            var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
             return block;
         }
 
