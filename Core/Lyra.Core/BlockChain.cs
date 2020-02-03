@@ -152,8 +152,7 @@ namespace Lyra
 
         private async Task StartInitAsync()
         {
-            if (0 == await GetBlockCountAsync() && NodeService.Instance.PosWallet.AccountId ==
-    ProtocolSettings.Default.StandbyValidators[0])
+            if (0 == await GetBlockCountAsync() && NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
             {
                 // do genesis
                 var authGenesis = new ServiceBlock

@@ -475,20 +475,20 @@ namespace Lyra.Core.Accounts
             return block;
         }
 
-        public async Task<TransactionBlock> GetBlockByHash(string Hash)
-        {
-            var block = _storage.FindBlockByHash(Hash) as TransactionBlock;
-            if (block == null)
-            {
-                var result = await _rpcClient.GetBlockByHash(AccountId, Hash, SignAPICallAsync());
-                if (result.ResultCode == APIResultCodes.Success)
-                {
-                    block = result.GetBlock() as TransactionBlock;
-                    AddBlock(block);
-                }
-            }
-            return block;
-        }
+        //public async Task<TransactionBlock> GetBlockByHash(string Hash)
+        //{
+        //    var block = _storage.FindBlockByHash(Hash) as TransactionBlock;
+        //    if (block == null)
+        //    {
+        //        var result = await _rpcClient.GetBlockByHash(AccountId, Hash, SignAPICallAsync());
+        //        if (result.ResultCode == APIResultCodes.Success)
+        //        {
+        //            block = result.GetBlock() as TransactionBlock;
+        //            AddBlock(block);
+        //        }
+        //    }
+        //    return block;
+        //}
 
         //public async Task<AuthorizationAPIResult> ImportAccount(string ImportedAccountKey)
         //{

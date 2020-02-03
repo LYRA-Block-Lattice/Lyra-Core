@@ -241,7 +241,7 @@ namespace Lyra.Core.Decentralize
             if (_state == null)
             {
                 _outOfOrderedMessages.Enqueue(item);
-                _log.LogWarning($"OnPrepareAsync: _state null for {item.BlockUIndex}/{item.BlockHash.Shorten()}");
+                //_log.LogWarning($"OnPrepareAsync: _state null for {item.BlockUIndex}/{item.BlockHash.Shorten()}");
                 return;
             }
 
