@@ -98,6 +98,9 @@ namespace Lyra.Core.Accounts
             CreateNoneStringIndex("UIndex", true).Wait();
             CreateNoneStringIndex("Index", false).Wait();
             CreateNoneStringIndex("BlockType", false).Wait();
+
+            CreateIndexes("SourceHash", false).Wait();
+            CreateIndexes("DestinationAccountId", false).Wait();
         }
 
         /// <summary>
@@ -143,7 +146,8 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AccountExistsAsync(string AccountId)
         {
-            var result = await _blocks.FindAsync(a => a.AccountID == AccountId);
+            var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.AccountID, AccountId);
+            var result = await _blocks.FindAsync(filter);
             return await result.AnyAsync();
         }
 
@@ -329,12 +333,33 @@ namespace Lyra.Core.Accounts
             return block;
         }
 
+        private async Task<ReceiveTransferBlock> FindLastRecvBlock(string AccountId)
+        {
+            var options = new FindOptions<TransactionBlock, TransactionBlock>
+            {
+                Limit = 1,
+                Sort = Builders<TransactionBlock>.Sort.Descending(o => o.UIndex)
+            };
+            var builder = new FilterDefinitionBuilder<TransactionBlock>();
+            var filter = builder.Eq(a => a.AccountID, AccountId) & builder.Eq(a => a.BlockType, BlockTypes.ReceiveTransfer);
+
+            var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
+            return result as ReceiveTransferBlock;
+        }
+
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId)
         {
+            // get last settled receive block
+            var lastRecvBlock = await FindLastRecvBlock(AccountId);
+
+            long fromUIndex = 0;
+            if (lastRecvBlock != null)
+                fromUIndex = lastRecvBlock.UIndex;
+
             // First, let find all send blocks:
             // (It can be optimzed as it's going to be growing, so it can be called with munimum Service Chain Height parameter to look only for recent blocks) 
             var builder = Builders<TransactionBlock>.Filter;
-            var filterDefinition = builder.Eq("DestinationAccountId", AccountId);
+            var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("UIndex", fromUIndex);
 
             var allSendBlocks = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
 
