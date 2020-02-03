@@ -146,8 +146,13 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AccountExistsAsync(string AccountId)
         {
+            var options = new FindOptions<TransactionBlock, TransactionBlock>
+            {
+                Limit = 1
+            };
+
             var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.AccountID, AccountId);
-            var result = await _blocks.FindAsync(filter);
+            var result = await _blocks.FindAsync(filter, options);
             return await result.AnyAsync();
         }
 
