@@ -78,19 +78,36 @@ namespace Lyra.Core.Accounts
 
             async Task CreateIndexes(string columnName, bool uniq)
             {
-                var options = new CreateIndexOptions() { Unique = uniq };
-                var field = new StringFieldDefinition<TransactionBlock>(columnName);
-                var indexDefinition = new IndexKeysDefinitionBuilder<TransactionBlock>().Ascending(field);
-                var indexModel = new CreateIndexModel<TransactionBlock>(indexDefinition, options);
-                await _blocks.Indexes.CreateOneAsync(indexModel);
+                try
+                {
+                    var options = new CreateIndexOptions() { Unique = uniq };
+                    var field = new StringFieldDefinition<TransactionBlock>(columnName);
+                    var indexDefinition = new IndexKeysDefinitionBuilder<TransactionBlock>().Ascending(field);
+                    var indexModel = new CreateIndexModel<TransactionBlock>(indexDefinition, options);
+                    await _blocks.Indexes.CreateOneAsync(indexModel);
+                }
+                catch(Exception ex)
+                {
+                    await _blocks.Indexes.DropOneAsync(columnName + "_1");
+                    await CreateIndexes(columnName, uniq);
+                }
             }
 
             async Task CreateNoneStringIndex(string colName, bool uniq)
             {
-                var options = new CreateIndexOptions() { Unique = uniq };
-                IndexKeysDefinition<TransactionBlock> keyCode = "{ " + colName + ": 1 }";
-                var codeIndexModel = new CreateIndexModel<TransactionBlock>(keyCode, options);
-                await _blocks.Indexes.CreateOneAsync(codeIndexModel);
+                try
+                {
+                    var options = new CreateIndexOptions() { Unique = uniq };
+                    IndexKeysDefinition<TransactionBlock> keyCode = "{ " + colName + ": 1 }";
+                    var codeIndexModel = new CreateIndexModel<TransactionBlock>(keyCode, options);
+                    await _blocks.Indexes.CreateOneAsync(codeIndexModel);
+
+                }
+                catch (Exception ex)
+                {
+                    await _blocks.Indexes.DropOneAsync(colName + "_1");
+                    await CreateIndexes(colName, uniq);
+                }
             }
 
             CreateIndexes("_t", false).Wait();
