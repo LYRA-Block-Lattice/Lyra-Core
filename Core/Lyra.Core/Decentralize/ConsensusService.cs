@@ -37,6 +37,7 @@ namespace Lyra.Core.Decentralize
         public class Consolidate { }
         public class AskForBillboard { }
         public class AskForStats { }
+        public class AskForDbStats { }
         public class BlockChainSynced { }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
@@ -143,6 +144,7 @@ namespace Lyra.Core.Decentralize
 
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
+            Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
@@ -227,13 +229,13 @@ namespace Lyra.Core.Decentralize
                     {
                         HeartBeat();
                         count = 0;
-                        PrintProfileInfo();
+                        //PrintProfileInfo();
                     }                    
                 }
             });
         }
 
-        private void PrintProfileInfo()
+        private string PrintProfileInfo()
         {
             // debug: measure time
             // debug only
@@ -254,9 +256,12 @@ namespace Lyra.Core.Decentralize
                 sbLog.AppendLine($"Total time: {d.totalTime} times: {d.times} avg: {d.avgTime} ms. Method Name: {d.name}  ");
             }
 
+            var info = sbLog.ToString();
+
             _log.LogInformation("\n------------------------\n" + sbLog.ToString() + "\n------------------------\\n");
 
             StopWatcher.Reset();
+            return info;
         }
 
         private async Task ProcessMessageFromPeers(SourceSignedMessage msg)
