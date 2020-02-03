@@ -39,7 +39,7 @@ namespace Lyra.Core.Accounts
 
         public MongoAccountCollection()
         {
-            _log = new SimpleLogger("Mongo").Logger;
+            _log = new SimpleLogger("Mongodb Ledge").Logger;
 
             _config = Neo.Settings.Default.LyraNode;
 
@@ -162,13 +162,13 @@ namespace Lyra.Core.Accounts
             return list.Last() as ConsolidationBlock;
         }
 
-        private async Task<List<TransactionBlock>> GetAccountBlockListAsync(string AccountId)
-        {
-            var finds = await _blocks.FindAsync(x => x.AccountID == AccountId);
-            var list = await finds.ToListAsync();
-            var result = list.OrderBy(y => y.Index).ToList();
-            return result;
-        }
+        //private async Task<List<TransactionBlock>> GetAccountBlockListAsync(string AccountId)
+        //{
+        //    var finds = await _blocks.FindAsync(x => x.AccountID == AccountId);
+        //    var list = await finds.ToListAsync();
+        //    var result = list.OrderBy(y => y.Index).ToList();
+        //    return result;
+        //}
 
         public async Task<TransactionBlock> FindLatestBlockAsync()
         {
@@ -472,25 +472,25 @@ namespace Lyra.Core.Accounts
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
                 return false;
-            }                
+            }
 
-            //if (null != await GetBlockByUIndexAsync(block.UIndex))
-            //{
-            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
-            //    return false;
-            //}            
+            if (null != await GetBlockByUIndexAsync(block.UIndex))
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
+                return false;
+            }
 
-            //if (await FindBlockByHashAsync(block.Hash) != null)
-            //{
-            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
-            //    return false;
-            //}            
+            if (await FindBlockByHashAsync(block.Hash) != null)
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+                return false;
+            }
 
-            //if (block.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block.AccountID, block.Index) != null)
-            //{
-            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
-            //    return false;
-            //}
+            if (block.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block.AccountID, block.Index) != null)
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
+                return false;
+            }
 
             try
             {

@@ -6,6 +6,8 @@ using System.IO;
 using Lyra.Core.Accounts;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Lyra.Core.Utils;
 
 namespace Lyra.Core.Accounts
 {
@@ -21,11 +23,15 @@ namespace Lyra.Core.Accounts
 
         private string FileName;
 
+        ILogger _log;
+
         //<"account ID", "account blockchain">
         //Dictionary<string, AccountData> _collection = new Dictionary<string, AccountData>();
 
         public LiteAccountCollection(string Path)
         {
+            _log = new SimpleLogger("LiteDB Ledge").Logger;
+
             FileName = Path + COLLECTION_DATABASE_NAME + ".db";
             string connectionString = "Filename=" + FileName;
             _db = new LiteDatabase(connectionString);
@@ -52,38 +58,44 @@ namespace Lyra.Core.Accounts
 
         public long GetBlockCount(string AccountId)
         {
-            //var count = _blocks.Count(Query.EQ("AccountId", AccountId));
-            //return (int)count;
-
-            //int count = 0;
-            //IEnumerable<AccountableBlock> result = _blocks.Find(Query.EQ("AccountId", AccountId));
-            //if (result != null)
-            //{
-            //    foreach (AccountableBlock b in result)
-            //        count = count + 1;
-            //}
-
-            var count = _blocks.LongCount(x => x.AccountID == AccountId);
+            var count = _blocks.LongCount(Query.EQ("AccountID", AccountId));
 
             return count;
         }
 
-        //public int GetTotalBlockCount()
-        //{
-        //    return _blocks.Count();
-        //}
-
         public bool AccountExists(string AccountId)
         {
             return GetBlockCount(AccountId) > 0;
+        }
 
-            //var result = _blocks.Find(Query.EQ("AccountId", AccountId));
-            //return result != null;
+        public ServiceBlock GetLastServiceBlock()
+        {
+            var finds = _blocks.Find(Query.EQ("BlockType", "Service"))
+                .OrderByDescending(b => b.UIndex)
+                .First();
+            return finds as ServiceBlock;
+        }
+        
+        public ConsolidationBlock GetSyncBlock()
+        {
+            var finds = _blocks.Find(Query.EQ("BlockType", "Consolidation"))
+                    .OrderByDescending(b => b.UIndex)
+                    .First();
+            return finds as ConsolidationBlock;
+        }
+
+        public TransactionBlock FindLatestBlock()
+        {
+            var block = _blocks.FindOne(Query.All(Query.Descending));
+            
+            return block;
         }
 
         public TransactionBlock FindLatestBlock(string AccountId)
         {
-            var block = _blocks.FindOne(Query.All(Query.Descending));
+            var block = _blocks.Find(Query.EQ("AccountID", AccountId))
+                .OrderByDescending(a => a.Index)
+                .FirstOrDefault();
 
             return block;
         }
@@ -125,24 +137,23 @@ namespace Lyra.Core.Accounts
             }
         }
 
+        public NullTransactionBlock FindNullTransBlockByHash(string hash)
+        {
+            var finds = _blocks.Find(a => a.BlockType == BlockTypes.NullTransaction && (a as NullTransactionBlock).FailedBlockHash == hash)
+                    .FirstOrDefault();
+            return finds as NullTransactionBlock;
+        }
+
         public TransactionBlock FindBlockByHash(string hash)
         {
             var result = _blocks.FindOne(Query.EQ("Hash", hash));
-            return (TransactionBlock)result;
+            return result;
         }
 
-        public ReceiveTransferBlock FindBlockBySourceHash(string hash)
+        public TransactionBlock FindBlockByHash(string AccountId, string hash)
         {
-            var result = _blocks.Find(Query.EQ("SourceHash", hash));
-
-            foreach (var block in result)
-            {
-                if (block.BlockType == BlockTypes.OpenAccountWithReceiveFee || block.BlockType == BlockTypes.ReceiveFee)
-                    continue;
-                else
-                    return block as ReceiveTransferBlock;
-            }
-            return null;
+            var result = _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("Hash", hash)));
+            return result;
         }
 
         public List<NonFungibleToken> GetNonFungibleTokens(string AccountId)
@@ -189,18 +200,24 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
-
-
-        public TransactionBlock FindBlockByHash(string AccountId, string hash)
-        {
-            var result = _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("Hash", hash)));
-            return (TransactionBlock)result;
-        }
-
         public TransactionBlock FindBlockByPreviousBlockHash(string previousBlockHash)
         {
             var result = _blocks.FindOne(Query.EQ("PreviousHash", previousBlockHash));
-            return (TransactionBlock)result;
+            return result;
+        }
+
+        public ReceiveTransferBlock FindBlockBySourceHash(string hash)
+        {
+            var result = _blocks.Find(Query.EQ("SourceHash", hash));
+
+            foreach (var block in result)
+            {
+                if (block.BlockType == BlockTypes.OpenAccountWithReceiveFee || block.BlockType == BlockTypes.ReceiveFee)
+                    continue;
+                else
+                    return block as ReceiveTransferBlock;
+            }
+            return null;
         }
 
         public TransactionBlock FindBlockByIndex(string AccountId, long index)
@@ -326,63 +343,39 @@ namespace Lyra.Core.Accounts
 
         public bool AddBlock(TransactionBlock block)
         {
+            if (block.Index == 0 || block.UIndex == 0)
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
+                return false;
+            }
+
+            if (GetBlockByUIndex(block.UIndex) != null)
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
+                return false;
+            }
+
             if (FindBlockByHash(block.Hash) != null)
-                throw new Exception("NewAccountCollection: Block with such Hash already exists!");
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+                return false;
+            }
 
             if (FindBlockByIndex(block.AccountID, block.Index) != null)
-                throw new Exception("NewAccountCollection: Block with such Index already exists!");
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
+                return false;
+            }
 
             _blocks.Insert(block);
 
             return true;
         }
 
-        //public AccountData GetAccount(string AccountId)
-        //{
-
-        //    string hashedAccountId = GetHash(AccountId);
-        //    if (!_collection.ContainsKey(hashedAccountId))
-        //    {
-        //        var account = new AccountData(_db);
-        //        account.Open(hashedAccountId);
-        //        _collection.Add(hashedAccountId, account);
-        //    }
-        //    return _collection[hashedAccountId];
-        //}
-
-        //public static string GetHash(string AccountId)
-        //{
-
-        //    SHA256 sha256 = SHA256.Create();
-
-        //    byte[] inputBytes = Encoding.ASCII.GetBytes(AccountId);
-        //    byte[] outputBytes = sha256.ComputeHash(inputBytes);
-
-        //    return Base58Encoding.Encode(outputBytes);
-        //}
-
         public void Dispose()
         {
             if (_db != null)
                 _db.Dispose();
-        }
-
-        public ServiceBlock GetLastServiceBlock()
-        {
-            var finds = _blocks.Find(Query.EQ("BlockType", "Service"))
-                .OrderByDescending(b => b.UIndex)
-                .First();
-            return finds as ServiceBlock;
-        }
-
-        public ConsolidationBlock GetSyncBlock()
-        {
-            var xx = _blocks.FindAll().ToList();
-
-            var finds = _blocks.Find(Query.EQ("BlockType", "Consolidation"))
-                    .OrderByDescending(b => b.UIndex)
-                    .First();
-            return finds as ConsolidationBlock;
         }
 
         public long GetNewestBlockUIndex()
@@ -399,17 +392,5 @@ namespace Lyra.Core.Accounts
             return block;
         }
 
-        public NullTransactionBlock FindNullTransBlockByHash(string hash)
-        {
-            var finds = _blocks.Find(a => a.BlockType == BlockTypes.NullTransaction && (a as NullTransactionBlock).FailedBlockHash == hash)
-                    .FirstOrDefault();
-            return finds as NullTransactionBlock;
-        }
-
-        public TransactionBlock FindLatestBlock()
-        {
-            var block = _blocks.FindAll().OrderByDescending(a => a.UIndex).FirstOrDefault();
-            return block;
-        }
     }
 }
