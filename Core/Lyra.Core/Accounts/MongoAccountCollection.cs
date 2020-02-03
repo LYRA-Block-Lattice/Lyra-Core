@@ -74,28 +74,29 @@ namespace Lyra.Core.Accounts
 
             Cluster = GetDatabase().Client.Cluster.ToString();
 
-            async Task CreateIndexes()
+            async Task CreateIndexes(string columnName, bool uniq)
             {
-                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
-                    .IndexKeys.Ascending(x => x.UIndex))).ConfigureAwait(false);
-
-                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
-                    .IndexKeys.Ascending(x => x.Index))).ConfigureAwait(false);
-
-                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
-                    .IndexKeys.Ascending(x => x.AccountID))).ConfigureAwait(false);
-
-                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
-                    .IndexKeys.Ascending(x => x.BlockType))).ConfigureAwait(false);
-
-                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
-                    .IndexKeys.Ascending(x => x.Hash))).ConfigureAwait(false);
-
-                await _blocks.Indexes.CreateOneAsync(new CreateIndexModel<TransactionBlock>(Builders<TransactionBlock>
-                    .IndexKeys.Ascending(x => x.PreviousHash))).ConfigureAwait(false);
+                var options = new CreateIndexOptions() { Unique = uniq };
+                var field = new StringFieldDefinition<TransactionBlock>(columnName);
+                var indexDefinition = new IndexKeysDefinitionBuilder<TransactionBlock>().Ascending(field);
+                var indexModel = new CreateIndexModel<TransactionBlock>(indexDefinition, options);
+                await _blocks.Indexes.CreateOneAsync(indexModel);
             }
 
-            CreateIndexes().Wait();
+            async Task CreateNoneStringIndex(string colName, bool uniq)
+            {
+                var options = new CreateIndexOptions() { Unique = uniq };
+                IndexKeysDefinition<TransactionBlock> keyCode = "{ " + colName + ": 1 }";
+                var codeIndexModel = new CreateIndexModel<TransactionBlock>(keyCode, options);
+                await _blocks.Indexes.CreateOneAsync(codeIndexModel);
+            }
+
+            CreateIndexes("Hash", true).Wait();
+            CreateIndexes("PreviousHash", true).Wait();
+            CreateIndexes("AccountID", false).Wait();
+            CreateNoneStringIndex("UIndex", true).Wait();
+            CreateNoneStringIndex("Index", false).Wait();
+            CreateNoneStringIndex("BlockType", false).Wait();
         }
 
         /// <summary>
