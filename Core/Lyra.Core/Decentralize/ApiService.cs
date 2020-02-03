@@ -87,6 +87,7 @@ namespace Lyra.Core.Decentralize
 
             await state.Done.AsTask();
             state.Done.Close();
+            state.Done = null;
 
             var ts1 = state.T1 == null ? "" : ((int)(DateTime.Now - state.T1).TotalMilliseconds).ToString();
             var ts2 = state.T2 == null ? "" : ((int)(DateTime.Now - state.T2).TotalMilliseconds).ToString();

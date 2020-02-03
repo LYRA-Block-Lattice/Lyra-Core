@@ -29,7 +29,7 @@ namespace Lyra.Core.Decentralize
         public ConcurrentBag<AuthorizerCommitMsg> CommitMsgs { get; set; }
 
         public SemaphoreSlim Semaphore { get; }
-        public EventWaitHandle Done { get; }
+        public EventWaitHandle Done { get; set; }
         public bool Settled { get; set; }
         public bool Saving { get; set; }
 

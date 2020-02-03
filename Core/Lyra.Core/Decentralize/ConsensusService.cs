@@ -206,30 +206,13 @@ namespace Lyra.Core.Decentralize
                         await GenerateConsolidateBlockAsync();
                     }
 
-                    //// remove unresponsible node
-                    //if(_board != null)
-                    //{
-                    //    bool changed = false;
-                    //    foreach(var node in _board.AllNodes.Values.Where(a => !a.AbleToAuthorize).ToArray())
-                    //    {
-                    //        _board.AllNodes.Remove(node.AccountID);
-                    //        _pBFTNet.RemovePosNode(node);
-                    //        changed = true;
-                    //    }
-                    //    if(changed)
-                    //    {
-                    //        BroadCastBillBoard();
-                    //    }
-                    //}
-
-                    await Task.Delay(10000).ConfigureAwait(false);
+                    await Task.Delay(5000).ConfigureAwait(false);
                     count++;
 
-                    if(count >= 3)
+                    if(count > 6)
                     {
                         HeartBeat();
                         count = 0;
-                        //PrintProfileInfo();
                     }                    
                 }
             });
@@ -327,7 +310,7 @@ namespace Lyra.Core.Decentralize
                 for (int i = 0; i < cleaned.Length; i++)
                 {
                     var state = cleaned[i].State;
-                    if (DateTime.Now - state.Created > TimeSpan.FromMinutes(5)) // 2 mins
+                    if (DateTime.Now - state.Created > TimeSpan.FromMinutes(1)) // 2 mins
                     {
                         var finalResult = state.Consensus;
                         if (finalResult == ConsensusResult.Uncertain)
@@ -340,7 +323,7 @@ namespace Lyra.Core.Decentralize
                 for (int i = 0; i < states.Length; i++)
                 {
                     var state = states[i].State;    // TODO: check null
-                    if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(60)) // consensus timeout
+                    if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(20)) // consensus timeout
                     {
                         var finalResult = state.Consensus;
                         if(finalResult == ConsensusResult.Uncertain)
