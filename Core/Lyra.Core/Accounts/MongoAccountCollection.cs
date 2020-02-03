@@ -37,6 +37,8 @@ namespace Lyra.Core.Accounts
 
         public string Cluster { get; set; }
 
+        long _lastAddedUIndex;
+
         public MongoAccountCollection()
         {
             _log = new SimpleLogger("Mongo").Logger;
@@ -101,6 +103,7 @@ namespace Lyra.Core.Accounts
 
             CreateIndexes("SourceHash", false).Wait();
             CreateIndexes("DestinationAccountId", false).Wait();
+            CreateIndexes("Ticker", false).Wait();
         }
 
         /// <summary>
@@ -138,7 +141,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<long> GetBlockCountAsync(string AccountId)
         {
-            var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.AccountID, AccountId);
+            var filter = Builders<TransactionBlock>.Filter.Eq("AccountID", AccountId);
             var result = await _blocks.CountDocumentsAsync(filter);
 
             return result;
@@ -151,7 +154,7 @@ namespace Lyra.Core.Accounts
                 Limit = 1
             };
 
-            var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.AccountID, AccountId);
+            var filter = Builders<TransactionBlock>.Filter.Eq("AccountID", AccountId);
             var result = await _blocks.FindAsync(filter, options);
             return await result.AnyAsync();
         }
@@ -197,7 +200,7 @@ namespace Lyra.Core.Accounts
                 Limit = 1,
                 Sort = Builders<TransactionBlock>.Sort.Descending(o => o.UIndex)
             };
-            var filter = new FilterDefinitionBuilder<TransactionBlock>().Eq<string>(a => a.AccountID, AccountId);
+            var filter = Builders<TransactionBlock>.Filter.Eq("AccountID", AccountId);
 
             var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
             return result;
@@ -213,22 +216,10 @@ namespace Lyra.Core.Accounts
                     return result as TokenGenesisBlock;
             }
 
-            var list = await FindTokenGenesisBlocksAsync(Ticker);
-            return list.FirstOrDefault();
-
-            //// to do - try to replace this by indexed search using BlockType indexed field (since we can't index Ticker field):
-            //// find all GenesysBlocks first, then check if one of them has the right ticker
-            //if (!string.IsNullOrEmpty(Ticker))
-            //{
-            //    var builder = Builders<TransactionBlock>.Filter;
-            //    var filterDefinition = builder.Eq("Ticker", Ticker) & builder.Eq("_t", )
-
-            //    var result = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
-            //    if (result != null)
-            //        return result as TokenGenesisBlock;
-            //}
-
-            //return null;
+            var builder = Builders<TransactionBlock>.Filter;
+            var filterDefinition = builder.And(builder.Eq("_t", "TokenGenesisBlock"), builder.Eq("Ticker", Ticker));
+            var blocks = await _blocks.FindAsync(filterDefinition);
+            return await blocks.FirstOrDefaultAsync() as TokenGenesisBlock;
         }
 
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword)
@@ -521,6 +512,7 @@ namespace Lyra.Core.Accounts
 
             _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index}");
             await _blocks.InsertOneAsync(block);
+            _lastAddedUIndex = block.UIndex;
             return true;
         }
 
