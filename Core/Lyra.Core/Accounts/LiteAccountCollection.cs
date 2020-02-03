@@ -15,7 +15,7 @@ namespace Lyra.Core.Accounts
     // 
     public class LiteAccountCollection : IAccountCollection
     {
-        private const string COLLECTION_DATABASE_NAME = "account_collection";
+        private const string COLLECTION_DATABASE_NAME = "LyraBlockChain";
 
         private LiteDatabase _db = null;
 
@@ -86,7 +86,8 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock FindLatestBlock()
         {
-            var block = _blocks.FindOne(Query.All(Query.Descending));
+            var ui = _blocks.Max("UIndex");
+            var block = _blocks.FindOne(Query.EQ("UIndex", ui));
             
             return block;
         }

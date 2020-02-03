@@ -60,7 +60,7 @@ namespace Lyra
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            _store = new LiteAccountCollection($"{path}LyraBlockChain");
+            _store = new LiteAccountCollection(path);
             _log = new SimpleLogger("BlockChain").Logger;
             _nodeConfig = nodeConfig;
             NetworkID = nodeConfig.Lyra.NetworkId;
