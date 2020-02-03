@@ -87,6 +87,9 @@ namespace Lyra.Core.Accounts
         public TransactionBlock FindLatestBlock()
         {
             var ui = _blocks.Max("UIndex");
+            if (ui.AsInt64 == 0)
+                return null;
+
             var block = _blocks.FindOne(Query.EQ("UIndex", ui));
             
             return block;
@@ -381,10 +384,8 @@ namespace Lyra.Core.Accounts
 
         public long GetNewestBlockUIndex()
         {
-            var result = FindLatestBlock();
-            if (result == null)
-                return 0;
-            return result.UIndex;
+            var ui = _blocks.Max("UIndex");
+            return ui.AsInt64;
         }
 
         public TransactionBlock GetBlockByUIndex(long uindex)
