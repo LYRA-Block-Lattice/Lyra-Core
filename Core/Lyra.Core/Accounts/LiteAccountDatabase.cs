@@ -71,15 +71,20 @@ namespace Lyra.Core.LiteDB
 
         public Block FindFirstBlock()
         {
-            var result = _blocks.FindOne(Query.All(Query.Ascending));
-            return result;
+            var min = _blocks.Min("Index");
+            if (min.AsInt64 > 0)
+                return _blocks.FindOne(Query.EQ("Index", min.AsInt64));
+            else
+                return null;
         }
 
         public Block FindLatestBlock()
         {
-            var block = _blocks.FindOne(Query.All(Query.Descending));
-
-            return block;
+            var min = _blocks.Max("Index");
+            if (min.AsInt64 > 0)
+                return _blocks.FindOne(Query.EQ("Index", min.AsInt64));
+            else
+                return null;
         }
 
         public TokenGenesisBlock FindTokenGenesisBlockByTicker(string Ticker)
