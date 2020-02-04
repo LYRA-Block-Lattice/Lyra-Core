@@ -127,6 +127,9 @@ namespace Lyra.Core.Decentralize
 
         private ConsensusResult GetConsensusSuccess()
         {
+            if (ConsensusUIndex == 0)
+                return ConsensusResult.Uncertain;
+
             var authResult = CheckAuthorizedResults();
             var commitResult = CheckCommitedResults();
 
@@ -157,6 +160,7 @@ namespace Lyra.Core.Decentralize
                     }
                 }
 
+                // if no seed gives UIndex, get it from election
                 var consensusedSeed = outputMsgsList.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
                     .OrderByDescending(b => b.Froms.Count)
                     .First();
@@ -166,7 +170,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // out of lucky??? we should halt and switch to emgergency state
-                throw new Exception("Can't get UIndex");
+                return 0;
             }
         }
     }
