@@ -600,6 +600,10 @@ namespace Lyra.Core.Decentralize
                 {
                     node.Balance = block.Balances[LyraGlobal.LYRATICKERCODE];
                 }
+                else
+                {
+                    node.Balance = 0;
+                }
             }
         }
 

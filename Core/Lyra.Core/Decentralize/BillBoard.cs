@@ -53,13 +53,6 @@ namespace Lyra.Core.Decentralize
 
             node.LastStaking = DateTime.Now;
 
-            // lookup balance
-            var block = await BlockChain.Singleton.FindLatestBlockAsync(node.AccountID);
-            if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
-            {
-                node.Balance = block.Balances[LyraGlobal.LYRATICKERCODE];
-            }
-
             return node;
         }
         public void RefreshAsync(string accountId)
