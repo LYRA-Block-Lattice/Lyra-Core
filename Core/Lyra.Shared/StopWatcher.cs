@@ -10,6 +10,7 @@ namespace Lyra.Shared
 {
     public class StopWatcher
     {
+        private static bool _enabled = false;
         private static ConcurrentDictionary<string, List<StopwatcherData>> _data = new ConcurrentDictionary<string, List<StopwatcherData>>();
 
         public static ConcurrentDictionary<string, List<StopwatcherData>> Data => _data;
@@ -21,6 +22,12 @@ namespace Lyra.Shared
 
         public static void Track(Action action, string message)
         {
+            if (!_enabled)
+            {
+                action();
+                return;
+            }
+                
             var w = Stopwatch.StartNew();
             try
             {
@@ -57,6 +64,11 @@ namespace Lyra.Shared
 
         public async static Task<T> Track<T>(Task<T> func, string message)
         {
+            if (!_enabled)
+            {
+                return await func;
+            }
+
             var w = Stopwatch.StartNew();
             try
             {
@@ -80,6 +92,11 @@ namespace Lyra.Shared
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static string GetCurrentMethod()
         {
+            if (!_enabled)
+            {
+                return "";
+            }
+
             var st = new StackTrace();
 
             for(int i = 0; i < 10; i++)
