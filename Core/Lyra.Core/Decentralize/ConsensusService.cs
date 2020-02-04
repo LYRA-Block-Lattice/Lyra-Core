@@ -609,7 +609,7 @@ namespace Lyra.Core.Decentralize
             {
                 RefreshBillBoardNetworkStatus();
                 await RefreshPosBalanceAsync();
-                var deadNodes = _board.AllNodes.Values.Where(a => a.Balance < LyraGlobal.MinimalAuthorizerBalance || DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
+                var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
                 foreach(var node in deadNodes)
                 {
                     _board.AllNodes.Remove(node.AccountID);
