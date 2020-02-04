@@ -251,11 +251,11 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"Consensus: Got a pbft message: {msg.MsgType}");
             // verify the signatures of msg. make sure it is from the right node.
-            if (!msg.VerifySignature(msg.From))
-            {
-                _log.LogInformation($"Consensus: bad signature: {msg.MsgType} Hash: {msg.Hash.Shorten()} by pubKey: {msg.From.Shorten()}");
-                return;
-            }
+            //if (!msg.VerifySignature(msg.From))
+            //{
+            //    _log.LogInformation($"Consensus: bad signature: {msg.MsgType} Hash: {msg.Hash.Shorten()} by pubKey: {msg.From.Shorten()}");
+            //    return;
+            //}
 
             if (await _orphange.TryAddOneAsync(msg))
                 return;
@@ -465,7 +465,8 @@ namespace Lyra.Core.Decentralize
 
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
-            item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
+            //item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
+            item.Signature = "a";
 
             while (LocalNode.Singleton.ConnectedCount < 1)
             {
@@ -512,7 +513,7 @@ namespace Lyra.Core.Decentralize
                         _log.LogError($"No worker1 for {msg1.Block.Hash}");
                     break;
                 case AuthorizedMsg msg2:
-                    _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 3 {item.MsgType}");
+                    //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync 3 {item.MsgType}");
 
                     if (!AuthorizerShapshot.Contains(msg2.From))
                         return;
@@ -522,7 +523,7 @@ namespace Lyra.Core.Decentralize
                         await worker2.OnPrepareAsync(msg2);
                     else
                         _log.LogError($"No worker2 for {msg2.BlockHash}");
-                    _log.LogInformation($"Consensus: OnNextConsensusMessageAsync 4 {item.MsgType}");
+                    //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync 4 {item.MsgType}");
                     break;
                 case AuthorizerCommitMsg msg3:
                     if (!AuthorizerShapshot.Contains(msg3.From))
