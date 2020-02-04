@@ -155,7 +155,7 @@ namespace Lyra.Core.Decentralize
                     }
                     catch(Exception ex)
                     {
-                        _log.LogCritical("OnNextConsensusMessageAsync!!! " + ex.Message);
+                        _log.LogCritical("OnNextConsensusMessageAsync!!! " + ex.ToString());
                     }
                 else
                     _log.LogWarning("Protocol Version Mismatch. Do nothing.");
@@ -171,7 +171,7 @@ namespace Lyra.Core.Decentralize
                 int waitCount = 60;
                 while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
                 {
-                    _log.LogWarning("Not connected to Lyra Network. Delay sending... ");
+                    _log.LogInformation("Not connected to Lyra Network. Delay sending... ");
                     await Task.Delay(1000);
                     waitCount--;
                 }
@@ -197,7 +197,7 @@ namespace Lyra.Core.Decentralize
 
             Task.Run(async () =>
             {
-                HeartBeat();
+                await HeartBeatAsync();
                 int count = 0;
                 while (true)
                 {
@@ -211,7 +211,7 @@ namespace Lyra.Core.Decentralize
 
                     if(count > 6)
                     {
-                        HeartBeat();
+                        await HeartBeatAsync();
                         count = 0;
                     }                    
                 }
@@ -274,7 +274,7 @@ namespace Lyra.Core.Decentralize
             Send2P2pNetwork(msg);
         }
 
-        private void HeartBeat()
+        private async Task HeartBeatAsync()
         {
             OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
@@ -290,7 +290,7 @@ namespace Lyra.Core.Decentralize
 
             if (IsThisNodeSeed0)
             {
-                BroadCastBillBoard();
+                await BroadCastBillBoardAsync();
             }
         }
 
@@ -589,12 +589,27 @@ namespace Lyra.Core.Decentralize
         private void RefreshBillBoardNetworkStatus()
         {
         }
-        private void BroadCastBillBoard()
+
+        private async Task RefreshPosBalanceAsync()
+        {
+            foreach(var node in _board.AllNodes.Values.ToList())
+            {
+                // lookup balance
+                var block = await BlockChain.Singleton.FindLatestBlockAsync(node.AccountID);
+                if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
+                {
+                    node.Balance = block.Balances[LyraGlobal.LYRATICKERCODE];
+                }
+            }
+        }
+
+        private async Task BroadCastBillBoardAsync()
         {
             if(_board != null)
             {
                 RefreshBillBoardNetworkStatus();
-                var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
+                await RefreshPosBalanceAsync();
+                var deadNodes = _board.AllNodes.Values.Where(a => a.Balance < LyraGlobal.MinimalAuthorizerBalance || DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
                 foreach(var node in deadNodes)
                 {
                     _board.AllNodes.Remove(node.AccountID);
@@ -641,7 +656,7 @@ namespace Lyra.Core.Decentralize
             if (IsThisNodeSeed0)
             {
                 // broadcast billboard
-                BroadCastBillBoard();
+                await BroadCastBillBoardAsync();
             }
 
             if (node.Balance < LyraGlobal.MinimalAuthorizerBalance)
