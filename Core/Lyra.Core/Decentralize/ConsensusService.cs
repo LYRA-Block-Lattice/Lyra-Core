@@ -466,6 +466,7 @@ namespace Lyra.Core.Decentralize
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
             //item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
+            item.Hash = "a";
             item.Signature = "a";
 
             while (LocalNode.Singleton.ConnectedCount < 1)
