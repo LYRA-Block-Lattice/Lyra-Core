@@ -24,7 +24,8 @@ namespace Lyra.Core.Decentralize
 
         public BillBoard()
         {
-
+            PrimaryAuthorizers = new string[0];
+            BackupAuthorizers = new string[0];
         }
 
         public void SnapShot()
