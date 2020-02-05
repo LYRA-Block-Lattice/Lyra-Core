@@ -275,7 +275,7 @@ namespace Lyra
                         long startUIndex = await _store.GetNewestBlockUIndexAsync() + 1;
 
                         // seed0 not rollback. seed0 rollback manually if necessary.
-                        if( startUIndex > syncToUIndex && NodeService.Instance.PosWallet.AccountId != ProtocolSettings.Default.StandbyValidators[0])
+                        if( startUIndex - 1 > syncToUIndex && NodeService.Instance.PosWallet.AccountId != ProtocolSettings.Default.StandbyValidators[0])
                         {
                             // detect blockchain rollback
                             _log.LogCritical($"BlockChain roll back detected!!! Roll back from {startUIndex} to {syncToUIndex}. Confirm? [Y/n]");
@@ -286,7 +286,7 @@ namespace Lyra
                                 {
                                     await RemoveBlockAsync(i);
                                 }
-                                startUIndex = syncToUIndex;
+                                startUIndex = syncToUIndex + 1;
                             }
                             else
                             {
