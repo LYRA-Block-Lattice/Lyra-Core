@@ -49,14 +49,12 @@ namespace Lyra.Client.CLI
             if (!Directory.Exists(lyra_folder))
                 Directory.CreateDirectory(lyra_folder);
 
-            string full_path = BaseAccount.GetFullPath(lyra_folder);
-
-            Console.WriteLine("Storage Location: " + full_path);
+            Console.WriteLine("Storage Location: " + lyra_folder);
 
             if(options.GenWalletName != null)
             {
                 wallet.AccountName = options.GenWalletName;
-                wallet.CreateAccount(full_path, wallet.AccountName, AccountTypes.Standard);
+                wallet.CreateAccount(lyra_folder, wallet.AccountName, AccountTypes.Standard);
                 var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(Base58Encoding.DecodeAccountId(wallet.AccountId), Neo.Cryptography.ECC.ECCurve.Secp256r1);
                 Console.WriteLine($"The new wallet {wallet.AccountName} for {network_id}: ");
                 Console.WriteLine(ep.ToString());
@@ -68,7 +66,7 @@ namespace Lyra.Client.CLI
             string input = null;
             try
             {
-                while (!wallet.AccountExistsLocally(full_path, input))
+                while (!wallet.AccountExistsLocally(lyra_folder, input))
                 {
                     Console.WriteLine("Press Enter for default account, or enter account name: ");
                     input = Console.ReadLine();
@@ -81,14 +79,14 @@ namespace Lyra.Client.CLI
                     string fileName = "";
                     if (INMEMORY)
                     {
-                        fileName = full_path + wallet.AccountName + ".key";
+                        fileName = lyra_folder + wallet.AccountName + ".key";
 
                         if (System.IO.File.Exists(fileName))
                         {
                             string private_key = System.IO.File.ReadAllText(fileName);
                             if (wallet.ValidatePrivateKey(private_key))
                             {
-                                var result = await wallet.RestoreAccountAsync(full_path, private_key);
+                                var result = await wallet.RestoreAccountAsync(lyra_folder, private_key);
                                 if (!result.Successful())
                                 {
                                     Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
@@ -99,12 +97,12 @@ namespace Lyra.Client.CLI
                     }
 
 
-                    if (!wallet.AccountExistsLocally(full_path, wallet.AccountName))
+                    if (!wallet.AccountExistsLocally(lyra_folder, wallet.AccountName))
                     {
                         Console.WriteLine("Local account data not found. Would you like to create a new account? (Y/n): ");
                         if (command.ReadYesNoAnswer())
                         {
-                            wallet.CreateAccount(full_path, wallet.AccountName, AccountTypes.Standard);
+                            wallet.CreateAccount(lyra_folder, wallet.AccountName, AccountTypes.Standard);
                         }
                         else
                         {
@@ -114,7 +112,7 @@ namespace Lyra.Client.CLI
                             if (!wallet.ValidatePrivateKey(privatekey))
                                 continue;
 
-                            var result = await wallet.RestoreAccountAsync(full_path, privatekey);
+                            var result = await wallet.RestoreAccountAsync(lyra_folder, privatekey);
                             if (!result.Successful())
                             {
                                 Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
@@ -128,7 +126,7 @@ namespace Lyra.Client.CLI
 
                     }
                     else
-                        wallet.OpenAccount(full_path, wallet.AccountName);
+                        wallet.OpenAccount(lyra_folder, wallet.AccountName);
                 }
 
                 LyraRestClient rpcClient;

@@ -533,6 +533,17 @@ namespace Lyra.Core.Accounts
             return true;
         }
 
+        public async Task RemoveBlockAsync(long uindex)
+        {
+            var ret = await _blocks.DeleteOneAsync(a => a.UIndex == uindex);
+            if (ret.IsAcknowledged)
+            {
+                _log.LogWarning($"RemoveBlockAsync Block {uindex} removed.");
+            }
+            else
+                _log.LogWarning($"RemoveBlockAsync Block {uindex} failed.");
+        }
+
         public void Dispose()
         {
             // nothing to dispose

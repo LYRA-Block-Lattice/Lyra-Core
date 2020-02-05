@@ -2,6 +2,7 @@
 using Lyra.Core.Cryptography;
 using Lyra.Core.Blocks;
 using System.Threading.Tasks;
+using Lyra.Shared;
 
 namespace Lyra.Core.Accounts
 {
@@ -25,24 +26,9 @@ namespace Lyra.Core.Accounts
 
         public string NetworkId { get; set; }
 
-        private static string GetHomePath()
-        {
-            return (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX) ?
-                Environment.GetEnvironmentVariable("HOME") + @"/" :
-                Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%") + @"\" ;
-        }
-
-        public static string GetFullPath(string FullFolderName)
-        {
-
-            return (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX) ?
-                FullFolderName + @"/" :
-                FullFolderName + @"\";
-        }
-
         public static string GetFullFolderName(string FolderName)
         {
-            return GetHomePath() + FolderName;
+            return $"{Utilities.LyraDataDir}{Utilities.PathSeperator}{FolderName}{Utilities.PathSeperator}";
         }
 
         public BaseAccount(string accountName, IAccountDatabase storage, string NetworkId)

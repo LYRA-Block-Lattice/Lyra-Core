@@ -636,8 +636,8 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = chat.Text.UnJson<PosNode>();
-            if (Utilities.IsPrivate(node.IP) && Settings.Default.LyraNode.Lyra.NetworkId != "devnet")
-                return;
+            //if (Utilities.IsPrivate(node.IP) && Settings.Default.LyraNode.Lyra.NetworkId != "devnet")
+            //    return;
 
             _ = _board.Add(node);
 

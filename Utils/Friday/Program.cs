@@ -44,7 +44,7 @@ namespace Friday
 
             var masterWallet = new Wallet(new LiteAccountDatabase(), network_id);
             masterWallet.AccountName = "My Account";
-            masterWallet.OpenAccount(BaseAccount.GetFullPath(lyraFolder), masterWallet.AccountName);
+            masterWallet.OpenAccount(lyraFolder, masterWallet.AccountName);
             await masterWallet.Sync(rpcClient);
 
             _ = Task.Run(async () =>

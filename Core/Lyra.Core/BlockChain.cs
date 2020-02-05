@@ -52,16 +52,7 @@ namespace Lyra
             var nodeConfig = Neo.Settings.Default.LyraNode;
             _store = new MongoAccountCollection();
 
-            //string homePath = (Environment.OSVersion.Platform == PlatformID.Unix ||
-            //           Environment.OSVersion.Platform == PlatformID.MacOSX)
-            //            ? Environment.GetEnvironmentVariable("HOME")
-            //            : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
-
-            //var path = $"{homePath}/.Lyra/";
-            //if (!Directory.Exists(path))
-            //    Directory.CreateDirectory(path);
-
-            //_store = new LiteAccountCollection(path);
+            //_store = new LiteAccountCollection(Utilities.LyraDataDir);
             _log = new SimpleLogger("BlockChain").Logger;
             _nodeConfig = nodeConfig;
             NetworkID = nodeConfig.Lyra.NetworkId;
@@ -90,7 +81,7 @@ namespace Lyra
 
         // forward api. should have more control here.
         public async Task<bool> AddBlockAsync(TransactionBlock block) => await StopWatcher.Track(AddBlockImplAsync(block), StopWatcher.GetCurrentMethod());
-
+        public async Task RemoveBlockAsync(long uindex) => _store.RemoveBlockAsync(uindex);
         public async Task AddBlockAsync(ServiceBlock serviceBlock) => await StopWatcher.Track(_store.AddBlockAsync(serviceBlock), StopWatcher.GetCurrentMethod());//_store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
@@ -282,6 +273,20 @@ namespace Lyra
 
                         // do sync with node
                         long startUIndex = await _store.GetNewestBlockUIndexAsync() + 1;
+
+                        if(startUIndex > syncToUIndex)
+                        {
+                            // detect blockchain rollback
+                            _log.LogCritical($"BlockChain roll back detected!!! Roll back from {startUIndex} to {syncToUIndex}. Confirm? [Y/n]");
+                            string answer = Console.ReadLine();
+                            if (string.IsNullOrEmpty(answer) || answer.ToLower() == "y" || answer.ToLower() == "yes")
+                            {
+                                for(var i = syncToUIndex; i <= startUIndex; i++)
+                                {
+                                    await RemoveBlockAsync(i);
+                                }
+                            }
+                        }
 
                         _log.LogInformation($"BlockChain Doing sync from {startUIndex} to {syncToUIndex} from node {syncWithUrl}");
 

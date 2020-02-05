@@ -57,6 +57,7 @@ namespace Lyra.Core.Accounts
         List<string> GetExecutedTradeOrderBlocks();
 
         Task<bool> AddBlockAsync(TransactionBlock block);
+        Task RemoveBlockAsync(long uindex);
 
         /// <summary>
         /// Cleans up or deletes blocks collection.
