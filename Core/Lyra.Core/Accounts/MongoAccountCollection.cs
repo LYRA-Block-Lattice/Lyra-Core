@@ -536,7 +536,7 @@ namespace Lyra.Core.Accounts
         public async Task RemoveBlockAsync(long uindex)
         {
             var ret = await _blocks.DeleteOneAsync(a => a.UIndex == uindex);
-            if (ret.IsAcknowledged)
+            if (ret.IsAcknowledged && ret.DeletedCount == 1)
             {
                 _log.LogWarning($"RemoveBlockAsync Block {uindex} removed.");
             }

@@ -282,7 +282,7 @@ namespace Lyra
                             string answer = Console.ReadLine();
                             if (string.IsNullOrEmpty(answer) || answer.ToLower() == "y" || answer.ToLower() == "yes")
                             {
-                                for(var i = syncToUIndex + 1; i <= startUIndex; i++)
+                                for(var i = syncToUIndex + 1; i <= startUIndex - 1; i++)
                                 {
                                     await RemoveBlockAsync(i);
                                 }
