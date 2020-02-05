@@ -35,7 +35,8 @@ namespace Lyra.Core.Decentralize
                     .ToArray();
             PrimaryAuthorizers = new string[ProtocolSettings.Default.StandbyValidators.Length + nonSeeds.Length];
             Array.Copy(ProtocolSettings.Default.StandbyValidators, 0, PrimaryAuthorizers, 0, ProtocolSettings.Default.StandbyValidators.Length);
-            Array.Copy(nonSeeds, 0, PrimaryAuthorizers, ProtocolSettings.Default.StandbyValidators.Length, nonSeeds.Length);
+            if(nonSeeds.Length > 0)
+                Array.Copy(nonSeeds, 0, PrimaryAuthorizers, ProtocolSettings.Default.StandbyValidators.Length, nonSeeds.Length);
 
             var nonPrimaryNodes = AllNodes.Values.Where(a => a.AbleToAuthorize && !Array.Exists(PrimaryAuthorizers, x => x == a.AccountID));
             if(nonPrimaryNodes.Any())
