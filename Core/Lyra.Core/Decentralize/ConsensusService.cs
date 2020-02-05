@@ -270,7 +270,7 @@ namespace Lyra.Core.Decentralize
             me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId != "devnet")}";
 
             var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
-            await _board.AddAsync(me);
+            _board.Add(me);
             Send2P2pNetwork(msg);
         }
 
@@ -543,7 +543,7 @@ namespace Lyra.Core.Decentralize
                     await OnNodeUpAsync(chat);
                     break;
                 case ChatMsg bbb when bbb.MsgType == ChatMessageType.StakingChanges:
-                    await OnBillBoardBroadcastAsync(bbb);
+                    OnBillBoardBroadcast(bbb);
                     break;
                 case ChatMsg bcc when bcc.MsgType == ChatMessageType.BlockConsolidation:
                     await OnBlockConsolicationAsync(bcc);
@@ -571,25 +571,15 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task OnBillBoardBroadcastAsync(ChatMsg msg)
+        private void OnBillBoardBroadcast(ChatMsg msg)
         {
             if (!IsThisNodeSeed0 && IsMessageFromSeed0(msg)) // only accept bbb from seeds
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
-                AuthorizerShapshot = _board.AllNodes.Values.ToList().Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber).Select(node => node.AccountID).ToHashSet();
+                AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
 
-                var myip = await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId != "devnet");
-                if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId)
-                    || _board.AllNodes[NodeService.Instance.PosWallet.AccountId].IP != myip.ToString())  // no me?
-                    await DeclareConsensusNodeAsync();
-
-                RefreshBillBoardNetworkStatus();
                 _log.LogInformation("BillBoard updated!");
             }
-        }
-
-        private void RefreshBillBoardNetworkStatus()
-        {
         }
 
         private async Task RefreshPosBalanceAsync()
@@ -613,14 +603,14 @@ namespace Lyra.Core.Decentralize
         {
             if(_board != null)
             {
-                RefreshBillBoardNetworkStatus();
                 await RefreshPosBalanceAsync();
                 var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
                 foreach(var node in deadNodes)
                 {
                     _board.AllNodes.Remove(node.AccountID);
                 }
-                AuthorizerShapshot = _board.AllNodes.Values.ToList().Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber).Select(node => node.AccountID).ToHashSet();
+                _board.SnapShot();
+                AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
                 var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
                 Send2P2pNetwork(msg);
             }
@@ -629,14 +619,14 @@ namespace Lyra.Core.Decentralize
         public void OnNodeActive(string nodeAccountId)
         {
             if (_board != null)
-                _board.RefreshAsync(nodeAccountId);
+                _board.Refresh(nodeAccountId);
         }
 
         private void OnHeartBeat(ChatMsg chat)
         {
             if (_board != null)
             {
-                _board.RefreshAsync(chat.From);
+                _board.Refresh(chat.From);
             }
         }
 
@@ -649,7 +639,7 @@ namespace Lyra.Core.Decentralize
             if (Utilities.IsPrivate(node.IP) && Settings.Default.LyraNode.Lyra.NetworkId != "devnet")
                 return;
 
-            _ = await _board.AddAsync(node);
+            _ = _board.Add(node);
 
             if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IP == node.IP)
                 return;

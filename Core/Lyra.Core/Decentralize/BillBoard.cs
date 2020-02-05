@@ -19,28 +19,44 @@ namespace Lyra.Core.Decentralize
     public class BillBoard
     {
         public Dictionary<string, PosNode> AllNodes { get; } = new Dictionary<string, PosNode>();
+        public string[] PrimaryAuthorizers { get; private set; }
+        public string[] BackupAuthorizers { get; private set; }
 
         public BillBoard()
         {
 
         }
 
-        public bool CanDoConsensus
+        public void SnapShot()
         {
-            get
+            var nonSeeds = AllNodes.Values.Where(a => a.AbleToAuthorize && !ProtocolSettings.Default.StandbyValidators.Any(b => b == a.AccountID))
+                    .OrderByDescending(b => b.Balance)
+                    .Take(ProtocolSettings.Default.ConsensusTotalNumber - ProtocolSettings.Default.StandbyValidators.Length)
+                    .ToArray();
+            PrimaryAuthorizers = new string[ProtocolSettings.Default.StandbyValidators.Length + nonSeeds.Length];
+            Array.Copy(ProtocolSettings.Default.StandbyValidators, 0, PrimaryAuthorizers, 0, ProtocolSettings.Default.StandbyValidators.Length);
+            Array.Copy(nonSeeds, 0, PrimaryAuthorizers, ProtocolSettings.Default.StandbyValidators.Length, nonSeeds.Length);
+
+            var nonPrimaryNodes = AllNodes.Values.Where(a => a.AbleToAuthorize && !Array.Exists(PrimaryAuthorizers, x => x == a.AccountID));
+            if(nonPrimaryNodes.Any())
             {
-                var workingNodes = AllNodes.Values.Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber);
-                if (workingNodes.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
-                    return true;
-                else
-                    return false;
+                BackupAuthorizers = nonPrimaryNodes
+                    .OrderByDescending(b => b.Balance)
+                    .Take(ProtocolSettings.Default.ConsensusTotalNumber)
+                    .Select(a => a.AccountID).ToArray();
+            }
+            else
+            {
+                BackupAuthorizers = new string[0];
             }
         }
 
+        public bool CanDoConsensus => PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusWinNumber;
+
         public bool HasNode(string accountId) { return AllNodes.ContainsKey(accountId); }
         public PosNode GetNode(string accountId) { return AllNodes[accountId]; }
- 
-        public async Task<PosNode> AddAsync(PosNode node)
+
+        public PosNode Add(PosNode node)
         {
             if (!AllNodes.ContainsKey(node.AccountID))
             {
@@ -55,7 +71,8 @@ namespace Lyra.Core.Decentralize
 
             return node;
         }
-        public void RefreshAsync(string accountId)
+
+        public void Refresh(string accountId)
         {
             PosNode node;
             if (AllNodes.ContainsKey(accountId))
@@ -81,6 +98,6 @@ namespace Lyra.Core.Decentralize
         }
 
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die
-        public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Balance >= LyraGlobal.MinimalAuthorizerBalance) && (DateTime.Now - LastStaking < TimeSpan.FromMinutes(12));
+        public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Balance >= LyraGlobal.MinimalAuthorizerBalance) && (DateTime.Now - LastStaking < TimeSpan.FromSeconds(90));
     }
 }
