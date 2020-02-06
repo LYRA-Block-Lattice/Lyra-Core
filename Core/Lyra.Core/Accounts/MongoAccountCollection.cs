@@ -362,12 +362,17 @@ namespace Lyra.Core.Accounts
 
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId)
         {
+            long fromUIndex = 0;
+
             // get last settled receive block
             var lastRecvBlock = await FindLastRecvBlock(AccountId);
+            if(lastRecvBlock != null)
+            {
+                var lastSendToThisAccountBlock = await FindBlockByHashAsync(lastRecvBlock.SourceHash);
 
-            long fromUIndex = 0;
-            if (lastRecvBlock != null)
-                fromUIndex = lastRecvBlock.UIndex;
+                if (lastSendToThisAccountBlock != null)
+                    fromUIndex = lastSendToThisAccountBlock.UIndex;
+            }    
 
             // First, let find all send blocks:
             // (It can be optimzed as it's going to be growing, so it can be called with munimum Service Chain Height parameter to look only for recent blocks) 
