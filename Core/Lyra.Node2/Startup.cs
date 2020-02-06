@@ -13,6 +13,7 @@ using Lyra.Core.Exchange;
 using System;
 using System.IO;
 using Lyra.Node2.Services;
+using Lyra.Shared;
 
 namespace Lyra.Node2
 {
@@ -42,13 +43,8 @@ namespace Lyra.Node2
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            string homePath = (Environment.OSVersion.Platform == PlatformID.Unix ||
-                   Environment.OSVersion.Platform == PlatformID.MacOSX)
-                    ? Environment.GetEnvironmentVariable("HOME")
-                    : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
-
-            var path = $"{homePath}/Logs/";
-            loggerFactory.AddFile(path + "LyraNode2-{Date}.txt");
+            var logPath = $"{Utilities.LyraDataDir}/Logs/";
+            loggerFactory.AddFile(logPath + "LyraNode2-{Date}.txt");
 
             SimpleLogger.Factory = loggerFactory;
 

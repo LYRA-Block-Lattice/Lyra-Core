@@ -119,6 +119,11 @@ namespace Lyra.Core.API
             return Get<List<TransStats>>("GetTransStats", null);
         }
 
+        public Task<string> GetDbStats()
+        {
+            return Get<string>("GetDbStats", null);
+        }
+
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
             HttpResponseMessage response = await _client.GetAsync("GetSyncState");

@@ -60,5 +60,10 @@ namespace Lyra.Shared
 
             return $"{addr.Substring(0, 3)}...{addr.Substring(addr.Length - 6, 6)}";
         }
+
+        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer = null)
+        {
+            return new HashSet<T>(source, comparer);
+        }
     }
 }

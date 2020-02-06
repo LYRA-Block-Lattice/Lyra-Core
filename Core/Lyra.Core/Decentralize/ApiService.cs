@@ -56,6 +56,11 @@ namespace Lyra.Core.Decentralize
             return await ConsensusSvc.Ask<List<TransStats>>(new ConsensusService.AskForStats());
         }
 
+        public async Task<string> GetDbStats()
+        {
+            return await ConsensusSvc.Ask<string>(new ConsensusService.AskForDbStats());
+        }
+
         private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
         {
             _log.LogInformation($"ApiService: PostToConsensusAsync Called: {block.BlockType}");
@@ -74,15 +79,15 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState
-            {
-                HashOfFirstBlock = msg.Block.Hash,
-                InputMsg = msg
-            };
+            var state = new AuthState(true);
+            state.HashOfFirstBlock = msg.Block.Hash;
+            state.InputMsg = msg;
 
             ConsensusSvc.Tell(state);
 
             await state.Done.AsTask();
+            state.Done.Close();
+            state.Done = null;
 
             var ts1 = state.T1 == null ? "" : ((int)(DateTime.Now - state.T1).TotalMilliseconds).ToString();
             var ts2 = state.T2 == null ? "" : ((int)(DateTime.Now - state.T2).TotalMilliseconds).ToString();

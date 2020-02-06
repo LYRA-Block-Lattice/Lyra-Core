@@ -53,6 +53,7 @@ namespace Lyra.Core.API
     {
         Task<BillBoard> GetBillBoardAsync();
         Task<List<TransStats>> GetTransStatsAsync();
+        Task<string> GetDbStats();
 
         #region Authorization methods 
         // These methods return authorization result and authorizers' signatures if approved

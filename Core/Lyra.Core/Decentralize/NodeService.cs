@@ -53,9 +53,8 @@ namespace Lyra.Core.Decentralize
 
                 var walletStore = new LiteAccountDatabase();
                 var tmpWallet = new Wallet(walletStore, Neo.Settings.Default.LyraNode.Lyra.NetworkId);
-                string lyra_folder = BaseAccount.GetFullFolderName("Lyra-CLI-" + Neo.Settings.Default.LyraNode.Lyra.NetworkId);
-                string full_path = BaseAccount.GetFullPath(lyra_folder);
-                tmpWallet.OpenAccount(full_path, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name);
+                string lyrawalletfolder = BaseAccount.GetFullFolderName("Lyra-CLI-" + Neo.Settings.Default.LyraNode.Lyra.NetworkId);
+                tmpWallet.OpenAccount(lyrawalletfolder, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name);
 
                 if(ProtocolSettings.Default.StandbyValidators.Any(a => a == tmpWallet.AccountId))
                 {

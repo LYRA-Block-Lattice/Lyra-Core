@@ -29,15 +29,28 @@ namespace Lyra.Core.Decentralize
         public ConcurrentBag<AuthorizerCommitMsg> CommitMsgs { get; set; }
 
         public SemaphoreSlim Semaphore { get; }
-        public EventWaitHandle Done { get; }
+        public EventWaitHandle Done { get; set; }
         public bool Settled { get; set; }
         public bool Saving { get; set; }
 
-        public ConsensusResult Consensus => GetConsensusSuccess(ConsensusService.Board);
+        private ConsensusResult _consensusResult;
+
+        public ConsensusResult Consensus {
+            get
+            {
+                if (!Settled)
+                {
+                    _consensusResult = GetConsensusSuccess();
+                    if(_consensusResult != ConsensusResult.Uncertain)
+                        Settled = true;                    
+                }
+                return _consensusResult;
+            }        
+        }
 
         ILogger _log;
 
-        public AuthState()
+        public AuthState(bool haveWaiter = false)
         {
             _log = new SimpleLogger("AuthState").Logger;
 
@@ -47,7 +60,8 @@ namespace Lyra.Core.Decentralize
             CommitMsgs = new ConcurrentBag<AuthorizerCommitMsg>();
 
             Semaphore = new SemaphoreSlim(1, 1);
-            Done = new EventWaitHandle(false, EventResetMode.ManualReset);
+            if(haveWaiter)
+                Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 
         public bool AddAuthResult(AuthorizedMsg msg)
@@ -62,51 +76,70 @@ namespace Lyra.Core.Decentralize
 
         public bool AddCommitedResult(AuthorizerCommitMsg msg)
         {
-            _log.LogInformation($"Commit msg from: {msg.From}");
+            //_log.LogInformation($"Commit msg from: {msg.From}");
             // check repeated message
             if (CommitMsgs.ToList().Any(a => a.From == msg.From))
                 return false;
 
             CommitMsgs.Add(msg);
 
-            var CommitMsgList = CommitMsgs.ToList();
-            if (CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay) >= ProtocolSettings.Default.ConsensusWinNumber
-                || CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay) >= ProtocolSettings.Default.ConsensusWinNumber)
-            {
-                _log.LogInformation($"Committed: {ConsensusUIndex}/{InputMsg.Block.Index} Yay: {CommitMsgs.Count(a => a.Consensus == ConsensusResult.Yay)} of {CommitMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + ", " + y)}");
-                Settled = true;
-                Done.Set();
-            }
             return true;
         }
 
-        private ConsensusResult GetConsensusSuccess(BillBoard billBoard)
+        private ConsensusResult CheckAuthorizedResults()
         {
-            if (billBoard == null)
-                throw new Exception("The BillBoard mustn't be null!");
-
-            //// wait for a proper UID
-            //if (!OutputMsgs.ToList().Any(a => a.From == ProtocolSettings.Default.StandbyValidators[0]))
-            //{
-            //    return false;
-            //}                
-
-            var selectedNodes = billBoard.AllNodes.Values.ToList().Where(a => a.AbleToAuthorize).OrderByDescending(b => b.Balance).Take(ProtocolSettings.Default.ConsensusTotalNumber);
-
-            var q = from m in OutputMsgs
-                    where m.IsSuccess && selectedNodes.Any(a => a.AccountID == m.From)
-                    select m;
-
-            var q2 = from m in OutputMsgs
-                    where m.IsSuccess && selectedNodes.Any(a => a.AccountID == m.From)
-                    select m;
-
-            if (q.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
+            var AuthMsgList = OutputMsgs.ToList();
+            var ok = AuthMsgList.Count(a => a.IsSuccess);
+            if (ok >= ProtocolSettings.Default.ConsensusWinNumber)
                 return ConsensusResult.Yay;
-            else if (q2.Count() >= ProtocolSettings.Default.ConsensusWinNumber)
+
+            var notok = AuthMsgList.Count(a => !a.IsSuccess);
+            if (notok >= ProtocolSettings.Default.ConsensusWinNumber)
                 return ConsensusResult.Nay;
-            else
+
+            return ConsensusResult.Uncertain;
+        }
+
+        private ConsensusResult CheckCommitedResults()
+        {
+            var CommitMsgList = CommitMsgs.ToList();
+            var ok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay);
+            if (ok >= ProtocolSettings.Default.ConsensusWinNumber)
+                return ConsensusResult.Yay;
+
+            var notok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay);
+            if (notok >= ProtocolSettings.Default.ConsensusWinNumber)
+                return ConsensusResult.Nay;
+
+            return ConsensusResult.Uncertain;
+            //var CommitMsgList = CommitMsgs.ToList();
+            //if (CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay) >= ProtocolSettings.Default.ConsensusWinNumber
+            //    || CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay) >= ProtocolSettings.Default.ConsensusWinNumber)
+            //{
+            //    _log.LogInformation($"Committed: {ConsensusUIndex}/{InputMsg.Block.Index} Yay: {CommitMsgs.Count(a => a.Consensus == ConsensusResult.Yay)} of {CommitMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + ", " + y)}");
+            //    return true;
+            //    //Settled = true;
+            //    //Done.Set();
+            //}
+            //else
+            //    return false;
+        }
+
+        private ConsensusResult GetConsensusSuccess()
+        {
+            if (ConsensusUIndex == 0)
                 return ConsensusResult.Uncertain;
+
+            var authResult = CheckAuthorizedResults();
+            var commitResult = CheckCommitedResults();
+
+            if (authResult == ConsensusResult.Yay || commitResult == ConsensusResult.Yay)
+                return ConsensusResult.Yay;
+
+            if (authResult == ConsensusResult.Nay || commitResult == ConsensusResult.Nay)
+                return ConsensusResult.Yay;
+
+            return ConsensusResult.Uncertain;
         }
 
 
@@ -127,6 +160,7 @@ namespace Lyra.Core.Decentralize
                     }
                 }
 
+                // if no seed gives UIndex, get it from election
                 var consensusedSeed = outputMsgsList.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
                     .OrderByDescending(b => b.Froms.Count)
                     .First();
@@ -136,7 +170,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // out of lucky??? we should halt and switch to emgergency state
-                throw new Exception("Can't get UIndex");
+                return 0;
             }
         }
     }

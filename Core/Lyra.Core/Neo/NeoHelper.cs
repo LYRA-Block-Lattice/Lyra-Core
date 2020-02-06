@@ -1,8 +1,10 @@
 using Lyra;
+using Lyra.Shared;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Numerics;
@@ -280,6 +282,7 @@ namespace Neo
             var env = Environment.GetEnvironmentVariable("LYRA_NETWORK");
             var configFile = string.IsNullOrWhiteSpace(env) ? $"{config}.json" : $"{config}.{env}.json";
             return new ConfigurationBuilder()
+                .SetBasePath(Utilities.LyraDataDir)
                 .AddJsonFile(configFile, false)
                 .Build();
         }

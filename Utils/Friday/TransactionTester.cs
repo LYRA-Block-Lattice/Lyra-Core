@@ -85,10 +85,10 @@ namespace Friday
                                 {
                                     if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key] > amount.Value)
                                     {
-                                        var stopwatch = Stopwatch.StartNew();
+                                        //var stopwatch = Stopwatch.StartNew();
                                         var result = await fromWallet.Send(amount.Value, wt, amount.Key);
-                                        stopwatch.Stop();
-                                        Console.WriteLine($"Send: {stopwatch.ElapsedMilliseconds} ms. Result: {result.ResultCode}");
+                                        //stopwatch.Stop();
+                                        //Console.WriteLine($"Send: {stopwatch.ElapsedMilliseconds} ms. Result: {result.ResultCode}");
 
                                         if (result.ResultCode != Lyra.Core.Blocks.APIResultCodes.Success)
                                         {

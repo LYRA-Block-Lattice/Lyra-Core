@@ -213,7 +213,7 @@ namespace Lyra.Core.Decentralize
                         await OnPrepareAsync(msg1);
                         break;
                     case AuthorizerCommitMsg msg2:
-                        OnCommit(msg2);
+                        await OnCommitAsync(msg2);
                         break;
                 }
             }
@@ -241,7 +241,7 @@ namespace Lyra.Core.Decentralize
             if (_state == null)
             {
                 _outOfOrderedMessages.Enqueue(item);
-                _log.LogWarning($"OnPrepareAsync: _state null for {item.BlockUIndex}/{item.BlockHash.Shorten()}");
+                //_log.LogWarning($"OnPrepareAsync: _state null for {item.BlockUIndex}/{item.BlockHash.Shorten()}");
                 return;
             }
 
@@ -281,10 +281,10 @@ namespace Lyra.Core.Decentralize
         {
             // check state
             // debug: show all states
-            //if(state.OutputMsgs.Count <= 2)
-            //{
-            //    return;
-            //}
+            if (state.OutputMsgs.Count < ProtocolSettings.Default.ConsensusWinNumber)
+            {
+                return;
+            }
             await state.Semaphore.WaitAsync();
             try
             {
@@ -298,7 +298,7 @@ namespace Lyra.Core.Decentralize
                     if (msg.From == NodeService.Instance.PosWallet.AccountId)
                         me = "[me]";
                     var voice = msg.IsSuccess ? "Yay" : "Nay";
-                    var canAuth = ConsensusService.Board.AllNodes.ContainsKey(msg.From) ? ConsensusService.Board.AllNodes[msg.From].AbleToAuthorize.ToString() : "Unknown";
+                    var canAuth = ConsensusService.AuthorizerShapshot.Contains(msg.From);
                     sb.AppendLine($"{voice} {msg.Result} By: {msg.From.Shorten()} CanAuth: {canAuth} {seed0}{me}");
                 }
                 _log.LogInformation(sb.ToString());
@@ -392,6 +392,7 @@ namespace Lyra.Core.Decentralize
                     _context.Send2P2pNetwork(msg);
                     state.AddCommitedResult(msg);
 
+                    state.Done?.Set();
                 }
             }
             catch (Exception ex)
@@ -404,12 +405,12 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public void OnCommit(AuthorizerCommitMsg item)
+        public async Task OnCommitAsync(AuthorizerCommitMsg item)
         {
             if (_state == null)
             {
                 _outOfOrderedMessages.Enqueue(item);
-                _log.LogWarning($"OnCommit: _state null for {item.BlockHash.Shorten()}");
+                //_log.LogWarning($"OnCommit: _state null for {item.BlockHash.Shorten()}");
                 return;
             }
 
@@ -421,7 +422,8 @@ namespace Lyra.Core.Decentralize
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
-            _state.AddCommitedResult(item);
+            if(_state.AddCommitedResult(item))
+                await CheckAuthorizedAllOkAsync(_state);
 
             _context.OnNodeActive(item.From);        // track latest activities via billboard
             //}

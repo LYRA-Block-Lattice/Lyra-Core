@@ -37,7 +37,7 @@ namespace Lyra.Core.LiteDB
 
         public void Reset()
         {
-            _blocks.Delete(a => true);
+            _blocks.Delete(x => x.Index > 0);
         }
 
         public bool Exists(string path, string accountName)
@@ -59,7 +59,7 @@ namespace Lyra.Core.LiteDB
                 var fileName = accountName + ".db";
                 if (!string.IsNullOrWhiteSpace(path))
                     fileName = path + fileName;
-                string connectionString = "Filename=" + fileName + ";Mode=Exclusive";
+                string connectionString = $"Filename={fileName};Upgrade=true";
                 _db = new LiteDatabase(connectionString);
                 _blocks = _db.GetCollection<Block>("blocks");
 
@@ -71,23 +71,20 @@ namespace Lyra.Core.LiteDB
 
         public Block FindFirstBlock()
         {
-            var result = _blocks.FindOne(x => x.Index.Equals(1));
-            return result;
+            var min = _blocks.Min("Index");
+            if (min.AsInt64 > 0)
+                return _blocks.FindOne(Query.EQ("Index", min.AsInt64));
+            else
+                return null;
         }
 
         public Block FindLatestBlock()
         {
-            //var count = GetBlockCount();
-            //var result = FindBlockByIndex(count);
-            int max = 0;
-
-            var m = _blocks.Max(x => x.Index);
-            if (m != null)
-                max = m.AsInt32;
-
-            if (max > 0)
-                return (Block)_blocks.FindOne(Query.EQ("Index", max));
-            return null;
+            var min = _blocks.Max("Index");
+            if (min.AsInt64 > 0)
+                return _blocks.FindOne(Query.EQ("Index", min.AsInt64));
+            else
+                return null;
         }
 
         public TokenGenesisBlock FindTokenGenesisBlockByTicker(string Ticker)
@@ -106,13 +103,13 @@ namespace Lyra.Core.LiteDB
 
         public Block FindBlockByHash(string hash)
         {
-            var result = _blocks.FindOne(x => x.Hash.Equals(hash));
+            var result = _blocks.FindOne(x => x.Hash == hash);
             return (Block)result;
         }
 
         public Block FindBlockByIndex(long index)
         {
-            var result = _blocks.FindOne(x => x.Index.Equals(index));
+            var result = _blocks.FindOne(x => x.Index == index);
             return (Block)result;
         }
 
@@ -141,7 +138,7 @@ namespace Lyra.Core.LiteDB
 
         public string GetPrivateKey()
         {
-            var result = GetParamsCollection().FindOne(x => x.Name.Equals("PrivateKey"));
+            var result = GetParamsCollection().FindOne(x => x.Name == "PrivateKey");
             if (result != null)
                 return result.Value;
             else
@@ -150,7 +147,7 @@ namespace Lyra.Core.LiteDB
 
         public string GetAccountId()
         {
-            var result = GetParamsCollection().FindOne(x => x.Name.Equals("AccountId"));
+            var result = GetParamsCollection().FindOne(x => x.Name == "AccountId");
             if (result != null)
                 return result.Value;
             else

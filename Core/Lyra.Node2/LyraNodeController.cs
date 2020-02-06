@@ -58,6 +58,13 @@ namespace LyraLexWeb2
             return await _trans.GetTransStatsAsync();
         }
 
+        [Route("GetDbStats")]
+        public async Task<string> GetDbStats()
+        {
+            CheckSyncState();
+            return await _trans.GetDbStats();
+        }
+
         [Route("GetVersion")]
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {

@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Decentralize;
+﻿using Lyra.Core.API;
+using Lyra.Core.Decentralize;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,7 +24,7 @@ namespace LyraNodesBot
         {
             get
             {
-                if (balance < 1000000)
+                if (balance < LyraGlobal.MinimalAuthorizerBalance)
                     yield return "Low Balance";
                 if (DateTime.Now - lastStaking > TimeSpan.FromMinutes(12))
                     yield return "Inactive";

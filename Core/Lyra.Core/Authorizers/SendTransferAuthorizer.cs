@@ -34,7 +34,7 @@ namespace Lyra.Core.Authorizers
             //// 1. check if the account already exists
             //if (!await BlockChain.Singleton.AccountExists(block.AccountID))
             //    return APIResultCodes.AccountDoesNotExist;
-            var stopwatch = Stopwatch.StartNew();
+            //var stopwatch = Stopwatch.StartNew();
 
             //TransactionBlock lastBlock = null;
             //int count = 50;
@@ -53,7 +53,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.CouldNotFindLatestBlock;
             
             var result = await VerifyBlockAsync(block, lastBlock);
-            stopwatch.Stop();
+            //stopwatch.Stop();
             //Console.WriteLine($"SendTransfer VerifyBlock takes {stopwatch.ElapsedMilliseconds} ms.");
 
             if (result != APIResultCodes.Success)
@@ -66,14 +66,14 @@ namespace Lyra.Core.Authorizers
             if (!Signatures.ValidateAccountId(block.DestinationAccountId))
                 return APIResultCodes.InvalidDestinationAccountId;
 
-            var stopwatch2 = Stopwatch.StartNew();
+            //var stopwatch2 = Stopwatch.StartNew();
             result = await VerifyTransactionBlockAsync(block);
-            stopwatch2.Stop();
+            //stopwatch2.Stop();
             //Console.WriteLine($"SendTransfer VerifyTransactionBlock takes {stopwatch2.ElapsedMilliseconds} ms.");
             if (result != APIResultCodes.Success)
                 return result;
 
-            var stopwatch3 = Stopwatch.StartNew();
+            //var stopwatch3 = Stopwatch.StartNew();
             if (!block.ValidateTransaction(lastBlock))
                 return APIResultCodes.SendTransactionValidationFailed;
 
@@ -81,7 +81,7 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            stopwatch3.Stop();
+            //stopwatch3.Stop();
             //Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 
             return APIResultCodes.Success;
