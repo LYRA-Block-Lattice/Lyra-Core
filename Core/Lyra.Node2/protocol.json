@@ -4,17 +4,11 @@
     "ConsensusNumber": 1,
     "StandbyValidators": [
       "L58YqcfgJKtZVp3Q4zsJMjunYJkcpmYWkfvrcBhyntNGKLUM1X54NDTmDjezLkEXZZV15bQ5g5jaib8CdLfZ1y5NrtKH7t",
-      "L8tTZavh2oyjbx5u2DfSSDED2ofutnvRk8GB3a3r9eXxTdzZSDLUmvHH5ogs6YQ1ParhSLQnC3r2UKyAL5FMXqbgy6ASmH",
-      "L24pHvoyKyYcpC2heLhk72nbMCfvCnFRrQbjJ7mma2YUqKXVniztKCSTRxX5aCpzC7RfLa3Cjh452mQ3XnhAQQ2Nj8sRDL",
-      "LWvDwzHdS8s6FsramwWeZx7D6dxtqpA1NuZehXsAPFfdUZ5aUsGKDFmdtUfLFDogXquTbkzofoB4b2v5wptc65Aa4dkxBG",
-      "LMXwpzKcvkf5jccVADe9zfa97KDjQVG4bZuZqxYQaDMKUsjz2BGtdA6tJgc5uUo36d7hjYfpXUtqi3uFx1PcdSsBEjJ4nX"
+      "L8tTZavh2oyjbx5u2DfSSDED2ofutnvRk8GB3a3r9eXxTdzZSDLUmvHH5ogs6YQ1ParhSLQnC3r2UKyAL5FMXqbgy6ASmH"
     ],
     "SeedList": [
       "seed.devnet.lyrashops.com:4503",
-      "seed2.devnet.lyrashops.com:4503",
-      "192.168.3.51:4503",
-      "192.168.3.54:4503",
-      "192.168.3.57:4503"
+      "seed2.devnet.lyrashops.com:4503"
     ]
   }
 }
