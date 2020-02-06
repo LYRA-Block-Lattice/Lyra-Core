@@ -298,7 +298,7 @@ namespace Lyra.Core.Decentralize
                     if (msg.From == NodeService.Instance.PosWallet.AccountId)
                         me = "[me]";
                     var voice = msg.IsSuccess ? "Yay" : "Nay";
-                    var canAuth = ConsensusService.Board.AllNodes.ContainsKey(msg.From) ? ConsensusService.Board.AllNodes[msg.From].AbleToAuthorize.ToString() : "Unknown";
+                    var canAuth = ConsensusService.AuthorizerShapshot.Contains(msg.From);
                     sb.AppendLine($"{voice} {msg.Result} By: {msg.From.Shorten()} CanAuth: {canAuth} {seed0}{me}");
                 }
                 _log.LogInformation(sb.ToString());

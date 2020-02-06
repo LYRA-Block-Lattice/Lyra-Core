@@ -604,6 +604,7 @@ namespace Lyra.Core.Decentralize
             if(_board != null)
             {
                 await RefreshPosBalanceAsync();
+                OnNodeActive(NodeService.Instance.PosWallet.AccountId);
                 var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
                 foreach(var node in deadNodes)
                 {
