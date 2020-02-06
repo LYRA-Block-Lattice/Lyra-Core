@@ -247,15 +247,29 @@ namespace Lyra.Core.Decentralize
             return info;
         }
 
+        public virtual void Send2P2pNetwork(SourceSignedMessage item)
+        {
+            item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
+            //item.Hash = "a";
+            //item.Signature = "a";
+
+            while (LocalNode.Singleton.ConnectedCount < 1)
+            {
+                _log.LogInformation("p2p network not connected. delay sending message...");
+                Task.Delay(1000).Wait();
+            }
+            _localNode.Tell(item);
+        }
+
         private async Task ProcessMessageFromPeers(SourceSignedMessage msg)
         {
             _log.LogInformation($"Consensus: Got a pbft message: {msg.MsgType}");
             // verify the signatures of msg. make sure it is from the right node.
-            //if (!msg.VerifySignature(msg.From))
-            //{
-            //    _log.LogInformation($"Consensus: bad signature: {msg.MsgType} Hash: {msg.Hash.Shorten()} by pubKey: {msg.From.Shorten()}");
-            //    return;
-            //}
+            if (!msg.VerifySignature(msg.From))
+            {
+                _log.LogInformation($"Consensus: bad signature: {msg.MsgType} Hash: {msg.Hash.Shorten()} by pubKey: {msg.From.Shorten()}");
+                return;
+            }
 
             if (await _orphange.TryAddOneAsync(msg))
                 return;
@@ -463,20 +477,6 @@ namespace Lyra.Core.Decentralize
             return Akka.Actor.Props.Create(() => new ConsensusService(localNode)).WithMailbox("consensus-service-mailbox");
         }
 
-        public virtual void Send2P2pNetwork(SourceSignedMessage item)
-        {
-            //item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
-            item.Hash = "a";
-            item.Signature = "a";
-
-            while (LocalNode.Singleton.ConnectedCount < 1)
-            {
-                _log.LogInformation("p2p network not connected. delay sending message...");
-                Task.Delay(1000).Wait();
-            }
-            _localNode.Tell(item);
-        }
-
         private ConsensusWorker GetWorker(string hash)
         {
             if (_cleanedConsensus.ContainsKey(hash))        // > 2min outdated.
@@ -644,7 +644,7 @@ namespace Lyra.Core.Decentralize
             if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IP == node.IP)
                 return;
 
-            if(IsMessageFromSeed0(chat))
+            if(IsMessageFromSeed0(chat))    // seed0 up
             {
                 await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
             }

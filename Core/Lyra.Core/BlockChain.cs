@@ -81,7 +81,7 @@ namespace Lyra
 
         // forward api. should have more control here.
         public async Task<bool> AddBlockAsync(TransactionBlock block) => await StopWatcher.Track(AddBlockImplAsync(block), StopWatcher.GetCurrentMethod());
-        public async Task RemoveBlockAsync(long uindex) => _store.RemoveBlockAsync(uindex);
+        public async Task RemoveBlockAsync(long uindex) => await _store.RemoveBlockAsync(uindex);
         public async Task AddBlockAsync(ServiceBlock serviceBlock) => await StopWatcher.Track(_store.AddBlockAsync(serviceBlock), StopWatcher.GetCurrentMethod());//_store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
@@ -278,8 +278,8 @@ namespace Lyra
                         if( startUIndex - 1 > syncToUIndex && NodeService.Instance.PosWallet.AccountId != ProtocolSettings.Default.StandbyValidators[0])
                         {
                             // detect blockchain rollback
-                            _log.LogCritical($"BlockChain roll back detected!!! Roll back from {startUIndex} to {syncToUIndex}. Confirm? [Y/n]");
-                            string answer = Console.ReadLine();
+                            _log.LogCritical($"BlockChain roll back detected!!! Roll back from {startUIndex} to {syncToUIndex}.");// Confirm? [Y/n]");
+                            string answer = "y";// Console.ReadLine();
                             if (string.IsNullOrEmpty(answer) || answer.ToLower() == "y" || answer.ToLower() == "yes")
                             {
                                 for(var i = syncToUIndex + 1; i <= startUIndex - 1; i++)
