@@ -32,6 +32,7 @@ namespace LyraNodesBot
 
         private ChatId _groupId = new ChatId(-1001462436848);
         private string _network;
+        private string apiHost = "seed2.testnet.lyrashops.com";
         public NodesMonitor(string network)
         {
             _network = network;
@@ -104,7 +105,7 @@ namespace LyraNodesBot
         private async Task SendHeight(ChatId chatid)
         {
             var wc = new WebClient();
-            var json = wc.DownloadString(LyraGlobal.SelectNode(_network) + "LyraNode/GetSyncState");
+            var json = wc.DownloadString($"https://{apiHost}:4505/api/LyraNode/GetSyncState");
             var bb = JsonConvert.DeserializeObject<GetSyncStateAPIResult>(json);
 
             await SendGroupMessageAsync(chatid, $"Current Height: *{bb.NewestBlockUIndex}*");
@@ -112,8 +113,8 @@ namespace LyraNodesBot
         private async Task SendNodesInfoToGroupAsync(ChatId chatid)
         {
             var wc = new WebClient();
-            var json = wc.DownloadString(LyraGlobal.SelectNode(_network) + "LyraNode/GetBillboard");
-            var bb = JsonConvert.DeserializeObject<BillBoardData>(json);
+            var json = wc.DownloadString($"https://{apiHost}:4505/api/LyraNode/GetBillboard");
+            var bb = JsonConvert.DeserializeObject<BillBoard>(json);
             var sb = new StringBuilder();
 
             sb.AppendLine($"*Consensus Algorithm (PBFT) Settings*");
@@ -209,7 +210,7 @@ namespace LyraNodesBot
 
         private async Task<string> SendTpsAsync()
         {
-            var url = "https://seed.testnet.lyrashops.com:4505/api/LyraNode/GetTransStats";
+            var url = "https://seed2.testnet.lyrashops.com:4505/api/LyraNode/GetTransStats";
             var wc = new HttpClient();
             var json = await wc.GetStringAsync(url);
             return json;
@@ -250,7 +251,7 @@ namespace LyraNodesBot
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a");
+            var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.lyrashops.com:4505/api/LyraNode/");
             await acctWallet.Sync(rpcClient);
             return acctWallet;
         }
