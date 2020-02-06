@@ -24,8 +24,6 @@ namespace Lyra.Core.Decentralize
 
         public BillBoard()
         {
-            PrimaryAuthorizers = new string[0];
-            BackupAuthorizers = new string[0];
         }
 
         public void SnapShot()
@@ -53,7 +51,15 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public bool CanDoConsensus => PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusWinNumber;
+        public bool CanDoConsensus
+        {
+            get
+            {
+                if (PrimaryAuthorizers == null)
+                    return false;
+                return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusWinNumber;
+            }            
+        }
 
         public bool HasNode(string accountId) { return AllNodes.ContainsKey(accountId); }
         public PosNode GetNode(string accountId) { return AllNodes[accountId]; }
