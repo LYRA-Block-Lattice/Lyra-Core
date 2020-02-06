@@ -17,7 +17,6 @@ namespace LyraNodesBot
         public string ip { get; set; }
         public decimal balance { get; set; }
         public DateTime lastStaking { get; set; }
-        public string netStatus { get; set; }
         public bool ableToAuthorize { get; set; }
 
         public IEnumerable<string> FailReasons
@@ -28,8 +27,6 @@ namespace LyraNodesBot
                     yield return "Low Balance";
                 if (DateTime.Now - lastStaking > TimeSpan.FromMinutes(12))
                     yield return "Inactive";
-                if (netStatus != "FulllyConnected")
-                    yield return "Net Error: " + netStatus;
             }
         }
     }
