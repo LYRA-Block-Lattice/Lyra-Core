@@ -19,8 +19,8 @@ namespace Lyra.Core.Decentralize
     public class BillBoard
     {
         public Dictionary<string, PosNode> AllNodes { get; } = new Dictionary<string, PosNode>();
-        public string[] PrimaryAuthorizers { get; private set; }
-        public string[] BackupAuthorizers { get; private set; }
+        public string[] PrimaryAuthorizers { get; set; }
+        public string[] BackupAuthorizers { get; set; }
 
         public BillBoard()
         {
