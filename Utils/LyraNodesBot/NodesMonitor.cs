@@ -120,25 +120,55 @@ namespace LyraNodesBot
             sb.AppendLine($"*Consensus Algorithm (PBFT) Settings*");
             sb.AppendLine($"Total Needed Minimal Node Number: {ProtocolSettings.Default.ConsensusTotalNumber}");
             sb.AppendLine($"Consensus Win Number: {ProtocolSettings.Default.ConsensusWinNumber}");
-            sb.AppendLine($"Maxmimum Failed Node Number: {ProtocolSettings.Default.ConsensusNumber}");
+            sb.AppendLine($"Maxmimum Tolerant Node Number: {ProtocolSettings.Default.ConsensusNumber}");
             sb.AppendLine($"Current Running Node Count: {bb.AllNodes.Count}");
-            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.Value.ableToAuthorize)}");
-            var cando = bb.canDoConsensus ? "Yes" : "No";
+            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.Value.AbleToAuthorize)}");
+            var cando = bb.CanDoConsensus ? "Yes" : "No";
             sb.AppendLine($"Consensus Can be Made Now: {cando}");
 
-            sb.AppendLine("\n*Fully Functional Nodes List*\n");
+            sb.AppendLine("\n*Primary Authorizers*\n");
 
-            sb.AppendLine("`" + bb.AllNodes.Values.Where(a => a.ableToAuthorize)
-                .Select(b => b.accountID.Shorten()).Aggregate((c, d) => c + "\n" + d) + "`");
+            sb.AppendLine("`" + bb.PrimaryAuthorizers
+                .Select((a, i) => $"{i}. {a.Shorten()} [{GetBalance(bb, a)}]")
+                .Aggregate((c, d) => c + "\n" + d) + "`");
 
-            sb.AppendLine("\n*Nodes which has trouble*\n");
+            sb.AppendLine("\n*Backup Authorizers*\n");
 
-            sb.AppendLine("`" + bb.AllNodes.Values.Where(a => !a.ableToAuthorize)
-                .Aggregate(new StringBuilder(), 
-                    (c, n) => c.AppendLine(n.accountID.Shorten() + ": " + n.FailReasons.Select(a => "[" + a + "]").Aggregate((a, b) => a + b)), 
-                    sb => sb.ToString()) + "`");
+            if(bb.BackupAuthorizers.Length > 0)
+            {
+                sb.AppendLine("`" + bb.BackupAuthorizers
+                    .Select((a, i) => $"{i}. {a.Shorten()} [{GetBalance(bb, a)}]")
+                    .Aggregate((c, d) => c + "\n" + d) + "`");
+            }
+            else
+            {
+                sb.AppendLine("None");
+            }
+
+            sb.AppendLine("\n*Voting Nodes*\n");
+
+            var voting = bb.AllNodes.Keys.Where(a => !bb.PrimaryAuthorizers.Contains(a) && !bb.BackupAuthorizers.Contains(a));
+            if(voting.Any())
+            {
+                sb.AppendLine("`" + voting
+                    .Select((a, i) => $"{i}. {a.Shorten()} [{GetBalance(bb, a)}]")
+                    .Aggregate((c, d) => c + "\n" + d) + "`");
+            }
+            else
+            {
+                sb.AppendLine("None");
+            }
 
             await SendGroupMessageAsync(chatid, sb.ToString());
+        }
+
+        private string GetBalance(BillBoard bb, string accountId)
+        {
+            if (bb.PrimaryAuthorizers.Take(3).Contains(accountId))
+                return "seed";
+
+            var balance = bb.AllNodes[accountId].Balance;
+            return $"{balance} Lyra";
         }
 
         private async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
