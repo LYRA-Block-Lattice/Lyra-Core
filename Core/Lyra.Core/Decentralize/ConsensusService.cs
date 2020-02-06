@@ -578,6 +578,14 @@ namespace Lyra.Core.Decentralize
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
                 AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
 
+                // no me?
+                if(!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId))
+                {
+                    Task.Run(async () => { 
+                        await DeclareConsensusNodeAsync();
+                    });
+                }
+
                 _log.LogInformation("BillBoard updated!");
             }
         }
