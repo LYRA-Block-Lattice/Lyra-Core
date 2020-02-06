@@ -642,13 +642,13 @@ namespace Lyra.Core.Decentralize
 
             _ = _board.Add(node);
 
-            if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IP == node.IP)
-                return;
-
-            if(IsMessageFromSeed0(chat))    // seed0 up
+            if (IsMessageFromSeed0(chat))    // seed0 up
             {
                 await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
             }
+
+            if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IP == node.IP)
+                return;
 
             if (IsThisNodeSeed0)
             {
