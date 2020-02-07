@@ -30,7 +30,7 @@ namespace Lyra.Core.Decentralize
         {
             var nonSeeds = AllNodes.Values.Where(a => a.AbleToAuthorize && !ProtocolSettings.Default.StandbyValidators.Any(b => b == a.AccountID))
                     .OrderByDescending(b => b.Balance)
-                    .OrderByDescending(c => c.LastStaking)
+                    .ThenByDescending(c => c.LastStaking)
                     .Take(ProtocolSettings.Default.ConsensusTotalNumber - ProtocolSettings.Default.StandbyValidators.Length)
                     .Select(n => n.AccountID)
                     .ToArray();
@@ -44,7 +44,7 @@ namespace Lyra.Core.Decentralize
             {
                 BackupAuthorizers = nonPrimaryNodes
                     .OrderByDescending(b => b.Balance)
-                    .OrderByDescending(c => c.LastStaking)
+                    .ThenByDescending(c => c.LastStaking)
                     .Take(ProtocolSettings.Default.ConsensusTotalNumber)
                     .Select(a => a.AccountID).ToArray();
             }
