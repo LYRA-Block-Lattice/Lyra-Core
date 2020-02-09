@@ -508,29 +508,29 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(TransactionBlock block)
         {
-            if (block.Index == 0 || block.UIndex == 0)
+            if (block.Index <= 0 || block.UIndex <= 0)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
                 return false;
             }
 
-            //if (null != await GetBlockByUIndexAsync(block.UIndex))
-            //{
-            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
-            //    return false;
-            //}
+            if (null != await GetBlockByUIndexAsync(block.UIndex))
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
+                return false;
+            }
 
-            //if (await FindBlockByHashAsync(block.Hash) != null)
-            //{
-            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
-            //    return false;
-            //}
+            if (await FindBlockByHashAsync(block.Hash) != null)
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+                return false;
+            }
 
-            //if (block.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block.AccountID, block.Index) != null)
-            //{
-            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
-            //    return false;
-            //}
+            if (block.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block.AccountID, block.Index) != null)
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
+                return false;
+            }
 
             _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index}");
             await _blocks.InsertOneAsync(block);

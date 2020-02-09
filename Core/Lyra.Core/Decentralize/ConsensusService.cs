@@ -273,7 +273,7 @@ namespace Lyra.Core.Decentralize
 
         public void RequestForMissingBlock(string blockHash)
         {
-            _log.LogInformation($"RequestForMissingBlock: {blockHash}");
+            _log.LogWarning($"RequestForMissingBlock: {blockHash}");
             if (_missingBlocks.TryAdd(blockHash, new MissingPost()))
             {
                 var msg = new ChatMsg
@@ -288,7 +288,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task SendMissingBlockAsync(string blockHash)
         {
-            _log.LogInformation($"SendMissingBlockAsync: {blockHash}");
+            _log.LogWarning($"SendMissingBlockAsync: {blockHash}");
             var block = await BlockChain.Singleton.FindBlockByHashAsync(blockHash);
             var msg = new ChatMsg
             {
@@ -301,7 +301,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnMissingBlockReceivedAsync(string from, TransactionBlock block)
         {
-            _log.LogInformation($"OnMissingBlockReceivedAsync: {block.Hash} from {from.Shorten()}");
+            _log.LogWarning($"OnMissingBlockReceivedAsync: {block.Hash} from {from.Shorten()}");
             if (!AuthorizerShapshot.Contains(from))
                 return;
 
@@ -325,7 +325,7 @@ namespace Lyra.Core.Decentralize
             {
                 if (bag.Founds.Count >= ProtocolSettings.Default.ConsensusWinNumber)
                 {
-                    _log.LogInformation($"OnMissingBlockReceivedAsync: AddBlock {block.Hash} from {from.Shorten()}");
+                    _log.LogWarning($"OnMissingBlockReceivedAsync: AddBlock {block.Hash} from {from.Shorten()}");
                     await BlockChain.Singleton.AddBlockAsync(block);
                 }
             }
