@@ -8,7 +8,7 @@ namespace Lyra.Core.Decentralize
 {
 	public enum ChatMessageType  { General, NodeUp, NodeDown, StakingChanges, HeartBeat,
 		AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit,
-		BlockConsolidation, MissingBlockRequest, MissingBlockResponse
+		BlockConsolidation
 	};
 
 	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable
@@ -110,14 +110,6 @@ namespace Lyra.Core.Decentralize
 		protected override string GetExtraData()
 		{
 			return base.GetExtraData();
-		}
-	}
-
-	public class MissingBlockResponseMessage : AuthorizingMsg
-	{
-		public MissingBlockResponseMessage()
-		{
-			MsgType = ChatMessageType.MissingBlockResponse;
 		}
 	}
 

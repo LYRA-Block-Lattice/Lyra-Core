@@ -232,32 +232,6 @@ namespace Lyra.Core.Decentralize
         {
             var localAuthResult = await LocalAuthorizingAsync(msg);
 
-            if(localAuthResult.Result != APIResultCodes.Success)
-            {
-                switch(localAuthResult.Result)
-                {
-                    case APIResultCodes.SourceSendBlockNotFound:
-                        var ssb = msg.Block as ReceiveTransferBlock;
-                        if(ssb != null)
-                        {
-                            if(await _context.AddOrphanAsync(_state))
-                            {
-                                _context.RequestForMissingBlock(ssb.SourceHash);
-                                return;
-                            }                            
-                        }
-                        break;
-                    case APIResultCodes.PreviousBlockNotFound:
-                        if (await _context.AddOrphanAsync(_state))
-                        {
-                            _context.RequestForMissingBlock(msg.Block.PreviousHash);
-                            return;
-                        }
-                        break;
-                    // add other block not found situations
-                }
-            }
-
             _state.AddAuthResult(localAuthResult);
             _context.Send2P2pNetwork(localAuthResult);
             await CheckAuthorizedAllOkAsync(_state);
