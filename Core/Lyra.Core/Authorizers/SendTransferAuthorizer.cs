@@ -50,7 +50,7 @@ namespace Lyra.Core.Authorizers
 
             //TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
-                return APIResultCodes.CouldNotFindLatestBlock;
+                return APIResultCodes.PreviousBlockNotFound;
             
             var result = await VerifyBlockAsync(block, lastBlock);
             //stopwatch.Stop();

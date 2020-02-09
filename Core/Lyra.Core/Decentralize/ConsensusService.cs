@@ -45,8 +45,13 @@ namespace Lyra.Core.Decentralize
         ILogger _log;
         Orphanage _orphange;
 
+        private class MissingPost
+        {
+            public DateTime dtCreated = DateTime.Now;
+            public ConcurrentDictionary<string, TransactionBlock> Founds = new ConcurrentDictionary<string, TransactionBlock>();
+        }
         // hash, authState
-        Dictionary<string, List<SourceSignedMessage>> _outOfOrderedMessages;
+        ConcurrentDictionary<string, MissingPost> _missingBlocks;
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         ConcurrentDictionary<string, ConsensusWorker> _cleanedConsensus;
         private static BillBoard _board = new BillBoard();
@@ -81,7 +86,7 @@ namespace Lyra.Core.Decentralize
             _localNode = localNode;
             _log = new SimpleLogger("ConsensusService").Logger;
 
-            _outOfOrderedMessages = new Dictionary<string, List<SourceSignedMessage>>();
+            _missingBlocks = new ConcurrentDictionary<string, MissingPost>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _cleanedConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
@@ -188,7 +193,7 @@ namespace Lyra.Core.Decentralize
             ReceiveAsync<AuthState>(async state =>
             {
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
-                if (await _orphange.TryAddOneAsync(state))
+                if (await AddOrphanAsync(state))
                     return;
 
                 var worker = GetWorker(state.InputMsg.Block.Hash);
@@ -216,6 +221,11 @@ namespace Lyra.Core.Decentralize
                     }                    
                 }
             });
+        }
+
+        public Task<bool> AddOrphanAsync(AuthState state)
+        {
+            return _orphange.TryAddOneAsync(state);
         }
 
         private string PrintProfileInfo()
@@ -261,20 +271,60 @@ namespace Lyra.Core.Decentralize
             _localNode.Tell(item);
         }
 
-        private async Task ProcessMessageFromPeers(SourceSignedMessage msg)
+        public void RequestForMissingBlock(string blockHash)
         {
-            _log.LogInformation($"Consensus: Got a pbft message: {msg.MsgType}");
-            // verify the signatures of msg. make sure it is from the right node.
-            if (!msg.VerifySignature(msg.From))
+            if(_missingBlocks.TryAdd(blockHash, new MissingPost()))
             {
-                _log.LogInformation($"Consensus: bad signature: {msg.MsgType} Hash: {msg.Hash.Shorten()} by pubKey: {msg.From.Shorten()}");
+                var msg = new ChatMsg
+                {
+                    From = NodeService.Instance.PosWallet.AccountId,
+                    MsgType = ChatMessageType.MissingBlockRequest,
+                    Text = blockHash
+                };
+                Send2P2pNetwork(msg);
+            }
+        }
+
+        private async Task SendMissingBlockAsync(string blockHash)
+        {
+            var block = await BlockChain.Singleton.FindBlockByHashAsync(blockHash);
+            var msg = new ChatMsg
+            {
+                From = NodeService.Instance.PosWallet.AccountId,
+                MsgType = ChatMessageType.MissingBlockResponse,
+                Text = block == null ? "" : JsonConvert.SerializeObject(block)
+            };
+            Send2P2pNetwork(msg);
+        }
+
+        private async Task OnMissingBlockReceivedAsync(string from, TransactionBlock block)
+        {
+            if (!AuthorizerShapshot.Contains(from))
+                return;
+
+            if (!block.VerifySignature(block.AccountID))
+                return;
+
+            MissingPost bag;
+            if (_missingBlocks.ContainsKey(block.Hash))
+            {
+                bag = _missingBlocks[block.Hash];
+            }
+            else
+            {
                 return;
             }
 
-            if (await _orphange.TryAddOneAsync(msg))
+            if (bag.Founds.ContainsKey(from))
                 return;
 
-            await OnNextConsensusMessageAsync(msg);
+            if(bag.Founds.TryAdd(from, block))
+            {
+                if (bag.Founds.Count >= ProtocolSettings.Default.ConsensusWinNumber)
+                {
+                    await BlockChain.Singleton.AddBlockAsync(block);
+                }
+            }
         }
 
         private async Task DeclareConsensusNodeAsync()
@@ -506,6 +556,9 @@ namespace Lyra.Core.Decentralize
 
             switch (item)
             {
+                case MissingBlockResponseMessage missResp:
+                    await OnMissingBlockReceivedAsync(missResp.From, missResp.Block);
+                    break;
                 case AuthorizingMsg msg1:
                     var worker = GetWorker(msg1.Block.Hash);
                     if (worker != null)
@@ -547,6 +600,9 @@ namespace Lyra.Core.Decentralize
                     break;
                 case ChatMsg bcc when bcc.MsgType == ChatMessageType.BlockConsolidation:
                     await OnBlockConsolicationAsync(bcc);
+                    break;
+                case ChatMsg missb when missb.MsgType == ChatMessageType.MissingBlockRequest:
+                    await SendMissingBlockAsync(missb.Text);
                     break;
                 default:
                     // log msg unknown

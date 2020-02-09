@@ -116,7 +116,7 @@ namespace Lyra.Core.Decentralize
         private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)
         {
             //_log.LogInformation($"LocalAuthorizingAsync: {item.Block.BlockType} {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
-            if (!ConsensusService.Board.CanDoConsensus)
+            if (!ConsensusService.Board.CanDoConsensus || !ConsensusService.AuthorizerShapshot.Contains(NodeService.Instance.PosWallet.AccountId))
             {
                 var result0 = new AuthorizedMsg
                 {
@@ -231,6 +231,33 @@ namespace Lyra.Core.Decentralize
         private async Task AuthorizeAsync(AuthorizingMsg msg)
         {
             var localAuthResult = await LocalAuthorizingAsync(msg);
+
+            if(localAuthResult.Result != APIResultCodes.Success)
+            {
+                switch(localAuthResult.Result)
+                {
+                    case APIResultCodes.SourceSendBlockNotFound:
+                        var ssb = msg.Block as ReceiveTransferBlock;
+                        if(ssb != null)
+                        {
+                            if(await _context.AddOrphanAsync(_state))
+                            {
+                                _context.RequestForMissingBlock(ssb.SourceHash);
+                                return;
+                            }                            
+                        }
+                        break;
+                    case APIResultCodes.PreviousBlockNotFound:
+                        if (await _context.AddOrphanAsync(_state))
+                        {
+                            _context.RequestForMissingBlock(msg.Block.PreviousHash);
+                            return;
+                        }
+                        break;
+                    // add other block not found situations
+                }
+            }
+
             _state.AddAuthResult(localAuthResult);
             _context.Send2P2pNetwork(localAuthResult);
             await CheckAuthorizedAllOkAsync(_state);

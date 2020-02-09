@@ -86,7 +86,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidIndexSequence;
 
             if (block.Index > 1 && previousBlock == null)
-                return APIResultCodes.CouldNotFindLatestBlock;
+                return APIResultCodes.PreviousBlockNotFound;
 
             if (block.Index == 1 && previousBlock != null)
                 return APIResultCodes.InvalidIndexSequence;

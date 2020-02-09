@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
+using Loyc.Collections;
 
 namespace Lyra.Core.Accounts
 {
@@ -10,11 +11,11 @@ namespace Lyra.Core.Accounts
     {
         //        protected LiteDatabase _db = null;
 
-        private List<Block> _blocks = new List<Block>();
+        private AList<Block> _blocks = new AList<Block>();
 
         //protected LiteCollection<Param> _params = null;
 
-        private List<TokenGenesisBlock> _tokeninfo = new List<TokenGenesisBlock>();
+        private AList<TokenGenesisBlock> _tokeninfo = new AList<TokenGenesisBlock>();
 
         private string _privateKey;
 
@@ -78,7 +79,7 @@ namespace Lyra.Core.Accounts
             if (_blocks.Count == 0)
                 return null;
 
-            var result = _blocks.Find(x => x.Index.Equals(1));
+            var result = _blocks.First(x => x.Index.Equals(1));
             return result;
         }
 
@@ -101,7 +102,7 @@ namespace Lyra.Core.Accounts
                 if (_tokeninfo.Count == 0)
                     return null;
 
-                return _tokeninfo.Find(x => x.Ticker.Equals(Ticker, StringComparison.InvariantCultureIgnoreCase));
+                return _tokeninfo.First(x => x.Ticker.Equals(Ticker, StringComparison.InvariantCultureIgnoreCase));
             }
 
             return null;
@@ -112,7 +113,7 @@ namespace Lyra.Core.Accounts
             if (_blocks.Count == 0)
                 return null;
 
-            var result = _blocks.Find(x => x.Hash.Equals(hash));
+            var result = _blocks.First(x => x.Hash.Equals(hash));
             return result;
         }
 
@@ -121,7 +122,7 @@ namespace Lyra.Core.Accounts
             if (_blocks.Count == 0)
                 return null;
 
-            var result = _blocks.Find(x => x.Index.Equals(index));
+            var result = _blocks.First(x => x.Index.Equals(index));
             return result;
         }
 
@@ -169,7 +170,7 @@ namespace Lyra.Core.Accounts
                 if (_tokeninfo.Count == 0)
                     return null;
 
-                var result = _tokeninfo.Find(x => x.Ticker.Equals(token));
+                var result = _tokeninfo.First(x => x.Ticker.Equals(token));
                 return result;
             }
 
