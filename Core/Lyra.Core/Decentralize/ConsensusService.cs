@@ -45,13 +45,6 @@ namespace Lyra.Core.Decentralize
         ILogger _log;
         Orphanage _orphange;
 
-        private class MissingPost
-        {
-            public DateTime dtCreated = DateTime.Now;
-            public ConcurrentDictionary<string, TransactionBlock> Founds = new ConcurrentDictionary<string, TransactionBlock>();
-        }
-        // hash, authState
-        ConcurrentDictionary<string, MissingPost> _missingBlocks;
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         ConcurrentDictionary<string, ConsensusWorker> _cleanedConsensus;
         private static BillBoard _board = new BillBoard();
@@ -86,7 +79,6 @@ namespace Lyra.Core.Decentralize
             _localNode = localNode;
             _log = new SimpleLogger("ConsensusService").Logger;
 
-            _missingBlocks = new ConcurrentDictionary<string, MissingPost>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _cleanedConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
@@ -183,12 +175,6 @@ namespace Lyra.Core.Decentralize
 
                 await DeclareConsensusNodeAsync();
             });
-
-
-            // if missing blocks
-            // the block may be in a consens process. so we wait for 30 seconds to allow it to arrive.
-            // the queue of orphan. 
-            // when some block is done, the orphan queue is weaken to finish it's journey.
 
             ReceiveAsync<AuthState>(async state =>
             {
