@@ -481,6 +481,12 @@ namespace Lyra.Core.Decentralize
         {
             //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync Called: {item.MsgType} From: {item.From.Shorten()}");
 
+            if(null == AuthorizerShapshot)
+            {
+                _log.LogWarning("AuthorizerShapshot is null.");
+                return;
+            }
+
             if(item.MsgType != ChatMessageType.NodeUp)
                 OnNodeActive(item.From);
 
