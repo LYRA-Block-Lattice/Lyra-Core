@@ -179,6 +179,12 @@ namespace Lyra.Core.Decentralize
             ReceiveAsync<AuthState>(async state =>
             {
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
+                if(FindActiveBlock(state.InputMsg.Block.AccountID, state.InputMsg.Block.Index))
+                {
+                    _log.LogCritical($"Double spent detected for {state.InputMsg.Block.AccountID}, index {state.InputMsg.Block.Index}");
+                    return;
+                }
+
                 if (await AddOrphanAsync(state))
                     return;
 
@@ -498,6 +504,12 @@ namespace Lyra.Core.Decentralize
             switch (item)
             {
                 case AuthorizingMsg msg1:
+                    if (FindActiveBlock(msg1.Block.AccountID, msg1.Block.Index))
+                    {
+                        _log.LogCritical($"Double spent detected for {msg1.Block.AccountID}, index {msg1.Block.Index}");
+                        break;
+                    }
+
                     var worker = GetWorker(msg1.Block.Hash);
                     if (worker != null)
                         await worker.OnPrePrepareAsync(msg1);

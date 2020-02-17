@@ -128,21 +128,6 @@ namespace Lyra.Core.Decentralize
                 return result0;
             }
 
-            // double spent prevention
-            // same account, same index
-            if(_context.FindActiveBlock(item.Block.AccountID, item.Block.Index))
-            {
-                _log.LogCritical($"Double spent detected for {item.Block.AccountID}, index {item.Block.Index}");
-                var result0 = new AuthorizedMsg
-                {
-                    From = NodeService.Instance.PosWallet.AccountId,
-                    MsgType = ChatMessageType.AuthorizerPrepare,
-                    BlockHash = item.Block.Hash,
-                    Result = APIResultCodes.DoubleSpentDetected
-                };
-                return result0;
-            }
-
             var stopwatch = Stopwatch.StartNew();
             var authorizer = _authorizers.Create(item.Block.BlockType);
 

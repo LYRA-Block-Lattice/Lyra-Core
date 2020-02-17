@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -109,7 +110,14 @@ namespace Lyra.Core.Decentralize
 
         public async Task<bool> IsThisBlockOrphan(TransactionBlock block)
         {
-            if(block.PreviousHash != null)
+            // double spent dection
+            if (_orphanAuthStates.Values.Any(a => a.InputMsg.Block.AccountID == block.AccountID && a.InputMsg.Block.Index == block.Index))
+                return false;
+
+            if (_orphanAuthorizingMsg.Values.Any(a => a.Block.AccountID == block.AccountID && a.Block.Index == block.Index))
+                return false;
+
+            if (block.PreviousHash != null)
             {
                 var prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
                 if(prevBlock == null)
