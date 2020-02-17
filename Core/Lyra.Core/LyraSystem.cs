@@ -4,6 +4,7 @@ using Akka.Routing;
 using Lyra.Core.Accounts;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.IO.Actors;
 using Neo.Network.P2P;
@@ -37,9 +38,12 @@ namespace Lyra
         public static LyraSystem Singleton { get; private set; }
 
         public string NetworkId { get; private set; }
+        private ILogger _log;
 
         public LyraSystem()
         {
+            _log = new SimpleLogger("LyraSystem").Logger;
+
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this));
 
@@ -60,6 +64,13 @@ namespace Lyra
 
             Task.Run(async () =>
             {
+                while(Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 3)
+                {
+                    _log.LogWarning($"Wait for p2p network startup. connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
+                    await Task.Delay(1000);
+                }
+                _log.LogWarning($"p2p network ok. connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
+
                 while (BlockChain.Singleton == null)
                 {
                     await Task.Delay(100);
@@ -68,13 +79,13 @@ namespace Lyra
 
                 TheBlockchain.Tell(new BlockChain.Startup());
 
-                if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
-                {
-                    ActorSystem.Scheduler
-                       .ScheduleTellRepeatedly(TimeSpan.FromSeconds(20),
-                                 TimeSpan.FromSeconds(600),
-                                 Consensus, new ConsensusService.Consolidate(), ActorRefs.NoSender); //or ActorRefs.Nobody or something else
-                }
+                //if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
+                //{
+                //    ActorSystem.Scheduler
+                //       .ScheduleTellRepeatedly(TimeSpan.FromSeconds(20),
+                //                 TimeSpan.FromSeconds(600),
+                //                 Consensus, new ConsensusService.Consolidate(), ActorRefs.NoSender); //or ActorRefs.Nobody or something else
+                //}
             });
         }
 

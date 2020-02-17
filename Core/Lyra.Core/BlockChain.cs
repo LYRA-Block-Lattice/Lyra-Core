@@ -20,6 +20,11 @@ using System.Threading.Tasks;
 
 namespace Lyra
 {
+    public enum BlockChainMode { Startup,   // the default mode. app started. wait for p2p stack up.
+        Inquiry,    // p2p net up. can do messaging
+        Engaging,   // storing new commit while syncing blocks
+        Almighty    // fullly synced and working
+    }
     public class BlockChain : UntypedActor
     {
         public class NeedSync { public long ToUIndex { get; set; } }
@@ -38,6 +43,7 @@ namespace Lyra
         public uint Height;
         public string NetworkID { get; private set; }
         public bool InSyncing { get; private set; }
+        public BlockChainMode Mode { get; private set; }
         private LyraConfig _nodeConfig;
         private readonly IAccountCollectionAsync _store;
         private LyraSystem _sys;
@@ -48,6 +54,7 @@ namespace Lyra
                 throw new Exception("Blockchain reinitialization");
 
             _sys = sys;
+            Mode = BlockChainMode.Startup;
 
             var nodeConfig = Neo.Settings.Default.LyraNode;
             _store = new MongoAccountCollection();
@@ -143,6 +150,15 @@ namespace Lyra
 
         private async Task StartInitAsync()
         {
+            Mode = BlockChainMode.Inquiry;
+            
+            // first broadcast msg what'up to lookup others nodes state/height
+            // detect network status
+            // get sync states from all seeds
+            // if others ok, then this seeds need sync
+            // if others all zero, then this seed do genesis
+            // 
+
             if (0 == await GetBlockCountAsync() && NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
             {
                 // do genesis
