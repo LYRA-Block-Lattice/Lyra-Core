@@ -197,14 +197,14 @@ namespace Lyra.Core.Decentralize
                         await GenerateConsolidateBlockAsync();
                     }
 
-                    await Task.Delay(5000).ConfigureAwait(false);
-                    count++;
+                    //await Task.Delay(5000).ConfigureAwait(false);
+                    //count++;
 
-                    if(count > 6)
-                    {
-                        await HeartBeatAsync();
-                        count = 0;
-                    }                    
+                    //if(count > 6)
+                    //{
+                    //    await HeartBeatAsync();
+                    //    count = 0;
+                    //}                    
                 }
             });
         }

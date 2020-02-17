@@ -42,9 +42,6 @@ namespace Lyra.Core.Authorizers
 
         protected async Task<APIResultCodes> VerifyBlockAsync(TransactionBlock block, TransactionBlock previousBlock)
         {
-            if (LyraSystem.Singleton.NetworkId != block.NetworkId)
-                return APIResultCodes.InvalidNetworkId;
-
             if (previousBlock != null && !block.IsBlockValid(previousBlock))
                 return APIResultCodes.BlockValidationFailed;
 

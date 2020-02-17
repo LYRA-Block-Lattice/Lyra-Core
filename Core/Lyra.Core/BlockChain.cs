@@ -150,15 +150,12 @@ namespace Lyra
                 {
                     Index = 1,
                     UIndex = 1,
-                    NetworkId = _nodeConfig.Lyra.NetworkId,
-                    ShardId = "Primary",
                     TransferFee = 1,
                     TokenGenerationFee = 100,
                     TradeFee = 0.1m,
                     SvcAccountID = NodeService.Instance.PosWallet.AccountId
                 };
                 authGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                    _nodeConfig.Lyra.NetworkId, authGenesis.ShardId,
                     NodeService.Instance.PosWallet.AccountId);
                 authGenesis.UHash = SignableObject.CalculateHash($"{authGenesis.UIndex}|{authGenesis.Index}|{authGenesis.Hash}");
                 authGenesis.Authorizations = new List<AuthorizationSignature>();
@@ -175,13 +172,10 @@ namespace Lyra
                 var consBlock = new ConsolidationBlock
                 {
                     UIndex = 2,
-                    NetworkId = authGenesis.NetworkId,
-                    ShardId = authGenesis.ShardId,
                     ServiceHash = authGenesis.Hash,
                     SvcAccountID = NodeService.Instance.PosWallet.AccountId
                 };
                 consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
-                    _nodeConfig.Lyra.NetworkId, authGenesis.ShardId,
                     NodeService.Instance.PosWallet.AccountId);
                 consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
                 consBlock.Authorizations = new List<AuthorizationSignature>();

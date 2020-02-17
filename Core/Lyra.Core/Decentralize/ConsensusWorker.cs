@@ -366,13 +366,10 @@ namespace Lyra.Core.Decentralize
                         {
                             UIndex = state.ConsensusUIndex,
                             FailedBlockHash = block.Hash,
-                            NetworkId = block.NetworkId,
-                            ShardId = block.ShardId,
                             ServiceHash = block.ServiceHash,
                             AccountID = block.AccountID
                         };
                         nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                            nb.NetworkId, nb.ShardId,
                             NodeService.Instance.PosWallet.AccountId);
                         nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Lyra.Core.API;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
@@ -16,23 +17,11 @@ namespace Lyra.Core.Blocks
         /// </summary>
         public string UHash { get; set; }
 
-        public Guid Id { get; set; }
-
         public long Index { get; set; }
 
         public DateTime TimeStamp { get; set; }
 
         public int Version { get; set; }
-
-        /// <summary>
-        /// Examples: testnet, mainnet, shopify, etc.
-        /// </summary>
-        public string NetworkId { get; set; }
-
-        /// <summary>
-        /// Examples: US, Europe, Privacy, Exchange, etc.
-        /// </summary>
-        public string ShardId { get; set; }
 
         public BlockTypes BlockType { get; set; }
 
@@ -51,7 +40,7 @@ namespace Lyra.Core.Blocks
 
         public List<AuthorizationSignature> Authorizations { get; set; }
 
-        public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string NetworkId, string ShardId = "Primary", string AccountId = null)
+        public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId = null)
         {
             if (prevBlock != null)
             {
@@ -63,12 +52,9 @@ namespace Lyra.Core.Blocks
                 Index = 1;
                 PreviousHash = null;//string.Empty;
             }
-            this.NetworkId = NetworkId;
-            this.ShardId = ShardId;
             TimeStamp = DateTime.Now;
-            Version = 1; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
+            Version = LyraGlobal.DatabaseVersion; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
             BlockType = GetBlockType();
-            //Hash = CalculateHash();
             Sign(PrivateKey, AccountId);
         }
 
@@ -79,8 +65,6 @@ namespace Lyra.Core.Blocks
                              //this.TimeStamp.ToUniversalTime().ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'") +
                              DateTimeToString(TimeStamp) + "|" +
                              this.Version + "|" +
-                             this.NetworkId + "|" +
-                             this.ShardId + "|" +
                              this.BlockType.ToString() + "|" +
                              this.PreviousHash + "|" +
                              JsonConvert.SerializeObject(Tags) + "|" +
@@ -116,12 +100,6 @@ namespace Lyra.Core.Blocks
                 if (this.Index != 1) // always 1 for open block
                     return false;
             }
-
-            if (string.IsNullOrWhiteSpace(this.NetworkId))
-                return false;
-
-            if (string.IsNullOrWhiteSpace(this.ShardId))
-                return false;
 
             if (!ValidateTags())
                 return false;
@@ -160,12 +138,9 @@ namespace Lyra.Core.Blocks
         {
             string result = base.Print();
             result += $"UIndex: {UIndex.ToString()}\n";
-            result += $"Id: {Id.ToString()}\n";
             result += $"Index: {Index.ToString()}\n";
             result += $"TimeStamp: {DateTimeToString(TimeStamp)}\n"; 
             result += $"Version: {Version}\n";
-            result += $"NetworkId: {NetworkId}\n";
-            result += $"ShardId: {ShardId}\n";
             result += $"BlockType: {BlockType.ToString()}\n";
             result += $"PreviousHash: {PreviousHash}\n";
             result += $"ServiceHash: {ServiceHash}\n";
