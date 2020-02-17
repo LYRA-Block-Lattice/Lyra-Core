@@ -288,6 +288,11 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        public bool FindActiveBlock(string accountId, long index)
+        {
+            return _activeConsensus.Any(a => a.Value.State?.InputMsg?.Block.AccountID == accountId && a.Value.State?.InputMsg?.Block.Index == index);
+        }
+
         private async Task GenerateConsolidateBlockAsync()
         {
             // expire partial transaction.
