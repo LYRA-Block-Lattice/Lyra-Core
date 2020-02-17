@@ -138,7 +138,7 @@ namespace Lyra.Core.Decentralize
                     From = NodeService.Instance.PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
-                    Result = APIResultCodes.DubleSpentDetected
+                    Result = APIResultCodes.DoubleSpentDetected
                 };
                 return result0;
             }
