@@ -146,7 +146,7 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
-                if (relayMsg == null)
+                if (relayMsg == null || relayMsg.signedMessage == null)
                     return;
 
                 if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
