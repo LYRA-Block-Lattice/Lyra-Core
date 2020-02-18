@@ -6,9 +6,22 @@ using System.IO;
 
 namespace Lyra.Core.Decentralize
 {
-	public enum ChatMessageType  { General, NodeUp, NodeDown, StakingChanges, HeartBeat,
-		AuthorizerPrePrepare, AuthorizerPrepare, AuthorizerCommit,
-		BlockConsolidation
+	public enum ChatMessageType  
+	{ 
+		General = 0,
+		HeartBeat = 1,
+		BillBoardBroadcast = 3,
+
+		NodeUp = 10,
+		NodeDown = 11,
+		NodeStatusInquiry = 12,
+		NodeStatusReply = 13,
+		
+		AuthorizerPrePrepare = 20,
+		AuthorizerPrepare = 21,
+		AuthorizerCommit = 22,
+
+		BlockConsolidation = 30
 	};
 
 	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable
@@ -79,9 +92,9 @@ namespace Lyra.Core.Decentralize
 		{
 			MsgType = ChatMessageType.General;
 		}
-		public ChatMsg(string from, ChatMessageType msgType, string msg)
+		public ChatMsg(string msg, ChatMessageType msgType)
 		{
-			From = from;
+			From = NodeService.Instance.PosWallet.AccountId;
 			MsgType = msgType;
 			Text = msg;
 		}
@@ -256,5 +269,15 @@ namespace Lyra.Core.Decentralize
 			Commited = reader.ReadBoolean();
 			Consensus = (ConsensusResult)reader.ReadInt32();
 		}
+	}
+
+	public class NodeStatus
+	{
+		public string version { get; set; }
+		public BlockChainMode mode { get; set; }
+		public long lastBlockHeight { get; set; }
+		public string lastConsolidationHash { get; set; }
+		public string lastUnSolidationHash { get; set; }
+		public int connectedPeers { get; set; }
 	}
 }

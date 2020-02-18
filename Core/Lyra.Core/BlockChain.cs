@@ -48,6 +48,9 @@ namespace Lyra
         private readonly IAccountCollectionAsync _store;
         private LyraSystem _sys;
         private ILogger _log;
+
+        // status inquiry
+        private List<NodeStatus> _nodeStatus;
         public BlockChain(LyraSystem sys)
         {
             if (Singleton != null)
@@ -69,6 +72,20 @@ namespace Lyra
         public static Props Props(LyraSystem system)
         {
             return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
+        }
+
+        public async Task<NodeStatus> GetNodeStatusAsync()
+        {
+            var status = new NodeStatus
+            {
+                version = GetType().Assembly.GetName().Version.ToString(),
+                mode = BlockChain.Singleton.Mode,
+                lastBlockHeight = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
+                lastConsolidationHash = (await BlockChain.Singleton.GetSyncBlockAsync())?.Hash,
+                lastUnSolidationHash = null,
+                connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
+            };
+            return status;
         }
 
         private async Task<bool> AddBlockImplAsync(TransactionBlock block)
@@ -117,6 +134,13 @@ namespace Lyra
                 case Startup _:
                     StartInitAsync().Wait();
                     break;
+                case NodeStatus nodeStatus:
+                    if(_nodeStatus != null)
+                    {
+                        _nodeStatus.Add(nodeStatus);
+                        CheckInquiryResult();
+                    }                    
+                    break;
             //    case Import import:
             //        OnImport(import.Blocks);
             //        break;
@@ -148,16 +172,52 @@ namespace Lyra
             }
         }
 
+        private void CheckInquiryResult()
+        {
+            var q = from ns in _nodeStatus
+                    group ns by ns.lastBlockHeight into heights
+                    orderby heights.Count()
+                    select new
+                    {
+                        Height = heights.Key,
+                        Count = heights.Count()
+                    };
+            var majorHeight = q.First();
+
+            _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height}");
+
+            if(majorHeight.Height == 0)
+            {
+
+            }
+        }
+
         private async Task StartInitAsync()
         {
-            Mode = BlockChainMode.Inquiry;
-            
             // first broadcast msg what'up to lookup others nodes state/height
             // detect network status
             // get sync states from all seeds
             // if others ok, then this seeds need sync
             // if others all zero, then this seed do genesis
             // 
+
+            if(Neo.Network.P2P.LocalNode.Singleton.ConnectedCount > 0)
+            {
+                Mode = BlockChainMode.Inquiry;
+                _nodeStatus = new List<NodeStatus>();
+                _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
+
+                return;
+            }
+
+            // no connection.
+            if(ConsensusService.IsThisNodeSeed0)
+            {
+                Mode = BlockChainMode.Almighty;
+                // set mode and wait for connection.
+            }
+
+            return;
 
             if (0 == await GetBlockCountAsync() && NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
             {

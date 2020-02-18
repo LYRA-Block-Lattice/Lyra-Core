@@ -185,9 +185,15 @@ namespace Lyra.Core.Accounts
 
         public async Task<ConsolidationBlock> GetSyncBlockAsync()
         {
-            var finds = await _blocks.FindAsync(a => a.BlockType == BlockTypes.Consolidation);
-            var list = await finds.ToListAsync();
-            return list.Last() as ConsolidationBlock;
+            var options = new FindOptions<TransactionBlock, TransactionBlock>
+            {
+                Limit = 1,
+                Sort = Builders<TransactionBlock>.Sort.Descending(o => o.UIndex)
+            };
+            var filter = Builders<TransactionBlock>.Filter.Eq("BlockType", BlockTypes.Consolidation);
+
+            var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
+            return result as ConsolidationBlock;
         }
 
         private async Task<List<TransactionBlock>> GetAccountBlockListAsync(string AccountId)

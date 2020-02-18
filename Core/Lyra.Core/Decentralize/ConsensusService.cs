@@ -39,6 +39,7 @@ namespace Lyra.Core.Decentralize
         public class AskForStats { }
         public class AskForDbStats { }
         public class BlockChainSynced { }
+        public class NodeInquiry { }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
 
@@ -62,7 +63,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
+        public static bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public bool IsMessageFromSeed0(SourceSignedMessage msg)
         {
             return msg.From == ProtocolSettings.Default.StandbyValidators[0];
@@ -192,6 +193,11 @@ namespace Lyra.Core.Decentralize
                 worker.Create(state);
             });
 
+            Receive<NodeInquiry>((_) => {
+                var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
+                Send2P2pNetwork(inq);
+            });
+
             //Task.Run(async () =>
             //{
             //    await HeartBeatAsync();
@@ -269,7 +275,7 @@ namespace Lyra.Core.Decentralize
             PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
             me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId != "devnet")}";
 
-            var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.NodeUp, JsonConvert.SerializeObject(me));
+            var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);
             _board.Add(me);
             Send2P2pNetwork(msg);
         }
@@ -539,20 +545,42 @@ namespace Lyra.Core.Decentralize
                     else
                         _log.LogError($"No worker3 for {msg3.BlockHash}");
                     break;
-                case ChatMsg chat when chat.MsgType == ChatMessageType.HeartBeat:
-                    OnHeartBeat(chat);
-                    break;
-                case ChatMsg chat when chat.MsgType == ChatMessageType.NodeUp:
-                    await OnNodeUpAsync(chat);
-                    break;
-                case ChatMsg bbb when bbb.MsgType == ChatMessageType.StakingChanges:
-                    OnBillBoardBroadcast(bbb);
-                    break;
-                case ChatMsg bcc when bcc.MsgType == ChatMessageType.BlockConsolidation:
-                    await OnBlockConsolicationAsync(bcc);
+                case ChatMsg chat:
+                    await OnRecvChatMsg(chat);
                     break;
                 default:
                     // log msg unknown
+                    break;
+            }
+        }
+
+        private async Task OnRecvChatMsg(ChatMsg chat)
+        {
+            switch(chat.MsgType)
+            {
+                case ChatMessageType.HeartBeat:
+                    OnHeartBeat(chat);
+                    break;
+                case ChatMessageType.NodeUp:
+                    await OnNodeUpAsync(chat);
+                    break;
+                case ChatMessageType.BillBoardBroadcast:
+                    OnBillBoardBroadcast(chat);
+                    break;
+                case ChatMessageType.BlockConsolidation:
+                    await OnBlockConsolicationAsync(chat);
+                    break;
+                case ChatMessageType.NodeStatusInquiry:
+                    var status = await BlockChain.Singleton.GetNodeStatusAsync();
+                    var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);
+                    Send2P2pNetwork(resp);
+                    break;
+                case ChatMessageType.NodeStatusReply:
+                    if(BlockChain.Singleton.Mode == BlockChainMode.Inquiry)
+                    {
+                        var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
+                        LyraSystem.Singleton.TheBlockchain.Tell(statusReply);
+                    }
                     break;
             }
         }
@@ -623,7 +651,7 @@ namespace Lyra.Core.Decentralize
                 }
                 _board.SnapShot();
                 AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
-                var msg = new ChatMsg(NodeService.Instance.PosWallet.AccountId, ChatMessageType.StakingChanges, JsonConvert.SerializeObject(_board));
+                var msg = new ChatMsg(JsonConvert.SerializeObject(_board), ChatMessageType.BillBoardBroadcast);
                 Send2P2pNetwork(msg);
             }
         }

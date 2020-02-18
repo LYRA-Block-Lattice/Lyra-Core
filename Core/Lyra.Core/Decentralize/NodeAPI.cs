@@ -22,7 +22,8 @@ namespace Lyra.Core.Decentralize
             {
                 ResultCode = APIResultCodes.Success,
                 Mode = BlockChain.Singleton.InSyncing ? ConsensusWorkingMode.OutofSyncWaiting : ConsensusWorkingMode.Normal,
-                NewestBlockUIndex = await BlockChain.Singleton.GetNewestBlockUIndexAsync()
+                NewestBlockUIndex = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
+                Status = await BlockChain.Singleton.GetNodeStatusAsync()
             };
             return result;
         }

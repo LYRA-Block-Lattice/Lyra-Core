@@ -213,6 +213,7 @@ namespace Lyra.Core.API
     {
         public ConsensusWorkingMode Mode { get; set; }
         public long NewestBlockUIndex { get; set; }
+        public NodeStatus Status { get; set; }
     }
 
     public class ExchangeAccountAPIResult : APIResult

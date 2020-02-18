@@ -181,7 +181,8 @@ namespace Neo.Network.P2P
                     BroadcastMessage(MessageCommand.Consensus, signedMsg);
                     break;
                 case SignedMessageRelay signedMessageRelay:
-                    system.Consensus.Tell(signedMessageRelay);
+                    if(system.Consensus != null && signedMessageRelay != null)
+                        system.Consensus.Tell(signedMessageRelay);
                     break;
                 case Message msg:
                     BroadcastMessage(msg);
