@@ -199,6 +199,7 @@ namespace Lyra.Core.Decentralize
             Receive<NodeInquiry>((_) => {
                 var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
                 Send2P2pNetwork(inq);
+                _log.LogInformation("Inquiry for node status.");
             });
 
             //Task.Run(async () =>
