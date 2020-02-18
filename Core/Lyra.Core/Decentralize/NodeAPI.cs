@@ -21,7 +21,8 @@ namespace Lyra.Core.Decentralize
             var result = new GetSyncStateAPIResult
             {
                 ResultCode = APIResultCodes.Success,
-                Mode = BlockChain.Singleton.InSyncing ? ConsensusWorkingMode.OutofSyncWaiting : ConsensusWorkingMode.Normal,
+                NetworkID = BlockChain.Singleton.NetworkID,
+                SyncState = BlockChain.Singleton.InSyncing ? ConsensusWorkingMode.OutofSyncWaiting : ConsensusWorkingMode.Normal,
                 NewestBlockUIndex = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
                 Status = await BlockChain.Singleton.GetNodeStatusAsync()
             };

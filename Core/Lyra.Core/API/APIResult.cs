@@ -211,7 +211,8 @@ namespace Lyra.Core.API
 
     public class GetSyncStateAPIResult : APIResult
     {
-        public ConsensusWorkingMode Mode { get; set; }
+        public string NetworkID { get; set; }
+        public ConsensusWorkingMode SyncState { get; set; }
         public long NewestBlockUIndex { get; set; }
         public NodeStatus Status { get; set; }
     }

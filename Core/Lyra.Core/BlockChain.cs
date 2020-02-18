@@ -307,7 +307,7 @@ namespace Lyra
                             _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                             client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
                             var mode = await client.GetSyncState();
-                            if (mode.ResultCode == APIResultCodes.Success && mode.Mode == ConsensusWorkingMode.Normal)
+                            if (mode.ResultCode == APIResultCodes.Success && mode.SyncState == ConsensusWorkingMode.Normal)
                             {
                                 syncWithUrl = apiUrl;
                                 if (syncToUIndex == 0)
