@@ -135,11 +135,7 @@ namespace Lyra
                     StartInitAsync().Wait();
                     break;
                 case NodeStatus nodeStatus:
-                    if(_nodeStatus != null)
-                    {
-                        _nodeStatus.Add(nodeStatus);
-                        CheckInquiryResult();
-                    }                    
+                    _nodeStatus?.Add(nodeStatus);
                     break;
             //    case Import import:
             //        OnImport(import.Blocks);
@@ -172,26 +168,6 @@ namespace Lyra
             }
         }
 
-        private void CheckInquiryResult()
-        {
-            var q = from ns in _nodeStatus
-                    group ns by ns.lastBlockHeight into heights
-                    orderby heights.Count()
-                    select new
-                    {
-                        Height = heights.Key,
-                        Count = heights.Count()
-                    };
-            var majorHeight = q.First();
-
-            _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height}");
-
-            if(majorHeight.Height == 0)
-            {
-
-            }
-        }
-
         private async Task StartInitAsync()
         {
             // first broadcast msg what'up to lookup others nodes state/height
@@ -204,8 +180,33 @@ namespace Lyra
             if(Neo.Network.P2P.LocalNode.Singleton.ConnectedCount > 0)
             {
                 Mode = BlockChainMode.Inquiry;
-                _nodeStatus = new List<NodeStatus>();
-                _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
+                _ = Task.Run(async () =>
+                {
+                    while (true)
+                    {
+                        _nodeStatus = new List<NodeStatus>();
+                        _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
+
+                        await Task.Delay(10000);
+
+                        var q = from ns in _nodeStatus
+                                group ns by ns.lastBlockHeight into heights
+                                orderby heights.Count()
+                                select new
+                                {
+                                    Height = heights.Key,
+                                    Count = heights.Count()
+                                };
+                        var majorHeight = q.First();
+
+                        _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
+
+                        if (majorHeight.Height == 0)
+                        {
+
+                        }
+                    }
+                });
 
                 return;
             }
