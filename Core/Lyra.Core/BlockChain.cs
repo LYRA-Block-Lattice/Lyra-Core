@@ -78,6 +78,7 @@ namespace Lyra
         {
             var status = new NodeStatus
             {
+                accountId = NodeService.Instance.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
                 mode = BlockChain.Singleton.Mode,
                 lastBlockHeight = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
@@ -135,7 +136,12 @@ namespace Lyra
                     StartInitAsync().Wait();
                     break;
                 case NodeStatus nodeStatus:
-                    _nodeStatus?.Add(nodeStatus);
+                    _log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
+                    if(_nodeStatus != null)
+                    {
+                        if(!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
+                            _nodeStatus.Add(nodeStatus);
+                    }                    
                     break;
             //    case Import import:
             //        OnImport(import.Blocks);
@@ -197,13 +203,17 @@ namespace Lyra
                                     Height = heights.Key,
                                     Count = heights.Count()
                                 };
-                        var majorHeight = q.First();
-
-                        _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
-
-                        if (majorHeight.Height == 0)
+                        
+                        if(q.Any())
                         {
+                            var majorHeight = q.First();
 
+                            _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
+
+                            if (majorHeight.Height == 0)
+                            {
+
+                            }
                         }
                     }
                 });

@@ -273,6 +273,7 @@ namespace Lyra.Core.Decentralize
 
 	public class NodeStatus
 	{
+		public string accountId { get; set; }
 		public string version { get; set; }
 		public BlockChainMode mode { get; set; }
 		public long lastBlockHeight { get; set; }
