@@ -12,7 +12,7 @@ namespace Lyra.Core.API
         public const int ProtocolVersion = 1;
         public const int DatabaseVersion = 1;
 
-        public const string NodeAppName = "Lyra Permisionless 1.0";
+        public static string NodeAppName = "Lyra Permisionless " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 
         public const int MinimalAuthorizerBalance = 1000000;
         public const decimal LYRAGENESISAMOUNT = 2000000000;

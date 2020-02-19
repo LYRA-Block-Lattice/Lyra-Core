@@ -17,11 +17,11 @@ namespace Lyra.Core.Decentralize
 		NodeStatusInquiry = 12,
 		NodeStatusReply = 13,
 		
-		AuthorizerPrePrepare = 20,
-		AuthorizerPrepare = 21,
-		AuthorizerCommit = 22,
+		BlockConsolidation = 20,
 
-		BlockConsolidation = 30
+		AuthorizerPrePrepare = 100,
+		AuthorizerPrepare = 101,
+		AuthorizerCommit = 102,
 	};
 
 	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable

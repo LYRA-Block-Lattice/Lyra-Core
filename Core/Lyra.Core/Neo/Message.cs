@@ -107,14 +107,8 @@ namespace Neo.Network.P2P
                     return data.AsSerializable<AuthorizedMsg>();
                 case ChatMessageType.AuthorizerCommit:
                     return data.AsSerializable<AuthorizerCommitMsg>();
-                case ChatMessageType.General:
-                case ChatMessageType.NodeUp:
-                case ChatMessageType.NodeDown:
-                case ChatMessageType.HeartBeat:
-                case ChatMessageType.BillBoardBroadcast:
-                    return data.AsSerializable<ChatMsg>();
                 default:
-                    return null;
+                    return data.AsSerializable<ChatMsg>();
             }
         }
 

@@ -78,7 +78,7 @@ namespace Lyra
         {
             var status = new NodeStatus
             {
-                version = GetType().Assembly.GetName().Version.ToString(),
+                version = LyraGlobal.NodeAppName,
                 mode = BlockChain.Singleton.Mode,
                 lastBlockHeight = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
                 lastConsolidationHash = (await BlockChain.Singleton.GetSyncBlockAsync())?.Hash,
