@@ -580,11 +580,8 @@ namespace Lyra.Core.Decentralize
                     Send2P2pNetwork(resp);
                     break;
                 case ChatMessageType.NodeStatusReply:
-                    if(BlockChain.Singleton.Mode == BlockChainMode.Inquiry)
-                    {
-                        var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
-                        LyraSystem.Singleton.TheBlockchain.Tell(statusReply);
-                    }
+                    var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
+                    LyraSystem.Singleton.TheBlockchain.Tell(statusReply);
                     break;
             }
         }
