@@ -280,5 +280,19 @@ namespace Lyra.Core.Decentralize
 		public string lastConsolidationHash { get; set; }
 		public string lastUnSolidationHash { get; set; }
 		public int connectedPeers { get; set; }
+
+		public override bool Equals(object obj)
+		{
+			if(obj is NodeStatus)
+			{
+				var ns = obj as NodeStatus;
+				return version == ns.version
+					&& mode == ns.mode
+					&& lastBlockHeight == ns.lastBlockHeight
+					&& lastConsolidationHash == ns.lastConsolidationHash
+					&& lastUnSolidationHash == ns.lastUnSolidationHash;				
+			}
+			return base.Equals(obj);
+		}
 	}
 }

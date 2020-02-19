@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Settings = Neo.Settings;
 
 namespace Lyra
 {
@@ -136,8 +137,9 @@ namespace Lyra
                     StartInitAsync().Wait();
                     break;
                 case NodeStatus nodeStatus:
+                    // only accept status from seeds.
                     _log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
-                    if(_nodeStatus != null)
+                    if(_nodeStatus != null && ProtocolSettings.Default.StandbyValidators.Contains(nodeStatus.accountId))
                     {
                         if(!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
                             _nodeStatus.Add(nodeStatus);
@@ -210,9 +212,18 @@ namespace Lyra
 
                             _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
 
-                            if (majorHeight.Height == 0)
+                            var myStatus = await GetNodeStatusAsync();
+                            if(majorHeight.Height == myStatus.lastBlockHeight)
                             {
+                                Mode = BlockChainMode.Almighty;
+                            }
 
+                            var otherSeedsCount = ProtocolSettings.Default.StandbyValidators.Length - 1;
+                            if (ConsensusService.IsThisNodeSeed0 && _nodeStatus.Count(a => a.mode == BlockChainMode.Almighty) == otherSeedsCount
+                                && majorHeight.Height == 0 && majorHeight.Count == otherSeedsCount)
+                            {
+                                // genesis
+                                _log.LogInformation("will do genesis.");
                             }
                         }
                     }
