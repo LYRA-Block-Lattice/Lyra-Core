@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lyra.Core.API;
+using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
 {
+    [BsonNoId]
     public abstract class Block: SignableObject
     {
         /// <summary>
