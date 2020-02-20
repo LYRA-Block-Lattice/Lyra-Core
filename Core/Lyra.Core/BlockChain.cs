@@ -233,23 +233,10 @@ namespace Lyra
                                 _log.LogInformation("all seed nodes are ready. do genesis.");
 
                                 var svcGen = GetServiceGenesisBlock();
+                                await SendBlockToConsensusAsync(svcGen);
 
-                                AuthorizingMsg msg = new AuthorizingMsg
-                                {
-                                    From = NodeService.Instance.PosWallet.AccountId,
-                                    Block = svcGen,
-                                    MsgType = ChatMessageType.AuthorizerPrePrepare
-                                };
-
-                                var state = new AuthState(true);
-                                state.HashOfFirstBlock = svcGen.Hash;
-                                state.InputMsg = msg;
-
-                                _sys.Consensus.Tell(state);
-
-                                await state.Done.AsTask();
-                                state.Done.Close();
-                                state.Done = null;
+                                var tokenGen = GetLyraTokenGenesisBlock(svcGen);
+                                await SendBlockToConsensusAsync(tokenGen);
 
                                 _log.LogInformation("svc genesis is done.");
 
@@ -272,6 +259,35 @@ namespace Lyra
             return;
         }
 
+        public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceBlock svcGen)
+        {
+            // initiate test coins
+            var openTokenGenesisBlock = new LyraTokenGenesisBlock
+            {
+                AccountType = AccountTypes.Standard,
+                Ticker = LyraGlobal.LYRATICKERCODE,
+                DomainName = "Lyra",
+                ContractType = ContractTypes.Cryptocurrency,
+                Description = "Lyra Permissioned Gas Token",
+                Precision = LyraGlobal.LYRAPRECISION,
+                IsFinalSupply = true,
+                AccountID = NodeService.Instance.PosWallet.AccountId,
+                Balances = new Dictionary<string, decimal>(),
+                PreviousHash = svcGen.Hash,
+                ServiceHash = svcGen.Hash,
+                Fee = svcGen.TokenGenerationFee,
+                FeeType = AuthorizationFeeTypes.Regular,
+                Icon = "https://i.imgur.com/L3h0J1K.png",
+                Image = "https://i.imgur.com/B8l4ZG5.png",
+                RenewalDate = DateTime.Now.AddYears(1000)
+            };
+            var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.LYRAGENESISAMOUNT };
+            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
+            openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
+
+            return openTokenGenesisBlock;
+        }
+
         public ServiceBlock GetServiceGenesisBlock()
         {
             var svcGenesis = new ServiceGenesisBlock
@@ -287,6 +303,26 @@ namespace Lyra
             svcGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId);
             return svcGenesis;
+        }
+
+        private async Task SendBlockToConsensusAsync(Block block)
+        {
+            AuthorizingMsg msg = new AuthorizingMsg
+            {
+                From = NodeService.Instance.PosWallet.AccountId,
+                Block = block,
+                MsgType = ChatMessageType.AuthorizerPrePrepare
+            };
+
+            var state = new AuthState(true);
+            state.HashOfFirstBlock = block.Hash;
+            state.InputMsg = msg;
+
+            _sys.Consensus.Tell(state);
+
+            await state.Done.AsTask();
+            state.Done.Close();
+            state.Done = null;
         }
         private void Genesis()
         {

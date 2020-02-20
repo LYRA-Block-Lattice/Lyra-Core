@@ -537,6 +537,12 @@ namespace Lyra.Core.Decentralize
                         }
                     }
 
+                    if (msg1.Block is ServiceGenesisBlock && !IsMessageFromSeed0(item))
+                    {
+                        _log.LogError($"fake genesis block from node {item.From}");
+                        return;
+                    }                        
+
                     var worker = GetWorker(msg1.Block.Hash);
                     if (worker != null)
                         await worker.OnPrePrepareAsync(msg1);
