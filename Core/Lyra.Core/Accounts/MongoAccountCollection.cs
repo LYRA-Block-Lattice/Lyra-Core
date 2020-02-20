@@ -111,7 +111,6 @@ namespace Lyra.Core.Accounts
                 }
             }
 
-            CreateIndexes("_t", false).Wait();
             CreateIndexes("Hash", true).Wait();
             CreateIndexes("PreviousHash", false).Wait();
             CreateIndexes("AccountID", false).Wait();
@@ -241,7 +240,7 @@ namespace Lyra.Core.Accounts
             }
 
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.And(builder.Eq("_t", "TokenGenesisBlock"), builder.Eq("Ticker", Ticker));
+            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.TokenGenesis), builder.Eq("Ticker", Ticker));
             var blocks = await _blocks.FindAsync(filterDefinition);
             return await blocks.FirstOrDefaultAsync() as TokenGenesisBlock;
         }
@@ -249,7 +248,7 @@ namespace Lyra.Core.Accounts
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword)
         {
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.Eq("_t", "TokenGenesisBlock");
+            var filterDefinition = builder.Eq("BlockType", BlockTypes.TokenGenesis);
             var result = await _blocks.FindAsync(filterDefinition);
 
             if (string.IsNullOrEmpty(keyword))
@@ -265,7 +264,7 @@ namespace Lyra.Core.Accounts
         public async Task<NullTransactionBlock> FindNullTransBlockByHashAsync(string hash)
         {
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.And(builder.Eq("_t", "NullTransactionBlock"), builder.Eq("FailedBlockHash", hash));
+            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.NullTransaction), builder.Eq("FailedBlockHash", hash));
             var result = await _blocks.FindAsync(filterDefinition);
 
             return await result.FirstOrDefaultAsync() as NullTransactionBlock;
@@ -292,9 +291,9 @@ namespace Lyra.Core.Accounts
         {
 
             var p1 = new BsonArray();
-            p1.Add(BlockTypes.ReceiveTransfer.ToString());
-            p1.Add(BlockTypes.OpenAccountWithReceiveTransfer.ToString());
-            p1.Add(BlockTypes.OpenAccountWithImport.ToString());
+            p1.Add(BlockTypes.ReceiveTransfer);
+            p1.Add(BlockTypes.OpenAccountWithReceiveTransfer);
+            p1.Add(BlockTypes.OpenAccountWithImport);
 
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("AccountID", AccountId), builder.Ne("NonFungibleToken", BsonNull.Value)));
@@ -410,8 +409,8 @@ namespace Lyra.Core.Accounts
                 if (result == null)
                     return sendBlock;
 
-                //var any_receive_block_with_this_source = FindBlockBySourceHash(sendBlock.Hash);
-                //if (any_receive_block_with_this_source == null)
+                //var any_receive_block_withBlockTypehis_source = FindBlockBySourceHash(sendBlock.Hash);
+                //if (any_receive_block_withBlockTypehis_source == null)
 
             }
             return null;
@@ -436,25 +435,22 @@ namespace Lyra.Core.Accounts
             if (SellTokenCode == "*")
                 SellTokenCode = null;
 
-            // First, let find all the trade blocks aimed to this account:
-            //var trades = _blocks.Find(Query.And(Query.EQ("BlockType", BlockTypes.Trade.ToString()), Query.EQ("DestinationAccountId", AccountId)));
-
             var trades_builder = Builders<Block>.Filter;
-            var trades_filterDefinition = trades_builder.And(trades_builder.Eq("BlockType", BlockTypes.Trade.ToString()), trades_builder.Eq("DestinationAccountId", AccountId));
+            var trades_filterDefinition = trades_builder.And(trades_builder.Eq("BlockType", BlockTypes.Trade), trades_builder.Eq("DestinationAccountId", AccountId));
 
             var trades = _blocks.Find(trades_filterDefinition).ToList();
 
             foreach (TradeBlock trade in trades)
             {
                 var exec_builder = Builders<Block>.Filter;
-                var exec_filterDefinition = exec_builder.And(exec_builder.Eq("BlockType", BlockTypes.ExecuteTradeOrder.ToString()), exec_builder.Eq("TradeId", trade.Hash));
+                var exec_filterDefinition = exec_builder.And(exec_builder.Eq("BlockType", BlockTypes.ExecuteTradeOrder), exec_builder.Eq("TradeId", trade.Hash));
                 var trade_execution = _blocks.Find(exec_filterDefinition);
 
                 if (trade_execution.Any())
                     continue;
 
                 var cancel_builder = Builders<Block>.Filter;
-                var cancel_filterDefinition = cancel_builder.And(cancel_builder.Eq("BlockType", BlockTypes.CancelTradeOrder.ToString()), cancel_builder.Eq("TradeOrderId", trade.TradeOrderId));
+                var cancel_filterDefinition = cancel_builder.And(cancel_builder.Eq("BlockType", BlockTypes.CancelTradeOrder), cancel_builder.Eq("TradeOrderId", trade.TradeOrderId));
                 var trade_cancellation = _blocks.Find(cancel_filterDefinition);
 
                 if (trade_cancellation.Any())
@@ -478,7 +474,7 @@ namespace Lyra.Core.Accounts
             //var blocks = _blocks.Find(Query.EQ("BlockType", BlockTypes.TradeOrder.ToString()));
 
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.Eq("BlockType", BlockTypes.TradeOrder.ToString());
+            var filterDefinition = builder.Eq("BlockType", BlockTypes.TradeOrder);
             var trade_blocks = _blocks.Find(filterDefinition).ToList();
 
             foreach (TradeOrderBlock block in trade_blocks)
@@ -494,7 +490,7 @@ namespace Lyra.Core.Accounts
             //var blocks = _blocks.Find(Query.EQ("BlockType", BlockTypes.CancelTradeOrder.ToString()));
 
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.Eq("BlockType", BlockTypes.CancelTradeOrder.ToString());
+            var filterDefinition = builder.Eq("BlockType", BlockTypes.CancelTradeOrder);
             var blocks = _blocks.Find(filterDefinition).ToList();
 
             foreach (CancelTradeOrderBlock block in blocks)
@@ -509,7 +505,7 @@ namespace Lyra.Core.Accounts
             var list = new List<string>();
             //var blocks = _blocks.Find(Query.EQ("BlockType", BlockTypes.ExecuteTradeOrder.ToString()));
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.Eq("BlockType", BlockTypes.ExecuteTradeOrder.ToString());
+            var filterDefinition = builder.Eq("BlockType", BlockTypes.ExecuteTradeOrder);
             var blocks = _blocks.Find(filterDefinition).ToList();
 
             foreach (ExecuteTradeOrderBlock block in blocks)

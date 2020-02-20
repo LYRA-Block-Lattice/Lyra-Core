@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
 {
-    [BsonNoId]
     public abstract class Block: SignableObject
     {
         /// <summary>

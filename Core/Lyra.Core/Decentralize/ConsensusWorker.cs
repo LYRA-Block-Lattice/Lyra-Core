@@ -144,7 +144,7 @@ namespace Lyra.Core.Decentralize
                     AuthSign = localAuthResult.Item2
                 };
 
-                if (item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
+                if (item.Block is ServiceGenesisBlock || item.Block.BlockType == BlockTypes.Consolidation || item.Block.BlockType == BlockTypes.NullTransaction || item.Block.BlockType == BlockTypes.Service)
                 {
                     // do nothing. the UIndex has already been take cared of.
                 }
