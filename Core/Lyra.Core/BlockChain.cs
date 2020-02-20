@@ -252,6 +252,8 @@ namespace Lyra
                                 state.Done = null;
 
                                 _log.LogInformation("svc genesis is done.");
+
+                                break;
                             }
                         }
                     }
