@@ -11,7 +11,10 @@ Nightly/Testing Releases: https://github.com/wizd/LyraNetwork/releases
 
 # Lyra Permissionless Node Setup
 
-Note: for windows 10 Installation please reference community contributed guide: https://docs.google.com/document/d/1DThxgbWSt_79zr2Rwnl0SaJah1wR-SmHxKrkeYOtzTM/edit Many thanks to our community member Roggy Dog.
+Note: 
+
+* for windows 10 Installation please reference community contributed guide: https://docs.google.com/document/d/1DThxgbWSt_79zr2Rwnl0SaJah1wR-SmHxKrkeYOtzTM/edit Many thanks to our community member Roggy Dog.
+* for docker: http://gitlab.com/uiii/lyranetwork-node Many thanks to our community member Jan Svobada.
 
 1. Install Linux (Ubuntu 18.04), or Windows, macOS
 
