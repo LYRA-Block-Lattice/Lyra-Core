@@ -52,6 +52,7 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<Block>(cm =>
             {
                 cm.AutoMap();
+                cm.SetIgnoreExtraElements(true);
                 //cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, decimal>>(DictionaryRepresentation.ArrayOfDocuments));
             });
 
