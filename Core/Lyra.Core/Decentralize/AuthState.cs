@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Utils;
+﻿using Lyra.Core.Blocks;
+using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
@@ -127,7 +128,7 @@ namespace Lyra.Core.Decentralize
 
         private ConsensusResult GetConsensusSuccess()
         {
-            if (ConsensusUIndex == 0)
+            if (ConsensusUIndex < 1 && !(InputMsg.Block is ServiceGenesisBlock))
                 return ConsensusResult.Uncertain;
 
             var authResult = CheckAuthorizedResults();
