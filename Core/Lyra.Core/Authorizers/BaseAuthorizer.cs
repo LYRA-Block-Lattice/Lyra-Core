@@ -219,7 +219,7 @@ namespace Lyra.Core.Authorizers
 
         protected async Task<AuthorizationSignature> SignAsync<T>(T tblock)
         {
-            if (!(tblock is TransactionBlock))
+            if (!(tblock is Block))
                 throw new System.ApplicationException("APIResultCodes.InvalidBlockType");
 
             var block = tblock as TransactionBlock;
