@@ -217,19 +217,19 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected async Task<AuthorizationSignature> SignAsync<T>(T tblock)
+        protected AuthorizationSignature Sign<T>(T tblock)
         {
             if (!(tblock is Block))
                 throw new System.ApplicationException("APIResultCodes.InvalidBlockType");
 
             var block = tblock as Block;
 
-            if (block is TransactionBlock)
-            {
-                // ServiceHash is excluded when calculating the block hash,
-                // but it is included when creating/validating the authorization signature
-                (block as TransactionBlock).ServiceHash = (await BlockChain.Singleton.GetSyncBlockAsync()).Hash;
-            }
+            //if (block is TransactionBlock)
+            //{
+            //    // ServiceHash is excluded when calculating the block hash,
+            //    // but it is included when creating/validating the authorization signature
+            //    (block as TransactionBlock).ServiceHash = (await BlockChain.Singleton.GetSyncBlockAsync()).Hash;
+            //}
 
             // sign with the authorizer key
             AuthorizationSignature authSignature = new AuthorizationSignature
