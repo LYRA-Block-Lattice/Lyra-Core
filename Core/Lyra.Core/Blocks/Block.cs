@@ -27,9 +27,6 @@ namespace Lyra.Core.Blocks
 
         public string PreviousHash { get; set; }
 
-        // The hash of the most recent service chain block 
-        public string ServiceHash { get; set; }
-
         /// <summary>
         /// Custom metadata in key/value format.
         /// </summary>
@@ -143,7 +140,6 @@ namespace Lyra.Core.Blocks
             result += $"Version: {Version}\n";
             result += $"BlockType: {BlockType.ToString()}\n";
             result += $"PreviousHash: {PreviousHash}\n";
-            result += $"ServiceHash: {ServiceHash}\n";
             result += $"Tags: {JsonConvert.SerializeObject(Tags)}\n";
             result += $"Authorizations: {JsonConvert.SerializeObject(Authorizations)}\n";
             return result;

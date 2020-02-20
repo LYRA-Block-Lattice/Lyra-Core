@@ -49,6 +49,9 @@ namespace Lyra.Core.Blocks
         // It can be in either send or recive block.
         public NonFungibleToken NonFungibleToken { get; set; }
 
+        // The hash of the most recent service chain block 
+        public string ServiceHash { get; set; }
+
         /// <summary>
         /// When fee is zero and replaced by client-calculated proof of work
         /// </summary>
@@ -61,6 +64,7 @@ namespace Lyra.Core.Blocks
             extraData += JsonConvert.SerializeObject(Balances) + "|";
             extraData += JsonConvert.SerializeObject(Fee) + "|";//Fee.ToString("0.############");
             extraData += FeeCode + "|";
+            extraData += ServiceHash + "|";
             extraData += FeeType.ToString() + "|";
             extraData += GetHashInputFromNonFungibleToken() + "|"; 
             return extraData;
@@ -105,6 +109,7 @@ namespace Lyra.Core.Blocks
         {
             string result = base.Print();
             result += $"AccountID: {AccountID}\n";
+            result += $"ServiceHash: {ServiceHash}\n";
             result += $"Balances: {JsonConvert.SerializeObject(Balances)}\n";
             result += $"Fee: {JsonConvert.SerializeObject(Fee)}\n";
             result += $"FeeCode: {FeeCode}\n";
