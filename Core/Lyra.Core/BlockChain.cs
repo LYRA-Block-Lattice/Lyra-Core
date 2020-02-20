@@ -264,6 +264,8 @@ namespace Lyra
             // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
             {
+                UIndex = 1,
+                Index = 1,
                 AccountType = AccountTypes.Standard,
                 Ticker = LyraGlobal.LYRATICKERCODE,
                 DomainName = "Lyra",
