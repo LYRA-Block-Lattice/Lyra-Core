@@ -272,7 +272,7 @@ namespace Lyra
 
         public ServiceBlock GetServiceGenesisBlock()
         {
-            var svcGenesis = new ServiceBlock
+            var svcGenesis = new ServiceGenesisBlock
             {
                 NetworkId = NetworkID,
                 Index = 1,

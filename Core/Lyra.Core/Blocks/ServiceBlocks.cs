@@ -17,11 +17,6 @@ namespace Lyra.Core.Blocks
     // only one change at the time is allowed (i.e. one authorizer out and one in)
     public class ServiceBlock : Block
     {
-        /// <summary>
-        /// Examples: testnet, mainnet, shopify, etc.
-        /// </summary>
-        public string NetworkId { get; set; }
-
         //public Dictionary<string, NodeInfo> Authorizers { get; set; }
         //public List<NodeInfo> Authorizers { get; set; }
 
@@ -63,7 +58,6 @@ namespace Lyra.Core.Blocks
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += this.NetworkId + "|";
             //extraData = extraData + JsonConvert.SerializeObject(Authorizers) + "|";
             //extraData = extraData + JsonConvert.SerializeObject(Candidates) + "|";
             //extraData = extraData + IsPrimaryShard + "|";
@@ -82,9 +76,6 @@ namespace Lyra.Core.Blocks
 
         public override bool IsBlockValid(Block prevBlock)
         {
-            if (string.IsNullOrWhiteSpace(this.NetworkId))
-                return false;
-
             return base.IsBlockValid(prevBlock);
         }
     }
@@ -92,22 +83,28 @@ namespace Lyra.Core.Blocks
     public class ServiceGenesisBlock : ServiceBlock
     {
         /// <summary>
-        /// The signature generated using one-time shard private key 
+        /// Examples: testnet, mainnet, shopify, etc.
         /// </summary>
-//        public string ShardSignature { get; set; }
+        public string NetworkId { get; set; }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            //extraData = extraData + IsPrimaryShard + "|";
-            //extraData = extraData + ShardPublicKey + "|";
-            //extraData = extraData + ShardSignature + "|";
+            extraData += this.NetworkId + "|";
             return extraData;
         }
 
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.ServiceGenesis;
+        }
+
+        public override bool IsBlockValid(Block prevBlock)
+        {
+            if (string.IsNullOrWhiteSpace(this.NetworkId))
+                return false;
+
+            return base.IsBlockValid(prevBlock);
         }
     }
 
