@@ -224,7 +224,7 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as TransactionBlock;
 
-            if (block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.ServiceGenesis)
+            if (block != null && block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.ServiceGenesis)
             {
                 // ServiceHash is excluded when calculating the block hash,
                 // but it is included when creating/validating the authorization signature
