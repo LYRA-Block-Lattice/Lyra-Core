@@ -291,7 +291,8 @@ namespace Lyra.Core.Decentralize
             {
                 var sb = new StringBuilder();
                 sb.AppendLine();
-                sb.AppendLine($"* Transaction From Node {state.InputMsg.Block.AccountID.Shorten()} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {state.InputMsg.Block.Hash.Shorten()}");
+                var acctId = state.InputMsg.Block is TransactionBlock ? (state.InputMsg.Block as TransactionBlock).AccountID.Shorten() : "";
+                sb.AppendLine($"* Transaction From Node {acctId} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Index} Hash: {state.InputMsg.Block.Hash.Shorten()}");
                 foreach (var msg in state.OutputMsgs.ToList())
                 {
                     var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
@@ -362,19 +363,19 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         // nay
-                        var nb = new NullTransactionBlock
-                        {
-                            UIndex = state.ConsensusUIndex,
-                            FailedBlockHash = block.Hash,
-                            ServiceHash = block.ServiceHash,
-                            AccountID = block.AccountID
-                        };
-                        nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                            NodeService.Instance.PosWallet.AccountId);
-                        nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
+                        //var nb = new NullTransactionBlock
+                        //{
+                        //    UIndex = state.ConsensusUIndex,
+                        //    FailedBlockHash = block.Hash,
+                        //    ServiceHash = block.ServiceHash,
+                        //    AccountID = block.AccountID
+                        //};
+                        //nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+                        //    NodeService.Instance.PosWallet.AccountId);
+                        //nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
 
-                        if (await BlockChain.Singleton.AddBlockAsync(block))
-                            _log.LogInformation($"NullTrans saved: {nb.UIndex}");
+                        //if (await BlockChain.Singleton.AddBlockAsync(block))
+                        //    _log.LogInformation($"NullTrans saved: {nb.UIndex}");
                     }
 
                     var msg = new AuthorizerCommitMsg

@@ -90,7 +90,7 @@ namespace Lyra
             return status;
         }
 
-        private async Task<bool> AddBlockImplAsync(TransactionBlock block)
+        private async Task<bool> AddBlockImplAsync(Block block)
         {
             var result = await _store.AddBlockAsync(block);
             if (result)
@@ -101,22 +101,22 @@ namespace Lyra
         }
 
         public async Task<long> GetNewestBlockUIndexAsync() => await StopWatcher.Track(_store.GetNewestBlockUIndexAsync(), StopWatcher.GetCurrentMethod());
-        public async Task<TransactionBlock> GetBlockByUIndexAsync(long uindex) => await StopWatcher.Track(_store.GetBlockByUIndexAsync(uindex), StopWatcher.GetCurrentMethod());//_store.GetBlockByUIndexAsync(uindex);
+        public async Task<Block> GetBlockByUIndexAsync(long uindex) => await StopWatcher.Track(_store.GetBlockByUIndexAsync(uindex), StopWatcher.GetCurrentMethod());//_store.GetBlockByUIndexAsync(uindex);
         internal async Task<ConsolidationBlock> GetSyncBlockAsync() => await StopWatcher.Track(_store.GetSyncBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
         internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await StopWatcher.Track(_store.GetLastServiceBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetLastServiceBlockAsync();
 
         // forward api. should have more control here.
-        public async Task<bool> AddBlockAsync(TransactionBlock block) => await StopWatcher.Track(AddBlockImplAsync(block), StopWatcher.GetCurrentMethod());
+        public async Task<bool> AddBlockAsync(Block block) => await StopWatcher.Track(AddBlockImplAsync(block), StopWatcher.GetCurrentMethod());
         public async Task RemoveBlockAsync(long uindex) => await _store.RemoveBlockAsync(uindex);
         public async Task AddBlockAsync(ServiceBlock serviceBlock) => await StopWatcher.Track(_store.AddBlockAsync(serviceBlock), StopWatcher.GetCurrentMethod());//_store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
         public async Task<bool> AccountExistsAsync(string AccountId) => await StopWatcher.Track(_store.AccountExistsAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.AccountExistsAsync(AccountId);
-        public async Task<TransactionBlock> FindLatestBlockAsync() => await StopWatcher.Track(_store.FindLatestBlockAsync(), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync();
-        public async Task<TransactionBlock> FindLatestBlockAsync(string AccountId) => await StopWatcher.Track(_store.FindLatestBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync(AccountId);
+        public async Task<Block> FindLatestBlockAsync() => await StopWatcher.Track(_store.FindLatestBlockAsync(), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync();
+        public async Task<Block> FindLatestBlockAsync(string AccountId) => await StopWatcher.Track(_store.FindLatestBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindLatestBlockAsync(AccountId);
         public async Task<NullTransactionBlock> FindNullTransBlockByHashAsync(string hash) => await StopWatcher.Track(_store.FindNullTransBlockByHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindNullTransBlockByHashAsync(hash);
-        public async Task<TransactionBlock> FindBlockByHashAsync(string hash) => await StopWatcher.Track(_store.FindBlockByHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(hash);
-        public async Task<TransactionBlock> FindBlockByHashAsync(string AccountId, string hash) => await StopWatcher.Track(_store.FindBlockByHashAsync(AccountId, hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(AccountId, hash);
+        public async Task<Block> FindBlockByHashAsync(string hash) => await StopWatcher.Track(_store.FindBlockByHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(hash);
+        public async Task<Block> FindBlockByHashAsync(string AccountId, string hash) => await StopWatcher.Track(_store.FindBlockByHashAsync(AccountId, hash), StopWatcher.GetCurrentMethod());//_store.FindBlockByHashAsync(AccountId, hash);
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword) => await StopWatcher.Track(_store.FindTokenGenesisBlocksAsync(keyword), StopWatcher.GetCurrentMethod());//_store.FindTokenGenesisBlocksAsync(keyword);
         public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker) => await StopWatcher.Track(_store.FindTokenGenesisBlockAsync(Hash, Ticker), StopWatcher.GetCurrentMethod());//_store.FindTokenGenesisBlockAsync(Hash, Ticker);
         public async Task<ReceiveTransferBlock> FindBlockBySourceHashAsync(string hash) => await StopWatcher.Track(_store.FindBlockBySourceHashAsync(hash), StopWatcher.GetCurrentMethod());//_store.FindBlockBySourceHashAsync(hash);
@@ -190,6 +190,8 @@ namespace Lyra
                 Mode = BlockChainMode.Inquiry;
                 _ = Task.Run(async () =>
                 {
+                    _sys.Consensus.Tell(new ConsensusService.Startup());
+
                     while (true)
                     {
                         _nodeStatus = new List<NodeStatus>();
@@ -216,6 +218,11 @@ namespace Lyra
                             if(majorHeight.Height == myStatus.lastBlockHeight)
                             {
                                 Mode = BlockChainMode.Almighty;
+
+                                await Task.Delay(5000);
+
+                                if (!ConsensusService.IsThisNodeSeed0)
+                                    break;
                             }
 
                             var otherSeedsCount = ProtocolSettings.Default.StandbyValidators.Length - 1;
@@ -223,7 +230,28 @@ namespace Lyra
                                 && majorHeight.Height == 0 && majorHeight.Count == otherSeedsCount)
                             {
                                 // genesis
-                                _log.LogInformation("will do genesis.");
+                                _log.LogInformation("all seed nodes are ready. do genesis.");
+
+                                var svcGen = GetServiceGenesisBlock();
+
+                                AuthorizingMsg msg = new AuthorizingMsg
+                                {
+                                    From = NodeService.Instance.PosWallet.AccountId,
+                                    Block = svcGen,
+                                    MsgType = ChatMessageType.AuthorizerPrePrepare
+                                };
+
+                                var state = new AuthState(true);
+                                state.HashOfFirstBlock = svcGen.Hash;
+                                state.InputMsg = msg;
+
+                                _sys.Consensus.Tell(state);
+
+                                await state.Done.AsTask();
+                                state.Done.Close();
+                                state.Done = null;
+
+                                _log.LogInformation("svc genesis is done.");
                             }
                         }
                     }
@@ -240,61 +268,63 @@ namespace Lyra
             }
 
             return;
+        }
 
-            if (0 == await GetBlockCountAsync() && NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
+        public ServiceBlock GetServiceGenesisBlock()
+        {
+            var svcGenesis = new ServiceBlock
             {
+                NetworkId = NetworkID,
+                Index = 1,
+                UIndex = 0,
+                TransferFee = 1,
+                TokenGenerationFee = 100,
+                TradeFee = 0.1m,
+                SvcAccountID = NodeService.Instance.PosWallet.AccountId
+            };
+            svcGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+                NodeService.Instance.PosWallet.AccountId);
+            return svcGenesis;
+        }
+        private void Genesis()
+        {
                 // do genesis
-                var authGenesis = new ServiceBlock
-                {
-                    Index = 1,
-                    UIndex = 1,
-                    TransferFee = 1,
-                    TokenGenerationFee = 100,
-                    TradeFee = 0.1m,
-                    SvcAccountID = NodeService.Instance.PosWallet.AccountId
-                };
-                authGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                    NodeService.Instance.PosWallet.AccountId);
-                authGenesis.UHash = SignableObject.CalculateHash($"{authGenesis.UIndex}|{authGenesis.Index}|{authGenesis.Hash}");
-                authGenesis.Authorizations = new List<AuthorizationSignature>();
-                authGenesis.Authorizations.Add(new AuthorizationSignature
-                {
-                    Key = NodeService.Instance.PosWallet.AccountId,
-                    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, authGenesis.Hash, NodeService.Instance.PosWallet.AccountId)
-                });
+
+                //authGenesis.UHash = SignableObject.CalculateHash($"{authGenesis.UIndex}|{authGenesis.Index}|{authGenesis.Hash}");
+                //authGenesis.Authorizations = new List<AuthorizationSignature>();
+                //authGenesis.Authorizations.Add(new AuthorizationSignature
+                //{
+                //    Key = NodeService.Instance.PosWallet.AccountId,
+                //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, authGenesis.Hash, NodeService.Instance.PosWallet.AccountId)
+                //});
                 // TODO: add more seed's auth info
 
-                await _store.AddBlockAsync(authGenesis);
+                //await _store.AddBlockAsync(authGenesis);
 
-                // the first consolidate block
-                var consBlock = new ConsolidationBlock
-                {
-                    UIndex = 2,
-                    ServiceHash = authGenesis.Hash,
-                    SvcAccountID = NodeService.Instance.PosWallet.AccountId
-                };
-                consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
-                    NodeService.Instance.PosWallet.AccountId);
-                consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
-                consBlock.Authorizations = new List<AuthorizationSignature>();
-                consBlock.Authorizations.Add(new AuthorizationSignature
-                {
-                    Key = NodeService.Instance.PosWallet.AccountId,
-                    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
-                });
+                //// the first consolidate block
+                //var consBlock = new ConsolidationBlock
+                //{
+                //    UIndex = 2,
+                //    ServiceHash = authGenesis.Hash,
+                //    SvcAccountID = NodeService.Instance.PosWallet.AccountId
+                //};
+                //consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
+                //    NodeService.Instance.PosWallet.AccountId);
+                //consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
+                //consBlock.Authorizations = new List<AuthorizationSignature>();
+                //consBlock.Authorizations.Add(new AuthorizationSignature
+                //{
+                //    Key = NodeService.Instance.PosWallet.AccountId,
+                //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
+                //});
 
-                await _store.AddBlockAsync(consBlock);
+                ////await _store.AddBlockAsync(consBlock);
 
-                // tell consensus what happened
-                InSyncing = false;
+                //// tell consensus what happened
+                //InSyncing = false;
 
-                LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
-                _log.LogInformation("Service Genesis Completed.");
-            }
-            else
-            {
-                SyncBlocksFromSeeds(0);
-            }
+                //LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
+                //_log.LogInformation("Service Genesis Completed.");
         }
 
         /// <summary>

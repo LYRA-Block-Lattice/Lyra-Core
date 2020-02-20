@@ -19,7 +19,7 @@ namespace Lyra.Core.Accounts
 
         private LiteDatabase _db = null;
 
-        public LiteCollection<TransactionBlock> _blocks = null;
+        public LiteCollection<Block> _blocks = null;
 
         private string FileName;
 
@@ -35,8 +35,8 @@ namespace Lyra.Core.Accounts
             FileName = Path + COLLECTION_DATABASE_NAME + ".db";
             string connectionString = "Filename=" + FileName;
             _db = new LiteDatabase(connectionString);
-            _blocks = _db.GetCollection<TransactionBlock>("blocks");
-            _blocks.EnsureIndex(x => x.AccountID);
+            _blocks = _db.GetCollection<Block>("blocks");
+            //_blocks.EnsureIndex(x => x.AccountID);
             _blocks.EnsureIndex(x => x.Index);
             _blocks.EnsureIndex(x => x.UIndex);
             _blocks.EnsureIndex(x => x.BlockType);
@@ -92,7 +92,7 @@ namespace Lyra.Core.Accounts
 
             var block = _blocks.FindOne(Query.EQ("UIndex", ui));
             
-            return block;
+            return block as TransactionBlock;
         }
 
         public TransactionBlock FindLatestBlock(string AccountId)
@@ -101,7 +101,7 @@ namespace Lyra.Core.Accounts
                 .OrderByDescending(a => a.Index)
                 .FirstOrDefault();
 
-            return block;
+            return block as TransactionBlock;
         }
 
         public TokenGenesisBlock FindTokenGenesisBlock(string Hash, string Ticker)
@@ -151,13 +151,13 @@ namespace Lyra.Core.Accounts
         public TransactionBlock FindBlockByHash(string hash)
         {
             var result = _blocks.FindOne(Query.EQ("Hash", hash));
-            return result;
+            return result as TransactionBlock;
         }
 
         public TransactionBlock FindBlockByHash(string AccountId, string hash)
         {
             var result = _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("Hash", hash)));
-            return result;
+            return result as TransactionBlock;
         }
 
         public List<NonFungibleToken> GetNonFungibleTokens(string AccountId)
@@ -207,7 +207,7 @@ namespace Lyra.Core.Accounts
         public TransactionBlock FindBlockByPreviousBlockHash(string previousBlockHash)
         {
             var result = _blocks.FindOne(Query.EQ("PreviousHash", previousBlockHash));
-            return result;
+            return result as TransactionBlock;
         }
 
         public ReceiveTransferBlock FindBlockBySourceHash(string hash)
@@ -227,7 +227,7 @@ namespace Lyra.Core.Accounts
         public TransactionBlock FindBlockByIndex(string AccountId, long index)
         {
             var block = _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("Index", index)));
-            return block;
+            return block as TransactionBlock;
         }
 
         public SendTransferBlock FindUnsettledSendBlock(string AccountId)
@@ -391,7 +391,7 @@ namespace Lyra.Core.Accounts
         public TransactionBlock GetBlockByUIndex(long uindex)
         {
             var block = _blocks.Find(Query.EQ("UIndex", uindex)).FirstOrDefault();
-            return block;
+            return block as TransactionBlock;
         }
 
     }

@@ -36,7 +36,7 @@ namespace Lyra.Core.Authorizers
             if (!await BlockChain.Singleton.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist; // 
 
-            TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlockAsync(block.AccountID);
+            TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 

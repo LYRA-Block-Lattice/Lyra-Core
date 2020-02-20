@@ -12,20 +12,20 @@ namespace Lyra.Core.Accounts
     {
         // for sync
         Task<long> GetNewestBlockUIndexAsync();
-        Task<TransactionBlock> GetBlockByUIndexAsync(long uindex);
+        Task<Block> GetBlockByUIndexAsync(long uindex);
 
         // for service
         Task<long> GetBlockCountAsync();
         Task<long> GetBlockCountAsync(string AccountId);
         //int GetTotalBlockCount();
         Task<bool> AccountExistsAsync(string AccountId);
-        Task<TransactionBlock> FindLatestBlockAsync();
-        Task<TransactionBlock> FindLatestBlockAsync(string AccountId);
+        Task<Block> FindLatestBlockAsync();
+        Task<Block> FindLatestBlockAsync(string AccountId);
         Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker);
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
         Task<NullTransactionBlock> FindNullTransBlockByHashAsync(string hash);
-        Task<TransactionBlock> FindBlockByHashAsync(string hash);
-        Task<TransactionBlock> FindBlockByHashAsync(string AccountId, string hash);
+        Task<Block> FindBlockByHashAsync(string hash);
+        Task<Block> FindBlockByHashAsync(string AccountId, string hash);
         Task<ReceiveTransferBlock> FindBlockBySourceHashAsync(string hash);
         Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId);
         Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash);
@@ -56,7 +56,7 @@ namespace Lyra.Core.Accounts
         // returns the list of hashes (order IDs) of all cancelled trade order blocks
         List<string> GetExecutedTradeOrderBlocks();
 
-        Task<bool> AddBlockAsync(TransactionBlock block);
+        Task<bool> AddBlockAsync(Block block);
         Task RemoveBlockAsync(long uindex);
 
         /// <summary>

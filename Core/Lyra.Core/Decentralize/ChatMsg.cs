@@ -128,7 +128,7 @@ namespace Lyra.Core.Decentralize
 
 	public class AuthorizingMsg : SourceSignedMessage
 	{
-		public TransactionBlock Block { get; set; }
+		public Block Block { get; set; }
 
 		public AuthorizingMsg()
 		{

@@ -15,7 +15,7 @@ namespace Lyra.Core.Blocks
     // the interval between the block must be at least 1 minute;
     // the block contains the full list of authorizers;
     // only one change at the time is allowed (i.e. one authorizer out and one in)
-    public class ServiceBlock : TransactionBlock
+    public class ServiceBlock : Block
     {
         /// <summary>
         /// Examples: testnet, mainnet, shopify, etc.
@@ -80,11 +80,6 @@ namespace Lyra.Core.Blocks
             return BlockTypes.Service;
         }
 
-        public override TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public override bool IsBlockValid(Block prevBlock)
         {
             if (string.IsNullOrWhiteSpace(this.NetworkId))
@@ -94,27 +89,27 @@ namespace Lyra.Core.Blocks
         }
     }
 
-//    public class ServiceGenesisBlock : ServiceBlock
-//    {
-//        /// <summary>
-//        /// The signature generated using one-time shard private key 
-//        /// </summary>
-////        public string ShardSignature { get; set; }
+    public class ServiceGenesisBlock : ServiceBlock
+    {
+        /// <summary>
+        /// The signature generated using one-time shard private key 
+        /// </summary>
+//        public string ShardSignature { get; set; }
 
-//        protected override string GetExtraData()
-//        {
-//            string extraData = base.GetExtraData();
-//            //extraData = extraData + IsPrimaryShard + "|";
-//            //extraData = extraData + ShardPublicKey + "|";
-//            //extraData = extraData + ShardSignature + "|";
-//            return extraData;
-//        }
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            //extraData = extraData + IsPrimaryShard + "|";
+            //extraData = extraData + ShardPublicKey + "|";
+            //extraData = extraData + ShardSignature + "|";
+            return extraData;
+        }
 
-//        public override BlockTypes GetBlockType()
-//        {
-//            return BlockTypes.ServiceGenesis;
-//        }
-//    }
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.ServiceGenesis;
+        }
+    }
 
     public class ConsolidationBlock : ServiceBlock
     {

@@ -34,6 +34,7 @@ namespace Lyra.Core.Decentralize
     /// </summary>
     public class ConsensusService : ReceiveActor
     {
+        public class Startup { }
         public class Consolidate { }
         public class AskForBillboard { }
         public class AskForStats { }
@@ -112,7 +113,13 @@ namespace Lyra.Core.Decentralize
                     }
                 );
 
-            ReceiveAsync<BlockChain.BlockAdded>(async (ba) => {
+            ReceiveAsync<Startup>(async state =>
+            {
+                await DeclareConsensusNodeAsync();
+            });
+
+            ReceiveAsync<BlockChain.BlockAdded>(async (ba) =>
+            {
                 await _orphange.BlockAddedAsync(ba.hash);
             });
 
@@ -183,10 +190,14 @@ namespace Lyra.Core.Decentralize
             ReceiveAsync<AuthState>(async state =>
             {
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
-                if(FindActiveBlock(state.InputMsg.Block.AccountID, state.InputMsg.Block.Index))
+                if(state.InputMsg.Block is TransactionBlock)
                 {
-                    _log.LogCritical($"Double spent detected for {state.InputMsg.Block.AccountID}, index {state.InputMsg.Block.Index}");
-                    return;
+                    var acctId = (state.InputMsg.Block as TransactionBlock).AccountID;
+                    if (FindActiveBlock(acctId, state.InputMsg.Block.Index))
+                    {
+                        _log.LogCritical($"Double spent detected for {acctId}, index {state.InputMsg.Block.Index}");
+                        return;
+                    }
                 }
 
                 if (await AddOrphanAsync(state))
@@ -306,7 +317,9 @@ namespace Lyra.Core.Decentralize
 
         public bool FindActiveBlock(string accountId, long index)
         {
-            return _activeConsensus.Any(a => a.Value.State?.InputMsg?.Block.AccountID == accountId && a.Value.State?.InputMsg?.Block.Index == index);
+            return _activeConsensus.Values.Where(s => s.State.InputMsg.Block is TransactionBlock)
+                .Select(t => t.State.InputMsg.Block as TransactionBlock)
+                .Any(a => a.AccountID == accountId && a.Index == index);
         }
 
         private async Task GenerateConsolidateBlockAsync()
@@ -514,10 +527,14 @@ namespace Lyra.Core.Decentralize
             switch (item)
             {
                 case AuthorizingMsg msg1:
-                    if (FindActiveBlock(msg1.Block.AccountID, msg1.Block.Index))
+                    if(msg1.Block is TransactionBlock)
                     {
-                        _log.LogCritical($"Double spent detected for {msg1.Block.AccountID}, index {msg1.Block.Index}");
-                        break;
+                        var acctId = (msg1.Block as TransactionBlock).AccountID;
+                        if (FindActiveBlock(acctId, msg1.Block.Index))
+                        {
+                            _log.LogCritical($"Double spent detected for {acctId}, index {msg1.Block.Index}");
+                            break;
+                        }
                     }
 
                     var worker = GetWorker(msg1.Block.Hash);
@@ -627,7 +644,7 @@ namespace Lyra.Core.Decentralize
             foreach(var node in _board.AllNodes.Values.ToList())
             {
                 // lookup balance
-                var block = await BlockChain.Singleton.FindLatestBlockAsync(node.AccountID);
+                var block = await BlockChain.Singleton.FindLatestBlockAsync(node.AccountID) as TransactionBlock;
                 if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
                 {
                     node.Balance = block.Balances[LyraGlobal.LYRATICKERCODE];
@@ -687,14 +704,14 @@ namespace Lyra.Core.Decentralize
                 await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
             }
 
-            if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IP == node.IP)
-                return;
-
             if (IsThisNodeSeed0)
             {
                 // broadcast billboard
                 await BroadCastBillBoardAsync();
             }
+
+            if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IP == node.IP)
+                return;
 
             if (node.Balance < LyraGlobal.MinimalAuthorizerBalance)
             {

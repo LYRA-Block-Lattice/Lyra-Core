@@ -46,7 +46,7 @@ namespace Lyra.Core.Authorizers
             //    Task.Delay(100).Wait();
             //}
 
-            TransactionBlock lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+            TransactionBlock lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
 
             //TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlock(block.AccountID);
             if (lastBlock == null)

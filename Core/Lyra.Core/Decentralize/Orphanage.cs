@@ -108,13 +108,23 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async Task<bool> IsThisBlockOrphan(TransactionBlock block)
+        public async Task<bool> IsThisBlockOrphan(Block blockx)
         {
-            // double spent dection
-            if (_orphanAuthStates.Values.Any(a => a.InputMsg.Block.AccountID == block.AccountID && a.InputMsg.Block.Index == block.Index))
+            var block = blockx as TransactionBlock;
+            if (block == null)
                 return false;
 
-            if (_orphanAuthorizingMsg.Values.Any(a => a.Block.AccountID == block.AccountID && a.Block.Index == block.Index))
+            // double spent dection
+            if (_orphanAuthStates.Values
+                .Where(s => s.InputMsg.Block is TransactionBlock)
+                .Select(t => t.InputMsg.Block as TransactionBlock)
+                .Any(a => a.AccountID == block.AccountID && a.Index == block.Index))
+                return false;
+
+            if (_orphanAuthorizingMsg.Values
+                .Where(s => s.Block is TransactionBlock)
+                .Select(t => t.Block as TransactionBlock)
+                .Any(a => a.AccountID == block.AccountID && a.Index == block.Index))
                 return false;
 
             if (block.PreviousHash != null)

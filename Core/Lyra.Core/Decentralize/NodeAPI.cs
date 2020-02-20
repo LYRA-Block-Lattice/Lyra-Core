@@ -288,7 +288,7 @@ namespace Lyra.Core.Decentralize
 
                 if (sendBlock != null)
                 {
-                    TransactionBlock previousBlock = await BlockChain.Singleton.FindBlockByHashAsync(sendBlock.PreviousHash);
+                    TransactionBlock previousBlock = await BlockChain.Singleton.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
                     if (previousBlock == null)
                         transfer_info.ResultCode = APIResultCodes.CouldNotTraceSendBlockChain;
                     else

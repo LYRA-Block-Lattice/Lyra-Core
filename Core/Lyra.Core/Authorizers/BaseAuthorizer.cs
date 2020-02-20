@@ -40,7 +40,7 @@ namespace Lyra.Core.Authorizers
             throw new NotImplementedException("Must override");
         }
 
-        protected async Task<APIResultCodes> VerifyBlockAsync(TransactionBlock block, TransactionBlock previousBlock)
+        protected async Task<APIResultCodes> VerifyBlockAsync(Block block, Block previousBlock)
         {
             if (previousBlock != null && !block.IsBlockValid(previousBlock))
                 return APIResultCodes.BlockValidationFailed;
@@ -58,21 +58,25 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }                    
             }
-            else
+            else if(block is TransactionBlock)
             {
-                if (!block.VerifyHash())
+                var blockt = block as TransactionBlock;
+                if (!blockt.VerifyHash())
                     _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock UIndex: {block.UIndex} by {block.GetHashInput()}");
 
-                var result = block.VerifySignature(block.AccountID);
+                var result = block.VerifySignature(blockt.AccountID);
                 if (!result)
                 {
-                    _log.LogWarning($"VerifyBlock failed for TransactionBlock UIndex: {block.UIndex} Type: {block.BlockType} by {block.AccountID}");
+                    _log.LogWarning($"VerifyBlock failed for TransactionBlock UIndex: {block.UIndex} Type: {block.BlockType} by {blockt.AccountID}");
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
 
                 // check if this Index already exists (double-spending, kind of)
-                if (block.BlockType != BlockTypes.NullTransaction && await (BlockChain.Singleton.FindBlockByIndexAsync(block.AccountID, block.Index)) != null)
+                if (block.BlockType != BlockTypes.NullTransaction && await (BlockChain.Singleton.FindBlockByIndexAsync(blockt.AccountID, block.Index)) != null)
                     return APIResultCodes.BlockWithThisIndexAlreadyExists;
+
+                if (!await ValidateRenewalDateAsync(blockt, previousBlock as TransactionBlock))
+                    return APIResultCodes.TokenExpired;
             }         
 
             // This is the double-spending check for send block!
@@ -90,12 +94,6 @@ namespace Lyra.Core.Authorizers
 
             if (previousBlock != null && block.Index != previousBlock.Index + 1)
                 return APIResultCodes.InvalidIndexSequence;
-
-            if(!(block is ConsolidationBlock) && !(block is NullTransactionBlock))
-            {
-                if (!await ValidateRenewalDateAsync(block, previousBlock))
-                    return APIResultCodes.TokenExpired;
-            }
 
             return APIResultCodes.Success;
         }
@@ -133,7 +131,7 @@ namespace Lyra.Core.Authorizers
                 //while (!(thisBlock is IOpeningBlock))
                 if (!(thisBlock is IOpeningBlock))      //save time
                 {
-                    prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(thisBlock.PreviousHash);
+                    prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(thisBlock.PreviousHash) as TransactionBlock;
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
@@ -145,7 +143,7 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // verify the spending
-                TransactionBlock previousTransaction = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+                TransactionBlock previousTransaction = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
                 foreach (var prevbalance in previousTransaction.Balances)
                 {
                     // make sure all balances from the previous block are present in a new block even if they are unchanged
@@ -226,7 +224,7 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as TransactionBlock;
 
-            if (block.BlockType != BlockTypes.Consolidation)
+            if (block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.ServiceGenesis)
             {
                 // ServiceHash is excluded when calculating the block hash,
                 // but it is included when creating/validating the authorization signature

@@ -5,16 +5,16 @@ using System.Linq;
 
 namespace Lyra.Core.Blocks
 {
-    public class ReceiveMultipleFeeBlock : ServiceBlock
+    public class ReceiveMultipleFeeBlock : ReceiveTransferBlock
     {
 
         // Hash of the send block
-        public List<string> SourceHash { get; } = new List<string>();
+        public List<string> SourceHashes { get; } = new List<string>();
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData = extraData + SourceHash.Aggregate((a, b) => a + "|" + b) + "|";
+            extraData = extraData + SourceHashes.Aggregate((a, b) => a + "|" + b) + "|";
             return extraData;
         }
 

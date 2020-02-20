@@ -35,7 +35,7 @@ namespace Lyra.Core.Authorizers
             if (!await BlockChain.Singleton.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
-            TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlockAsync(block.AccountID);
+            TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
@@ -80,14 +80,14 @@ namespace Lyra.Core.Authorizers
         protected async Task<APIResultCodes> ValidateReceiveTransAmountAsync(ReceiveTransferBlock block, TransactionInfo receiveTransaction)
         {
             //find the corresponding send block and validate the added transaction amount
-            var sourceBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.SourceHash);
+            var sourceBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.SourceHash) as TransactionBlock;
             if (sourceBlock == null)
                 return APIResultCodes.SourceSendBlockNotFound;
 
 
             // find the actual amount of transaction 
 
-            TransactionBlock prevToSendBlock = await BlockChain.Singleton.FindBlockByHashAsync(sourceBlock.PreviousHash);
+            TransactionBlock prevToSendBlock = await BlockChain.Singleton.FindBlockByHashAsync(sourceBlock.PreviousHash) as TransactionBlock;
             if (prevToSendBlock == null)
                 return APIResultCodes.CouldNotTraceSendBlockChain;
 
@@ -132,7 +132,7 @@ namespace Lyra.Core.Authorizers
             if (send_or_receice_block.NonFungibleToken == null)
                 return APIResultCodes.Success;
 
-            var originBlock = await BlockChain.Singleton.FindBlockByHashAsync((send_or_receice_block as ReceiveTransferBlock).SourceHash);
+            var originBlock = await BlockChain.Singleton.FindBlockByHashAsync((send_or_receice_block as ReceiveTransferBlock).SourceHash) as TransactionBlock;
             if (originBlock == null)
                 return APIResultCodes.OriginNonFungibleBlockNotFound;
 

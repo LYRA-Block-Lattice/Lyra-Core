@@ -321,7 +321,7 @@ namespace Lyra.Core.Decentralize
             var callresult = APIResultCodes.Success;
             TransactionBlock blockresult = null;
 
-            TransactionBlock latestBlock = await BlockChain.Singleton.FindLatestBlockAsync(NodeService.Instance.PosWallet.AccountId);
+            TransactionBlock latestBlock = await BlockChain.Singleton.FindLatestBlockAsync(NodeService.Instance.PosWallet.AccountId) as TransactionBlock;
             if(latestBlock == null)
             {
                 var receiveBlock = new OpenWithReceiveFeeBlock
