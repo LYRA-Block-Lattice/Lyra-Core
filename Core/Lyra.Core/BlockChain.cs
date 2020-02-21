@@ -225,8 +225,6 @@ namespace Lyra
                             {
                                 Mode = BlockChainMode.Almighty;
 
-                                await Task.Delay(5000);
-
                                 if (!ConsensusService.IsThisNodeSeed0)
                                     break;
                             }
@@ -235,19 +233,22 @@ namespace Lyra
                             if (ConsensusService.IsThisNodeSeed0 && _nodeStatus.Count(a => a.mode == BlockChainMode.Almighty) == otherSeedsCount
                                 && majorHeight.Height == 0 && majorHeight.Count == otherSeedsCount)
                             {
-                                // genesis
-                                _log.LogInformation("all seed nodes are ready. do genesis.");
+                                _ = Task.Run(async () =>
+                                {
+                                    // genesis
+                                    _log.LogInformation("all seed nodes are ready. do genesis.");
 
-                                var svcGen = GetServiceGenesisBlock();
-                                await SendBlockToConsensusAsync(svcGen);
+                                    var svcGen = GetServiceGenesisBlock();
+                                    await SendBlockToConsensusAsync(svcGen);
 
-                                var tokenGen = GetLyraTokenGenesisBlock(svcGen);
-                                await SendBlockToConsensusAsync(tokenGen);
+                                    var tokenGen = GetLyraTokenGenesisBlock(svcGen);
+                                    await SendBlockToConsensusAsync(tokenGen);
 
-                                var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
-                                await SendBlockToConsensusAsync(consGen);
+                                    var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
+                                    await SendBlockToConsensusAsync(consGen);
 
-                                _log.LogInformation("svc genesis is done.");
+                                    _log.LogInformation("svc genesis is done.");
+                                });
 
                                 break;
                             }
