@@ -256,9 +256,10 @@ namespace Lyra
                             }
                         }
                     }
+
+                    _sys.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 });
 
-                _sys.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 return;
             }
 
