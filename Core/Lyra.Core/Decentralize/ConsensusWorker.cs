@@ -154,6 +154,10 @@ namespace Lyra.Core.Decentralize
                         result.BlockUIndex = _context.GenSeed();
                         break;
                 }
+                if(item.Block.UIndex == 2)
+                {
+                    result.BlockUIndex = item.Block.UIndex;     // for consolidation genesis
+                }
                 _log.LogInformation($"Give UIndex {result.BlockUIndex} to block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
             }
             catch (Exception e)
