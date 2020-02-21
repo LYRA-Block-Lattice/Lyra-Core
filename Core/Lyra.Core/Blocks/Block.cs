@@ -7,11 +7,9 @@ using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
 {
+    [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
-        [BsonId]
-        public ObjectId IdNeverUsed { get; set; }
-
         /// <summary>
         /// Universal Index. Generated only by leader node.
         /// </summary>

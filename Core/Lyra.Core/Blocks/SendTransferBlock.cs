@@ -1,5 +1,6 @@
 ﻿
 using Lyra.Core.API;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Lyra.Core.Blocks
 {
@@ -9,7 +10,7 @@ namespace Lyra.Core.Blocks
     //    public string ServiceHash { get; set; }
     //}
 
-
+    [BsonIgnoreExtraElements]
     public class SendTransferBlock : TransactionBlock//, IFeebleBlock
     {
 

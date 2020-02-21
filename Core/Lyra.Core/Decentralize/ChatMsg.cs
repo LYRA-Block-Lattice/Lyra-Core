@@ -128,14 +128,14 @@ namespace Lyra.Core.Decentralize
 
 	public class AuthorizingMsg : SourceSignedMessage
 	{
-		public Block Block { get => block; set 
+		public Block Block { get => _block; set 
 			{ 
-				block = value; 
-				_blockJson = JsonConvert.SerializeObject(Block); 
+				_block = value; 
+				_blockJson = JsonConvert.SerializeObject(_block); 
 			} 
 		}
 		private string _blockJson;
-		private Block block;
+		private Block _block;
 
 		public AuthorizingMsg()
 		{
@@ -152,7 +152,7 @@ namespace Lyra.Core.Decentralize
 			return base.GetExtraData();
 		}
 
-		public override int Size => base.Size + _blockJson == null ? 0 : _blockJson.Length + 1;
+		public override int Size => base.Size + _blockJson == null ? 1 : _blockJson.Length + 1;
 
 		public override void Serialize(BinaryWriter writer)
 		{

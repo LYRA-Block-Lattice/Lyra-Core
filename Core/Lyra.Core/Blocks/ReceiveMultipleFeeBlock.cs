@@ -1,10 +1,12 @@
 ﻿
 using Lyra.Core.API;
+using MongoDB.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Lyra.Core.Blocks
 {
+    [BsonIgnoreExtraElements]
     public class ReceiveMultipleFeeBlock : ReceiveTransferBlock
     {
 

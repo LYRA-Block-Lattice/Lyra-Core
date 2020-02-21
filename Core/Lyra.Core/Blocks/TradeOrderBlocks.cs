@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
 {
@@ -15,6 +16,7 @@ namespace Lyra.Core.Blocks
         BuyOnly = 2,
     }
 
+    [BsonIgnoreExtraElements]
     public class TradeOrderBlock : SendTransferBlock
     {
         // Sell or Buy?
@@ -113,6 +115,7 @@ namespace Lyra.Core.Blocks
     //    }
     //}
 
+    [BsonIgnoreExtraElements]
     public class TradeBlock : SendTransferBlock
     {
         // The hash of the seller's or buyer's trade order we are working with 
@@ -159,6 +162,7 @@ namespace Lyra.Core.Blocks
     }
 
     // 
+    [BsonIgnoreExtraElements]
     public class ExecuteTradeOrderBlock : SendTransferBlock
     {
         // The hash of the original order block
@@ -223,6 +227,7 @@ namespace Lyra.Core.Blocks
 
     // Cancels the trade order, either fully or partially (after it was partually executed).
     // Returns remaining unsent funds locked by the trade order.
+    [BsonIgnoreExtraElements]
     public class CancelTradeOrderBlock: ReceiveTransferBlock
     {
         // The hash of the original order block

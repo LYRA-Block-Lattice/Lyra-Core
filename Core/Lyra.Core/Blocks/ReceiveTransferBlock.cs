@@ -1,8 +1,10 @@
 ﻿
 using Lyra.Core.API;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace Lyra.Core.Blocks
 {
+    [BsonIgnoreExtraElements]
     public class ReceiveTransferBlock : TransactionBlock
     {
 
@@ -110,6 +112,7 @@ namespace Lyra.Core.Blocks
 
     }
 
+    [BsonIgnoreExtraElements]
     public class OpenWithReceiveTransferBlock : ReceiveTransferBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }

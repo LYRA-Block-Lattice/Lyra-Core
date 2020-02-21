@@ -1,6 +1,8 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 namespace Lyra.Core.Blocks
 {
+    [BsonIgnoreExtraElements]
     public class ImportAccountBlock : ReceiveTransferBlock
     {
         public string ImportedAccountId { get; set; }
@@ -28,6 +30,7 @@ namespace Lyra.Core.Blocks
         }
     }
 
+    [BsonIgnoreExtraElements]
     public class OpenAccountWithImportBlock : ImportAccountBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }

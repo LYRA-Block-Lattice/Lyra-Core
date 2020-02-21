@@ -1,9 +1,11 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Lyra.Core.Blocks
 {
+    [BsonIgnoreExtraElements]
     public class NullTransactionBlock : TransactionBlock
     {
         public string FailedBlockHash { get; set; }

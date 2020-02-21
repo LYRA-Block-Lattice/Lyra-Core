@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 
 namespace Lyra.Core.Blocks
 {
@@ -24,8 +25,9 @@ namespace Lyra.Core.Blocks
                
         Custom = 1000
     }
-    
+
     // Creates a new token type
+    [BsonIgnoreExtraElements]
     public class TokenGenesisBlock : ReceiveTransferBlock//, IFeebleBlock
     {
         // This is the unique token ID, cannot be used twice in the network
@@ -281,6 +283,7 @@ namespace Lyra.Core.Blocks
     //}
 
     // This one can be used only once for very genesis block when the network is launched
+    [BsonIgnoreExtraElements]
     public class LyraTokenGenesisBlock : TokenGenesisBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
