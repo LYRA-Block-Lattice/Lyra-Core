@@ -188,8 +188,8 @@ namespace Lyra
 
 
             // debug only should delete tomorrow
-            //for (long i = 0; i < 3; i++)
-            //    await RemoveBlockAsync(i);
+            for (long i = 0; i < await GetBlockCountAsync(); i++)
+                await RemoveBlockAsync(i);
 
             if (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount > 0)
             {
@@ -238,27 +238,27 @@ namespace Lyra
                             if (ConsensusService.IsThisNodeSeed0 && _nodeStatus.Count(a => a.mode == BlockChainMode.Almighty) == otherSeedsCount
                                 && majorHeight.Height == 0 && majorHeight.Count == otherSeedsCount)
                             {
-                                _ = Task.Run(async () =>
-                                {
-                                    // genesis
-                                    _log.LogInformation("all seed nodes are ready. do genesis.");
+                                // genesis
+                                _log.LogInformation("all seed nodes are ready. do genesis.");
 
-                                    var svcGen = GetServiceGenesisBlock();
-                                    await SendBlockToConsensusAsync(svcGen);
+                                var svcGen = GetServiceGenesisBlock();
+                                await SendBlockToConsensusAsync(svcGen);
 
-                                    var tokenGen = GetLyraTokenGenesisBlock(svcGen);
-                                    await SendBlockToConsensusAsync(tokenGen);
+                                var tokenGen = GetLyraTokenGenesisBlock(svcGen);
+                                await SendBlockToConsensusAsync(tokenGen);
 
-                                    var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
-                                    await SendBlockToConsensusAsync(consGen);
+                                var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
+                                await SendBlockToConsensusAsync(consGen);
 
-                                    _log.LogInformation("svc genesis is done.");
-                                });
+                                _log.LogInformation("svc genesis is done.");
+
+                                break;
                             }
                         }
                     }
                 });
 
+                _sys.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 return;
             }
 
