@@ -82,6 +82,7 @@ namespace Lyra.Core.Blocks
         }
     }
 
+    [BsonIgnoreExtraElements]
     public class ServiceGenesisBlock : ServiceBlock
     {
         /// <summary>
@@ -110,6 +111,7 @@ namespace Lyra.Core.Blocks
         }
     }
 
+    [BsonIgnoreExtraElements]
     public class ConsolidationBlock : ServiceBlock
     {
         // do nothing?
