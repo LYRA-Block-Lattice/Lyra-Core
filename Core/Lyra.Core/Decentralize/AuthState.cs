@@ -72,7 +72,8 @@ namespace Lyra.Core.Decentralize
             if (OutputMsgs.ToList().Any(a => a.From == msg.From))
                 return false;
 
-            if (msg.From != msg.AuthSign.Key)
+            // only when success there is AuthSign
+            if (msg.Result == APIResultCodes.Success && msg.From != msg.AuthSign.Key)
                 return false;
 
             // verify signature

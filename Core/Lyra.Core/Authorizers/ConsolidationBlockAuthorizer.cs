@@ -42,8 +42,11 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.BlockWithThisUIndexAlreadyExists;
 
             var lastCons = await BlockChain.Singleton.GetSyncBlockAsync();
-            if (lastCons == null)
-                return APIResultCodes.CouldNotFindLatestBlock;
+            if(block.UIndex > 2)
+            {
+                if (lastCons == null)
+                    return APIResultCodes.CouldNotFindLatestBlock;
+            }
 
             var result = await VerifyBlockAsync(block, lastCons);
             if (result != APIResultCodes.Success)
@@ -52,7 +55,8 @@ namespace Lyra.Core.Authorizers
             // recalculate merkeltree
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
             var mt = new MerkleTree();
-            for (var ndx = lastCons.UIndex; ndx < block.UIndex; ndx++)
+            long startIndex = block.UIndex == 2 ? 0 : lastCons.UIndex;
+            for (var ndx = startIndex; ndx < block.UIndex; ndx++)
             {
                 var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
                 var mhash = MerkleHash.Create(bndx.UHash);
