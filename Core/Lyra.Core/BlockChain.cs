@@ -188,7 +188,7 @@ namespace Lyra
 
 
             // debug only should delete tomorrow
-            for (long i = 0; i < await GetBlockCountAsync(); i++)
+            for (long i = 0; i < 5; i++)
                 await RemoveBlockAsync(i);
 
             if (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount > 0)
