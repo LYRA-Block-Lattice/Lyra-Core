@@ -186,7 +186,12 @@ namespace Lyra
             // if others all zero, then this seed do genesis
             // 
 
-            if(Neo.Network.P2P.LocalNode.Singleton.ConnectedCount > 0)
+
+            // debug only should delete tomorrow
+            for (long i = 0; i < 3; i++)
+                await RemoveBlockAsync(i);
+
+            if (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount > 0)
             {
                 Mode = BlockChainMode.Inquiry;
                 _ = Task.Run(async () =>
@@ -232,10 +237,6 @@ namespace Lyra
                             {
                                 // genesis
                                 _log.LogInformation("all seed nodes are ready. do genesis.");
-
-                                // debug only should delete tomorrow
-                                for (long i = 0; i < 3; i++)
-                                    await RemoveBlockAsync(i);
 
                                 var svcGen = GetServiceGenesisBlock();
                                 await SendBlockToConsensusAsync(svcGen);
