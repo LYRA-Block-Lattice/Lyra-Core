@@ -20,7 +20,7 @@ namespace Lyra.Core.Authorizers
         {
             var result = await AuthorizeImplAsync(tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, await SignAsync(tblock));
+                return (APIResultCodes.Success, Sign(tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }

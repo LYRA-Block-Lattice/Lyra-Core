@@ -1,4 +1,6 @@
-﻿using Lyra.Core.Utils;
+﻿using Lyra.Core.Blocks;
+using Lyra.Core.Cryptography;
+using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
@@ -70,6 +72,15 @@ namespace Lyra.Core.Decentralize
             if (OutputMsgs.ToList().Any(a => a.From == msg.From))
                 return false;
 
+            if (msg.From != msg.AuthSign.Key)
+                return false;
+
+            // verify signature
+            if(!Signatures.VerifyAccountSignature(InputMsg.Block.Hash, msg.AuthSign.Key, msg.AuthSign.Signature))
+            {
+                _log.LogError($"AuthorizedMsg from {msg.From.Shorten()} for block {InputMsg.Block.Hash.Shorten()} verification failed.");
+            }
+
             OutputMsgs.Add(msg);
             return true;
         }
@@ -127,7 +138,7 @@ namespace Lyra.Core.Decentralize
 
         private ConsensusResult GetConsensusSuccess()
         {
-            if (ConsensusUIndex == 0)
+            if (ConsensusUIndex < 1 && !(InputMsg.Block is ServiceGenesisBlock))
                 return ConsensusResult.Uncertain;
 
             var authResult = CheckAuthorizedResults();

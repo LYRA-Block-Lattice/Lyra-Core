@@ -76,7 +76,6 @@ namespace Lyra.Core.Blocks
 
         public override bool IsBlockValid(Block prevBlock)
         {
-
             return base.IsBlockValid(prevBlock);
         }
     }
@@ -84,22 +83,14 @@ namespace Lyra.Core.Blocks
     public class ServiceGenesisBlock : ServiceBlock
     {
         /// <summary>
-        /// Examples: testnet, mainnet, shopify, etc.
-        /// </summary>
-        public string NetworkId { get; set; }
-
-        /// <summary>
         /// The signature generated using one-time shard private key 
         /// </summary>
-//        public string ShardSignature { get; set; }
+        public string NetworkId { get; set; }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData += this.NetworkId + "|";
-            //extraData = extraData + IsPrimaryShard + "|";
-            //extraData = extraData + ShardPublicKey + "|";
-            //extraData = extraData + ShardSignature + "|";
             return extraData;
         }
 

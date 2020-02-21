@@ -281,6 +281,8 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation("p2p network not connected. delay sending message...");
                 Task.Delay(1000).Wait();
             }
+
+            _log.LogInformation($"Send2P2pNetwork {item.MsgType}");
             _localNode.Tell(item);
         }
 
@@ -513,7 +515,7 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync Called: {item.MsgType} From: {item.From.Shorten()}");
+            _log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
 
             if(null == AuthorizerShapshot && !(item is ChatMsg))
             {
@@ -536,6 +538,12 @@ namespace Lyra.Core.Decentralize
                             break;
                         }
                     }
+
+                    if (msg1.Block is ServiceGenesisBlock && !IsMessageFromSeed0(item))
+                    {
+                        _log.LogError($"fake genesis block from node {item.From}");
+                        return;
+                    }                        
 
                     var worker = GetWorker(msg1.Block.Hash);
                     if (worker != null)

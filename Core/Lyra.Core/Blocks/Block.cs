@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lyra.Core.API;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
 {
     public abstract class Block: SignableObject
     {
+        [BsonId]
+        public ObjectId IdNeverUsed { get; set; }
+
         /// <summary>
         /// Universal Index. Generated only by leader node.
         /// </summary>
@@ -26,9 +31,6 @@ namespace Lyra.Core.Blocks
         public BlockTypes BlockType { get; set; }
 
         public string PreviousHash { get; set; }
-
-        // The hash of the most recent service chain block 
-        public string ServiceHash { get; set; }
 
         /// <summary>
         /// Custom metadata in key/value format.
@@ -143,7 +145,6 @@ namespace Lyra.Core.Blocks
             result += $"Version: {Version}\n";
             result += $"BlockType: {BlockType.ToString()}\n";
             result += $"PreviousHash: {PreviousHash}\n";
-            result += $"ServiceHash: {ServiceHash}\n";
             result += $"Tags: {JsonConvert.SerializeObject(Tags)}\n";
             result += $"Authorizations: {JsonConvert.SerializeObject(Authorizations)}\n";
             return result;
