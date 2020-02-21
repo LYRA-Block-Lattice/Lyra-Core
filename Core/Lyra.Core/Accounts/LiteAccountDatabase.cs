@@ -53,6 +53,10 @@ namespace Lyra.Core.LiteDB
 
         public void Open(string path, string accountName)
         {
+            var mapper = BsonMapper.Global;
+
+            mapper.Entity<Block>().Id(x => x.UIndex);
+
             if (_db == null)
             {
                 _DatabaseName = accountName;

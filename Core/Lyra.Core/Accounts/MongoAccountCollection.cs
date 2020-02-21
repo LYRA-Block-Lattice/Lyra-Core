@@ -77,6 +77,7 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<ReceiveFeeBlock>();
             BsonClassMap.RegisterClassMap<ConsolidationBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
+            BsonClassMap.RegisterClassMap<ServiceGenesisBlock>();
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
             BsonClassMap.RegisterClassMap<NullTransactionBlock>();
 

@@ -225,7 +225,12 @@ namespace Lyra
                             {
                                 Mode = BlockChainMode.Almighty;
 
-                                if (!ConsensusService.IsThisNodeSeed0)
+                                if(ConsensusService.IsThisNodeSeed0)
+                                {
+                                    if (majorHeight.Height > 1)
+                                        break;
+                                }
+                                else
                                     break;
                             }
 
@@ -250,8 +255,6 @@ namespace Lyra
                                     _log.LogInformation("svc genesis is done.");
                                 });
                             }
-
-                            break;
                         }
                     }
                 });
