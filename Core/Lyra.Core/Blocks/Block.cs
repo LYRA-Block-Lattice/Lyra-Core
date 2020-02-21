@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lyra.Core.API;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
@@ -8,6 +9,9 @@ namespace Lyra.Core.Blocks
 {
     public abstract class Block: SignableObject
     {
+        [BsonId]
+        public ObjectId IdNeverUsed { get; set; }
+
         /// <summary>
         /// Universal Index. Generated only by leader node.
         /// </summary>
