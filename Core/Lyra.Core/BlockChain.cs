@@ -270,9 +270,9 @@ namespace Lyra
             return;
         }
 
-        public ServiceBlock GetServiceGenesisBlock()
+        public ServiceGenesisBlock GetServiceGenesisBlock()
         {
-            var svcGenesis = new ServiceBlock
+            var svcGenesis = new ServiceGenesisBlock
             {
                 NetworkId = NetworkID,
                 Index = 1,
