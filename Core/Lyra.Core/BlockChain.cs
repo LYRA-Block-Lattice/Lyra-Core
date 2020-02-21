@@ -249,9 +249,9 @@ namespace Lyra
 
                                     _log.LogInformation("svc genesis is done.");
                                 });
-
-                                break;
                             }
+
+                            break;
                         }
                     }
                 });

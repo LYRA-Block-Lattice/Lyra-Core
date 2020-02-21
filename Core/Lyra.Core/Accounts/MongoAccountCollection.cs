@@ -185,9 +185,17 @@ namespace Lyra.Core.Accounts
 
         public async Task<ServiceBlock> GetLastServiceBlockAsync()
         {
-            var finds = await _blocks.FindAsync(a => a.BlockType == BlockTypes.Service);
-            var list = await finds.ToListAsync();
-            return list.Last() as ServiceBlock;
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1,
+                Sort = Builders<Block>.Sort.Descending(o => o.UIndex)
+            };
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Or(filter.Eq("BlockType", BlockTypes.Service),
+                filter.Eq("BlockType", BlockTypes.ServiceGenesis));
+
+            var finds = await _blocks.FindAsync(filterDefination);
+            return await finds.FirstOrDefaultAsync() as ServiceBlock;
         }
 
         public async Task<ConsolidationBlock> GetSyncBlockAsync()
