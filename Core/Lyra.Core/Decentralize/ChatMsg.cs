@@ -152,7 +152,7 @@ namespace Lyra.Core.Decentralize
 			return base.GetExtraData();
 		}
 
-		public override int Size => base.Size + _blockJson.Length + 1;
+		public override int Size => base.Size + _blockJson == null ? 0 : _blockJson.Length + 1;
 
 		public override void Serialize(BinaryWriter writer)
 		{

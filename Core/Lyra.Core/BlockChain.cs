@@ -290,7 +290,7 @@ namespace Lyra
             return consBlock;
         }
 
-        public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceBlock svcGen)
+        public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceGenesisBlock svcGen)
         {
             // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
@@ -321,7 +321,7 @@ namespace Lyra
             return openTokenGenesisBlock;
         }
 
-        public ServiceBlock GetServiceGenesisBlock()
+        public ServiceGenesisBlock GetServiceGenesisBlock()
         {
             var svcGenesis = new ServiceGenesisBlock
             {
