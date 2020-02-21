@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
+using Clifton.Blockchain;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
@@ -232,11 +233,18 @@ namespace Lyra
                                 // genesis
                                 _log.LogInformation("all seed nodes are ready. do genesis.");
 
+                                // debug only should delete tomorrow
+                                for (long i = 0; i < 3; i++)
+                                    await RemoveBlockAsync(i);
+
                                 var svcGen = GetServiceGenesisBlock();
                                 await SendBlockToConsensusAsync(svcGen);
 
                                 var tokenGen = GetLyraTokenGenesisBlock(svcGen);
                                 await SendBlockToConsensusAsync(tokenGen);
+
+                                var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
+                                await SendBlockToConsensusAsync(consGen);
 
                                 _log.LogInformation("svc genesis is done.");
 
@@ -257,6 +265,27 @@ namespace Lyra
             }
 
             return;
+        }
+
+        public ConsolidationBlock GetConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
+        {
+            var consBlock = new ConsolidationBlock
+            {
+                UIndex = 2,
+                Index = svcGen.Index + 1,
+                PreviousHash = svcGen.Hash,
+                SvcAccountID = NodeService.Instance.PosWallet.AccountId
+            };
+
+            var mt = new MerkleTree();
+            mt.AppendLeaf(MerkleHash.Create(svcGen.UHash));
+            mt.AppendLeaf(MerkleHash.Create(lyraGen.UHash));
+
+            consBlock.MerkelTreeHash = mt.BuildTree().ToString();
+            consBlock.InitializeBlock(svcGen, NodeService.Instance.PosWallet.PrivateKey,
+                NodeService.Instance.PosWallet.AccountId);
+
+            return consBlock;
         }
 
         public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceBlock svcGen)
