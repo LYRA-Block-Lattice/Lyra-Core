@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
+using Clifton.Blockchain;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Utils;
@@ -357,7 +358,7 @@ namespace Lyra.Core.Decentralize
                 for (int i = 0; i < states.Length; i++)
                 {
                     var state = states[i].State;    // TODO: check null
-                    if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(20)) // consensus timeout
+                    if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(30)) // consensus timeout
                     {
                         var finalResult = state.Consensus;
                         if(finalResult == ConsensusResult.Uncertain)
@@ -367,64 +368,60 @@ namespace Lyra.Core.Decentralize
                         state.Done?.Set();
 
                         _cleanedConsensus.TryAdd(state.InputMsg.Block.Hash, states[i]);
-
-                        //if (finalResult == true)
-                        //    continue;
-
-                        //// replace the failed block with nulltrans
-                        //var myAuthResult = state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
-                        //if (myAuthResult == null)
-                        //{
-                        //    // fatal error. should not happen
-                        //    _log.LogError("No auth result from seed0. should not happen.");
-                        //    continue;
-                        //}
-
-                        //var ndx = myAuthResult.BlockUIndex;
-                        //if (ndx == 0)    // not got yet
-                        //    continue;
-
-                        //// check if the block is orphaned success block
-                        //var existingBlock = BlockChain.Singleton.GetBlockByUIndex(ndx);
-                        //if (existingBlock != null)
-                        //{
-                        //    _log.LogInformation($"in GenerateConsolidateBlock: orphaned message for {ndx} detected.");
-                        //    continue;
-                        //}
-                        
-                        // no need for this. just leave it as hole
-                        //var nb = new NullTransactionBlock
-                        //{
-                        //    UIndex = ndx,
-                        //    FailedBlockHash = myAuthResult.BlockHash,
-                        //    NetworkId = lastCons.NetworkId,
-                        //    ShardId = lastCons.ShardId,
-                        //    ServiceHash = lastCons.ServiceHash,
-                        //    AccountID = NodeService.Instance.PosWallet.AccountId,
-                        //    PreviousConsolidateHash = lastCons.Hash
-                        //};
-                        //nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                        //    lastCons.NetworkId, lastCons.ShardId,
-                        //    NodeService.Instance.PosWallet.AccountId);
-                        //nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
-
-                        //SendServiceBlock(nb);
                     }
                 }
 
-                //// if necessary, insert a new ConsolidateBlock
-                //if (USeed - lastCons.UIndex > 1024 || DateTime.Now - lastCons.TimeStamp > TimeSpan.FromMinutes(10))
-                //{
-                //    var authGenesis = BlockChain.Singleton.GetLastServiceBlock();
-                //    currentCons = new ConsolidationBlock
-                //    {
-                //        UIndex = USeed++,
-                //        NetworkId = authGenesis.NetworkId,
-                //        ShardId = authGenesis.ShardId,
-                //        ServiceHash = authGenesis.Hash,
-                //        SvcAccountID = NodeService.Instance.PosWallet.AccountId
-                //    };
-                //}
+                // if necessary, insert a new ConsolidateBlock
+                if (USeed - lastCons.UIndex > 1024 || DateTime.Now - lastCons.TimeStamp > TimeSpan.FromMinutes(10))
+                {
+                    var startUIndex = lastCons.UIndex + 1;
+                    var endUIndex = _activeConsensus.Values
+                        .Where(x => x.State.ConsensusUIndex > 0)
+                        .Min(a => a.State.ConsensusUIndex);
+
+                    _log.LogInformation($"Creating ConsolidationBlock from {startUIndex} to {endUIndex}");
+
+                    var mt = new MerkleTree();
+                    var emptyNdx = new List<long>();
+                    for (var ndx = startUIndex; ndx < endUIndex; ndx++)
+                    {
+                        var bx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
+                        if(bx == null)
+                        {
+                            emptyNdx.Add(ndx);
+                        }
+                        else
+                        {
+                            mt.AppendLeaf(MerkleHash.Create(bx.UHash));
+                        }                        
+                    }
+                    
+                    currentCons = new ConsolidationBlock
+                    {
+                        UIndex = GenSeed(),
+                        Index = lastCons.Index + 1,
+                        PreviousHash = lastCons.Hash,
+                        NullUIndex = emptyNdx.ToArray(),
+                        MerkelTreeHash = mt.BuildTree().ToString()
+                    };
+
+                    currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+                        NodeService.Instance.PosWallet.AccountId);
+
+                    AuthorizingMsg msg = new AuthorizingMsg
+                    {
+                        From = NodeService.Instance.PosWallet.AccountId,
+                        Block = currentCons,
+                        MsgType = ChatMessageType.AuthorizerPrePrepare
+                    };
+
+                    var state = new AuthState(false);
+                    state.HashOfFirstBlock = currentCons.Hash;
+                    state.InputMsg = msg;
+
+                    var worker = GetWorker(state.InputMsg.Block.Hash);
+                    worker.Create(state);
+                }
             }
             catch (Exception ex)
             {

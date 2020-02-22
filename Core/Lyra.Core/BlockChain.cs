@@ -106,7 +106,7 @@ namespace Lyra
 
         public async Task<long> GetNewestBlockUIndexAsync() => await StopWatcher.Track(_store.GetNewestBlockUIndexAsync(), StopWatcher.GetCurrentMethod());
         public async Task<Block> GetBlockByUIndexAsync(long uindex) => await StopWatcher.Track(_store.GetBlockByUIndexAsync(uindex), StopWatcher.GetCurrentMethod());//_store.GetBlockByUIndexAsync(uindex);
-        internal async Task<ServiceBlock> GetSyncBlockAsync() => await StopWatcher.Track(_store.GetSyncBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
+        internal async Task<ConsolidationBlock> GetSyncBlockAsync() => await StopWatcher.Track(_store.GetSyncBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
         internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await StopWatcher.Track(_store.GetLastServiceBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetLastServiceBlockAsync();
 
         // forward api. should have more control here.
@@ -282,8 +282,7 @@ namespace Lyra
             {
                 UIndex = 2,
                 Index = svcGen.Index + 1,
-                PreviousHash = svcGen.Hash,
-                SvcAccountID = NodeService.Instance.PosWallet.AccountId
+                PreviousHash = svcGen.Hash
             };
 
             var mt = new MerkleTree();
