@@ -120,6 +120,8 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<BlockChain.BlockAdded>(async (ba) =>
             {
+                if (_UIndexSeed == -1)
+                    _UIndexSeed = ba.UIndex + 1;
                 await _orphange.BlockAddedAsync(ba.hash);
             });
 
@@ -172,7 +174,9 @@ namespace Lyra.Core.Decentralize
             ReceiveAsync<BlockChainSynced>(async _ =>
             {
                 Mode = ConsensusWorkingMode.Normal;
-                _UIndexSeed = (await BlockChain.Singleton.FindLatestBlockAsync()).UIndex + 1;
+                var lastBlock = await BlockChain.Singleton.FindLatestBlockAsync();
+                if(lastBlock != null)
+                    _UIndexSeed = lastBlock.UIndex + 1;
 
                 _log.LogInformation($"The USeed is {USeed}");
 

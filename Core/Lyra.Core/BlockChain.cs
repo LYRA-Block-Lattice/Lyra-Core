@@ -36,7 +36,10 @@ namespace Lyra
         public class ImportCompleted { }
         public class FillMemoryPool { public IEnumerable<Transaction> Transactions; }
         public class FillCompleted { }
-        public class BlockAdded { public string hash { get; set; } }
+        public class BlockAdded { 
+            public string hash { get; set; } 
+            public long UIndex { get; set; }
+        }
 
         public static BlockChain Singleton;
         public static readonly ECPoint[] StandbyValidators = ProtocolSettings.Default.StandbyValidators.OfType<string>().Select(p => //ECPoint.DecodePoint(p.HexToBytes(), ECCurve.Secp256r1)).ToArray();
@@ -96,7 +99,7 @@ namespace Lyra
             var result = await _store.AddBlockAsync(block);
             if (result)
             {
-                LyraSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash });
+                LyraSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash, UIndex = block.UIndex });
             }
             return result;
         }
