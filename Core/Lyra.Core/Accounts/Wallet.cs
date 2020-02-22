@@ -562,13 +562,19 @@ namespace Lyra.Core.Accounts
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
                 }
 
+            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if(svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            {
+                throw new Exception("Unable to get latest service block.");
+            }
+
             SendTransferBlock sendBlock;
             if (ToExchange)
             {
                 sendBlock = new ExchangingBlock()
                 {
                     AccountID = AccountId,
-                    ServiceHash = string.Empty,
+                    ServiceHash = svcBlockResult.Result.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, decimal>(),
                     //PaymentID = string.Empty,
@@ -582,7 +588,7 @@ namespace Lyra.Core.Accounts
                 sendBlock = new SendTransferBlock()
                 {
                     AccountID = AccountId,
-                    ServiceHash = string.Empty,
+                    ServiceHash = svcBlockResult.Result.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, decimal>(),
                     //PaymentID = string.Empty,

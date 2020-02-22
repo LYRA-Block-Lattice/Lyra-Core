@@ -153,7 +153,7 @@ namespace Lyra.Core.Decentralize
                 return ConsensusResult.Yay;
 
             if (authResult == ConsensusResult.Nay || commitResult == ConsensusResult.Nay)
-                return ConsensusResult.Yay;
+                return ConsensusResult.Nay;
 
             return ConsensusResult.Uncertain;
         }
