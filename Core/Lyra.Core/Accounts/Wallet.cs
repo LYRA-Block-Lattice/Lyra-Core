@@ -957,11 +957,17 @@ namespace Lyra.Core.Accounts
 
         private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult new_transfer_info)
         {
+            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if (svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            {
+                throw new Exception("Unable to get latest service block.");
+            }
+
             var openReceiveBlock = new OpenWithReceiveTransferBlock
             {
                 AccountType = AccountTypes.Standard,
                 AccountID = AccountId,
-                ServiceHash = string.Empty,
+                ServiceHash = svcBlockResult.Result.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
                 Balances = new Dictionary<string, decimal>(),
                 Fee = 0,
@@ -1011,10 +1017,16 @@ namespace Lyra.Core.Accounts
             if (GetLocalAccountHeight() == 0) // if this is new account with no blocks
                 return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
 
+            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if (svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            {
+                throw new Exception("Unable to get latest service block.");
+            }
+
             var receiveBlock = new ReceiveTransferBlock
             {
                 AccountID = AccountId,
-                ServiceHash = string.Empty,
+                ServiceHash = svcBlockResult.Result.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
                 Balances = new Dictionary<string, decimal>(),
                 Fee = 0,
@@ -1089,6 +1101,12 @@ namespace Lyra.Core.Accounts
 
         public async Task<APIResultCodes> CreateGenesisForCoreTokenAsync()
         {
+            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if (svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            {
+                throw new Exception("Unable to get latest service block.");
+            }
+
             // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
             {
@@ -1104,7 +1122,7 @@ namespace Lyra.Core.Accounts
                 //CustomFeeAccountId = string.Empty,
                 AccountID = AccountId,
                 Balances = new Dictionary<string, decimal>(),
-                ServiceHash = null,
+                ServiceHash = svcBlockResult.Result.GetBlock().Hash,
                 Fee = TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
                 Icon = "https://i.imgur.com/L3h0J1K.png",
@@ -1180,6 +1198,12 @@ namespace Lyra.Core.Accounts
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
             }
 
+            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if (svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            {
+                throw new Exception("Unable to get latest service block.");
+            }
+
             // initiate test coins
             TokenGenesisBlock tokenBlock = new TokenGenesisBlock
             {
@@ -1192,7 +1216,7 @@ namespace Lyra.Core.Accounts
                 //CustomFeeAccountId = string.Empty,
                 AccountID = AccountId,
                 Balances = new Dictionary<string, decimal>(),
-                ServiceHash = string.Empty,
+                ServiceHash = svcBlockResult.Result.GetBlock().Hash,
                 Fee = TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
                 Owner = owner,
