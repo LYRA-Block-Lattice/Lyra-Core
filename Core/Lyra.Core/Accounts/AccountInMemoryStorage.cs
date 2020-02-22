@@ -113,7 +113,7 @@ namespace Lyra.Core.Accounts
             if (_blocks.Count == 0)
                 return null;
 
-            var result = _blocks.First(x => x.Hash.Equals(hash));
+            var result = _blocks.FirstOrDefault(x => x.Hash.Equals(hash));
             return result;
         }
 
@@ -122,7 +122,7 @@ namespace Lyra.Core.Accounts
             if (_blocks.Count == 0)
                 return null;
 
-            var result = _blocks.First(x => x.Index.Equals(index));
+            var result = _blocks.FirstOrDefault(x => x.Index.Equals(index));
             return result;
         }
 
