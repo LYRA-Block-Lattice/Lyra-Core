@@ -73,13 +73,17 @@ namespace Lyra.Core.Decentralize
                 return false;
 
             // only when success there is AuthSign
-            if (msg.Result == APIResultCodes.Success && msg.From != msg.AuthSign.Key)
-                return false;
-
-            // verify signature
-            if(!Signatures.VerifyAccountSignature(InputMsg.Block.Hash, msg.AuthSign.Key, msg.AuthSign.Signature))
+            if (msg.Result == APIResultCodes.Success && msg.AuthSign != null)
             {
-                _log.LogError($"AuthorizedMsg from {msg.From.Shorten()} for block {InputMsg.Block.Hash.Shorten()} verification failed.");
+                if (msg.From != msg.AuthSign.Key)
+                    return false;
+
+                // verify signature
+                if (!Signatures.VerifyAccountSignature(InputMsg.Block.Hash, msg.AuthSign.Key, msg.AuthSign.Signature))
+                {
+                    _log.LogError($"AuthorizedMsg from {msg.From.Shorten()} for block {InputMsg.Block.Hash.Shorten()} verification failed.");
+                    return false;
+                }
             }
 
             OutputMsgs.Add(msg);
