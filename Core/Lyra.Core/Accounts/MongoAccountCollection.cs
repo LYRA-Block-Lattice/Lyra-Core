@@ -192,7 +192,8 @@ namespace Lyra.Core.Accounts
                 Sort = Builders<Block>.Sort.Descending(o => o.UIndex)
             };
             var filter = Builders<Block>.Filter;
-            var filterDefination = filter.Or(filter.Eq("BlockType", BlockTypes.Service),
+            var filterDefination = filter.Or(filter.Eq("BlockType", BlockTypes.Consolidation),
+                filter.Eq("BlockType", BlockTypes.Service),
                 filter.Eq("BlockType", BlockTypes.ServiceGenesis));
 
             var finds = await _blocks.FindAsync(filterDefination);
