@@ -75,6 +75,14 @@ namespace Lyra.Core.Authorizers
                 if (block.BlockType != BlockTypes.NullTransaction && await (BlockChain.Singleton.FindBlockByIndexAsync(blockt.AccountID, block.Index)) != null)
                     return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
+                // check service hash
+                if (string.IsNullOrWhiteSpace(blockt.ServiceHash))
+                    return APIResultCodes.ServiceBlockNotFound;
+
+                var svcBlock = await BlockChain.Singleton.GetLastServiceBlockAsync();
+                if (blockt.ServiceHash != svcBlock.Hash)
+                    return APIResultCodes.ServiceBlockNotFound;
+
                 if (!await ValidateRenewalDateAsync(blockt, previousBlock as TransactionBlock))
                     return APIResultCodes.TokenExpired;
             }         
