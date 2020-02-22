@@ -46,6 +46,11 @@ namespace Lyra.Core.Blocks
         ///// </summary>
         //public List<string> AcceptedShards { get; set; }
 
+        /// <summary>
+        /// The signature generated using one-time shard private key 
+        /// </summary>
+        public string NetworkId { get; set; }
+
         public string SvcAccountID { get; set; }
 
         // Amount of fee for LYRA gas and custom token transfers;
@@ -62,11 +67,8 @@ namespace Lyra.Core.Blocks
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            //extraData = extraData + JsonConvert.SerializeObject(Authorizers) + "|";
-            //extraData = extraData + JsonConvert.SerializeObject(Candidates) + "|";
-            //extraData = extraData + IsPrimaryShard + "|";
-            //extraData = extraData + ShardPublicKey + "|";
-            //extraData = extraData + JsonConvert.SerializeObject(AcceptedShards) + "|";
+            extraData += this.NetworkId + "|";
+            extraData += this.SvcAccountID + "|";
             extraData = extraData + JsonConvert.SerializeObject(TransferFee) + "|";
             extraData = extraData + JsonConvert.SerializeObject(TokenGenerationFee) + "|";
             extraData = extraData + JsonConvert.SerializeObject(TradeFee) + "|";
@@ -80,33 +82,7 @@ namespace Lyra.Core.Blocks
 
         public override bool IsBlockValid(Block prevBlock)
         {
-            return base.IsBlockValid(prevBlock);
-        }
-    }
-
-    [BsonIgnoreExtraElements]
-    public class ServiceGenesisBlock : ServiceBlock
-    {
-        /// <summary>
-        /// The signature generated using one-time shard private key 
-        /// </summary>
-        public string NetworkId { get; set; }
-
-        protected override string GetExtraData()
-        {
-            string extraData = base.GetExtraData();
-            extraData += this.NetworkId + "|";
-            return extraData;
-        }
-
-        public override BlockTypes GetBlockType()
-        {
-            return BlockTypes.ServiceGenesis;
-        }
-
-        public override bool IsBlockValid(Block prevBlock)
-        {
-            if (string.IsNullOrWhiteSpace(this.NetworkId))
+            if (string.IsNullOrWhiteSpace(this.NetworkId) || string.IsNullOrWhiteSpace(this.SvcAccountID))
                 return false;
 
             return base.IsBlockValid(prevBlock);

@@ -35,7 +35,6 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.Consolidation, "ConsolidationBlockAuthorizer");
             _authorizers.Add(BlockTypes.NullTransaction, "NullTransactionAuthorizer");
             _authorizers.Add(BlockTypes.Service, "ServiceAuthorizer");
-            _authorizers.Add(BlockTypes.ServiceGenesis, "ServiceAuthorizer");
 
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
             foreach(var kvp in _authorizers)

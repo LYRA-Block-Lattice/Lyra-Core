@@ -144,20 +144,7 @@ namespace Lyra.Core.Decentralize
                     AuthSign = localAuthResult.Item2
                 };
 
-                switch(item.Block.BlockType)
-                {
-                    case BlockTypes.ServiceGenesis:
-                    case BlockTypes.LyraTokenGenesis:
-                        result.BlockUIndex = item.Block.UIndex;
-                        break;
-                    default:
-                        result.BlockUIndex = _context.GenSeed();
-                        break;
-                }
-                if(item.Block.UIndex == 2)
-                {
-                    result.BlockUIndex = item.Block.UIndex;     // for consolidation genesis
-                }
+                result.BlockUIndex = _context.GenSeed();
                 _log.LogInformation($"Give UIndex {result.BlockUIndex} to block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
             }
             catch (Exception e)

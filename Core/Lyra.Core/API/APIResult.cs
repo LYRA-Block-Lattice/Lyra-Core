@@ -156,9 +156,6 @@ namespace Lyra.Core.API
                 case BlockTypes.Service:
                     block = JsonConvert.DeserializeObject<ServiceBlock>(BlockData);
                     break;
-                case BlockTypes.ServiceGenesis:
-                    block = JsonConvert.DeserializeObject<ServiceGenesisBlock>(BlockData);
-                    break;
                 case BlockTypes.Consolidation:
                     block = JsonConvert.DeserializeObject<ConsolidationBlock>(BlockData);
                     break;

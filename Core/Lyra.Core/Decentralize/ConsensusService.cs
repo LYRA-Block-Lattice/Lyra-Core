@@ -53,7 +53,7 @@ namespace Lyra.Core.Decentralize
         private static BillBoard _board = new BillBoard();
         private List<TransStats> _stats;
 
-        private long _UIndexSeed = -1;
+        private long _UIndexSeed = 0;
         private object _seedLocker = new object();
 
         public long USeed => _UIndexSeed;
@@ -121,8 +121,6 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<BlockChain.BlockAdded>(async (ba) =>
             {
-                if (_UIndexSeed == -1)
-                    _UIndexSeed = ba.UIndex + 1;
                 await _orphange.BlockAddedAsync(ba.hash);
             });
 
@@ -540,7 +538,7 @@ namespace Lyra.Core.Decentralize
                         }
                     }
 
-                    if (msg1.Block is ServiceGenesisBlock && !IsMessageFromSeed0(item))
+                    if (msg1.Block is ServiceBlock && msg1.Block.UIndex == 0 && !IsMessageFromSeed0(item))
                     {
                         _log.LogError($"fake genesis block from node {item.From}");
                         return;

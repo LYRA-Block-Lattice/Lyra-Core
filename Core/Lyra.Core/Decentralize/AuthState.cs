@@ -143,7 +143,7 @@ namespace Lyra.Core.Decentralize
 
         private ConsensusResult GetConsensusSuccess()
         {
-            if (ConsensusUIndex < 1 && !(InputMsg.Block is ServiceGenesisBlock))
+            if (ConsensusUIndex < 0)
                 return ConsensusResult.Uncertain;
 
             var authResult = CheckAuthorizedResults();
@@ -186,7 +186,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // out of lucky??? we should halt and switch to emgergency state
-                return 0;
+                return -1;
             }
         }
     }

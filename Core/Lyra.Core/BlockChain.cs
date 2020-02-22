@@ -276,7 +276,7 @@ namespace Lyra
             return;
         }
 
-        public ConsolidationBlock GetConsolidationGenesisBlock(ServiceGenesisBlock svcGen, LyraTokenGenesisBlock lyraGen)
+        public ConsolidationBlock GetConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
         {
             var consBlock = new ConsolidationBlock
             {
@@ -296,7 +296,7 @@ namespace Lyra
             return consBlock;
         }
 
-        public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceGenesisBlock svcGen)
+        public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceBlock svcGen)
         {
             // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
@@ -327,9 +327,9 @@ namespace Lyra
             return openTokenGenesisBlock;
         }
 
-        public ServiceGenesisBlock GetServiceGenesisBlock()
+        public ServiceBlock GetServiceGenesisBlock()
         {
-            var svcGenesis = new ServiceGenesisBlock
+            var svcGenesis = new ServiceBlock
             {
                 NetworkId = NetworkID,
                 Index = 1,

@@ -77,7 +77,6 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<ReceiveFeeBlock>();
             BsonClassMap.RegisterClassMap<ConsolidationBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
-            BsonClassMap.RegisterClassMap<ServiceGenesisBlock>();
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
             BsonClassMap.RegisterClassMap<NullTransactionBlock>();
 
@@ -192,8 +191,7 @@ namespace Lyra.Core.Accounts
                 Sort = Builders<Block>.Sort.Descending(o => o.UIndex)
             };
             var filter = Builders<Block>.Filter;
-            var filterDefination = filter.Eq("BlockType", BlockTypes.Consolidation);
-                //filter.Eq("BlockType", BlockTypes.Service),
+            var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
                 //filter.Eq("BlockType", BlockTypes.ServiceGenesis));
 
             var finds = await _blocks.FindAsync(filterDefination);
@@ -533,10 +531,13 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            if ((block.Index <= 0 || block.UIndex <= 0) && !(block is ServiceGenesisBlock))
+            if (block.Index <= 0 || block.UIndex <= 0)
             {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
-                return false;
+                if(0 != await GetNewestBlockUIndexAsync())
+                {
+                    _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
+                    return false;
+                }
             }
 
             if (null != await GetBlockByUIndexAsync(block.UIndex))

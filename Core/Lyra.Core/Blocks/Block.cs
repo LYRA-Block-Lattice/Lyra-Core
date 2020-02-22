@@ -158,7 +158,7 @@ namespace Lyra.Core.Blocks
 
         // Network service blocks
 
-        ServiceGenesis = 10,
+        //ServiceGenesis = 10,
 
         Service = 11,
 
