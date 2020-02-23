@@ -201,7 +201,7 @@ namespace Lyra.Core.Decentralize
                 if (await AddOrphanAsync(state))
                     return;
 
-                _log.LogInformation($"AuthState from tell: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
+                //_log.LogInformation($"AuthState from tell: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
 
                 var worker = GetWorker(state.InputMsg.Block.Hash);
                 worker.Create(state);
@@ -282,7 +282,7 @@ namespace Lyra.Core.Decentralize
                 Task.Delay(1000).Wait();
             }
 
-            _log.LogInformation($"Send2P2pNetwork {item.MsgType}");
+            //_log.LogInformation($"Send2P2pNetwork {item.MsgType}");
             _localNode.Tell(item);
         }
 
@@ -413,7 +413,7 @@ namespace Lyra.Core.Decentralize
                         state.HashOfFirstBlock = currentCons.Hash;
                         state.InputMsg = msg;
 
-                        _log.LogInformation($"AuthState from genesis: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
+                        //_log.LogInformation($"AuthState from consolidation: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
 
                         var worker = GetWorker(state.InputMsg.Block.Hash);
                         worker.Create(state);
@@ -513,7 +513,7 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            _log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
+            //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
 
             if(null == AuthorizerShapshot && !(item is ChatMsg))
             {
@@ -594,9 +594,9 @@ namespace Lyra.Core.Decentralize
                 case ChatMessageType.BillBoardBroadcast:
                     OnBillBoardBroadcast(chat);
                     break;
-                case ChatMessageType.BlockConsolidation:
-                    await OnBlockConsolicationAsync(chat);
-                    break;
+                //case ChatMessageType.BlockConsolidation:
+                //    await OnBlockConsolicationAsync(chat);
+                //    break;
                 case ChatMessageType.NodeStatusInquiry:
                     var status = await BlockChain.Singleton.GetNodeStatusAsync();
                     var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);

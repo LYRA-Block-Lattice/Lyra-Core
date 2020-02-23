@@ -63,6 +63,9 @@ namespace Lyra.Core.Authorizers
                     continue;
 
                 var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
+                if(bndx == null)
+                    return APIResultCodes.InvalidConsolidationMerkleTreeHash;
+
                 var mhash = MerkleHash.Create(bndx.UHash);
                 mt.AppendLeaf(mhash);
             }

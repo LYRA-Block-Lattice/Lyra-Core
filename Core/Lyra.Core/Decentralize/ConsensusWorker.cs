@@ -39,7 +39,7 @@ namespace Lyra.Core.Decentralize
         public void Create(AuthState state, WaitHandle waitHandle = null)
         {
             _state = state;
-            _log.LogInformation($"Receive AuthState: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+            //_log.LogInformation($"Receive AuthState: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
             _ = Task.Run(async () =>
             {
