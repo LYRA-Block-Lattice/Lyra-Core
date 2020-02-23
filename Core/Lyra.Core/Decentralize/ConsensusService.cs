@@ -376,7 +376,7 @@ namespace Lyra.Core.Decentralize
                     {
                         try
                         {
-                            var startUIndex = lastCons.UIndex;
+                            var startUIndex = lastCons.EndUIndex + 1;
                             var endUIndex = BlockChain.Singleton.LastSavedUIndex;
 
                             if (endUIndex >= startUIndex)
