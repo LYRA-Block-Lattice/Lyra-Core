@@ -69,6 +69,7 @@ namespace Lyra
 
             var nodeConfig = Neo.Settings.Default.LyraNode;
             _store = new MongoAccountCollection();
+            _lastSavedUIndex = _store.GetNewestBlockUIndexAsync().Result;
 
             //_store = new LiteAccountCollection(Utilities.LyraDataDir);
             _log = new SimpleLogger("BlockChain").Logger;

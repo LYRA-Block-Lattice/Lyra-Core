@@ -83,7 +83,11 @@ namespace Lyra.Core.Decentralize
             Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
             _orphange = new Orphanage(
-                    async (state) => { var worker = GetWorker(state.InputMsg.Block.Hash); worker.Create(state); },
+                    async (state) => {
+                        _log.LogInformation($"AuthState from Orphanage: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
+                        var worker = GetWorker(state.InputMsg.Block.Hash); 
+                        worker.Create(state); 
+                    },
                     async (msg1) => {
                         await OnNextConsensusMessageAsync(msg1);
                     },
@@ -197,6 +201,8 @@ namespace Lyra.Core.Decentralize
                 if (await AddOrphanAsync(state))
                     return;
 
+                _log.LogInformation($"AuthState from tell: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
+
                 var worker = GetWorker(state.InputMsg.Block.Hash);
                 worker.Create(state);
             });
@@ -213,7 +219,7 @@ namespace Lyra.Core.Decentralize
                 int count = 0;
                 while (true)
                 {
-                    if (Mode == ConsensusWorkingMode.Normal)
+                    if (Mode == ConsensusWorkingMode.Normal && BlockChain.Singleton.Mode == BlockChainMode.Almighty)
                     {
                         await GenerateConsolidateBlockAsync();
                     }
@@ -405,6 +411,8 @@ namespace Lyra.Core.Decentralize
                         var state = new AuthState(false);
                         state.HashOfFirstBlock = currentCons.Hash;
                         state.InputMsg = msg;
+
+                        _log.LogInformation($"AuthState from genesis: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
 
                         var worker = GetWorker(state.InputMsg.Block.Hash);
                         worker.Create(state);
