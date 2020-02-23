@@ -52,7 +52,7 @@ namespace Lyra.Core.Blocks
                 Index = 1;
                 PreviousHash = null;//string.Empty;
             }
-            TimeStamp = DateTime.Now;
+            TimeStamp = DateTime.Now.ToUniversalTime();
             Version = LyraGlobal.DatabaseVersion; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
             BlockType = GetBlockType();
             Sign(PrivateKey, AccountId);

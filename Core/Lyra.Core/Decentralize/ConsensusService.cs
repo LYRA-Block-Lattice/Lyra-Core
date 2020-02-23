@@ -365,7 +365,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // if necessary, insert a new ConsolidateBlock
-                if (IsThisNodeSeed0 && (_UIndexSeed - lastCons.UIndex > 1024 || DateTime.Now - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
+                if (IsThisNodeSeed0 && (_UIndexSeed - lastCons.UIndex > 1024 || DateTime.Now.ToUniversalTime() - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
                     var startUIndex = lastCons.UIndex;
                     var endUIndex = BlockChain.Singleton.LastSavedUIndex;
@@ -391,7 +391,6 @@ namespace Lyra.Core.Decentralize
 
                         currentCons = new ConsolidationBlock
                         {
-                            UIndex = _UIndexSeed++,// GenSeed(),
                             Index = lastCons.Index + 1,
                             PreviousHash = lastCons.Hash,
                             NullUIndex = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
