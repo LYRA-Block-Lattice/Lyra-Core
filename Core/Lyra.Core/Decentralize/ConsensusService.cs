@@ -77,6 +77,10 @@ namespace Lyra.Core.Decentralize
             _cleanedConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
 
+            var lastOne = BlockChain.Singleton.FindLatestBlockAsync().Result;
+            if (lastOne != null)
+                _UIndexSeed = lastOne.UIndex + 1;
+
             while (BlockChain.Singleton == null)
                 Task.Delay(100).Wait();
 

@@ -184,7 +184,6 @@ namespace Lyra.Core.Decentralize
 	{
 		// block uindex, block hash (replace block itself), error code, authsign
 		public long BlockUIndex { get; set; }
-		public string BlockUHash { get; set; }
 		public string BlockHash { get; set; }
 		public APIResultCodes Result { get; set; }
 		public AuthorizationSignature AuthSign { get; set; }
@@ -195,7 +194,7 @@ namespace Lyra.Core.Decentralize
 		}
 		public override string GetHashInput()
 		{
-			return $"{BlockHash}|{BlockUIndex}|{BlockUHash}|{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|" + base.GetHashInput();
+			return $"{BlockHash}|{BlockUIndex}|{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|" + base.GetHashInput();
 		}
 
 		public bool IsSuccess => Result == APIResultCodes.Success;
@@ -207,7 +206,6 @@ namespace Lyra.Core.Decentralize
 
 		public override int Size => base.Size +
 			sizeof(long) +
-			BlockUHash.Length +
 			BlockHash.Length +
 			sizeof(int) +
 			JsonConvert.SerializeObject(AuthSign).Length;
@@ -216,7 +214,6 @@ namespace Lyra.Core.Decentralize
 		{
 			base.Serialize(writer);
 			writer.Write(BlockUIndex);
-			writer.Write(BlockUHash);
 			writer.Write(BlockHash);
 			writer.Write((int)Result);
 			writer.Write(JsonConvert.SerializeObject(AuthSign));
@@ -226,7 +223,6 @@ namespace Lyra.Core.Decentralize
 		{
 			base.Deserialize(reader);
 			BlockUIndex = reader.ReadInt64();
-			BlockUHash = reader.ReadString();
 			BlockHash = reader.ReadString();
 			Result = (APIResultCodes)reader.ReadInt32();
 			AuthSign = JsonConvert.DeserializeObject<AuthorizationSignature>(reader.ReadString());
