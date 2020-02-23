@@ -9,6 +9,8 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class ConsolidationBlock : Block
     {
+        public long StartUIndex { get; set; }
+        public long EndUIndex { get; set; }
         public long[] NullUIndex { get; set; }
         public string MerkelTreeHash { get; set; }
 

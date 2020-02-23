@@ -391,6 +391,8 @@ namespace Lyra.Core.Decentralize
 
                         currentCons = new ConsolidationBlock
                         {
+                            StartUIndex = startUIndex,
+                            EndUIndex = endUIndex,
                             Index = lastCons.Index + 1,
                             PreviousHash = lastCons.Hash,
                             NullUIndex = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
