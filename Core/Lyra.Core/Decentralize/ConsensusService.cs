@@ -67,7 +67,6 @@ namespace Lyra.Core.Decentralize
 
         // authorizer snapshot
         public static HashSet<string> AuthorizerShapshot { get; private set; }
-        private Semaphore _consPool;
 
         public ConsensusService(IActorRef localNode)
         {
@@ -77,8 +76,6 @@ namespace Lyra.Core.Decentralize
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _cleanedConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
-
-            _consPool = new Semaphore(0, 1);
 
             var lastOne = BlockChain.Singleton.FindLatestBlockAsync().Result;
             if (lastOne != null)
@@ -375,7 +372,7 @@ namespace Lyra.Core.Decentralize
                 // if necessary, insert a new ConsolidateBlock
                 if (IsThisNodeSeed0 && (_UIndexSeed - lastCons.UIndex > 1024 || DateTime.Now.ToUniversalTime() - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
-                    if(_consPool.WaitOne(1))
+                    if(!_activeConsensus.Values.Any(a => a.State != null && a.State.InputMsg?.Block?.BlockType == BlockTypes.Consolidation))
                     {
                         try
                         {
@@ -435,12 +432,7 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogError($"In creating consolidation block: {ex.Message}");
                         }
-                        finally
-                        {
-                            _consPool.Release();
-                        }
                     }
-
                 }
             }
             catch (Exception ex)
