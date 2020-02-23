@@ -134,6 +134,7 @@ namespace Lyra.Core.Decentralize
             AuthorizedMsg result;
             try
             {
+                item.Block.UIndex = _context.GenSeed();
                 var localAuthResult = await authorizer.AuthorizeAsync(item.Block);
                 result = new AuthorizedMsg
                 {
@@ -144,7 +145,7 @@ namespace Lyra.Core.Decentralize
                     AuthSign = localAuthResult.Item2
                 };
 
-                result.BlockUIndex = _context.GenSeed();
+                result.BlockUIndex = item.Block.UIndex;
                 _log.LogInformation($"Give UIndex {result.BlockUIndex} to block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
             }
             catch (Exception e)
