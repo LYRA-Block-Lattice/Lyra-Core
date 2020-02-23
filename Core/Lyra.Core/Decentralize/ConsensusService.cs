@@ -216,27 +216,27 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation("Inquiry for node status.");
             });
 
-            //Task.Run(async () =>
-            //{
-            //    await HeartBeatAsync();
-            //    int count = 0;
-            //    while (true)
-            //    {
-            //        if (Mode == ConsensusWorkingMode.Normal)
-            //        {
-            //            await GenerateConsolidateBlockAsync();
-            //        }
+            Task.Run(async () =>
+            {
+                await HeartBeatAsync();
+                int count = 0;
+                while (true)
+                {
+                    if (Mode == ConsensusWorkingMode.Normal)
+                    {
+                        await GenerateConsolidateBlockAsync();
+                    }
 
-            //        //await Task.Delay(5000).ConfigureAwait(false);
-            //        //count++;
+                    await Task.Delay(5000).ConfigureAwait(false);
+                    count++;
 
-            //        //if(count > 6)
-            //        //{
-            //        //    await HeartBeatAsync();
-            //        //    count = 0;
-            //        //}                    
-            //    }
-            //});
+                    if (count > 6)
+                    {
+                        await HeartBeatAsync();
+                        count = 0;
+                    }
+                }
+            });
         }
 
         public Task<bool> AddOrphanAsync(AuthState state)
@@ -336,8 +336,6 @@ namespace Lyra.Core.Decentralize
             ConsolidationBlock currentCons = null;
             try
             {
-                Monitor.Enter(_seedLocker);
-
                 // first clean cleaned states
                 var cleaned = _cleanedConsensus.Values.ToArray();
                 for (int i = 0; i < cleaned.Length; i++)
@@ -370,18 +368,20 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // if necessary, insert a new ConsolidateBlock
-                if (USeed - lastCons.UIndex > 1024 || DateTime.Now - lastCons.TimeStamp > TimeSpan.FromMinutes(10))
+                if (IsThisNodeSeed0 && USeed - lastCons.UIndex > 1024 || DateTime.Now - lastCons.TimeStamp > TimeSpan.FromMinutes(10))
                 {
-                    var startUIndex = lastCons.UIndex + 1;
-                    var endUIndex = _activeConsensus.Values
-                        .Where(x => x.State.ConsensusUIndex > 0)
-                        .Min(a => a.State.ConsensusUIndex);
+                    var startUIndex = lastCons.UIndex;
+                    var endUIndex = _activeConsensus.Count > 0
+                        ? _activeConsensus.Values
+                            .Where(x => x.State.ConsensusUIndex > 0)
+                            .Min(a => a.State.ConsensusUIndex)
+                        : _UIndexSeed - 1;
 
                     _log.LogInformation($"Creating ConsolidationBlock from {startUIndex} to {endUIndex}");
 
                     var mt = new MerkleTree();
                     var emptyNdx = new List<long>();
-                    for (var ndx = startUIndex; ndx < endUIndex; ndx++)
+                    for (var ndx = startUIndex; ndx <= endUIndex; ndx++)
                     {
                         var bx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
                         if(bx == null)
@@ -393,13 +393,13 @@ namespace Lyra.Core.Decentralize
                             mt.AppendLeaf(MerkleHash.Create(bx.UHash));
                         }                        
                     }
-                    
+
                     currentCons = new ConsolidationBlock
                     {
-                        UIndex = GenSeed(),
+                        UIndex = _UIndexSeed++,// GenSeed(),
                         Index = lastCons.Index + 1,
                         PreviousHash = lastCons.Hash,
-                        NullUIndex = emptyNdx.ToArray(),
+                        NullUIndex = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
                         MerkelTreeHash = mt.BuildTree().ToString()
                     };
 
@@ -427,7 +427,7 @@ namespace Lyra.Core.Decentralize
             }
             finally
             {
-                Monitor.Exit(_seedLocker);
+                
             }
 
             //if (currentCons != null)

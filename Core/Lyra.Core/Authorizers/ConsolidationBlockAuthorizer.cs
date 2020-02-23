@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using Clifton.Blockchain;
+using System.Linq;
 
 namespace Lyra.Core.Authorizers
 {
@@ -58,6 +59,9 @@ namespace Lyra.Core.Authorizers
             long startIndex = block.UIndex == 2 ? 0 : lastCons.UIndex;
             for (var ndx = startIndex; ndx < block.UIndex; ndx++)
             {
+                if (block.NullUIndex != null && block.NullUIndex.Contains(ndx))
+                    continue;
+
                 var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
                 var mhash = MerkleHash.Create(bndx.UHash);
                 mt.AppendLeaf(mhash);
