@@ -67,6 +67,7 @@ namespace Lyra.Core.Decentralize
 
         // authorizer snapshot
         public static HashSet<string> AuthorizerShapshot { get; private set; }
+        private Semaphore _consPool;
 
         public ConsensusService(IActorRef localNode)
         {
@@ -76,6 +77,8 @@ namespace Lyra.Core.Decentralize
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _cleanedConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
+
+            _consPool = new Semaphore(0, 1);
 
             var lastOne = BlockChain.Singleton.FindLatestBlockAsync().Result;
             if (lastOne != null)
@@ -372,57 +375,72 @@ namespace Lyra.Core.Decentralize
                 // if necessary, insert a new ConsolidateBlock
                 if (IsThisNodeSeed0 && (_UIndexSeed - lastCons.UIndex > 1024 || DateTime.Now.ToUniversalTime() - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
-                    var startUIndex = lastCons.UIndex;
-                    var endUIndex = BlockChain.Singleton.LastSavedUIndex;
-
-                    if(endUIndex >= startUIndex)
+                    if(_consPool.WaitOne(1))
                     {
-                        _log.LogInformation($"Creating ConsolidationBlock from {startUIndex} to {endUIndex}");
-
-                        var mt = new MerkleTree();
-                        var emptyNdx = new List<long>();
-                        for (var ndx = startUIndex; ndx <= endUIndex; ndx++)
+                        try
                         {
-                            var bx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
-                            if (bx == null)
+                            var startUIndex = lastCons.UIndex;
+                            var endUIndex = BlockChain.Singleton.LastSavedUIndex;
+
+                            if (endUIndex >= startUIndex)
                             {
-                                emptyNdx.Add(ndx);
-                            }
-                            else
-                            {
-                                mt.AppendLeaf(MerkleHash.Create(bx.UHash));
+                                _log.LogInformation($"Creating ConsolidationBlock from {startUIndex} to {endUIndex}");
+
+                                var mt = new MerkleTree();
+                                var emptyNdx = new List<long>();
+                                for (var ndx = startUIndex; ndx <= endUIndex; ndx++)
+                                {
+                                    var bx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
+                                    if (bx == null)
+                                    {
+                                        emptyNdx.Add(ndx);
+                                    }
+                                    else
+                                    {
+                                        mt.AppendLeaf(MerkleHash.Create(bx.UHash));
+                                    }
+                                }
+
+                                currentCons = new ConsolidationBlock
+                                {
+                                    StartUIndex = startUIndex,
+                                    EndUIndex = endUIndex,
+                                    Index = lastCons.Index + 1,
+                                    PreviousHash = lastCons.Hash,
+                                    NullUIndex = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
+                                    MerkelTreeHash = mt.BuildTree().ToString()
+                                };
+
+                                currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+                                    NodeService.Instance.PosWallet.AccountId);
+
+                                AuthorizingMsg msg = new AuthorizingMsg
+                                {
+                                    From = NodeService.Instance.PosWallet.AccountId,
+                                    Block = currentCons,
+                                    MsgType = ChatMessageType.AuthorizerPrePrepare
+                                };
+
+                                var state = new AuthState(false);
+                                state.HashOfFirstBlock = currentCons.Hash;
+                                state.InputMsg = msg;
+
+                                //_log.LogInformation($"AuthState from consolidation: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
+
+                                var worker = GetWorker(state.InputMsg.Block.Hash);
+                                worker.Create(state);
                             }
                         }
-
-                        currentCons = new ConsolidationBlock
+                        catch(Exception ex)
                         {
-                            StartUIndex = startUIndex,
-                            EndUIndex = endUIndex,
-                            Index = lastCons.Index + 1,
-                            PreviousHash = lastCons.Hash,
-                            NullUIndex = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
-                            MerkelTreeHash = mt.BuildTree().ToString()
-                        };
-
-                        currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
-                            NodeService.Instance.PosWallet.AccountId);
-
-                        AuthorizingMsg msg = new AuthorizingMsg
+                            _log.LogError($"In creating consolidation block: {ex.Message}");
+                        }
+                        finally
                         {
-                            From = NodeService.Instance.PosWallet.AccountId,
-                            Block = currentCons,
-                            MsgType = ChatMessageType.AuthorizerPrePrepare
-                        };
-
-                        var state = new AuthState(false);
-                        state.HashOfFirstBlock = currentCons.Hash;
-                        state.InputMsg = msg;
-
-                        //_log.LogInformation($"AuthState from consolidation: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
-
-                        var worker = GetWorker(state.InputMsg.Block.Hash);
-                        worker.Create(state);
+                            _consPool.Release();
+                        }
                     }
+
                 }
             }
             catch (Exception ex)
