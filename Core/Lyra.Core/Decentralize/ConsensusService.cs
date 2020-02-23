@@ -54,16 +54,7 @@ namespace Lyra.Core.Decentralize
         private List<TransStats> _stats;
 
         private long _UIndexSeed = 0;
-        private object _seedLocker = new object();
-
-        public long USeed => _UIndexSeed;
-        public long GenSeed()
-        {
-            lock(_seedLocker)
-            {
-                return _UIndexSeed++;
-            }
-        }
+        public long GenSeed() => _UIndexSeed++;
 
         public static bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public bool IsMessageFromSeed0(SourceSignedMessage msg)
@@ -177,7 +168,7 @@ namespace Lyra.Core.Decentralize
                 if(lastBlock != null)
                     _UIndexSeed = lastBlock.UIndex + 1;
 
-                _log.LogInformation($"The USeed is {USeed}");
+                _log.LogInformation($"The USeed is {_UIndexSeed}");
 
                 int waitCount = 60;
                 while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
@@ -368,7 +359,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // if necessary, insert a new ConsolidateBlock
-                if (IsThisNodeSeed0 && USeed - lastCons.UIndex > 1024 || DateTime.Now - lastCons.TimeStamp > TimeSpan.FromMinutes(10))
+                if (IsThisNodeSeed0 && (_UIndexSeed - lastCons.UIndex > 1024 || DateTime.Now - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
                     var startUIndex = lastCons.UIndex;
                     var endUIndex = _activeConsensus.Count > 0
@@ -377,48 +368,51 @@ namespace Lyra.Core.Decentralize
                             .Min(a => a.State.ConsensusUIndex)
                         : _UIndexSeed - 1;
 
-                    _log.LogInformation($"Creating ConsolidationBlock from {startUIndex} to {endUIndex}");
-
-                    var mt = new MerkleTree();
-                    var emptyNdx = new List<long>();
-                    for (var ndx = startUIndex; ndx <= endUIndex; ndx++)
+                    if(endUIndex >= startUIndex)
                     {
-                        var bx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
-                        if(bx == null)
+                        _log.LogInformation($"Creating ConsolidationBlock from {startUIndex} to {endUIndex}");
+
+                        var mt = new MerkleTree();
+                        var emptyNdx = new List<long>();
+                        for (var ndx = startUIndex; ndx <= endUIndex; ndx++)
                         {
-                            emptyNdx.Add(ndx);
+                            var bx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
+                            if (bx == null)
+                            {
+                                emptyNdx.Add(ndx);
+                            }
+                            else
+                            {
+                                mt.AppendLeaf(MerkleHash.Create(bx.UHash));
+                            }
                         }
-                        else
+
+                        currentCons = new ConsolidationBlock
                         {
-                            mt.AppendLeaf(MerkleHash.Create(bx.UHash));
-                        }                        
+                            UIndex = _UIndexSeed++,// GenSeed(),
+                            Index = lastCons.Index + 1,
+                            PreviousHash = lastCons.Hash,
+                            NullUIndex = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
+                            MerkelTreeHash = mt.BuildTree().ToString()
+                        };
+
+                        currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+                            NodeService.Instance.PosWallet.AccountId);
+
+                        AuthorizingMsg msg = new AuthorizingMsg
+                        {
+                            From = NodeService.Instance.PosWallet.AccountId,
+                            Block = currentCons,
+                            MsgType = ChatMessageType.AuthorizerPrePrepare
+                        };
+
+                        var state = new AuthState(false);
+                        state.HashOfFirstBlock = currentCons.Hash;
+                        state.InputMsg = msg;
+
+                        var worker = GetWorker(state.InputMsg.Block.Hash);
+                        worker.Create(state);
                     }
-
-                    currentCons = new ConsolidationBlock
-                    {
-                        UIndex = _UIndexSeed++,// GenSeed(),
-                        Index = lastCons.Index + 1,
-                        PreviousHash = lastCons.Hash,
-                        NullUIndex = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
-                        MerkelTreeHash = mt.BuildTree().ToString()
-                    };
-
-                    currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
-                        NodeService.Instance.PosWallet.AccountId);
-
-                    AuthorizingMsg msg = new AuthorizingMsg
-                    {
-                        From = NodeService.Instance.PosWallet.AccountId,
-                        Block = currentCons,
-                        MsgType = ChatMessageType.AuthorizerPrePrepare
-                    };
-
-                    var state = new AuthState(false);
-                    state.HashOfFirstBlock = currentCons.Hash;
-                    state.InputMsg = msg;
-
-                    var worker = GetWorker(state.InputMsg.Block.Hash);
-                    worker.Create(state);
                 }
             }
             catch (Exception ex)
