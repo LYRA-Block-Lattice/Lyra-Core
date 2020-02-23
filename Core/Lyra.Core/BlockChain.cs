@@ -288,7 +288,7 @@ namespace Lyra
                 UIndex = 2,
                 Index = svcGen.Index + 1,
                 StartUIndex = 0,
-                EndUIndex = 2,
+                EndUIndex = 1,
                 PreviousHash = svcGen.Hash
             };
 
