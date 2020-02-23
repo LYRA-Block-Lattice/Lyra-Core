@@ -49,8 +49,11 @@ namespace Lyra
         public string NetworkID { get; private set; }
         public bool InSyncing { get; private set; }
         public BlockChainMode Mode { get; private set; }
+        public long LastSavedUIndex { get => _lastSavedUIndex; }
+
         private LyraConfig _nodeConfig;
         private readonly IAccountCollectionAsync _store;
+        private long _lastSavedUIndex = -1;
         private LyraSystem _sys;
         private ILogger _log;
 
@@ -99,6 +102,7 @@ namespace Lyra
             var result = await _store.AddBlockAsync(block);
             if (result)
             {
+                _lastSavedUIndex = block.UIndex;
                 LyraSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash, UIndex = block.UIndex });
             }
             return result;

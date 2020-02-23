@@ -362,11 +362,7 @@ namespace Lyra.Core.Decentralize
                 if (IsThisNodeSeed0 && (_UIndexSeed - lastCons.UIndex > 1024 || DateTime.Now - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
                     var startUIndex = lastCons.UIndex;
-                    var endUIndex = _activeConsensus.Count > 0
-                        ? _activeConsensus.Values
-                            .Where(x => x.State.ConsensusUIndex > 0)
-                            .Min(a => a.State.ConsensusUIndex)
-                        : _UIndexSeed - 1;
+                    var endUIndex = BlockChain.Singleton.LastSavedUIndex;
 
                     if(endUIndex >= startUIndex)
                     {
