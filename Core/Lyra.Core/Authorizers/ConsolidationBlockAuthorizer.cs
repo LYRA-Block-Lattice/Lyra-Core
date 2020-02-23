@@ -56,8 +56,7 @@ namespace Lyra.Core.Authorizers
             // recalculate merkeltree
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
             var mt = new MerkleTree();
-            long startIndex = block.UIndex == 2 ? 0 : lastCons.UIndex;
-            for (var ndx = startIndex; ndx < block.UIndex; ndx++)
+            for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
             {
                 if (block.NullUIndex != null && block.NullUIndex.Contains(ndx))
                     continue;
