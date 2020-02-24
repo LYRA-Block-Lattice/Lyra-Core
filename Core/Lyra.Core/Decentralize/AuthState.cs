@@ -163,6 +163,9 @@ namespace Lyra.Core.Decentralize
         {
             get
             {
+                if (OutputMsgs.Count == 0)
+                    return -1;
+
                 // implicty GetIsAuthoringSuccess true
                 // get from seed node. so we must keep seeds synced in perfect state.
                 var outputMsgsList = OutputMsgs.ToList();
