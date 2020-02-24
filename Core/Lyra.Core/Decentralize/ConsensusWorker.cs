@@ -300,8 +300,8 @@ namespace Lyra.Core.Decentralize
                 }
                 _log.LogInformation(sb.ToString());
 
-                _log.LogInformation($"state.Consensus is {state.Consensus}");
-                if (ConsensusResult.Uncertain != state.Consensus)
+                _log.LogInformation($"state.Consensus is {state.PrepareConsensus}");
+                if (ConsensusResult.Uncertain != state.PrepareConsensus)
                 {
 
                     _log.LogInformation($"got Semaphore. is it saving? {state.Saving}");
@@ -313,7 +313,7 @@ namespace Lyra.Core.Decentralize
 
                     state.T4 = DateTime.Now;
 
-                    _log.LogInformation($"Saving {state.Consensus}: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+                    _log.LogInformation($"Saving {state.PrepareConsensus}: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
                     var ts = DateTime.Now - state.Created;
                     if (_context.Stats.Count > 10000)
@@ -322,7 +322,7 @@ namespace Lyra.Core.Decentralize
                     _context.Stats.Add(new TransStats { ms = (long)ts.TotalMilliseconds, trans = state.InputMsg.Block.BlockType });
 
                     var block = state.InputMsg.Block;
-                    if (state.Consensus == ConsensusResult.Yay)
+                    if (state.PrepareConsensus == ConsensusResult.Yay)
                     {
                         // do commit
                         block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
@@ -350,10 +350,19 @@ namespace Lyra.Core.Decentralize
 
                         block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
 
-                        if (!await BlockChain.Singleton.AddBlockAsync(block))
-                            _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
-                        else
-                            _log.LogInformation($"Block saved: {block.UIndex}/{block.Index}/{block.Hash}");
+                        var msg = new AuthorizerCommitMsg
+                        {
+                            From = NodeService.Instance.PosWallet.AccountId,
+                            MsgType = ChatMessageType.AuthorizerCommit,
+                            BlockHash = state.InputMsg.Block.Hash,
+                            BlockUIndex = block.UIndex,
+                            BlockUHash = block.UHash,
+                            Consensus = state.PrepareConsensus,
+                            Commited = true
+                        };
+
+                        _context.Send2P2pNetwork(msg);
+                        state.AddCommitedResult(msg);
                     }
                     else
                     {
@@ -372,23 +381,6 @@ namespace Lyra.Core.Decentralize
                         //if (await BlockChain.Singleton.AddBlockAsync(block))
                         //    _log.LogInformation($"NullTrans saved: {nb.UIndex}");
                     }
-
-                    var msg = new AuthorizerCommitMsg
-                    {
-                        From = NodeService.Instance.PosWallet.AccountId,
-                        MsgType = ChatMessageType.AuthorizerCommit,
-                        BlockHash = state.InputMsg.Block.Hash,
-                        BlockIndex = block.UIndex,
-                        Consensus = state.Consensus,
-                        Commited = true
-                    };
-
-                    _context.Send2P2pNetwork(msg);
-                    state.AddCommitedResult(msg);
-
-                    state.Done?.Set();
-
-                    _context.FinishBlock(state.HashOfFirstBlock);
                 }
             }
             catch (Exception ex)
@@ -398,6 +390,21 @@ namespace Lyra.Core.Decentralize
             finally
             {
                 state.Semaphore.Release();
+            }
+        }
+
+        private async Task CheckCommitedOKAsync()
+        {
+            var block = _state.InputMsg.Block;
+            if (_state.CommitConsensus == ConsensusResult.Yay)
+            {
+                if (!await BlockChain.Singleton.AddBlockAsync(block))
+                    _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
+                else
+                    _log.LogInformation($"Block saved: {block.UIndex}/{block.Index}/{block.Hash}");
+
+                _state.Done?.Set();
+                _context.FinishBlock(_state.HashOfFirstBlock);
             }
         }
 
@@ -419,7 +426,7 @@ namespace Lyra.Core.Decentralize
             //{
             //    var state = _activeConsensus[item.BlockHash];
             if(_state.AddCommitedResult(item))
-                await CheckAuthorizedAllOkAsync(_state);
+                await CheckCommitedOKAsync();
 
             _context.OnNodeActive(item.From);        // track latest activities via billboard
             //}

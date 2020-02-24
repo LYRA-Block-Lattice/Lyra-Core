@@ -231,7 +231,8 @@ namespace Lyra.Core.Decentralize
 
 	public class AuthorizerCommitMsg : SourceSignedMessage
 	{
-		public long BlockIndex { get; set; }
+		public long BlockUIndex { get; set; }
+		public string BlockUHash { get; set; }
 		public string BlockHash { get; set; }
 		public bool Commited { get; set; }
 		public ConsensusResult Consensus { get; set; }
@@ -245,7 +246,7 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{BlockHash}|{BlockIndex}|{Commited}|{Consensus}" + base.GetHashInput();
+			return $"{BlockHash}|{BlockUIndex}|{BlockUHash}|{Commited}|{Consensus}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
@@ -255,6 +256,7 @@ namespace Lyra.Core.Decentralize
 
 		public override int Size => base.Size +
 			sizeof(long) +
+			BlockUHash.Length +
 			BlockHash.Length +
 			sizeof(bool) +
 			sizeof(ConsensusResult);
@@ -262,7 +264,8 @@ namespace Lyra.Core.Decentralize
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
-			writer.Write(BlockIndex);
+			writer.Write(BlockUIndex);
+			writer.Write(BlockUHash);
 			writer.Write(BlockHash);
 			writer.Write(Commited);
 			writer.Write((int)Consensus);
@@ -271,7 +274,8 @@ namespace Lyra.Core.Decentralize
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
-			BlockIndex = reader.ReadInt64();
+			BlockUIndex = reader.ReadInt64();
+			BlockUHash = reader.ReadString();
 			BlockHash = reader.ReadString();
 			Commited = reader.ReadBoolean();
 			Consensus = (ConsensusResult)reader.ReadInt32();

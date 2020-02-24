@@ -345,7 +345,7 @@ namespace Lyra.Core.Decentralize
                     var state = cleaned[i].State;
                     if (DateTime.Now - state.Created > TimeSpan.FromMinutes(1)) // 2 mins
                     {
-                        var finalResult = state.Consensus;
+                        var finalResult = state.CommitConsensus;
                         if (finalResult == ConsensusResult.Uncertain)
                             _log.LogWarning($"Permanent remove timeouted Uncertain block: {state.InputMsg.Block.Hash}");
                         _cleanedConsensus.TryRemove(state.InputMsg.Block.Hash, out _);
@@ -358,7 +358,7 @@ namespace Lyra.Core.Decentralize
                     var state = states[i].State;    // TODO: check null
                     if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(30)) // consensus timeout
                     {
-                        var finalResult = state.Consensus;
+                        var finalResult = state.CommitConsensus;
                         if(finalResult == ConsensusResult.Uncertain)
                             _log.LogWarning($"temporary remove timeouted Uncertain block: {state.InputMsg.Block.Hash}");
 
@@ -404,7 +404,7 @@ namespace Lyra.Core.Decentralize
                                     EndUIndex = endUIndex,
                                     Index = lastCons.Index + 1,
                                     PreviousHash = lastCons.Hash,
-                                    NullUIndex = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
+                                    NullUIndexes = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
                                     MerkelTreeHash = mt.BuildTree().ToString()
                                 };
 
@@ -509,6 +509,7 @@ namespace Lyra.Core.Decentralize
         public void FinishBlock(string hash)
         {
             _activeConsensus.TryRemove(hash, out _);
+            _log.LogInformation($"_activeConsensus: {_activeConsensus.Count}");
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash)

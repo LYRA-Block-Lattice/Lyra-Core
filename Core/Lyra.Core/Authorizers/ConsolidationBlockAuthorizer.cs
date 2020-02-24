@@ -58,7 +58,7 @@ namespace Lyra.Core.Authorizers
             var mt = new MerkleTree();
             for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
             {
-                if (block.NullUIndex != null && block.NullUIndex.Contains(ndx))
+                if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
                     continue;
 
                 var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);

@@ -37,17 +37,20 @@ namespace Lyra.Core.Decentralize
 
         private ConsensusResult _consensusResult;
 
-        public ConsensusResult Consensus {
+        public ConsensusResult PrepareConsensus => GetPrepareConsensusSuccess();
+
+        public ConsensusResult CommitConsensus
+        {
             get
             {
                 if (!Settled)
                 {
-                    _consensusResult = GetConsensusSuccess();
-                    if(_consensusResult != ConsensusResult.Uncertain)
-                        Settled = true;                    
+                    _consensusResult = GetCommitConsensusSuccess();
+                    if (_consensusResult != ConsensusResult.Uncertain)
+                        Settled = true;
                 }
                 return _consensusResult;
-            }        
+            }
         }
 
         ILogger _log;
@@ -141,18 +144,33 @@ namespace Lyra.Core.Decentralize
             //    return false;
         }
 
-        private ConsensusResult GetConsensusSuccess()
+        private ConsensusResult GetPrepareConsensusSuccess()
         {
             if (ConsensusUIndex < 0)
                 return ConsensusResult.Uncertain;
 
             var authResult = CheckAuthorizedResults();
-            var commitResult = CheckCommitedResults();
 
-            if (authResult == ConsensusResult.Yay || commitResult == ConsensusResult.Yay)
+            if (authResult == ConsensusResult.Yay)
                 return ConsensusResult.Yay;
 
-            if (authResult == ConsensusResult.Nay || commitResult == ConsensusResult.Nay)
+            if (authResult == ConsensusResult.Nay)
+                return ConsensusResult.Nay;
+
+            return ConsensusResult.Uncertain;
+        }
+
+        private ConsensusResult GetCommitConsensusSuccess()
+        {
+            if (ConsensusUIndex < 0)
+                return ConsensusResult.Uncertain;
+
+            var commitResult = CheckCommitedResults();
+
+            if (commitResult == ConsensusResult.Yay)
+                return ConsensusResult.Yay;
+
+            if (commitResult == ConsensusResult.Nay)
                 return ConsensusResult.Nay;
 
             return ConsensusResult.Uncertain;

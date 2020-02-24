@@ -11,7 +11,7 @@ namespace Lyra.Core.Blocks
     {
         public long StartUIndex { get; set; }
         public long EndUIndex { get; set; }
-        public long[] NullUIndex { get; set; }
+        public long[] NullUIndexes { get; set; }
         public string MerkelTreeHash { get; set; }
 
         public override BlockTypes GetBlockType()
@@ -22,9 +22,9 @@ namespace Lyra.Core.Blocks
         protected override string GetExtraData()
         {
             string nui = string.Empty;
-            if (NullUIndex != null && NullUIndex.Length > 0)
+            if (NullUIndexes != null && NullUIndexes.Length > 0)
             {
-                nui = NullUIndex.Aggregate(new StringBuilder(),
+                nui = NullUIndexes.Aggregate(new StringBuilder(),
                           (sb, ndx) => sb.Append($"|{ndx}"),
                           sb => sb.ToString());
             }
