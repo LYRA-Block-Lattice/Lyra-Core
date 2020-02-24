@@ -89,7 +89,7 @@ namespace Lyra.Core.Decentralize
             _orphange = new Orphanage(
                     async (state) => {
                         _log.LogInformation($"AuthState from Orphanage: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
-                        var worker = GetWorker(state.InputMsg.Block.Hash); 
+                        var worker = await GetWorkerAsync(state.InputMsg.Block.Hash); 
                         worker.Create(state); 
                     },
                     async (msg1) => {
@@ -98,7 +98,7 @@ namespace Lyra.Core.Decentralize
                     async (msg2s) => {
                         foreach (var msg2 in msg2s)
                         {
-                            var worker2 = GetWorker(msg2.BlockHash);
+                            var worker2 = await GetWorkerAsync(msg2.BlockHash);
                             if (worker2 != null)
                                 await worker2.OnPrepareAsync(msg2);
                         }
@@ -106,7 +106,7 @@ namespace Lyra.Core.Decentralize
                     async (msg3s) => {
                         foreach (var msg3 in msg3s)
                         {
-                            var worker3 = GetWorker(msg3.BlockHash);
+                            var worker3 = await GetWorkerAsync(msg3.BlockHash);
                             if (worker3 != null)
                                 await worker3.OnCommitAsync(msg3);
                         }
@@ -207,7 +207,7 @@ namespace Lyra.Core.Decentralize
 
                 //_log.LogInformation($"AuthState from tell: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
 
-                var worker = GetWorker(state.InputMsg.Block.Hash);
+                var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
                 worker.Create(state);
             });
 
@@ -424,7 +424,7 @@ namespace Lyra.Core.Decentralize
 
                                 //_log.LogInformation($"AuthState from consolidation: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
 
-                                var worker = GetWorker(state.InputMsg.Block.Hash);
+                                var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
                                 worker.Create(state);
                             }
                         }
@@ -506,8 +506,18 @@ namespace Lyra.Core.Decentralize
             return Akka.Actor.Props.Create(() => new ConsensusService(localNode)).WithMailbox("consensus-service-mailbox");
         }
 
-        private ConsensusWorker GetWorker(string hash)
+        public void FinishBlock(string hash)
         {
+            _activeConsensus.TryRemove(hash, out _);
+        }
+
+        private async Task<ConsensusWorker> GetWorkerAsync(string hash)
+        {
+            // if a block is in database
+            var aBlock = await BlockChain.Singleton.FindBlockByHashAsync(hash);
+            if (aBlock != null)
+                return null;
+
             if (_cleanedConsensus.ContainsKey(hash))        // > 2min outdated.
             {
                 _log.LogWarning($"GetWorker: no worker for expired hash: {hash.Shorten()}");
@@ -558,7 +568,7 @@ namespace Lyra.Core.Decentralize
                         return;
                     }                        
 
-                    var worker = GetWorker(msg1.Block.Hash);
+                    var worker = await GetWorkerAsync(msg1.Block.Hash);
                     if (worker != null)
                         await worker.OnPrePrepareAsync(msg1);
                     else
@@ -570,7 +580,7 @@ namespace Lyra.Core.Decentralize
                     if (!AuthorizerShapshot.Contains(msg2.From))
                         return;
 
-                    var worker2 = GetWorker(msg2.BlockHash);
+                    var worker2 = await GetWorkerAsync(msg2.BlockHash);
                     if (worker2 != null)
                         await worker2.OnPrepareAsync(msg2);
                     else
@@ -581,7 +591,7 @@ namespace Lyra.Core.Decentralize
                     if (!AuthorizerShapshot.Contains(msg3.From))
                         return;
 
-                    var worker3 = GetWorker(msg3.BlockHash);
+                    var worker3 = await GetWorkerAsync(msg3.BlockHash);
                     if (worker3 != null)
                         await worker3.OnCommitAsync(msg3);
                     else

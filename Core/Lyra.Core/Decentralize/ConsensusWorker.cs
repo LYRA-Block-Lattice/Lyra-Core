@@ -387,6 +387,8 @@ namespace Lyra.Core.Decentralize
                     state.AddCommitedResult(msg);
 
                     state.Done?.Set();
+
+                    _context.FinishBlock(state.HashOfFirstBlock);
                 }
             }
             catch (Exception ex)
