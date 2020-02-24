@@ -286,10 +286,10 @@ namespace Lyra
             var consBlock = new ConsolidationBlock
             {
                 UIndex = 2,
-                Index = svcGen.Index + 1,
+                Index = 1,
                 StartUIndex = 0,
                 EndUIndex = 1,
-                PreviousHash = svcGen.Hash
+                PreviousHash = null
             };
 
             var mt = new MerkleTree();
