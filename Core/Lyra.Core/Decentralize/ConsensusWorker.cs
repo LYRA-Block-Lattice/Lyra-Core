@@ -241,7 +241,7 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            _log.LogInformation($"OnPrepareAsync: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+            //_log.LogInformation($"OnPrepareAsync: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
             if (_state.T3 == default)
                 _state.T3 = DateTime.Now;
