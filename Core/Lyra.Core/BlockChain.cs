@@ -285,11 +285,8 @@ namespace Lyra
         {
             var consBlock = new ConsolidationBlock
             {
-                UIndex = 2,
-                Index = 1,
                 StartUIndex = 0,
-                EndUIndex = 1,
-                PreviousHash = null
+                EndUIndex = 1
             };
 
             var mt = new MerkleTree();
