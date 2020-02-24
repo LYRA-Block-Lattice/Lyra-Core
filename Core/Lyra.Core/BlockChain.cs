@@ -297,7 +297,7 @@ namespace Lyra
             mt.AppendLeaf(MerkleHash.Create(lyraGen.UHash));
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
-            consBlock.InitializeBlock(svcGen, NodeService.Instance.PosWallet.PrivateKey,
+            consBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId);
 
             return consBlock;
