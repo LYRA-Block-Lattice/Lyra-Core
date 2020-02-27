@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Akka.Actor;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Decentralize;
@@ -405,6 +406,17 @@ namespace Lyra.Core.Decentralize
 
                 _state.Done?.Set();
                 _context.FinishBlock(_state.HashOfFirstBlock);
+
+                if(block is ConsolidationBlock)
+                {
+                    // get my authorize result
+                    var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
+                    if (myResult != null && myResult.Result == APIResultCodes.Success)
+                        return;
+
+                    // crap! this node is out of sync.
+                    LyraSystem.Singleton.Consensus.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
+                }
             }
         }
 

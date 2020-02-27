@@ -408,6 +408,48 @@ namespace Lyra
                 //_log.LogInformation("Service Genesis Completed.");
         }
 
+        LyraRestClient _clientForSync;
+        public async Task<bool> SyncOneBlock(long uid)
+        {
+            _log.LogInformation($"SyncOneBlock: {uid}");
+
+            if (_clientForSync == null)
+                _clientForSync = await FindValidSeedForSyncAsync();
+
+            var result = await _clientForSync.GetBlockByUIndex(uid);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return await AddBlockAsync(result.GetBlock());
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private async Task<LyraRestClient> FindValidSeedForSyncAsync()
+        {
+            do
+            {
+                int ndx;
+                do
+                {
+                    ndx = new Random().Next(0, ProtocolSettings.Default.SeedList.Length - 1);
+                } while (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
+
+                var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
+                var apiUrl = $"https://{addr}:4505/api/LyraNode/";
+                _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
+                var client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+                var mode = await client.GetSyncState();
+                if (mode.ResultCode == APIResultCodes.Success && mode.SyncState == ConsensusWorkingMode.Normal)
+                {
+                    return client;
+                }
+                await Task.Delay(10000);    // incase of hammer
+            } while (true);
+        }
+
         /// <summary>
         /// if this node is seed0 then sync with seeds others (random choice the one that is in normal state)
         /// if this node is seed1+ then sync with seed0
@@ -415,6 +457,8 @@ namespace Lyra
         /// </summary>
         private void SyncBlocksFromSeeds(long ToUIndex)
         {
+            return;
+
             InSyncing = true;
             Task.Run(async () => {
 
@@ -424,35 +468,7 @@ namespace Lyra
                     string syncWithUrl = null;
                     LyraRestClient client = null;
                     long syncToUIndex = ToUIndex;
-#if DEBUG
-                    for (int i = 0; i < 2; i++)         // save time 
-#else
-                    for (int i = 0; i < ProtocolSettings.Default.SeedList.Length; i++)
-#endif
-                    {
-                        if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[i])  // self
-                            continue;
 
-                        try
-                        {
-                            var addr = ProtocolSettings.Default.SeedList[i].Split(':')[0];
-                            var apiUrl = $"https://{addr}:4505/api/LyraNode/";
-                            _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-                            client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
-                            var mode = await client.GetSyncState();
-                            if (mode.ResultCode == APIResultCodes.Success && mode.SyncState == ConsensusWorkingMode.Normal)
-                            {
-                                syncWithUrl = apiUrl;
-                                if (syncToUIndex == 0)
-                                    syncToUIndex = mode.NewestBlockUIndex;
-                                break;
-                            }
-                        }
-                        catch(Exception ex)
-                        {
-                            _log.LogWarning($"Trying to sync.. {ex.Message}");
-                        }
-                    }
 
                     if (syncWithUrl == null)
                     {

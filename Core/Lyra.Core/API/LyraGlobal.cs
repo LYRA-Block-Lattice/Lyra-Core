@@ -15,7 +15,7 @@ namespace Lyra.Core.API
         public static string NodeAppName = "Lyra Permisionless " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 
         public const int MinimalAuthorizerBalance = 1000000;
-        public const decimal LYRAGENESISAMOUNT = 2000000000;
+        public const decimal LYRAGENESISAMOUNT = 3000000000;
 
 #if DEBUG
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
