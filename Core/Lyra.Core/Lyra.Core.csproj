@@ -62,5 +62,8 @@
     <Reference Include="Mono.Android">
       <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\ReferenceAssemblies\Microsoft\Framework\MonoAndroid\v8.1\Mono.Android.dll</HintPath>
     </Reference>
+    <Reference Include="Stateless">
+      <HintPath>..\..\Utils\3rdpart\stateless\Stateless.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
