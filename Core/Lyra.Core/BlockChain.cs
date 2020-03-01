@@ -108,7 +108,7 @@ namespace Lyra
 
             _sys = sys;
 
-            _state = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Startup);
+            _state = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
             CreateStateMachine();
 
             var nodeConfig = Neo.Settings.Default.LyraNode;
@@ -166,19 +166,19 @@ namespace Lyra
                         var myStatus = await GetNodeStatusAsync();
                         if (myStatus.lastBlockHeight == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
                         {
-                            _state.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                            _state.FireAsync(BlockChainTrigger.ConsensusBlockChainEmpty);
                         }
                         else if (myStatus.lastBlockHeight < majorHeight.Height && majorHeight.Height > 2 && majorHeight.Count >= 2)
                         {
-                            _state.Fire(BlockChainTrigger.ConsensusNodesSynced);
+                            _state.FireAsync(BlockChainTrigger.ConsensusNodesSynced);
                         }
                         else if (majorHeight.Height > 2 && majorHeight.Count < 2)
                         {
-                            _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
+                            _state.FireAsync(BlockChainTrigger.ConsensusNodesOutOfSync);
                         }
                         else
                         {
-                            _state.Fire(BlockChainTrigger.QueryingConsensusNode);
+                            _state.FireAsync(BlockChainTrigger.QueryingConsensusNode);
                         }
                     }
                 })
@@ -238,11 +238,11 @@ namespace Lyra
                         && block1.Hash == tokenGen.Hash
                         && block2.Hash == consGen.Hash)
                     {
-                        _state.Fire(BlockChainTrigger.GenesisSuccess);
+                        _state.FireAsync(BlockChainTrigger.GenesisSuccess);
                     }
                     else
                     {
-                        _state.Fire(BlockChainTrigger.GenesisFailed);
+                        _state.FireAsync(BlockChainTrigger.GenesisFailed);
                     }
                 })
 
@@ -312,7 +312,7 @@ namespace Lyra
                     SyncBlocksFromSeeds(cmd.ToUIndex);
                     break;
                 case Startup _:
-                    _state.Fire(BlockChainTrigger.LocalNodeStartup);
+                    _state.FireAsync(BlockChainTrigger.LocalNodeStartup);
                     break;
                 case NodeStatus nodeStatus:
                     // only accept status from seeds.
