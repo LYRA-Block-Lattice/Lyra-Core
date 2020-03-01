@@ -285,7 +285,7 @@ namespace Lyra.Core.Decentralize
                 int count = 0;
                 while (true)
                 {
-                    if (Mode == ConsensusWorkingMode.Normal && BlockChain.Singleton.Mode == BlockChainMode.Almighty)
+                    if (Mode == ConsensusWorkingMode.Normal && BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
                     {
                         await GenerateConsolidateBlockAsync();
                     }

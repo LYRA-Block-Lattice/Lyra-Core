@@ -12,21 +12,61 @@ using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.Cryptography.ECC;
 using Neo.IO.Actors;
+using Stateless;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Settings = Neo.Settings;
 
 namespace Lyra
 {
-    public enum BlockChainMode { Startup,   // the default mode. app started. wait for p2p stack up.
-        Inquiry,    // p2p net up. can do messaging
+    public enum BlockChainState 
+    { 
+        Initializing, 
+        Startup,   // the default mode. app started. wait for p2p stack up.
+        Protect,    // p2p net up. can do messaging
         Engaging,   // storing new commit while syncing blocks
-        Almighty    // fullly synced and working
+        Almighty,   // fullly synced and working
+        Genesis,
+        Failed
     }
+
+    public enum BlockChainTrigger
+    {
+        // initializing
+        LocalNodeStartup,
+
+        // startup
+        QueryingConsensusNode,
+        ConsensusBlockChainEmpty,
+        ConsensusNodesOutOfSync,
+        ConsensusNodesSynced,
+
+        // engage
+        LocalNodeConsolidated,
+
+        // protect
+        AuthorizerNodesCountEnough,
+        Seed0Genesis,
+
+        // almighty
+        LocalNodeOutOfSync,
+        AuthorizerNodesCountLow,
+        LocalNodeFatalError,
+
+        // Failed
+        LocalNodeRecovered,
+        QueryLocalRecovery,
+
+        // genesis
+        GenesisSuccess,
+        GenesisFailed
+    }
+
     public class BlockChain : UntypedActor
     {
         public class NeedSync { public long ToUIndex { get; set; } }
@@ -48,8 +88,10 @@ namespace Lyra
         public uint Height;
         public string NetworkID { get; private set; }
         public bool InSyncing { get; private set; }
-        public BlockChainMode Mode { get; private set; }
         public long LastSavedUIndex { get => _lastSavedUIndex; }
+
+        private readonly StateMachine<BlockChainState, BlockChainTrigger> _state;
+        public BlockChainState CurrentState => _state.State;
 
         private LyraConfig _nodeConfig;
         private readonly IAccountCollectionAsync _store;
@@ -65,7 +107,9 @@ namespace Lyra
                 throw new Exception("Blockchain reinitialization");
 
             _sys = sys;
-            Mode = BlockChainMode.Startup;
+
+            _state = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Startup);
+            CreateStateMachine();
 
             var nodeConfig = Neo.Settings.Default.LyraNode;
             _store = new MongoAccountCollection();
@@ -83,15 +127,143 @@ namespace Lyra
             return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
         }
 
+        private void CreateStateMachine()
+        {
+            _state.Configure(BlockChainState.Initializing)
+                .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
+
+            _state.Configure(BlockChainState.Startup)
+                .OnEntry(() => {
+                    Task.Run(async () =>
+                    {
+                        while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
+                        {
+                            await Task.Delay(1000);
+                        }
+
+                        _sys.Consensus.Tell(new ConsensusService.Startup());
+
+                        _nodeStatus = new List<NodeStatus>();
+                        _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
+
+                        await Task.Delay(10000);
+
+                        var q = from ns in _nodeStatus
+                                group ns by ns.lastBlockHeight into heights
+                                orderby heights.Count()
+                                select new
+                                {
+                                    Height = heights.Key,
+                                    Count = heights.Count()
+                                };
+
+                        if (q.Any())
+                        {
+                            var majorHeight = q.First();
+
+                            _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
+
+                            var myStatus = await GetNodeStatusAsync();
+                            if (myStatus.lastBlockHeight == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
+                            {
+                                _state.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                            }
+                            else if (myStatus.lastBlockHeight < majorHeight.Height && majorHeight.Height > 2 && majorHeight.Count >= 2)
+                            {
+                                _state.Fire(BlockChainTrigger.ConsensusNodesSynced);
+                            }
+                            else if (majorHeight.Height > 2 && majorHeight.Count < 2)
+                            {
+                                _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
+                            }
+                            else
+                            {
+                                _state.Fire(BlockChainTrigger.QueryingConsensusNode);
+                            }
+                        }
+                    });
+                })
+                .InternalTransition(BlockChainTrigger.QueryingConsensusNode, t => { })
+                .Permit(BlockChainTrigger.QueryingConsensusNode, BlockChainState.Startup)
+                .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Protect)
+                .Permit(BlockChainTrigger.ConsensusNodesOutOfSync, BlockChainState.Failed)
+                .Permit(BlockChainTrigger.ConsensusNodesSynced, BlockChainState.Engaging);
+
+            _state.Configure(BlockChainState.Protect)
+                .OnEntry(() => {
+                    if (ConsensusService.IsThisNodeSeed0)
+                    {
+                        _state.Fire(BlockChainTrigger.Seed0Genesis);
+                    }                
+                })
+                .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Genesis)
+                .Permit(BlockChainTrigger.AuthorizerNodesCountEnough, BlockChainState.Almighty);
+
+            _state.Configure(BlockChainState.Almighty)
+                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)
+                .Permit(BlockChainTrigger.AuthorizerNodesCountLow, BlockChainState.Protect)
+                .Permit(BlockChainTrigger.LocalNodeFatalError, BlockChainState.Failed);
+
+            _state.Configure(BlockChainState.Failed)
+                .InternalTransition(BlockChainTrigger.QueryLocalRecovery, t => { })
+                .Permit(BlockChainTrigger.LocalNodeRecovered, BlockChainState.Startup);
+
+            _state.Configure(BlockChainState.Genesis)
+                .OnEntryAsync(async () => {
+                    // genesis
+                    _log.LogInformation("all seed nodes are ready. do genesis.");
+
+                    var svcGen = GetServiceGenesisBlock();
+                    await SendBlockToConsensusAsync(svcGen);
+
+                    await Task.Delay(1000);
+
+                    var tokenGen = GetLyraTokenGenesisBlock(svcGen);
+                    await SendBlockToConsensusAsync(tokenGen);
+
+                    await Task.Delay(1000);
+
+                    var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
+                    await SendBlockToConsensusAsync(consGen);
+
+                    await Task.Delay(1000);
+
+                    _log.LogInformation("svc genesis is done.");
+
+                    await Task.Delay(3000);
+
+                    // check if all block success
+                    var block0 = await GetBlockByUIndexAsync(0);
+                    var block1 = await GetBlockByUIndexAsync(1);
+                    var block2 = await GetBlockByUIndexAsync(2);
+                    if (block0 != null && block1 != null && block2 != null
+                        && block0.Hash == svcGen.Hash
+                        && block1.Hash == tokenGen.Hash
+                        && block2.Hash == consGen.Hash)
+                    {
+                        _state.Fire(BlockChainTrigger.GenesisSuccess);
+                    }
+                    else
+                    {
+                        _state.Fire(BlockChainTrigger.GenesisFailed);
+                    }
+                })
+
+                .Permit(BlockChainTrigger.GenesisSuccess, BlockChainState.Protect)
+                .Permit(BlockChainTrigger.GenesisFailed, BlockChainState.Failed);
+
+            _state.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
+        }
+
         public async Task<NodeStatus> GetNodeStatusAsync()
         {
             var status = new NodeStatus
             {
                 accountId = NodeService.Instance.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
-                mode = BlockChain.Singleton.Mode,
-                lastBlockHeight = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
-                lastConsolidationHash = (await BlockChain.Singleton.GetSyncBlockAsync())?.Hash,
+                mode = _state.State,
+                lastBlockHeight = await GetNewestBlockUIndexAsync(),
+                lastConsolidationHash = (await GetSyncBlockAsync())?.Hash,
                 lastUnSolidationHash = null,
                 connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
             };
@@ -143,7 +315,7 @@ namespace Lyra
                     SyncBlocksFromSeeds(cmd.ToUIndex);
                     break;
                 case Startup _:
-                    StartInitAsync().Wait();
+                    _state.Fire(BlockChainTrigger.LocalNodeStartup);
                     break;
                 case NodeStatus nodeStatus:
                     // only accept status from seeds.
@@ -183,102 +355,6 @@ namespace Lyra
             //            Self.Tell(Idle.Instance, ActorRefs.NoSender);
             //        break;
             }
-        }
-
-        private async Task StartInitAsync()
-        {
-            // first broadcast msg what'up to lookup others nodes state/height
-            // detect network status
-            // get sync states from all seeds
-            // if others ok, then this seeds need sync
-            // if others all zero, then this seed do genesis
-            // 
-
-
-            // debug only should delete tomorrow
-            //for (long i = 0; i < 10; i++)
-            //    await RemoveBlockAsync(i);
-
-            if (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount > 0)
-            {
-                Mode = BlockChainMode.Inquiry;
-                _ = Task.Run(async () =>
-                {
-                    _sys.Consensus.Tell(new ConsensusService.Startup());
-
-                    while (true)
-                    {
-                        _nodeStatus = new List<NodeStatus>();
-                        _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
-
-                        await Task.Delay(10000);
-
-                        var q = from ns in _nodeStatus
-                                group ns by ns.lastBlockHeight into heights
-                                orderby heights.Count()
-                                select new
-                                {
-                                    Height = heights.Key,
-                                    Count = heights.Count()
-                                };
-                        
-                        if(q.Any())
-                        {
-                            var majorHeight = q.First();
-
-                            _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
-
-                            var myStatus = await GetNodeStatusAsync();
-                            if(majorHeight.Height == myStatus.lastBlockHeight)
-                            {
-                                Mode = BlockChainMode.Almighty;
-
-                                if(ConsensusService.IsThisNodeSeed0)
-                                {
-                                    if (majorHeight.Height > 1)
-                                        break;
-                                }
-                                else
-                                    break;
-                            }
-
-                            var otherSeedsCount = ProtocolSettings.Default.StandbyValidators.Length - 1;
-                            if (ConsensusService.IsThisNodeSeed0 && _nodeStatus.Count(a => a.mode == BlockChainMode.Almighty) == otherSeedsCount
-                                && majorHeight.Height == 0 && majorHeight.Count == otherSeedsCount)
-                            {
-                                // genesis
-                                _log.LogInformation("all seed nodes are ready. do genesis.");
-
-                                var svcGen = GetServiceGenesisBlock();
-                                await SendBlockToConsensusAsync(svcGen);
-
-                                var tokenGen = GetLyraTokenGenesisBlock(svcGen);
-                                await SendBlockToConsensusAsync(tokenGen);
-
-                                var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
-                                await SendBlockToConsensusAsync(consGen);
-
-                                _log.LogInformation("svc genesis is done.");
-
-                                break;
-                            }
-                        }
-                    }
-
-                    _sys.Consensus.Tell(new ConsensusService.BlockChainSynced());
-                });
-
-                return;
-            }
-
-            // no connection.
-            if(ConsensusService.IsThisNodeSeed0)
-            {
-                Mode = BlockChainMode.Almighty;
-                // set mode and wait for connection.
-            }
-
-            return;
         }
 
         public ConsolidationBlock GetConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
