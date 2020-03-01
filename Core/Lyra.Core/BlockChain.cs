@@ -168,7 +168,7 @@ namespace Lyra
                         {
                             _state.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                         }
-                        else if (myStatus.lastBlockHeight < majorHeight.Height && majorHeight.Height > 2 && majorHeight.Count >= 2)
+                        else if (myStatus.lastBlockHeight <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
                         {
                             _state.Fire(BlockChainTrigger.ConsensusNodesSynced);
                         }
