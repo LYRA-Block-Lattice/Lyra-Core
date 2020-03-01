@@ -134,7 +134,7 @@ namespace Lyra
 
             _state.Configure(BlockChainState.Startup)
                 .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
-                .OnEntryAsync(async () =>
+                .OnEntry(() => Task.Run(async () =>
                 {
                     while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
                     {
@@ -166,34 +166,35 @@ namespace Lyra
                         var myStatus = await GetNodeStatusAsync();
                         if (myStatus.lastBlockHeight == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
                         {
-                            _state.FireAsync(BlockChainTrigger.ConsensusBlockChainEmpty);
+                            _state.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                         }
                         else if (myStatus.lastBlockHeight < majorHeight.Height && majorHeight.Height > 2 && majorHeight.Count >= 2)
                         {
-                            _state.FireAsync(BlockChainTrigger.ConsensusNodesSynced);
+                            _state.Fire(BlockChainTrigger.ConsensusNodesSynced);
                         }
                         else if (majorHeight.Height > 2 && majorHeight.Count < 2)
                         {
-                            _state.FireAsync(BlockChainTrigger.ConsensusNodesOutOfSync);
+                            _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
                         }
                         else
                         {
-                            _state.FireAsync(BlockChainTrigger.QueryingConsensusNode);
+                            _state.Fire(BlockChainTrigger.QueryingConsensusNode);
                         }
                     }
-                })
+                }))
                 .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Protect)
                 .Permit(BlockChainTrigger.ConsensusNodesOutOfSync, BlockChainState.Failed)
                 .Permit(BlockChainTrigger.ConsensusNodesSynced, BlockChainState.Engaging);
 
             _state.Configure(BlockChainState.Protect)
-                .OnEntry(() => {
-                    if (ConsensusService.IsThisNodeSeed0)
+                .OnEntry(() => Task.Run(async () => 
+                {
+                    if (await FindLatestBlockAsync() == null && ConsensusService.IsThisNodeSeed0)
                     {
                         _state.Fire(BlockChainTrigger.Seed0Genesis);
-                    }                
-                })
-                .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Genesis)
+                    }
+                }))
+                .Permit(BlockChainTrigger.Seed0Genesis, BlockChainState.Genesis)
                 .Permit(BlockChainTrigger.AuthorizerNodesCountEnough, BlockChainState.Almighty);
 
             _state.Configure(BlockChainState.Almighty)
@@ -206,7 +207,7 @@ namespace Lyra
                 .Permit(BlockChainTrigger.LocalNodeRecovered, BlockChainState.Startup);
 
             _state.Configure(BlockChainState.Genesis)
-                .OnEntryAsync(async () => {
+                .OnEntry(() => Task.Run(async () => {
                     // genesis
                     _log.LogInformation("all seed nodes are ready. do genesis.");
 
@@ -238,14 +239,13 @@ namespace Lyra
                         && block1.Hash == tokenGen.Hash
                         && block2.Hash == consGen.Hash)
                     {
-                        _state.FireAsync(BlockChainTrigger.GenesisSuccess);
+                        _state.Fire(BlockChainTrigger.GenesisSuccess);
                     }
                     else
                     {
-                        _state.FireAsync(BlockChainTrigger.GenesisFailed);
+                        _state.Fire(BlockChainTrigger.GenesisFailed);
                     }
-                })
-
+                }))                
                 .Permit(BlockChainTrigger.GenesisSuccess, BlockChainState.Protect)
                 .Permit(BlockChainTrigger.GenesisFailed, BlockChainState.Failed);
 
@@ -312,7 +312,7 @@ namespace Lyra
                     SyncBlocksFromSeeds(cmd.ToUIndex);
                     break;
                 case Startup _:
-                    _state.FireAsync(BlockChainTrigger.LocalNodeStartup);
+                    _state.Fire(BlockChainTrigger.LocalNodeStartup);
                     break;
                 case NodeStatus nodeStatus:
                     // only accept status from seeds.
