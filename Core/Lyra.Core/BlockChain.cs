@@ -133,58 +133,55 @@ namespace Lyra
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
 
             _state.Configure(BlockChainState.Startup)
-                .OnEntry(() => {
-                    Task.Run(async () =>
+                .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
+                .OnEntryAsync(async () =>
+                {
+                    while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
                     {
-                        while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
+                        await Task.Delay(1000);
+                    }
+
+                    _sys.Consensus.Tell(new ConsensusService.Startup());
+
+                    _nodeStatus = new List<NodeStatus>();
+                    _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
+
+                    await Task.Delay(10000);
+
+                    var q = from ns in _nodeStatus
+                            group ns by ns.lastBlockHeight into heights
+                            orderby heights.Count()
+                            select new
+                            {
+                                Height = heights.Key,
+                                Count = heights.Count()
+                            };
+
+                    if (q.Any())
+                    {
+                        var majorHeight = q.First();
+
+                        _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
+
+                        var myStatus = await GetNodeStatusAsync();
+                        if (myStatus.lastBlockHeight == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
                         {
-                            await Task.Delay(1000);
+                            _state.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                         }
-
-                        _sys.Consensus.Tell(new ConsensusService.Startup());
-
-                        _nodeStatus = new List<NodeStatus>();
-                        _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
-
-                        await Task.Delay(10000);
-
-                        var q = from ns in _nodeStatus
-                                group ns by ns.lastBlockHeight into heights
-                                orderby heights.Count()
-                                select new
-                                {
-                                    Height = heights.Key,
-                                    Count = heights.Count()
-                                };
-
-                        if (q.Any())
+                        else if (myStatus.lastBlockHeight < majorHeight.Height && majorHeight.Height > 2 && majorHeight.Count >= 2)
                         {
-                            var majorHeight = q.First();
-
-                            _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
-
-                            var myStatus = await GetNodeStatusAsync();
-                            if (myStatus.lastBlockHeight == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
-                            {
-                                _state.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
-                            }
-                            else if (myStatus.lastBlockHeight < majorHeight.Height && majorHeight.Height > 2 && majorHeight.Count >= 2)
-                            {
-                                _state.Fire(BlockChainTrigger.ConsensusNodesSynced);
-                            }
-                            else if (majorHeight.Height > 2 && majorHeight.Count < 2)
-                            {
-                                _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
-                            }
-                            else
-                            {
-                                _state.Fire(BlockChainTrigger.QueryingConsensusNode);
-                            }
+                            _state.Fire(BlockChainTrigger.ConsensusNodesSynced);
                         }
-                    });
+                        else if (majorHeight.Height > 2 && majorHeight.Count < 2)
+                        {
+                            _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
+                        }
+                        else
+                        {
+                            _state.Fire(BlockChainTrigger.QueryingConsensusNode);
+                        }
+                    }
                 })
-                .InternalTransition(BlockChainTrigger.QueryingConsensusNode, t => { })
-                .Permit(BlockChainTrigger.QueryingConsensusNode, BlockChainState.Startup)
                 .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Protect)
                 .Permit(BlockChainTrigger.ConsensusNodesOutOfSync, BlockChainState.Failed)
                 .Permit(BlockChainTrigger.ConsensusNodesSynced, BlockChainState.Engaging);
@@ -205,7 +202,7 @@ namespace Lyra
                 .Permit(BlockChainTrigger.LocalNodeFatalError, BlockChainState.Failed);
 
             _state.Configure(BlockChainState.Failed)
-                .InternalTransition(BlockChainTrigger.QueryLocalRecovery, t => { })
+                .PermitReentry(BlockChainTrigger.QueryLocalRecovery)
                 .Permit(BlockChainTrigger.LocalNodeRecovered, BlockChainState.Startup);
 
             _state.Configure(BlockChainState.Genesis)

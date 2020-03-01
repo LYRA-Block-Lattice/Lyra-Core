@@ -64,6 +64,7 @@
     </Reference>
     <Reference Include="Stateless">
       <HintPath>..\..\Utils\3rdpart\stateless\Stateless.dll</HintPath>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 </Project>
