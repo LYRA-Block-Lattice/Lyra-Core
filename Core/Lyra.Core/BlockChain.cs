@@ -197,6 +197,13 @@ namespace Lyra
                 .Permit(BlockChainTrigger.Seed0Genesis, BlockChainState.Genesis)
                 .Permit(BlockChainTrigger.AuthorizerNodesCountEnough, BlockChainState.Almighty);
 
+            _state.Configure(BlockChainState.Engaging)
+                .OnEntry(() => Task.Run(async () =>
+                {
+                    // sync blocks + save letest
+                }))
+                .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
+
             _state.Configure(BlockChainState.Almighty)
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)
                 .Permit(BlockChainTrigger.AuthorizerNodesCountLow, BlockChainState.Protect)
