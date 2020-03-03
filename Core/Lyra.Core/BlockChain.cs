@@ -282,7 +282,7 @@ namespace Lyra
 
         public void AuthorizerCountChanged(int count)
         {
-            if (count < ProtocolSettings.Default.ConsensusWinNumber)
+            if (_state.State == BlockChainState.Almighty && count < ProtocolSettings.Default.ConsensusWinNumber)
             {
                 _state.Fire(BlockChainTrigger.AuthorizerNodesCountLow);
             }
