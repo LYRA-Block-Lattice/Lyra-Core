@@ -34,7 +34,7 @@ namespace Lyra.Core.Accounts
 
         // for service blocks
         Task<ServiceBlock> GetLastServiceBlockAsync();
-        Task<ConsolidationBlock> GetSyncBlockAsync();
+        Task<ConsolidationBlock> GetLastConsolidationBlockAsync();
 
         /// <summary>
         /// Returns the first unexecuted trade aimed to an order created on the account.

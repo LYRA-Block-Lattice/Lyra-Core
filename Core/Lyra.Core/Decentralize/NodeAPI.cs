@@ -68,7 +68,7 @@ namespace Lyra.Core.Decentralize
             var result = new AccountHeightAPIResult();
             try
             {
-                var last_sync_block = await BlockChain.Singleton.GetSyncBlockAsync();
+                var last_sync_block = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
                 if(last_sync_block == null)
                 {
                     // empty database. 
@@ -123,7 +123,7 @@ namespace Lyra.Core.Decentralize
                 {
                     result.Height = (await BlockChain.Singleton.FindLatestBlockAsync(AccountId)).Index;
                     result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
-                    result.SyncHash = (await BlockChain.Singleton.GetSyncBlockAsync()).Hash;
+                    result.SyncHash = (await BlockChain.Singleton.GetLastConsolidationBlockAsync()).Hash;
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else

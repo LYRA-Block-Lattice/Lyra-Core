@@ -201,20 +201,41 @@ namespace Lyra
                 .OnEntry(() => Task.Run(async () =>
                 {
                     // sync blocks + save letest
+                    var consolidateToUIndex = _lastSavedUIndex;
+                    do
+                    {
+                        var latestCons = await GetLastConsolidationBlockAsync();
+                        if (latestCons.EndUIndex > consolidateToUIndex)
+                        {
+                            _state.Fire(BlockChainTrigger.LocalNodeConsolidated);
+                            break;
+                        }
+                        // just wait
+                        await Task.Delay(5000);
+                    } while (true);
                 }))
                 .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
 
             _state.Configure(BlockChainState.Almighty)
+                .OnEntry(() => Task.Run(async () =>
+                {
+
+                }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)
                 .Permit(BlockChainTrigger.AuthorizerNodesCountLow, BlockChainState.Protect)
                 .Permit(BlockChainTrigger.LocalNodeFatalError, BlockChainState.Failed);
 
             _state.Configure(BlockChainState.Failed)
+                .OnEntry(() => Task.Run(async () =>
+                {
+
+                }))
                 .PermitReentry(BlockChainTrigger.QueryLocalRecovery)
                 .Permit(BlockChainTrigger.LocalNodeRecovered, BlockChainState.Startup);
 
             _state.Configure(BlockChainState.Genesis)
-                .OnEntry(() => Task.Run(async () => {
+                .OnEntry(() => Task.Run(async () => 
+                {
                     // genesis
                     _log.LogInformation("all seed nodes are ready. do genesis.");
 
@@ -267,7 +288,7 @@ namespace Lyra
                 version = LyraGlobal.NodeAppName,
                 mode = _state.State,
                 lastBlockHeight = await GetNewestBlockUIndexAsync(),
-                lastConsolidationHash = (await GetSyncBlockAsync())?.Hash,
+                lastConsolidationHash = (await GetLastConsolidationBlockAsync())?.Hash,
                 lastUnSolidationHash = null,
                 connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
             };
@@ -287,7 +308,7 @@ namespace Lyra
 
         public async Task<long> GetNewestBlockUIndexAsync() => await StopWatcher.Track(_store.GetNewestBlockUIndexAsync(), StopWatcher.GetCurrentMethod());
         public async Task<Block> GetBlockByUIndexAsync(long uindex) => await StopWatcher.Track(_store.GetBlockByUIndexAsync(uindex), StopWatcher.GetCurrentMethod());//_store.GetBlockByUIndexAsync(uindex);
-        internal async Task<ConsolidationBlock> GetSyncBlockAsync() => await StopWatcher.Track(_store.GetSyncBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
+        internal async Task<ConsolidationBlock> GetLastConsolidationBlockAsync() => await StopWatcher.Track(_store.GetLastConsolidationBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
         internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await StopWatcher.Track(_store.GetLastServiceBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetLastServiceBlockAsync();
 
         // forward api. should have more control here.

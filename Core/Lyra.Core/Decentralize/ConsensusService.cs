@@ -62,7 +62,6 @@ namespace Lyra.Core.Decentralize
         {
             return msg.From == ProtocolSettings.Default.StandbyValidators[0];
         }
-        public ConsensusWorkingMode Mode { get; private set; }
         public static BillBoard Board { get => _board; }
         public List<TransStats> Stats { get => _stats; }
 
@@ -84,8 +83,6 @@ namespace Lyra.Core.Decentralize
 
             while (BlockChain.Singleton == null)
                 Task.Delay(100).Wait();
-
-            Mode = ConsensusWorkingMode.OutofSyncWaiting;
 
             _orphange = new Orphanage(
                     async (state) => {
@@ -172,7 +169,6 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<BlockChainSynced>(async _ =>
             {
-                Mode = ConsensusWorkingMode.Normal;
                 var lastBlock = await BlockChain.Singleton.FindLatestBlockAsync();
                 if(lastBlock != null)
                     _UIndexSeed = lastBlock.UIndex + 1;
@@ -281,21 +277,22 @@ namespace Lyra.Core.Decentralize
 
             Task.Run(async () =>
             {
-                await HeartBeatAsync();
                 int count = 0;
                 while (true)
                 {
-                    if (Mode == ConsensusWorkingMode.Normal && BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
+                    if (IsThisNodeSeed0 && (BlockChain.Singleton.CurrentState == BlockChainState.Protect || BlockChain.Singleton.CurrentState == BlockChainState.Almighty))
                     {
                         await GenerateConsolidateBlockAsync();
                     }
 
+                    await HeartBeatAsync();
+
                     await Task.Delay(5000).ConfigureAwait(false);
                     count++;
 
-                    if (count > 6)
+                    if (count > 12 * 5)     // 5 minutes
                     {
-                        await HeartBeatAsync();
+
                         count = 0;
                     }
                 }
@@ -396,7 +393,7 @@ namespace Lyra.Core.Decentralize
             // expire partial transaction.
             // "patch" the exmpty UIndex
             // collec fees and do redistribute
-            var lastCons = await BlockChain.Singleton.GetSyncBlockAsync();
+            var lastCons = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
             ConsolidationBlock currentCons = null;
             try
             {
@@ -417,7 +414,7 @@ namespace Lyra.Core.Decentralize
                 var states = _activeConsensus.Values.ToArray();
                 for (int i = 0; i < states.Length; i++)
                 {
-                    var state = states[i].State;    // TODO: check null
+                    var state = states[i].State; 
                     if (state != null && DateTime.Now - state.Created > TimeSpan.FromSeconds(30)) // consensus timeout
                     {
                         var finalResult = state.CommitConsensus;

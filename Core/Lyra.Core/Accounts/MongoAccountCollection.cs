@@ -198,7 +198,7 @@ namespace Lyra.Core.Accounts
             return await finds.FirstOrDefaultAsync() as ServiceBlock;
         }
 
-        public async Task<ConsolidationBlock> GetSyncBlockAsync()
+        public async Task<ConsolidationBlock> GetLastConsolidationBlockAsync()
         {
             var options = new FindOptions<Block, Block>
             {
