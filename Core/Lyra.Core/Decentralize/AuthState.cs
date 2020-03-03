@@ -149,8 +149,8 @@ namespace Lyra.Core.Decentralize
 
         private ConsensusResult GetPrepareConsensusSuccess()
         {
-            if (ConsensusUIndex < 0)
-                return ConsensusResult.Uncertain;
+            //if (ConsensusUIndex < 0)
+            //    return ConsensusResult.Uncertain;
 
             var authResult = CheckAuthorizedResults();
 
