@@ -39,6 +39,9 @@ namespace Lyra.Core.Decentralize
 
         public ConsensusResult PrepareConsensus => GetPrepareConsensusSuccess();
 
+        public static int WinNumber => BlockChain.Singleton.CurrentState == BlockChainState.Almighty ?
+            ProtocolSettings.Default.ConsensusWinNumber : ProtocolSettings.Default.StandbyValidators.Length;
+
         public ConsensusResult CommitConsensus
         {
             get
@@ -109,11 +112,11 @@ namespace Lyra.Core.Decentralize
         {
             var AuthMsgList = OutputMsgs.ToList();
             var ok = AuthMsgList.Count(a => a.IsSuccess);
-            if (ok >= ProtocolSettings.Default.ConsensusWinNumber)
+            if (ok >= WinNumber)
                 return ConsensusResult.Yay;
 
             var notok = AuthMsgList.Count(a => !a.IsSuccess);
-            if (notok >= ProtocolSettings.Default.ConsensusWinNumber)
+            if (notok >= WinNumber)
                 return ConsensusResult.Nay;
 
             return ConsensusResult.Uncertain;
@@ -123,17 +126,17 @@ namespace Lyra.Core.Decentralize
         {
             var CommitMsgList = CommitMsgs.ToList();
             var ok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay);
-            if (ok >= ProtocolSettings.Default.ConsensusWinNumber)
+            if (ok >= WinNumber)
                 return ConsensusResult.Yay;
 
             var notok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay);
-            if (notok >= ProtocolSettings.Default.ConsensusWinNumber)
+            if (notok >= WinNumber)
                 return ConsensusResult.Nay;
 
             return ConsensusResult.Uncertain;
             //var CommitMsgList = CommitMsgs.ToList();
-            //if (CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay) >= ProtocolSettings.Default.ConsensusWinNumber
-            //    || CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay) >= ProtocolSettings.Default.ConsensusWinNumber)
+            //if (CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay) >= WinNumber
+            //    || CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay) >= WinNumber)
             //{
             //    _log.LogInformation($"Committed: {ConsensusUIndex}/{InputMsg.Block.Index} Yay: {CommitMsgs.Count(a => a.Consensus == ConsensusResult.Yay)} of {CommitMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + ", " + y)}");
             //    return true;
@@ -201,7 +204,7 @@ namespace Lyra.Core.Decentralize
                 var consensusedSeed = outputMsgsList.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
                     .OrderByDescending(b => b.Froms.Count)
                     .First();
-                if (consensusedSeed.Froms.Count >= ProtocolSettings.Default.ConsensusWinNumber)
+                if (consensusedSeed.Froms.Count >= WinNumber)
                 {
                     return consensusedSeed.UIndex;
                 }

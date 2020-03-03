@@ -60,7 +60,11 @@ namespace Lyra.Core.Decentralize
             {
                 if (PrimaryAuthorizers == null)
                     return false;
-                return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusWinNumber;
+
+                if (BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
+                    return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusWinNumber;
+                else
+                    return PrimaryAuthorizers.Length >= ProtocolSettings.Default.StandbyValidators.Length;
             }            
         }
 

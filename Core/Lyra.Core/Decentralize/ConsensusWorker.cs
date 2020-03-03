@@ -278,7 +278,7 @@ namespace Lyra.Core.Decentralize
         {
             // check state
             // debug: show all states
-            if (state.OutputMsgs.Count < ProtocolSettings.Default.ConsensusWinNumber)
+            if (state.OutputMsgs.Count < AuthState.WinNumber)
             {
                 return;
             }

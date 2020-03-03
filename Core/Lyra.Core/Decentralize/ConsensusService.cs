@@ -765,6 +765,9 @@ namespace Lyra.Core.Decentralize
                 AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
                 var msg = new ChatMsg(JsonConvert.SerializeObject(_board), ChatMessageType.BillBoardBroadcast);
                 Send2P2pNetwork(msg);
+
+                // switch to protect mode if necessary
+                BlockChain.Singleton.AuthorizerCountChanged(_board.PrimaryAuthorizers.Length);
             }
         }
 
