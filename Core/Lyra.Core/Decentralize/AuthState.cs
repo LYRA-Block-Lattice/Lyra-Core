@@ -184,17 +184,17 @@ namespace Lyra.Core.Decentralize
         {
             get
             {
-                if (OutputMsgs.Count == 0)
+                if (CommitMsgs.Count == 0)
                     return -1;
 
                 // implicty GetIsAuthoringSuccess true
                 // get from seed node. so we must keep seeds synced in perfect state.
-                var outputMsgsList = OutputMsgs.ToList();
+                var outputMsgsList = CommitMsgs.ToList();
 
                 for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
                 {
                     var authenSeed = outputMsgsList.FirstOrDefault(a => a.From == ProtocolSettings.Default.StandbyValidators[i]);
-                    if (authenSeed != null && authenSeed.BlockUIndex != 0)
+                    if (authenSeed != null && authenSeed.BlockUIndex > 0)
                     {
                         return authenSeed.BlockUIndex;
                     }
