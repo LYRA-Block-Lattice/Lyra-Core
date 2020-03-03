@@ -205,7 +205,7 @@ namespace Lyra
                     do
                     {
                         var latestCons = await GetLastConsolidationBlockAsync();
-                        if (latestCons.EndUIndex > consolidateToUIndex)
+                        if (latestCons.EndUIndex >= consolidateToUIndex)
                         {
                             _state.Fire(BlockChainTrigger.LocalNodeConsolidated);
                             break;
@@ -217,19 +217,19 @@ namespace Lyra
                 .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
 
             _state.Configure(BlockChainState.Almighty)
-                .OnEntry(() => Task.Run(async () =>
-                {
+                //.OnEntry(() => Task.Run(async () =>
+                //{
 
-                }))
+                //}))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)
                 .Permit(BlockChainTrigger.AuthorizerNodesCountLow, BlockChainState.Protect)
                 .Permit(BlockChainTrigger.LocalNodeFatalError, BlockChainState.Failed);
 
             _state.Configure(BlockChainState.Failed)
-                .OnEntry(() => Task.Run(async () =>
-                {
+                //.OnEntry(() => Task.Run(async () =>
+                //{
 
-                }))
+                //}))
                 .PermitReentry(BlockChainTrigger.QueryLocalRecovery)
                 .Permit(BlockChainTrigger.LocalNodeRecovered, BlockChainState.Startup);
 
@@ -278,6 +278,14 @@ namespace Lyra
                 .Permit(BlockChainTrigger.GenesisFailed, BlockChainState.Failed);
 
             _state.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
+        }
+
+        public void AuthorizerCountChanged(int count)
+        {
+            if (count < ProtocolSettings.Default.ConsensusWinNumber)
+            {
+                _state.Fire(BlockChainTrigger.AuthorizerNodesCountLow);
+            }
         }
 
         public async Task<NodeStatus> GetNodeStatusAsync()

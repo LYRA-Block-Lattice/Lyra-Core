@@ -713,13 +713,16 @@ namespace Lyra.Core.Decentralize
 
         private void OnBillBoardBroadcast(ChatMsg msg)
         {
-            if (!IsThisNodeSeed0 && IsMessageFromSeed0(msg)) // only accept bbb from seeds
+            if (IsMessageFromSeed0(msg)) // only accept bbb from seeds
             {
                 _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
                 AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
 
+                // switch to protect mode if necessary
+                BlockChain.Singleton.AuthorizerCountChanged(_board.PrimaryAuthorizers.Length);
+
                 // no me?
-                if(!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId))
+                if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId))
                 {
                     Task.Run(async () => { 
                         await DeclareConsensusNodeAsync();
