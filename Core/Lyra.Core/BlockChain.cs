@@ -205,7 +205,8 @@ namespace Lyra
                     do
                     {
                         var latestCons = await GetLastConsolidationBlockAsync();
-                        if (latestCons.EndUIndex >= consolidateToUIndex)
+                        if (latestCons.EndUIndex >= consolidateToUIndex
+                            || latestCons.UIndex <= consolidateToUIndex)
                         {
                             _state.Fire(BlockChainTrigger.LocalNodeConsolidated);
                             break;
