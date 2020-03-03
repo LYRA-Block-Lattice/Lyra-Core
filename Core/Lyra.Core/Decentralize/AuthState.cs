@@ -191,15 +191,6 @@ namespace Lyra.Core.Decentralize
                 // get from seed node. so we must keep seeds synced in perfect state.
                 var outputMsgsList = CommitMsgs.ToList();
 
-                for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
-                {
-                    var authenSeed = outputMsgsList.FirstOrDefault(a => a.From == ProtocolSettings.Default.StandbyValidators[i]);
-                    if (authenSeed != null && authenSeed.BlockUIndex > 0)
-                    {
-                        return authenSeed.BlockUIndex;
-                    }
-                }
-
                 // if no seed gives UIndex, get it from election
                 var consensusedSeed = outputMsgsList.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
                     .OrderByDescending(b => b.Froms.Count)
