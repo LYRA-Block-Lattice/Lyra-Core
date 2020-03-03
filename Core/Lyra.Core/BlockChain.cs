@@ -43,7 +43,7 @@ namespace Lyra
         // startup
         QueryingConsensusNode,
         ConsensusBlockChainEmpty,
-        ConsensusNodesOutOfSync,
+        //ConsensusNodesOutOfSync,
         ConsensusNodesSynced,
 
         // engage
@@ -172,10 +172,10 @@ namespace Lyra
                         {
                             _state.Fire(BlockChainTrigger.ConsensusNodesSynced);
                         }
-                        else if (majorHeight.Height > 2 && majorHeight.Count < 2)
-                        {
-                            _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
-                        }
+                        //else if (majorHeight.Height > 2 && majorHeight.Count < 2)
+                        //{
+                        //    _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
+                        //}
                         else
                         {
                             _state.Fire(BlockChainTrigger.QueryingConsensusNode);
@@ -183,7 +183,7 @@ namespace Lyra
                     }
                 }))
                 .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Protect)
-                .Permit(BlockChainTrigger.ConsensusNodesOutOfSync, BlockChainState.Failed)
+                //.Permit(BlockChainTrigger.ConsensusNodesOutOfSync, BlockChainState.Failed)
                 .Permit(BlockChainTrigger.ConsensusNodesSynced, BlockChainState.Engaging);
 
             _state.Configure(BlockChainState.Protect)
