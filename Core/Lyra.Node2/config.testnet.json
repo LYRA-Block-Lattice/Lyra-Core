@@ -10,7 +10,8 @@
         },
         "Wallet": {
           "Name": "poswallet"
-        }
+        },
+        "FeeAccountId": ""
       }
     },
     "Storage": {
@@ -18,7 +19,8 @@
     },
     "P2P": {
       "Port": 4503,
-      "WsPort": 4504
+      "WsPort": 4504,
+      "WebAPI": 4505
     },
     "UnlockWallet": {
       "Path": "",
@@ -26,6 +28,6 @@
       "StartConsensus": false,
       "IsActive": false
     },
-    "PluginURL": "https://github.com/neo-project/neo-modules/releases/download/v{1}/{0}.zip"
+    "PluginURL": ""
   }
 }
