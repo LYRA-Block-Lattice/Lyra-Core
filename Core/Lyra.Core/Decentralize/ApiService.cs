@@ -321,6 +321,8 @@ namespace Lyra.Core.Decentralize
             var callresult = APIResultCodes.Success;
             TransactionBlock blockresult = null;
 
+            var svcBlockResult = await BlockChain.Singleton.GetLastServiceBlockAsync();
+
             TransactionBlock latestBlock = await BlockChain.Singleton.FindLatestBlockAsync(NodeService.Instance.PosWallet.AccountId) as TransactionBlock;
             if(latestBlock == null)
             {
@@ -328,7 +330,7 @@ namespace Lyra.Core.Decentralize
                 {
                     AccountType = AccountTypes.Service,
                     AccountID = NodeService.Instance.PosWallet.AccountId,
-                    ServiceHash = string.Empty,
+                    ServiceHash = svcBlockResult.Hash,
                     SourceHash = source,
                     Fee = 0,
                     FeeType = AuthorizationFeeTypes.NoFee,
@@ -346,7 +348,7 @@ namespace Lyra.Core.Decentralize
                 var receiveBlock = new ReceiveFeeBlock
                 {
                     AccountID = NodeService.Instance.PosWallet.AccountId,
-                    ServiceHash = string.Empty,
+                    ServiceHash = svcBlockResult.Hash,
                     SourceHash = source,
                     Fee = 0,
                     FeeType = AuthorizationFeeTypes.NoFee,
