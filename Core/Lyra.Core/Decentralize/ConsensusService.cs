@@ -453,7 +453,8 @@ namespace Lyra.Core.Decentralize
                                 };
 
                                 await currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
-                                    NodeService.Instance.PosWallet.AccountId);
+                                    NodeService.Instance.PosWallet.AccountId,
+                                    await BlockChain.Singleton.GetClientForSeed0());
 
                                 AuthorizingMsg msg = new AuthorizingMsg
                                 {

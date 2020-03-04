@@ -405,6 +405,19 @@ namespace Lyra
             }
         }
 
+        public async Task<LyraRestClient> GetClientForSeed0()
+        {
+            if (_seed0Client == null)
+            {
+                var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
+                var apiUrl = $"https://{addr}:4505/api/LyraNode/";
+                _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
+                _seed0Client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+
+            }
+            return _seed0Client;
+        }
+
         public async Task<ConsolidationBlock> GetConsolidationGenesisBlockAsync(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
         {
             var consBlock = new ConsolidationBlock
@@ -419,7 +432,8 @@ namespace Lyra
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             await consBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                NodeService.Instance.PosWallet.AccountId);
+                NodeService.Instance.PosWallet.AccountId,
+                await GetClientForSeed0());
 
             return consBlock;
         }
@@ -450,7 +464,7 @@ namespace Lyra
             };
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.LYRAGENESISAMOUNT };
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
-            await openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
+            await openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId, await GetClientForSeed0());
 
             return openTokenGenesisBlock;
         }
@@ -468,7 +482,8 @@ namespace Lyra
                 SvcAccountID = NodeService.Instance.PosWallet.AccountId
             };
             await svcGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                NodeService.Instance.PosWallet.AccountId);
+                NodeService.Instance.PosWallet.AccountId,
+                await GetClientForSeed0());
             return svcGenesis;
         }
 
@@ -572,19 +587,6 @@ namespace Lyra
                 }
                 await Task.Delay(10000);    // incase of hammer
             } while (true);
-        }
-
-        public async Task<LyraRestClient> GetClientForSeed0()
-        {
-            if(_seed0Client == null)
-            {
-                var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
-                var apiUrl = $"https://{addr}:4505/api/LyraNode/";
-                _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-                _seed0Client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
-
-            }
-            return _seed0Client;
         }
 
         /// <summary>

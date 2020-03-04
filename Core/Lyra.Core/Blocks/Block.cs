@@ -43,7 +43,7 @@ namespace Lyra.Core.Blocks
 
         public List<AuthorizationSignature> Authorizations { get; set; }
 
-        public async virtual Task InitializeBlock(Block prevBlock, string PrivateKey, string AccountId = null)
+        public async virtual Task InitializeBlock(Block prevBlock, string PrivateKey, string AccountId, LyraRestClient client)
         {
             if (prevBlock != null)
             {
@@ -61,7 +61,6 @@ namespace Lyra.Core.Blocks
             Sign(PrivateKey, AccountId);
 
             // assign UID from seed0
-            var client = await BlockChain.Singleton.GetClientForSeed0();
             var uidResult = await client.CreateBlockUId(AccountId,
                 Signatures.GetSignature(PrivateKey, Hash, AccountId),
                 Hash);

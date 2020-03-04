@@ -8,13 +8,27 @@ using System.Threading.Tasks;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using Lyra.Core.Cryptography;
+using Neo;
 
 namespace Lyra.Core.Decentralize
 {
     public class NodeAPI : INodeAPI
     {
+        LyraRestClient _seed0Client;
         public NodeAPI()
         {
+        }
+
+        public async Task<LyraRestClient> GetClientForSeed0()
+        {
+            if (_seed0Client == null)
+            {
+                var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
+                var apiUrl = $"https://{addr}:4505/api/LyraNode/";
+                _seed0Client = await LyraRestClient.CreateAsync(BlockChain.Singleton.NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+
+            }
+            return _seed0Client;
         }
 
         public async Task<GetSyncStateAPIResult> GetSyncState()
@@ -93,11 +107,21 @@ namespace Lyra.Core.Decentralize
             //TODO: make sure request was from authorizers.
             if(Signatures.VerifyAccountSignature(blockHash, AccountId, Signature))
             {
-                return new CreateBlockUIdAPIResult
-                {
-                    ResultCode = APIResultCodes.Success,
-                    uid = BlockChain.Singleton.GenSeed(blockHash)
-                };
+                var client = await GetClientForSeed0();
+                var result = await client.CreateBlockUId(AccountId, Signature, blockHash);
+
+                if(result.ResultCode == APIResultCodes.Success)
+                    return new CreateBlockUIdAPIResult
+                    {
+                        ResultCode = APIResultCodes.Success,
+                        uid = result.uid
+                    };
+                else
+                    return new CreateBlockUIdAPIResult
+                    {
+                        ResultCode = result.ResultCode,
+                        uid = -1
+                    };
             }
             else
             {

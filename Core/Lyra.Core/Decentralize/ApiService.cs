@@ -335,7 +335,7 @@ namespace Lyra.Core.Decentralize
                     Balances = new Dictionary<string, decimal>()
                 };
                 receiveBlock.Balances.Add(LyraGlobal.LYRATICKERCODE, fee);
-                await receiveBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
+                await receiveBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId, await BlockChain.Singleton.GetClientForSeed0());
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
@@ -355,7 +355,7 @@ namespace Lyra.Core.Decentralize
 
                 decimal newBalance = latestBlock.Balances[LyraGlobal.LYRATICKERCODE] + fee;
                 receiveBlock.Balances.Add(LyraGlobal.LYRATICKERCODE, newBalance);
-                await receiveBlock.InitializeBlock(latestBlock, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
+                await receiveBlock.InitializeBlock(latestBlock, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId, await BlockChain.Singleton.GetClientForSeed0());
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
