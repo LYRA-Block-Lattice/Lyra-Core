@@ -1,5 +1,8 @@
-﻿namespace Lyra.Core.Blocks.Fees
+﻿using MongoDB.Bson.Serialization.Attributes;
+
+namespace Lyra.Core.Blocks.Fees
 {
+    [BsonIgnoreExtraElements]
     public class ReceiveFeeBlock : ReceiveTransferBlock
     {
         public override BlockTypes GetBlockType()
@@ -8,6 +11,7 @@
         }
     }
 
+    [BsonIgnoreExtraElements]
     public class OpenWithReceiveFeeBlock : OpenWithReceiveTransferBlock//ReceiveFeeBlock, IOpeningBlock
     {
 //        public AccountTypes AccountType { get; set; }
