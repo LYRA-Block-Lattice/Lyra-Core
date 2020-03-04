@@ -120,13 +120,13 @@ namespace Lyra.Core.Decentralize
             {
                 IsSuccess = true;
 
-                // fee is the bottle neck!!! must do lazy fee collection by consolidation
-                //if (OnBlockSucceed != null)
-                //{
-                //    var block2 = await OnBlockSucceed(state1.InputMsg.Block).ConfigureAwait(false);
+                //fee is the bottle neck!!! must do lazy fee collection by consolidation
+                if (OnBlockSucceed != null)
+                {
+                    var block2 = await OnBlockSucceed(state1.InputMsg.Block as TransactionBlock).ConfigureAwait(false);
 
-                //    state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
-                //}                           
+                    state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
+                }
             }
             else
             {

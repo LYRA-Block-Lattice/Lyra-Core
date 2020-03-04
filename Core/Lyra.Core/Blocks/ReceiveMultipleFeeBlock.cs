@@ -9,7 +9,6 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class ReceiveMultipleFeeBlock : ReceiveTransferBlock
     {
-
         // Hash of the send block
         public List<string> SourceHashes { get; } = new List<string>();
 
