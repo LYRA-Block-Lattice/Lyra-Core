@@ -136,6 +136,13 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
+        public async Task<CreateBlockUIdAPIResult> CreateBlockUId(string AccountId, string Signature, string blockHash)
+        {
+            var args = new Dictionary<string, string>();
+            args.Add("blockHash", blockHash);
+            return await Get<CreateBlockUIdAPIResult>("CreateBlockUId", args);
+        }
+
         public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetBlockByUIndex/?uindex={uindex}");

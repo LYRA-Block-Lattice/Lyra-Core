@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
+using Lyra.Core.Cryptography;
 
 namespace Lyra.Core.Decentralize
 {
@@ -85,6 +86,27 @@ namespace Lyra.Core.Decentralize
                 result.ResultMessage = ex.Message;
             }
             return result;
+        }
+
+        public async Task<CreateBlockUIdAPIResult> CreateBlockUId(string AccountId, string Signature, string blockHash)
+        {
+            //TODO: make sure request was from authorizers.
+            if(Signatures.VerifyAccountSignature(blockHash, AccountId, Signature))
+            {
+                return new CreateBlockUIdAPIResult
+                {
+                    ResultCode = APIResultCodes.Success,
+                    uid = BlockChain.Singleton.GenSeed(blockHash)
+                };
+            }
+            else
+            {
+                return new CreateBlockUIdAPIResult
+                {
+                    ResultCode = APIResultCodes.APISignatureValidationFailed,
+                    uid = -1
+                };
+            }
         }
 
         public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)

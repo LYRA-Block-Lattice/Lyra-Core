@@ -41,6 +41,11 @@ namespace Lyra.Core.API
         }
     }
 
+    public class CreateBlockUIdAPIResult : APIResult
+    {
+        public long uid { get; set; }
+    }
+
     // returns the authorization signatures for send or receive blocks
     public class AuthorizationAPIResult: APIResult
     {

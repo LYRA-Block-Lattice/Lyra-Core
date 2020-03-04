@@ -165,9 +165,6 @@ namespace Lyra.Core.Decentralize
 
         private ConsensusResult GetCommitConsensusSuccess()
         {
-            if (ConsensusUIndex < 0)
-                return ConsensusResult.Uncertain;
-
             var commitResult = CheckCommitedResults();
 
             if (commitResult == ConsensusResult.Yay)
@@ -180,29 +177,29 @@ namespace Lyra.Core.Decentralize
         }
 
 
-        public long ConsensusUIndex
-        {
-            get
-            {
-                if (CommitMsgs.Count == 0)
-                    return -1;
+        //public long ConsensusUIndex
+        //{
+        //    get
+        //    {
+        //        if (CommitMsgs.Count == 0)
+        //            return -1;
 
-                // implicty GetIsAuthoringSuccess true
-                // get from seed node. so we must keep seeds synced in perfect state.
-                var outputMsgsList = CommitMsgs.ToList();
+        //        // implicty GetIsAuthoringSuccess true
+        //        // get from seed node. so we must keep seeds synced in perfect state.
+        //        var outputMsgsList = CommitMsgs.ToList();
 
-                // if no seed gives UIndex, get it from election
-                var consensusedSeed = outputMsgsList.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
-                    .OrderByDescending(b => b.Froms.Count)
-                    .First();
-                if (consensusedSeed.Froms.Count >= WinNumber)
-                {
-                    return consensusedSeed.UIndex;
-                }
+        //        // if no seed gives UIndex, get it from election
+        //        var consensusedSeed = outputMsgsList.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
+        //            .OrderByDescending(b => b.Froms.Count)
+        //            .First();
+        //        if (consensusedSeed.Froms.Count >= WinNumber)
+        //        {
+        //            return consensusedSeed.UIndex;
+        //        }
 
-                // out of lucky??? we should halt and switch to emgergency state
-                return -1;
-            }
-        }
+        //        // out of lucky??? we should halt and switch to emgergency state
+        //        return -1;
+        //    }
+        //}
     }
 }

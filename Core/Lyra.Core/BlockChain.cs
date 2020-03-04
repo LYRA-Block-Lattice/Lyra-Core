@@ -76,10 +76,15 @@ namespace Lyra
         public class ImportCompleted { }
         public class FillMemoryPool { public IEnumerable<Transaction> Transactions; }
         public class FillCompleted { }
-        public class BlockAdded { 
-            public string hash { get; set; } 
+        public class BlockAdded {
+            public string hash { get; set; }
             public long UIndex { get; set; }
         }
+
+        private LyraRestClient _seed0Client;
+
+        private long _UIndexSeed = 0;
+        public long GenSeed(string hash) => _UIndexSeed++;
 
         public static BlockChain Singleton;
         public static readonly ECPoint[] StandbyValidators = ProtocolSettings.Default.StandbyValidators.OfType<string>().Select(p => //ECPoint.DecodePoint(p.HexToBytes(), ECCurve.Secp256r1)).ToArray();
@@ -120,11 +125,20 @@ namespace Lyra
             _nodeConfig = nodeConfig;
             NetworkID = nodeConfig.Lyra.NetworkId;
 
+            ResetUID();
+
             Singleton = this;
         }
         public static Props Props(LyraSystem system)
         {
             return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
+        }
+
+        private void ResetUID()
+        {
+            var lastOne = FindLatestBlockAsync().Result;
+            if (lastOne != null)
+                _UIndexSeed = lastOne.UIndex + 1;
         }
 
         private void CreateStateMachine()
@@ -187,7 +201,7 @@ namespace Lyra
                 .Permit(BlockChainTrigger.ConsensusNodesSynced, BlockChainState.Engaging);
 
             _state.Configure(BlockChainState.Protect)
-                .OnEntry(() => Task.Run(async () => 
+                .OnEntry(() => Task.Run(async () =>
                 {
                     if (await FindLatestBlockAsync() == null && ConsensusService.IsThisNodeSeed0)
                     {
@@ -235,7 +249,7 @@ namespace Lyra
                 .Permit(BlockChainTrigger.LocalNodeRecovered, BlockChainState.Startup);
 
             _state.Configure(BlockChainState.Genesis)
-                .OnEntry(() => Task.Run(async () => 
+                .OnEntry(() => Task.Run(async () =>
                 {
                     // genesis
                     _log.LogInformation("all seed nodes are ready. do genesis.");
@@ -274,7 +288,7 @@ namespace Lyra
                     {
                         _state.Fire(BlockChainTrigger.GenesisFailed);
                     }
-                }))                
+                }))
                 .Permit(BlockChainTrigger.GenesisSuccess, BlockChainState.Protect)
                 .Permit(BlockChainTrigger.GenesisFailed, BlockChainState.Failed);
 
@@ -354,40 +368,40 @@ namespace Lyra
                 case NodeStatus nodeStatus:
                     // only accept status from seeds.
                     _log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
-                    if(_nodeStatus != null && ProtocolSettings.Default.StandbyValidators.Contains(nodeStatus.accountId))
+                    if (_nodeStatus != null && ProtocolSettings.Default.StandbyValidators.Contains(nodeStatus.accountId))
                     {
-                        if(!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
+                        if (!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
                             _nodeStatus.Add(nodeStatus);
-                    }                    
+                    }
                     break;
-            //    case Import import:
-            //        OnImport(import.Blocks);
-            //        break;
-            //    case FillMemoryPool fill:
-            //        OnFillMemoryPool(fill.Transactions);
-            //        break;
-            //    case Header[] headers:
-            //        OnNewHeaders(headers);
-            //        break;
-            //    case Block block:
-            //        Sender.Tell(OnNewBlock(block));
-            //        break;
-            //    case Transaction[] transactions:
-            //        {
-            //            // This message comes from a mempool's revalidation, already relayed
-            //            foreach (var tx in transactions) OnNewTransaction(tx, false);
-            //            break;
-            //        }
-            //    case Transaction transaction:
-            //        Sender.Tell(OnNewTransaction(transaction, true));
-            //        break;
-            //    case ConsensusPayload payload:
-            //        Sender.Tell(OnNewConsensus(payload));
-            //        break;
-            //    case Idle _:
-            //        if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
-            //            Self.Tell(Idle.Instance, ActorRefs.NoSender);
-            //        break;
+                    //    case Import import:
+                    //        OnImport(import.Blocks);
+                    //        break;
+                    //    case FillMemoryPool fill:
+                    //        OnFillMemoryPool(fill.Transactions);
+                    //        break;
+                    //    case Header[] headers:
+                    //        OnNewHeaders(headers);
+                    //        break;
+                    //    case Block block:
+                    //        Sender.Tell(OnNewBlock(block));
+                    //        break;
+                    //    case Transaction[] transactions:
+                    //        {
+                    //            // This message comes from a mempool's revalidation, already relayed
+                    //            foreach (var tx in transactions) OnNewTransaction(tx, false);
+                    //            break;
+                    //        }
+                    //    case Transaction transaction:
+                    //        Sender.Tell(OnNewTransaction(transaction, true));
+                    //        break;
+                    //    case ConsensusPayload payload:
+                    //        Sender.Tell(OnNewConsensus(payload));
+                    //        break;
+                    //    case Idle _:
+                    //        if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
+                    //            Self.Tell(Idle.Instance, ActorRefs.NoSender);
+                    //        break;
             }
         }
 
@@ -479,43 +493,43 @@ namespace Lyra
         }
         private void Genesis()
         {
-                // do genesis
+            // do genesis
 
-                //authGenesis.UHash = SignableObject.CalculateHash($"{authGenesis.UIndex}|{authGenesis.Index}|{authGenesis.Hash}");
-                //authGenesis.Authorizations = new List<AuthorizationSignature>();
-                //authGenesis.Authorizations.Add(new AuthorizationSignature
-                //{
-                //    Key = NodeService.Instance.PosWallet.AccountId,
-                //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, authGenesis.Hash, NodeService.Instance.PosWallet.AccountId)
-                //});
-                // TODO: add more seed's auth info
+            //authGenesis.UHash = SignableObject.CalculateHash($"{authGenesis.UIndex}|{authGenesis.Index}|{authGenesis.Hash}");
+            //authGenesis.Authorizations = new List<AuthorizationSignature>();
+            //authGenesis.Authorizations.Add(new AuthorizationSignature
+            //{
+            //    Key = NodeService.Instance.PosWallet.AccountId,
+            //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, authGenesis.Hash, NodeService.Instance.PosWallet.AccountId)
+            //});
+            // TODO: add more seed's auth info
 
-                //await _store.AddBlockAsync(authGenesis);
+            //await _store.AddBlockAsync(authGenesis);
 
-                //// the first consolidate block
-                //var consBlock = new ConsolidationBlock
-                //{
-                //    UIndex = 2,
-                //    ServiceHash = authGenesis.Hash,
-                //    SvcAccountID = NodeService.Instance.PosWallet.AccountId
-                //};
-                //consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
-                //    NodeService.Instance.PosWallet.AccountId);
-                //consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
-                //consBlock.Authorizations = new List<AuthorizationSignature>();
-                //consBlock.Authorizations.Add(new AuthorizationSignature
-                //{
-                //    Key = NodeService.Instance.PosWallet.AccountId,
-                //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
-                //});
+            //// the first consolidate block
+            //var consBlock = new ConsolidationBlock
+            //{
+            //    UIndex = 2,
+            //    ServiceHash = authGenesis.Hash,
+            //    SvcAccountID = NodeService.Instance.PosWallet.AccountId
+            //};
+            //consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
+            //    NodeService.Instance.PosWallet.AccountId);
+            //consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
+            //consBlock.Authorizations = new List<AuthorizationSignature>();
+            //consBlock.Authorizations.Add(new AuthorizationSignature
+            //{
+            //    Key = NodeService.Instance.PosWallet.AccountId,
+            //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
+            //});
 
-                ////await _store.AddBlockAsync(consBlock);
+            ////await _store.AddBlockAsync(consBlock);
 
-                //// tell consensus what happened
-                //InSyncing = false;
+            //// tell consensus what happened
+            //InSyncing = false;
 
-                //LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
-                //_log.LogInformation("Service Genesis Completed.");
+            //LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
+            //_log.LogInformation("Service Genesis Completed.");
         }
 
         LyraRestClient _clientForSync;
@@ -558,6 +572,19 @@ namespace Lyra
                 }
                 await Task.Delay(10000);    // incase of hammer
             } while (true);
+        }
+
+        public async Task<LyraRestClient> GetClientForSeed0()
+        {
+            if(_seed0Client == null)
+            {
+                var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
+                var apiUrl = $"https://{addr}:4505/api/LyraNode/";
+                _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
+                _seed0Client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+
+            }
+            return _seed0Client;
         }
 
         /// <summary>

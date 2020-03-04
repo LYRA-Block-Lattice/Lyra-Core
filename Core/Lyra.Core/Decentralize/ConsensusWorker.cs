@@ -136,7 +136,6 @@ namespace Lyra.Core.Decentralize
             AuthorizedMsg result;
             try
             {
-                item.Block.UIndex = _context.GenSeed();
                 var localAuthResult = await authorizer.AuthorizeAsync(item.Block);
                 result = new AuthorizedMsg
                 {
@@ -147,8 +146,7 @@ namespace Lyra.Core.Decentralize
                     AuthSign = localAuthResult.Item2
                 };
 
-                result.BlockUIndex = item.Block.UIndex;
-                _log.LogInformation($"Give UIndex {result.BlockUIndex} to block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
+                _log.LogInformation($"Give UIndex {item.Block.UIndex} to block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
             }
             catch (Exception e)
             {
@@ -328,35 +326,11 @@ namespace Lyra.Core.Decentralize
                         // do commit
                         block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
-                        if (block.BlockType != BlockTypes.Consolidation && block.BlockType != BlockTypes.NullTransaction && block.BlockType != BlockTypes.Service)
-                        {
-                            // pickup UIndex
-                            try
-                            {
-                                block.UIndex = state.ConsensusUIndex;
-                            }
-                            catch (Exception ex)
-                            {
-                                _log.LogError("Can't get UIndex. System fail: " + ex.Message);
-                                return;
-                            }
-
-                            //if (!IsThisNodeSeed0 && block.UIndex != USeed - 1)
-                            //{
-                            //    // local node out of sync
-                            //    Mode = ConsensusWorkingMode.OutofSyncWaiting;
-                            //    LyraSystem.Singleton.TheBlockchain.Tell(new BlockChain.NeedSync { ToUIndex = block.UIndex });
-                            //}
-                        }
-
-                        block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
-
                         var msg = new AuthorizerCommitMsg
                         {
                             From = NodeService.Instance.PosWallet.AccountId,
                             MsgType = ChatMessageType.AuthorizerCommit,
                             BlockHash = state.InputMsg.Block.Hash,
-                            BlockUIndex = block.UIndex,
                             BlockUHash = block.UHash,
                             Consensus = state.PrepareConsensus,
                             Commited = true

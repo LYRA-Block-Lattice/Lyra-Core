@@ -3,6 +3,7 @@ using Akka.Configuration;
 using Clifton.Blockchain;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
@@ -54,9 +55,6 @@ namespace Lyra.Core.Decentralize
         private static BillBoard _board = new BillBoard();
         private List<TransStats> _stats;
 
-        private long _UIndexSeed = 0;
-        public long GenSeed() => _UIndexSeed++;
-
         public static bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public bool IsMessageFromSeed0(SourceSignedMessage msg)
         {
@@ -76,10 +74,6 @@ namespace Lyra.Core.Decentralize
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _cleanedConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
-
-            var lastOne = BlockChain.Singleton.FindLatestBlockAsync().Result;
-            if (lastOne != null)
-                _UIndexSeed = lastOne.UIndex + 1;
 
             while (BlockChain.Singleton == null)
                 Task.Delay(100).Wait();
@@ -169,12 +163,6 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<BlockChainSynced>(async _ =>
             {
-                var lastBlock = await BlockChain.Singleton.FindLatestBlockAsync();
-                if(lastBlock != null)
-                    _UIndexSeed = lastBlock.UIndex + 1;
-
-                _log.LogInformation($"The USeed is {_UIndexSeed}");
-
                 int waitCount = 60;
                 while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
                 {
@@ -201,6 +189,18 @@ namespace Lyra.Core.Decentralize
 
                 if (await AddOrphanAsync(state))
                     return;
+
+                // create UID from seed0                
+                var client = await BlockChain.Singleton.GetClientForSeed0();
+                var uidResult = await client.CreateBlockUId(NodeService.Instance.PosWallet.AccountId,
+                    Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, state.InputMsg.Block.Hash, NodeService.Instance.PosWallet.AccountId),
+                    state.InputMsg.Block.Hash);
+                if(uidResult.ResultCode != APIResultCodes.Success)
+                {
+                    return;
+                }
+                state.InputMsg.Block.UIndex = uidResult.uid;
+                state.InputMsg.Block.UHash = SignableObject.CalculateHash($"{state.InputMsg.Block.UIndex}|{state.InputMsg.Block.Index}|{state.InputMsg.Block.Hash}");
 
                 //_log.LogInformation($"AuthState from tell: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
 
@@ -429,7 +429,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // if necessary, insert a new ConsolidateBlock
-                if (IsThisNodeSeed0 && (_UIndexSeed - lastCons.UIndex > 1024 || DateTime.Now.ToUniversalTime() - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
+                if (IsThisNodeSeed0 && (BlockChain.Singleton.LastSavedUIndex - lastCons.UIndex > 1024 || DateTime.Now.ToUniversalTime() - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
                     if(!_activeConsensus.Values.Any(a => a.State != null && a.State.InputMsg?.Block?.BlockType == BlockTypes.Consolidation))
                     {
