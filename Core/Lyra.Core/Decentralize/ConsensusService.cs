@@ -190,22 +190,7 @@ namespace Lyra.Core.Decentralize
                 if (await AddOrphanAsync(state))
                     return;
 
-                // create UID from seed0                
-                var client = await BlockChain.Singleton.GetClientForSeed0();
-                var uidResult = await client.CreateBlockUId(NodeService.Instance.PosWallet.AccountId,
-                    Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, state.InputMsg.Block.Hash, NodeService.Instance.PosWallet.AccountId),
-                    state.InputMsg.Block.Hash);
-                if(uidResult.ResultCode != APIResultCodes.Success)
-                {
-                    return;
-                }
-                state.InputMsg.Block.UIndex = uidResult.uid;
-                state.InputMsg.Block.UHash = SignableObject.CalculateHash($"{state.InputMsg.Block.UIndex}|{state.InputMsg.Block.Index}|{state.InputMsg.Block.Hash}");
-
-                //_log.LogInformation($"AuthState from tell: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
-
-                var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
-                worker.Create(state);
+                await SubmitToConsensusAsync(state);
             });
 
             Receive<NodeInquiry>((_) => {
@@ -481,10 +466,7 @@ namespace Lyra.Core.Decentralize
                                 state.HashOfFirstBlock = currentCons.Hash;
                                 state.InputMsg = msg;
 
-                                //_log.LogInformation($"AuthState from consolidation: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
-
-                                var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
-                                worker.Create(state);
+                                await SubmitToConsensusAsync(state);
                             }
                         }
                         catch(Exception ex)
@@ -569,6 +551,20 @@ namespace Lyra.Core.Decentralize
         {
             _activeConsensus.TryRemove(hash, out _);
             _log.LogInformation($"_activeConsensus: {_activeConsensus.Count}");
+        }
+
+        private async Task SubmitToConsensusAsync(AuthState state)
+        {
+            // create UID from seed0   
+            if (await BlockChain.Singleton.AssignUIDAsync(state.InputMsg.Block))
+            {
+                var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
+                worker.Create(state);
+            }
+            else
+            {
+                _log.LogInformation($"Failed to assign UID: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
+            }
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash)

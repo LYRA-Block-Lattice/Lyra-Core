@@ -79,6 +79,13 @@ namespace LyraLexWeb2
             return await _node.GetSyncState();
         }
 
+        [Route("CreateBlockUId")]
+        public async Task<CreateBlockUIdAPIResult> CreateBlockUId(string AccountId, string Signature, string blockHash)
+        {
+            CheckSyncState();
+            return await _node.CreateBlockUId(AccountId, Signature, blockHash);
+        }
+
         [Route("GetBlockByUIndex")]
         public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
         {

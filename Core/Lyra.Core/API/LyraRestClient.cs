@@ -139,7 +139,11 @@ namespace Lyra.Core.API
         public async Task<CreateBlockUIdAPIResult> CreateBlockUId(string AccountId, string Signature, string blockHash)
         {
             var args = new Dictionary<string, string>();
+
+            args.Add("AccountId", AccountId);
+            args.Add("Signature", Signature);
             args.Add("blockHash", blockHash);
+
             return await Get<CreateBlockUIdAPIResult>("CreateBlockUId", args);
         }
 

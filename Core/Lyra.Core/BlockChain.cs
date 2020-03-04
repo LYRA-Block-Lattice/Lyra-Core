@@ -134,6 +134,21 @@ namespace Lyra
             return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
         }
 
+        public async Task<bool> AssignUIDAsync(Block block)
+        {
+            var client = await GetClientForSeed0();
+            var uidResult = await client.CreateBlockUId(NodeService.Instance.PosWallet.AccountId,
+                Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, block.Hash, NodeService.Instance.PosWallet.AccountId),
+                block.Hash);
+            if (uidResult.ResultCode != APIResultCodes.Success)
+            {
+                return false;
+            }
+            block.UIndex = uidResult.uid;
+            block.UHash = SignableObject.CalculateHash($"{block.UIndex}|{block.Index}|{block.Hash}");
+            return true;
+        }
+
         private void ResetUID()
         {
             var lastOne = FindLatestBlockAsync().Result;
