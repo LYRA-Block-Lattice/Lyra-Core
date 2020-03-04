@@ -41,8 +41,11 @@ namespace Lyra.Core.Decentralize
         public class AskForBillboard { }
         public class AskForStats { }
         public class AskForDbStats { }
+        public class AskForMaxActiveUID { }
+        public class ReplyForMaxActiveUID { public long? uid { get; set; } }
         public class BlockChainSynced { }
         public class NodeInquiry { }
+
         public class ConsolidateFailed { public string consolidationBlockHash { get; set; } }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
@@ -142,6 +145,7 @@ namespace Lyra.Core.Decentralize
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
+            Receive<AskForMaxActiveUID>(_ => Sender.Tell(new ReplyForMaxActiveUID { uid = GetMaxActiveUID() }));
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
@@ -282,6 +286,14 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             });
+        }
+
+        private long? GetMaxActiveUID()
+        {
+            if (_activeConsensus.Count == 0)
+                return -1;
+
+            return _activeConsensus.Max(a => a.Value.State?.InputMsg?.Block.UIndex);
         }
 
         public Task<bool> AddOrphanAsync(AuthState state)

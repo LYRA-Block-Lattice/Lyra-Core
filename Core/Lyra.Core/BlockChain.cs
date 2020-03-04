@@ -126,7 +126,7 @@ namespace Lyra
             _nodeConfig = nodeConfig;
             NetworkID = nodeConfig.Lyra.NetworkId;
 
-            ResetUID();
+            ResetUIDAsync().Wait();
 
             Singleton = this;
         }
@@ -135,11 +135,19 @@ namespace Lyra
             return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
         }
 
-        private void ResetUID()
+        private async Task ResetUIDAsync()
         {
+            long uid = -1;
+            var uidObj = await _sys.Consensus.Ask(new ConsensusService.AskForMaxActiveUID()) as ConsensusService.ReplyForMaxActiveUID;
+            if(uidObj != null && uidObj.uid.HasValue)
+            {
+                uid = uidObj.uid.Value;
+            }
             var lastOne = FindLatestBlockAsync().Result;
             if (lastOne != null)
-                _UIndexSeed = lastOne.UIndex + 1;
+                uid = Math.Max(uid, lastOne.UIndex);
+
+            _UIndexSeed = uid + 1;
         }
 
         private void CreateStateMachine()
@@ -204,6 +212,7 @@ namespace Lyra
             _state.Configure(BlockChainState.Protect)
                 .OnEntry(() => Task.Run(async () =>
                 {
+                    await ResetUIDAsync();
                     if (await FindLatestBlockAsync() == null && ConsensusService.IsThisNodeSeed0)
                     {
                         _state.Fire(BlockChainTrigger.Seed0Genesis);
@@ -233,10 +242,10 @@ namespace Lyra
                 .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
 
             _state.Configure(BlockChainState.Almighty)
-                //.OnEntry(() => Task.Run(async () =>
-                //{
-
-                //}))
+                .OnEntry(() => Task.Run(async () =>
+                {
+                    await ResetUIDAsync();
+                }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)
                 .Permit(BlockChainTrigger.AuthorizerNodesCountLow, BlockChainState.Protect)
                 .Permit(BlockChainTrigger.LocalNodeFatalError, BlockChainState.Failed);
