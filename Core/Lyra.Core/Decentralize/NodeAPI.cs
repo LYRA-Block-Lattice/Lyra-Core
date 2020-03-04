@@ -107,6 +107,15 @@ namespace Lyra.Core.Decentralize
             //TODO: make sure request was from authorizers.
             if(Signatures.VerifyAccountSignature(blockHash, AccountId, Signature))
             {
+                if(BlockChain.IsThisNodeSeed0)
+                {
+                    return new CreateBlockUIdAPIResult
+                    {
+                        ResultCode = APIResultCodes.Success,
+                        uid = BlockChain.Singleton.GenSeed(blockHash)
+                    };
+                }
+
                 var client = await GetClientForSeed0();
                 var result = await client.CreateBlockUId(AccountId, Signature, blockHash);
 

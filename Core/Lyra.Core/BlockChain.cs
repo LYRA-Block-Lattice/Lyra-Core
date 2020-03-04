@@ -81,6 +81,7 @@ namespace Lyra
             public long UIndex { get; set; }
         }
 
+        public static bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         private LyraRestClient _seed0Client;
 
         private long _UIndexSeed = 0;
