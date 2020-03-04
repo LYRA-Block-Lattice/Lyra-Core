@@ -452,7 +452,7 @@ namespace Lyra.Core.Decentralize
                                     MerkelTreeHash = mt.BuildTree().ToString()
                                 };
 
-                                currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+                                await currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
                                     NodeService.Instance.PosWallet.AccountId);
 
                                 AuthorizingMsg msg = new AuthorizingMsg

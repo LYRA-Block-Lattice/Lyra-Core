@@ -254,17 +254,17 @@ namespace Lyra
                     // genesis
                     _log.LogInformation("all seed nodes are ready. do genesis.");
 
-                    var svcGen = GetServiceGenesisBlock();
+                    var svcGen = await GetServiceGenesisBlockAsync();
                     await SendBlockToConsensusAsync(svcGen);
 
                     await Task.Delay(1000);
 
-                    var tokenGen = GetLyraTokenGenesisBlock(svcGen);
+                    var tokenGen = await GetLyraTokenGenesisBlockAsync(svcGen);
                     await SendBlockToConsensusAsync(tokenGen);
 
                     await Task.Delay(1000);
 
-                    var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
+                    var consGen = await GetConsolidationGenesisBlockAsync(svcGen, tokenGen);
                     await SendBlockToConsensusAsync(consGen);
 
                     await Task.Delay(1000);
@@ -405,7 +405,7 @@ namespace Lyra
             }
         }
 
-        public ConsolidationBlock GetConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
+        public async Task<ConsolidationBlock> GetConsolidationGenesisBlockAsync(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
         {
             var consBlock = new ConsolidationBlock
             {
@@ -418,13 +418,13 @@ namespace Lyra
             mt.AppendLeaf(MerkleHash.Create(lyraGen.UHash));
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
-            consBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+            await consBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId);
 
             return consBlock;
         }
 
-        public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceBlock svcGen)
+        public async Task<LyraTokenGenesisBlock> GetLyraTokenGenesisBlockAsync(ServiceBlock svcGen)
         {
             // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
@@ -450,12 +450,12 @@ namespace Lyra
             };
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.LYRAGENESISAMOUNT };
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
-            openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
+            await openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
 
             return openTokenGenesisBlock;
         }
 
-        public ServiceBlock GetServiceGenesisBlock()
+        public async Task<ServiceBlock> GetServiceGenesisBlockAsync()
         {
             var svcGenesis = new ServiceBlock
             {
@@ -467,7 +467,7 @@ namespace Lyra
                 TradeFee = 0.1m,
                 SvcAccountID = NodeService.Instance.PosWallet.AccountId
             };
-            svcGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+            await svcGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId);
             return svcGenesis;
         }

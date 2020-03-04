@@ -610,7 +610,7 @@ namespace Lyra.Core.Accounts
                 if (!(sendBlock.Balances.ContainsKey(balance.Key)))
                     sendBlock.Balances.Add(balance.Key, balance.Value);
 
-            sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId: AccountId);
+            await sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId: AccountId);
 
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
@@ -976,7 +976,7 @@ namespace Lyra.Core.Accounts
             };
 
             openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount);
-            openReceiveBlock.InitializeBlock(null, PrivateKey, AccountId: AccountId);
+            await openReceiveBlock.InitializeBlock(null, PrivateKey, AccountId: AccountId);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 
@@ -1048,7 +1048,7 @@ namespace Lyra.Core.Accounts
                 if (!(receiveBlock.Balances.ContainsKey(balance.Key)))
                     receiveBlock.Balances.Add(balance.Key, balance.Value);
 
-            receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId: AccountId);
+            await receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId: AccountId);
 
             if (!receiveBlock.ValidateTransaction(latestBlock))
                 throw new ApplicationException("ValidateTransaction failed");
@@ -1135,7 +1135,7 @@ namespace Lyra.Core.Accounts
 
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
             //openTokenGenesisBlock.Transaction = transaction;
-            openTokenGenesisBlock.InitializeBlock(null, PrivateKey, AccountId: AccountId);
+            await openTokenGenesisBlock.InitializeBlock(null, PrivateKey, AccountId: AccountId);
 
             //openTokenGenesisBlock.Signature = Signatures.GetSignature(PrivateKey, openTokenGenesisBlock.Hash);
 
@@ -1239,7 +1239,7 @@ namespace Lyra.Core.Accounts
                 if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
                     tokenBlock.Balances.Add(balance.Key, balance.Value);
 
-            tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId: AccountId);
+            await tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId: AccountId);
 
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
 
