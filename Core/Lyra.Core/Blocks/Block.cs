@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Lyra.Core.API;
+using Lyra.Core.Cryptography;
+using Lyra.Core.Decentralize;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
@@ -40,7 +43,7 @@ namespace Lyra.Core.Blocks
 
         public List<AuthorizationSignature> Authorizations { get; set; }
 
-        public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId = null)
+        public async virtual Task InitializeBlock(Block prevBlock, string PrivateKey, string AccountId = null)
         {
             if (prevBlock != null)
             {
@@ -56,6 +59,18 @@ namespace Lyra.Core.Blocks
             Version = LyraGlobal.DatabaseVersion; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
             BlockType = GetBlockType();
             Sign(PrivateKey, AccountId);
+
+            // assign UID from seed0
+            var client = await BlockChain.Singleton.GetClientForSeed0();
+            var uidResult = await client.CreateBlockUId(AccountId,
+                Signatures.GetSignature(PrivateKey, Hash, AccountId),
+                Hash);
+            if (uidResult.ResultCode != APIResultCodes.Success)
+            {
+                return;
+            }
+            UIndex = uidResult.uid;
+            UHash = CalculateHash($"{UIndex}|{Index}|{Hash}");
         }
 
         public override string GetHashInput()

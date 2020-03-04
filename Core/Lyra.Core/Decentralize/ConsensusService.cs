@@ -556,15 +556,9 @@ namespace Lyra.Core.Decentralize
         private async Task SubmitToConsensusAsync(AuthState state)
         {
             // create UID from seed0   
-            if (await BlockChain.Singleton.AssignUIDAsync(state.InputMsg.Block))
-            {
-                var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
-                worker.Create(state);
-            }
-            else
-            {
-                _log.LogInformation($"Failed to assign UID: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
-            }
+            var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
+            worker.Create(state);
+                //_log.LogInformation($"Failed to assign UID: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash)
