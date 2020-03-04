@@ -138,11 +138,15 @@ namespace Lyra
         private async Task ResetUIDAsync()
         {
             long uid = -1;
-            var uidObj = await _sys.Consensus.Ask(new ConsensusService.AskForMaxActiveUID()) as ConsensusService.ReplyForMaxActiveUID;
-            if(uidObj != null && uidObj.uid.HasValue)
+            if(_sys.Consensus != null)
             {
-                uid = uidObj.uid.Value;
+                var uidObj = await _sys.Consensus.Ask(new ConsensusService.AskForMaxActiveUID()) as ConsensusService.ReplyForMaxActiveUID;
+                if (uidObj != null && uidObj.uid.HasValue)
+                {
+                    uid = uidObj.uid.Value;
+                }
             }
+
             var lastOne = FindLatestBlockAsync().Result;
             if (lastOne != null)
                 uid = Math.Max(uid, lastOne.UIndex);
