@@ -53,10 +53,10 @@ namespace Lyra.Core.Blocks
         // The hash of the most recent service chain block 
         public string ServiceHash { get; set; }
 
-        /// <summary>
-        /// When fee is zero and replaced by client-calculated proof of work
-        /// </summary>
-        public string PoW { get; set; }
+        ///// <summary>
+        ///// When fee is zero and replaced by client-calculated proof of work
+        ///// </summary>
+        //public string PoW { get; set; }
 
         protected override string GetExtraData()
         {

@@ -9,15 +9,17 @@ namespace AutoSender
 {
     class Program
     {
-        static void Main(string[] args)
+        async static void Main(string[] args)
         {
             if(args.Length == 0)
             {
-                Console.WriteLine("AutoSender walletPath walletName netName webapiUrl mongodbUrl");
+                Console.WriteLine("AutoSender NetworkId WalletName BillBoardFileName");
                 return;
             }
 
-            DoWork(args[0], args[1], args[2], args[3], args[4]).Wait();
+            var gs = new GenesisSend(args[0], args[1], args[2]);
+
+            await gs.Send();
         }
 
         private static async Task<int> DoWork(string walletPath, string walletName, string netName, string webapiUrl, string mongodbUrl)
