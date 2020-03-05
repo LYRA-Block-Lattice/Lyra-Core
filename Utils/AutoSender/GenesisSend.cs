@@ -32,6 +32,7 @@ namespace AutoSender
 
             foreach (var pa in bb.PrimaryAuthorizers)
             {
+                await wallet.Sync(null);
                 var result = await wallet.Send(amount, pa);
                 if(result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
                 {
@@ -42,6 +43,7 @@ namespace AutoSender
             amount = 1500000;
             foreach (var ba in bb.BackupAuthorizers)
             {
+                await wallet.Sync(null);
                 var result = await wallet.Send(amount, ba);
                 if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
                 {

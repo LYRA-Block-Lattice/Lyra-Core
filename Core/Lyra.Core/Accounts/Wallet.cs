@@ -645,6 +645,7 @@ namespace Lyra.Core.Accounts
                 Console.WriteLine("Local Block: ");
                 Console.WriteLine(sendBlock.Print());
             }
+
             return result;
         }
 

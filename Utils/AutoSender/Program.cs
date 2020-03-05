@@ -9,13 +9,18 @@ namespace AutoSender
 {
     class Program
     {
-        async static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             if(args.Length == 0)
             {
                 Console.WriteLine("AutoSender NetworkId WalletName BillBoardFileName");
                 return;
             }
+
+#if DEBUG
+            Console.WriteLine("AutoSender: Press enter to begin.");
+            Console.ReadLine();
+#endif
 
             var gs = new GenesisSend(args[0], args[1], args[2]);
 
