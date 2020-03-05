@@ -315,6 +315,10 @@ namespace Lyra
             {
                 _state.Fire(BlockChainTrigger.AuthorizerNodesCountLow);
             }
+            if (_state.State == BlockChainState.Protect && count >= ProtocolSettings.Default.ConsensusWinNumber)
+            {
+                _state.Fire(BlockChainTrigger.AuthorizerNodesCountEnough);
+            }
         }
 
         public async Task<NodeStatus> GetNodeStatusAsync()
