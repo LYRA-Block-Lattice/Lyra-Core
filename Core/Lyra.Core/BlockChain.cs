@@ -97,7 +97,11 @@ namespace Lyra
         public long LastSavedUIndex { get => _lastSavedUIndex; }
 
         private readonly StateMachine<BlockChainState, BlockChainTrigger> _state;
+        private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStartupSync;
+        private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<string> _engageTriggerConsolidateFailed;
         public BlockChainState CurrentState => _state.State;
+
+        AuthorizersFactory _authorizerFactory = new AuthorizersFactory();
 
         private LyraConfig _nodeConfig;
         private readonly IAccountCollectionAsync _store;
@@ -115,6 +119,8 @@ namespace Lyra
             _sys = sys;
 
             _state = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
+            _engageTriggerStartupSync = _state.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesSynced);
+            _engageTriggerConsolidateFailed = _state.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
             CreateStateMachine();
 
             var nodeConfig = Neo.Settings.Default.LyraNode;
@@ -156,6 +162,8 @@ namespace Lyra
 
         private void CreateStateMachine()
         {
+            
+
             _state.Configure(BlockChainState.Initializing)
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
 
@@ -197,7 +205,7 @@ namespace Lyra
                         }
                         else if (myStatus.lastBlockHeight <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
                         {
-                            _state.Fire(BlockChainTrigger.ConsensusNodesSynced);
+                            _state.Fire(_engageTriggerStartupSync, majorHeight.Height);
                         }
                         //else if (majorHeight.Height > 2 && majorHeight.Count < 2)
                         //{
@@ -226,22 +234,91 @@ namespace Lyra
                 .Permit(BlockChainTrigger.AuthorizerNodesCountEnough, BlockChainState.Almighty);
 
             _state.Configure(BlockChainState.Engaging)
-                .OnEntry(() => Task.Run(async () =>
+                .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
                 {
+                    long startUIndex = 0;
                     // sync blocks + save letest
+                    await SyncManyBlocksAsync(startUIndex, uid, false);
+                    startUIndex = uid;
+
                     var consolidateToUIndex = _lastSavedUIndex;
                     do
                     {
-                        var latestCons = await GetLastConsolidationBlockAsync();
-                        if (latestCons.EndUIndex >= consolidateToUIndex
-                            || latestCons.UIndex <= consolidateToUIndex)
+                        if (startUIndex >= _lastSavedUIndex)
                         {
                             _state.Fire(BlockChainTrigger.LocalNodeConsolidated);
                             break;
                         }
-                        // just wait
-                        await Task.Delay(5000);
+                        else
+                        {
+                            await SyncManyBlocksAsync(startUIndex, _lastSavedUIndex, false);
+                            startUIndex = _lastSavedUIndex;
+                        }
+                        await Task.Delay(1000);
                     } while (true);
+
+                    // TODO: consolidate all blocks to make sure no error.
+                    // start a new thread to verify and switch state if necessary.
+                }))
+                .OnEntryFrom(_engageTriggerConsolidateFailed, (hash) => Task.Run(async () =>
+                {
+                    var block = await FindBlockByHashAsync(hash) as ConsolidationBlock;
+                    if (block == null)
+                    {
+                        // should not happen
+                        _log.LogCritical("Can't find block for ConsolidateFailed hash: " + hash);
+                    }
+                    else
+                    {
+                        var mt = new MerkleTree();
+                        var emptyNdx = new List<long>();
+                        for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
+                        {
+                            var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
+
+                            if (bndx == null)
+                            {
+                                if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
+                                    continue;
+                                else
+                                {
+                                    // missing block
+                                    // fetch, save
+                                    var ret = await BlockChain.Singleton.SyncOneBlock(ndx, false);
+
+                                    // check if result is ok
+
+                                    ndx--;
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
+                                {
+                                    // extra block
+                                    // remove block
+                                    await BlockChain.Singleton.RemoveBlockAsync(ndx);
+                                    continue;
+                                }
+                                else
+                                {
+                                    mt.AppendLeaf(MerkleHash.Create(bndx.UHash));
+                                }
+                            }
+                        }
+
+                        var mkhash = mt.BuildTree().ToString();
+                        if (block.MerkelTreeHash == mkhash)
+                        {
+                            // success
+                            _log.LogInformation("ConsolidateFailed fixed OK.");
+                        }
+                        else
+                        {
+                            _log.LogCritical("ConsolidateFailed can't fix.");
+                        }
+                    }
                 }))
                 .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
 
@@ -309,6 +386,11 @@ namespace Lyra
             _state.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
         }
 
+        public void ConsolidationBlockFailed(string hash)
+        {
+            _state.Fire(_engageTriggerConsolidateFailed, hash);
+        }
+
         public void AuthorizerCountChanged(int count)
         {
             if (_state.State == BlockChainState.Almighty && count < ProtocolSettings.Default.ConsensusWinNumber)
@@ -336,6 +418,7 @@ namespace Lyra
             return status;
         }
 
+        #region storage api
         private async Task<bool> AddBlockImplAsync(Block block)
         {
             var result = await _store.AddBlockAsync(block);
@@ -372,7 +455,7 @@ namespace Lyra
         public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId) => await StopWatcher.Track(_store.GetNonFungibleTokensAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.GetNonFungibleTokensAsync(AccountId);
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId) => await StopWatcher.Track(_store.FindUnsettledSendBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindUnsettledSendBlockAsync(AccountId);
         public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash) => await StopWatcher.Track(_store.FindBlockByPreviousBlockHashAsync(previousBlockHash), StopWatcher.GetCurrentMethod());//_store.FindBlockByPreviousBlockHashAsync(previousBlockHash);
-
+        #endregion
         protected override void OnReceive(object message)
         {
             switch (message)
@@ -524,49 +607,28 @@ namespace Lyra
             state.Done.Close();
             state.Done = null;
         }
-        private void Genesis()
+
+        private async Task SyncManyBlocksAsync(long startUid, long endUid, bool withAuthorize)
         {
-            // do genesis
+            for (long i = startUid; i <= endUid; i++)
+            {
+                var myBlock = await GetBlockByUIndexAsync(i);
+                if (myBlock != null)
+                    continue;
 
-            //authGenesis.UHash = SignableObject.CalculateHash($"{authGenesis.UIndex}|{authGenesis.Index}|{authGenesis.Hash}");
-            //authGenesis.Authorizations = new List<AuthorizationSignature>();
-            //authGenesis.Authorizations.Add(new AuthorizationSignature
-            //{
-            //    Key = NodeService.Instance.PosWallet.AccountId,
-            //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, authGenesis.Hash, NodeService.Instance.PosWallet.AccountId)
-            //});
-            // TODO: add more seed's auth info
-
-            //await _store.AddBlockAsync(authGenesis);
-
-            //// the first consolidate block
-            //var consBlock = new ConsolidationBlock
-            //{
-            //    UIndex = 2,
-            //    ServiceHash = authGenesis.Hash,
-            //    SvcAccountID = NodeService.Instance.PosWallet.AccountId
-            //};
-            //consBlock.InitializeBlock(authGenesis, NodeService.Instance.PosWallet.PrivateKey,
-            //    NodeService.Instance.PosWallet.AccountId);
-            //consBlock.UHash = SignableObject.CalculateHash($"{consBlock.UIndex}|{consBlock.Index}|{consBlock.Hash}");
-            //consBlock.Authorizations = new List<AuthorizationSignature>();
-            //consBlock.Authorizations.Add(new AuthorizationSignature
-            //{
-            //    Key = NodeService.Instance.PosWallet.AccountId,
-            //    Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, consBlock.Hash + consBlock.ServiceHash, NodeService.Instance.PosWallet.AccountId)
-            //});
-
-            ////await _store.AddBlockAsync(consBlock);
-
-            //// tell consensus what happened
-            //InSyncing = false;
-
-            //LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
-            //_log.LogInformation("Service Genesis Completed.");
+                if (await SyncOneBlock(i, withAuthorize))
+                {
+                    _log.LogInformation($"Block {i} synced.");
+                }
+                else
+                {
+                    _log.LogInformation($"Block {i} failed to sync.");
+                }
+            }
         }
 
         LyraRestClient _clientForSync;
-        public async Task<bool> SyncOneBlock(long uid)
+        public async Task<bool> SyncOneBlock(long uid, bool withAuthorize)
         {
             _log.LogInformation($"SyncOneBlock: {uid}");
 
@@ -576,12 +638,25 @@ namespace Lyra
             var result = await _clientForSync.GetBlockByUIndex(uid);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return await AddBlockAsync(result.GetBlock());
+                var block = result.GetBlock();
+
+                if(withAuthorize)
+                {
+                    var authorizer = _authorizerFactory.Create(block.BlockType);
+                    var localAuthResult = await authorizer.AuthorizeAsync(block);
+                    if (localAuthResult.Item1 == APIResultCodes.Success)
+                        return await _store.AddBlockAsync(block);       // use this api directly to avoid confuse with the consensused block add
+                    else
+                    {
+                        _log.LogError($"Engaging: unable to authorize block {uid}");
+                    }
+                }
+                else
+                {
+                    return await _store.AddBlockAsync(block);       // use this api directly to avoid confuse with the consensused block add
+                }
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
 
         private async Task<LyraRestClient> FindValidSeedForSyncAsync()

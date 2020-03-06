@@ -332,6 +332,7 @@ namespace Lyra.Core.Blocks
         UnableToSendToConsensusNetwork = 302,
         NodeOutOfSync = 303,
         PBFTNetworkNotReadyForConsensus = 304,
-        DoubleSpentDetected = 305
+        DoubleSpentDetected = 305,
+        NotListedAsQualifiedAuthorizer = 306
     }
 }

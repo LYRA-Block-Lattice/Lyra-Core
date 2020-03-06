@@ -203,65 +203,9 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation("Inquiry for node status.");
             });
 
-            ReceiveAsync<ConsolidateFailed>(async (x) =>
+            Receive<ConsolidateFailed>((x) =>
             {
-                var block = await BlockChain.Singleton.FindBlockByHashAsync(x.consolidationBlockHash) as ConsolidationBlock;
-                if(block == null)
-                {
-                    // should not happen
-                    _log.LogCritical("Can't find block for ConsolidateFailed hash: " + x.consolidationBlockHash);
-                }
-                else
-                {
-                    var mt = new MerkleTree();
-                    var emptyNdx = new List<long>();
-                    for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
-                    {
-                        var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
-
-                        if (bndx == null)
-                        {
-                            if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
-                                continue;
-                            else
-                            {
-                                // missing block
-                                // fetch, save
-                                var ret = await BlockChain.Singleton.SyncOneBlock(ndx);
-
-                                // check if result is ok
-
-                                ndx--;
-                                continue;
-                            }
-                        }
-                        else
-                        {
-                            if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
-                            {
-                                // extra block
-                                // remove block
-                                await BlockChain.Singleton.RemoveBlockAsync(ndx);
-                                continue;
-                            }
-                            else
-                            {
-                                mt.AppendLeaf(MerkleHash.Create(bndx.UHash));
-                            }                            
-                        }
-                    }
-
-                    var mkhash = mt.BuildTree().ToString();
-                    if(block.MerkelTreeHash == mkhash)
-                    {
-                        // success
-                        _log.LogInformation("ConsolidateFailed fixed OK.");
-                    }
-                    else
-                    {
-                        _log.LogCritical("ConsolidateFailed can't fix.");
-                    }
-                }
+                BlockChain.Singleton.ConsolidationBlockFailed(x.consolidationBlockHash);
             });
 
             Task.Run(async () =>
