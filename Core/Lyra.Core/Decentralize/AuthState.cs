@@ -90,10 +90,17 @@ namespace Lyra.Core.Decentralize
                     _log.LogError($"AuthorizedMsg from {msg.From.Shorten()} for block {InputMsg.Block.Hash.Shorten()} verification failed.");
                     return false;
                 }
+
+                // check network state
+                if (BlockChain.Singleton.CurrentState == BlockChainState.Protect
+                    && !ProtocolSettings.Default.StandbyValidators.Contains(msg.From))
+                    return false;
+
+                OutputMsgs.Add(msg);
+                return true;
             }
 
-            OutputMsgs.Add(msg);
-            return true;
+            return false;
         }
 
         public bool AddCommitedResult(AuthorizerCommitMsg msg)
@@ -101,6 +108,11 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation($"Commit msg from: {msg.From}");
             // check repeated message
             if (CommitMsgs.ToList().Any(a => a.From == msg.From))
+                return false;
+
+            // check network state
+            if (BlockChain.Singleton.CurrentState == BlockChainState.Protect
+                && !ProtocolSettings.Default.StandbyValidators.Contains(msg.From))
                 return false;
 
             CommitMsgs.Add(msg);
