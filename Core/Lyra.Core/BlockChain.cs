@@ -394,11 +394,11 @@ namespace Lyra
 
         public void AuthorizerCountChanged(int count)
         {
-            if (_state.State == BlockChainState.Almighty && count < ProtocolSettings.Default.ConsensusWinNumber)
+            if (_state.State == BlockChainState.Almighty && count < ProtocolSettings.Default.ConsensusTotalNumber)
             {
                 _state.Fire(BlockChainTrigger.AuthorizerNodesCountLow);
             }
-            if (_state.State == BlockChainState.Protect && count >= ProtocolSettings.Default.ConsensusWinNumber)
+            if (_state.State == BlockChainState.Protect && count >= ProtocolSettings.Default.ConsensusTotalNumber)
             {
                 _state.Fire(BlockChainTrigger.AuthorizerNodesCountEnough);
             }
