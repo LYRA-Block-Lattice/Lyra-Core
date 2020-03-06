@@ -323,10 +323,11 @@ namespace Lyra.Core.Decentralize
 
         public bool FindActiveBlock(string accountId, long index)
         {
-            return _activeConsensus.Values.Where(s => s.State != null)
-                .Select(t => t.State.InputMsg.Block as TransactionBlock)
-                .Where(x => x != null)
-                .Any(a => a.AccountID == accountId && a.Index == index);
+            return false;
+            //return _activeConsensus.Values.Where(s => s.State != null)
+            //    .Select(t => t.State.InputMsg.Block as TransactionBlock)
+            //    .Where(x => x != null)
+            //    .Any(a => a.AccountID == accountId && a.Index == index && a is SendTransferBlock);
         }
 
         private async Task GenerateConsolidateBlockAsync()
