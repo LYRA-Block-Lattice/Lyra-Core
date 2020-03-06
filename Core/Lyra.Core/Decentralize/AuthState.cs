@@ -105,7 +105,7 @@ namespace Lyra.Core.Decentralize
 
         public bool AddCommitedResult(AuthorizerCommitMsg msg)
         {
-            //_log.LogInformation($"Commit msg from: {msg.From}");
+            //_log.LogInformation($"Commit msg from: {msg.From.Shorten()}");
             // check repeated message
             if (CommitMsgs.ToList().Any(a => a.From == msg.From))
                 return false;

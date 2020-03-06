@@ -416,13 +416,13 @@ namespace Lyra.Core.Decentralize
             if (_state.T5 == default)
                 _state.T5 = DateTime.Now;
 
-            _log.LogInformation($"OnCommit: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
-
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
             if(_state.AddCommitedResult(item))
                 await CheckCommitedOKAsync();
+
+            _log.LogInformation($"OnCommit: {_state.CommitMsgs.Count}/{AuthState.WinNumber} From {item.From.Shorten()}, {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash.Shorten()}");
 
             _context.OnNodeActive(item.From);        // track latest activities via billboard
             //}
