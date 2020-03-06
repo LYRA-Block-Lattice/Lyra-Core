@@ -663,10 +663,11 @@ namespace Lyra
         {
             do
             {
+                var rand = new Random();
                 int ndx;
                 do
                 {
-                    ndx = new Random().Next(0, ProtocolSettings.Default.SeedList.Length - 1);
+                    ndx = rand.Next(0, ProtocolSettings.Default.SeedList.Length);
                 } while (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
 
                 var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
