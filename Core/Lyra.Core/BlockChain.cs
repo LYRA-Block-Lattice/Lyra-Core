@@ -390,7 +390,8 @@ namespace Lyra
 
         public void ConsolidationBlockFailed(string hash)
         {
-            _state.Fire(_engageTriggerConsolidateFailed, hash);
+            if(_state.State == BlockChainState.Almighty)
+                _state.Fire(_engageTriggerConsolidateFailed, hash);
         }
 
         public void AuthorizerCountChanged(int count)
