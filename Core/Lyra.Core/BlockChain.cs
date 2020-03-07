@@ -184,6 +184,7 @@ namespace Lyra
                     await Task.Delay(10000);
 
                     var q = from ns in _nodeStatus
+                            where ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId) 
                             group ns by ns.lastBlockHeight into heights
                             orderby heights.Count()
                             select new
@@ -470,7 +471,7 @@ namespace Lyra
                 case NodeStatus nodeStatus:
                     // only accept status from seeds.
                     _log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
-                    if (_nodeStatus != null && ProtocolSettings.Default.StandbyValidators.Contains(nodeStatus.accountId))
+                    if (_nodeStatus != null)
                     {
                         if (!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
                             _nodeStatus.Add(nodeStatus);
