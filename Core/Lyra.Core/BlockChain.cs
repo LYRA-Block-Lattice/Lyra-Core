@@ -82,10 +82,10 @@ namespace Lyra
         public bool InSyncing { get; private set; }
         public long LastSavedUIndex { get => _lastSavedUIndex; }
 
-        private readonly StateMachine<BlockChainState, BlockChainTrigger> _state;
+        private readonly StateMachine<BlockChainState, BlockChainTrigger> _stateMachine;
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStartupSync;
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<string> _engageTriggerConsolidateFailed;
-        public BlockChainState CurrentState => _state.State;
+        public BlockChainState CurrentState => _stateMachine.State;
 
         AuthorizersFactory _authorizerFactory = new AuthorizersFactory();
 
@@ -104,9 +104,9 @@ namespace Lyra
 
             _sys = sys;
 
-            _state = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
-            _engageTriggerStartupSync = _state.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesSynced);
-            _engageTriggerConsolidateFailed = _state.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
+            _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
+            _engageTriggerStartupSync = _stateMachine.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesSynced);
+            _engageTriggerConsolidateFailed = _stateMachine.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
             CreateStateMachine();
 
             var nodeConfig = Neo.Settings.Default.LyraNode;
@@ -148,10 +148,10 @@ namespace Lyra
 
         private void CreateStateMachine()
         {
-            _state.Configure(BlockChainState.Initializing)
+            _stateMachine.Configure(BlockChainState.Initializing)
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
 
-            _state.Configure(BlockChainState.Startup)
+            _stateMachine.Configure(BlockChainState.Startup)
                 .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
                 .OnEntry(() => Task.Run(async () =>
                 {
@@ -186,11 +186,11 @@ namespace Lyra
                         var myStatus = await GetNodeStatusAsync();
                         if (myStatus.lastBlockHeight == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
                         {
-                            _state.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                            _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                         }
                         else if (myStatus.lastBlockHeight <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
                         {
-                            _state.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                            _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                         }
                         //else if (majorHeight.Height > 2 && majorHeight.Count < 2)
                         //{
@@ -198,7 +198,7 @@ namespace Lyra
                         //}
                         else
                         {
-                            _state.Fire(BlockChainTrigger.QueryingConsensusNode);
+                            _stateMachine.Fire(BlockChainTrigger.QueryingConsensusNode);
                         }
                     }
                 }))
@@ -206,7 +206,7 @@ namespace Lyra
                 //.Permit(BlockChainTrigger.ConsensusNodesOutOfSync, BlockChainState.Failed)
                 .Permit(BlockChainTrigger.ConsensusNodesSynced, BlockChainState.Engaging);
 
-            _state.Configure(BlockChainState.Genesis)
+            _stateMachine.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
                 {
                     await ResetUIDAsync();
@@ -217,7 +217,7 @@ namespace Lyra
                 }))
                 .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Startup);
 
-            _state.Configure(BlockChainState.Engaging)
+            _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
                 {
                     long startUIndex = 0;
@@ -230,7 +230,7 @@ namespace Lyra
                     {
                         if (startUIndex >= _lastSavedUIndex)
                         {
-                            _state.Fire(BlockChainTrigger.LocalNodeConsolidated);
+                            _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
                             break;
                         }
                         else
@@ -306,14 +306,14 @@ namespace Lyra
                 }))
                 .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
 
-            _state.Configure(BlockChainState.Almighty)
+            _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
                     await ResetUIDAsync();
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging);
 
-            _state.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
+            _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
         }
 
         private void Genesis()
@@ -342,14 +342,14 @@ namespace Lyra
 
                 await Task.Delay(3000);
 
-                _state.Fire(BlockChainTrigger.GenesisDone);
+                _stateMachine.Fire(BlockChainTrigger.GenesisDone);
             });
         }
 
         public void ConsolidationBlockFailed(string hash)
         {
-            if(_state.State == BlockChainState.Almighty)
-                _state.Fire(_engageTriggerConsolidateFailed, hash);
+            if(_stateMachine.State == BlockChainState.Almighty)
+                _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
         }
 
         public void AuthorizerCountChanged(int count)
@@ -363,7 +363,7 @@ namespace Lyra
             {
                 accountId = NodeService.Instance.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
-                mode = _state.State,
+                mode = _stateMachine.State,
                 lastBlockHeight = await GetNewestBlockUIndexAsync(),
                 lastConsolidationHash = (await GetLastConsolidationBlockAsync())?.Hash,
                 lastUnSolidationHash = null,
@@ -418,7 +418,7 @@ namespace Lyra
                     SyncBlocksFromSeeds(cmd.ToUIndex);
                     break;
                 case Startup _:
-                    _state.Fire(BlockChainTrigger.LocalNodeStartup);
+                    _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup);
                     break;
                 case NodeStatus nodeStatus:
                     // only accept status from seeds.

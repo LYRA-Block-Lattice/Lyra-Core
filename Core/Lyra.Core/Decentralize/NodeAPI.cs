@@ -33,11 +33,14 @@ namespace Lyra.Core.Decentralize
 
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
+            var consBlock = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
             var result = new GetSyncStateAPIResult
             {
                 ResultCode = APIResultCodes.Success,
                 NetworkID = BlockChain.Singleton.NetworkID,
                 SyncState = BlockChain.Singleton.InSyncing ? ConsensusWorkingMode.OutofSyncWaiting : ConsensusWorkingMode.Normal,
+                LastConsolidationUIndex = consBlock == null ? -1 : consBlock.UIndex,
+                LastConsolidationHash = consBlock == null ? null : consBlock.Hash,
                 NewestBlockUIndex = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
                 Status = await BlockChain.Singleton.GetNodeStatusAsync()
             };

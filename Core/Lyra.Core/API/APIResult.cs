@@ -219,6 +219,8 @@ namespace Lyra.Core.API
         public string NetworkID { get; set; }
         public ConsensusWorkingMode SyncState { get; set; }
         public long NewestBlockUIndex { get; set; }
+        public long LastConsolidationUIndex { get; set; }
+        public string LastConsolidationHash { get; set; }
         public NodeStatus Status { get; set; }
     }
 
