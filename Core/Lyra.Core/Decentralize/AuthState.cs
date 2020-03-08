@@ -92,7 +92,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // check network state
-                if (BlockChain.Singleton.CurrentState == BlockChainState.Protect
+                if (BlockChain.Singleton.CurrentState == BlockChainState.Genesis
                     && !ProtocolSettings.Default.StandbyValidators.Contains(msg.From))
                     return false;
 
@@ -111,7 +111,7 @@ namespace Lyra.Core.Decentralize
                 return false;
 
             // check network state
-            if (BlockChain.Singleton.CurrentState == BlockChainState.Protect
+            if (BlockChain.Singleton.CurrentState == BlockChainState.Genesis
                 && !ProtocolSettings.Default.StandbyValidators.Contains(msg.From))
                 return false;
 

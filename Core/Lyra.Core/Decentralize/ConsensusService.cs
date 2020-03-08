@@ -213,7 +213,7 @@ namespace Lyra.Core.Decentralize
                 int count = 0;
                 while (true)
                 {
-                    if (IsThisNodeSeed0 && (BlockChain.Singleton.CurrentState == BlockChainState.Protect || BlockChain.Singleton.CurrentState == BlockChainState.Almighty))
+                    if (IsThisNodeSeed0 && BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
                     {
                         await GenerateConsolidateBlockAsync();
                     }

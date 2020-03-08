@@ -27,12 +27,10 @@ namespace Lyra
     public enum BlockChainState 
     { 
         Initializing, 
-        Startup,   // the default mode. app started. wait for p2p stack up.
-        Protect,    // p2p net up. can do messaging
+        Startup,    // the default mode. app started. wait for p2p stack up.
         Engaging,   // storing new commit while syncing blocks
         Almighty,   // fullly synced and working
-        Genesis,
-        Failed
+        Genesis
     }
 
     public enum BlockChainTrigger
@@ -43,28 +41,16 @@ namespace Lyra
         // startup
         QueryingConsensusNode,
         ConsensusBlockChainEmpty,
-        //ConsensusNodesOutOfSync,
         ConsensusNodesSynced,
 
         // engage
         LocalNodeConsolidated,
 
-        // protect
-        AuthorizerNodesCountEnough,
-        Seed0Genesis,
-
         // almighty
         LocalNodeOutOfSync,
-        AuthorizerNodesCountLow,
-        LocalNodeFatalError,
-
-        // Failed
-        LocalNodeRecovered,
-        QueryLocalRecovery,
 
         // genesis
-        GenesisSuccess,
-        GenesisFailed
+        GenesisDone
     }
 
     public class BlockChain : UntypedActor
@@ -162,8 +148,6 @@ namespace Lyra
 
         private void CreateStateMachine()
         {
-            
-
             _state.Configure(BlockChainState.Initializing)
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
 
@@ -218,22 +202,20 @@ namespace Lyra
                         }
                     }
                 }))
-                .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Protect)
+                .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Genesis)
                 //.Permit(BlockChainTrigger.ConsensusNodesOutOfSync, BlockChainState.Failed)
                 .Permit(BlockChainTrigger.ConsensusNodesSynced, BlockChainState.Engaging);
 
-            _state.Configure(BlockChainState.Protect)
+            _state.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
                 {
                     await ResetUIDAsync();
                     if (await FindLatestBlockAsync() == null && ConsensusService.IsThisNodeSeed0)
                     {
-                        _state.Fire(BlockChainTrigger.Seed0Genesis);
+                        Genesis();
                     }
                 }))
-                .Permit(BlockChainTrigger.Seed0Genesis, BlockChainState.Genesis)
-                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)
-                .Permit(BlockChainTrigger.AuthorizerNodesCountEnough, BlockChainState.Almighty);
+                .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Startup);
 
             _state.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
@@ -329,63 +311,39 @@ namespace Lyra
                 {
                     await ResetUIDAsync();
                 }))
-                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)
-                .Permit(BlockChainTrigger.AuthorizerNodesCountLow, BlockChainState.Protect)
-                .Permit(BlockChainTrigger.LocalNodeFatalError, BlockChainState.Failed);
-
-            _state.Configure(BlockChainState.Failed)
-                //.OnEntry(() => Task.Run(async () =>
-                //{
-
-                //}))
-                .PermitReentry(BlockChainTrigger.QueryLocalRecovery)
-                .Permit(BlockChainTrigger.LocalNodeRecovered, BlockChainState.Startup);
-
-            _state.Configure(BlockChainState.Genesis)
-                .OnEntry(() => Task.Run(async () =>
-                {
-                    // genesis
-                    _log.LogInformation("all seed nodes are ready. do genesis.");
-
-                    var svcGen = await GetServiceGenesisBlockAsync();
-                    await SendBlockToConsensusAsync(svcGen);
-
-                    await Task.Delay(1000);
-
-                    var tokenGen = await GetLyraTokenGenesisBlockAsync(svcGen);
-                    await SendBlockToConsensusAsync(tokenGen);
-
-                    await Task.Delay(1000);
-
-                    var consGen = await GetConsolidationGenesisBlockAsync(svcGen, tokenGen);
-                    await SendBlockToConsensusAsync(consGen);
-
-                    await Task.Delay(1000);
-
-                    _log.LogInformation("svc genesis is done.");
-
-                    await Task.Delay(3000);
-
-                    // check if all block success
-                    var block0 = await GetBlockByUIndexAsync(0);
-                    var block1 = await GetBlockByUIndexAsync(1);
-                    var block2 = await GetBlockByUIndexAsync(2);
-                    if (block0 != null && block1 != null && block2 != null
-                        && block0.Hash == svcGen.Hash
-                        && block1.Hash == tokenGen.Hash
-                        && block2.Hash == consGen.Hash)
-                    {
-                        _state.Fire(BlockChainTrigger.GenesisSuccess);
-                    }
-                    else
-                    {
-                        _state.Fire(BlockChainTrigger.GenesisFailed);
-                    }
-                }))
-                .Permit(BlockChainTrigger.GenesisSuccess, BlockChainState.Protect)
-                .Permit(BlockChainTrigger.GenesisFailed, BlockChainState.Failed);
+                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging);
 
             _state.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
+        }
+
+        private void Genesis()
+        {
+            Task.Run(async () =>
+            {
+                // genesis
+                _log.LogInformation("all seed nodes are ready. do genesis.");
+
+                var svcGen = await GetServiceGenesisBlockAsync();
+                await SendBlockToConsensusAsync(svcGen);
+
+                await Task.Delay(1000);
+
+                var tokenGen = await GetLyraTokenGenesisBlockAsync(svcGen);
+                await SendBlockToConsensusAsync(tokenGen);
+
+                await Task.Delay(1000);
+
+                var consGen = await GetConsolidationGenesisBlockAsync(svcGen, tokenGen);
+                await SendBlockToConsensusAsync(consGen);
+
+                await Task.Delay(1000);
+
+                _log.LogInformation("svc genesis is done.");
+
+                await Task.Delay(3000);
+
+                _state.Fire(BlockChainTrigger.GenesisDone);
+            });
         }
 
         public void ConsolidationBlockFailed(string hash)
@@ -396,14 +354,7 @@ namespace Lyra
 
         public void AuthorizerCountChanged(int count)
         {
-            if (_state.State == BlockChainState.Almighty && count < ProtocolSettings.Default.ConsensusTotalNumber)
-            {
-                _state.Fire(BlockChainTrigger.AuthorizerNodesCountLow);
-            }
-            if (_state.State == BlockChainState.Protect && count >= ProtocolSettings.Default.ConsensusTotalNumber)
-            {
-                _state.Fire(BlockChainTrigger.AuthorizerNodesCountEnough);
-            }
+
         }
 
         public async Task<NodeStatus> GetNodeStatusAsync()
