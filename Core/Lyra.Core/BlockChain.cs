@@ -287,7 +287,7 @@ namespace Lyra
                                 }
                                 else
                                 {
-                                    mt.AppendLeaf(MerkleHash.Create(bndx.UHash));
+                                    mt.AppendLeaf(MerkleHash.Create(bndx.Hash));
                                 }
                             }
                         }
@@ -483,8 +483,8 @@ namespace Lyra
             };
 
             var mt = new MerkleTree();
-            mt.AppendLeaf(MerkleHash.Create(svcGen.UHash));
-            mt.AppendLeaf(MerkleHash.Create(lyraGen.UHash));
+            mt.AppendLeaf(MerkleHash.Create(svcGen.Hash));
+            mt.AppendLeaf(MerkleHash.Create(lyraGen.Hash));
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             await consBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,

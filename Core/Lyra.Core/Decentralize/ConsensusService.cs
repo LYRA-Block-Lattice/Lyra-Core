@@ -395,7 +395,7 @@ namespace Lyra.Core.Decentralize
                                     }
                                     else
                                     {
-                                        mt.AppendLeaf(MerkleHash.Create(bx.UHash));
+                                        mt.AppendLeaf(MerkleHash.Create(bx.Hash));
                                     }
                                 }
 

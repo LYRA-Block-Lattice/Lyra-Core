@@ -67,7 +67,7 @@ namespace Lyra.Core.Authorizers
                 }
                 else
                 {
-                    mt.AppendLeaf(MerkleHash.Create(bndx.UHash));
+                    mt.AppendLeaf(MerkleHash.Create(bndx.Hash));
                 }
             }
 

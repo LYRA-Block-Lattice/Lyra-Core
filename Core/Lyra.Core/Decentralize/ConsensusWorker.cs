@@ -341,7 +341,6 @@ namespace Lyra.Core.Decentralize
                             From = NodeService.Instance.PosWallet.AccountId,
                             MsgType = ChatMessageType.AuthorizerCommit,
                             BlockHash = state.InputMsg.Block.Hash,
-                            BlockUHash = block.UHash,
                             Consensus = state.PrepareConsensus,
                             Commited = true
                         };
