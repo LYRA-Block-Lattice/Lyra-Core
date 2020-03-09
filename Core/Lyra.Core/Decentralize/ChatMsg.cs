@@ -228,7 +228,6 @@ namespace Lyra.Core.Decentralize
 	public class AuthorizerCommitMsg : SourceSignedMessage
 	{
 		public string BlockHash { get; set; }
-		public bool Commited { get; set; }
 		public ConsensusResult Consensus { get; set; }
 
 		public AuthorizerCommitMsg()
@@ -236,11 +235,9 @@ namespace Lyra.Core.Decentralize
 			MsgType = ChatMessageType.AuthorizerCommit;
 		}
 
-		public bool IsSuccess => Commited;
-
 		public override string GetHashInput()
 		{
-			return $"{BlockHash}|{Commited}|{Consensus}" + base.GetHashInput();
+			return $"{BlockHash}|{Consensus}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
@@ -250,14 +247,12 @@ namespace Lyra.Core.Decentralize
 
 		public override int Size => base.Size +
 			BlockHash.Length +
-			sizeof(bool) +
 			sizeof(ConsensusResult);
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
 			writer.Write(BlockHash);
-			writer.Write(Commited);
 			writer.Write((int)Consensus);
 		}
 
@@ -265,7 +260,6 @@ namespace Lyra.Core.Decentralize
 		{
 			base.Deserialize(reader);
 			BlockHash = reader.ReadString();
-			Commited = reader.ReadBoolean();
 			Consensus = (ConsensusResult)reader.ReadInt32();
 		}
 	}

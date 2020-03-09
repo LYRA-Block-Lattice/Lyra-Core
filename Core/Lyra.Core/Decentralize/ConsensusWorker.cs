@@ -331,40 +331,20 @@ namespace Lyra.Core.Decentralize
                     _context.Stats.Add(new TransStats { ms = (long)ts.TotalMilliseconds, trans = state.InputMsg.Block.BlockType });
 
                     var block = state.InputMsg.Block;
-                    if (state.PrepareConsensus == ConsensusResult.Yay)
+
+                    // do commit
+                    block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
+
+                    var msg = new AuthorizerCommitMsg
                     {
-                        // do commit
-                        block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
+                        From = NodeService.Instance.PosWallet.AccountId,
+                        MsgType = ChatMessageType.AuthorizerCommit,
+                        BlockHash = state.InputMsg.Block.Hash,
+                        Consensus = state.PrepareConsensus
+                    };
 
-                        var msg = new AuthorizerCommitMsg
-                        {
-                            From = NodeService.Instance.PosWallet.AccountId,
-                            MsgType = ChatMessageType.AuthorizerCommit,
-                            BlockHash = state.InputMsg.Block.Hash,
-                            Consensus = state.PrepareConsensus,
-                            Commited = true
-                        };
-
-                        _context.Send2P2pNetwork(msg);
-                        state.AddCommitedResult(msg);
-                    }
-                    else
-                    {
-                        // nay
-                        //var nb = new NullTransactionBlock
-                        //{
-                        //    UIndex = state.ConsensusUIndex,
-                        //    FailedBlockHash = block.Hash,
-                        //    ServiceHash = block.ServiceHash,
-                        //    AccountID = block.AccountID
-                        //};
-                        //nb.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                        //    NodeService.Instance.PosWallet.AccountId);
-                        //nb.UHash = SignableObject.CalculateHash($"{nb.UIndex}|{nb.Index}|{nb.Hash}");
-
-                        //if (await BlockChain.Singleton.AddBlockAsync(block))
-                        //    _log.LogInformation($"NullTrans saved: {nb.UIndex}");
-                    }
+                    _context.Send2P2pNetwork(msg);
+                    state.AddCommitedResult(msg);
                 }
             }
             catch (Exception ex)
@@ -379,13 +359,21 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckCommitedOKAsync()
         {
-            var block = _state.InputMsg.Block;
-            if (_state.CommitConsensus == ConsensusResult.Yay)
+            if(_state.Settled)
             {
-                if (!await BlockChain.Singleton.AddBlockAsync(block))
-                    _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
-                else
-                    _log.LogInformation($"Block saved: {block.UIndex}/{block.Index}/{block.Hash}");
+                var block = _state.InputMsg.Block;
+
+                if (_state.CommitConsensus == ConsensusResult.Yay)
+                {
+                    if (!await BlockChain.Singleton.AddBlockAsync(block))
+                        _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
+                    else
+                        _log.LogInformation($"Block saved: {block.UIndex}/{block.Index}/{block.Hash}");
+                }
+                else if (_state.CommitConsensus == ConsensusResult.Nay)
+                {
+
+                }
 
                 _state.Done?.Set();
                 _context.FinishBlock(_state.HashOfFirstBlock);
