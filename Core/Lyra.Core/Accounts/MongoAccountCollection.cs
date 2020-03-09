@@ -211,6 +211,21 @@ namespace Lyra.Core.Accounts
             return result as ConsolidationBlock;
         }
 
+        public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startUIndex)
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 100,
+                Sort = Builders<Block>.Sort.Ascending(o => o.UIndex)
+            };
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.Consolidation),
+                builder.Gte("UIndex", startUIndex));
+
+            var result = await _blocks.FindAsync(filterDefinition, options);
+            return result.ToList().Cast<ConsolidationBlock>().ToList();
+        }
+
         //private async Task<List<TransactionBlock>> GetAccountBlockListAsync(string AccountId)
         //{
         //    var finds = await _blocks.FindAsync(x => x.AccountID == AccountId);

@@ -387,6 +387,7 @@ namespace Lyra
         public async Task<long> GetNewestBlockUIndexAsync() => await StopWatcher.Track(_store.GetNewestBlockUIndexAsync(), StopWatcher.GetCurrentMethod());
         public async Task<Block> GetBlockByUIndexAsync(long uindex) => await StopWatcher.Track(_store.GetBlockByUIndexAsync(uindex), StopWatcher.GetCurrentMethod());//_store.GetBlockByUIndexAsync(uindex);
         internal async Task<ConsolidationBlock> GetLastConsolidationBlockAsync() => await StopWatcher.Track(_store.GetLastConsolidationBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
+        public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startUIndex) => await StopWatcher.Track(_store.GetConsolidationBlocksAsync(startUIndex), StopWatcher.GetCurrentMethod());
         internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await StopWatcher.Track(_store.GetLastServiceBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetLastServiceBlockAsync();
 
         // forward api. should have more control here.
