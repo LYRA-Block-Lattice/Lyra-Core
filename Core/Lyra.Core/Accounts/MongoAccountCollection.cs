@@ -37,8 +37,6 @@ namespace Lyra.Core.Accounts
 
         public string Cluster { get; set; }
 
-        long _lastAddedUIndex;
-
         public MongoAccountCollection()
         {
             _log = new SimpleLogger("Mongo").Logger;
@@ -121,7 +119,6 @@ namespace Lyra.Core.Accounts
             CreateIndexes("Hash", true).Wait();
             CreateIndexes("PreviousHash", false).Wait();
             CreateIndexes("AccountID", false).Wait();
-            CreateNoneStringIndex("UIndex", true).Wait();
             CreateNoneStringIndex("Index", false).Wait();
             CreateNoneStringIndex("BlockType", false).Wait();
 
@@ -188,7 +185,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.UIndex)
+                Sort = Builders<Block>.Sort.Descending(o => o.Index)
             };
             var filter = Builders<Block>.Filter;
             var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
@@ -203,7 +200,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.UIndex)
+                Sort = Builders<Block>.Sort.Descending(o => o.Index)
             };
             var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
 
@@ -216,7 +213,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 100,
-                Sort = Builders<Block>.Sort.Ascending(o => o.UIndex)
+                Sort = Builders<Block>.Sort.Ascending(o => o.Index)
             };
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.Consolidation),
@@ -236,14 +233,15 @@ namespace Lyra.Core.Accounts
 
         public async Task<Block> FindLatestBlockAsync()
         {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.UIndex)
-            };
+            throw new NotImplementedException();
+            //var options = new FindOptions<Block, Block>
+            //{
+            //    Limit = 1,
+            //    Sort = Builders<Block>.Sort.Descending(o => o.Index)
+            //};
 
-            var result = await (await _blocks.FindAsync(FilterDefinition<Block>.Empty, options)).FirstOrDefaultAsync();
-            return result;
+            //var result = await (await _blocks.FindAsync(FilterDefinition<Block>.Empty, options)).FirstOrDefaultAsync();
+            //return result;
         }
 
         public async Task<Block> FindLatestBlockAsync(string AccountId)
@@ -251,7 +249,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.UIndex)
+                Sort = Builders<Block>.Sort.Descending(o => o.Index)
             };
             var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
 
@@ -391,7 +389,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.UIndex)
+                Sort = Builders<Block>.Sort.Descending(o => o.Index)
             };
             var builder = new FilterDefinitionBuilder<Block>();
             var filterDefinition = builder.And(builder.Eq("AccountID", AccountId),
@@ -403,7 +401,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId)
         {
-            long fromUIndex = 0;
+            long fromIndex = 0;
 
             // get last settled receive block
             var lastRecvBlock = await FindLastRecvBlock(AccountId);
@@ -412,13 +410,13 @@ namespace Lyra.Core.Accounts
                 var lastSendToThisAccountBlock = await FindBlockByHashAsync(lastRecvBlock.SourceHash);
 
                 if (lastSendToThisAccountBlock != null)
-                    fromUIndex = lastSendToThisAccountBlock.UIndex;
+                    fromIndex = lastSendToThisAccountBlock.Index;
             }    
 
             // First, let find all send blocks:
             // (It can be optimzed as it's going to be growing, so it can be called with munimum Service Chain Height parameter to look only for recent blocks) 
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("UIndex", fromUIndex);
+            var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("Index", fromIndex);
 
             var allSendBlocks = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
 
@@ -546,21 +544,6 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            if (block.Index <= 0 || block.UIndex <= 0)
-            {
-                if(0 != await GetNewestBlockUIndexAsync())
-                {
-                    _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
-                    return false;
-                }
-            }
-
-            if (null != await GetBlockByUIndexAsync(block.UIndex))
-            {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
-                return false;
-            }
-
             if (await FindBlockByHashAsync(block.Hash) != null)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
@@ -577,21 +560,20 @@ namespace Lyra.Core.Accounts
                 }
             }
 
-            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.UIndex}/{block.Index}");
+            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Index}");
             await _blocks.InsertOneAsync(block);
-            _lastAddedUIndex = block.UIndex;
             return true;
         }
 
-        public async Task RemoveBlockAsync(long uindex)
+        public async Task RemoveBlockAsync(string hash)
         {
-            var ret = await _blocks.DeleteOneAsync(a => a.UIndex == uindex);
+            var ret = await _blocks.DeleteOneAsync(a => a.Hash == hash);
             if (ret.IsAcknowledged && ret.DeletedCount == 1)
             {
-                _log.LogWarning($"RemoveBlockAsync Block {uindex} removed.");
+                _log.LogWarning($"RemoveBlockAsync Block {hash} removed.");
             }
             else
-                _log.LogWarning($"RemoveBlockAsync Block {uindex} failed.");
+                _log.LogWarning($"RemoveBlockAsync Block {hash} failed.");
         }
 
         public void Dispose()
@@ -599,21 +581,21 @@ namespace Lyra.Core.Accounts
             // nothing to dispose
         }
 
-        public async Task<long> GetNewestBlockUIndexAsync()
-        {
-            var result = await FindLatestBlockAsync();
-            if (result == null)
-                return 0;
-            return result.UIndex;
-        }
+        //public async Task<long> GetNewestBlockUIndexAsync()
+        //{
+        //    var result = await FindLatestBlockAsync();
+        //    if (result == null)
+        //        return 0;
+        //    return result.UIndex;
+        //}
 
-        public async Task<Block> GetBlockByUIndexAsync(long uindex)
-        {
-            var filter = new FilterDefinitionBuilder<Block>().Eq(a => a.UIndex, uindex);
+        //public async Task<Block> GetBlockByUIndexAsync(long uindex)
+        //{
+        //    var filter = new FilterDefinitionBuilder<Block>().Eq(a => a.UIndex, uindex);
 
-            var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
-            return block;
-        }
+        //    var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+        //    return block;
+        //}
 
     }
 }

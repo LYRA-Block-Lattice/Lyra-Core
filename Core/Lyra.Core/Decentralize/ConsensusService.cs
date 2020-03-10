@@ -83,7 +83,7 @@ namespace Lyra.Core.Decentralize
 
             _orphange = new Orphanage(
                     async (state) => {
-                        _log.LogInformation($"AuthState from Orphanage: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
+                        _log.LogInformation($"AuthState from Orphanage: {state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
                         var worker = await GetWorkerAsync(state.InputMsg.Block.Hash); 
                         worker.Create(state); 
                     },
@@ -145,7 +145,6 @@ namespace Lyra.Core.Decentralize
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
-            Receive<AskForMaxActiveUID>(_ => Sender.Tell(new ReplyForMaxActiveUID { uid = GetMaxActiveUID() }));
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
@@ -230,14 +229,6 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             });
-        }
-
-        private long? GetMaxActiveUID()
-        {
-            if (_activeConsensus.Count == 0)
-                return -1;
-
-            return _activeConsensus.Max(a => a.Value.State?.InputMsg?.Block.UIndex);
         }
 
         public Task<bool> AddOrphanAsync(AuthState state)
@@ -371,7 +362,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // if necessary, insert a new ConsolidateBlock
-                if (IsThisNodeSeed0 && (BlockChain.Singleton.LastSavedUIndex - lastCons.UIndex > 1024 || DateTime.Now.ToUniversalTime() - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
+/*                if (IsThisNodeSeed0 && (BlockChain.Singleton.LastSavedUIndex - lastCons.UIndex > 1024 || DateTime.Now.ToUniversalTime() - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
                     if(!_activeConsensus.Values.Any(a => a.State != null && a.State.InputMsg?.Block?.BlockType == BlockTypes.Consolidation))
                     {
@@ -409,7 +400,7 @@ namespace Lyra.Core.Decentralize
                                     MerkelTreeHash = mt.BuildTree().ToString()
                                 };
 
-                                await currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+                                currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
                                     NodeService.Instance.PosWallet.AccountId,
                                     await BlockChain.Singleton.GetClientForSeed0());
 
@@ -432,7 +423,7 @@ namespace Lyra.Core.Decentralize
                             _log.LogError($"In creating consolidation block: {ex.Message}");
                         }
                     }
-                }
+                } */
             }
             catch (Exception ex)
             {
@@ -570,7 +561,7 @@ namespace Lyra.Core.Decentralize
                         }
                     }
 
-                    if (msg1.Block is ServiceBlock && msg1.Block.UIndex == 0 && !IsMessageFromSeed0(item))
+                    if (msg1.Block is ServiceBlock && !IsMessageFromSeed0(item))
                     {
                         _log.LogError($"fake genesis block from node {item.From}");
                         return;
@@ -650,11 +641,11 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     await BlockChain.Singleton.AddBlockAsync(block);
-                    _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.UIndex}");
+                    _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.Index}");
                 }
                 catch(Exception e)
                 {
-                    _log.LogInformation($"OnBlockConsolication UIndex: {block.UIndex} Failed: {e.Message}");
+                    _log.LogInformation($"OnBlockConsolication UIndex: {block.Index} Failed: {e.Message}");
                 }                
             }
         }

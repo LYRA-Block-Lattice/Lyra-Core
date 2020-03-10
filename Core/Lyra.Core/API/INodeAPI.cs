@@ -12,12 +12,9 @@ namespace Lyra.Core.API
         Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion);
 
         Task<GetSyncStateAPIResult> GetSyncState();
-        Task<BlockAPIResult> GetBlockByUIndex(long uindex);
 
         // this one can be cached for a few milliseconds
         Task<AccountHeightAPIResult> GetSyncHeight();
-
-        Task<CreateBlockUIdAPIResult> CreateBlockUId(string AccountId, string Signature, string blockHash);
 
         Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword);
 

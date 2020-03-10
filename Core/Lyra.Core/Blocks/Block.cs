@@ -13,10 +13,7 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
-        /// <summary>
-        /// Universal Index. Generated only by leader node.
-        /// </summary>
-        public long UIndex { get; set; }
+        public bool Consolidated { get; set; }
 
         public long Index { get; set; }
 
@@ -38,8 +35,10 @@ namespace Lyra.Core.Blocks
 
         public List<AuthorizationSignature> Authorizations { get; set; }
 
-        public async virtual Task InitializeBlock(Block prevBlock, string PrivateKey, string AccountId, LyraRestClient client)
+        public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId, LyraRestClient client)
         {
+            Consolidated = false;
+
             if (prevBlock != null)
             {
                 Index = prevBlock.Index + 1;
@@ -54,23 +53,12 @@ namespace Lyra.Core.Blocks
             Version = LyraGlobal.DatabaseVersion; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
             BlockType = GetBlockType();
 
-            // assign UID from seed0
-            var uidResult = await client.CreateBlockUId(AccountId,
-                Signatures.GetSignature(PrivateKey, Hash, AccountId),
-                Hash);
-            if (uidResult.ResultCode != APIResultCodes.Success)
-            {
-                return;
-            }
-            UIndex = uidResult.uid;
-
             Sign(PrivateKey, AccountId);
         }
 
         public override string GetHashInput()
         {
-            return UIndex + "|" +
-                this.Index.ToString() + "|" +
+            return Index.ToString() + "|" +
                              DateTimeToString(TimeStamp) + "|" +
                              this.Version + "|" +
                              this.BlockType.ToString() + "|" +
@@ -145,7 +133,6 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
-            result += $"UIndex: {UIndex.ToString()}\n";
             result += $"Index: {Index.ToString()}\n";
             result += $"TimeStamp: {DateTimeToString(TimeStamp)}\n"; 
             result += $"Version: {Version}\n";
@@ -231,7 +218,6 @@ namespace Lyra.Core.Blocks
         UnknownError = 1,
         // default error code
         UndefinedError = 1000,
-        BlockWithThisUIndexAlreadyExists = 1001,
         BlockWithThisIndexAlreadyExists = 2,
         AccountAlreadyExists = 3,
         AccountDoesNotExist = 4,

@@ -10,10 +10,6 @@ namespace Lyra.Core.Accounts
     /// </summary>
     public interface IAccountCollectionAsync : IDisposable
     {
-        // for sync
-        Task<long> GetNewestBlockUIndexAsync();
-        Task<Block> GetBlockByUIndexAsync(long uindex);
-
         // for service
         Task<long> GetBlockCountAsync();
         Task<long> GetBlockCountAsync(string AccountId);
@@ -58,7 +54,7 @@ namespace Lyra.Core.Accounts
         List<string> GetExecutedTradeOrderBlocks();
 
         Task<bool> AddBlockAsync(Block block);
-        Task RemoveBlockAsync(long uindex);
+        Task RemoveBlockAsync(string hash);
 
         /// <summary>
         /// Cleans up or deletes blocks collection.

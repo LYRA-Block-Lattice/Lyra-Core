@@ -55,7 +55,7 @@ namespace Lyra.Core.LiteDB
         {
             var mapper = BsonMapper.Global;
 
-            mapper.Entity<Block>().Id(x => x.UIndex);
+            //mapper.Entity<Block>().Id(x => x.UIndex);
 
             if (_db == null)
             {

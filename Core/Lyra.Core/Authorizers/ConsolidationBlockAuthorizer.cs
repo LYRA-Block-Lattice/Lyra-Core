@@ -38,12 +38,12 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as ConsolidationBlock;
 
-            // 1. check if the block already exists
-            if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
-                return APIResultCodes.BlockWithThisUIndexAlreadyExists;
+            //// 1. check if the block already exists
+            //if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
+            //    return APIResultCodes.BlockWithThisUIndexAlreadyExists;
 
             var lastCons = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
-            if(block.UIndex > 2)
+            if(block.Index > 1)
             {
                 if (lastCons == null)
                     return APIResultCodes.CouldNotFindLatestBlock;
@@ -53,31 +53,31 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            // recalculate merkeltree
-            // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
-            var mt = new MerkleTree();
-            var emptyNdx = new List<long>();
-            for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
-            {
-                var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
+            //// recalculate merkeltree
+            //// use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
+            //var mt = new MerkleTree();
+            //var emptyNdx = new List<long>();
+            //for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
+            //{
+            //    var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
 
-                if (bndx == null)
-                {
-                    emptyNdx.Add(ndx);
-                }
-                else
-                {
-                    mt.AppendLeaf(MerkleHash.Create(bndx.Hash));
-                }
-            }
+            //    if (bndx == null)
+            //    {
+            //        emptyNdx.Add(ndx);
+            //    }
+            //    else
+            //    {
+            //        mt.AppendLeaf(MerkleHash.Create(bndx.Hash));
+            //    }
+            //}
 
-            var mkhash = mt.BuildTree().ToString();
+            //var mkhash = mt.BuildTree().ToString();
 
-            if(((block.NullUIndexes == null && emptyNdx.Count == 0) || (block.NullUIndexes != null && block.NullUIndexes.SequenceEqual(emptyNdx)))
-                && block.MerkelTreeHash == mkhash)
-            {
-                return APIResultCodes.Success;
-            }
+            //if(((block.NullUIndexes == null && emptyNdx.Count == 0) || (block.NullUIndexes != null && block.NullUIndexes.SequenceEqual(emptyNdx)))
+            //    && block.MerkelTreeHash == mkhash)
+            //{
+            //    return APIResultCodes.Success;
+            //}
 
             return APIResultCodes.InvalidConsolidationMerkleTreeHash;
         }

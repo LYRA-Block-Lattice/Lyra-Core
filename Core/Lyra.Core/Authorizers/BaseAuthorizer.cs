@@ -54,7 +54,7 @@ namespace Lyra.Core.Authorizers
                 var result = block.VerifySignature(accountId);
                 if (!result)
                 {
-                    _log.LogWarning($"VerifyBlock failed for ServiceBlock UIndex: {block.UIndex} by {accountId}");
+                    _log.LogWarning($"VerifyBlock failed for ServiceBlock Index: {block.Index} by {accountId}");
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }                    
             }
@@ -62,12 +62,12 @@ namespace Lyra.Core.Authorizers
             {
                 var blockt = block as TransactionBlock;
                 if (!blockt.VerifyHash())
-                    _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock UIndex: {block.UIndex} by {block.GetHashInput()}");
+                    _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock Index: {block.Index} by {block.GetHashInput()}");
 
                 var result = block.VerifySignature(blockt.AccountID);
                 if (!result)
                 {
-                    _log.LogWarning($"VerifyBlock failed for TransactionBlock UIndex: {block.UIndex} Type: {block.BlockType} by {blockt.AccountID}");
+                    _log.LogWarning($"VerifyBlock failed for TransactionBlock Index: {block.Index} Type: {block.BlockType} by {blockt.AccountID}");
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
 

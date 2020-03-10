@@ -63,7 +63,7 @@ namespace Lyra.Core.Decentralize
 
         private AuthState CreateAuthringState(AuthorizingMsg item)
         {
-            _log.LogInformation($"Consensus: CreateAuthringState Called: BlockUIndex: {item.Block.UIndex}");
+            _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {item.Block.Index}");
 
             var ukey = item.Block.Hash;
             //if (_activeConsensus.ContainsKey(ukey))
@@ -156,11 +156,11 @@ namespace Lyra.Core.Decentralize
                     AuthSign = localAuthResult.Item2
                 };
 
-                _log.LogInformation($"Give UIndex {item.Block.UIndex} to block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
+                _log.LogInformation($"Index {item.Block.Index} of block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
             }
             catch (Exception e)
             {
-                _log.LogWarning($"Consensus: LocalAuthorizingAsync Exception: {e.Message} BlockUIndex: {item.Block.UIndex}");
+                _log.LogWarning($"Consensus: LocalAuthorizingAsync Exception: {e.Message} BlockIndex: {item.Block.Index}");
 
                 result = new AuthorizedMsg
                 {
@@ -179,10 +179,10 @@ namespace Lyra.Core.Decentralize
             {
                 if (result.Result == APIResultCodes.CouldNotFindLatestBlock)
                 {
-                    _log.LogInformation($"CouldNotFindLatestBlock!! state: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash} Previous Block Hash: {_state.InputMsg.Block.PreviousHash}");
+                    _log.LogInformation($"CouldNotFindLatestBlock!! state: {_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash} Previous Block Hash: {_state.InputMsg.Block.PreviousHash}");
                 }
                 _log.LogError($"LocalAuthorizingAsync takes {stopwatch.ElapsedMilliseconds} ms with {result.Result}");
-                _log.LogInformation($"LocalAuthorizingAsync state: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+                _log.LogInformation($"LocalAuthorizingAsync state: {_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
             }
 
             return result;
@@ -190,7 +190,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task OnPrePrepareAsync(AuthorizingMsg msg, WaitHandle waitHandle = null)
         {
-            _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.UIndex}/{msg.Block.Index}/{msg.Block.Hash}");
+            _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Index}/{msg.Block.Hash}");
             _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
             if (msg.Version != LyraGlobal.ProtocolVersion)
@@ -322,7 +322,7 @@ namespace Lyra.Core.Decentralize
 
                     state.T4 = DateTime.Now;
 
-                    _log.LogInformation($"Saving {state.PrepareConsensus}: {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
+                    _log.LogInformation($"Saving {state.PrepareConsensus}: {_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash}");
 
                     var ts = DateTime.Now - state.Created;
                     if (_context.Stats.Count > 10000)
@@ -366,9 +366,9 @@ namespace Lyra.Core.Decentralize
                 if (_state.CommitConsensus == ConsensusResult.Yay)
                 {
                     if (!await BlockChain.Singleton.AddBlockAsync(block))
-                        _log.LogWarning($"Block Save Failed UIndex: {block.UIndex}");
+                        _log.LogWarning($"Block Save Failed Index: {block.Index}");
                     else
-                        _log.LogInformation($"Block saved: {block.UIndex}/{block.Index}/{block.Hash}");
+                        _log.LogInformation($"Block saved: {block.Index}/{block.Hash}");
                 }
                 else if (_state.CommitConsensus == ConsensusResult.Nay)
                 {
@@ -409,7 +409,7 @@ namespace Lyra.Core.Decentralize
             if(_state.AddCommitedResult(item))
                 await CheckCommitedOKAsync();
 
-            _log.LogInformation($"OnCommit: {_state.CommitMsgs.Count}/{AuthState.WinNumber} From {item.From.Shorten()}, {_state.InputMsg.Block.UIndex}/{_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash.Shorten()}");
+            _log.LogInformation($"OnCommit: {_state.CommitMsgs.Count}/{AuthState.WinNumber} From {item.From.Shorten()}, {_state.InputMsg.Block.Index}/{_state.InputMsg.Block.Hash.Shorten()}");
 
             _context.OnNodeActive(item.From);        // track latest activities via billboard
             //}

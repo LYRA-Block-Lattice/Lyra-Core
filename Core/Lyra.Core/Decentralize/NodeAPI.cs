@@ -39,34 +39,33 @@ namespace Lyra.Core.Decentralize
                 ResultCode = APIResultCodes.Success,
                 NetworkID = BlockChain.Singleton.NetworkID,
                 SyncState = BlockChain.Singleton.InSyncing ? ConsensusWorkingMode.OutofSyncWaiting : ConsensusWorkingMode.Normal,
-                LastConsolidationUIndex = consBlock == null ? -1 : consBlock.UIndex,
                 LastConsolidationHash = consBlock == null ? null : consBlock.Hash,
-                NewestBlockUIndex = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
+                //NewestBlockUIndex = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
                 Status = await BlockChain.Singleton.GetNodeStatusAsync()
             };
             return result;
         }
 
-        public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
-        {
-            BlockAPIResult result;
-            var block = await BlockChain.Singleton.GetBlockByUIndexAsync(uindex);
-            if(block == null)
-            {
-                result = new BlockAPIResult { ResultCode = APIResultCodes.BlockNotFound };
-            }
-            else
-            {
-                result = new BlockAPIResult
-                {
-                    BlockData = Json(block),
-                    ResultBlockType = block.BlockType,
-                    ResultCode = APIResultCodes.Success
-                };
-            }
+        //public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
+        //{
+        //    BlockAPIResult result;
+        //    var block = await BlockChain.Singleton.GetBlockByUIndexAsync(uindex);
+        //    if(block == null)
+        //    {
+        //        result = new BlockAPIResult { ResultCode = APIResultCodes.BlockNotFound };
+        //    }
+        //    else
+        //    {
+        //        result = new BlockAPIResult
+        //        {
+        //            BlockData = Json(block),
+        //            ResultBlockType = block.BlockType,
+        //            ResultCode = APIResultCodes.Success
+        //        };
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
@@ -103,46 +102,6 @@ namespace Lyra.Core.Decentralize
                 result.ResultMessage = ex.Message;
             }
             return result;
-        }
-
-        public async Task<CreateBlockUIdAPIResult> CreateBlockUId(string AccountId, string Signature, string blockHash)
-        {
-            //TODO: make sure request was from authorizers.
-            if(Signatures.VerifyAccountSignature(blockHash, AccountId, Signature))
-            {
-                if(BlockChain.IsThisNodeSeed0)
-                {
-                    return new CreateBlockUIdAPIResult
-                    {
-                        ResultCode = APIResultCodes.Success,
-                        uid = BlockChain.Singleton.GenSeed(blockHash)
-                    };
-                }
-
-                var client = await GetClientForSeed0();
-                var result = await client.CreateBlockUId(AccountId, Signature, blockHash);
-
-                if(result.ResultCode == APIResultCodes.Success)
-                    return new CreateBlockUIdAPIResult
-                    {
-                        ResultCode = APIResultCodes.Success,
-                        uid = result.uid
-                    };
-                else
-                    return new CreateBlockUIdAPIResult
-                    {
-                        ResultCode = result.ResultCode,
-                        uid = -1
-                    };
-            }
-            else
-            {
-                return new CreateBlockUIdAPIResult
-                {
-                    ResultCode = APIResultCodes.APISignatureValidationFailed,
-                    uid = -1
-                };
-            }
         }
 
         public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)

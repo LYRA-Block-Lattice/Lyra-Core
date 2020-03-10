@@ -147,18 +147,6 @@ namespace Lyra.Core.API
             return await Get<CreateBlockUIdAPIResult>("CreateBlockUId", args);
         }
 
-        public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
-        {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByUIndex/?uindex={uindex}");
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
-        }
-
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}");

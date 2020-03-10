@@ -64,14 +64,31 @@ namespace Lyra
         public class FillCompleted { }
         public class BlockAdded {
             public string hash { get; set; }
-            public long UIndex { get; set; }
         }
 
         public static bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         private LyraRestClient _seed0Client;
 
-        private long _UIndexSeed = 0;
-        public long GenSeed(string hash) => _UIndexSeed++;
+        //private long _UIndexSeed = 0;
+        //public async Task<long> GenSeedAsync()
+        //{
+        //    if(ConsensusService.IsThisNodeSeed0)
+        //        return _UIndexSeed++;
+        //    else
+        //    {
+        //        // assign UID from seed0
+        //        var uidResult = await (await GetClientForSeed0()).CreateBlockUId(
+        //            NodeService.Instance.PosWallet.AccountId,
+        //            Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, hash, NodeService.Instance.PosWallet.AccountId),
+        //            hash);
+        //        if (uidResult.ResultCode != APIResultCodes.Success)
+        //        {
+        //            return uidResult.uid;
+        //        }
+        //        else
+        //            return -1;
+        //    }
+        //}
 
         public static BlockChain Singleton;
         public static readonly ECPoint[] StandbyValidators = ProtocolSettings.Default.StandbyValidators.OfType<string>().Select(p => //ECPoint.DecodePoint(p.HexToBytes(), ECCurve.Secp256r1)).ToArray();
@@ -80,7 +97,6 @@ namespace Lyra
         public uint Height;
         public string NetworkID { get; private set; }
         public bool InSyncing { get; private set; }
-        public long LastSavedUIndex { get => _lastSavedUIndex; }
 
         private readonly StateMachine<BlockChainState, BlockChainTrigger> _stateMachine;
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStartupSync;
@@ -91,7 +107,6 @@ namespace Lyra
 
         private LyraConfig _nodeConfig;
         private readonly IAccountCollectionAsync _store;
-        private long _lastSavedUIndex = -1;
         private LyraSystem _sys;
         private ILogger _log;
 
@@ -111,7 +126,6 @@ namespace Lyra
 
             var nodeConfig = Neo.Settings.Default.LyraNode;
             _store = new MongoAccountCollection();
-            _lastSavedUIndex = _store.GetNewestBlockUIndexAsync().Result;
 
             //_store = new LiteAccountCollection(Utilities.LyraDataDir);
             _log = new SimpleLogger("BlockChain").Logger;
@@ -138,12 +152,6 @@ namespace Lyra
                     uid = uidObj.uid.Value;
                 }
             }
-
-            var lastOne = FindLatestBlockAsync().Result;
-            if (lastOne != null)
-                uid = Math.Max(uid, lastOne.UIndex);
-
-            _UIndexSeed = uid + 1;
         }
 
         private void CreateStateMachine()
@@ -225,21 +233,21 @@ namespace Lyra
                     await SyncManyBlocksAsync(startUIndex, uid, false);
                     startUIndex = uid;
 
-                    var consolidateToUIndex = _lastSavedUIndex;
-                    do
-                    {
-                        if (startUIndex >= _lastSavedUIndex)
-                        {
-                            _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
-                            break;
-                        }
-                        else
-                        {
-                            await SyncManyBlocksAsync(startUIndex, _lastSavedUIndex, false);
-                            startUIndex = _lastSavedUIndex;
-                        }
-                        await Task.Delay(1000);
-                    } while (true);
+                    //var consolidateToUIndex = _lastSavedUIndex;
+                    //do
+                    //{
+                    //    if (startUIndex >= _lastSavedUIndex)
+                    //    {
+                    //        _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
+                    //        break;
+                    //    }
+                    //    else
+                    //    {
+                    //        await SyncManyBlocksAsync(startUIndex, _lastSavedUIndex, false);
+                    //        startUIndex = _lastSavedUIndex;
+                    //    }
+                    //    await Task.Delay(1000);
+                    //} while (true);
 
                     // TODO: consolidate all blocks to make sure no error.
                     // start a new thread to verify and switch state if necessary.
@@ -254,54 +262,54 @@ namespace Lyra
                     }
                     else
                     {
-                        var mt = new MerkleTree();
-                        var emptyNdx = new List<long>();
-                        for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
-                        {
-                            var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
+                        //var mt = new MerkleTree();
+                        //var emptyNdx = new List<long>();
+                        //for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
+                        //{
+                        //    Block bndx = null;// await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
 
-                            if (bndx == null)
-                            {
-                                if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
-                                    continue;
-                                else
-                                {
-                                    // missing block
-                                    // fetch, save
-                                    var ret = await BlockChain.Singleton.SyncOneBlock(ndx, false);
+                        //    if (bndx == null)
+                        //    {
+                        //        if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
+                        //            continue;
+                        //        else
+                        //        {
+                        //            // missing block
+                        //            // fetch, save
+                        //            var ret = await BlockChain.Singleton.SyncOneBlock(ndx, false);
 
-                                    // check if result is ok
+                        //            // check if result is ok
 
-                                    ndx--;
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
-                                {
-                                    // extra block
-                                    // remove block
-                                    await BlockChain.Singleton.RemoveBlockAsync(ndx);
-                                    continue;
-                                }
-                                else
-                                {
-                                    mt.AppendLeaf(MerkleHash.Create(bndx.Hash));
-                                }
-                            }
-                        }
+                        //            ndx--;
+                        //            continue;
+                        //        }
+                        //    }
+                        //    else
+                        //    {
+                        //        if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
+                        //        {
+                        //            // extra block
+                        //            // remove block
+                        //            await BlockChain.Singleton.RemoveBlockAsync(ndx);
+                        //            continue;
+                        //        }
+                        //        else
+                        //        {
+                        //            mt.AppendLeaf(MerkleHash.Create(bndx.Hash));
+                        //        }
+                        //    }
+                        //}
 
-                        var mkhash = mt.BuildTree().ToString();
-                        if (block.MerkelTreeHash == mkhash)
-                        {
-                            // success
-                            _log.LogInformation("ConsolidateFailed fixed OK.");
-                        }
-                        else
-                        {
-                            _log.LogCritical("ConsolidateFailed can't fix.");
-                        }
+                        //var mkhash = mt.BuildTree().ToString();
+                        //if (block.MerkelTreeHash == mkhash)
+                        //{
+                        //    // success
+                        //    _log.LogInformation("ConsolidateFailed fixed OK.");
+                        //}
+                        //else
+                        //{
+                        //    _log.LogCritical("ConsolidateFailed can't fix.");
+                        //}
                     }
                 }))
                 .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
@@ -364,7 +372,6 @@ namespace Lyra
                 accountId = NodeService.Instance.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
                 mode = _stateMachine.State,
-                lastBlockHeight = await GetNewestBlockUIndexAsync(),
                 lastConsolidationHash = (await GetLastConsolidationBlockAsync())?.Hash,
                 lastUnSolidationHash = null,
                 connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
@@ -378,21 +385,18 @@ namespace Lyra
             var result = await _store.AddBlockAsync(block);
             if (result)
             {
-                _lastSavedUIndex = block.UIndex;
-                LyraSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash, UIndex = block.UIndex });
+                LyraSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash });
             }
             return result;
         }
 
-        public async Task<long> GetNewestBlockUIndexAsync() => await StopWatcher.Track(_store.GetNewestBlockUIndexAsync(), StopWatcher.GetCurrentMethod());
-        public async Task<Block> GetBlockByUIndexAsync(long uindex) => await StopWatcher.Track(_store.GetBlockByUIndexAsync(uindex), StopWatcher.GetCurrentMethod());//_store.GetBlockByUIndexAsync(uindex);
         internal async Task<ConsolidationBlock> GetLastConsolidationBlockAsync() => await StopWatcher.Track(_store.GetLastConsolidationBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
         public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startUIndex) => await StopWatcher.Track(_store.GetConsolidationBlocksAsync(startUIndex), StopWatcher.GetCurrentMethod());
         internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await StopWatcher.Track(_store.GetLastServiceBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetLastServiceBlockAsync();
 
         // forward api. should have more control here.
         public async Task<bool> AddBlockAsync(Block block) => await StopWatcher.Track(AddBlockImplAsync(block), StopWatcher.GetCurrentMethod());
-        public async Task RemoveBlockAsync(long uindex) => await _store.RemoveBlockAsync(uindex);
+        public async Task RemoveBlockAsync(string hash) => await _store.RemoveBlockAsync(hash);
         public async Task AddBlockAsync(ServiceBlock serviceBlock) => await StopWatcher.Track(_store.AddBlockAsync(serviceBlock), StopWatcher.GetCurrentMethod());//_store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
@@ -478,8 +482,7 @@ namespace Lyra
         {
             var consBlock = new ConsolidationBlock
             {
-                StartUIndex = 0,
-                EndUIndex = 1
+
             };
 
             var mt = new MerkleTree();
@@ -487,7 +490,7 @@ namespace Lyra
             mt.AppendLeaf(MerkleHash.Create(lyraGen.Hash));
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
-            await consBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+            consBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId,
                 await GetClientForSeed0());
 
@@ -499,7 +502,6 @@ namespace Lyra
             // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
             {
-                UIndex = 1,
                 Index = 1,
                 AccountType = AccountTypes.Standard,
                 Ticker = LyraGlobal.LYRATICKERCODE,
@@ -520,7 +522,7 @@ namespace Lyra
             };
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.LYRAGENESISAMOUNT };
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
-            await openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId, await GetClientForSeed0());
+            openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId, await GetClientForSeed0());
 
             return openTokenGenesisBlock;
         }
@@ -531,13 +533,12 @@ namespace Lyra
             {
                 NetworkId = NetworkID,
                 Index = 1,
-                UIndex = 0,
                 TransferFee = 1,
                 TokenGenerationFee = 100,
                 TradeFee = 0.1m,
                 SvcAccountID = NodeService.Instance.PosWallet.AccountId
             };
-            await svcGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
+            svcGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId,
                 await GetClientForSeed0());
             return svcGenesis;
@@ -565,26 +566,26 @@ namespace Lyra
 
         private async Task SyncManyBlocksAsync(long startUid, long endUid, bool withAuthorize)
         {
-            for (long i = startUid; i <= endUid; i++)
-            {
-                var myBlock = await GetBlockByUIndexAsync(i);
-                if (myBlock != null)
-                    continue;
+            //for (long i = startUid; i <= endUid; i++)
+            //{
+            //    var myBlock = await GetBlockByUIndexAsync(i);
+            //    if (myBlock != null)
+            //        continue;
 
-                if (await SyncOneBlock(i, withAuthorize))
-                {
-                    _log.LogInformation($"Block {i} synced.");
-                }
-                else
-                {
-                    _log.LogInformation($"Block {i} failed to sync.");
-                }
-            }
+            //    if (await SyncOneBlock(i, withAuthorize))
+            //    {
+            //        _log.LogInformation($"Block {i} synced.");
+            //    }
+            //    else
+            //    {
+            //        _log.LogInformation($"Block {i} failed to sync.");
+            //    }
+            //}
         }
 
         LyraRestClient _clientForSync;
         public async Task<bool> SyncOneBlock(long uid, bool withAuthorize)
-        {
+        {/*
             _log.LogInformation($"SyncOneBlock: {uid}");
 
             if (_clientForSync == null)
@@ -610,7 +611,7 @@ namespace Lyra
                 {
                     return await _store.AddBlockAsync(block);       // use this api directly to avoid confuse with the consensused block add
                 }
-            }
+            }*/
             return false;
         }
 
@@ -679,7 +680,7 @@ namespace Lyra
                         LyraSystem.Singleton.Consensus.Tell(board);
 
                         // do sync with node
-                        long startUIndex = await _store.GetNewestBlockUIndexAsync() + 1;
+                        long startUIndex = 0;//await _store.GetNewestBlockUIndexAsync() + 1;
 
                         // seed0 not rollback. seed0 rollback manually if necessary.
                         if( startUIndex - 1 > syncToUIndex && NodeService.Instance.PosWallet.AccountId != ProtocolSettings.Default.StandbyValidators[0])
@@ -691,7 +692,7 @@ namespace Lyra
                             {
                                 for(var i = syncToUIndex + 1; i <= startUIndex - 1; i++)
                                 {
-                                    await RemoveBlockAsync(i);
+                                    //await RemoveBlockAsync(i);
                                 }
                                 startUIndex = syncToUIndex + 1;
                             }
@@ -710,15 +711,15 @@ namespace Lyra
 
                             for (long j = fromUIndex; j <= toUIndex; j++)
                             {
-                                var blockResult = await client.GetBlockByUIndex(j).ConfigureAwait(false);
+                                /*var blockResult = await client.GetBlockByUIndex(j).ConfigureAwait(false);
                                 if (blockResult.ResultCode == APIResultCodes.Success)
                                 {
                                     var blockX = blockResult.GetBlock() as TransactionBlock;
-                                    if(blockX.UIndex <= 2)      // the two genesis service block
-                                    {
-                                        await AddBlockAsync(blockX);
-                                        continue;
-                                    }
+                                    //if(blockX.UIndex <= 2)      // the two genesis service block
+                                    //{
+                                    //    await AddBlockAsync(blockX);
+                                    //    continue;
+                                    //}
 
                                     //var stopwatch = Stopwatch.StartNew();
 
@@ -745,7 +746,7 @@ namespace Lyra
                                     // error
                                     _log.LogInformation($"Error syncing block: {blockResult.ResultCode}");
                                     continue;
-                                }
+                                }*/
                             }
                             return true;
                         }

@@ -29,9 +29,9 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as ServiceBlock;
 
-            // 1. check if the block already exists
-            if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
-                return APIResultCodes.BlockWithThisIndexAlreadyExists;
+            //// 1. check if the block already exists
+            //if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
+            //    return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
             // service specifice feature
             //block.

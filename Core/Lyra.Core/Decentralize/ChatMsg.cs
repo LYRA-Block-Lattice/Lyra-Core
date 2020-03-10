@@ -144,7 +144,7 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{Block.UIndex}|{Block.GetHashInput()}" + base.GetHashInput();
+			return $"{Block.GetHashInput()}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
