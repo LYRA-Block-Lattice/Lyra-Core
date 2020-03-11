@@ -333,7 +333,7 @@ namespace Lyra.Core.Decentralize
                     var block = state.InputMsg.Block;
 
                     // do commit
-                    block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
+                    //block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
                     var msg = new AuthorizerCommitMsg
                     {

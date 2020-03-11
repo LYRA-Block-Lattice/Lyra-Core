@@ -141,7 +141,7 @@ namespace Lyra.Core.Blocks
             result += $"BlockType: {BlockType.ToString()}\n";
             result += $"PreviousHash: {PreviousHash}\n";
             result += $"Tags: {JsonConvert.SerializeObject(Tags)}\n";
-            result += $"Authorizations: {JsonConvert.SerializeObject(Authorizations)}\n";
+            //result += $"Authorizations: {JsonConvert.SerializeObject(Authorizations)}\n";
             return result;
         }
 

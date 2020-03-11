@@ -633,7 +633,7 @@ namespace Lyra.Core.Accounts
 
             if (result.ResultCode == APIResultCodes.Success)
             {
-                sendBlock.Authorizations = result.Authorizations;
+                //sendBlock.Authorizations = result.Authorizations;
                 sendBlock.ServiceHash = result.ServiceHash;
                 AddBlock(sendBlock);
             }
@@ -1001,7 +1001,7 @@ namespace Lyra.Core.Accounts
             {
                 Console.WriteLine($"Receive transfer block has been authorized successfully");
                 // request the authorized block and save it locally 
-                openReceiveBlock.Authorizations = result.Authorizations;
+                //openReceiveBlock.Authorizations = result.Authorizations;
                 openReceiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openReceiveBlock);
                 Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
@@ -1078,7 +1078,7 @@ namespace Lyra.Core.Accounts
                 Console.WriteLine($"Receive transfer block has been authorized successfully");
                 //// request the authorized block and save it locally 
                 //GetBlock(receiveBlock.Index);
-                receiveBlock.Authorizations = result.Authorizations;
+                //receiveBlock.Authorizations = result.Authorizations;
                 receiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(receiveBlock);
                 Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
@@ -1163,7 +1163,7 @@ namespace Lyra.Core.Accounts
                 Console.WriteLine($"Genesis block has been authorized successfully");
                 // request the authorized block and save it locally 
                 //GetBlock(1);
-                openTokenGenesisBlock.Authorizations = result.Authorizations;
+                //openTokenGenesisBlock.Authorizations = result.Authorizations;
                 openTokenGenesisBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openTokenGenesisBlock);
                 Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
@@ -1257,7 +1257,7 @@ namespace Lyra.Core.Accounts
             else
             if (result.ResultCode == APIResultCodes.Success)
             {
-                tokenBlock.Authorizations = result.Authorizations;
+                //tokenBlock.Authorizations = result.Authorizations;
                 tokenBlock.ServiceHash = result.ServiceHash;
                 AddBlock(tokenBlock);
             }
