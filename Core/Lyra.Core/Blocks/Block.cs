@@ -13,9 +13,11 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
+        // used by consolidation only. not part of hash calculation.
         public bool Consolidated { get; set; }
 
-        public long Index { get; set; }
+        // block data
+        public long Height { get; set; }
 
         public DateTime TimeStamp { get; set; }
 
@@ -33,7 +35,7 @@ namespace Lyra.Core.Blocks
 
         public virtual BlockTypes GetBlockType() { return BlockTypes.Null; }
 
-        public List<AuthorizationSignature> Authorizations { get; set; }
+        public string ConsolidationHash { get; set; }
 
         public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId, LyraRestClient client)
         {
@@ -41,12 +43,12 @@ namespace Lyra.Core.Blocks
 
             if (prevBlock != null)
             {
-                Index = prevBlock.Index + 1;
+                Height = prevBlock.Height + 1;
                 PreviousHash = prevBlock.Hash;
             }
             else
             {
-                Index = 1;
+                Height = 1;
                 PreviousHash = null;//string.Empty;
             }
             TimeStamp = DateTime.Now.ToUniversalTime();
@@ -58,7 +60,7 @@ namespace Lyra.Core.Blocks
 
         public override string GetHashInput()
         {
-            return Index.ToString() + "|" +
+            return Height.ToString() + "|" +
                              DateTimeToString(TimeStamp) + "|" +
                              this.Version + "|" +
                              this.BlockType.ToString() + "|" +
@@ -85,7 +87,7 @@ namespace Lyra.Core.Blocks
                 if (prevBlock == null)
                     return false;
 
-                if (prevBlock.Index + 1 != this.Index)
+                if (prevBlock.Height + 1 != this.Height)
                     return false;
 
                 if (prevBlock.Hash != this.PreviousHash)
@@ -93,7 +95,7 @@ namespace Lyra.Core.Blocks
             }
             else
             {
-                if (this.Index != 1) // always 1 for open block
+                if (this.Height != 1) // always 1 for open block
                     return false;
             }
 
@@ -133,7 +135,7 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
-            result += $"Index: {Index.ToString()}\n";
+            result += $"Index: {Height.ToString()}\n";
             result += $"TimeStamp: {DateTimeToString(TimeStamp)}\n"; 
             result += $"Version: {Version}\n";
             result += $"BlockType: {BlockType.ToString()}\n";

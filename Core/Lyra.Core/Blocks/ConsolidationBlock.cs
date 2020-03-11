@@ -9,8 +9,10 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class ConsolidationBlock : Block
     {
-        public string[] blockHashes { get; set; }
+        public List<string> blockHashes { get; set; }
         public string MerkelTreeHash { get; set; }
+
+        public List<AuthorizationSignature> Authorizations { get; set; }
 
         public override BlockTypes GetBlockType()
         {
@@ -20,7 +22,7 @@ namespace Lyra.Core.Blocks
         protected override string GetExtraData()
         {
             string nui = string.Empty;
-            if (blockHashes != null && blockHashes.Length > 0)
+            if (blockHashes != null && blockHashes.Count > 0)
             {
                 nui = blockHashes.Aggregate(new StringBuilder(),
                           (sb, h) => sb.Append($"|{h}"),

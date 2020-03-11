@@ -91,7 +91,7 @@ namespace Lyra.Core.Decentralize
                     // empty database. 
                     throw new Exception("Database empty.");
                 }
-                result.Height = last_sync_block.Index;
+                result.Height = last_sync_block.Height;
                 result.SyncHash = last_sync_block.Hash;
                 result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
                 result.ResultCode = APIResultCodes.Success;
@@ -138,7 +138,7 @@ namespace Lyra.Core.Decentralize
             {
                 if (await BlockChain.Singleton.AccountExistsAsync(AccountId))
                 {
-                    result.Height = (await BlockChain.Singleton.FindLatestBlockAsync(AccountId)).Index;
+                    result.Height = (await BlockChain.Singleton.FindLatestBlockAsync(AccountId)).Height;
                     result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
                     result.SyncHash = (await BlockChain.Singleton.GetLastConsolidationBlockAsync()).Hash;
                     result.ResultCode = APIResultCodes.Success;

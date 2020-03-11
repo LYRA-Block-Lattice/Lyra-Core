@@ -79,7 +79,7 @@ namespace Lyra.Core.Accounts
             if (_blocks.Count == 0)
                 return null;
 
-            var result = _blocks.First(x => x.Index.Equals(1));
+            var result = _blocks.First(x => x.Height.Equals(1));
             return result;
         }
 
@@ -88,7 +88,7 @@ namespace Lyra.Core.Accounts
             if (_blocks.Count == 0)
                 return null;
 
-            var max = _blocks.Max(x => x.Index);
+            var max = _blocks.Max(x => x.Height);
 
             if (max > 0)
                 return FindBlockByIndex(max);
@@ -122,7 +122,7 @@ namespace Lyra.Core.Accounts
             if (_blocks.Count == 0)
                 return null;
 
-            var result = _blocks.FirstOrDefault(x => x.Index.Equals(index));
+            var result = _blocks.FirstOrDefault(x => x.Height.Equals(index));
             return result;
         }
 

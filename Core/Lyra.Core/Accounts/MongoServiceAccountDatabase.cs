@@ -116,7 +116,7 @@ namespace Lyra.Core.Accounts
 
         public Block FindFirstBlock()
         {
-            var result = _blocks.Find(x => x.Index.Equals(1));
+            var result = _blocks.Find(x => x.Height.Equals(1));
             if (result.Any())
                 return result.First();
             else
@@ -134,7 +134,7 @@ namespace Lyra.Core.Accounts
 
 
 
-            var result = _blocks.Find(x => true).SortByDescending(y => y.Index).Limit(1);
+            var result = _blocks.Find(x => true).SortByDescending(y => y.Height).Limit(1);
             //var result = _blocks.Find(x => true).SortByDescending(y => y.Index);
             if (result.Any())
                 return result.First();
@@ -158,7 +158,7 @@ namespace Lyra.Core.Accounts
 
         public Block FindBlockByIndex(long index)
         {
-            var result = _blocks.Find(x => x.Index.Equals(index));
+            var result = _blocks.Find(x => x.Height.Equals(index));
             if (result.Any()) 
                 return result.First();
             else
@@ -177,7 +177,7 @@ namespace Lyra.Core.Accounts
             if (FindBlockByHash(block.Hash) != null)
                 throw new Exception("ServiceAccountDatabase=>AddBlock: Block with such Hash already exists!");
 
-            if (FindBlockByIndex(block.Index) != null)
+            if (FindBlockByIndex(block.Height) != null)
                 throw new Exception("ServiceAccountDatabase=>AddBlock: Block with such Index already exists!");
 
             _blocks.InsertOne(block);

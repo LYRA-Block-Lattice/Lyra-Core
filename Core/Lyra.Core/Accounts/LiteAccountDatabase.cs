@@ -37,7 +37,7 @@ namespace Lyra.Core.LiteDB
 
         public void Reset()
         {
-            _blocks.Delete(x => x.Index > 0);
+            _blocks.Delete(x => x.Height > 0);
         }
 
         public bool Exists(string path, string accountName)
@@ -67,7 +67,7 @@ namespace Lyra.Core.LiteDB
                 _db = new LiteDatabase(connectionString);
                 _blocks = _db.GetCollection<Block>("blocks");
 
-                _blocks.EnsureIndex(x => x.Index);
+                _blocks.EnsureIndex(x => x.Height);
                 _blocks.EnsureIndex(x => x.Hash);
                 _blocks.EnsureIndex(x => x.BlockType);
             }
@@ -113,7 +113,7 @@ namespace Lyra.Core.LiteDB
 
         public Block FindBlockByIndex(long index)
         {
-            var result = _blocks.FindOne(x => x.Index == index);
+            var result = _blocks.FindOne(x => x.Height == index);
             return (Block)result;
         }
 

@@ -37,7 +37,7 @@ namespace Lyra.Core.Accounts
         public long GetLocalAccountHeight()
         {
             var block = GetLatestBlock();
-            return block != null ? block.Index : 0;
+            return block != null ? block.Height : 0;
         }
 
         public Wallet(IAccountDatabase storage, string NetworkId) : base(null, storage, NetworkId)
@@ -113,7 +113,7 @@ namespace Lyra.Core.Accounts
                     TransferFee = lastServiceBlock.TransferFee;
                     TokenGenerationFee = lastServiceBlock.TokenGenerationFee;
                     TradeFee = lastServiceBlock.TradeFee;
-                    Console.WriteLine($"Last Service Block Received {lastServiceBlock.Index}");
+                    Console.WriteLine($"Last Service Block Received {lastServiceBlock.Height}");
                     Console.WriteLine(string.Format("Transfer Fee: {0} ", lastServiceBlock.TransferFee));
                     Console.WriteLine(string.Format("Token Generation Fee: {0} ", lastServiceBlock.TokenGenerationFee));
                     Console.WriteLine(string.Format("Trade Fee: {0} ", lastServiceBlock.TradeFee));

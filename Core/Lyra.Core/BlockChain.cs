@@ -502,7 +502,7 @@ namespace Lyra
             // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
             {
-                Index = 1,
+                Height = 1,
                 AccountType = AccountTypes.Standard,
                 Ticker = LyraGlobal.LYRATICKERCODE,
                 DomainName = "Lyra",
@@ -532,7 +532,7 @@ namespace Lyra
             var svcGenesis = new ServiceBlock
             {
                 NetworkId = NetworkID,
-                Index = 1,
+                Height = 1,
                 TransferFee = 1,
                 TokenGenerationFee = 100,
                 TradeFee = 0.1m,

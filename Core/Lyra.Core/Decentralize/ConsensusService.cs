@@ -83,7 +83,7 @@ namespace Lyra.Core.Decentralize
 
             _orphange = new Orphanage(
                     async (state) => {
-                        _log.LogInformation($"AuthState from Orphanage: {state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
+                        _log.LogInformation($"AuthState from Orphanage: {state.InputMsg.Block.Height}/{state.InputMsg.Block.Hash}");
                         var worker = await GetWorkerAsync(state.InputMsg.Block.Hash); 
                         worker.Create(state); 
                     },
@@ -183,9 +183,9 @@ namespace Lyra.Core.Decentralize
                 if(state.InputMsg.Block is TransactionBlock)
                 {
                     var acctId = (state.InputMsg.Block as TransactionBlock).AccountID;
-                    if (FindActiveBlock(acctId, state.InputMsg.Block.Index))
+                    if (FindActiveBlock(acctId, state.InputMsg.Block.Height))
                     {
-                        _log.LogCritical($"Double spent detected for {acctId}, index {state.InputMsg.Block.Index}");
+                        _log.LogCritical($"Double spent detected for {acctId}, index {state.InputMsg.Block.Height}");
                         return;
                     }
                 }
@@ -554,9 +554,9 @@ namespace Lyra.Core.Decentralize
                     if(msg1.Block is TransactionBlock)
                     {
                         var acctId = (msg1.Block as TransactionBlock).AccountID;
-                        if (FindActiveBlock(acctId, msg1.Block.Index))
+                        if (FindActiveBlock(acctId, msg1.Block.Height))
                         {
-                            _log.LogCritical($"Double spent detected for {acctId}, index {msg1.Block.Index}");
+                            _log.LogCritical($"Double spent detected for {acctId}, index {msg1.Block.Height}");
                             break;
                         }
                     }
@@ -641,11 +641,11 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     await BlockChain.Singleton.AddBlockAsync(block);
-                    _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.Index}");
+                    _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.Height}");
                 }
                 catch(Exception e)
                 {
-                    _log.LogInformation($"OnBlockConsolication UIndex: {block.Index} Failed: {e.Message}");
+                    _log.LogInformation($"OnBlockConsolication UIndex: {block.Height} Failed: {e.Message}");
                 }                
             }
         }

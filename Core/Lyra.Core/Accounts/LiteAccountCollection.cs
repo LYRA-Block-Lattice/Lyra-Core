@@ -37,7 +37,7 @@ namespace Lyra.Core.Accounts
             _db = new LiteDatabase(connectionString);
             _blocks = _db.GetCollection<Block>("blocks");
             //_blocks.EnsureIndex(x => x.AccountID);
-            _blocks.EnsureIndex(x => x.Index);
+            _blocks.EnsureIndex(x => x.Height);
             _blocks.EnsureIndex(x => x.BlockType);
             _blocks.EnsureIndex(x => x.Hash);
             _blocks.EnsureIndex(x => x.PreviousHash);
@@ -70,7 +70,7 @@ namespace Lyra.Core.Accounts
         public ServiceBlock GetLastServiceBlock()
         {
             var finds = _blocks.Find(Query.EQ("BlockType", "Service"))
-                .OrderByDescending(b => b.Index)
+                .OrderByDescending(b => b.Height)
                 .First();
             return finds as ServiceBlock;
         }
@@ -78,7 +78,7 @@ namespace Lyra.Core.Accounts
         public ConsolidationBlock GetSyncBlock()
         {
             var finds = _blocks.Find(Query.EQ("BlockType", "Consolidation"))
-                    .OrderByDescending(b => b.Index)
+                    .OrderByDescending(b => b.Height)
                     .First();
             return finds as ConsolidationBlock;
         }
@@ -97,7 +97,7 @@ namespace Lyra.Core.Accounts
         public TransactionBlock FindLatestBlock(string AccountId)
         {
             var block = _blocks.Find(Query.EQ("AccountID", AccountId))
-                .OrderByDescending(a => a.Index)
+                .OrderByDescending(a => a.Height)
                 .FirstOrDefault();
 
             return block as TransactionBlock;
@@ -346,7 +346,7 @@ namespace Lyra.Core.Accounts
 
         public bool AddBlock(TransactionBlock block)
         {
-            if (block.Index == 0)
+            if (block.Height == 0)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
                 return false;
@@ -364,7 +364,7 @@ namespace Lyra.Core.Accounts
                 return false;
             }
 
-            if (FindBlockByIndex(block.AccountID, block.Index) != null)
+            if (FindBlockByIndex(block.AccountID, block.Height) != null)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
                 return false;

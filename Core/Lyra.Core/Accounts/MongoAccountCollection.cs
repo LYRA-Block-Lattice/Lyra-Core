@@ -27,7 +27,8 @@ namespace Lyra.Core.Accounts
 
         private IMongoCollection<Block> _blocks;
 
-        readonly string _BlocksCollectionName = null;
+        readonly string _blocksCollectionName;
+        readonly string _authorizersViewCollectionName;
 
         IMongoDatabase _db;
 
@@ -45,7 +46,8 @@ namespace Lyra.Core.Accounts
 
             _DatabaseName = _config.Lyra.Database.DatabaseName;
 
-            _BlocksCollectionName = _config.Lyra.NetworkId + "-" + "Primary" + "-blocks";
+            _blocksCollectionName = $"{_config.Lyra.NetworkId}_blocks";
+            _authorizersViewCollectionName = $"{_config.Lyra.NetworkId}_views";
 
             BsonClassMap.RegisterClassMap<Block>(cm =>
             {
@@ -78,7 +80,7 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
             BsonClassMap.RegisterClassMap<NullTransactionBlock>();
 
-            _blocks = GetDatabase().GetCollection<Block>(_BlocksCollectionName);
+            _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
 
             Cluster = GetDatabase().Client.Cluster.ToString();
 
@@ -138,7 +140,7 @@ namespace Lyra.Core.Accounts
             if (GetDatabase() == null)
                 return;
 
-            GetDatabase().DropCollection(_BlocksCollectionName);
+            GetDatabase().DropCollection(_blocksCollectionName);
         }
 
         private MongoClient GetClient()
@@ -185,7 +187,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Index)
+                Sort = Builders<Block>.Sort.Descending(o => o.Height)
             };
             var filter = Builders<Block>.Filter;
             var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
@@ -200,7 +202,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Index)
+                Sort = Builders<Block>.Sort.Descending(o => o.Height)
             };
             var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
 
@@ -213,7 +215,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 100,
-                Sort = Builders<Block>.Sort.Ascending(o => o.Index)
+                Sort = Builders<Block>.Sort.Ascending(o => o.Height)
             };
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.Consolidation),
@@ -249,7 +251,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Index)
+                Sort = Builders<Block>.Sort.Descending(o => o.Height)
             };
             var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
 
@@ -389,7 +391,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Index)
+                Sort = Builders<Block>.Sort.Descending(o => o.Height)
             };
             var builder = new FilterDefinitionBuilder<Block>();
             var filterDefinition = builder.And(builder.Eq("AccountID", AccountId),
@@ -410,7 +412,7 @@ namespace Lyra.Core.Accounts
                 var lastSendToThisAccountBlock = await FindBlockByHashAsync(lastRecvBlock.SourceHash);
 
                 if (lastSendToThisAccountBlock != null)
-                    fromIndex = lastSendToThisAccountBlock.Index;
+                    fromIndex = lastSendToThisAccountBlock.Height;
             }    
 
             // First, let find all send blocks:
@@ -553,14 +555,14 @@ namespace Lyra.Core.Accounts
             if(block is TransactionBlock)
             {
                 var block1 = block as TransactionBlock;
-                if (block1.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block1.AccountID, block1.Index) != null)
+                if (block1.BlockType != BlockTypes.NullTransaction && await FindBlockByIndexAsync(block1.AccountID, block1.Height) != null)
                 {
                     _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
                     return false;
                 }
             }
 
-            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Index}");
+            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height}");
             await _blocks.InsertOneAsync(block);
             return true;
         }
