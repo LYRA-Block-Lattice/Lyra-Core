@@ -12,8 +12,6 @@ namespace Lyra.Core.Blocks
         public List<string> blockHashes { get; set; }
         public string MerkelTreeHash { get; set; }
 
-        public List<AuthorizationSignature> Authorizations { get; set; }
-
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.Consolidation;

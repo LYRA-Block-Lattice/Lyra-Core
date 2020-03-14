@@ -53,31 +53,20 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            //// recalculate merkeltree
-            //// use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
-            //var mt = new MerkleTree();
-            //var emptyNdx = new List<long>();
-            //for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
-            //{
-            //    var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
+            // recalculate merkeltree
+            // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
+            var mt = new MerkleTree();
+            foreach(var hash in block.blockHashes)
+            {
+                mt.AppendLeaf(MerkleHash.Create(hash));
+            }
 
-            //    if (bndx == null)
-            //    {
-            //        emptyNdx.Add(ndx);
-            //    }
-            //    else
-            //    {
-            //        mt.AppendLeaf(MerkleHash.Create(bndx.Hash));
-            //    }
-            //}
+            var mkhash = mt.BuildTree().ToString();
 
-            //var mkhash = mt.BuildTree().ToString();
-
-            //if(((block.NullUIndexes == null && emptyNdx.Count == 0) || (block.NullUIndexes != null && block.NullUIndexes.SequenceEqual(emptyNdx)))
-            //    && block.MerkelTreeHash == mkhash)
-            //{
-            //    return APIResultCodes.Success;
-            //}
+            if (block.MerkelTreeHash == mkhash)
+            {
+                return APIResultCodes.Success;
+            }
 
             return APIResultCodes.InvalidConsolidationMerkleTreeHash;
         }

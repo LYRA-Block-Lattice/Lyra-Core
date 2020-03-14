@@ -482,7 +482,10 @@ namespace Lyra
         {
             var consBlock = new ConsolidationBlock
             {
-
+                blockHashes = new List<string>()
+                {
+                    svcGen.Hash, lyraGen.Hash
+                }
             };
 
             var mt = new MerkleTree();
