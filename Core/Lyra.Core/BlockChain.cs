@@ -194,7 +194,10 @@ namespace Lyra
                         var myStatus = await GetNodeStatusAsync();
                         if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
                         {
-                            _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                            if(ConsensusService.IsThisNodeSeed0)
+                                _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                            else
+                                _stateMachine.Fire(BlockChainTrigger.ConsensusNodesSynced);
                         }
                         else if (myStatus.totalBlockCount <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
                         {
