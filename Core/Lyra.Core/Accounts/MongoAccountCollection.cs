@@ -121,7 +121,7 @@ namespace Lyra.Core.Accounts
             CreateIndexes("Hash", true).Wait();
             CreateIndexes("PreviousHash", false).Wait();
             CreateIndexes("AccountID", false).Wait();
-            CreateNoneStringIndex("Index", false).Wait();
+            CreateNoneStringIndex("Height", false).Wait();
             CreateNoneStringIndex("BlockType", false).Wait();
 
             CreateIndexes("SourceHash", false).Wait();
@@ -383,7 +383,7 @@ namespace Lyra.Core.Accounts
         {
             var builder = new FilterDefinitionBuilder<Block>();
             var filterDefinition = builder.And(builder.Eq("AccountID", AccountId),
-                builder.Eq("Index", index));
+                builder.Eq("Height", index));
 
             var block = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
             return block as TransactionBlock;
@@ -421,7 +421,7 @@ namespace Lyra.Core.Accounts
             // First, let find all send blocks:
             // (It can be optimzed as it's going to be growing, so it can be called with munimum Service Chain Height parameter to look only for recent blocks) 
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("Index", fromIndex);
+            var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("Height", fromIndex);
 
             var allSendBlocks = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
 
