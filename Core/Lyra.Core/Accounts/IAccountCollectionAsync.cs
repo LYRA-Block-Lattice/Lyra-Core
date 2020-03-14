@@ -56,6 +56,8 @@ namespace Lyra.Core.Accounts
         Task<bool> AddBlockAsync(Block block);
         Task RemoveBlockAsync(string hash);
 
+        Task<bool> ConsolidateBlock(string hash);
+
         /// <summary>
         /// Cleans up or deletes blocks collection.
         /// Used for unit testing.

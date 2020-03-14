@@ -301,7 +301,11 @@ namespace Lyra.Core.Accounts
 
         public async Task<Block> FindBlockByHashAsync(string hash)
         {
-            var filter = new FilterDefinitionBuilder<Block>().Eq<string>(a => a.Hash, hash);
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1,
+            };
+            var filter = Builders<Block>.Filter.Eq("Hash", hash);
 
             var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
             return block;
@@ -580,6 +584,19 @@ namespace Lyra.Core.Accounts
         public void Dispose()
         {
             // nothing to dispose
+        }
+
+        public async Task<bool> ConsolidateBlock(string hash)
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1,
+            };
+            var filter = Builders<Block>.Filter.Eq("Hash", hash);
+
+            var updateDef = Builders<Block>.Update.Set(o => o.Consolidated, true);
+            var result = await _blocks.UpdateOneAsync(filter, updateDef);
+            return result.ModifiedCount == 1;
         }
 
         //public async Task<long> GetNewestBlockUIndexAsync()

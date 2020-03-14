@@ -389,6 +389,16 @@ namespace Lyra
             {
                 LyraSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash });
             }
+
+            if(block is ConsolidationBlock)
+            {
+                // we need to update the consolidation flag
+                foreach(var hash in (block as ConsolidationBlock).blockHashes)
+                {
+                    if (!await _store.ConsolidateBlock(hash))
+                        _log.LogCritical($"BlockChain Not consolidate block properly: {hash}");
+                }
+            }
             return result;
         }
 
