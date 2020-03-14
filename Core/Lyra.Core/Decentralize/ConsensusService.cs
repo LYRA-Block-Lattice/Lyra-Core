@@ -145,6 +145,14 @@ namespace Lyra.Core.Decentralize
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
+            Receive<AskForMaxActiveUID>((_) => {
+                var reply = new ReplyForMaxActiveUID();
+                //if(_activeConsensus.Any())
+                //{
+                //    reply.uid = _activeConsensus.Values.Max(a => a.State?.InputMsg.Block.)
+                //}
+                reply.uid = 0;
+                Sender.Tell(reply); });
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {

@@ -32,7 +32,6 @@ namespace Lyra.Core.Decentralize
 
         public SemaphoreSlim Semaphore { get; }
         public EventWaitHandle Done { get; set; }
-        public bool Settled { get; set; }
         public bool Saving { get; set; }
 
         private ConsensusResult _consensusResult;
@@ -42,19 +41,7 @@ namespace Lyra.Core.Decentralize
         public static int WinNumber => BlockChain.Singleton.CurrentState == BlockChainState.Almighty ?
             ProtocolSettings.Default.ConsensusWinNumber : ProtocolSettings.Default.StandbyValidators.Length;
 
-        public ConsensusResult CommitConsensus
-        {
-            get
-            {
-                if (!Settled)
-                {
-                    _consensusResult = GetCommitConsensusSuccess();
-                    if (_consensusResult != ConsensusResult.Uncertain)
-                        Settled = true;
-                }
-                return _consensusResult;
-            }
-        }
+        public ConsensusResult CommitConsensus => GetCommitConsensusSuccess();
 
         ILogger _log;
 

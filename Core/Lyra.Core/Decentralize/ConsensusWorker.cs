@@ -359,35 +359,38 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckCommitedOKAsync()
         {
-            if(_state.Settled)
+            var block = _state.InputMsg?.Block;
+            if (block == null)
+                return;
+
+            if (_state.CommitConsensus == ConsensusResult.Yay)
             {
-                var block = _state.InputMsg.Block;
+                if (!await BlockChain.Singleton.AddBlockAsync(block))
+                    _log.LogWarning($"Block Save Failed Index: {block.Height}");
+                else
+                    _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
+            }
+            else if (_state.CommitConsensus == ConsensusResult.Nay)
+            {
 
-                if (_state.CommitConsensus == ConsensusResult.Yay)
-                {
-                    if (!await BlockChain.Singleton.AddBlockAsync(block))
-                        _log.LogWarning($"Block Save Failed Index: {block.Height}");
-                    else
-                        _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
-                }
-                else if (_state.CommitConsensus == ConsensusResult.Nay)
-                {
+            }
+            else
+            {
+                return;
+            }
 
-                }
+            _state.Done?.Set();
+            _context.FinishBlock(_state.HashOfFirstBlock);
 
-                _state.Done?.Set();
-                _context.FinishBlock(_state.HashOfFirstBlock);
+            if (block is ConsolidationBlock)
+            {
+                // get my authorize result
+                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
+                if (myResult != null && myResult.Result == APIResultCodes.Success)
+                    return;
 
-                if(block is ConsolidationBlock)
-                {
-                    // get my authorize result
-                    var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
-                    if (myResult != null && myResult.Result == APIResultCodes.Success)
-                        return;
-
-                    // crap! this node is out of sync.
-                    LyraSystem.Singleton.Consensus.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
-                }
+                // crap! this node is out of sync.
+                LyraSystem.Singleton.Consensus.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
             }
         }
 
