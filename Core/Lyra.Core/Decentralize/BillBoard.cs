@@ -98,22 +98,19 @@ namespace Lyra.Core.Decentralize
         }
     }
 
-    public enum PosNodeMode { Unknown, InitSync, DynamicSync, Normal }
-
     public class PosNode
     {
         public string AccountID { get; set; }
         public string IP { get; set; }
         public decimal Balance { get; set; }
         public DateTime LastStaking { get; set; }
-        public PosNodeMode Mode { get; set; }
+        public string Signature { get; set; }
 
         public PosNode(string accountId)
         {
             AccountID = accountId;
             LastStaking = DateTime.Now;
             Balance = 0;
-            Mode = PosNodeMode.Unknown;
         }
 
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die

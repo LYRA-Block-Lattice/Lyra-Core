@@ -217,6 +217,7 @@ namespace Lyra.Core.API
     public class GetSyncStateAPIResult : APIResult
     {
         public string NetworkID { get; set; }
+        public string Signature { get; set; }   // sign public ip with private key
         public ConsensusWorkingMode SyncState { get; set; }
         public string LastConsolidationHash { get; set; }
         public NodeStatus Status { get; set; }

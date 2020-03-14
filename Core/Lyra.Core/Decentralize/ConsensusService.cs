@@ -286,6 +286,10 @@ namespace Lyra.Core.Decentralize
             // declare to the network
             PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
             me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId != "devnet")}";
+            
+            // we take it serious
+            me.Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, me.IP,
+                NodeService.Instance.PosWallet.AccountId);
 
             var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);
             _board.Add(me);
@@ -613,7 +617,7 @@ namespace Lyra.Core.Decentralize
                     OnHeartBeat(chat);
                     break;
                 case ChatMessageType.NodeUp:
-                    await OnNodeUpAsync(chat);
+                    await Task.Run(async () => { await OnNodeUpAsync(chat); });                    
                     break;
                 case ChatMessageType.BillBoardBroadcast:
                     OnBillBoardBroadcast(chat);
@@ -752,6 +756,11 @@ namespace Lyra.Core.Decentralize
             if (node.Balance < LyraGlobal.MinimalAuthorizerBalance)
             {
                 _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Balance);
+            }
+            else
+            {
+                // verify signature
+                
             }
         }
     }

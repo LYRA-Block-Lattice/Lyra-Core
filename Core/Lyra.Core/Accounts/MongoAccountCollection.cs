@@ -235,15 +235,14 @@ namespace Lyra.Core.Accounts
 
         public async Task<Block> FindLatestBlockAsync()
         {
-            throw new NotImplementedException();
-            //var options = new FindOptions<Block, Block>
-            //{
-            //    Limit = 1,
-            //    Sort = Builders<Block>.Sort.Descending(o => o.Index)
-            //};
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1,
+                Sort = Builders<Block>.Sort.Descending(o => o.TimeStamp)
+            };
 
-            //var result = await (await _blocks.FindAsync(FilterDefinition<Block>.Empty, options)).FirstOrDefaultAsync();
-            //return result;
+            var result = await (await _blocks.FindAsync(FilterDefinition<Block>.Empty, options)).FirstOrDefaultAsync();
+            return result;
         }
 
         public async Task<Block> FindLatestBlockAsync(string AccountId)
@@ -251,7 +250,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Height)
+                Sort = Builders<Block>.Sort.Descending(o => o.TimeStamp)
             };
             var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
 

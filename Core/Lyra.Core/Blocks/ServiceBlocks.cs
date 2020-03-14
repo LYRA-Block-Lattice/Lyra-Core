@@ -22,9 +22,8 @@ namespace Lyra.Core.Blocks
     public class ServiceBlock : Block
     {
         //public Dictionary<string, NodeInfo> Authorizers { get; set; }
-        //public List<NodeInfo> Authorizers { get; set; }
-
-        //public List<NodeInfo> Candidates { get; set; }
+        public List<NodeInfo> Authorizers { get; set; }
+        public List<NodeInfo> Candidates { get; set; }
 
         ///// <summary>
         ///// Defines whether this shard is a primary (i.e. independant, isolated) network
@@ -63,6 +62,11 @@ namespace Lyra.Core.Blocks
         //public int TransferDifficulty { get; set; }
         //public int TokenGenerationDifficulty { get; set; }
         //public int TradeDifficulty { get; set; }
+
+        public ServiceBlock()
+        {
+            
+        }
 
         protected override string GetExtraData()
         {
