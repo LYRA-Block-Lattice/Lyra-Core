@@ -19,8 +19,6 @@ namespace Lyra.Core.Decentralize
 {
     public class ApiService : INodeTransactionAPI//, IBlockConsensus
     {
-        IActorRef ConsensusSvc;
-
         private readonly ILogger<ApiService> _log;
 
         long _useed = -1;
@@ -28,8 +26,6 @@ namespace Lyra.Core.Decentralize
         public ApiService(ILogger<ApiService> logger)
         {
             _log = logger;
-
-            ConsensusSvc = LyraSystem.Singleton.Consensus;
         }
 
         //public async Task OnActivateAsync()
@@ -48,17 +44,17 @@ namespace Lyra.Core.Decentralize
 
         public async Task<BillBoard> GetBillBoardAsync()
         {
-            return await ConsensusSvc.Ask<BillBoard>(new ConsensusService.AskForBillboard());
+            return await LyraSystem.Singleton.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
         }
 
         public async Task<List<TransStats>> GetTransStatsAsync()
         {
-            return await ConsensusSvc.Ask<List<TransStats>>(new ConsensusService.AskForStats());
+            return await LyraSystem.Singleton.Consensus.Ask<List<TransStats>>(new ConsensusService.AskForStats());
         }
 
         public async Task<string> GetDbStats()
         {
-            return await ConsensusSvc.Ask<string>(new ConsensusService.AskForDbStats());
+            return await LyraSystem.Singleton.Consensus.Ask<string>(new ConsensusService.AskForDbStats());
         }
 
         private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
@@ -83,7 +79,7 @@ namespace Lyra.Core.Decentralize
             state.HashOfFirstBlock = msg.Block.Hash;
             state.InputMsg = msg;
 
-            ConsensusSvc.Tell(state);
+            LyraSystem.Singleton.Consensus.Tell(state);
 
             await state.Done.AsTask();
             state.Done.Close();

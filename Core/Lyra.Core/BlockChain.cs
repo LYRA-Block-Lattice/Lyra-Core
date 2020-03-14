@@ -503,7 +503,7 @@ namespace Lyra
                 {
                     svcGen.Hash, lyraGen.Hash
                 },
-                totalBlockCount = 3     // including self
+                totalBlockCount = 2     // not including self
             };
 
             var mt = new MerkleTree();
