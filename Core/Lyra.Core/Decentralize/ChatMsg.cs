@@ -269,7 +269,7 @@ namespace Lyra.Core.Decentralize
 		public string accountId { get; set; }
 		public string version { get; set; }
 		public BlockChainState mode { get; set; }
-		public long lastBlockHeight { get; set; }
+		public long totalBlockCount { get; set; }
 		public string lastConsolidationHash { get; set; }
 		public string lastUnSolidationHash { get; set; }
 		public int connectedPeers { get; set; }
@@ -281,7 +281,7 @@ namespace Lyra.Core.Decentralize
 				var ns = obj as NodeStatus;
 				return version == ns.version
 					&& mode == ns.mode
-					&& lastBlockHeight == ns.lastBlockHeight
+					&& totalBlockCount == ns.totalBlockCount
 					&& lastConsolidationHash == ns.lastConsolidationHash
 					&& lastUnSolidationHash == ns.lastUnSolidationHash;				
 			}

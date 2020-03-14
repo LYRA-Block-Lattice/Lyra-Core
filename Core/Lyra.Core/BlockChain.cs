@@ -177,7 +177,7 @@ namespace Lyra
 
                     var q = from ns in _nodeStatus
                             where ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId) 
-                            group ns by ns.lastBlockHeight into heights
+                            group ns by ns.totalBlockCount into heights
                             orderby heights.Count()
                             select new
                             {
@@ -192,11 +192,11 @@ namespace Lyra
                         _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
 
                         var myStatus = await GetNodeStatusAsync();
-                        if (myStatus.lastBlockHeight == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
+                        if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
                         {
                             _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                         }
-                        else if (myStatus.lastBlockHeight <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
+                        else if (myStatus.totalBlockCount <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
                         {
                             _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                         }
@@ -367,12 +367,14 @@ namespace Lyra
 
         public async Task<NodeStatus> GetNodeStatusAsync()
         {
+            var lastCons = await GetLastConsolidationBlockAsync();
             var status = new NodeStatus
             {
                 accountId = NodeService.Instance.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
                 mode = _stateMachine.State,
-                lastConsolidationHash = (await GetLastConsolidationBlockAsync())?.Hash,
+                totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount,
+                lastConsolidationHash = lastCons?.Hash,
                 lastUnSolidationHash = null,
                 connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
             };
@@ -485,7 +487,8 @@ namespace Lyra
                 blockHashes = new List<string>()
                 {
                     svcGen.Hash, lyraGen.Hash
-                }
+                },
+                totalBlockCount = 3     // including self
             };
 
             var mt = new MerkleTree();

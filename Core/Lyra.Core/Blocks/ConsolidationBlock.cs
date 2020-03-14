@@ -11,6 +11,7 @@ namespace Lyra.Core.Blocks
     {
         public List<string> blockHashes { get; set; }
         public string MerkelTreeHash { get; set; }
+        public long totalBlockCount { get; set; }
 
         public override BlockTypes GetBlockType()
         {
