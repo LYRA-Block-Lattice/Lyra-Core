@@ -197,7 +197,9 @@ namespace Lyra
                             if(ConsensusService.IsThisNodeSeed0)
                                 _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                             else
-                                _stateMachine.Fire(BlockChainTrigger.ConsensusNodesSynced);
+                            {
+                                _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                            }
                         }
                         else if (myStatus.totalBlockCount <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
                         {
