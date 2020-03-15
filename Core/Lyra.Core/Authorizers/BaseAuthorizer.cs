@@ -8,6 +8,8 @@ using Microsoft.Extensions.Options;
 using Lyra.Core.Decentralize;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Linq;
+using Neo;
 
 namespace Lyra.Core.Authorizers
 {
@@ -50,16 +52,13 @@ namespace Lyra.Core.Authorizers
 
             if(block is ServiceBlock)
             {
-                foreach(var pn in (block as ServiceBlock).Authorizers)
+                var accountId = ProtocolSettings.Default.StandbyValidators[0];      //seed0
+                var result = block.VerifySignature(accountId);
+                if (!result)
                 {
-                    var accountId = pn.AccountID;
-                    var result = block.VerifySignature(accountId);
-                    if (!result)
-                    {
-                        _log.LogWarning($"VerifyBlock failed for ServiceBlock Index: {block.Height} by {accountId}");
-                        return APIResultCodes.BlockSignatureValidationFailed;
-                    }
-                }                  
+                    _log.LogWarning($"VerifyBlock failed for ServiceBlock Index: {block.Height} by {accountId}");
+                    return APIResultCodes.BlockSignatureValidationFailed;
+                }
             }
             else if(block is TransactionBlock)
             {
