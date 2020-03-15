@@ -430,7 +430,7 @@ namespace Lyra.Core.Decentralize
             var consBlock = new ConsolidationBlock
             {
                 blockHashes = collection.ToList(),
-                totalBlockCount = collection.Count()
+                totalBlockCount = lastCons.totalBlockCount + collection.Count()
             };
 
             var mt = new MerkleTree();
