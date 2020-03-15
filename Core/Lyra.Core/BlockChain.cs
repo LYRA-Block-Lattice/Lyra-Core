@@ -343,17 +343,17 @@ namespace Lyra
                 // genesis
                 _log.LogInformation("all seed nodes are ready. do genesis.");
 
-                var svcGen = await GetServiceGenesisBlockAsync();
+                var svcGen = GetServiceGenesisBlock();
                 await SendBlockToConsensusAsync(svcGen);
 
                 await Task.Delay(1000);
 
-                var tokenGen = await GetLyraTokenGenesisBlockAsync(svcGen);
+                var tokenGen = GetLyraTokenGenesisBlock(svcGen);
                 await SendBlockToConsensusAsync(tokenGen);
 
                 await Task.Delay(1000);
 
-                var consGen = await GetConsolidationGenesisBlockAsync(svcGen, tokenGen);
+                var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
                 await SendBlockToConsensusAsync(consGen);
 
                 await Task.Delay(1000);
@@ -377,6 +377,8 @@ namespace Lyra
                         _log.LogError($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} failed to accountId: {accId}");
                     }                        
                 }
+
+                LyraSystem.Singleton.Consensus.Tell(new ConsensusService.Consolidate());
             });
         }
 
@@ -428,6 +430,7 @@ namespace Lyra
             return result;
         }
 
+        public async Task<IEnumerable<string>> GetAllUnConsolidatedBlocksAsync() => await StopWatcher.Track(_store.GetAllUnConsolidatedBlocks(), StopWatcher.GetCurrentMethod());
         internal async Task<ConsolidationBlock> GetLastConsolidationBlockAsync() => await StopWatcher.Track(_store.GetLastConsolidationBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
         public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startUIndex) => await StopWatcher.Track(_store.GetConsolidationBlocksAsync(startUIndex), StopWatcher.GetCurrentMethod());
         internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await StopWatcher.Track(_store.GetLastServiceBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetLastServiceBlockAsync();
@@ -516,7 +519,7 @@ namespace Lyra
             return _seed0Client;
         }
 
-        public async Task<ConsolidationBlock> GetConsolidationGenesisBlockAsync(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
+        public ConsolidationBlock GetConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
         {
             var consBlock = new ConsolidationBlock
             {
@@ -533,13 +536,12 @@ namespace Lyra
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             consBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                NodeService.Instance.PosWallet.AccountId,
-                await GetClientForSeed0());
+                NodeService.Instance.PosWallet.AccountId);
 
             return consBlock;
         }
 
-        public async Task<LyraTokenGenesisBlock> GetLyraTokenGenesisBlockAsync(ServiceBlock svcGen)
+        public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceBlock svcGen)
         {
             // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
@@ -564,12 +566,12 @@ namespace Lyra
             };
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.LYRAGENESISAMOUNT };
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
-            openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId, await GetClientForSeed0());
+            openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
 
             return openTokenGenesisBlock;
         }
 
-        public async Task<ServiceBlock> GetServiceGenesisBlockAsync()
+        public ServiceBlock GetServiceGenesisBlock()
         {
             var svcGenesis = new ServiceBlock
             {
@@ -581,13 +583,12 @@ namespace Lyra
             };
 
             svcGenesis.Authorizers = new List<PosNode>();
-            foreach(var pn in ConsensusService.Board.AllNodes.Values.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
+            foreach (var pn in ConsensusService.Board.AllNodes.Values.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
             {
                 svcGenesis.Authorizers.Add(pn);
             }
             svcGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
-                NodeService.Instance.PosWallet.AccountId,
-                await GetClientForSeed0());
+                NodeService.Instance.PosWallet.AccountId);
             return svcGenesis;
         }
 

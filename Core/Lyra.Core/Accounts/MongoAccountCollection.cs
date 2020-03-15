@@ -119,6 +119,7 @@ namespace Lyra.Core.Accounts
             }
 
             CreateIndexes("Hash", true).Wait();
+            CreateIndexes("Consolidated", false).Wait();
             CreateIndexes("PreviousHash", false).Wait();
             CreateIndexes("AccountID", false).Wait();
             CreateNoneStringIndex("Height", false).Wait();
@@ -599,21 +600,16 @@ namespace Lyra.Core.Accounts
             return result.ModifiedCount == 1;
         }
 
-        //public async Task<long> GetNewestBlockUIndexAsync()
-        //{
-        //    var result = await FindLatestBlockAsync();
-        //    if (result == null)
-        //        return 0;
-        //    return result.UIndex;
-        //}
-
-        //public async Task<Block> GetBlockByUIndexAsync(long uindex)
-        //{
-        //    var filter = new FilterDefinitionBuilder<Block>().Eq(a => a.UIndex, uindex);
-
-        //    var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
-        //    return block;
-        //}
-
+        public async Task<IEnumerable<string>> GetAllUnConsolidatedBlocks()
+        {
+            var options = new FindOptions<Block, BsonDocument>
+            {
+                Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
+                Projection = Builders<Block>.Projection.Include(a => a.Hash)
+            };
+            var filter = Builders<Block>.Filter.Eq("Consolidated", false);
+            var result = await _blocks.FindAsync(filter, options);
+            return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
+        }
     }
 }

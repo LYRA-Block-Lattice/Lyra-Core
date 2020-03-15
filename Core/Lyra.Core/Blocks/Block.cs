@@ -35,7 +35,7 @@ namespace Lyra.Core.Blocks
 
         public virtual BlockTypes GetBlockType() { return BlockTypes.Null; }
 
-        public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId, LyraRestClient client)
+        public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)
         {
             Consolidated = false;
 

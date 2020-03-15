@@ -120,16 +120,12 @@ namespace Lyra.Core.Decentralize
 
             Receive<Consolidate>((_) =>
             {
-                //_log.LogInformation("Doing Consolidate");
-                //OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+                _log.LogInformation("Doing Consolidate");
 
-                //if (Mode == ConsensusWorkingMode.Normal && _board != null && _board.CanDoConsensus)
-                //{
-                //    Task.Run(async () =>
-                //    {
-                //        await GenerateConsolidateBlockAsync();
-                //    });
-                //}
+                Task.Run(async () =>
+                {
+                    await CreateConsolidateBlockAsync();
+                });
             });
 
             Receive<BillBoard>((bb) =>
@@ -377,55 +373,6 @@ namespace Lyra.Core.Decentralize
                     {
                         try
                         {
-                            var startUIndex = lastCons.EndUIndex + 1;
-                            var endUIndex = BlockChain.Singleton.LastSavedUIndex;
-
-                            if (endUIndex >= startUIndex)
-                            {
-                                _log.LogInformation($"Creating ConsolidationBlock from {startUIndex} to {endUIndex}");
-
-                                var mt = new MerkleTree();
-                                var emptyNdx = new List<long>();
-                                for (var ndx = startUIndex; ndx <= endUIndex; ndx++)
-                                {
-                                    var bx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
-                                    if (bx == null)
-                                    {
-                                        emptyNdx.Add(ndx);
-                                    }
-                                    else
-                                    {
-                                        mt.AppendLeaf(MerkleHash.Create(bx.Hash));
-                                    }
-                                }
-
-                                currentCons = new ConsolidationBlock
-                                {
-                                    StartUIndex = startUIndex,
-                                    EndUIndex = endUIndex,
-                                    Index = lastCons.Index + 1,
-                                    PreviousHash = lastCons.Hash,
-                                    NullUIndexes = emptyNdx.Count > 0 ? emptyNdx.ToArray() : null,
-                                    MerkelTreeHash = mt.BuildTree().ToString()
-                                };
-
-                                currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
-                                    NodeService.Instance.PosWallet.AccountId,
-                                    await BlockChain.Singleton.GetClientForSeed0());
-
-                                AuthorizingMsg msg = new AuthorizingMsg
-                                {
-                                    From = NodeService.Instance.PosWallet.AccountId,
-                                    Block = currentCons,
-                                    MsgType = ChatMessageType.AuthorizerPrePrepare
-                                };
-
-                                var state = new AuthState(false);
-                                state.HashOfFirstBlock = currentCons.Hash;
-                                state.InputMsg = msg;
-
-                                await SubmitToConsensusAsync(state);
-                            }
                         }
                         catch(Exception ex)
                         {
@@ -472,6 +419,44 @@ namespace Lyra.Core.Decentralize
             //    // in fact we should reserve consolidate block number and wait 2min to do consolidating
             //    // all null block's previous block is the last consolidate block, it's index is counted from 1 related to previous block
             //}
+        }
+
+        private async Task CreateConsolidateBlockAsync()
+        {
+            var lastCons = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
+            var collection = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+            _log.LogInformation($"Creating ConsolidationBlock... ");
+
+            var consBlock = new ConsolidationBlock
+            {
+                blockHashes = collection.ToList(),
+                totalBlockCount = collection.Count()
+            };
+
+            var mt = new MerkleTree();
+            foreach(var hash in consBlock.blockHashes)
+            {
+                mt.AppendLeaf(MerkleHash.Create(hash));
+            }
+            
+            consBlock.MerkelTreeHash = mt.BuildTree().ToString();
+            consBlock.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
+                NodeService.Instance.PosWallet.AccountId);
+
+            AuthorizingMsg msg = new AuthorizingMsg
+            {
+                From = NodeService.Instance.PosWallet.AccountId,
+                Block = consBlock,
+                MsgType = ChatMessageType.AuthorizerPrePrepare
+            };
+
+            var state = new AuthState(false);
+            state.HashOfFirstBlock = consBlock.Hash;
+            state.InputMsg = msg;
+
+            await SubmitToConsensusAsync(state);
+
+            _log.LogInformation($"ConsolidationBlock was submited. ");
         }
 
         //private AuthState SendServiceBlock(TransactionBlock svcBlock)
