@@ -50,13 +50,16 @@ namespace Lyra.Core.Authorizers
 
             if(block is ServiceBlock)
             {
-                var accountId = (block as ServiceBlock).SvcAccountID;
-                var result = block.VerifySignature(accountId);
-                if (!result)
+                foreach(var pn in (block as ServiceBlock).Authorizers)
                 {
-                    _log.LogWarning($"VerifyBlock failed for ServiceBlock Index: {block.Height} by {accountId}");
-                    return APIResultCodes.BlockSignatureValidationFailed;
-                }                    
+                    var accountId = pn.AccountID;
+                    var result = block.VerifySignature(accountId);
+                    if (!result)
+                    {
+                        _log.LogWarning($"VerifyBlock failed for ServiceBlock Index: {block.Height} by {accountId}");
+                        return APIResultCodes.BlockSignatureValidationFailed;
+                    }
+                }                  
             }
             else if(block is TransactionBlock)
             {

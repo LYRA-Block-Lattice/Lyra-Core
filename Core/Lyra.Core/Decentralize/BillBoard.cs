@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Lyra.Shared;
 using Neo;
@@ -79,7 +80,7 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                AllNodes[node.AccountID].IP = node.IP;      // support for dynamic IP address
+                AllNodes[node.AccountID].IPAddress = node.IPAddress;      // support for dynamic IP address
             }
 
             node.LastStaking = DateTime.Now;
@@ -101,7 +102,7 @@ namespace Lyra.Core.Decentralize
     public class PosNode
     {
         public string AccountID { get; set; }
-        public string IP { get; set; }
+        public string IPAddress { get; set; }
         public decimal Balance { get; set; }
         public DateTime LastStaking { get; set; }
         public string Signature { get; set; }
@@ -111,6 +112,12 @@ namespace Lyra.Core.Decentralize
             AccountID = accountId;
             LastStaking = DateTime.Now;
             Balance = 0;
+        }
+
+        public void Sign()
+        {
+            Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey,
+                    IPAddress, NodeService.Instance.PosWallet.AccountId);
         }
 
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die

@@ -293,11 +293,8 @@ namespace Lyra.Core.Decentralize
         {
             // declare to the network
             PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
-            me.IP = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId != "devnet")}";
-            
-            // we take it serious
-            me.Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, me.IP,
-                NodeService.Instance.PosWallet.AccountId);
+            me.IPAddress = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId != "devnet")}";
+            me.Sign();
 
             var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);
             _board.Add(me);
@@ -758,7 +755,7 @@ namespace Lyra.Core.Decentralize
                 await BroadCastBillBoardAsync();
             }
 
-            if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IP == node.IP)
+            if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IPAddress == node.IPAddress)
                 return;
 
             if (node.Balance < LyraGlobal.MinimalAuthorizerBalance)

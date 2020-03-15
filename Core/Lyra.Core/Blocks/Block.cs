@@ -35,8 +35,6 @@ namespace Lyra.Core.Blocks
 
         public virtual BlockTypes GetBlockType() { return BlockTypes.Null; }
 
-        public string ConsolidationHash { get; set; }
-
         public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId, LyraRestClient client)
         {
             Consolidated = false;

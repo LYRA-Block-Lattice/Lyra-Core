@@ -194,12 +194,7 @@ namespace Lyra
                         var myStatus = await GetNodeStatusAsync();
                         if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
                         {
-                            if(ConsensusService.IsThisNodeSeed0)
-                                _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
-                            else
-                            {
-                                _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
-                            }
+                            _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                         }
                         else if (myStatus.totalBlockCount <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
                         {
@@ -233,6 +228,7 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
                 {
+                    // loop check here 
                     var lastCons = await GetLastConsolidationBlockAsync();
                     if(lastCons.totalBlockCount == uid)
                     {
@@ -567,9 +563,14 @@ namespace Lyra
                 Height = 1,
                 TransferFee = 1,
                 TokenGenerationFee = 100,
-                TradeFee = 0.1m,
-                SvcAccountID = NodeService.Instance.PosWallet.AccountId
+                TradeFee = 0.1m
             };
+
+            svcGenesis.Authorizers = new List<PosNode>();
+            foreach(var pn in ConsensusService.Board.AllNodes.Values.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
+            {
+                svcGenesis.Authorizers.Add(pn);
+            }
             svcGenesis.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId,
                 await GetClientForSeed0());
