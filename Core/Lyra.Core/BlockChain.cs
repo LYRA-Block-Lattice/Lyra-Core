@@ -366,6 +366,7 @@ namespace Lyra
                 var gensWallet = await ShadowWallet.OpenWithKeyAsync(NetworkID, NodeService.Instance.PosWallet.PrivateKey);
                 foreach(var accId in ProtocolSettings.Default.StartupValidators)
                 {
+                    await gensWallet.Sync(null);
                     var sendResult = await gensWallet.Send(LyraGlobal.MinimalAuthorizerBalance, accId);
                     if (sendResult.ResultCode == APIResultCodes.Success)
                     {
