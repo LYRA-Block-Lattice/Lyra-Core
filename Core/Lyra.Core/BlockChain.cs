@@ -233,10 +233,21 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
                 {
-                    long startUIndex = 0;
-                    // sync blocks + save letest
-                    await SyncManyBlocksAsync(startUIndex, uid, false);
-                    startUIndex = uid;
+                    var lastCons = await GetLastConsolidationBlockAsync();
+                    if(lastCons.totalBlockCount == uid)
+                    {
+                        // the latest
+                        _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
+                    }
+                    else
+                    {
+                        // do sync with others
+                    }
+
+                    //long startUIndex = 0;
+                    //// sync blocks + save letest
+                    //await SyncManyBlocksAsync(startUIndex, uid, false);
+                    //startUIndex = uid;
 
                     //var consolidateToUIndex = _lastSavedUIndex;
                     //do
@@ -324,7 +335,7 @@ namespace Lyra
                 {
                     await ResetUIDAsync();
                 }))
-                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging);
+                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup);
 
             _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
         }
