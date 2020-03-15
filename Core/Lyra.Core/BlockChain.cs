@@ -362,7 +362,20 @@ namespace Lyra
 
                 await Task.Delay(3000);
 
-                _stateMachine.Fire(BlockChainTrigger.GenesisDone);
+                // distribute staking coin to pre-defined authorizers
+                var gensWallet = await ShadowWallet.OpenWithKeyAsync(NetworkID, NodeService.Instance.PosWallet.PrivateKey);
+                foreach(var accId in ProtocolSettings.Default.StartupValidators)
+                {
+                    var sendResult = await gensWallet.Send(LyraGlobal.MinimalAuthorizerBalance, accId);
+                    if (sendResult.ResultCode == APIResultCodes.Success)
+                    {
+                        _log.LogInformation($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} successfull to accountId: {accId}");
+                    }
+                    else
+                    {
+                        _log.LogError($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} failed to accountId: {accId}");
+                    }                        
+                }
             });
         }
 

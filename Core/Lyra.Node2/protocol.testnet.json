@@ -12,6 +12,11 @@
       "seed.testnet.lyrashops.com:4503",
       "seed2.testnet.lyrashops.com:4503",
       "seed3.testnet.lyrashops.com:4503"
+    ],
+    "StartupValidators": [
+      "LNFKM9j2nvfXA695PCa4PJAoXL1BKy6cA12evS2iq9GaNbJYY1wFa6xHAWoMJNronAFa7f9nZXi2CTFn9y4Yoqj7kSmTqH",
+      "LRR3QQwDrLE2KcjSSC97P52yzaBTUXAcrVd7dPSHiRHZS6NJDF9rQzpYWFeVmWg47Jxpi54Hj6EFN446uc1B41tGDtD9YX",
+      "LH2umRknZEHkJBpzBc4KyNypq6XEDit7ML6E5Brx1dEvRarwHJwdpcimP3NRgy7nZepkf4VccUX5DHHY9YBmjo991vyxkS"
     ]
   }
 }
