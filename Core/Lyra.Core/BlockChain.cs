@@ -429,11 +429,13 @@ namespace Lyra
 
         }
 
-        public async Task<string> GetUnConsolidatedHashAsync()
+        public string GetUnConsolidatedHash(List<string> unCons)
         {
-            var collection = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+            if (unCons.Count() == 0)
+                return null;
+
             var mt = new MerkleTree();
-            foreach (var hash in collection)
+            foreach (var hash in unCons)
             {
                 mt.AppendLeaf(MerkleHash.Create(hash));
             }
@@ -444,14 +446,15 @@ namespace Lyra
         public async Task<NodeStatus> GetNodeStatusAsync()
         {
             var lastCons = await GetLastConsolidationBlockAsync();
+            var unCons = (await _store.GetAllUnConsolidatedBlocks()).ToList();
             var status = new NodeStatus
             {
                 accountId = NodeService.Instance.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
                 mode = _stateMachine.State,
-                totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount + (await _store.GetAllUnConsolidatedBlocks()).Count(),
+                totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount + unCons.Count(),
                 lastConsolidationHash = lastCons?.Hash,
-                lastUnSolidationHash = await GetUnConsolidatedHashAsync(),
+                lastUnSolidationHash = GetUnConsolidatedHash(unCons),
                 connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
             };
             return status;
