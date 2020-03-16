@@ -61,7 +61,7 @@ namespace Lyra.Core.Decentralize
             });
         }
 
-        private AuthState CreateAuthringState(AuthorizingMsg item)
+        private async Task<AuthState> CreateAuthringStateAsync(AuthorizingMsg item)
         {
             _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {item.Block.Height}");
 
@@ -71,11 +71,9 @@ namespace Lyra.Core.Decentralize
             //    return _activeConsensus[ukey];
             //}
 
-            var state = new AuthState
-            {
-                HashOfFirstBlock = ukey,
-                InputMsg = item,
-            };
+            var state = new AuthState(await BlockChain.Singleton.GetWinNumberAsync());
+            state.HashOfFirstBlock = ukey;
+            state.InputMsg = item;
 
             //// add possible out of ordered messages belong to the block
             //if (_outOfOrderedMessages.ContainsKey(item.Block.Hash))
@@ -206,7 +204,7 @@ namespace Lyra.Core.Decentralize
 
             // first try auth locally
             //if(_state == null)
-            _state = CreateAuthringState(msg);
+            _state = await CreateAuthringStateAsync(msg);
 
             SourceSignedMessage queuedMsg;
             while (_outOfOrderedMessages.TryDequeue(out queuedMsg))
@@ -286,7 +284,7 @@ namespace Lyra.Core.Decentralize
         {
             // check state
             // debug: show all states
-            if (state.OutputMsgs.Count < AuthState.WinNumber)
+            if (state.OutputMsgs.Count < await BlockChain.Singleton.GetWinNumberAsync())
             {
                 return;
             }
@@ -412,7 +410,7 @@ namespace Lyra.Core.Decentralize
             if(_state.AddCommitedResult(item))
                 await CheckCommitedOKAsync();
 
-            _log.LogInformation($"OnCommit: {_state.CommitMsgs.Count}/{AuthState.WinNumber} From {item.From.Shorten()}, {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash.Shorten()}");
+            _log.LogInformation($"OnCommit: {_state.CommitMsgs.Count}/{await BlockChain.Singleton.GetWinNumberAsync()} From {item.From.Shorten()}, {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash.Shorten()}");
 
             _context.OnNodeActive(item.From);        // track latest activities via billboard
             //}

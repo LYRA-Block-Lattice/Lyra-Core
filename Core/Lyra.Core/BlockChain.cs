@@ -436,6 +436,15 @@ namespace Lyra
             return result;
         }
 
+        public async Task<int> GetWinNumberAsync()
+        {
+            var svcBlock = await GetLastServiceBlockAsync();
+            if (svcBlock.Height == 1)
+                return svcBlock.Authorizers.Count();
+            else
+                return svcBlock.Authorizers.Count() / 3 * 2 + 1;
+        }
+
         public async Task<IEnumerable<string>> GetAllUnConsolidatedBlocksAsync() => await StopWatcher.Track(_store.GetAllUnConsolidatedBlocks(), StopWatcher.GetCurrentMethod());
         internal async Task<ConsolidationBlock> GetLastConsolidationBlockAsync() => await StopWatcher.Track(_store.GetLastConsolidationBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
         public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startUIndex) => await StopWatcher.Track(_store.GetConsolidationBlocksAsync(startUIndex), StopWatcher.GetCurrentMethod());
@@ -607,7 +616,7 @@ namespace Lyra
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState(true);
+            var state = new AuthState(await GetWinNumberAsync(), true);
             state.HashOfFirstBlock = block.Hash;
             state.InputMsg = msg;
 

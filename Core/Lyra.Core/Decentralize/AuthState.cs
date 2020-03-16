@@ -34,19 +34,17 @@ namespace Lyra.Core.Decentralize
         public EventWaitHandle Done { get; set; }
         public bool Saving { get; set; }
 
-        private ConsensusResult _consensusResult;
-
         public ConsensusResult PrepareConsensus => GetPrepareConsensusSuccess();
-
-        public static int WinNumber => BlockChain.Singleton.CurrentState == BlockChainState.Almighty ?
-            ProtocolSettings.Default.ConsensusWinNumber : ProtocolSettings.Default.StandbyValidators.Length;
 
         public ConsensusResult CommitConsensus => GetCommitConsensusSuccess();
 
         ILogger _log;
 
-        public AuthState(bool haveWaiter = false)
+        private int _winNumber;
+
+        public AuthState(int winNumber, bool haveWaiter = false)
         {
+            _winNumber = winNumber;
             _log = new SimpleLogger("AuthState").Logger;
 
             Created = DateTime.Now;
@@ -111,11 +109,11 @@ namespace Lyra.Core.Decentralize
         {
             var AuthMsgList = OutputMsgs.ToList();
             var ok = AuthMsgList.Count(a => a.IsSuccess);
-            if (ok >= WinNumber)
+            if (ok >= _winNumber)
                 return ConsensusResult.Yay;
 
             var notok = AuthMsgList.Count(a => !a.IsSuccess);
-            if (notok >= WinNumber)
+            if (notok >= _winNumber)
                 return ConsensusResult.Nay;
 
             return ConsensusResult.Uncertain;
@@ -125,11 +123,11 @@ namespace Lyra.Core.Decentralize
         {
             var CommitMsgList = CommitMsgs.ToList();
             var ok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay);
-            if (ok >= WinNumber)
+            if (ok >= _winNumber)
                 return ConsensusResult.Yay;
 
             var notok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay);
-            if (notok >= WinNumber)
+            if (notok >= _winNumber)
                 return ConsensusResult.Nay;
 
             return ConsensusResult.Uncertain;
