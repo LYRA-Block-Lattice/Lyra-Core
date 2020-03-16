@@ -225,7 +225,7 @@ namespace Lyra.Core.Decentralize
                 if (!await BlockChain.Singleton.AccountExistsAsync(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = await BlockChain.Singleton.FindBlockByHashAsync(AccountId, Hash);
+                var block = await BlockChain.Singleton.FindBlockByHashAsync(Hash);
                 if (block != null)
                 {
                     result.BlockData = Json(block);

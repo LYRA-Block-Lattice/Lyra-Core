@@ -224,10 +224,7 @@ namespace Lyra.Core.Accounts
                 builder.Gte("Height", startHeight));
 
             var result = await _blocks.FindAsync(filterDefinition, options);
-            if (result.Any())
-                return result.ToList().Cast<ConsolidationBlock>().ToList();
-            else
-                return null;
+            return result.ToList().Cast<ConsolidationBlock>().ToList();
         }
 
         //private async Task<List<TransactionBlock>> GetAccountBlockListAsync(string AccountId)
