@@ -221,7 +221,7 @@ namespace Lyra.Core.Accounts
             };
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.Consolidation),
-                builder.Gte("UIndex", startHeight));
+                builder.Gte("Height", startHeight));
 
             var result = await _blocks.FindAsync(filterDefinition, options);
             if (result.Any())

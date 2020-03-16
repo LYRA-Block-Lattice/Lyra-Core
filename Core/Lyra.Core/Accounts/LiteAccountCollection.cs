@@ -348,7 +348,7 @@ namespace Lyra.Core.Accounts
         {
             if (block.Height == 0)
             {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
+                _log.LogWarning("AccountCollection=>AddBlock: Block with zero Height is now allowed!");
                 return false;
             }
 
