@@ -439,8 +439,8 @@ namespace Lyra
         public async Task<int> GetWinNumberAsync()
         {
             var svcBlock = await GetLastServiceBlockAsync();
-            if (svcBlock.Height == 1)
-                return svcBlock.Authorizers.Count();
+            if (svcBlock == null || svcBlock.Height == 1)
+                return ProtocolSettings.Default.StandbyValidators.Length;
             else
                 return svcBlock.Authorizers.Count() / 3 * 2 + 1;
         }
