@@ -420,6 +420,18 @@ namespace Lyra
 
         }
 
+        public async Task<string> GetUnConsolidatedHashAsync()
+        {
+            var collection = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+            var mt = new MerkleTree();
+            foreach (var hash in collection)
+            {
+                mt.AppendLeaf(MerkleHash.Create(hash));
+            }
+
+            return mt.BuildTree().ToString();
+        }
+
         public async Task<NodeStatus> GetNodeStatusAsync()
         {
             var lastCons = await GetLastConsolidationBlockAsync();
@@ -430,7 +442,7 @@ namespace Lyra
                 mode = _stateMachine.State,
                 totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount + (await _store.GetAllUnConsolidatedBlocks()).Count(),
                 lastConsolidationHash = lastCons?.Hash,
-                lastUnSolidationHash = null,
+                lastUnSolidationHash = await GetUnConsolidatedHashAsync(),
                 connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
             };
             return status;
