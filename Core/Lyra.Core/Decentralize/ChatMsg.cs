@@ -280,7 +280,6 @@ namespace Lyra.Core.Decentralize
 			{
 				var ns = obj as NodeStatus;
 				return version == ns.version
-					&& mode == ns.mode
 					&& totalBlockCount == ns.totalBlockCount
 					&& lastConsolidationHash == ns.lastConsolidationHash
 					&& lastUnSolidationHash == ns.lastUnSolidationHash;				
