@@ -24,8 +24,8 @@ namespace Lyra.Core.API
         // this one can be definitely cached forever as the result never changes if the block exists
         Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature);
 
-        // Retrives a block by its hash
-        //Task<BlockAPIResult> GetBlockByHash(string Hash);
+        Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature);
+        Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight);
 
         #endregion Blocklist information methods
 
