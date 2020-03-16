@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.Cryptography.ECC;
 using Neo.IO.Actors;
+using Newtonsoft.Json;
 using Stateless;
 using System;
 using System.Collections.Generic;
@@ -64,6 +65,10 @@ namespace Lyra
         public class FillCompleted { }
         public class BlockAdded {
             public string hash { get; set; }
+        }
+        private class ConsolidationState
+        {
+            public long LocalLastConsolidationHeight { get; set; }
         }
 
         public static bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
@@ -228,41 +233,57 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
                 {
-                    // loop check here 
-                    var lastCons = await GetLastConsolidationBlockAsync();
-                    if(lastCons.totalBlockCount == uid)
+                    var stateFn = $"{Utilities.LyraDataDir}{Utilities.PathSeperator}Consolidation.json";
+
+                    var state = new ConsolidationState { LocalLastConsolidationHeight = 0 };
+                    if (File.Exists(stateFn))
+                        state = JsonConvert.DeserializeObject<ConsolidationState>(File.ReadAllText(stateFn));
+
+                    while (true)
                     {
-                        // the latest
-                        _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
+                        var client = new LyraClientForNode(await GetClientForSeed0());
+
+                        var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
+
+                        var currentConsHeight = state.LocalLastConsolidationHeight + 1;
+
+                        if(currentConsHeight <= latestSeedCons.Height)
+                        {
+                            var consBlocksResult = await client.GetConsolidationBlocks(currentConsHeight);
+                            if (consBlocksResult.ResultCode == APIResultCodes.Success)
+                            {
+                                var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
+                                foreach(var consBlock in consBlocks)
+                                {
+                                    foreach(var hash in consBlock.blockHashes)
+                                    {
+                                        var blockResult = await client.GetBlockByHash(hash);
+                                        if(blockResult.ResultCode == APIResultCodes.Success)
+                                        {
+                                            var localBlock = await FindBlockByHashAsync(hash);
+                                            if (localBlock != null)
+                                                await RemoveBlockAsync(hash);
+
+                                            await AddBlockAsync(blockResult.GetBlock());
+                                        }                                        
+                                    }
+
+                                    currentConsHeight = consBlock.Height;
+                                }
+                            }
+                            else
+                                break;
+                        }
+                        else
+                        {
+                            break;
+                        }
+
+                        state.LocalLastConsolidationHeight = currentConsHeight;
+                        File.WriteAllText(stateFn, JsonConvert.SerializeObject(state));
                     }
-                    else
-                    {
-                        // do sync with others
-                    }
 
-                    //long startUIndex = 0;
-                    //// sync blocks + save letest
-                    //await SyncManyBlocksAsync(startUIndex, uid, false);
-                    //startUIndex = uid;
-
-                    //var consolidateToUIndex = _lastSavedUIndex;
-                    //do
-                    //{
-                    //    if (startUIndex >= _lastSavedUIndex)
-                    //    {
-                    //        _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
-                    //        break;
-                    //    }
-                    //    else
-                    //    {
-                    //        await SyncManyBlocksAsync(startUIndex, _lastSavedUIndex, false);
-                    //        startUIndex = _lastSavedUIndex;
-                    //    }
-                    //    await Task.Delay(1000);
-                    //} while (true);
-
-                    // TODO: consolidate all blocks to make sure no error.
-                    // start a new thread to verify and switch state if necessary.
+                    _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
                 }))
                 .OnEntryFrom(_engageTriggerConsolidateFailed, (hash) => Task.Run(async () =>
                 {
@@ -453,7 +474,7 @@ namespace Lyra
         // forward api. should have more control here.
         public async Task<bool> AddBlockAsync(Block block) => await StopWatcher.Track(AddBlockImplAsync(block), StopWatcher.GetCurrentMethod());
         public async Task RemoveBlockAsync(string hash) => await _store.RemoveBlockAsync(hash);
-        public async Task AddBlockAsync(ServiceBlock serviceBlock) => await StopWatcher.Track(_store.AddBlockAsync(serviceBlock), StopWatcher.GetCurrentMethod());//_store.AddBlockAsync(serviceBlock);
+        //public async Task AddBlockAsync(ServiceBlock serviceBlock) => await StopWatcher.Track(_store.AddBlockAsync(serviceBlock), StopWatcher.GetCurrentMethod());//_store.AddBlockAsync(serviceBlock);
 
         // bellow readonly access
         public async Task<bool> AccountExistsAsync(string AccountId) => await StopWatcher.Track(_store.AccountExistsAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.AccountExistsAsync(AccountId);

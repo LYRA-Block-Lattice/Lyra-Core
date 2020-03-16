@@ -207,8 +207,16 @@ namespace Lyra.Core.Accounts
             };
             var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
 
-            var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
-            return result as ConsolidationBlock;
+            var finds = await _blocks.FindAsync(filter, options);
+            if(finds.Any())
+            {
+                var result = await finds.FirstOrDefaultAsync();
+                return result as ConsolidationBlock;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startHeight)
