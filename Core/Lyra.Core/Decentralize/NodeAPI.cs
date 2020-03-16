@@ -34,8 +34,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task<bool> VerifyClientAsync(string accountId, string signature)
         {
-            if (!await BlockChain.Singleton.AccountExistsAsync(accountId))
-                return false;
+            // seeds accountid not exists.
+            //if (!await BlockChain.Singleton.AccountExistsAsync(accountId))
+            //    return false;
 
             var lastSvcBlock = await BlockChain.Singleton.GetLastServiceBlockAsync();
             return Signatures.VerifyAccountSignature(lastSvcBlock.Hash, accountId, signature);
