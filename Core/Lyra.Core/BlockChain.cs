@@ -378,7 +378,13 @@ namespace Lyra
                     }                        
                 }
 
+                await Task.Delay(3000);
+
                 LyraSystem.Singleton.Consensus.Tell(new ConsensusService.Consolidate());
+
+                await Task.Delay(3000);
+
+
             });
         }
 
@@ -577,9 +583,9 @@ namespace Lyra
             {
                 NetworkId = NetworkID,
                 Height = 1,
-                TransferFee = 1,
-                TokenGenerationFee = 100,
-                TradeFee = 0.1m
+                TransferFee = 0, //1,           zero for genesis. back to normal when genesis done
+                TokenGenerationFee = 0, //100,
+                TradeFee = 0m //0.1m
             };
 
             svcGenesis.Authorizers = new List<PosNode>();

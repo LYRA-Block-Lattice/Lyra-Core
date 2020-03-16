@@ -120,8 +120,8 @@ namespace Lyra.Core.Decentralize
                 if (OnBlockSucceed != null)
                 {
                     var block2 = await OnBlockSucceed(state1.InputMsg.Block as TransactionBlock).ConfigureAwait(false);
-
-                    state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
+                    if(block2 != null)
+                        state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
                 }
             }
             else
@@ -300,6 +300,9 @@ namespace Lyra.Core.Decentralize
             }
             else if (sendBlock.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TransferFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
+
+            if(sendBlock.FeeType == AuthorizationFeeTypes.NoFee)
+                return (APIResultCodes.Success, null);
 
             return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
         }

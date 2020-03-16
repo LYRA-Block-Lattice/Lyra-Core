@@ -580,7 +580,7 @@ namespace Lyra.Core.Accounts
                     //PaymentID = string.Empty,
                     Fee = fee,
                     FeeCode = LyraGlobal.LYRATICKERCODE,
-                    FeeType = AuthorizationFeeTypes.Regular
+                    FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
                 };
             }
             else
@@ -594,7 +594,7 @@ namespace Lyra.Core.Accounts
                     //PaymentID = string.Empty,
                     Fee = fee,
                     FeeCode = LyraGlobal.LYRATICKERCODE,
-                    FeeType = AuthorizationFeeTypes.Regular
+                    FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
                 };
             };
 
