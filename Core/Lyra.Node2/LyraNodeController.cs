@@ -134,6 +134,20 @@ namespace LyraLexWeb2
             return await _node.GetLastServiceBlock(AccountId, Signature);
         }
 
+        [Route("GetLastConsolidationBlock")]
+        public async Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature)
+        {
+            CheckSyncState();
+            return await _node.GetLastConsolidationBlock(AccountId, Signature);
+        }
+
+        [Route("GetConsolidationBlocks")]
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight)
+        {
+            CheckSyncState();
+            return await _node.GetConsolidationBlocks(AccountId, Signature, startHeight);
+        }
+
         [Route("LookForNewTransfer")]
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {

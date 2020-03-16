@@ -183,7 +183,7 @@ namespace Lyra
                     var q = from ns in _nodeStatus
                             where ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId) 
                             group ns by ns.totalBlockCount into heights
-                            orderby heights.Count()
+                            orderby heights.Count() descending
                             select new
                             {
                                 Height = heights.Key,
@@ -241,7 +241,7 @@ namespace Lyra
 
                     while (true)
                     {
-                        var client = new LyraClientForNode(await GetClientForSeed0());
+                        var client = new LyraClientForNode(await FindValidSeedForSyncAsync());
 
                         var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
 
