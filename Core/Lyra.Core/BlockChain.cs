@@ -243,6 +243,15 @@ namespace Lyra
                     {
                         var client = new LyraClientForNode(await FindValidSeedForSyncAsync());
 
+                        // compare state
+                        var seedSyncState = await client.GetSyncState();
+                        var mySyncState = await GetNodeStatusAsync();
+                        if(seedSyncState.ResultCode == APIResultCodes.Success && seedSyncState.Status == mySyncState)
+                        {
+                            _log.LogInformation("Fully Synced with seeds.");
+                            break;
+                        }
+
                         var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
 
                         var currentConsHeight = state.LocalLastConsolidationHeight + 1;
