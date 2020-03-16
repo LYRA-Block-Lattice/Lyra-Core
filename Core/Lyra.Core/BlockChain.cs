@@ -428,7 +428,7 @@ namespace Lyra
                 accountId = NodeService.Instance.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
                 mode = _stateMachine.State,
-                totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount,
+                totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount + (await _store.GetAllUnConsolidatedBlocks()).Count(),
                 lastConsolidationHash = lastCons?.Hash,
                 lastUnSolidationHash = null,
                 connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
