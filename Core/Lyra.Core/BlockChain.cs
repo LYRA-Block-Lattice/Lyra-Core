@@ -409,7 +409,8 @@ namespace Lyra
 
                         if (DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
                         {
-                            if (!prevSvcBlock.Authorizers.Select(a => a.AccountID).SequenceEqual(ConsensusService.Board.PrimaryAuthorizers))
+                            var comp = new MultiSetComparer<string>();
+                            if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), ConsensusService.Board.PrimaryAuthorizers))
                             {
                                 _log.LogInformation($"PrimaryAuthorizers Changed: {count} Creating new ServiceBlock.");
 
