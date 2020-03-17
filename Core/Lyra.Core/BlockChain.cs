@@ -219,6 +219,7 @@ namespace Lyra
                     if (File.Exists(stateFn))
                         state = JsonConvert.DeserializeObject<ConsolidationState>(File.ReadAllText(stateFn));
 
+                    var unConsSynced = 0;
                     while (true)
                     {
                         var client = new LyraClientForNode(await FindValidSeedForSyncAsync());
@@ -255,7 +256,15 @@ namespace Lyra
                             // sync unconsolidated blocks
                             var unConsBlockResult = await client.GetUnConsolidatedBlocks();
                             if (unConsBlockResult.ResultCode == APIResultCodes.Success)
-                                await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
+                            {
+                                if (unConsSynced < unConsBlockResult.Entities.Count)
+                                {
+                                    await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
+                                    unConsSynced = unConsBlockResult.Entities.Count;
+                                }
+                                else
+                                    break;
+                            }                                
                         }
 
                         state.LocalLastConsolidationHeight = currentConsHeight;
@@ -330,6 +339,7 @@ namespace Lyra
                 .OnEntry(() => Task.Run(async () =>
                 {
                     await ResetUIDAsync();
+                    LyraSystem.Singleton.Consensus.Tell(new ConsensusService.Startup());
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup);
 
