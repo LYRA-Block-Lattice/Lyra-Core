@@ -464,7 +464,7 @@ namespace Lyra
                 // we need to update the consolidation flag
                 foreach(var hash in (block as ConsolidationBlock).blockHashes)
                 {
-                    if (!await _store.ConsolidateBlock(hash))
+                    if (!await _store.ConsolidateBlock(hash) && _stateMachine.State != BlockChainState.Engaging)
                         _log.LogCritical($"BlockChain Not consolidate block properly: {hash}");
                 }
             }
