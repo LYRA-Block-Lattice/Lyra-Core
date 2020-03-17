@@ -415,37 +415,44 @@ namespace Lyra
                     if (!_creatingSvcBlock)
                     {
                         _creatingSvcBlock = true;
-                        var prevSvcBlock = await GetLastServiceBlockAsync();
 
-                        if (DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
+                        try
                         {
-                            var comp = new MultiSetComparer<string>();
-                            if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), ConsensusService.Board.PrimaryAuthorizers))
+                            var prevSvcBlock = await GetLastServiceBlockAsync();
+
+                            if (DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
                             {
-                                _log.LogInformation($"PrimaryAuthorizers Changed: {count} Creating new ServiceBlock.");
-
-                                var svcBlock = new ServiceBlock
+                                var comp = new MultiSetComparer<string>();
+                                if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), ConsensusService.Board.PrimaryAuthorizers))
                                 {
-                                    NetworkId = prevSvcBlock.NetworkId,
-                                    Height = prevSvcBlock.Height + 1,
-                                    TransferFee = 1,           //zero for genesis. back to normal when genesis done
-                                    TokenGenerationFee = 100,
-                                    TradeFee = 0.1m
-                                };
+                                    _log.LogInformation($"PrimaryAuthorizers Changed: {count} Creating new ServiceBlock.");
 
-                                svcBlock.Authorizers = new List<PosNode>();
-                                foreach (var accId in ConsensusService.Board.PrimaryAuthorizers)
-                                {
-                                    svcBlock.Authorizers.Add(ConsensusService.Board.AllNodes[accId]);
+                                    var svcBlock = new ServiceBlock
+                                    {
+                                        NetworkId = prevSvcBlock.NetworkId,
+                                        Height = prevSvcBlock.Height + 1,
+                                        TransferFee = 1,           //zero for genesis. back to normal when genesis done
+                                        TokenGenerationFee = 100,
+                                        TradeFee = 0.1m
+                                    };
+
+                                    svcBlock.Authorizers = new List<PosNode>();
+                                    foreach (var accId in ConsensusService.Board.PrimaryAuthorizers)
+                                    {
+                                        svcBlock.Authorizers.Add(ConsensusService.Board.AllNodes[accId]);
+                                    }
+                                    svcBlock.InitializeBlock(prevSvcBlock, NodeService.Instance.PosWallet.PrivateKey,
+                                        NodeService.Instance.PosWallet.AccountId);
+
+                                    await SendBlockToConsensusAsync(svcBlock);
                                 }
-                                svcBlock.InitializeBlock(prevSvcBlock, NodeService.Instance.PosWallet.PrivateKey,
-                                    NodeService.Instance.PosWallet.AccountId);
-
-                                await SendBlockToConsensusAsync(svcBlock);
-                            }
+                            }                            
                         }
-                        await Task.Delay(10000);
-                        _creatingSvcBlock = false;
+                        finally
+                        {
+                            await Task.Delay(10000);
+                            _creatingSvcBlock = false;
+                        }                        
                     }
                 });
             }
