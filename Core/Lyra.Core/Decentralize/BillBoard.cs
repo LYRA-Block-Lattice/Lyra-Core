@@ -55,19 +55,19 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public bool CanDoConsensus
-        {
-            get
-            {
-                if (PrimaryAuthorizers == null)
-                    return false;
+        //public bool CanDoConsensus
+        //{
+        //    get
+        //    {
+        //        if (PrimaryAuthorizers == null)
+        //            return false;
 
-                if (BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
-                    return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusTotalNumber;
-                else
-                    return PrimaryAuthorizers.Length >= ProtocolSettings.Default.StandbyValidators.Length;
-            }            
-        }
+        //        if (BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
+        //            return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusTotalNumber;
+        //        else
+        //            return PrimaryAuthorizers.Length >= ProtocolSettings.Default.StandbyValidators.Length;
+        //    }            
+        //}
 
         public bool HasNode(string accountId) { return AllNodes.ContainsKey(accountId); }
         public PosNode GetNode(string accountId) { return AllNodes[accountId]; }

@@ -115,16 +115,16 @@ namespace Lyra.Core.Decentralize
 
         private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)
         {
-            //_log.LogInformation($"LocalAuthorizingAsync: {item.Block.BlockType} {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
+            ////_log.LogInformation($"LocalAuthorizingAsync: {item.Block.BlockType} {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
             var errCode = APIResultCodes.Success;
-            if (!ConsensusService.Board.CanDoConsensus)
-            {
-                errCode = APIResultCodes.PBFTNetworkNotReadyForConsensus;
-            }
-            else if(!ConsensusService.AuthorizerShapshot.Contains(NodeService.Instance.PosWallet.AccountId))
-            {
-                errCode = APIResultCodes.NotListedAsQualifiedAuthorizer;
-            }
+            //if (!ConsensusService.Board.CanDoConsensus)
+            //{
+            //    errCode = APIResultCodes.PBFTNetworkNotReadyForConsensus;
+            //}
+            //else if(!ConsensusService.AuthorizerShapshot.Contains(NodeService.Instance.PosWallet.AccountId))
+            //{
+            //    errCode = APIResultCodes.NotListedAsQualifiedAuthorizer;
+            //}
 
             if(errCode != APIResultCodes.Success)
             {
