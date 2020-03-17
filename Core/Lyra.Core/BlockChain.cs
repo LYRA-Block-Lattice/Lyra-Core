@@ -93,7 +93,7 @@ namespace Lyra
         private readonly IAccountCollectionAsync _store;
         private LyraSystem _sys;
         private ILogger _log;
-        private Mutex _creatingSvcBlock = new Mutex();
+        private bool _creatingSvcBlock = false;
 
         // status inquiry
         private List<NodeStatus> _nodeStatus;
@@ -402,9 +402,10 @@ namespace Lyra
                 // look for changes. if necessary create a new svc block.
                 Task.Run(async () =>
                 {
-                    if (_creatingSvcBlock.WaitOne(1))
+                    if (!_creatingSvcBlock)
                     {
-                        var prevSvcBlock = await GetLastServiceBlockAsync().ConfigureAwait(true);
+                        _creatingSvcBlock = true;
+                        var prevSvcBlock = await GetLastServiceBlockAsync();
 
                         if (DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
                         {
@@ -429,10 +430,11 @@ namespace Lyra
                                 svcBlock.InitializeBlock(prevSvcBlock, NodeService.Instance.PosWallet.PrivateKey,
                                     NodeService.Instance.PosWallet.AccountId);
 
-                                await SendBlockToConsensusAsync(svcBlock).ConfigureAwait(true);
+                                await SendBlockToConsensusAsync(svcBlock);
                             }
                         }
-                        _creatingSvcBlock.ReleaseMutex();
+                        await Task.Delay(10000);
+                        _creatingSvcBlock = false;
                     }
                 });
             }
