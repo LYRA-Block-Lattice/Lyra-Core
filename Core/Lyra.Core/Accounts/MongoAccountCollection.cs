@@ -193,7 +193,7 @@ namespace Lyra.Core.Accounts
             var filter = Builders<Block>.Filter;
             var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
 
-            var finds = await _blocks.FindAsync(filterDefination);
+            var finds = await _blocks.FindAsync(filterDefination, options);
             return await finds.FirstOrDefaultAsync() as ServiceBlock;
         }
 
