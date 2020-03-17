@@ -404,7 +404,7 @@ namespace Lyra
                 {
                     if (_creatingSvcBlock.WaitOne(1))
                     {
-                        var prevSvcBlock = await GetLastServiceBlockAsync();
+                        var prevSvcBlock = await GetLastServiceBlockAsync().ConfigureAwait(true);
 
                         if (DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
                         {
@@ -429,7 +429,7 @@ namespace Lyra
                                 svcBlock.InitializeBlock(prevSvcBlock, NodeService.Instance.PosWallet.PrivateKey,
                                     NodeService.Instance.PosWallet.AccountId);
 
-                                await SendBlockToConsensusAsync(svcBlock);
+                                await SendBlockToConsensusAsync(svcBlock).ConfigureAwait(true);
                             }
                         }
                         _creatingSvcBlock.ReleaseMutex();
@@ -747,7 +747,7 @@ namespace Lyra
                 _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                 var client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
                 var mode = await client.GetSyncState();
-                if (mode.ResultCode == APIResultCodes.Success && mode.SyncState == ConsensusWorkingMode.Normal)
+                if (mode.ResultCode == APIResultCodes.Success)
                 {
                     return client;
                 }
