@@ -25,9 +25,9 @@ using Settings = Neo.Settings;
 
 namespace Lyra
 {
-    public enum BlockChainState 
-    { 
-        Initializing, 
+    public enum BlockChainState
+    {
+        Initializing,
         Startup,    // the default mode. app started. wait for p2p stack up.
         Engaging,   // storing new commit while syncing blocks
         Almighty,   // fullly synced and working
@@ -63,7 +63,8 @@ namespace Lyra
         public class ImportCompleted { }
         public class FillMemoryPool { public IEnumerable<Transaction> Transactions; }
         public class FillCompleted { }
-        public class BlockAdded {
+        public class BlockAdded
+        {
             public string hash { get; set; }
         }
         private class ConsolidationState
@@ -74,34 +75,12 @@ namespace Lyra
         public static bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         private LyraRestClient _seed0Client;
 
-        //private long _UIndexSeed = 0;
-        //public async Task<long> GenSeedAsync()
-        //{
-        //    if(ConsensusService.IsThisNodeSeed0)
-        //        return _UIndexSeed++;
-        //    else
-        //    {
-        //        // assign UID from seed0
-        //        var uidResult = await (await GetClientForSeed0()).CreateBlockUId(
-        //            NodeService.Instance.PosWallet.AccountId,
-        //            Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey, hash, NodeService.Instance.PosWallet.AccountId),
-        //            hash);
-        //        if (uidResult.ResultCode != APIResultCodes.Success)
-        //        {
-        //            return uidResult.uid;
-        //        }
-        //        else
-        //            return -1;
-        //    }
-        //}
-
         public static BlockChain Singleton;
         public static readonly ECPoint[] StandbyValidators = ProtocolSettings.Default.StandbyValidators.OfType<string>().Select(p => //ECPoint.DecodePoint(p.HexToBytes(), ECCurve.Secp256r1)).ToArray();
                                                         ECPoint.FromBytes(Base58Encoding.DecodeAccountId(p), ECCurve.Secp256r1)).ToArray();
 
         public uint Height;
         public string NetworkID { get; private set; }
-        public bool InSyncing { get; private set; }
 
         private readonly StateMachine<BlockChainState, BlockChainTrigger> _stateMachine;
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStartupSync;
@@ -114,6 +93,7 @@ namespace Lyra
         private readonly IAccountCollectionAsync _store;
         private LyraSystem _sys;
         private ILogger _log;
+        private Mutex _creatingSvcBlock = new Mutex();
 
         // status inquiry
         private List<NodeStatus> _nodeStatus;
@@ -149,7 +129,7 @@ namespace Lyra
         private async Task ResetUIDAsync()
         {
             long uid = -1;
-            if(_sys.Consensus != null)
+            if (_sys.Consensus != null)
             {
                 var uidObj = await _sys.Consensus.Ask(new ConsensusService.AskForMaxActiveUID()) as ConsensusService.ReplyForMaxActiveUID;
                 if (uidObj != null && uidObj.uid.HasValue)
@@ -181,7 +161,7 @@ namespace Lyra
                     await Task.Delay(10000);
 
                     var q = from ns in _nodeStatus
-                            where ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId) 
+                            where ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId)
                             group ns by ns.totalBlockCount into heights
                             orderby heights.Count() descending
                             select new
@@ -246,7 +226,7 @@ namespace Lyra
                         // compare state
                         var seedSyncState = await client.GetSyncState();
                         var mySyncState = await GetNodeStatusAsync();
-                        if(seedSyncState.ResultCode == APIResultCodes.Success && seedSyncState.Status.Equals(mySyncState))
+                        if (seedSyncState.ResultCode == APIResultCodes.Success && seedSyncState.Status.Equals(mySyncState))
                         {
                             _log.LogInformation("Fully Synced with seeds.");
                             break;
@@ -256,13 +236,13 @@ namespace Lyra
 
                         var currentConsHeight = state.LocalLastConsolidationHeight + 1;
 
-                        if(currentConsHeight <= latestSeedCons.Height)
+                        if (currentConsHeight <= latestSeedCons.Height)
                         {
                             var consBlocksResult = await client.GetConsolidationBlocks(currentConsHeight);
                             if (consBlocksResult.ResultCode == APIResultCodes.Success)
                             {
                                 var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
-                                foreach(var consBlock in consBlocks)
+                                foreach (var consBlock in consBlocks)
                                 {
                                     await SyncManyBlocksAsync(client, consBlock.blockHashes);
 
@@ -274,7 +254,7 @@ namespace Lyra
                         {
                             // sync unconsolidated blocks
                             var unConsBlockResult = await client.GetUnConsolidatedBlocks();
-                            if(unConsBlockResult.ResultCode == APIResultCodes.Success)
+                            if (unConsBlockResult.ResultCode == APIResultCodes.Success)
                                 await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
                         }
 
@@ -384,7 +364,7 @@ namespace Lyra
 
                 // distribute staking coin to pre-defined authorizers
                 var gensWallet = await ShadowWallet.OpenWithKeyAsync(NetworkID, NodeService.Instance.PosWallet.PrivateKey);
-                foreach(var accId in ProtocolSettings.Default.StartupValidators)
+                foreach (var accId in ProtocolSettings.Default.StartupValidators)
                 {
                     await gensWallet.Sync(null);
                     var sendResult = await gensWallet.Send(LyraGlobal.MinimalAuthorizerBalance, accId);
@@ -395,7 +375,7 @@ namespace Lyra
                     else
                     {
                         _log.LogError($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} failed to accountId: {accId}");
-                    }                        
+                    }
                 }
 
                 await Task.Delay(3000);
@@ -410,13 +390,52 @@ namespace Lyra
 
         public void ConsolidationBlockFailed(string hash)
         {
-            if(_stateMachine.State == BlockChainState.Almighty)
+            if (_stateMachine.State == BlockChainState.Almighty)
                 _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
         }
 
         public void AuthorizerCountChanged(int count)
         {
+            if (ConsensusService.IsThisNodeSeed0 && _stateMachine.State == BlockChainState.Almighty)
+            {
+                //_log.LogInformation($"AuthorizerCountChanged: {count}");
+                // look for changes. if necessary create a new svc block.
+                Task.Run(async () =>
+                {
+                    if (_creatingSvcBlock.WaitOne(1))
+                    {
+                        var prevSvcBlock = await GetLastServiceBlockAsync();
 
+                        if (DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
+                        {
+                            if (!prevSvcBlock.Authorizers.Select(a => a.AccountID).SequenceEqual(ConsensusService.Board.PrimaryAuthorizers))
+                            {
+                                _log.LogInformation($"PrimaryAuthorizers Changed: {count} Creating new ServiceBlock.");
+
+                                var svcBlock = new ServiceBlock
+                                {
+                                    NetworkId = prevSvcBlock.NetworkId,
+                                    Height = prevSvcBlock.Height + 1,
+                                    TransferFee = 1,           //zero for genesis. back to normal when genesis done
+                                    TokenGenerationFee = 100,
+                                    TradeFee = 0.1m
+                                };
+
+                                svcBlock.Authorizers = new List<PosNode>();
+                                foreach (var accId in ConsensusService.Board.PrimaryAuthorizers)
+                                {
+                                    svcBlock.Authorizers.Add(ConsensusService.Board.AllNodes[accId]);
+                                }
+                                svcBlock.InitializeBlock(prevSvcBlock, NodeService.Instance.PosWallet.PrivateKey,
+                                    NodeService.Instance.PosWallet.AccountId);
+
+                                await SendBlockToConsensusAsync(svcBlock);
+                            }
+                        }
+                        _creatingSvcBlock.ReleaseMutex();
+                    }
+                });
+            }
         }
 
         public string GetUnConsolidatedHash(List<string> unCons)
@@ -459,10 +478,10 @@ namespace Lyra
                 LyraSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash });
             }
 
-            if(block is ConsolidationBlock)
+            if (block is ConsolidationBlock)
             {
                 // we need to update the consolidation flag
-                foreach(var hash in (block as ConsolidationBlock).blockHashes)
+                foreach (var hash in (block as ConsolidationBlock).blockHashes)
                 {
                     if (!await _store.ConsolidateBlock(hash) && _stateMachine.State != BlockChainState.Engaging)
                         _log.LogCritical($"BlockChain Not consolidate block properly: {hash}");
@@ -745,10 +764,10 @@ namespace Lyra
         {
             return;
 
-            InSyncing = true;
-            Task.Run(async () => {
+            Task.Run(async () =>
+            {
 
-                while(true)
+                while (true)
                 {
                     _log.LogInformation("BlockChain Doing Sync...");
                     string syncWithUrl = null;
@@ -780,14 +799,14 @@ namespace Lyra
                         long startUIndex = 0;//await _store.GetNewestBlockUIndexAsync() + 1;
 
                         // seed0 not rollback. seed0 rollback manually if necessary.
-                        if( startUIndex - 1 > syncToUIndex && NodeService.Instance.PosWallet.AccountId != ProtocolSettings.Default.StandbyValidators[0])
+                        if (startUIndex - 1 > syncToUIndex && NodeService.Instance.PosWallet.AccountId != ProtocolSettings.Default.StandbyValidators[0])
                         {
                             // detect blockchain rollback
                             _log.LogCritical($"BlockChain roll back detected!!! Roll back from {startUIndex} to {syncToUIndex}.");// Confirm? [Y/n]");
                             string answer = "y";// Console.ReadLine();
                             if (string.IsNullOrEmpty(answer) || answer.ToLower() == "y" || answer.ToLower() == "yes")
                             {
-                                for(var i = syncToUIndex + 1; i <= startUIndex - 1; i++)
+                                for (var i = syncToUIndex + 1; i <= startUIndex - 1; i++)
                                 {
                                     //await RemoveBlockAsync(i);
                                 }
@@ -849,7 +868,7 @@ namespace Lyra
                         }
 
                         var copyOK = await DoCopyBlock(startUIndex, syncToUIndex).ConfigureAwait(false);
-                        if(copyOK)
+                        if (copyOK)
                         {
                             //// check missing block
                             //for(long k = 1; k <= startUIndex; k++)
@@ -869,7 +888,6 @@ namespace Lyra
                     }
                 }
 
-                InSyncing = false;
                 LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 _log.LogInformation("BlockChain Sync Completed.");
             });

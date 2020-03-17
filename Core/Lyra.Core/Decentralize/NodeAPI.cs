@@ -49,7 +49,7 @@ namespace Lyra.Core.Decentralize
             {
                 ResultCode = APIResultCodes.Success,
                 NetworkID = BlockChain.Singleton.NetworkID,
-                SyncState = BlockChain.Singleton.InSyncing ? ConsensusWorkingMode.OutofSyncWaiting : ConsensusWorkingMode.Normal,
+                SyncState = BlockChain.Singleton.CurrentState == BlockChainState.Almighty ? ConsensusWorkingMode.Normal : ConsensusWorkingMode.OutofSyncWaiting,
                 LastConsolidationHash = consBlock == null ? null : consBlock.Hash,
                 //NewestBlockUIndex = await BlockChain.Singleton.GetNewestBlockUIndexAsync(),
                 Status = await BlockChain.Singleton.GetNodeStatusAsync()
