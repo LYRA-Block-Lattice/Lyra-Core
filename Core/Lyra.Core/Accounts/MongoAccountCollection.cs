@@ -302,6 +302,9 @@ namespace Lyra.Core.Accounts
 
         public async Task<Block> FindBlockByHashAsync(string hash)
         {
+            if (string.IsNullOrEmpty(hash))
+                return null;
+
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,

@@ -36,7 +36,9 @@ namespace Lyra.Core.Authorizers
             // service specifice feature
             //block.
 
-            var result = await VerifyBlockAsync(block, null);
+            var prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+
+            var result = await VerifyBlockAsync(block, prevBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
