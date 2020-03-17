@@ -115,9 +115,9 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
-            var result = new GetTokenNamesAPIResult();
+            var result = new GetListStringAPIResult();
             if(!await VerifyClientAsync(AccountId, Signature))
             {
                 result.ResultCode = APIResultCodes.APISignatureValidationFailed;
@@ -132,7 +132,7 @@ namespace Lyra.Core.Decentralize
                 var blocks = await BlockChain.Singleton.FindTokenGenesisBlocksAsync(keyword == "(null)" ? null : keyword);
                 if (blocks != null)
                 {
-                    result.TokenNames = blocks.Select(a => a.Ticker).ToList();
+                    result.Entities = blocks.Select(a => a.Ticker).ToList();
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else
@@ -395,6 +395,35 @@ namespace Lyra.Core.Decentralize
             catch (Exception e)
             {
                 Console.WriteLine("Exception in GetConsolidationBlocks: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
+        }
+
+        public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
+        {
+            var result = new GetListStringAPIResult();
+            if (!await VerifyClientAsync(AccountId, Signature))
+            {
+                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+                return result;
+            }
+
+            try
+            {
+                var blocks = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+                if (blocks != null)
+                {
+                    result.Entities = blocks.ToList();
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetUnConsolidatedBlocks: " + e.Message);
                 result.ResultCode = APIResultCodes.UnknownError;
             }
 

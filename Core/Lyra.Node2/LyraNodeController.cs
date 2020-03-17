@@ -86,7 +86,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetTokenNames")]
-        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
             CheckSyncState();
             return await _node.GetTokenNames(AccountId, Signature, keyword);
@@ -146,6 +146,13 @@ namespace LyraLexWeb2
         {
             CheckSyncState();
             return await _node.GetConsolidationBlocks(AccountId, Signature, startHeight);
+        }
+
+        [Route("GetUnConsolidatedBlocks")]
+        public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
+        {
+            CheckSyncState();
+            return await _node.GetUnConsolidatedBlocks(AccountId, Signature);
         }
 
         [Route("LookForNewTransfer")]

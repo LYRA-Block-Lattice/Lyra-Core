@@ -84,7 +84,7 @@ namespace Lyra.Core.Accounts
 
             var result = await _rpcClient.GetTokenNames(AccountId, SignAPICallAsync(), keyword);
             if (result.ResultCode == APIResultCodes.Success)
-                return result.TokenNames;
+                return result.Entities;
             else
                 throw new Exception("Error get Token names: " + result.ResultCode.ToString());
         }

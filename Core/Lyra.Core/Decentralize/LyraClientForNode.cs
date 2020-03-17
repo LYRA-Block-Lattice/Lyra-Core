@@ -42,5 +42,10 @@ namespace Lyra.Core.Decentralize
         {
             return await _client.GetSyncState();
         }
+
+        public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks()
+        {
+            return await _client.GetUnConsolidatedBlocks(NodeService.Instance.PosWallet.AccountId, await SignAPICallAsync());
+        }
     }
 }

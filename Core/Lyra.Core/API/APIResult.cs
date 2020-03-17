@@ -222,9 +222,9 @@ namespace Lyra.Core.API
         public NonFungibleToken NonFungibleToken { get; set; }
     }
 
-    public class GetTokenNamesAPIResult : APIResult
+    public class GetListStringAPIResult : APIResult
     {
-        public List<string> TokenNames { get; set; }
+        public List<string> Entities { get; set; }
     }
 
     public class GetVersionAPIResult : APIResult

@@ -264,28 +264,18 @@ namespace Lyra
                                 var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
                                 foreach(var consBlock in consBlocks)
                                 {
-                                    foreach(var hash in consBlock.blockHashes)
-                                    {
-                                        var blockResult = await client.GetBlockByHash(hash);
-                                        if(blockResult.ResultCode == APIResultCodes.Success)
-                                        {
-                                            var localBlock = await FindBlockByHashAsync(hash);
-                                            if (localBlock != null)
-                                                await RemoveBlockAsync(hash);
-
-                                            await AddBlockAsync(blockResult.GetBlock());
-                                        }                                        
-                                    }
+                                    await SyncManyBlocksAsync(client, consBlock.blockHashes);
 
                                     currentConsHeight = consBlock.Height;
                                 }
                             }
-                            else
-                                break;
                         }
                         else
                         {
-                            break;
+                            // sync unconsolidated blocks
+                            var unConsBlockResult = await client.GetUnConsolidatedBlocks();
+                            if(unConsBlockResult.ResultCode == APIResultCodes.Success)
+                                await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
                         }
 
                         state.LocalLastConsolidationHeight = currentConsHeight;
@@ -672,23 +662,22 @@ namespace Lyra
             state.Done = null;
         }
 
-        private async Task SyncManyBlocksAsync(long startUid, long endUid, bool withAuthorize)
+        private async Task SyncManyBlocksAsync(LyraClientForNode client, List<string> hashes)
         {
-            //for (long i = startUid; i <= endUid; i++)
-            //{
-            //    var myBlock = await GetBlockByUIndexAsync(i);
-            //    if (myBlock != null)
-            //        continue;
+            _log.LogInformation($"Syncing {hashes.Count()} blocks...");
 
-            //    if (await SyncOneBlock(i, withAuthorize))
-            //    {
-            //        _log.LogInformation($"Block {i} synced.");
-            //    }
-            //    else
-            //    {
-            //        _log.LogInformation($"Block {i} failed to sync.");
-            //    }
-            //}
+            foreach (var hash in hashes)
+            {
+                var blockResult = await client.GetBlockByHash(hash);
+                if (blockResult.ResultCode == APIResultCodes.Success)
+                {
+                    var localBlock = await FindBlockByHashAsync(hash);
+                    if (localBlock != null)
+                        await RemoveBlockAsync(hash);
+
+                    await AddBlockAsync(blockResult.GetBlock());
+                }
+            }
         }
 
         LyraRestClient _clientForSync;
