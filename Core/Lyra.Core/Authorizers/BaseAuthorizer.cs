@@ -96,7 +96,7 @@ namespace Lyra.Core.Authorizers
             if (block.Height <= 0)
                 return APIResultCodes.InvalidIndexSequence;
 
-            if (block.Height > 2 && previousBlock == null)       // bypass genesis block
+            if (block.Height > 1 && previousBlock == null)       // bypass genesis block
                 return APIResultCodes.PreviousBlockNotFound;
 
             if (block.Height == 1 && previousBlock != null)
