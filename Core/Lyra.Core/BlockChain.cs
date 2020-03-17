@@ -148,50 +148,54 @@ namespace Lyra
                 .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
+                    while(true)
                     {
-                        await Task.Delay(1000);
-                    }
+                        while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
+                        {
+                            await Task.Delay(1000);
+                        }
 
-                    _sys.Consensus.Tell(new ConsensusService.Startup());
+                        _sys.Consensus.Tell(new ConsensusService.Startup());
 
-                    _nodeStatus = new List<NodeStatus>();
-                    _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
+                        _nodeStatus = new List<NodeStatus>();
+                        _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
 
-                    await Task.Delay(10000);
+                        await Task.Delay(10000);
 
-                    var q = from ns in _nodeStatus
-                            where ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId)
-                            group ns by ns.totalBlockCount into heights
-                            orderby heights.Count() descending
-                            select new
+                        var q = from ns in _nodeStatus
+                                where ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId)
+                                group ns by ns.totalBlockCount into heights
+                                orderby heights.Count() descending
+                                select new
+                                {
+                                    Height = heights.Key,
+                                    Count = heights.Count()
+                                };
+
+                        if (q.Any())
+                        {
+                            var majorHeight = q.First();
+
+                            _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
+
+                            var myStatus = await GetNodeStatusAsync();
+                            if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
                             {
-                                Height = heights.Key,
-                                Count = heights.Count()
-                            };
-
-                    if (q.Any())
-                    {
-                        var majorHeight = q.First();
-
-                        _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
-
-                        var myStatus = await GetNodeStatusAsync();
-                        if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
-                        {
-                            _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
-                        }
-                        else if (myStatus.totalBlockCount <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
-                        {
-                            _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
-                        }
-                        //else if (majorHeight.Height > 2 && majorHeight.Count < 2)
-                        //{
-                        //    _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
-                        //}
-                        else
-                        {
-                            _stateMachine.Fire(BlockChainTrigger.QueryingConsensusNode);
+                                _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                            }
+                            else if (myStatus.totalBlockCount <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
+                            {
+                                _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                            }
+                            //else if (majorHeight.Height > 2 && majorHeight.Count < 2)
+                            //{
+                            //    _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
+                            //}
+                            else
+                            {
+                                _stateMachine.Fire(BlockChainTrigger.QueryingConsensusNode);
+                            }
+                            break;
                         }
                     }
                 }))
