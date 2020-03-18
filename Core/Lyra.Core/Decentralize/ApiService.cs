@@ -136,11 +136,11 @@ namespace Lyra.Core.Decentralize
             }
             else if(state1 == null)
             {
-                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
+                result.ResultCode = APIResultCodes.BlockFailedToBeAuthorized;
             }
             else
             {
-                result.ResultCode = state1.OutputMsgs.Count > 0 ? state1.OutputMsgs.First().Result : APIResultCodes.UnableToSendToConsensusNetwork;
+                result.ResultCode = state1.OutputMsgs.Count > 0 ? state1.OutputMsgs.First().Result : APIResultCodes.BlockFailedToBeAuthorized;
             }
             return result;
         }
