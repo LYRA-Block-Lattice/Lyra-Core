@@ -366,20 +366,24 @@ namespace Lyra.Core.Decentralize
                     }
                 }
 
-                // if necessary, insert a new ConsolidateBlock
-/*                if (IsThisNodeSeed0 && (BlockChain.Singleton.LastSavedUIndex - lastCons.UIndex > 1024 || DateTime.Now.ToUniversalTime() - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
+                //if necessary, insert a new ConsolidateBlock
+                if (IsThisNodeSeed0)
                 {
-                    if(!_activeConsensus.Values.Any(a => a.State != null && a.State.InputMsg?.Block?.BlockType == BlockTypes.Consolidation))
+                    var unConsList = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+                    var lastConsBlock = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
+
+                    if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastConsBlock.TimeStamp > TimeSpan.FromMinutes(10)))
                     {
                         try
                         {
+                            await CreateConsolidateBlockAsync();
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             _log.LogError($"In creating consolidation block: {ex.Message}");
                         }
                     }
-                } */
+                }
             }
             catch (Exception ex)
             {
@@ -389,36 +393,6 @@ namespace Lyra.Core.Decentralize
             {
                 
             }
-
-            //if (currentCons != null)
-            //{
-            //    var mt = new MerkleTree();
-            //    for (var ndx = lastCons.UIndex + 1; ndx < currentCons.UIndex; ndx++)      // TODO: handling "losing" block here
-            //    {
-            //        var block = BlockChain.Singleton.GetBlockByUIndex(ndx);
-            //        if (block == null)
-            //        {
-            //            _log.LogError("GenerateConsolidateBlock Fatal Error!!! should not happend.");
-            //            Task.Delay(100000000).Wait();
-            //        }
-            //        var mhash = MerkleHash.Create(block.UHash);
-            //        mt.AppendLeaf(mhash);
-            //    }
-
-            //    currentCons.MerkelTreeHash = mt.BuildTree().ToString();
-            //    currentCons.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
-            //        currentCons.NetworkId, currentCons.ShardId,
-            //        NodeService.Instance.PosWallet.AccountId);
-
-            //    currentCons.UHash = SignableObject.CalculateHash($"{currentCons.UIndex}|{currentCons.Index}|{currentCons.Hash}");
-
-            //    SendServiceBlock(currentCons);
-
-            //    // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to xx[consBlock.UIndex -1]xx may lost the newest block
-            //    // if the block is old enough ( > 2 mins ), it should be replaced by NullTransactionBlock.
-            //    // in fact we should reserve consolidate block number and wait 2min to do consolidating
-            //    // all null block's previous block is the last consolidate block, it's index is counted from 1 related to previous block
-            //}
         }
 
         private async Task CreateConsolidateBlockAsync()
@@ -458,32 +432,6 @@ namespace Lyra.Core.Decentralize
 
             _log.LogInformation($"ConsolidationBlock was submited. ");
         }
-
-        //private AuthState SendServiceBlock(TransactionBlock svcBlock)
-        //{
-        //    AuthorizingMsg msg = new AuthorizingMsg
-        //    {
-        //        From = NodeService.Instance.PosWallet.AccountId,
-        //        Block = svcBlock,
-        //        MsgType = ChatMessageType.AuthorizerPrePrepare
-        //    };
-
-        //    var state = CreateAuthringState(msg);
-        //    var localAuthResult = LocalAuthorizingAsync(msg);
-        //    state.AddAuthResult(localAuthResult);
-
-        //    if (!localAuthResult.IsSuccess)
-        //    {
-        //        _log.LogError($"Fatal Error: Consolidate block local authorization failed: {localAuthResult.Result}");
-        //    }
-        //    else
-        //    {
-        //        Send2P2pNetwork(msg);
-        //        Send2P2pNetwork(localAuthResult);
-        //    }
-
-        //    return state;
-        //}
 
         public static Props Props(IActorRef localNode)
         {
@@ -588,7 +536,7 @@ namespace Lyra.Core.Decentralize
                     if (worker3 != null)
                         await worker3.OnCommitAsync(msg3);
                     else
-                        _log.LogError($"No worker3 for {msg3.BlockHash}");
+                        _log.LogInformation($"No worker3 from {msg3.From.Shorten()} for {msg3.BlockHash.Shorten()}");
                     break;
                 case ChatMsg chat:
                     await OnRecvChatMsg(chat);
