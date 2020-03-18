@@ -525,7 +525,7 @@ namespace Lyra.Core.Decentralize
                     if (worker2 != null)
                         await worker2.OnPrepareAsync(msg2);
                     else
-                        _log.LogError($"No worker2 for {msg2.BlockHash}");
+                        _log.LogInformation($"No worker2 from {msg2.From.Shorten()} for {msg2.BlockHash.Shorten()}");
                     //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync 4 {item.MsgType}");
                     break;
                 case AuthorizerCommitMsg msg3:

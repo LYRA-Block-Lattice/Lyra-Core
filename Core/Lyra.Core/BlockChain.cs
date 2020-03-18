@@ -247,7 +247,8 @@ namespace Lyra
                                 var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
                                 foreach (var consBlock in consBlocks)
                                 {
-                                    await SyncManyBlocksAsync(client, consBlock.blockHashes);
+                                    if(!await VerifyConsolidationBlock(consBlock))
+                                        await SyncManyBlocksAsync(client, consBlock.blockHashes);
 
                                     state.LocalLastConsolidationHeight = consBlock.Height;
                                 }
@@ -700,6 +701,27 @@ namespace Lyra
             await state.Done.AsTask();
             state.Done.Close();
             state.Done = null;
+        }
+
+        private async Task<bool> VerifyConsolidationBlock(ConsolidationBlock consBlock)
+        {
+            var myConsBlock = await FindBlockByHashAsync(consBlock.Hash) as ConsolidationBlock;
+            if (myConsBlock == null)
+                return false;
+
+            var mt = new MerkleTree();
+            foreach (var hash in myConsBlock.blockHashes)
+            {
+                var myBlock = await FindBlockByHashAsync(hash);
+                if (myBlock == null)
+                    return false;
+
+                mt.AppendLeaf(MerkleHash.Create(hash));
+            }
+
+            var merkelTreeHash = mt.BuildTree().ToString();
+
+            return consBlock.MerkelTreeHash == merkelTreeHash;
         }
 
         private async Task SyncManyBlocksAsync(LyraClientForNode client, List<string> hashes)
