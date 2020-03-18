@@ -384,7 +384,7 @@ namespace Lyra.Core.Decentralize
             {
                 // get my authorize result
                 var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
-                if (myResult != null && myResult.Result == APIResultCodes.Success)
+                if (myResult != null && myResult.Result == APIResultCodes.Success && myResult.IsSuccess == (_state.CommitConsensus == ConsensusResult.Yay))
                     return;
 
                 // crap! this node is out of sync.

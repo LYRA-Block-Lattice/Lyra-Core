@@ -200,7 +200,6 @@ namespace Lyra
                     }
                 }))
                 .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Genesis)
-                //.Permit(BlockChainTrigger.ConsensusNodesOutOfSync, BlockChainState.Failed)
                 .Permit(BlockChainTrigger.ConsensusNodesSynced, BlockChainState.Engaging);
 
             _stateMachine.Configure(BlockChainState.Genesis)
@@ -275,66 +274,6 @@ namespace Lyra
 
                     _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
                 }))
-                .OnEntryFrom(_engageTriggerConsolidateFailed, (hash) => Task.Run(async () =>
-                {
-                    var block = await FindBlockByHashAsync(hash) as ConsolidationBlock;
-                    if (block == null)
-                    {
-                        // should not happen
-                        _log.LogCritical("Can't find block for ConsolidateFailed hash: " + hash);
-                    }
-                    else
-                    {
-                        //var mt = new MerkleTree();
-                        //var emptyNdx = new List<long>();
-                        //for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
-                        //{
-                        //    Block bndx = null;// await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
-
-                        //    if (bndx == null)
-                        //    {
-                        //        if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
-                        //            continue;
-                        //        else
-                        //        {
-                        //            // missing block
-                        //            // fetch, save
-                        //            var ret = await BlockChain.Singleton.SyncOneBlock(ndx, false);
-
-                        //            // check if result is ok
-
-                        //            ndx--;
-                        //            continue;
-                        //        }
-                        //    }
-                        //    else
-                        //    {
-                        //        if (block.NullUIndexes != null && block.NullUIndexes.Contains(ndx))
-                        //        {
-                        //            // extra block
-                        //            // remove block
-                        //            await BlockChain.Singleton.RemoveBlockAsync(ndx);
-                        //            continue;
-                        //        }
-                        //        else
-                        //        {
-                        //            mt.AppendLeaf(MerkleHash.Create(bndx.Hash));
-                        //        }
-                        //    }
-                        //}
-
-                        //var mkhash = mt.BuildTree().ToString();
-                        //if (block.MerkelTreeHash == mkhash)
-                        //{
-                        //    // success
-                        //    _log.LogInformation("ConsolidateFailed fixed OK.");
-                        //}
-                        //else
-                        //{
-                        //    _log.LogCritical("ConsolidateFailed can't fix.");
-                        //}
-                    }
-                }))
                 .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
 
             _stateMachine.Configure(BlockChainState.Almighty)
@@ -400,10 +339,26 @@ namespace Lyra
             });
         }
 
-        public void ConsolidationBlockFailed(string hash)
+        public async Task ConsolidationBlockFailedAsync(string hash)
         {
-            if (_stateMachine.State == BlockChainState.Almighty)
-                _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
+            _log.LogError($"ConsolidationBlockFailed for {hash.Shorten()}");
+
+            var client = new LyraClientForNode(await FindValidSeedForSyncAsync());
+            var consBlockReq = await client.GetBlockByHash(hash);
+            if(consBlockReq.ResultCode == APIResultCodes.Success)
+            {
+                var consBlock = consBlockReq.GetBlock() as ConsolidationBlock;
+
+                if (!await VerifyConsolidationBlock(consBlock))
+                {
+                    await SyncManyBlocksAsync(client, consBlock.blockHashes);
+                }
+            }
+            else
+            {
+                if (_stateMachine.State == BlockChainState.Almighty)
+                    _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
+            }
         }
 
         public void AuthorizerCountChanged(int count)

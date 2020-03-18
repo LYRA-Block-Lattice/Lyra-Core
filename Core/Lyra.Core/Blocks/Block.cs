@@ -309,7 +309,7 @@ namespace Lyra.Core.Blocks
 
         NotAllowedToSign = 300,
         NotAllowedToCommit = 301,
-        UnableToSendToConsensusNetwork = 302,
+        BlockFailedToBeAuthorized = 302,
         NodeOutOfSync = 303,
         PBFTNetworkNotReadyForConsensus = 304,
         DoubleSpentDetected = 305,
