@@ -239,11 +239,9 @@ namespace Lyra
 
                         var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
 
-                        var currentConsHeight = state.LocalLastConsolidationHeight + 1;
-
-                        if (currentConsHeight <= latestSeedCons.Height)
+                        if (state.LocalLastConsolidationHeight < latestSeedCons.Height)
                         {
-                            var consBlocksResult = await client.GetConsolidationBlocks(currentConsHeight);
+                            var consBlocksResult = await client.GetConsolidationBlocks(state.LocalLastConsolidationHeight);
                             if (consBlocksResult.ResultCode == APIResultCodes.Success)
                             {
                                 var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
@@ -251,7 +249,7 @@ namespace Lyra
                                 {
                                     await SyncManyBlocksAsync(client, consBlock.blockHashes);
 
-                                    currentConsHeight = consBlock.Height;
+                                    state.LocalLastConsolidationHeight = consBlock.Height;
                                 }
                             }
                         }
@@ -271,7 +269,6 @@ namespace Lyra
                             }                                
                         }
 
-                        state.LocalLastConsolidationHeight = currentConsHeight;
                         File.WriteAllText(stateFn, JsonConvert.SerializeObject(state));
                     }
 
