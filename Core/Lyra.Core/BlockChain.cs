@@ -377,7 +377,7 @@ namespace Lyra
                         {
                             var prevSvcBlock = await GetLastServiceBlockAsync();
 
-                            if (DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
+                            if (prevSvcBlock != null && DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
                             {
                                 var comp = new MultiSetComparer<string>();
                                 if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), ConsensusService.Board.PrimaryAuthorizers))
