@@ -414,6 +414,7 @@ namespace Lyra.Core.Decentralize
             }
             
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
+            consBlock.ServiceHash = (await BlockChain.Singleton.GetLastServiceBlockAsync()).Hash;
             consBlock.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId);
 
@@ -424,7 +425,7 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState(await BlockChain.Singleton.GetWinNumberAsync(), false);
+            var state = new AuthState(false);
             state.HashOfFirstBlock = consBlock.Hash;
             state.InputMsg = msg;
 

@@ -71,7 +71,7 @@ namespace Lyra.Core.Decentralize
             //    return _activeConsensus[ukey];
             //}
 
-            var state = new AuthState(await BlockChain.Singleton.GetWinNumberAsync());
+            var state = new AuthState();
             state.HashOfFirstBlock = ukey;
             state.InputMsg = item;
 
@@ -284,7 +284,7 @@ namespace Lyra.Core.Decentralize
         {
             // check state
             // debug: show all states
-            if (state.OutputMsgs.Count < await BlockChain.Singleton.GetWinNumberAsync())
+            if (state.OutputMsgs.Count < state.WinNumber)
             {
                 return;
             }
@@ -410,7 +410,7 @@ namespace Lyra.Core.Decentralize
             if(_state.AddCommitedResult(item))
                 await CheckCommitedOKAsync();
 
-            _log.LogInformation($"OnCommit: {_state.CommitMsgs.Count}/{await BlockChain.Singleton.GetWinNumberAsync()} From {item.From.Shorten()}, {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash.Shorten()}");
+            _log.LogInformation($"OnCommit: {_state.CommitMsgs.Count}/{_state.WinNumber} From {item.From.Shorten()}, {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash.Shorten()}");
 
             _context.OnNodeActive(item.From);        // track latest activities via billboard
             //}

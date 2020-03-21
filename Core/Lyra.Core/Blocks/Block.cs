@@ -26,6 +26,8 @@ namespace Lyra.Core.Blocks
         public BlockTypes BlockType { get; set; }
 
         public string PreviousHash { get; set; }
+        
+        public string ServiceHash { get; set; }
 
         /// <summary>
         /// Custom metadata in key/value format.
@@ -35,7 +37,7 @@ namespace Lyra.Core.Blocks
 
         public virtual BlockTypes GetBlockType() { return BlockTypes.Null; }
 
-        public virtual void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)
+        public void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)
         {
             Consolidated = false;
 
@@ -62,6 +64,7 @@ namespace Lyra.Core.Blocks
                              DateTimeToString(TimeStamp) + "|" +
                              this.Version + "|" +
                              this.BlockType.ToString() + "|" +
+                             this.ServiceHash + "|" +
                              this.PreviousHash + "|" +
                              JsonConvert.SerializeObject(Tags) + "|" +
                              this.GetExtraData();
@@ -100,8 +103,14 @@ namespace Lyra.Core.Blocks
             if (!ValidateTags())
                 return false;
 
-            //if (!VerifyHash())
-            //    return false;
+            if(string.IsNullOrWhiteSpace(ServiceHash))
+            {
+                if (BlockType != BlockTypes.Service)
+                    return false;
+
+                if (BlockType == BlockTypes.Service && Height > 1)
+                    return false;
+            }
 
             return true;
         }

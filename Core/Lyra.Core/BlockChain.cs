@@ -363,7 +363,7 @@ namespace Lyra
 
         public void AuthorizerCountChanged(int count)
         {
-            if (ConsensusService.IsThisNodeSeed0 && _stateMachine.State == BlockChainState.Almighty)
+            if (ConsensusService.IsThisNodeSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)
             {
                 //_log.LogInformation($"AuthorizerCountChanged: {count}");
                 // look for changes. if necessary create a new svc block.
@@ -388,6 +388,7 @@ namespace Lyra
                                     {
                                         NetworkId = prevSvcBlock.NetworkId,
                                         Height = prevSvcBlock.Height + 1,
+                                        ServiceHash = prevSvcBlock.Hash,
                                         TransferFee = 1,           //zero for genesis. back to normal when genesis done
                                         TokenGenerationFee = 100,
                                         TradeFee = 0.1m
@@ -396,7 +397,8 @@ namespace Lyra
                                     svcBlock.Authorizers = new List<PosNode>();
                                     foreach (var accId in ConsensusService.Board.PrimaryAuthorizers)
                                     {
-                                        svcBlock.Authorizers.Add(ConsensusService.Board.AllNodes[accId]);
+                                        if(ConsensusService.Board.AllNodes.ContainsKey(accId))
+                                            svcBlock.Authorizers.Add(ConsensusService.Board.AllNodes[accId]);
                                     }
                                     svcBlock.InitializeBlock(prevSvcBlock, NodeService.Instance.PosWallet.PrivateKey,
                                         NodeService.Instance.PosWallet.AccountId);
@@ -465,15 +467,6 @@ namespace Lyra
                 }
             }
             return result;
-        }
-
-        public async Task<int> GetWinNumberAsync()
-        {
-            var svcBlock = await GetLastServiceBlockAsync();
-            if (svcBlock == null || svcBlock.Height == 1)
-                return ProtocolSettings.Default.StandbyValidators.Length;
-            else
-                return svcBlock.Authorizers.Count() / 3 * 2 + 1;
         }
 
         public async Task<IEnumerable<string>> GetAllUnConsolidatedBlocksAsync() => await StopWatcher.Track(_store.GetAllUnConsolidatedBlocks(), StopWatcher.GetCurrentMethod());
@@ -581,6 +574,7 @@ namespace Lyra
             mt.AppendLeaf(MerkleHash.Create(lyraGen.Hash));
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
+            consBlock.ServiceHash = svcGen.Hash;
             consBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId);
 
@@ -647,7 +641,7 @@ namespace Lyra
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState(await GetWinNumberAsync(), true);
+            var state = new AuthState(true);
             state.HashOfFirstBlock = block.Hash;
             state.InputMsg = msg;
 

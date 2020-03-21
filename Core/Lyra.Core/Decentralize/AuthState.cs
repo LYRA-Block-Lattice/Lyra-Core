@@ -26,6 +26,7 @@ namespace Lyra.Core.Decentralize
         public DateTime T5 { get; set; }
 
         public string HashOfFirstBlock { get; set; }
+
         public AuthorizingMsg InputMsg { get; set; }
         public ConcurrentBag<AuthorizedMsg> OutputMsgs { get; set; }
         public ConcurrentBag<AuthorizerCommitMsg> CommitMsgs { get; set; }
@@ -38,13 +39,14 @@ namespace Lyra.Core.Decentralize
 
         public ConsensusResult CommitConsensus => GetCommitConsensusSuccess();
 
+        public int WinNumber => _serviceBlock.Authorizers.Count() / 3 * 2 + 1;
+
         ILogger _log;
 
-        private int _winNumber;
+        private ServiceBlock _serviceBlock;
 
-        public AuthState(int winNumber, bool haveWaiter = false)
+        public AuthState(bool haveWaiter = false)
         {
-            _winNumber = winNumber;
             _log = new SimpleLogger("AuthState").Logger;
 
             Created = DateTime.Now;
@@ -55,6 +57,11 @@ namespace Lyra.Core.Decentralize
             Semaphore = new SemaphoreSlim(1, 1);
             if(haveWaiter)
                 Done = new EventWaitHandle(false, EventResetMode.ManualReset);
+        }
+
+        public void SetView(ServiceBlock serviceBlock)
+        {
+            _serviceBlock = serviceBlock;
         }
 
         public bool AddAuthResult(AuthorizedMsg msg)
@@ -76,9 +83,8 @@ namespace Lyra.Core.Decentralize
                     return false;
                 }
 
-                // check network state
-                if (BlockChain.Singleton.CurrentState == BlockChainState.Genesis
-                    && !ProtocolSettings.Default.StandbyValidators.Contains(msg.From))
+                // check for valid validators
+                if (!_serviceBlock.Authorizers.Any(a => a.AccountID == msg.From))
                     return false;
 
                 OutputMsgs.Add(msg);
@@ -96,8 +102,9 @@ namespace Lyra.Core.Decentralize
                 return false;
 
             // check network state
-            if (BlockChain.Singleton.CurrentState == BlockChainState.Genesis
-                && !ProtocolSettings.Default.StandbyValidators.Contains(msg.From))
+            // !! only accept from svcBlock ( or associated view )
+            // check for valid validators
+            if (!_serviceBlock.Authorizers.Any(a => a.AccountID == msg.From))
                 return false;
 
             CommitMsgs.Add(msg);
@@ -109,11 +116,11 @@ namespace Lyra.Core.Decentralize
         {
             var AuthMsgList = OutputMsgs.ToList();
             var ok = AuthMsgList.Count(a => a.IsSuccess);
-            if (ok >= _winNumber)
+            if (ok >= WinNumber)
                 return ConsensusResult.Yay;
 
             var notok = AuthMsgList.Count(a => !a.IsSuccess);
-            if (notok >= _winNumber)
+            if (notok >= WinNumber)
                 return ConsensusResult.Nay;
 
             return ConsensusResult.Uncertain;
@@ -123,11 +130,11 @@ namespace Lyra.Core.Decentralize
         {
             var CommitMsgList = CommitMsgs.ToList();
             var ok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay);
-            if (ok >= _winNumber)
+            if (ok >= WinNumber)
                 return ConsensusResult.Yay;
 
             var notok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay);
-            if (notok >= _winNumber)
+            if (notok >= WinNumber)
                 return ConsensusResult.Nay;
 
             return ConsensusResult.Uncertain;

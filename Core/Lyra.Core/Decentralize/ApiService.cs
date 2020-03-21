@@ -75,7 +75,7 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState(await BlockChain.Singleton.GetWinNumberAsync(), true);
+            var state = new AuthState(true);
             state.HashOfFirstBlock = msg.Block.Hash;
             state.InputMsg = msg;
 
