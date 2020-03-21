@@ -84,7 +84,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // check for valid validators
-                if (!_serviceBlock.Authorizers.Any(a => a.AccountID == msg.From))
+                if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.AccountID == msg.From))
                     return false;
 
                 OutputMsgs.Add(msg);
