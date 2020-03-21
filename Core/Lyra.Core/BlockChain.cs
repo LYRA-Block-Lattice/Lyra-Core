@@ -157,6 +157,8 @@ namespace Lyra
 
                         _sys.Consensus.Tell(new ConsensusService.Startup());
 
+                        await Task.Delay(10000);
+
                         _nodeStatus = new List<NodeStatus>();
                         _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
 
