@@ -117,8 +117,6 @@ namespace Lyra
             _nodeConfig = nodeConfig;
             NetworkID = nodeConfig.Lyra.NetworkId;
 
-            ResetUIDAsync().Wait();
-
             Singleton = this;
         }
         public static Props Props(LyraSystem system)
@@ -126,18 +124,18 @@ namespace Lyra
             return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
         }
 
-        private async Task ResetUIDAsync()
-        {
-            long uid = -1;
-            if (_sys.Consensus != null)
-            {
-                var uidObj = await _sys.Consensus.Ask(new ConsensusService.AskForMaxActiveUID()) as ConsensusService.ReplyForMaxActiveUID;
-                if (uidObj != null && uidObj.uid.HasValue)
-                {
-                    uid = uidObj.uid.Value;
-                }
-            }
-        }
+        //private async Task ResetUIDAsync()
+        //{
+        //    long uid = -1;
+        //    if (_sys.Consensus != null)
+        //    {
+        //        var uidObj = await _sys.Consensus.Ask(new ConsensusService.AskForMaxActiveUID()) as ConsensusService.ReplyForMaxActiveUID;
+        //        if (uidObj != null && uidObj.uid.HasValue)
+        //        {
+        //            uid = uidObj.uid.Value;
+        //        }
+        //    }
+        //}
 
         private void CreateStateMachine()
         {
@@ -183,7 +181,13 @@ namespace Lyra
                             var myStatus = await GetNodeStatusAsync();
                             if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
                             {
-                                _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                                _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                                //_stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                                if (await FindLatestBlockAsync() == null && ConsensusService.IsThisNodeSeed0)
+                                {
+                                    await Task.Delay(15000);
+                                    Genesis();
+                                }
                             }
                             else if (myStatus.totalBlockCount <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
                             {
@@ -207,7 +211,6 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    await ResetUIDAsync();
                     if (await FindLatestBlockAsync() == null && ConsensusService.IsThisNodeSeed0)
                     {
                         Genesis();
@@ -281,7 +284,6 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    await ResetUIDAsync();
                     LyraSystem.Singleton.Consensus.Tell(new ConsensusService.Startup());
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup);

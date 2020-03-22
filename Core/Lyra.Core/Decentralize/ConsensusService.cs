@@ -206,9 +206,9 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation("Inquiry for node status.");
             });
 
-            Receive<ConsolidateFailed>((x) =>
+            ReceiveAsync<ConsolidateFailed>(async (x) =>
             {
-                BlockChain.Singleton.ConsolidationBlockFailedAsync(x.consolidationBlockHash);
+                await BlockChain.Singleton.ConsolidationBlockFailedAsync(x.consolidationBlockHash);
             });
 
             Task.Run(async () =>
