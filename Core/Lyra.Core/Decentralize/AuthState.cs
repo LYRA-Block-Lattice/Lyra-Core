@@ -25,8 +25,6 @@ namespace Lyra.Core.Decentralize
 
         public DateTime T5 { get; set; }
 
-        public string HashOfFirstBlock { get; set; }
-
         public AuthorizingMsg InputMsg { get; set; }
         public ConcurrentBag<AuthorizedMsg> OutputMsgs { get; set; }
         public ConcurrentBag<AuthorizerCommitMsg> CommitMsgs { get; set; }

@@ -656,7 +656,6 @@ namespace Lyra
 
             var state = new AuthState(true);
             state.SetView(await GetLastServiceBlockAsync());
-            state.HashOfFirstBlock = block.Hash;
             state.InputMsg = msg;
 
             _sys.Consensus.Tell(state);

@@ -73,7 +73,6 @@ namespace Lyra.Core.Decentralize
 
             var state = new AuthState();
             state.SetView(await BlockChain.Singleton.GetLastServiceBlockAsync());
-            state.HashOfFirstBlock = ukey;
             state.InputMsg = item;
 
             //// add possible out of ordered messages belong to the block

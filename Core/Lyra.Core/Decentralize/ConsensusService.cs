@@ -427,7 +427,6 @@ namespace Lyra.Core.Decentralize
 
             var state = new AuthState(false);
             state.SetView(await BlockChain.Singleton.GetLastServiceBlockAsync());
-            state.HashOfFirstBlock = consBlock.Hash;
             state.InputMsg = msg;
 
             await SubmitToConsensusAsync(state);
