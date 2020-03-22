@@ -1,15 +1,11 @@
-### [About Lyra DAG](https://github.com/graft-project/LyraNetwork/wiki)
-### [Tokenomics](https://github.com/graft-project/LyraNetwork/wiki/Tokenomics)
-### [Roadmap](https://github.com/graft-project/LyraNetwork/wiki/Roadmap)
+### [About Wizard Shops](https://github.com/wizd/WizardShops/wiki)
+### [Tokenomics](https://github.com/wizd/WizardShops/wiki/Tokenomics)
+### [Roadmap](https://github.com/wizd/WizardShops/wiki/Roadmap)
 
 # Note
 Testnet Live Now! (From 10 Jan 2020)
 
-Stable Release: https://github.com/graft-project/LyraNetwork/releases
-
-Nightly/Testing Releases: https://github.com/wizd/LyraNetwork/releases
-
-# Lyra Permissionless Node Setup
+# Wizard Shops Node Setup
 
 Note: 
 
@@ -32,7 +28,7 @@ https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 Install the ASP.NET Core runtime
 
-4. download Lyra releases from https://github.com/graft-project/LyraNetwork/releases to a folder, e.g. ~/lyra.permissionless-1.0.6.tar.gz
+4. download Lyra releases from https://github.com/wizd/WizardShops/releases to a folder, e.g. ~/lyra.permissionless-1.0.6.tar.gz
 
 `tar -xjvf lyra.permissionless-1.0.6.tar.gz`
 
