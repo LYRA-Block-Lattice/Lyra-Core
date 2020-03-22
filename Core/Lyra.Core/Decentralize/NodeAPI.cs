@@ -39,6 +39,9 @@ namespace Lyra.Core.Decentralize
             //    return false;
 
             var lastSvcBlock = await BlockChain.Singleton.GetLastServiceBlockAsync();
+            if (lastSvcBlock == null)
+                return false;
+
             return Signatures.VerifyAccountSignature(lastSvcBlock.Hash, accountId, signature);
         }
 
@@ -97,13 +100,13 @@ namespace Lyra.Core.Decentralize
             try
             {
                 var last_svc_block = await BlockChain.Singleton.GetLastServiceBlockAsync();
-                if(last_svc_block == null)
-                {
-                    // empty database. 
-                    throw new Exception("Database empty.");
-                }
-                result.Height = last_svc_block.Height;
-                result.SyncHash = last_svc_block.Hash;
+                //if(last_svc_block == null)
+                //{
+                //    // empty database. 
+                //    throw new Exception("Database empty.");
+                //}
+                result.Height = last_svc_block == null ? 0 : last_svc_block.Height;
+                result.SyncHash = last_svc_block == null ? "" : last_svc_block.Hash;
                 result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
                 result.ResultCode = APIResultCodes.Success;
             }

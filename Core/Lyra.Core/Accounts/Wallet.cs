@@ -93,15 +93,24 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                var result = await _rpcClient.GetSyncHeight();
-                if (result.ResultCode != APIResultCodes.Success)
-                    return result.ResultCode;
+                while(true)
+                {
+                    var result = await _rpcClient.GetSyncHeight();
+                    if (result.ResultCode != APIResultCodes.Success)
+                        return result.ResultCode;
 
-                if (NetworkId != result.NetworkId)
-                    return APIResultCodes.InvalidNetworkId;
+                    if (NetworkId != result.NetworkId)
+                        return APIResultCodes.InvalidNetworkId;
 
-                SyncHeight = result.Height;
-                SyncHash = result.SyncHash;
+                    SyncHeight = result.Height;
+                    SyncHash = result.SyncHash;
+
+                    if (SyncHeight > 0)
+                        break;
+                    else
+                        await Task.Delay(3000);
+                }
+
 
                 if (TransferFee == 0 || TokenGenerationFee == 0 || TradeFee == 0)
                 {
