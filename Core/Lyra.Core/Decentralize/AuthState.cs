@@ -37,9 +37,22 @@ namespace Lyra.Core.Decentralize
 
         public ConsensusResult CommitConsensus => GetCommitConsensusSuccess();
 
-        public int WinNumber => _serviceBlock == null ?
-            ProtocolSettings.Default.StandbyValidators.Length :
-            _serviceBlock.Authorizers.Count() / 3 * 2 + 1;
+        public int WinNumber
+        {
+            get
+            {
+                if(_serviceBlock == null)
+                {
+                    return ProtocolSettings.Default.StandbyValidators.Length;
+                }
+                var minCount = _serviceBlock.Authorizers.Count() / 3 * 2 + 1;
+                if (minCount < ProtocolSettings.Default.StandbyValidators.Length)
+                    return ProtocolSettings.Default.StandbyValidators.Length;
+                else
+                    return minCount;
+            }
+        }
+
 
         ILogger _log;
 
