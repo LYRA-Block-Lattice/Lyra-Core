@@ -332,6 +332,9 @@ namespace Lyra.Core.Decentralize
             // "patch" the exmpty UIndex
             // collec fees and do redistribute
             var lastCons = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
+            if (lastCons == null)
+                return;         // wait for genesis
+
             ConsolidationBlock currentCons = null;
             try
             {
