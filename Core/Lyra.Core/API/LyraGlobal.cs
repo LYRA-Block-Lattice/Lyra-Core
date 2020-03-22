@@ -9,6 +9,8 @@ namespace Lyra.Core.API
         public const string LYRATICKERCODE = "Lyra.Coin";
         public const int LYRAPRECISION = 8;
 
+        public const int MAXMIMUMAUTHORIZERS = 21;
+
         public const int ProtocolVersion = 1;
         public const int DatabaseVersion = 1;
 

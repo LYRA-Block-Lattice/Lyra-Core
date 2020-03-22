@@ -401,11 +401,22 @@ namespace Lyra
                                     {
                                         if(ConsensusService.Board.AllNodes.ContainsKey(accId))
                                             svcBlock.Authorizers.Add(ConsensusService.Board.AllNodes[accId]);
-                                    }
-                                    svcBlock.InitializeBlock(prevSvcBlock, NodeService.Instance.PosWallet.PrivateKey,
-                                        NodeService.Instance.PosWallet.AccountId);
 
-                                    await SendBlockToConsensusAsync(svcBlock);
+                                        if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXMIMUMAUTHORIZERS)
+                                            break;
+                                    }
+
+                                    if(svcBlock.Authorizers.Count() >= prevSvcBlock.Authorizers.Count())
+                                    {
+                                        svcBlock.InitializeBlock(prevSvcBlock, NodeService.Instance.PosWallet.PrivateKey,
+                                            NodeService.Instance.PosWallet.AccountId);
+
+                                        await SendBlockToConsensusAsync(svcBlock);
+                                    }
+                                    else
+                                    {
+                                        _log.LogError($"Authorizers count can't be less than {prevSvcBlock.Authorizers.Count()}");
+                                    }
                                 }
                             }                            
                         }
