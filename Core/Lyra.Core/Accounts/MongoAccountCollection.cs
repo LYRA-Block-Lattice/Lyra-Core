@@ -607,6 +607,7 @@ namespace Lyra.Core.Accounts
         {
             var options = new FindOptions<Block, BsonDocument>
             {
+                Limit = 100,
                 Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
                 Projection = Builders<Block>.Projection.Include(a => a.Hash)
             };
