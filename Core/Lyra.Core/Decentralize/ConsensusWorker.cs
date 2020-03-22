@@ -379,7 +379,7 @@ namespace Lyra.Core.Decentralize
             }
 
             _state.Done?.Set();
-            _context.FinishBlock(_state.HashOfFirstBlock);
+            _context.FinishBlock(block.Hash);
 
             if (block is ConsolidationBlock)
             {
