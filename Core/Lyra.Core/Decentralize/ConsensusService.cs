@@ -411,9 +411,17 @@ namespace Lyra.Core.Decentralize
             };
 
             var mt = new MerkleTree();
+            decimal feeAggregated = 0;
             foreach(var hash in consBlock.blockHashes)
             {
                 mt.AppendLeaf(MerkleHash.Create(hash));
+
+                // aggregate fees
+                var transBlock = (await BlockChain.Singleton.FindBlockByHashAsync(hash)) as TransactionBlock;
+                if(transBlock != null)
+                {
+                    feeAggregated += transBlock.Fee;
+                }
             }
             
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();

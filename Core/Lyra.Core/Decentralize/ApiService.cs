@@ -109,20 +109,20 @@ namespace Lyra.Core.Decentralize
         internal async Task<AuthorizationAPIResult> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)
         {
             bool IsSuccess;
-            AuthState state2 = null;
+            //AuthState state2 = null;
             var state1 = await PostToConsensusAsync(block1).ConfigureAwait(false);
 
             if(state1 != null && state1.CommitConsensus == ConsensusResult.Yay)
             {
                 IsSuccess = true;
 
-                //fee is the bottle neck!!! must do lazy fee collection by consolidation
-                if (OnBlockSucceed != null)
-                {
-                    var block2 = await OnBlockSucceed(state1.InputMsg.Block as TransactionBlock).ConfigureAwait(false);
-                    if(block2 != null)
-                        state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
-                }
+                ////fee is the bottle neck!!! must do lazy fee collection by consolidation
+                //if (OnBlockSucceed != null)
+                //{
+                //    var block2 = await OnBlockSucceed(state1.InputMsg.Block as TransactionBlock).ConfigureAwait(false);
+                //    if(block2 != null)
+                //        state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
+                //}
             }
             else
             {
