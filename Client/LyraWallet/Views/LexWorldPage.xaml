@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              x:Class="LyraWallet.Views.LexWorldPage"
+             Visual="Material"
              BackgroundColor="White">
     <ContentPage.Content>
         <StackLayout>

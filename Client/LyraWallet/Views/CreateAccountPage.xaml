@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:LyraWallet.ViewModels"
              x:Class="LyraWallet.Views.CreateAccountPage"
+             Visual="Material"
              Title="Wallet Setup (Step 2 of 2)">
     <ContentPage.Content>
         <StackLayout BackgroundColor="White">

@@ -172,7 +172,10 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="4.5.0.356" />
+    <PackageReference Include="Xamarin.Forms" Version="4.5.0.396" />
+    <PackageReference Include="Xamarin.Forms.Visual.Material">
+      <Version>4.5.0.396</Version>
+    </PackageReference>
     <PackageReference Include="ZXing.Net.Mobile.Forms">
       <Version>2.4.1</Version>
     </PackageReference>
