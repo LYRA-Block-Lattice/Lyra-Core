@@ -163,7 +163,7 @@ namespace Lyra
                         await Task.Delay(10000);
 
                         var q = from ns in _nodeStatus
-                                where ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId)
+                                where ConsensusService.Board.PrimaryAuthorizers != null && ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId)
                                 group ns by ns.totalBlockCount into heights
                                 orderby heights.Count() descending
                                 select new
