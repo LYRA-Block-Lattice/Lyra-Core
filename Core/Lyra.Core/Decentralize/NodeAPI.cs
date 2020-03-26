@@ -11,6 +11,7 @@ using Lyra.Core.Cryptography;
 using Neo;
 using System.Collections.Generic;
 using Lyra.Core.Authorizers;
+using Clifton.Blockchain;
 
 namespace Lyra.Core.Decentralize
 {
@@ -392,16 +393,28 @@ namespace Lyra.Core.Decentralize
                 return result;
             }
 
+            var mt = new MerkleTree();
             var blocks = new Block[consBlock.blockHashes.Count];
             for (int i = 0; i < blocks.Length; i++)
+            {
                 blocks[i] = await BlockChain.Singleton.FindBlockByHashAsync(consBlock.blockHashes[i]);
+                mt.AppendLeaf(MerkleHash.Create(blocks[i].Hash));
+            }
+            var merkelTreeHash = mt.BuildTree().ToString();
 
-            result.SetBlocks(blocks);
-            result.ResultCode = APIResultCodes.Success;
-
-            return result;
+            if(consBlock.MerkelTreeHash == merkelTreeHash)
+            {
+                result.SetBlocks(blocks);
+                result.ResultCode = APIResultCodes.Success;
+                return result;
+            }
+            else
+            {
+                // never replicate error data
+                result.ResultCode = APIResultCodes.BlockValidationFailed;
+                return result;
+            }            
         }
-
 
         public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight)
         {

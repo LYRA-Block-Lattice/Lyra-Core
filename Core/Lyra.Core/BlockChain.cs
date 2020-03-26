@@ -673,7 +673,7 @@ namespace Lyra
             state.Done = null;
         }
 
-        private async Task<bool> VerifyConsolidationBlock(ConsolidationBlock consBlock)
+        public async Task<bool> VerifyConsolidationBlock(ConsolidationBlock consBlock)
         {
             var myConsBlock = await FindBlockByHashAsync(consBlock.Hash) as ConsolidationBlock;
             if (myConsBlock == null)
