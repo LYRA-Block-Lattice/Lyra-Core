@@ -474,12 +474,18 @@ namespace Lyra
 
             if (block is ConsolidationBlock)
             {
+                var consBlock = block as ConsolidationBlock;
                 // we need to update the consolidation flag
-                foreach (var hash in (block as ConsolidationBlock).blockHashes)
+                foreach (var hash in consBlock.blockHashes)
                 {
                     if (!await _store.ConsolidateBlock(hash) && _stateMachine.State != BlockChainState.Engaging)
                         _log.LogCritical($"BlockChain Not consolidate block properly: {hash}");
                 }
+
+                // debug
+                var blockCountInDb = await _store.GetBlockCountAsync();
+                if (consBlock.totalBlockCount + 1 > blockCountInDb)
+                    _log.LogCritical($"Consolidation block miscalculate!! total: {blockCountInDb} calculated: {consBlock.totalBlockCount}");
             }
             return result;
         }
