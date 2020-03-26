@@ -367,6 +367,21 @@ namespace Lyra.Core.Decentralize
                     _log.LogWarning($"Block Save Failed Index: {block.Height}");
                 else
                     _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
+
+                // if self result is Nay, need (re)send commited msg here
+                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
+                if(myResult == null || myResult.Result != APIResultCodes.Success)
+                {
+                    var msg = new AuthorizerCommitMsg
+                    {
+                        From = NodeService.Instance.PosWallet.AccountId,
+                        MsgType = ChatMessageType.AuthorizerCommit,
+                        BlockHash = _state.InputMsg.Block.Hash,
+                        Consensus = _state.PrepareConsensus
+                    };
+
+                    _context.Send2P2pNetwork(msg);
+                }
             }
             else if (_state.CommitConsensus == ConsensusResult.Nay)
             {
