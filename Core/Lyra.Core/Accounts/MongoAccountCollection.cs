@@ -569,7 +569,7 @@ namespace Lyra.Core.Accounts
                 }
             }
 
-            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height}");
+            //_log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height}");
             await _blocks.InsertOneAsync(block);
             return true;
         }
