@@ -28,6 +28,11 @@ namespace Lyra.Core.Decentralize
             return await _client.GetLastConsolidationBlock(NodeService.Instance.PosWallet.AccountId, await SignAPICallAsync());
         }
 
+        internal async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string consolidationHash)
+        {
+            return await _client.GetBlocksByConsolidation(NodeService.Instance.PosWallet.AccountId, await SignAPICallAsync(), consolidationHash);
+        }
+
         internal async Task<MultiBlockAPIResult> GetConsolidationBlocks(long startConsHeight)
         {
             return await _client.GetConsolidationBlocks(NodeService.Instance.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight);

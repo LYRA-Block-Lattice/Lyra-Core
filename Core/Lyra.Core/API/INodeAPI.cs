@@ -26,6 +26,7 @@ namespace Lyra.Core.API
 
         Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature);
         Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight);
+        Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash);
         Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature);
         #endregion Blocklist information methods
 

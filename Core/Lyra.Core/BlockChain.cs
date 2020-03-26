@@ -252,7 +252,7 @@ namespace Lyra
                                 foreach (var consBlock in consBlocks)
                                 {
                                     if(!await VerifyConsolidationBlock(consBlock))
-                                        await SyncManyBlocksAsync(client, consBlock.blockHashes);
+                                        await SyncManyBlocksAsync(client, consBlock);
 
                                     state.LocalLastConsolidationHeight = consBlock.Height;
                                 }
@@ -692,6 +692,24 @@ namespace Lyra
             var merkelTreeHash = mt.BuildTree().ToString();
 
             return consBlock.MerkelTreeHash == merkelTreeHash;
+        }
+
+        private async Task SyncManyBlocksAsync(LyraClientForNode client, ConsolidationBlock consBlock)
+        {
+            _log.LogInformation($"Syncing Consolidations {consBlock.Height} / {consBlock.Hash.Shorten()} ");
+
+            var blocksResult = await client.GetBlocksByConsolidation(consBlock.Hash);
+            if(blocksResult.ResultCode == APIResultCodes.Success)
+            {
+                foreach(var block in blocksResult.GetBlocks())
+                {
+                    var localBlock = await FindBlockByHashAsync(block.Hash);
+                    if (localBlock != null)
+                        await RemoveBlockAsync(block.Hash);
+
+                    await AddBlockAsync(block);
+                }
+            }
         }
 
         private async Task SyncManyBlocksAsync(LyraClientForNode client, List<string> hashes)

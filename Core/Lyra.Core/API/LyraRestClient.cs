@@ -229,6 +229,18 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
+        public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetBlocksByConsolidation/?AccountId={AccountId}&Signature={Signature}&consolidationHash={consolidationHash}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
         public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetConsolidationBlocks/?AccountId={AccountId}&Signature={Signature}&startHeight={startHeight}");
