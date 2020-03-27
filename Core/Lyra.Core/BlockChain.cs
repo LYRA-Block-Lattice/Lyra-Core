@@ -189,7 +189,7 @@ namespace Lyra
                                     Genesis();
                                 }
                             }
-                            else if (myStatus.totalBlockCount <= majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
+                            else if (myStatus.totalBlockCount != majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
                             {
                                 _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                             }
@@ -251,7 +251,7 @@ namespace Lyra
                                 var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
                                 foreach (var consBlock in consBlocks)
                                 {
-                                    if(!await VerifyConsolidationBlock(consBlock))
+                                    if(!await VerifyConsolidationBlock(consBlock, latestSeedCons.Height))
                                         await SyncManyBlocksAsync(client, consBlock);
 
                                     state.LocalLastConsolidationHeight = consBlock.Height;
@@ -673,8 +673,10 @@ namespace Lyra
             state.Done = null;
         }
 
-        private async Task<bool> VerifyConsolidationBlock(ConsolidationBlock consBlock)
+        private async Task<bool> VerifyConsolidationBlock(ConsolidationBlock consBlock, long latestHeight = -1)
         {
+            _log.LogInformation($"VerifyConsolidationBlock: {consBlock.Height}/{latestHeight}");
+
             var myConsBlock = await FindBlockByHashAsync(consBlock.Hash) as ConsolidationBlock;
             if (myConsBlock == null)
                 return false;
