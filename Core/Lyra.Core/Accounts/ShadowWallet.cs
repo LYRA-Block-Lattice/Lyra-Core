@@ -6,13 +6,29 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AutoSender
+namespace Lyra.Core.Accounts
 {
-    class ShadowWallet
+    public class ShadowWallet
     {
         public ShadowWallet()
         {
 
+        }
+
+        public static async Task<Wallet> OpenWithKeyAsync(string networkId, string privateKey)
+        {
+            // create wallet and update balance
+            var memStor = new AccountInMemoryStorage();
+            var acctWallet = new ExchangeAccountWallet(memStor, networkId);
+            acctWallet.AccountName = "tmpAcct";
+            await acctWallet.RestoreAccountAsync("", privateKey);
+            acctWallet.OpenAccount("", acctWallet.AccountName);
+
+            Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
+            var rpcClient = await LyraRestClient.CreateAsync(networkId, Environment.OSVersion.Platform.ToString(), "Lyra Client Cli", "1.0a");
+            await acctWallet.Sync(rpcClient);
+
+            return acctWallet;
         }
 
         public static async Task<Wallet> OpenAsync(string networkId, string walletName)

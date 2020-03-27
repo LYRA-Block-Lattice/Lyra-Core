@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Lyra.Core.Decentralize;
 using MongoDB.Bson.Serialization.Attributes;
+using Neo;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
@@ -22,8 +24,7 @@ namespace Lyra.Core.Blocks
     public class ServiceBlock : Block
     {
         //public Dictionary<string, NodeInfo> Authorizers { get; set; }
-        //public List<NodeInfo> Authorizers { get; set; }
-
+        public List<PosNode> Authorizers { get; set; }
         //public List<NodeInfo> Candidates { get; set; }
 
         ///// <summary>
@@ -51,8 +52,6 @@ namespace Lyra.Core.Blocks
         /// </summary>
         public string NetworkId { get; set; }
 
-        public string SvcAccountID { get; set; }
-
         // Amount of fee for LYRA gas and custom token transfers;
         public decimal TransferFee { get; set; }
 
@@ -64,11 +63,17 @@ namespace Lyra.Core.Blocks
         //public int TokenGenerationDifficulty { get; set; }
         //public int TradeDifficulty { get; set; }
 
+        public ServiceBlock()
+        {
+            
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData += this.NetworkId + "|";
-            extraData += this.SvcAccountID + "|";
+            foreach(var pn in Authorizers)
+                extraData += pn.Signature + "|";
             extraData = extraData + JsonConvert.SerializeObject(TransferFee) + "|";
             extraData = extraData + JsonConvert.SerializeObject(TokenGenerationFee) + "|";
             extraData = extraData + JsonConvert.SerializeObject(TradeFee) + "|";
@@ -82,7 +87,7 @@ namespace Lyra.Core.Blocks
 
         public override bool IsBlockValid(Block prevBlock)
         {
-            if (string.IsNullOrWhiteSpace(this.NetworkId) || string.IsNullOrWhiteSpace(this.SvcAccountID))
+            if (string.IsNullOrWhiteSpace(this.NetworkId) || Authorizers.Count < ProtocolSettings.Default.StandbyValidators.Length)
                 return false;
 
             return base.IsBlockValid(prevBlock);

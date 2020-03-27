@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
              Title="The LeX Community"
+             Visual="Material"
              x:Class="LyraWallet.Views.LexCommunityPage">
     <ContentPage.Content>
         <StackLayout Margin="0" Padding="0">

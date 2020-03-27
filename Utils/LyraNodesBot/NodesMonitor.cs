@@ -108,7 +108,7 @@ namespace LyraNodesBot
             var json = wc.DownloadString($"https://{apiHost}:4505/api/LyraNode/GetSyncState");
             var bb = JsonConvert.DeserializeObject<GetSyncStateAPIResult>(json);
 
-            await SendGroupMessageAsync(chatid, $"Current Height: *{bb.NewestBlockUIndex}*");
+            //await SendGroupMessageAsync(chatid, $"Current Height: *{bb.NewestBlockUIndex}*");
         }
         private async Task SendNodesInfoToGroupAsync(ChatId chatid)
         {
@@ -123,7 +123,7 @@ namespace LyraNodesBot
             sb.AppendLine($"Maxmimum Tolerant Node Number: {ProtocolSettings.Default.ConsensusNumber}");
             sb.AppendLine($"Current Running Node Count: {bb.AllNodes.Count}");
             sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.Value.AbleToAuthorize)}");
-            var cando = bb.CanDoConsensus ? "Yes" : "No";
+            var cando = "unknown"; // bb.CanDoConsensus ? "Yes" : "No";
             sb.AppendLine($"Consensus Can be Made Now: {cando}");
 
             sb.AppendLine("\n*Primary Authorizers*\n");

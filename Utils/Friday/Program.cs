@@ -55,7 +55,7 @@ namespace Friday
                       await Task.Delay(10000);
                       var state2 = await rpcClient.GetSyncState();
 
-                      var tps = state2.NewestBlockUIndex - state.NewestBlockUIndex;
+                      var tps = state2.Status.totalBlockCount - state.Status.totalBlockCount;
 
                       Console.WriteLine($"\n============> TPS: {tps} / 10\n");
                   }

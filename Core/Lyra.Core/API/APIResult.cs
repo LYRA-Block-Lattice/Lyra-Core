@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
 using Lyra.Core.Decentralize;
@@ -120,6 +121,26 @@ namespace Lyra.Core.API
     //    public Block SendTransferBlock { get; set; }
     //    public Block TransactionBlock { get; set; }
     //}
+    public class MultiBlockAPIResult : APIResult
+    {
+        public string[] BlockDatas { get; set; }
+        public BlockTypes[] ResultBlockTypes { get; set; }
+
+        public void SetBlocks(Block[] blocks)
+        {
+            BlockDatas = blocks.Select(a => JsonConvert.SerializeObject(a)).ToArray();
+            ResultBlockTypes = blocks.Select(a => a.BlockType).ToArray();
+        }
+
+        public IEnumerable<Block> GetBlocks()
+        {
+            for(int i = 0; i < BlockDatas.Length; i++)
+            {
+                var block = new BlockAPIResult { BlockData = BlockDatas[i], ResultBlockType = ResultBlockTypes[i] };
+                yield return block.GetBlock();
+            }
+        }
+    }
 
     // return the auhtorization signatures for send or receive blocks
     public class BlockAPIResult : APIResult
@@ -201,9 +222,9 @@ namespace Lyra.Core.API
         public NonFungibleToken NonFungibleToken { get; set; }
     }
 
-    public class GetTokenNamesAPIResult : APIResult
+    public class GetListStringAPIResult : APIResult
     {
-        public List<string> TokenNames { get; set; }
+        public List<string> Entities { get; set; }
     }
 
     public class GetVersionAPIResult : APIResult
@@ -217,8 +238,9 @@ namespace Lyra.Core.API
     public class GetSyncStateAPIResult : APIResult
     {
         public string NetworkID { get; set; }
+        public string Signature { get; set; }   // sign public ip with private key
         public ConsensusWorkingMode SyncState { get; set; }
-        public long NewestBlockUIndex { get; set; }
+        public string LastConsolidationHash { get; set; }
         public NodeStatus Status { get; set; }
     }
 

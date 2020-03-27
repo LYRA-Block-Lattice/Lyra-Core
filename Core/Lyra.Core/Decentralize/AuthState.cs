@@ -25,38 +25,38 @@ namespace Lyra.Core.Decentralize
 
         public DateTime T5 { get; set; }
 
-        public string HashOfFirstBlock { get; set; }
         public AuthorizingMsg InputMsg { get; set; }
         public ConcurrentBag<AuthorizedMsg> OutputMsgs { get; set; }
         public ConcurrentBag<AuthorizerCommitMsg> CommitMsgs { get; set; }
 
         public SemaphoreSlim Semaphore { get; }
         public EventWaitHandle Done { get; set; }
-        public bool Settled { get; set; }
         public bool Saving { get; set; }
-
-        private ConsensusResult _consensusResult;
 
         public ConsensusResult PrepareConsensus => GetPrepareConsensusSuccess();
 
-        public static int WinNumber => BlockChain.Singleton.CurrentState == BlockChainState.Almighty ?
-            ProtocolSettings.Default.ConsensusWinNumber : ProtocolSettings.Default.StandbyValidators.Length;
+        public ConsensusResult CommitConsensus => GetCommitConsensusSuccess();
 
-        public ConsensusResult CommitConsensus
+        public int WinNumber
         {
             get
             {
-                if (!Settled)
+                if(_serviceBlock == null)
                 {
-                    _consensusResult = GetCommitConsensusSuccess();
-                    if (_consensusResult != ConsensusResult.Uncertain)
-                        Settled = true;
+                    return ProtocolSettings.Default.StandbyValidators.Length;
                 }
-                return _consensusResult;
+                var minCount = _serviceBlock.Authorizers.Count() / 3 * 2 + 1;
+                if (minCount < ProtocolSettings.Default.StandbyValidators.Length)
+                    return ProtocolSettings.Default.StandbyValidators.Length;
+                else
+                    return minCount;
             }
         }
 
+
         ILogger _log;
+
+        private ServiceBlock _serviceBlock;
 
         public AuthState(bool haveWaiter = false)
         {
@@ -70,6 +70,11 @@ namespace Lyra.Core.Decentralize
             Semaphore = new SemaphoreSlim(1, 1);
             if(haveWaiter)
                 Done = new EventWaitHandle(false, EventResetMode.ManualReset);
+        }
+
+        public void SetView(ServiceBlock serviceBlock)
+        {
+            _serviceBlock = serviceBlock;
         }
 
         public bool AddAuthResult(AuthorizedMsg msg)
@@ -91,9 +96,8 @@ namespace Lyra.Core.Decentralize
                     return false;
                 }
 
-                // check network state
-                if (BlockChain.Singleton.CurrentState == BlockChainState.Protect
-                    && !ProtocolSettings.Default.StandbyValidators.Contains(msg.From))
+                // check for valid validators
+                if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.AccountID == msg.From))
                     return false;
 
                 OutputMsgs.Add(msg);
@@ -105,14 +109,15 @@ namespace Lyra.Core.Decentralize
 
         public bool AddCommitedResult(AuthorizerCommitMsg msg)
         {
-            //_log.LogInformation($"Commit msg from: {msg.From}");
+            //_log.LogInformation($"Commit msg from: {msg.From.Shorten()}");
             // check repeated message
             if (CommitMsgs.ToList().Any(a => a.From == msg.From))
                 return false;
 
             // check network state
-            if (BlockChain.Singleton.CurrentState == BlockChainState.Protect
-                && !ProtocolSettings.Default.StandbyValidators.Contains(msg.From))
+            // !! only accept from svcBlock ( or associated view )
+            // check for valid validators
+            if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.AccountID == msg.From))
                 return false;
 
             CommitMsgs.Add(msg);

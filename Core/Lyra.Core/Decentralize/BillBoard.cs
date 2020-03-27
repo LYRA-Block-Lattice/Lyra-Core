@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Lyra.Shared;
 using Neo;
@@ -54,22 +55,19 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public bool CanDoConsensus
-        {
-            get
-            {
-                if (PrimaryAuthorizers == null)
-                    return false;
+        //public bool CanDoConsensus
+        //{
+        //    get
+        //    {
+        //        if (PrimaryAuthorizers == null)
+        //            return false;
 
-                if (BlockChain.Singleton == null)
-                    return true;
-
-                if (BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
-                    return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusWinNumber;
-                else
-                    return PrimaryAuthorizers.Length >= ProtocolSettings.Default.StandbyValidators.Length;
-            }            
-        }
+        //        if (BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
+        //            return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusTotalNumber;
+        //        else
+        //            return PrimaryAuthorizers.Length >= ProtocolSettings.Default.StandbyValidators.Length;
+        //    }            
+        //}
 
         public bool HasNode(string accountId) { return AllNodes.ContainsKey(accountId); }
         public PosNode GetNode(string accountId) { return AllNodes[accountId]; }
@@ -82,7 +80,7 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                AllNodes[node.AccountID].IP = node.IP;      // support for dynamic IP address
+                AllNodes[node.AccountID].IPAddress = node.IPAddress;      // support for dynamic IP address
             }
 
             node.LastStaking = DateTime.Now;
@@ -101,22 +99,25 @@ namespace Lyra.Core.Decentralize
         }
     }
 
-    public enum PosNodeMode { Unknown, InitSync, DynamicSync, Normal }
-
     public class PosNode
     {
         public string AccountID { get; set; }
-        public string IP { get; set; }
+        public string IPAddress { get; set; }
         public decimal Balance { get; set; }
         public DateTime LastStaking { get; set; }
-        public PosNodeMode Mode { get; set; }
+        public string Signature { get; set; }
 
         public PosNode(string accountId)
         {
             AccountID = accountId;
             LastStaking = DateTime.Now;
             Balance = 0;
-            Mode = PosNodeMode.Unknown;
+        }
+
+        public void Sign()
+        {
+            Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey,
+                    IPAddress, NodeService.Instance.PosWallet.AccountId);
         }
 
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die

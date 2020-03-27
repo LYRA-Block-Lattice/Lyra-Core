@@ -118,13 +118,13 @@ namespace Lyra.Core.Decentralize
             if (_orphanAuthStates.Values
                 .Where(s => s.InputMsg.Block is TransactionBlock)
                 .Select(t => t.InputMsg.Block as TransactionBlock)
-                .Any(a => a.AccountID == block.AccountID && a.Index == block.Index))
+                .Any(a => a.AccountID == block.AccountID && a.Height == block.Height))
                 return false;
 
             if (_orphanAuthorizingMsg.Values
                 .Where(s => s.Block is TransactionBlock)
                 .Select(t => t.Block as TransactionBlock)
-                .Any(a => a.AccountID == block.AccountID && a.Index == block.Index))
+                .Any(a => a.AccountID == block.AccountID && a.Height == block.Height))
                 return false;
 
             if (block.PreviousHash != null)

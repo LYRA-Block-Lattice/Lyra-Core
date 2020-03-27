@@ -19,8 +19,6 @@ namespace Lyra.Core.Decentralize
 {
     public class ApiService : INodeTransactionAPI//, IBlockConsensus
     {
-        IActorRef ConsensusSvc;
-
         private readonly ILogger<ApiService> _log;
 
         long _useed = -1;
@@ -28,8 +26,6 @@ namespace Lyra.Core.Decentralize
         public ApiService(ILogger<ApiService> logger)
         {
             _log = logger;
-
-            ConsensusSvc = LyraSystem.Singleton.Consensus;
         }
 
         //public async Task OnActivateAsync()
@@ -48,17 +44,17 @@ namespace Lyra.Core.Decentralize
 
         public async Task<BillBoard> GetBillBoardAsync()
         {
-            return await ConsensusSvc.Ask<BillBoard>(new ConsensusService.AskForBillboard());
+            return await LyraSystem.Singleton.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
         }
 
         public async Task<List<TransStats>> GetTransStatsAsync()
         {
-            return await ConsensusSvc.Ask<List<TransStats>>(new ConsensusService.AskForStats());
+            return await LyraSystem.Singleton.Consensus.Ask<List<TransStats>>(new ConsensusService.AskForStats());
         }
 
         public async Task<string> GetDbStats()
         {
-            return await ConsensusSvc.Ask<string>(new ConsensusService.AskForDbStats());
+            return await LyraSystem.Singleton.Consensus.Ask<string>(new ConsensusService.AskForDbStats());
         }
 
         private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
@@ -80,10 +76,10 @@ namespace Lyra.Core.Decentralize
             };
 
             var state = new AuthState(true);
-            state.HashOfFirstBlock = msg.Block.Hash;
+            state.SetView(await BlockChain.Singleton.GetLastServiceBlockAsync());
             state.InputMsg = msg;
 
-            ConsensusSvc.Tell(state);
+            LyraSystem.Singleton.Consensus.Tell(state);
 
             await state.Done.AsTask();
             state.Done.Close();
@@ -113,20 +109,20 @@ namespace Lyra.Core.Decentralize
         internal async Task<AuthorizationAPIResult> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)
         {
             bool IsSuccess;
-            AuthState state2 = null;
+            //AuthState state2 = null;
             var state1 = await PostToConsensusAsync(block1).ConfigureAwait(false);
 
             if(state1 != null && state1.CommitConsensus == ConsensusResult.Yay)
             {
                 IsSuccess = true;
 
-                //fee is the bottle neck!!! must do lazy fee collection by consolidation
-                if (OnBlockSucceed != null)
-                {
-                    var block2 = await OnBlockSucceed(state1.InputMsg.Block as TransactionBlock).ConfigureAwait(false);
-
-                    state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
-                }
+                ////fee is the bottle neck!!! must do lazy fee collection by consolidation
+                //if (OnBlockSucceed != null)
+                //{
+                //    var block2 = await OnBlockSucceed(state1.InputMsg.Block as TransactionBlock).ConfigureAwait(false);
+                //    if(block2 != null)
+                //        state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
+                //}
             }
             else
             {
@@ -140,11 +136,11 @@ namespace Lyra.Core.Decentralize
             }
             else if(state1 == null)
             {
-                result.ResultCode = APIResultCodes.UnableToSendToConsensusNetwork;
+                result.ResultCode = APIResultCodes.BlockFailedToBeAuthorized;
             }
             else
             {
-                result.ResultCode = state1.OutputMsgs.Count > 0 ? state1.OutputMsgs.First().Result : APIResultCodes.UnableToSendToConsensusNetwork;
+                result.ResultCode = state1.OutputMsgs.Count > 0 ? state1.OutputMsgs.First().Result : APIResultCodes.BlockFailedToBeAuthorized;
             }
             return result;
         }
@@ -305,6 +301,9 @@ namespace Lyra.Core.Decentralize
             else if (sendBlock.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TransferFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
+            if(sendBlock.FeeType == AuthorizationFeeTypes.NoFee)
+                return (APIResultCodes.Success, null);
+
             return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
         }
 
@@ -337,7 +336,7 @@ namespace Lyra.Core.Decentralize
                     Balances = new Dictionary<string, decimal>()
                 };
                 receiveBlock.Balances.Add(LyraGlobal.LYRATICKERCODE, fee);
-                await receiveBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId, await BlockChain.Singleton.GetClientForSeed0());
+                receiveBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
@@ -357,7 +356,7 @@ namespace Lyra.Core.Decentralize
 
                 decimal newBalance = latestBlock.Balances[LyraGlobal.LYRATICKERCODE] + fee;
                 receiveBlock.Balances.Add(LyraGlobal.LYRATICKERCODE, newBalance);
-                await receiveBlock.InitializeBlock(latestBlock, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId, await BlockChain.Singleton.GetClientForSeed0());
+                receiveBlock.InitializeBlock(latestBlock, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);

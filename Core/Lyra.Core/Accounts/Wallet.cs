@@ -37,7 +37,7 @@ namespace Lyra.Core.Accounts
         public long GetLocalAccountHeight()
         {
             var block = GetLatestBlock();
-            return block != null ? block.Index : 0;
+            return block != null ? block.Height : 0;
         }
 
         public Wallet(IAccountDatabase storage, string NetworkId) : base(null, storage, NetworkId)
@@ -84,7 +84,7 @@ namespace Lyra.Core.Accounts
 
             var result = await _rpcClient.GetTokenNames(AccountId, SignAPICallAsync(), keyword);
             if (result.ResultCode == APIResultCodes.Success)
-                return result.TokenNames;
+                return result.Entities;
             else
                 throw new Exception("Error get Token names: " + result.ResultCode.ToString());
         }
@@ -93,15 +93,24 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                var result = await _rpcClient.GetSyncHeight();
-                if (result.ResultCode != APIResultCodes.Success)
-                    return result.ResultCode;
+                while(true)
+                {
+                    var result = await _rpcClient.GetSyncHeight();
+                    if (result.ResultCode != APIResultCodes.Success)
+                        return result.ResultCode;
 
-                if (NetworkId != result.NetworkId)
-                    return APIResultCodes.InvalidNetworkId;
+                    if (NetworkId != result.NetworkId)
+                        return APIResultCodes.InvalidNetworkId;
 
-                SyncHeight = result.Height;
-                SyncHash = result.SyncHash;
+                    SyncHeight = result.Height;
+                    SyncHash = result.SyncHash;
+
+                    if (SyncHeight > 0)
+                        break;
+                    else
+                        await Task.Delay(3000);
+                }
+
 
                 if (TransferFee == 0 || TokenGenerationFee == 0 || TradeFee == 0)
                 {
@@ -113,7 +122,7 @@ namespace Lyra.Core.Accounts
                     TransferFee = lastServiceBlock.TransferFee;
                     TokenGenerationFee = lastServiceBlock.TokenGenerationFee;
                     TradeFee = lastServiceBlock.TradeFee;
-                    Console.WriteLine($"Last Service Block Received {lastServiceBlock.Index}");
+                    Console.WriteLine($"Last Service Block Received {lastServiceBlock.Height}");
                     Console.WriteLine(string.Format("Transfer Fee: {0} ", lastServiceBlock.TransferFee));
                     Console.WriteLine(string.Format("Token Generation Fee: {0} ", lastServiceBlock.TokenGenerationFee));
                     Console.WriteLine(string.Format("Trade Fee: {0} ", lastServiceBlock.TradeFee));
@@ -580,7 +589,7 @@ namespace Lyra.Core.Accounts
                     //PaymentID = string.Empty,
                     Fee = fee,
                     FeeCode = LyraGlobal.LYRATICKERCODE,
-                    FeeType = AuthorizationFeeTypes.Regular
+                    FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
                 };
             }
             else
@@ -594,7 +603,7 @@ namespace Lyra.Core.Accounts
                     //PaymentID = string.Empty,
                     Fee = fee,
                     FeeCode = LyraGlobal.LYRATICKERCODE,
-                    FeeType = AuthorizationFeeTypes.Regular
+                    FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
                 };
             };
 
@@ -610,7 +619,7 @@ namespace Lyra.Core.Accounts
                 if (!(sendBlock.Balances.ContainsKey(balance.Key)))
                     sendBlock.Balances.Add(balance.Key, balance.Value);
 
-            await sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId, _rpcClient);
+            sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
@@ -633,7 +642,7 @@ namespace Lyra.Core.Accounts
 
             if (result.ResultCode == APIResultCodes.Success)
             {
-                sendBlock.Authorizations = result.Authorizations;
+                //sendBlock.Authorizations = result.Authorizations;
                 sendBlock.ServiceHash = result.ServiceHash;
                 AddBlock(sendBlock);
             }
@@ -977,7 +986,7 @@ namespace Lyra.Core.Accounts
             };
 
             openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount);
-            await openReceiveBlock.InitializeBlock(null, PrivateKey, AccountId, _rpcClient);
+            openReceiveBlock.InitializeBlock(null, PrivateKey, AccountId);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 
@@ -1001,7 +1010,7 @@ namespace Lyra.Core.Accounts
             {
                 Console.WriteLine($"Receive transfer block has been authorized successfully");
                 // request the authorized block and save it locally 
-                openReceiveBlock.Authorizations = result.Authorizations;
+                //openReceiveBlock.Authorizations = result.Authorizations;
                 openReceiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openReceiveBlock);
                 Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
@@ -1049,7 +1058,7 @@ namespace Lyra.Core.Accounts
                 if (!(receiveBlock.Balances.ContainsKey(balance.Key)))
                     receiveBlock.Balances.Add(balance.Key, balance.Value);
 
-            await receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId, _rpcClient);
+            receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
 
             if (!receiveBlock.ValidateTransaction(latestBlock))
                 throw new ApplicationException("ValidateTransaction failed");
@@ -1078,7 +1087,7 @@ namespace Lyra.Core.Accounts
                 Console.WriteLine($"Receive transfer block has been authorized successfully");
                 //// request the authorized block and save it locally 
                 //GetBlock(receiveBlock.Index);
-                receiveBlock.Authorizations = result.Authorizations;
+                //receiveBlock.Authorizations = result.Authorizations;
                 receiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(receiveBlock);
                 Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
@@ -1136,7 +1145,7 @@ namespace Lyra.Core.Accounts
 
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
             //openTokenGenesisBlock.Transaction = transaction;
-            await openTokenGenesisBlock.InitializeBlock(null, PrivateKey, AccountId, _rpcClient);
+            openTokenGenesisBlock.InitializeBlock(null, PrivateKey, AccountId);
 
             //openTokenGenesisBlock.Signature = Signatures.GetSignature(PrivateKey, openTokenGenesisBlock.Hash);
 
@@ -1163,7 +1172,7 @@ namespace Lyra.Core.Accounts
                 Console.WriteLine($"Genesis block has been authorized successfully");
                 // request the authorized block and save it locally 
                 //GetBlock(1);
-                openTokenGenesisBlock.Authorizations = result.Authorizations;
+                //openTokenGenesisBlock.Authorizations = result.Authorizations;
                 openTokenGenesisBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openTokenGenesisBlock);
                 Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
@@ -1240,7 +1249,7 @@ namespace Lyra.Core.Accounts
                 if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
                     tokenBlock.Balances.Add(balance.Key, balance.Value);
 
-            await tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId, _rpcClient);
+            tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
 
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
 
@@ -1257,7 +1266,7 @@ namespace Lyra.Core.Accounts
             else
             if (result.ResultCode == APIResultCodes.Success)
             {
-                tokenBlock.Authorizations = result.Authorizations;
+                //tokenBlock.Authorizations = result.Authorizations;
                 tokenBlock.ServiceHash = result.ServiceHash;
                 AddBlock(tokenBlock);
             }

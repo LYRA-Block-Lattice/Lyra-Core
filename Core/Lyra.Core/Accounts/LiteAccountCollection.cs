@@ -37,8 +37,7 @@ namespace Lyra.Core.Accounts
             _db = new LiteDatabase(connectionString);
             _blocks = _db.GetCollection<Block>("blocks");
             //_blocks.EnsureIndex(x => x.AccountID);
-            _blocks.EnsureIndex(x => x.Index);
-            _blocks.EnsureIndex(x => x.UIndex);
+            _blocks.EnsureIndex(x => x.Height);
             _blocks.EnsureIndex(x => x.BlockType);
             _blocks.EnsureIndex(x => x.Hash);
             _blocks.EnsureIndex(x => x.PreviousHash);
@@ -71,7 +70,7 @@ namespace Lyra.Core.Accounts
         public ServiceBlock GetLastServiceBlock()
         {
             var finds = _blocks.Find(Query.EQ("BlockType", "Service"))
-                .OrderByDescending(b => b.UIndex)
+                .OrderByDescending(b => b.Height)
                 .First();
             return finds as ServiceBlock;
         }
@@ -79,26 +78,26 @@ namespace Lyra.Core.Accounts
         public ConsolidationBlock GetSyncBlock()
         {
             var finds = _blocks.Find(Query.EQ("BlockType", "Consolidation"))
-                    .OrderByDescending(b => b.UIndex)
+                    .OrderByDescending(b => b.Height)
                     .First();
             return finds as ConsolidationBlock;
         }
 
-        public TransactionBlock FindLatestBlock()
-        {
-            var ui = _blocks.Max("UIndex");
-            if (ui.AsInt64 == 0)
-                return null;
+        //public TransactionBlock FindLatestBlock()
+        //{
+        //    var ui = _blocks.Max("UIndex");
+        //    if (ui.AsInt64 == 0)
+        //        return null;
 
-            var block = _blocks.FindOne(Query.EQ("UIndex", ui));
+        //    var block = _blocks.FindOne(Query.EQ("UIndex", ui));
             
-            return block as TransactionBlock;
-        }
+        //    return block as TransactionBlock;
+        //}
 
         public TransactionBlock FindLatestBlock(string AccountId)
         {
             var block = _blocks.Find(Query.EQ("AccountID", AccountId))
-                .OrderByDescending(a => a.Index)
+                .OrderByDescending(a => a.Height)
                 .FirstOrDefault();
 
             return block as TransactionBlock;
@@ -347,17 +346,17 @@ namespace Lyra.Core.Accounts
 
         public bool AddBlock(TransactionBlock block)
         {
-            if (block.Index == 0 || block.UIndex == 0)
+            if (block.Height == 0)
             {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with zero index/UIndex is now allowed!");
+                _log.LogWarning("AccountCollection=>AddBlock: Block with zero Height is now allowed!");
                 return false;
             }
 
-            if (GetBlockByUIndex(block.UIndex) != null)
-            {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
-                return false;
-            }
+            //if (GetBlockByUIndex(block.UIndex) != null)
+            //{
+            //    _log.LogWarning("AccountCollection=>AddBlock: Block with such UIndex already exists!");
+            //    return false;
+            //}
 
             if (FindBlockByHash(block.Hash) != null)
             {
@@ -365,7 +364,7 @@ namespace Lyra.Core.Accounts
                 return false;
             }
 
-            if (FindBlockByIndex(block.AccountID, block.Index) != null)
+            if (FindBlockByIndex(block.AccountID, block.Height) != null)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
                 return false;
@@ -382,17 +381,17 @@ namespace Lyra.Core.Accounts
                 _db.Dispose();
         }
 
-        public long GetNewestBlockUIndex()
-        {
-            var ui = _blocks.Max("UIndex");
-            return ui.AsInt64;
-        }
+        //public long GetNewestBlockUIndex()
+        //{
+        //    var ui = _blocks.Max("UIndex");
+        //    return ui.AsInt64;
+        //}
 
-        public TransactionBlock GetBlockByUIndex(long uindex)
-        {
-            var block = _blocks.Find(Query.EQ("UIndex", uindex)).FirstOrDefault();
-            return block as TransactionBlock;
-        }
+        //public TransactionBlock GetBlockByUIndex(long uindex)
+        //{
+        //    var block = _blocks.Find(Query.EQ("UIndex", uindex)).FirstOrDefault();
+        //    return block as TransactionBlock;
+        //}
 
     }
 }

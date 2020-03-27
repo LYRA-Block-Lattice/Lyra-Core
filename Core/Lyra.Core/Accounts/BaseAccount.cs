@@ -72,7 +72,7 @@ namespace Lyra.Core.Accounts
         {
             if (_storage.FindBlockByHash(block.Hash) != null)
                 throw new Exception("BaseAccount: Block with such Hash already exists!");
-            if (_storage.FindBlockByIndex(block.Index) != null)
+            if (_storage.FindBlockByIndex(block.Height) != null)
                 throw new Exception("BaseAccount: Block with such Index already exists!");
 
             _storage.AddBlock(block);

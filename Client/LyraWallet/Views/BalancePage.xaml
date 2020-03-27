@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:LyraWallet.ViewModels"
              Title="{Binding Title}"
+             Visual="Material"
              x:Class="LyraWallet.Views.BalancePage">
     <ContentPage.Content>
         <StackLayout x:Name="haveBalance" Padding="5" BackgroundColor="White">

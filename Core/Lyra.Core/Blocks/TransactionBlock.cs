@@ -50,9 +50,6 @@ namespace Lyra.Core.Blocks
         // It can be in either send or recive block.
         public NonFungibleToken NonFungibleToken { get; set; }
 
-        // The hash of the most recent service chain block 
-        public string ServiceHash { get; set; }
-
         ///// <summary>
         ///// When fee is zero and replaced by client-calculated proof of work
         ///// </summary>

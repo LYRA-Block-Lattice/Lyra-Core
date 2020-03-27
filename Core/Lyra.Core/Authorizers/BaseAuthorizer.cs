@@ -8,6 +8,8 @@ using Microsoft.Extensions.Options;
 using Lyra.Core.Decentralize;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Linq;
+using Neo;
 
 namespace Lyra.Core.Authorizers
 {
@@ -50,29 +52,29 @@ namespace Lyra.Core.Authorizers
 
             if(block is ServiceBlock)
             {
-                var accountId = (block as ServiceBlock).SvcAccountID;
+                var accountId = ProtocolSettings.Default.StandbyValidators[0];      //seed0
                 var result = block.VerifySignature(accountId);
                 if (!result)
                 {
-                    _log.LogWarning($"VerifyBlock failed for ServiceBlock UIndex: {block.UIndex} by {accountId}");
+                    _log.LogWarning($"VerifyBlock failed for ServiceBlock Index: {block.Height} by {accountId}");
                     return APIResultCodes.BlockSignatureValidationFailed;
-                }                    
+                }
             }
             else if(block is TransactionBlock)
             {
                 var blockt = block as TransactionBlock;
                 if (!blockt.VerifyHash())
-                    _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock UIndex: {block.UIndex} by {block.GetHashInput()}");
+                    _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock Index: {block.Height} by {block.GetHashInput()}");
 
                 var result = block.VerifySignature(blockt.AccountID);
                 if (!result)
                 {
-                    _log.LogWarning($"VerifyBlock failed for TransactionBlock UIndex: {block.UIndex} Type: {block.BlockType} by {blockt.AccountID}");
+                    _log.LogWarning($"VerifyBlock failed for TransactionBlock Index: {block.Height} Type: {block.BlockType} by {blockt.AccountID}");
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
 
                 // check if this Index already exists (double-spending, kind of)
-                if (block.BlockType != BlockTypes.NullTransaction && await (BlockChain.Singleton.FindBlockByIndexAsync(blockt.AccountID, block.Index)) != null)
+                if (block.BlockType != BlockTypes.NullTransaction && await (BlockChain.Singleton.FindBlockByIndexAsync(blockt.AccountID, block.Height)) != null)
                     return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
                 // check service hash
@@ -91,16 +93,16 @@ namespace Lyra.Core.Authorizers
             if (!string.IsNullOrEmpty(block.PreviousHash) && (await BlockChain.Singleton.FindBlockByPreviousBlockHashAsync(block.PreviousHash)) != null)
                 return APIResultCodes.BlockWithThisPreviousHashAlreadyExists;
 
-            if (block.Index <= 0)
+            if (block.Height <= 0)
                 return APIResultCodes.InvalidIndexSequence;
 
-            if (block.Index > 2 && previousBlock == null)       // bypass genesis block
+            if (block.Height > 1 && previousBlock == null)       // bypass genesis block
                 return APIResultCodes.PreviousBlockNotFound;
 
-            if (block.Index == 1 && previousBlock != null)
+            if (block.Height == 1 && previousBlock != null)
                 return APIResultCodes.InvalidIndexSequence;
 
-            if (previousBlock != null && block.Index != previousBlock.Index + 1)
+            if (previousBlock != null && block.Height != previousBlock.Height + 1)
                 return APIResultCodes.InvalidIndexSequence;
 
             return APIResultCodes.Success;

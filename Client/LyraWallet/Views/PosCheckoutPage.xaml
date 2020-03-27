@@ -7,6 +7,7 @@
              mc:Ignorable="d"
              x:Class="LyraWallet.Views.PosCheckoutPage"
              Title="Lyra Checkout"
+             Visual="Material"
              BackgroundColor="White">
     <ContentPage.Content>
         <StackLayout BackgroundColor="White" VerticalOptions="CenterAndExpand">

@@ -38,12 +38,12 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as ConsolidationBlock;
 
-            // 1. check if the block already exists
-            if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
-                return APIResultCodes.BlockWithThisUIndexAlreadyExists;
+            //// 1. check if the block already exists
+            //if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
+            //    return APIResultCodes.BlockWithThisUIndexAlreadyExists;
 
             var lastCons = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
-            if(block.UIndex > 2)
+            if(block.Height > 1)
             {
                 if (lastCons == null)
                     return APIResultCodes.CouldNotFindLatestBlock;
@@ -56,25 +56,14 @@ namespace Lyra.Core.Authorizers
             // recalculate merkeltree
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
             var mt = new MerkleTree();
-            var emptyNdx = new List<long>();
-            for (var ndx = block.StartUIndex; ndx <= block.EndUIndex; ndx++)
+            foreach(var hash in block.blockHashes)
             {
-                var bndx = await BlockChain.Singleton.GetBlockByUIndexAsync(ndx);
-
-                if (bndx == null)
-                {
-                    emptyNdx.Add(ndx);
-                }
-                else
-                {
-                    mt.AppendLeaf(MerkleHash.Create(bndx.UHash));
-                }
+                mt.AppendLeaf(MerkleHash.Create(hash));
             }
 
             var mkhash = mt.BuildTree().ToString();
 
-            if(((block.NullUIndexes == null && emptyNdx.Count == 0) || (block.NullUIndexes != null && block.NullUIndexes.SequenceEqual(emptyNdx)))
-                && block.MerkelTreeHash == mkhash)
+            if (block.MerkelTreeHash == mkhash)
             {
                 return APIResultCodes.Success;
             }

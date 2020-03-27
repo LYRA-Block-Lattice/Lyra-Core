@@ -147,18 +147,6 @@ namespace Lyra.Core.API
             return await Get<CreateBlockUIdAPIResult>("CreateBlockUId", args);
         }
 
-        public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
-        {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByUIndex/?uindex={uindex}");
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
-        }
-
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}");
@@ -229,6 +217,54 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
+        public async Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetLastConsolidationBlock/?AccountId={AccountId}&Signature={Signature}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetBlocksByConsolidation/?AccountId={AccountId}&Signature={Signature}&consolidationHash={consolidationHash}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetConsolidationBlocks/?AccountId={AccountId}&Signature={Signature}&startHeight={startHeight}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetUnConsolidatedBlocks/?AccountId={AccountId}&Signature={Signature}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetNonFungibleTokens/?AccountId={AccountId}&Signature={Signature}");
@@ -265,12 +301,12 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetTokenNames/?AccountId={AccountId}&Signature={Signature}&keyword={keyword}");
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsAsync<GetTokenNamesAPIResult>();
+                var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
                 return result;
             }
             else
@@ -378,6 +414,5 @@ namespace Lyra.Core.API
         {
             throw new NotImplementedException();
         }
-
     }
 }

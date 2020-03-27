@@ -10,10 +10,6 @@ namespace Lyra.Core.Accounts
     /// </summary>
     public interface IAccountCollectionAsync : IDisposable
     {
-        // for sync
-        Task<long> GetNewestBlockUIndexAsync();
-        Task<Block> GetBlockByUIndexAsync(long uindex);
-
         // for service
         Task<long> GetBlockCountAsync();
         Task<long> GetBlockCountAsync(string AccountId);
@@ -35,6 +31,7 @@ namespace Lyra.Core.Accounts
         // for service blocks
         Task<ServiceBlock> GetLastServiceBlockAsync();
         Task<ConsolidationBlock> GetLastConsolidationBlockAsync();
+        Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startHeight);
 
         /// <summary>
         /// Returns the first unexecuted trade aimed to an order created on the account.
@@ -57,7 +54,10 @@ namespace Lyra.Core.Accounts
         List<string> GetExecutedTradeOrderBlocks();
 
         Task<bool> AddBlockAsync(Block block);
-        Task RemoveBlockAsync(long uindex);
+        Task RemoveBlockAsync(string hash);
+
+        Task<bool> ConsolidateBlock(string hash);
+        Task<IEnumerable<string>> GetAllUnConsolidatedBlocks();
 
         /// <summary>
         /// Cleans up or deletes blocks collection.

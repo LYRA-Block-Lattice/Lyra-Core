@@ -223,7 +223,7 @@ namespace Neo.Network.P2P
             {
                 foreach (KeyValuePair<IActorRef, RemoteNode> kvp in RemoteNodes)
                 {
-                    if (block.Index > kvp.Value.LastBlockIndex)
+                    if (block.Height > kvp.Value.LastBlockIndex)
                         kvp.Key.Tell(message);
                 }
             }

@@ -12,14 +12,11 @@ namespace Lyra.Core.API
         Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion);
 
         Task<GetSyncStateAPIResult> GetSyncState();
-        Task<BlockAPIResult> GetBlockByUIndex(long uindex);
 
         // this one can be cached for a few milliseconds
         Task<AccountHeightAPIResult> GetSyncHeight();
 
-        Task<CreateBlockUIdAPIResult> CreateBlockUId(string AccountId, string Signature, string blockHash);
-
-        Task<GetTokenNamesAPIResult> GetTokenNames(string AccountId, string Signature, string keyword);
+        Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword);
 
         // this one can be cached for a few seconds
         Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature);
@@ -27,9 +24,10 @@ namespace Lyra.Core.API
         // this one can be definitely cached forever as the result never changes if the block exists
         Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature);
 
-        // Retrives a block by its hash
-        //Task<BlockAPIResult> GetBlockByHash(string Hash);
-
+        Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature);
+        Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight);
+        Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash);
+        Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature);
         #endregion Blocklist information methods
 
         #region Account maintenance methods

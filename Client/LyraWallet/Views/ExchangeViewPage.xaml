@@ -7,6 +7,7 @@
              Title="{Binding Title}"
              xmlns:vm="clr-namespace:LyraWallet.ViewModels"
              x:Class="LyraWallet.Views.ExchangeViewPage"
+             Visual="Material"
              BackgroundColor="White">
     <ContentPage.BindingContext>
         <vm:ExchangeViewModel x:Name="model" />

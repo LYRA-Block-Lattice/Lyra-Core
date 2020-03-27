@@ -9,6 +9,7 @@
              BackgroundColor="White"
              xmlns:vm="clr-namespace:LyraWallet.ViewModels"
              xmlns:views="clr-namespace:Plugin.Badge.Abstractions;assembly=Plugin.Badge.Abstractions"
+             Visual="Material"
              x:Name="page">
     <ContentPage.BindingContext>
         <vm:PosViewModel x:Name="model" />

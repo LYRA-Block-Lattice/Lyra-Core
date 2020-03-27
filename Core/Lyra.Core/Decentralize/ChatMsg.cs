@@ -144,7 +144,7 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{Block.UIndex}|{Block.GetHashInput()}" + base.GetHashInput();
+			return $"{Block.GetHashInput()}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
@@ -227,9 +227,7 @@ namespace Lyra.Core.Decentralize
 
 	public class AuthorizerCommitMsg : SourceSignedMessage
 	{
-		public string BlockUHash { get; set; }
 		public string BlockHash { get; set; }
-		public bool Commited { get; set; }
 		public ConsensusResult Consensus { get; set; }
 
 		public AuthorizerCommitMsg()
@@ -237,11 +235,9 @@ namespace Lyra.Core.Decentralize
 			MsgType = ChatMessageType.AuthorizerCommit;
 		}
 
-		public bool IsSuccess => Commited;
-
 		public override string GetHashInput()
 		{
-			return $"{BlockHash}|{BlockUHash}|{Commited}|{Consensus}" + base.GetHashInput();
+			return $"{BlockHash}|{Consensus}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
@@ -250,26 +246,20 @@ namespace Lyra.Core.Decentralize
 		}
 
 		public override int Size => base.Size +
-			BlockUHash.Length +
 			BlockHash.Length +
-			sizeof(bool) +
 			sizeof(ConsensusResult);
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
-			writer.Write(BlockUHash);
 			writer.Write(BlockHash);
-			writer.Write(Commited);
 			writer.Write((int)Consensus);
 		}
 
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
-			BlockUHash = reader.ReadString();
 			BlockHash = reader.ReadString();
-			Commited = reader.ReadBoolean();
 			Consensus = (ConsensusResult)reader.ReadInt32();
 		}
 	}
@@ -279,7 +269,7 @@ namespace Lyra.Core.Decentralize
 		public string accountId { get; set; }
 		public string version { get; set; }
 		public BlockChainState mode { get; set; }
-		public long lastBlockHeight { get; set; }
+		public long totalBlockCount { get; set; }
 		public string lastConsolidationHash { get; set; }
 		public string lastUnSolidationHash { get; set; }
 		public int connectedPeers { get; set; }
@@ -290,8 +280,7 @@ namespace Lyra.Core.Decentralize
 			{
 				var ns = obj as NodeStatus;
 				return version == ns.version
-					&& mode == ns.mode
-					&& lastBlockHeight == ns.lastBlockHeight
+					&& totalBlockCount == ns.totalBlockCount
 					&& lastConsolidationHash == ns.lastConsolidationHash
 					&& lastUnSolidationHash == ns.lastUnSolidationHash;				
 			}

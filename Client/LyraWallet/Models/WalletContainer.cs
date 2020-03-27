@@ -209,7 +209,7 @@ namespace LyraWallet.Models
                 var block = await wallet.GetBlockByIndex(i);
                 blocks.Add(new BlockInfo()
                 {
-                    index = block.Index,
+                    index = block.Height,
                     timeStamp = block.TimeStamp,
                     hash = block.Hash,
                     type = block.BlockType.ToString(),

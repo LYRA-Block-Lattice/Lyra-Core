@@ -37,7 +37,7 @@ namespace Lyra.Core.LiteDB
 
         public void Reset()
         {
-            _blocks.Delete(x => x.Index > 0);
+            _blocks.Delete(x => x.Height > 0);
         }
 
         public bool Exists(string path, string accountName)
@@ -55,7 +55,7 @@ namespace Lyra.Core.LiteDB
         {
             var mapper = BsonMapper.Global;
 
-            mapper.Entity<Block>().Id(x => x.UIndex);
+            mapper.Entity<Block>().Id(a => a.TimeStamp);
 
             if (_db == null)
             {
@@ -64,10 +64,10 @@ namespace Lyra.Core.LiteDB
                 if (!string.IsNullOrWhiteSpace(path))
                     fileName = path + fileName;
                 string connectionString = $"Filename={fileName};Upgrade=true";
-                _db = new LiteDatabase(connectionString);
+                _db = new LiteDatabase(connectionString, mapper);
                 _blocks = _db.GetCollection<Block>("blocks");
 
-                _blocks.EnsureIndex(x => x.Index);
+                _blocks.EnsureIndex(x => x.Height);
                 _blocks.EnsureIndex(x => x.Hash);
                 _blocks.EnsureIndex(x => x.BlockType);
             }
@@ -75,18 +75,18 @@ namespace Lyra.Core.LiteDB
 
         public Block FindFirstBlock()
         {
-            var min = _blocks.Min("Index");
+            var min = _blocks.Min("Height");
             if (min.AsInt64 > 0)
-                return _blocks.FindOne(Query.EQ("Index", min.AsInt64));
+                return _blocks.FindOne(Query.EQ("Height", min.AsInt64));
             else
                 return null;
         }
 
         public Block FindLatestBlock()
         {
-            var min = _blocks.Max("Index");
+            var min = _blocks.Max("Height");
             if (min.AsInt64 > 0)
-                return _blocks.FindOne(Query.EQ("Index", min.AsInt64));
+                return _blocks.FindOne(Query.EQ("Height", min.AsInt64));
             else
                 return null;
         }
@@ -113,7 +113,7 @@ namespace Lyra.Core.LiteDB
 
         public Block FindBlockByIndex(long index)
         {
-            var result = _blocks.FindOne(x => x.Index == index);
+            var result = _blocks.FindOne(x => x.Height == index);
             return (Block)result;
         }
 

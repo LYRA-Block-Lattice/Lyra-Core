@@ -10,6 +10,7 @@ namespace Neo
         public uint Magic { get; }
         public byte AddressVersion { get; }
         public string[] StandbyValidators { get; }
+        public string[] StartupValidators { get; }
         public string[] SeedList { get; }
         public int ConsensusNumber { get; }
         public int ConsensusWinNumber => ConsensusNumber * 2 + 1;
@@ -71,6 +72,8 @@ namespace Neo
                 };
             this.ConsensusNumber = (int)section.GetValue("ConsensusNumber", 1);
             this.MemoryPoolMaxTransactions = Math.Max(1, section.GetValue("MemoryPoolMaxTransactions", 50_000));
+            IConfigurationSection section_startupv = section.GetSection("StartupValidators");
+            this.StartupValidators = section_startupv.GetChildren().Select(p => p.Get<string>()).ToArray();
         }
     }
 }
