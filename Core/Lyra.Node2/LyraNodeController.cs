@@ -45,6 +45,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetBillboard")]
+        [HttpGet]
         public async Task<BillBoard> GetBillboard()
         {
             CheckSyncState();
@@ -52,6 +53,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetTransStats")]
+        [HttpGet]
         public async Task<List<TransStats>> GetTransStats()
         {
             CheckSyncState();
@@ -59,6 +61,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetDbStats")]
+        [HttpGet]
         public async Task<string> GetDbStats()
         {
             CheckSyncState();
@@ -66,6 +69,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetVersion")]
+        [HttpGet]
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
             CheckSyncState();
@@ -73,6 +77,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetSyncState")]
+        [HttpGet]
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
             CheckSyncState();
@@ -80,12 +85,14 @@ namespace LyraLexWeb2
         }
 
         [Route("GetSyncHeight")]
+        [HttpGet]
         public async Task<AccountHeightAPIResult> GetSyncHeightAsync() {
             CheckSyncState();
             return await _node.GetSyncHeight();
         }
 
         [Route("GetTokenNames")]
+        [HttpGet]
         public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
             CheckSyncState();
@@ -93,6 +100,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetAccountHeight")]
+        [HttpGet]
         public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
         {
             CheckSyncState();
@@ -100,6 +108,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetBlockByIndex")]
+        [HttpGet]
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
         {
             CheckSyncState();
@@ -107,6 +116,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetBlockByHash")]
+        [HttpGet]
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             CheckSyncState();
@@ -114,6 +124,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetNonFungibleTokens")]
+        [HttpGet]
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
             CheckSyncState();
@@ -121,6 +132,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetTokenGenesisBlock")]
+        [HttpGet]
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
             CheckSyncState();
@@ -128,6 +140,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetLastServiceBlock")]
+        [HttpGet]
         public async Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
         {
             CheckSyncState();
@@ -135,6 +148,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetLastConsolidationBlock")]
+        [HttpGet]
         public async Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature)
         {
             CheckSyncState();
@@ -142,6 +156,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetBlocksByConsolidation")]
+        [HttpGet]
         public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
         {
             CheckSyncState();
@@ -149,6 +164,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetConsolidationBlocks")]
+        [HttpGet]
         public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight)
         {
             CheckSyncState();
@@ -156,6 +172,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetUnConsolidatedBlocks")]
+        [HttpGet]
         public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
         {
             CheckSyncState();
@@ -163,6 +180,7 @@ namespace LyraLexWeb2
         }
 
         [Route("LookForNewTransfer")]
+        [HttpGet]
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
             CheckSyncState();
@@ -234,6 +252,7 @@ namespace LyraLexWeb2
         }
 
         [Route("CreateExchangeAccount")]
+        [HttpGet]
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
             CheckSyncState();
@@ -246,6 +265,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetExchangeBalance")]
+        [HttpGet]
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
             CheckSyncState();
@@ -273,6 +293,7 @@ namespace LyraLexWeb2
         }
 
         [Route("CancelExchangeOrder")]
+        [HttpGet]
         public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
             CheckSyncState();
@@ -281,6 +302,7 @@ namespace LyraLexWeb2
         }
 
         [Route("RequestMarket")]
+        [HttpGet]
         public async Task<APIResult> RequestMarket(string TokenName)
         {
             CheckSyncState();
@@ -289,6 +311,7 @@ namespace LyraLexWeb2
         }
 
         [Route("GetOrdersForAccount")]
+        [HttpGet]
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
             CheckSyncState();
@@ -299,28 +322,28 @@ namespace LyraLexWeb2
         //public IActionResult Edit(int id, Product product) { ... }
 
         // GET: api/LyraNode/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
-        {
-            return "value";
-        }
+        //[HttpGet("{id}", Name = "Get")]
+        //public string Get(int id)
+        //{
+        //    return "value";
+        //}
 
-        // POST: api/LyraNode
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
+        //// POST: api/LyraNode
+        //[HttpPost]
+        //public void Post([FromBody] string value)
+        //{
+        //}
 
-        // PUT: api/LyraNode/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+        //// PUT: api/LyraNode/5
+        //[HttpPut("{id}")]
+        //public void Put(int id, [FromBody] string value)
+        //{
+        //}
 
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+        //// DELETE: api/ApiWithActions/5
+        //[HttpDelete("{id}")]
+        //public void Delete(int id)
+        //{
+        //}
     }
 }
