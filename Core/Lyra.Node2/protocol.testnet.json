@@ -1,12 +1,12 @@
 {
   "ProtocolConfiguration": {
     "Magic": 20200305,
-    "ConsensusNumber": 3,
+    "ConsensusNumber": 2,
     "StandbyValidators": [
       "LTyVcFZMuWGvUyihmrVkS3Z8dH87cVqDEa1zZdBRRD9E18SuABKCPZrhzWbgVAFhUGUhG18ZcX67mwJPs2T8VkesEFP3Fw",
       "L4uZzmFo7CeR27yw6QxfQ1JCWEsWgV2wDLu5fJena2DzHxF1rgAqKDvmmtic8r3Q6TfFMnwFxXSwZGJTJBxMNKk5LFK5rb",
       "LNbWSJGvrFR8zTU3hXEtA9JhzFatRERrATVy4SoKTy3oBrmMMDsNr87jAciqpQVvrnSeDFddYazSe6xPj9yeLiy4y7bmPJ",
-      "L2TKvMjp8iyDfeNJxQVPCZ4X4MSdyGqs1xJ8s5aELNSUSsa5MhtiLzVJ8C1uW7KZ1KrySSPPaiKw9dw676cRF4GjoBWr79"
+      "LXUm1Px6HtUseTfDGVS5WHvam1L3hzWKCdRLuzzsrxLhBJuNX8YUdSWFUrNxRMxa1E4WnGPc3QbqkFKYbhqy8TQ7MP9Sed"
     ],
     "SeedList": [
       "seed.testnet.lyrashops.com:4503",
