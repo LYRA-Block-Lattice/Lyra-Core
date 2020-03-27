@@ -189,7 +189,7 @@ namespace Lyra
                                     Genesis();
                                 }
                             }
-                            else if (myStatus.totalBlockCount != majorHeight.Height && majorHeight.Height >= 2 && majorHeight.Count >= 2)
+                            else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
                             {
                                 _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                             }
