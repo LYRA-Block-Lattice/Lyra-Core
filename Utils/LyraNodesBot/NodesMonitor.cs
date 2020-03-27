@@ -145,7 +145,7 @@ namespace LyraNodesBot
                 sb.AppendLine("None");
             }
 
-            sb.AppendLine("\n*Voting Nodes*\n");
+            sb.AppendLine("\n*Other Nodes*\n");
 
             var voting = bb.AllNodes.Keys.Where(a => !bb.PrimaryAuthorizers.Contains(a) && !bb.BackupAuthorizers.Contains(a));
             if(voting.Any())
@@ -184,7 +184,14 @@ namespace LyraNodesBot
                     await SendHeight(message.Chat.Id);
                     break;
                 case "/nodes":
-                    await SendNodesInfoToGroupAsync(message.Chat.Id);
+                    try
+                    {
+                        await SendNodesInfoToGroupAsync(message.Chat.Id);
+                    }
+                    catch(Exception ex)
+                    {
+                        await SendGroupMessageAsync(message.Chat.Id, $"Error: {ex.Message}");
+                    }
                     break;
                 case "/tps":
                     await SendGroupMessageAsync(message.Chat.Id, "No Data");
@@ -282,7 +289,7 @@ namespace LyraNodesBot
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
             var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.lyrashops.com:4505/api/LyraNode/");
-            await acctWallet.Sync(rpcClient);
+            await acctWallet.Sync(rpcClient, true);
             return acctWallet;
         }
 

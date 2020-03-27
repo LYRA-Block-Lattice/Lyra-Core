@@ -61,6 +61,9 @@ namespace Lyra.Core.Decentralize
                 if (PrimaryAuthorizers == null)
                     return false;
 
+                if (BlockChain.Singleton == null)
+                    return true;
+
                 if (BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
                     return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusWinNumber;
                 else
