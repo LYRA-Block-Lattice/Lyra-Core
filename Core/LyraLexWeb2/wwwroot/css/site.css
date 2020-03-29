@@ -41,11 +41,11 @@ app {
 }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #063a47 70%);
+    background-image: linear-gradient(180deg, rgb(162, 204, 239) 10%, #77949a 80%);
 }
 
 .sidebar .top-row {
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(47, 193, 213, 0.40);
 }
 
 .sidebar .navbar-brand {
@@ -73,7 +73,7 @@ app {
 }
 
 .nav-item a {
-    color: #d7d7d7;
+    color: #53686c;
     border-radius: 4px;
     height: 3rem;
     display: flex;

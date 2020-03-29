@@ -633,16 +633,21 @@ namespace Lyra.Core.Decentralize
         {
             foreach(var node in _board.AllNodes.Values.ToList())
             {
-                // lookup balance
-                var block = await BlockChain.Singleton.FindLatestBlockAsync(node.AccountID) as TransactionBlock;
-                if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
-                {
-                    node.Balance = block.Balances[LyraGlobal.LYRATICKERCODE];
-                }
-                else
-                {
-                    node.Balance = 0;
-                }
+                node.Balance = await LookupBalance(node.AccountID);
+            }
+        }
+
+        private async Task<decimal> LookupBalance(string accountId)
+        {
+            // lookup balance
+            var block = await BlockChain.Singleton.FindLatestBlockAsync() as TransactionBlock;
+            if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
+            {
+                return block.Balances[LyraGlobal.LYRATICKERCODE];
+            }
+            else
+            {
+                return 0;
             }
         }
 
@@ -687,8 +692,21 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var node = chat.Text.UnJson<PosNode>();
-            //if (Utilities.IsPrivate(node.IP) && Settings.Default.LyraNode.Lyra.NetworkId != "devnet")
-            //    return;
+
+            // verify signature
+            if (string.IsNullOrWhiteSpace(node.IPAddress))
+                return;
+
+            if (!Signatures.VerifyAccountSignature(node.IPAddress, node.AccountID, node.Signature))
+                return;
+
+            if (_board.AllNodes.Values.Any(a => a.IPAddress == node.IPAddress))
+            {
+                // only allow one node per ip
+                return;
+            }
+            
+            // add network/ip verifycation here
 
             _ = _board.Add(node);
 
