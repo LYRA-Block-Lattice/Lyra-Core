@@ -61,7 +61,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Lyra.Core\Lyra.Core.csproj" />
+    <ProjectReference Include="..\Lyra.Core\Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -25,7 +25,7 @@ namespace Neo.Network.P2P
     {
         public class SetFilter { public BloomFilter Filter; }
 
-        private readonly LyraSystem system;
+        private readonly DagSystem system;
         private readonly FIFOSet<UInt256> knownHashes;
         private readonly FIFOSet<UInt256> sentHashes;
         private VersionPayload version;
@@ -34,7 +34,7 @@ namespace Neo.Network.P2P
 
         private ILogger _log;
 
-        public ProtocolHandler(LyraSystem system)
+        public ProtocolHandler(DagSystem system)
         {
             this.system = system;
             _log = new SimpleLogger("ProtocolHandler").Logger;
@@ -310,7 +310,7 @@ namespace Neo.Network.P2P
             Context.Parent.Tell(payload);
         }
 
-        public static Props Props(LyraSystem system)
+        public static Props Props(DagSystem system)
         {
             return Akka.Actor.Props.Create(() => new ProtocolHandler(system)).WithMailbox("protocol-handler-mailbox");
         }

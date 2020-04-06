@@ -91,13 +91,13 @@ namespace Lyra
 
         private LyraConfig _nodeConfig;
         private readonly IAccountCollectionAsync _store;
-        private LyraSystem _sys;
+        private DagSystem _sys;
         private ILogger _log;
         private bool _creatingSvcBlock = false;
 
         // status inquiry
         private List<NodeStatus> _nodeStatus;
-        public BlockChain(LyraSystem sys)
+        public BlockChain(DagSystem sys)
         {
             if (Singleton != null)
                 throw new Exception("Blockchain reinitialization");
@@ -119,7 +119,7 @@ namespace Lyra
 
             Singleton = this;
         }
-        public static Props Props(LyraSystem system)
+        public static Props Props(DagSystem system)
         {
             return Akka.Actor.Props.Create(() => new BlockChain(system)).WithMailbox("blockchain-mailbox");
         }
@@ -284,7 +284,7 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    LyraSystem.Singleton.Consensus.Tell(new ConsensusService.Startup());
+                    DagSystem.Singleton.Consensus.Tell(new ConsensusService.Startup());
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup);
 
@@ -335,7 +335,7 @@ namespace Lyra
 
                 await Task.Delay(3000);
 
-                LyraSystem.Singleton.Consensus.Tell(new ConsensusService.Consolidate());
+                DagSystem.Singleton.Consensus.Tell(new ConsensusService.Consolidate());
 
                 await Task.Delay(3000);
 
@@ -469,7 +469,7 @@ namespace Lyra
             var result = await _store.AddBlockAsync(block);
             if (result)
             {
-                LyraSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash });
+                DagSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash });
             }
 
             if (block is ConsolidationBlock)
@@ -826,7 +826,7 @@ namespace Lyra
                     {
                         // update latest billboard
                         var board = await client.GetBillBoardAsync();
-                        LyraSystem.Singleton.Consensus.Tell(board);
+                        DagSystem.Singleton.Consensus.Tell(board);
 
                         // do sync with node
                         long startUIndex = 0;//await _store.GetNewestBlockUIndexAsync() + 1;
@@ -921,7 +921,7 @@ namespace Lyra
                     }
                 }
 
-                LyraSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
+                DagSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 _log.LogInformation("BlockChain Sync Completed.");
             });
         }

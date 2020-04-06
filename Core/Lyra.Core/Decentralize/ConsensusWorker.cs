@@ -403,7 +403,7 @@ namespace Lyra.Core.Decentralize
                     return;
 
                 // crap! this node is out of sync.
-                LyraSystem.Singleton.Consensus.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
+                DagSystem.Singleton.Consensus.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
             }
         }
 

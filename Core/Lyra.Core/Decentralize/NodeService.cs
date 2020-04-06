@@ -77,7 +77,7 @@ namespace Lyra.Core.Decentralize
                     PosWallet = acctWallet;
                 }              
 
-                var sys = new LyraSystem();
+                var sys = new DagSystem();
                 sys.Start();
 
                 if (_db == null)

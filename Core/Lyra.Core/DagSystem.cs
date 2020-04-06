@@ -18,9 +18,9 @@ using Settings = Neo.Settings;
 
 namespace Lyra
 {
-    public class LyraSystem
+    public class DagSystem
     {
-        public ActorSystem ActorSystem { get; } = ActorSystem.Create(nameof(LyraSystem),
+        public ActorSystem ActorSystem { get; } = ActorSystem.Create(nameof(DagSystem),
     $"akka {{ log-dead-letters = off }}" +
     $"blockchain-mailbox {{ mailbox-type: \"{typeof(BlockchainMailbox).AssemblyQualifiedName}\" }}" +
     //$"task-manager-mailbox {{ mailbox-type: \"{typeof(TaskManagerMailbox).AssemblyQualifiedName}\" }}" +
@@ -35,12 +35,12 @@ namespace Lyra
 
         private ChannelsConfig start_message = null;
         private bool suspend = false;
-        public static LyraSystem Singleton { get; private set; }
+        public static DagSystem Singleton { get; private set; }
 
         public string NetworkId { get; private set; }
         private ILogger _log;
 
-        public LyraSystem()
+        public DagSystem()
         {
             _log = new SimpleLogger("LyraSystem").Logger;
 

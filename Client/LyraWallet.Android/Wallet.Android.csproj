@@ -114,9 +114,9 @@
     <Folder Include="Resources\drawable-xxxhdpi\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LyraWallet\LyraWallet.csproj">
-      <Project>{9F9D7970-BB20-4A2D-9BFB-3B7F255F8B0E}</Project>
-      <Name>LyraWallet</Name>
+    <ProjectReference Include="..\LyraWallet\Wallet.csproj">
+      <Project>{DCF0E624-2C0D-4908-BFBA-D55DC3523781}</Project>
+      <Name>Wallet</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

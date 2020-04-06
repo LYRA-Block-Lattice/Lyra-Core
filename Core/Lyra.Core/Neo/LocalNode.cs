@@ -30,7 +30,7 @@ namespace Neo.Network.P2P
         private readonly IPEndPoint[] SeedList = new IPEndPoint[ProtocolSettings.Default.SeedList.Length];
 
         private static readonly object lockObj = new object();
-        private readonly LyraSystem system;
+        private readonly DagSystem system;
         internal readonly ConcurrentDictionary<IActorRef, RemoteNode> RemoteNodes = new ConcurrentDictionary<IActorRef, RemoteNode>();
 
         public int ConnectedCount => RemoteNodes.Count;
@@ -57,7 +57,7 @@ namespace Neo.Network.P2P
             UserAgent = $"/{Assembly.GetExecutingAssembly().GetName().Name}:{Assembly.GetExecutingAssembly().GetVersion()}/";
         }
 
-        public LocalNode(LyraSystem system)
+        public LocalNode(DagSystem system)
         {
             _log = new SimpleLogger("LocalNode").Logger;
 
@@ -233,7 +233,7 @@ namespace Neo.Network.P2P
 
         private void OnSendDirectly(IInventory inventory) => SendToRemoteNodes(inventory);
 
-        public static Props Props(LyraSystem system)
+        public static Props Props(DagSystem system)
         {
             return Akka.Actor.Props.Create(() => new LocalNode(system));
         }

@@ -20,7 +20,7 @@ namespace Neo.Network.P2P
     {
         internal class Relay { public IInventory Inventory; }
 
-        private readonly LyraSystem system;
+        private readonly DagSystem system;
         private readonly IActorRef protocol;
         private readonly Queue<Message> message_queue_high = new Queue<Message>();
         private readonly Queue<Message> message_queue_low = new Queue<Message>();
@@ -36,7 +36,7 @@ namespace Neo.Network.P2P
         public bool IsFullNode { get; private set; } = false;
 
         private ILogger _log;
-        public RemoteNode(LyraSystem system, object connection, IPEndPoint remote, IPEndPoint local)
+        public RemoteNode(DagSystem system, object connection, IPEndPoint remote, IPEndPoint local)
             : base(connection, remote, local)
         {
             _log = new SimpleLogger("RemoteNode").Logger;
@@ -233,7 +233,7 @@ namespace Neo.Network.P2P
             base.PostStop();
         }
 
-        internal static Props Props(LyraSystem system, object connection, IPEndPoint remote, IPEndPoint local)
+        internal static Props Props(DagSystem system, object connection, IPEndPoint remote, IPEndPoint local)
         {
             return Akka.Actor.Props.Create(() => new RemoteNode(system, connection, remote, local)).WithMailbox("remote-node-mailbox");
         }

@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Client\Lyra.Client.Lib\Lyra.Client.Lib.csproj" />
-    <ProjectReference Include="..\..\Core\Lyra.Shared\Lyra.Shared.csproj" />
+    <ProjectReference Include="..\..\Client\Lyra.Client.Lib\Client.Lib.csproj" />
+    <ProjectReference Include="..\..\Core\Lyra.Shared\Shared.csproj" />
   </ItemGroup>
 
 </Project>
