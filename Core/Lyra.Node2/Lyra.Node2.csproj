@@ -2,7 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Version>1.4</Version>
+    <Version>1.5</Version>
+    <PackageId>wizdagd</PackageId>
+    <Authors>wizdagd</Authors>
+    <Product>wizdagd</Product>
+    <AssemblyName>wizdagd</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <WarningLevel>0</WarningLevel>
   </PropertyGroup>
 
   <ItemGroup>
