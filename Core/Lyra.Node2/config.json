@@ -4,9 +4,9 @@
       "Lyra": {
         "NetworkId": "devnet",
         "Database": {
-          "DatabaseName": "lyra",
-          "DBConnect": "mongodb://lexuser:Xejg03sjd@127.0.0.1/lyra",
-          "DexDBConnect": "mongodb://lexuser:Xejg03sjd@127.0.0.1/dex"
+          "DatabaseName": "wizdag",
+          "DBConnect": "mongodb://lexuser:Xejg03sjd@127.0.0.1/wizdag",
+          "DexDBConnect": "mongodb://lexuser:Xejg03sjd@127.0.0.1/wizdex"
         },
         "Wallet": {
           "Name": "poswallet"
