@@ -242,7 +242,7 @@ namespace LyraWallet.ViewModels
                     fundsToTransfer.Add(order.TokenName, order.Amount);
                 }
                 var lyraTotal = IsBuy ? order.Price * order.Amount + 2 * ExchangingBlock.FEE : 2 * ExchangingBlock.FEE;     // fee is high
-                fundsToTransfer.Add(LyraGlobal.LYRATICKERCODE, lyraTotal);
+                fundsToTransfer.Add(LyraGlobal.OFFICIALTICKERCODE, lyraTotal);
                 
                 try
                 {
@@ -286,16 +286,16 @@ namespace LyraWallet.ViewModels
         {
             if(App.Container.Balances == null)
             {
-                LeXBalance = $"{LyraGlobal.LYRATICKERCODE}: 0";
+                LeXBalance = $"{LyraGlobal.OFFICIALTICKERCODE}: 0";
                 TargetTokenBalance = $"{SelectedToken}: 0";
             }
             else
             {
                 var exchBalance = await App.Container.GetExchangeBalance();
                 string exchLyraBstr = "0";
-                if (exchBalance != null && exchBalance.ContainsKey(LyraGlobal.LYRATICKERCODE))
-                    exchLyraBstr = exchBalance[LyraGlobal.LYRATICKERCODE].ToString();
-                LeXBalance = $"{LyraGlobal.LYRATICKERCODE}: {App.Container.Balances[LyraGlobal.LYRATICKERCODE]} ({exchLyraBstr})";
+                if (exchBalance != null && exchBalance.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                    exchLyraBstr = exchBalance[LyraGlobal.OFFICIALTICKERCODE].ToString();
+                LeXBalance = $"{LyraGlobal.OFFICIALTICKERCODE}: {App.Container.Balances[LyraGlobal.OFFICIALTICKERCODE]} ({exchLyraBstr})";
                 if(SelectedToken == null)
                 {
                     TargetTokenBalance = "";

@@ -29,7 +29,7 @@ namespace Lyra.Core.Decentralize
 
         public override string ToString()
         {
-            return $"{Address} Staking: {StakingAmount} {LyraGlobal.LYRATICKERCODE} with AccountID: {AccountID}";
+            return $"{Address} Staking: {StakingAmount} {LyraGlobal.OFFICIALTICKERCODE} with AccountID: {AccountID}";
         }
     }
 }

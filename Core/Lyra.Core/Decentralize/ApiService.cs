@@ -265,7 +265,7 @@ namespace Lyra.Core.Decentralize
             else
             {
                 // buy order
-                if(acct.Balance.ContainsKey(LyraGlobal.LYRATICKERCODE) && acct.Balance[LyraGlobal.LYRATICKERCODE] < reqOrder.Amount * reqOrder.Price)
+                if(acct.Balance.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) && acct.Balance[LyraGlobal.OFFICIALTICKERCODE] < reqOrder.Amount * reqOrder.Price)
                     return new CancelKey() { Key = string.Empty, State = OrderState.InsufficientFunds };
             }
                 
@@ -335,7 +335,7 @@ namespace Lyra.Core.Decentralize
                     FeeType = AuthorizationFeeTypes.NoFee,
                     Balances = new Dictionary<string, decimal>()
                 };
-                receiveBlock.Balances.Add(LyraGlobal.LYRATICKERCODE, fee);
+                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fee);
                 receiveBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
@@ -354,8 +354,8 @@ namespace Lyra.Core.Decentralize
                     Balances = new Dictionary<string, decimal>()
                 };
 
-                decimal newBalance = latestBlock.Balances[LyraGlobal.LYRATICKERCODE] + fee;
-                receiveBlock.Balances.Add(LyraGlobal.LYRATICKERCODE, newBalance);
+                decimal newBalance = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + fee;
+                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, newBalance);
                 receiveBlock.InitializeBlock(latestBlock, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");

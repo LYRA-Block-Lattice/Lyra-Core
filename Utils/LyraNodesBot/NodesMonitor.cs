@@ -32,7 +32,7 @@ namespace LyraNodesBot
 
         private ChatId _groupId = new ChatId(-1001462436848);
         private string _network;
-        private string apiHost = "seed2.testnet.lyrashops.com";
+        private string apiHost = "seed2.testnet.wizdag.com";
         public NodesMonitor(string network)
         {
             _network = network;
@@ -247,7 +247,7 @@ namespace LyraNodesBot
 
         private async Task<string> SendTpsAsync()
         {
-            var url = "https://seed2.testnet.lyrashops.com:4505/api/LyraNode/GetTransStats";
+            var url = "https://seed2.testnet.wizdag.com:4505/api/LyraNode/GetTransStats";
             var wc = new HttpClient();
             var json = await wc.GetStringAsync(url);
             return json;
@@ -288,7 +288,7 @@ namespace LyraNodesBot
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.lyrashops.com:4505/api/LyraNode/");
+            var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/LyraNode/");
             await acctWallet.Sync(rpcClient, true);
             return acctWallet;
         }

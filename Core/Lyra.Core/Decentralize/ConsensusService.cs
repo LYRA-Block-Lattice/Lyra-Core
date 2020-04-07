@@ -641,9 +641,9 @@ namespace Lyra.Core.Decentralize
         {
             // lookup balance
             var block = await BlockChain.Singleton.FindLatestBlockAsync() as TransactionBlock;
-            if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.LYRATICKERCODE))
+            if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
             {
-                return block.Balances[LyraGlobal.LYRATICKERCODE];
+                return block.Balances[LyraGlobal.OFFICIALTICKERCODE];
             }
             else
             {

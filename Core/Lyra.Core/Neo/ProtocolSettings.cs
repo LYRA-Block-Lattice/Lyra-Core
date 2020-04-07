@@ -68,7 +68,7 @@ namespace Neo
             else
                 this.SeedList = new[]
                 {
-                    "seed.devnet.lyrashops.com:4503"
+                    "seed.devnet.wizdag.com:4503"
                 };
             this.ConsensusNumber = (int)section.GetValue("ConsensusNumber", 1);
             this.MemoryPoolMaxTransactions = Math.Max(1, section.GetValue("MemoryPoolMaxTransactions", 50_000));

@@ -28,7 +28,7 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as LyraTokenGenesisBlock;
 
-            if ((block as LyraTokenGenesisBlock).Ticker != LyraGlobal.LYRATICKERCODE)
+            if ((block as LyraTokenGenesisBlock).Ticker != LyraGlobal.OFFICIALTICKERCODE)
                 return APIResultCodes.InvalidBlockType;
 
             // Local node validations - before it sends it out to the authorization sample:
@@ -44,7 +44,7 @@ namespace Lyra.Core.Authorizers
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
             //if (genesis_blocks.FindTokenGenesisBlock(testTokenGenesisBlock) != null)
-            if (await BlockChain.Singleton.FindTokenGenesisBlockAsync(block.Hash, LyraGlobal.LYRATICKERCODE) != null)
+            if (await BlockChain.Singleton.FindTokenGenesisBlockAsync(block.Hash, LyraGlobal.OFFICIALTICKERCODE) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
             return APIResultCodes.Success;

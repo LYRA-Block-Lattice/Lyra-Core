@@ -609,11 +609,11 @@ namespace Lyra
             {
                 Height = 1,
                 AccountType = AccountTypes.Standard,
-                Ticker = LyraGlobal.LYRATICKERCODE,
+                Ticker = LyraGlobal.OFFICIALTICKERCODE,
                 DomainName = "Lyra",
                 ContractType = ContractTypes.Cryptocurrency,
                 Description = "Lyra Permissioned Gas Token",
-                Precision = LyraGlobal.LYRAPRECISION,
+                Precision = LyraGlobal.OFFICIALTICKERPRECISION,
                 IsFinalSupply = true,
                 AccountID = NodeService.Instance.PosWallet.AccountId,
                 Balances = new Dictionary<string, decimal>(),
@@ -625,7 +625,7 @@ namespace Lyra
                 Image = "https://i.imgur.com/B8l4ZG5.png",
                 RenewalDate = DateTime.Now.AddYears(1000)
             };
-            var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.LYRAGENESISAMOUNT };
+            var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
             openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
 
