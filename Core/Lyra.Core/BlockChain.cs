@@ -604,15 +604,14 @@ namespace Lyra
 
         public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceBlock svcGen)
         {
-            // initiate test coins
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
             {
                 Height = 1,
                 AccountType = AccountTypes.Standard,
                 Ticker = LyraGlobal.OFFICIALTICKERCODE,
-                DomainName = "Lyra",
+                DomainName = LyraGlobal.OFFICIALDOMAIN,
                 ContractType = ContractTypes.Cryptocurrency,
-                Description = "Lyra Permissioned Gas Token",
+                Description = LyraGlobal.APPLICATIONNAME + " Gas Token",
                 Precision = LyraGlobal.OFFICIALTICKERPRECISION,
                 IsFinalSupply = true,
                 AccountID = NodeService.Instance.PosWallet.AccountId,
@@ -621,8 +620,6 @@ namespace Lyra
                 ServiceHash = svcGen.Hash,
                 Fee = svcGen.TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
-                Icon = "https://i.imgur.com/L3h0J1K.png",
-                Image = "https://i.imgur.com/B8l4ZG5.png",
                 RenewalDate = DateTime.Now.AddYears(1000)
             };
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
@@ -638,6 +635,7 @@ namespace Lyra
             {
                 NetworkId = NetworkID,
                 Height = 1,
+                FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
                 TransferFee = 0, //1,           zero for genesis. back to normal when genesis done
                 TokenGenerationFee = 0, //100,
                 TradeFee = 0m //0.1m

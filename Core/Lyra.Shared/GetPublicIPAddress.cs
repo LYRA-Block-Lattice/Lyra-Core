@@ -17,7 +17,7 @@ namespace Lyra.Shared
             if (_myIp == null)  // no hammer on get ip service.
                 try
                 {
-                    var env = Environment.GetEnvironmentVariable("LYRA_NETWORK");
+                    var env = Environment.GetEnvironmentVariable("WIZDAG_NETWORK");
                     if (string.IsNullOrWhiteSpace(env) || env == "devnet")
                     {
                         _myIp = Utilities.LocalIPAddress(getPublicIP);

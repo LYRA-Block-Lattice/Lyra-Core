@@ -51,7 +51,7 @@ Install the ASP.NET Core runtime
 7. modify ~/lyra/node/config.testnet.json, change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step.
 
 
-8. run. (remember to set environment variable LYRA_NETWORK to testnet/mainnet etc.)
+8. run. (remember to set environment variable WIZDAG_NETWORK to testnet/mainnet etc.)
 
 `dotnet dev-certs https --clean`
 
@@ -59,7 +59,7 @@ Install the ASP.NET Core runtime
 
 `cd ~/lyra/node`
 
-`export LYRA_NETWORK=testnet`
+`export WIZDAG_NETWORK=testnet`
 
 `dotnet Lyra.Node2.dll`
 

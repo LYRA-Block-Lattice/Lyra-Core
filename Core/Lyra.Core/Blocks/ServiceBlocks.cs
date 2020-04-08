@@ -52,6 +52,8 @@ namespace Lyra.Core.Blocks
         /// </summary>
         public string NetworkId { get; set; }
 
+        public string FeeTicker { get; set; }
+
         // Amount of fee for LYRA gas and custom token transfers;
         public decimal TransferFee { get; set; }
 
@@ -72,7 +74,8 @@ namespace Lyra.Core.Blocks
         {
             string extraData = base.GetExtraData();
             extraData += this.NetworkId + "|";
-            foreach(var pn in Authorizers)
+            extraData += this.FeeTicker + "|";
+            foreach (var pn in Authorizers)
                 extraData += pn.Signature + "|";
             extraData = extraData + JsonConvert.SerializeObject(TransferFee) + "|";
             extraData = extraData + JsonConvert.SerializeObject(TokenGenerationFee) + "|";
@@ -87,7 +90,10 @@ namespace Lyra.Core.Blocks
 
         public override bool IsBlockValid(Block prevBlock)
         {
-            if (string.IsNullOrWhiteSpace(this.NetworkId) || Authorizers.Count < ProtocolSettings.Default.StandbyValidators.Length)
+            if (string.IsNullOrWhiteSpace(this.FeeTicker) 
+                || this.FeeTicker != "BES"
+                || string.IsNullOrWhiteSpace(this.NetworkId) 
+                || Authorizers.Count < ProtocolSettings.Default.StandbyValidators.Length)
                 return false;
 
             return base.IsBlockValid(prevBlock);

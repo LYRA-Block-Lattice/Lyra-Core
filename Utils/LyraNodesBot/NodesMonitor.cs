@@ -256,7 +256,7 @@ namespace LyraNodesBot
         {
             try
             {
-                var walletKey = Environment.GetEnvironmentVariable("LYRA_BOT_WALLET_KEY");
+                var walletKey = Environment.GetEnvironmentVariable("WIZDAG_BOT_WALLET_KEY");
                 if (string.IsNullOrWhiteSpace(walletKey))
                     return "Wallet not found.";
 

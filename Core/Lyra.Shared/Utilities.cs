@@ -66,7 +66,7 @@ namespace Lyra.Shared
                 if (!Directory.Exists(path))
                     Directory.CreateDirectory(path);
 
-                var netEnv = Environment.GetEnvironmentVariable("LYRA_NETWORK");
+                var netEnv = Environment.GetEnvironmentVariable("WIZDAG_NETWORK");
                 var net = string.IsNullOrWhiteSpace(netEnv) ? "devnet" : netEnv;
 
                 path = $"{path}{PathSeperator}{net}";

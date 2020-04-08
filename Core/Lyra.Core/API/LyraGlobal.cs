@@ -6,7 +6,9 @@ namespace Lyra.Core.API
 {
     public sealed class LyraGlobal
     {
-        public const string OFFICIALTICKERCODE = "Official.BES";
+        public const string APPLICATIONNAME = "Wizard DAG Permisionless Blockchain";
+        public const string OFFICIALDOMAIN = "wizdag";
+        public const string OFFICIALTICKERCODE = "BES";
         public const int OFFICIALTICKERPRECISION = 8;
 
         public const int MAXMIMUMAUTHORIZERS = 21;
@@ -14,7 +16,7 @@ namespace Lyra.Core.API
         public const int ProtocolVersion = 1;
         public const int DatabaseVersion = 1;
 
-        public static string NodeAppName = "Wizard DAG Permisionless " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
+        public static string NodeAppName = APPLICATIONNAME + " " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 
         public const int MinimalAuthorizerBalance = 1000000;
         public const decimal OFFICIALGENESISAMOUNT = 12000000000;
