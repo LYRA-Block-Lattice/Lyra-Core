@@ -179,7 +179,7 @@ namespace Lyra
                             _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
 
                             var myStatus = await GetNodeStatusAsync();
-                            if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 2)
+                            if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 3)
                             {
                                 _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                                 //_stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
