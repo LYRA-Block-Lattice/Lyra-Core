@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -61,7 +62,16 @@ namespace Lyra.Shared
                     ? Environment.GetEnvironmentVariable("HOME")
                     : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
 
-                var path = $"{homePath}{PathSeperator}.Lyra";
+                var path = $"{homePath}{PathSeperator}.wizdag";
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+
+                var netEnv = Environment.GetEnvironmentVariable("LYRA_NETWORK");
+                var net = string.IsNullOrWhiteSpace(netEnv) ? "devnet" : netEnv;
+
+                path = $"{path}{PathSeperator}{net}";
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
 
                 return path;
             }

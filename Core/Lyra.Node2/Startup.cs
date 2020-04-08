@@ -51,7 +51,7 @@ namespace Lyra.Node2
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             var logPath = $"{Utilities.LyraDataDir}/Logs/";
-            loggerFactory.AddFile(logPath + "LyraNode2-{Date}.txt");
+            loggerFactory.AddFile(logPath + "noded-{Date}.txt");
 
             SimpleLogger.Factory = loggerFactory;
 

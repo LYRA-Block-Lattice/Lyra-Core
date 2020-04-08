@@ -24,7 +24,7 @@ namespace Friday
         {
             var workingFolder = @"C:\working\Friday";
                       
-            var lyraFolder = BaseAccount.GetFullFolderName("Lyra-CLI-" + network_id);
+            var lyraFolder = BaseAccount.GetFullFolderName("wallets");
 
             Console.WriteLine("Press enter to begin.");
             Console.ReadLine();
