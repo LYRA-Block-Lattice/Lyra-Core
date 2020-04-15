@@ -18,8 +18,8 @@ namespace LyraWallet
         public static App Init(Action<HostBuilderContext, IServiceCollection> nativeConfigureServices)
         {
             var systemDir = FileSystem.CacheDirectory;
-            ExtractSaveResource("LyraWallet.appsettings.json", systemDir);
-            var fullConfig = Path.Combine(systemDir, "LyraWallet.appsettings.json");
+            ExtractSaveResource("Wallet.appsettings.json", systemDir);
+            var fullConfig = Path.Combine(systemDir, "Wallet.appsettings.json");
 
             var host = new HostBuilder()
                 .ConfigureHostConfiguration(c =>

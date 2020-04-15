@@ -43,7 +43,7 @@ namespace Lyra.Node2
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Lyra API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WizDAG API", Version = "v1" });
             });
         }
 
@@ -62,7 +62,7 @@ namespace Lyra.Node2
             // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lyra API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "WizDAG API V1");
             });
 
             if (env.IsDevelopment())

@@ -173,7 +173,7 @@ namespace Lyra.Core.Decentralize
                 int waitCount = 60;
                 while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
                 {
-                    _log.LogInformation("Not connected to Lyra Network. Delay sending... ");
+                    _log.LogInformation("Not connected to p2p network. Delay sending... ");
                     await Task.Delay(1000);
                     waitCount--;
                 }
