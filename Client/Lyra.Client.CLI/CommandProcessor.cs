@@ -67,12 +67,12 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Display Account Id (aka ""wallet address"" or ""public key"")", COMMAND_ACCOUNT_ID));
                         Console.WriteLine(string.Format(@"{0,10}: Display Account Private Key", COMMAND_PRIVATE_KEY));
                         Console.WriteLine(string.Format(@"{0,10}: Transfer funds to another account", COMMAND_SEND));
-                        Console.WriteLine(string.Format(@"{0,10}: Pay to a merchant", COMMAND_PAY));
-                        Console.WriteLine(string.Format(@"{0,10}: Accept payment from a buyer", COMMAND_SELL));
+                        //Console.WriteLine(string.Format(@"{0,10}: Pay to a merchant", COMMAND_PAY));
+                        //Console.WriteLine(string.Format(@"{0,10}: Accept payment from a buyer", COMMAND_SELL));
                         Console.WriteLine(string.Format(@"{0,10}: Display the account status summary", COMMAND_STATUS));
-                        Console.WriteLine(string.Format(@"{0,10}: Place a trade order", COMMAND_TRADE_ORDER));
-                        Console.WriteLine(string.Format(@"{0,10}: Cancel trade order", COMMAND_CANCEL_TRADE_ORDER));
-                        Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
+                       // Console.WriteLine(string.Format(@"{0,10}: Place a trade order", COMMAND_TRADE_ORDER));
+                        //Console.WriteLine(string.Format(@"{0,10}: Cancel trade order", COMMAND_CANCEL_TRADE_ORDER));
+                        //Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new custom digital asset (token)", COMMAND_TOKEN));
                         Console.WriteLine(string.Format(@"{0,10}: Print last transaction block", COMMAND_PRINT_LAST_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Print transaction block", COMMAND_PRINT_BLOCK));
@@ -80,7 +80,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Sync up with the node", COMMAND_SYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Exit this app", COMMAND_STOP));
-                        Console.WriteLine(string.Format(@"{0,10}: Generate a network genesis block (testnet only)", COMMAND_GEN_NOTE));
+                        //Console.WriteLine(string.Format(@"{0,10}: Generate a network genesis block (testnet only)", COMMAND_GEN_NOTE));
 
                         //Console.WriteLine(string.Format(@"{0,10}: Restore account using private key", COMMAND_RESTORE));
                         //Console.WriteLine(string.Format("{0,15}: Sync up the account with the node to check if there are incoming transactions", COMMAND_SYNC));
