@@ -42,7 +42,7 @@ namespace Lyra
 
         public DagSystem()
         {
-            _log = new SimpleLogger("LyraSystem").Logger;
+            _log = new SimpleLogger("DagSystem").Logger;
 
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this));
