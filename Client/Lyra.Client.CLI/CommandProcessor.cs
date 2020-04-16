@@ -76,7 +76,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Create a new custom digital asset (token)", COMMAND_TOKEN));
                         Console.WriteLine(string.Format(@"{0,10}: Print last transaction block", COMMAND_PRINT_LAST_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Print transaction block", COMMAND_PRINT_BLOCK));
-                        Console.WriteLine(string.Format(@"{0,10}: Print the list of active trade orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
+                        //Console.WriteLine(string.Format(@"{0,10}: Print the list of active trade orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up with the node", COMMAND_SYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Exit this app", COMMAND_STOP));
