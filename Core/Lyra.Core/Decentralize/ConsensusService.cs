@@ -211,6 +211,10 @@ namespace Lyra.Core.Decentralize
                 await BlockChain.Singleton.ConsolidationBlockFailedAsync(x.consolidationBlockHash);
             });
 
+            Receive<Idle>(o => { });
+
+            ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
+
             Task.Run(async () =>
             {
                 int count = 0;

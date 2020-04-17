@@ -559,10 +559,10 @@ namespace Lyra
                     //    case ConsensusPayload payload:
                     //        Sender.Tell(OnNewConsensus(payload));
                     //        break;
-                    //    case Idle _:
+                        case Idle _:
                     //        if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
                     //            Self.Tell(Idle.Instance, ActorRefs.NoSender);
-                    //        break;
+                            break;
             }
         }
 
