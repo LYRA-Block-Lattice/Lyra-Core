@@ -108,7 +108,7 @@ namespace Lyra.Core.Cryptography
             //Buffer.BlockCopy(public_key_data, 0, L_encoded, 1, public_key_data.Length);
             ///// ***
 
-            return "L" + EncodeWithCheckSum(public_key_data);
+            return "W" + EncodeWithCheckSum(public_key_data);
         }
 
         public static byte[] DecodePrivateKey(string privateKey)

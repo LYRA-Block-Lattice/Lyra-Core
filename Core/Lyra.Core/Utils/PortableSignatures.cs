@@ -17,7 +17,7 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                if (AccountId[0] != 'L')
+                if (AccountId[0] != 'W')
                     return false;
 
                 Base58Encoding.DecodeAccountId(AccountId);
