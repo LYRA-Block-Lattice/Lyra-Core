@@ -5,6 +5,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Math;
+using Neo.Cryptography;
 
 namespace Lyra.Core.Cryptography
 {
@@ -17,10 +18,10 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                if (AccountId[0] != 'L')
+                if (AccountId[0] != 'W')
                     return false;
 
-                Base58Encoding.DecodeAccountId(AccountId);
+                Base58.Decode(AccountId);
                 return true;
             }
             catch
@@ -34,7 +35,7 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                Base58Encoding.DecodePublicKey(PublicKey);
+                Base58.Decode(PublicKey);
                 return true;
             }
             catch
@@ -47,7 +48,7 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                Base58Encoding.DecodePrivateKey(PrivateKey);
+                Base58.Decode(PrivateKey);
                 return true;
             }
             catch
@@ -60,7 +61,7 @@ namespace Lyra.Core.Cryptography
         {
             if (string.IsNullOrWhiteSpace(message) || !ValidateAccountId(accountId) || string.IsNullOrWhiteSpace(signature))
                 return false;
-            var publicKeyBytes = Base58Encoding.DecodeAccountId(accountId);
+            var publicKeyBytes = Base58.Decode(accountId);
             return VerifySignature(message, publicKeyBytes, signature);
         }
 
@@ -68,7 +69,7 @@ namespace Lyra.Core.Cryptography
         {
             if (string.IsNullOrWhiteSpace(message) || !ValidatePublicKey(publicKey) || string.IsNullOrWhiteSpace(signature))
                 return false;
-            var publicKeyBytes = Base58Encoding.DecodePublicKey(publicKey);
+            var publicKeyBytes = Base58.Decode(publicKey);
             return VerifySignature(message, publicKeyBytes, signature);
         }
 
@@ -78,9 +79,9 @@ namespace Lyra.Core.Cryptography
             var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
 
-            //var publicKeyBytes = Base58Encoding.Decode(publicKey);
-            //var publicKeyBytes = Base58Encoding.DecodeWithCheckSum(publicKey);
-            //var publicKeyBytes = Base58Encoding.DecodePublicKey(publicKey);
+            //var publicKeyBytes = Base58.Decode(publicKey);
+            //var publicKeyBytes = Base58.DecodeWithCheckSum(publicKey);
+            //var publicKeyBytes = Base58.Decode(publicKey);
 
             var q = curve.Curve.DecodePoint(public_key_bytes);
 
@@ -93,7 +94,7 @@ namespace Lyra.Core.Cryptography
             signer.Init(false, keyParameters);
             signer.BlockUpdate(Encoding.UTF8.GetBytes(message), 0, message.Length);
 
-            var signatureBytes = Base58Encoding.Decode(signature);
+            var signatureBytes = Base58.Decode(signature);
             var derSign = SignatureHelper.derSign(signatureBytes);
             return signer.VerifySignature(derSign);
         }
@@ -103,9 +104,9 @@ namespace Lyra.Core.Cryptography
             var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
 
-            //byte[] pkbytes = Base58Encoding.Decode(privateKey);
-            //byte[] pkbytes = Base58Encoding.DecodeWithCheckSum(privateKey);
-            byte[] pkbytes = Base58Encoding.DecodePrivateKey(privateKey);
+            //byte[] pkbytes = Base58.Decode(privateKey);
+            //byte[] pkbytes = Base58.DecodeWithCheckSum(privateKey);
+            byte[] pkbytes = Base58.Decode(privateKey);
 
             var keyParameters = new
                     ECPrivateKeyParameters(new Org.BouncyCastle.Math.BigInteger(1, pkbytes),
@@ -117,7 +118,7 @@ namespace Lyra.Core.Cryptography
             signer.BlockUpdate(Encoding.UTF8.GetBytes(message), 0, message.Length);
             var signature = signer.GenerateSignature();
             var netformat = SignatureHelper.ConvertDerToP1393(signature);
-            return Base58Encoding.Encode(netformat);
+            return Base58.Encode(netformat);
         }
 
         private static byte[] DerivePublicKeyBytes(string privateKey)
@@ -125,7 +126,7 @@ namespace Lyra.Core.Cryptography
             var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
 
-            byte[] pkbytes = Base58Encoding.DecodePrivateKey(privateKey);
+            byte[] pkbytes = Base58.Decode(privateKey);
             var d = new BigInteger(pkbytes);
             var q = domain.G.Multiply(d);
 
@@ -137,13 +138,13 @@ namespace Lyra.Core.Cryptography
         public static string GetAccountIdFromPrivateKey(string privateKey)
         {
             byte[] public_key_bytes = DerivePublicKeyBytes(privateKey);
-            return Base58Encoding.EncodeAccountId(public_key_bytes);
+            return Base58.Encode(public_key_bytes);
         }
 
         public static string GetPublicKeyFromPrivateKey(string privateKey)
         {
             byte[] public_key_bytes = DerivePublicKeyBytes(privateKey);
-            return Base58Encoding.EncodePublicKey(public_key_bytes);
+            return Base58.Encode(public_key_bytes);
         }
 
         //public void GenarateKeyPair()
@@ -164,9 +165,9 @@ namespace Lyra.Core.Cryptography
             var privateKey = new byte[32];
             var rnd = System.Security.Cryptography.RandomNumberGenerator.Create();
             rnd.GetBytes(privateKey);
-            //return Base58Encoding.Encode(privateKey);
-            //return Base58Encoding.EncodeWithCheckSum(privateKey);
-            return Base58Encoding.EncodePrivateKey(privateKey);
+            //return Base58.Encode(privateKey);
+            //return Base58.EncodeWithCheckSum(privateKey);
+            return Base58.Encode(privateKey);
         }
 
 

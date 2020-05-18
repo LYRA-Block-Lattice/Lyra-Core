@@ -12,6 +12,7 @@ using System.Net.Http;
 using Lyra.Core.API;
 using Microsoft.Extensions.Hosting;
 using Lyra.Core.Cryptography;
+using Neo.Cryptography;
 
 namespace Lyra.Client.CLI
 {
@@ -55,7 +56,7 @@ namespace Lyra.Client.CLI
             {
                 wallet.AccountName = options.GenWalletName;
                 wallet.CreateAccount(lyra_folder, wallet.AccountName, AccountTypes.Standard);
-                var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(Base58Encoding.DecodeAccountId(wallet.AccountId), Neo.Cryptography.ECC.ECCurve.Secp256r1);
+                var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(Base58.Decode(wallet.AccountId), Neo.Cryptography.ECC.ECCurve.Secp256r1);
                 Console.WriteLine($"The new wallet {wallet.AccountName} for {network_id}: ");
                 Console.WriteLine(ep.ToString());
                 Console.WriteLine(wallet.AccountId);

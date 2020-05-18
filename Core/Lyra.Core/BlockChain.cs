@@ -10,6 +10,7 @@ using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
+using Neo.Cryptography;
 using Neo.Cryptography.ECC;
 using Neo.IO.Actors;
 using Newtonsoft.Json;
@@ -77,7 +78,7 @@ namespace Lyra
 
         public static BlockChain Singleton;
         public static readonly ECPoint[] StandbyValidators = ProtocolSettings.Default.StandbyValidators.OfType<string>().Select(p => //ECPoint.DecodePoint(p.HexToBytes(), ECCurve.Secp256r1)).ToArray();
-                                                        ECPoint.FromBytes(Base58Encoding.DecodeAccountId(p), ECCurve.Secp256r1)).ToArray();
+                                                        ECPoint.FromBytes(Base58.Decode(p), ECCurve.Secp256r1)).ToArray();
 
         public uint Height;
         public string NetworkID { get; private set; }

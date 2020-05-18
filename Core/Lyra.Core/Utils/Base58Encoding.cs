@@ -8,6 +8,7 @@ namespace Lyra.Core.Cryptography
     /*
      * From: https://gist.github.com/CodesInChaos/3175971
      */
+     /*
     public static class Base58Encoding
     {
         public const int CheckSumSizeInBytes = 4;
@@ -189,5 +190,5 @@ namespace Lyra.Core.Cryptography
         {   
             return SubArray(arr, start, arr.Length - start);
         }
-    }
+    }*/
 }
