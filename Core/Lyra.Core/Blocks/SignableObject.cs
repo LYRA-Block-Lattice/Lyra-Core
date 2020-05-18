@@ -8,7 +8,6 @@ using Newtonsoft.Json;
 using Lyra.Core.Cryptography;
 using System.Threading.Tasks;
 using System.IO;
-using Neo.Cryptography;
 
 namespace Lyra.Core.Blocks
 {
@@ -30,7 +29,7 @@ namespace Lyra.Core.Blocks
             using (SHA256Managed sha = new SHA256Managed())
             {
                 byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(record));
-                string hash = Base58.Encode(hash_bytes);
+                string hash = Base58Encoding.Encode(hash_bytes);
                 return hash;
             }
         }
@@ -81,7 +80,7 @@ namespace Lyra.Core.Blocks
             using (SHA256Managed sha = new SHA256Managed())
             {
                 byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(txt));
-                string hash = Base58.Encode(hash_bytes);
+                string hash = Base58Encoding.Encode(hash_bytes);
                 return hash;
             }
         }

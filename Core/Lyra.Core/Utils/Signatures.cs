@@ -1,6 +1,5 @@
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
-using Neo.Cryptography;
 using Neo.Wallets;
 using System;
 using System.Diagnostics;
@@ -35,10 +34,10 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                if (AccountId[0] != 'W')
+                if (AccountId[0] != 'L')
                     return false;
 
-                Base58.Decode(AccountId);
+                Base58Encoding.DecodeAccountId(AccountId);
                 return true;
             }
             catch
@@ -52,7 +51,7 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                Base58.Decode(PublicKey);
+                Base58Encoding.DecodePublicKey(PublicKey);
                 return true;
             }
             catch
@@ -65,7 +64,7 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                Base58.Decode(PrivateKey);
+                Base58Encoding.DecodePrivateKey(PrivateKey);
                 return true;
             }
             catch
@@ -89,8 +88,8 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                var signatureBytes = Base58.Decode(signature);
-                var publicKeyBytes = Base58.Decode(AccountId);
+                var signatureBytes = Base58Encoding.Decode(signature);
+                var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
 
                 var result = Neo.Cryptography.Crypto.Default.VerifySignature(Encoding.UTF8.GetBytes(message), signatureBytes, publicKeyBytes);
 
@@ -108,10 +107,10 @@ namespace Lyra.Core.Cryptography
             if (IsMono)
                 return PortableSignatures.GetSignature(privateKey, message);
 
-            var publicKeyBytes = Base58.Decode(AccountId);
-            var privateKeyBytes = Base58.Decode(privateKey);
+            var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
+            var privateKeyBytes = Base58Encoding.DecodePrivateKey(privateKey);
             var signature = Neo.Cryptography.Crypto.Default.Sign(Encoding.UTF8.GetBytes(message), privateKeyBytes, publicKeyBytes);
-            return Base58.Encode(signature);
+            return Base58Encoding.Encode(signature);
 
             //Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(privateKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1);
             //var sigInts = sa.GenerateSignature(Encoding.ASCII.GetBytes(message));
@@ -142,7 +141,7 @@ namespace Lyra.Core.Cryptography
 
             public SignatureHolder(string signature)
             {
-                var buff = Base58.Decode(signature);
+                var buff = Base58Encoding.Decode(signature);
                 var b1 = new byte[buff[0]];
                 var b2 = new byte[buff[1]];
                 Buffer.BlockCopy(buff, 2, b1, 0, b1.Length);
@@ -161,7 +160,7 @@ namespace Lyra.Core.Cryptography
                 buff[1] = (byte)b2.Length;
                 Buffer.BlockCopy(b1, 0, buff, 2, b1.Length);
                 Buffer.BlockCopy(b2, 0, buff, 2 + b1.Length, b2.Length);
-                return Base58.Encode(buff);
+                return Base58Encoding.Encode(buff);
             }
         }
 
@@ -174,17 +173,17 @@ namespace Lyra.Core.Cryptography
             }
             var kp = new KeyPair(privateKey);
 
-            var pvtKeyStr = Base58.Encode(privateKey);
+            var pvtKeyStr = Base58Encoding.EncodePrivateKey(privateKey);
 
             var pubKey = kp.PublicKey.EncodePoint(false).Skip(1).ToArray();
-            return (pvtKeyStr, Base58.Encode(pubKey));
+            return (pvtKeyStr, Base58Encoding.EncodeAccountId(pubKey));
         }
 
         public static string GetAccountIdFromPrivateKey(string privateKey)
         {
-            var pvtKey = Base58.Decode(privateKey);
+            var pvtKey = Base58Encoding.DecodePrivateKey(privateKey);
             var kp = new Neo.Wallets.KeyPair(pvtKey);
-            return Base58.Encode(kp.PublicKey.EncodePoint(false).Skip(1).ToArray());
+            return Base58Encoding.EncodeAccountId(kp.PublicKey.EncodePoint(false).Skip(1).ToArray());
         }
     }
 }
