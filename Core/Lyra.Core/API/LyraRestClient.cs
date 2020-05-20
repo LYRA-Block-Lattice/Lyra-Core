@@ -291,7 +291,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetTokenGenesisBlock/?AccountId={AccountId}&Signature={Signature}");
+            HttpResponseMessage response = await _client.GetAsync($"GetTokenGenesisBlock/?AccountId={AccountId}&TokenTicker={TokenTicker}&Signature={Signature}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();

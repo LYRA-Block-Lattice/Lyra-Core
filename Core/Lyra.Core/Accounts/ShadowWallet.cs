@@ -35,7 +35,7 @@ namespace Lyra.Core.Accounts
         {
             var walletStore = new LiteAccountDatabase();
             var tmpWallet = new Wallet(walletStore, networkId);
-            string lyrawalletfolder = BaseAccount.GetFullFolderName("wallets");
+            string lyrawalletfolder = BaseAccount.GetFullFolderName(networkId, "wallets");
             tmpWallet.OpenAccount(lyrawalletfolder, walletName);
 
             // create wallet and update balance

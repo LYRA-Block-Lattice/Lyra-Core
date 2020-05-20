@@ -53,28 +53,25 @@ namespace Lyra.Shared
         public static string PathSeperator => (Environment.OSVersion.Platform == PlatformID.Unix ||
                    Environment.OSVersion.Platform == PlatformID.MacOSX) ? "/" : "\\";
 
-        public static string LyraDataDir
+        public static string GetLyraDataDir(string networkId = null)
         {
-            get
-            {
-                string homePath = (Environment.OSVersion.Platform == PlatformID.Unix ||
-                   Environment.OSVersion.Platform == PlatformID.MacOSX)
-                    ? Environment.GetEnvironmentVariable("HOME")
-                    : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+            string homePath = (Environment.OSVersion.Platform == PlatformID.Unix ||
+               Environment.OSVersion.Platform == PlatformID.MacOSX)
+                ? Environment.GetEnvironmentVariable("HOME")
+                : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
 
-                var path = $"{homePath}{PathSeperator}.wizdag";
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
+            var path = $"{homePath}{PathSeperator}.wizdag";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
 
-                var netEnv = Environment.GetEnvironmentVariable("WIZDAG_NETWORK");
-                var net = string.IsNullOrWhiteSpace(netEnv) ? "devnet" : netEnv;
+            var netEnv = networkId == null ? Environment.GetEnvironmentVariable("WIZDAG_NETWORK") : networkId;
+            var net = string.IsNullOrWhiteSpace(netEnv) ? "devnet" : netEnv;
 
-                path = $"{path}{PathSeperator}{net}";
-                if (!Directory.Exists(path))
-                    Directory.CreateDirectory(path);
+            path = $"{path}{PathSeperator}{net}";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
 
-                return path;
-            }
+            return path;
         }
     }
 }

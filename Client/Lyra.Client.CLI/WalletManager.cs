@@ -45,7 +45,7 @@ namespace Lyra.Client.CLI
                 wallet = new Wallet(new LiteAccountDatabase(), network_id);
             }
 
-            string lyra_folder = BaseAccount.GetFullFolderName("wallets");
+            string lyra_folder = BaseAccount.GetFullFolderName(network_id, "wallets");
             if (!Directory.Exists(lyra_folder))
                 Directory.CreateDirectory(lyra_folder);
 

@@ -270,7 +270,7 @@ namespace Lyra.Core.Accounts
             }
 
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.TokenGenesis), builder.Eq("Ticker", Ticker));
+            var filterDefinition = builder.And(builder.Or(builder.Eq("BlockType", BlockTypes.TokenGenesis), builder.Eq("BlockType", BlockTypes.LyraTokenGenesis)), builder.Eq("Ticker", Ticker));
             var blocks = await _blocks.FindAsync(filterDefinition);
             return await blocks.FirstOrDefaultAsync() as TokenGenesisBlock;
         }

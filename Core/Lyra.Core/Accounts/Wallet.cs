@@ -571,8 +571,8 @@ namespace Lyra.Core.Accounts
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
                 }
 
-            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-            if(svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if(svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
             }
@@ -583,7 +583,7 @@ namespace Lyra.Core.Accounts
                 sendBlock = new ExchangingBlock()
                 {
                     AccountID = AccountId,
-                    ServiceHash = svcBlockResult.Result.GetBlock().Hash,
+                    ServiceHash = svcBlockResult.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, decimal>(),
                     //PaymentID = string.Empty,
@@ -597,7 +597,7 @@ namespace Lyra.Core.Accounts
                 sendBlock = new SendTransferBlock()
                 {
                     AccountID = AccountId,
-                    ServiceHash = svcBlockResult.Result.GetBlock().Hash,
+                    ServiceHash = svcBlockResult.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, decimal>(),
                     //PaymentID = string.Empty,
@@ -967,8 +967,8 @@ namespace Lyra.Core.Accounts
 
         private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult new_transfer_info)
         {
-            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-            if (svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
             }
@@ -977,7 +977,7 @@ namespace Lyra.Core.Accounts
             {
                 AccountType = AccountTypes.Standard,
                 AccountID = AccountId,
-                ServiceHash = svcBlockResult.Result.GetBlock().Hash,
+                ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
                 Balances = new Dictionary<string, decimal>(),
                 Fee = 0,
@@ -1027,8 +1027,8 @@ namespace Lyra.Core.Accounts
             if (GetLocalAccountHeight() == 0) // if this is new account with no blocks
                 return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
 
-            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-            if (svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
             }
@@ -1036,7 +1036,7 @@ namespace Lyra.Core.Accounts
             var receiveBlock = new ReceiveTransferBlock
             {
                 AccountID = AccountId,
-                ServiceHash = svcBlockResult.Result.GetBlock().Hash,
+                ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
                 Balances = new Dictionary<string, decimal>(),
                 Fee = 0,
@@ -1111,8 +1111,8 @@ namespace Lyra.Core.Accounts
 
         public async Task<APIResultCodes> CreateGenesisForCoreTokenAsync()
         {
-            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-            if (svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
             }
@@ -1129,7 +1129,7 @@ namespace Lyra.Core.Accounts
                 IsFinalSupply = true,
                 AccountID = AccountId,
                 Balances = new Dictionary<string, decimal>(),
-                ServiceHash = svcBlockResult.Result.GetBlock().Hash,
+                ServiceHash = svcBlockResult.GetBlock().Hash,
                 Fee = TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
                 Icon = "https://i.imgur.com/L3h0J1K.png",
@@ -1205,8 +1205,8 @@ namespace Lyra.Core.Accounts
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
             }
 
-            var svcBlockResult = _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-            if (svcBlockResult.Result.ResultCode != APIResultCodes.Success)
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
             }
@@ -1223,7 +1223,7 @@ namespace Lyra.Core.Accounts
                 //CustomFeeAccountId = string.Empty,
                 AccountID = AccountId,
                 Balances = new Dictionary<string, decimal>(),
-                ServiceHash = svcBlockResult.Result.GetBlock().Hash,
+                ServiceHash = svcBlockResult.GetBlock().Hash,
                 Fee = TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
                 Owner = owner,
@@ -1335,6 +1335,8 @@ namespace Lyra.Core.Accounts
         // checks the checksum of public or private key
         public bool ValidatePrivateKey(string private_key)
         {
+            if (string.IsNullOrEmpty(private_key))
+                return false;
             return Signatures.ValidatePrivateKey(private_key);
         }
 

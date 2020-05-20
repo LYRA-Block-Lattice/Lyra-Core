@@ -26,9 +26,9 @@ namespace Lyra.Core.Accounts
 
         public string NetworkId { get; set; }
 
-        public static string GetFullFolderName(string FolderName)
+        public static string GetFullFolderName(string NetworkId, string FolderName)
         {
-            return $"{Utilities.LyraDataDir}{Utilities.PathSeperator}{FolderName}{Utilities.PathSeperator}";
+            return $"{Utilities.GetLyraDataDir(NetworkId)}{Utilities.PathSeperator}{FolderName}{Utilities.PathSeperator}";
         }
 
         public BaseAccount(string accountName, IAccountDatabase storage, string NetworkId)

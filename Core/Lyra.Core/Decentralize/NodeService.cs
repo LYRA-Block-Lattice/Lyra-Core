@@ -53,7 +53,7 @@ namespace Lyra.Core.Decentralize
 
                 var walletStore = new LiteAccountDatabase();
                 var tmpWallet = new Wallet(walletStore, Neo.Settings.Default.LyraNode.Lyra.NetworkId);
-                string lyrawalletfolder = BaseAccount.GetFullFolderName("wallets");
+                string lyrawalletfolder = BaseAccount.GetFullFolderName(Neo.Settings.Default.LyraNode.Lyra.NetworkId, "wallets");
                 tmpWallet.OpenAccount(lyrawalletfolder, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name);
 
                 if(ProtocolSettings.Default.StandbyValidators.Any(a => a == tmpWallet.AccountId))
