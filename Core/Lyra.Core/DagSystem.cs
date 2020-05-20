@@ -45,6 +45,7 @@ namespace Lyra
 
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this));
+            TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
 
             NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
             Singleton = this;
