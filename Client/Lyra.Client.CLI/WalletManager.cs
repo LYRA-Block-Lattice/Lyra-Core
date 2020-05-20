@@ -185,29 +185,5 @@ namespace Lyra.Client.CLI
 
             return 0;
         }
-
-        string SelectNode(string network_id)
-        {
-            //INodeAPI rpcClient = new WebAPIClient("http://localhost:5002/api/");
-            //INodeAPI rpcClient = new WebAPIClient("https://lyranode.ngrok.io/api/");
-
-            switch (network_id)
-            {
-                case Options.LOCAL_NETWORK:
-                    return "http://localhost:5002/api/";
-                case Options.DEV_NETWORK:
-                    return "https://node.lyra.live/api/";
-                case Options.DEV_NETWORK_1:
-                    return "https://node1.lyra.live/api/";
-                case Options.TEST_NETWORK:
-                    return "";
-                case Options.MAIN_NETWORK:
-                    return "";
-                case Options.STAGE_NETWORK:
-                    return "";
-                default:
-                    return "";
-            }
-        }
     }
 }
