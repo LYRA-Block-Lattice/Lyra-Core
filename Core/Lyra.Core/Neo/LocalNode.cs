@@ -233,6 +233,11 @@ namespace Neo.Network.P2P
 
         private void OnSendDirectly(IInventory inventory) => SendToRemoteNodes(inventory);
 
+        protected override void OnTcpConnected(IActorRef connection)
+        {
+            connection.Tell(new RemoteNode.StartProtocol());
+        }
+
         public static Props Props(DagSystem system)
         {
             return Akka.Actor.Props.Create(() => new LocalNode(system));

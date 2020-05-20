@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Neo;
 using Neo.Cryptography.ECC;
 using Neo.IO.Actors;
+using Neo.Network.P2P.Payloads;
 using Newtonsoft.Json;
 using Stateless;
 using System;

@@ -9,7 +9,7 @@ namespace Neo.Network.P2P
 {
     public abstract class Connection : UntypedActor
     {
-        internal class Timer { public static Timer Instance = new Timer(); }
+        internal class Close { public bool Abort; }
         internal class Ack : Tcp.Event { public static Ack Instance = new Ack(); }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Neo.Network.P2P
         {
             this.Remote = remote;
             this.Local = local;
-            this.timer = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromSeconds(connectionTimeoutLimitStart), Self, Timer.Instance, ActorRefs.NoSender);
+            this.timer = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromSeconds(connectionTimeoutLimitStart), Self, new Close { Abort = true }, ActorRefs.NoSender);
             switch (connection)
             {
                 case IActorRef tcp:
@@ -48,8 +48,7 @@ namespace Neo.Network.P2P
         private void WsReceive()
         {
             byte[] buffer = new byte[512];
-            ArraySegment<byte> segment = new ArraySegment<byte>(buffer);
-            ws.ReceiveAsync(segment, CancellationToken.None).PipeTo(Self,
+            ws.ReceiveAsync(buffer, CancellationToken.None).PipeTo(Self,
                 success: p =>
                 {
                     switch (p.MessageType)
@@ -90,8 +89,8 @@ namespace Neo.Network.P2P
         {
             switch (message)
             {
-                case Timer _:
-                    Disconnect(true);
+                case Close close:
+                    Disconnect(close.Abort);
                     break;
                 case Ack _:
                     OnAck();
@@ -108,7 +107,7 @@ namespace Neo.Network.P2P
         private void OnReceived(ByteString data)
         {
             timer.CancelIfNotNull();
-            timer = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromSeconds(connectionTimeoutLimit), Self, Timer.Instance, ActorRefs.NoSender);
+            timer = Context.System.Scheduler.ScheduleTellOnceCancelable(TimeSpan.FromSeconds(connectionTimeoutLimit), Self, new Close { Abort = true }, ActorRefs.NoSender);
             try
             {
                 OnData(data);
