@@ -2,7 +2,7 @@
   "profiles": {
     "Lyra.Client.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "--networkid testnet -g tttt -p webapi"
+      "commandLineArgs": "--networkid devnet -p webapi"
     }
   }
 }
