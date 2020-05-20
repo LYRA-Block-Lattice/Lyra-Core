@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Lyra;
+using Lyra.Core.Decentralize;
 using Neo.Cryptography;
 using Neo.IO.Caching;
 using Neo.Network.P2P.Capabilities;
@@ -58,6 +59,9 @@ namespace Neo.Network.P2P
             {
                 case MessageCommand.Addr:
                     OnAddrMessageReceived((AddrPayload)msg.Payload);
+                    break;
+                case MessageCommand.Consensus:
+                    OnSignedMessageReceived((SourceSignedMessage)msg.Payload);
                     break;
                 //case MessageCommand.Block:
                 //    OnInventoryReceived((Block)msg.Payload);
@@ -125,6 +129,12 @@ namespace Neo.Network.P2P
             {
                 EndPoints = payload.AddressList.Select(p => p.EndPoint).Where(p => p.Port > 0)
             });
+        }
+
+        private void OnSignedMessageReceived(SourceSignedMessage msg)
+        {
+            //system.TaskManager.Tell(new TaskManager.TaskCompleted { Hash = inventory.Hash }, Context.Parent);
+            system.LocalNode.Tell(new LocalNode.SignedMessageRelay { signedMessage = msg });
         }
 
         //private void OnFilterAddMessageReceived(FilterAddPayload payload)
