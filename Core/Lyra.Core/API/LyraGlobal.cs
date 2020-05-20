@@ -44,7 +44,7 @@ namespace Lyra.Core.API
                 case "mainnet":
                     return "https://seed.mainnet.wizdag.com:4505/api/";
                 default:
-                    throw new Exception("Unsupported network ID");
+                    throw new Exception("Unsupported network ID: " + networkID);
             }
         }
     }
