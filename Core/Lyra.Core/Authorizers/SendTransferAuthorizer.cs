@@ -31,20 +31,23 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as SendTransferBlock;
 
+            if (block.AccountID.Equals(block.DestinationAccountId))
+                return APIResultCodes.CannotSendToSelf;
+
             //// 1. check if the account already exists
             //if (!await BlockChain.Singleton.AccountExists(block.AccountID))
             //    return APIResultCodes.AccountDoesNotExist;
             //var stopwatch = Stopwatch.StartNew();
 
-            //TransactionBlock lastBlock = null;
-            //int count = 50;
-            //while(count-- > 0)
-            //{
-            //    lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
-            //    if (lastBlock != null)
-            //        break;
-            //    Task.Delay(100).Wait();
-            //}
+                //TransactionBlock lastBlock = null;
+                //int count = 50;
+                //while(count-- > 0)
+                //{
+                //    lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+                //    if (lastBlock != null)
+                //        break;
+                //    Task.Delay(100).Wait();
+                //}
 
             TransactionBlock lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
 

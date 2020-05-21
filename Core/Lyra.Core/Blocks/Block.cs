@@ -304,6 +304,7 @@ namespace Lyra.Core.Blocks
         APISignatureValidationFailed = 66,
 
         InvalidNetworkId = 67,
+        CannotSendToSelf = 68,
 
         // service blocks related
         InvalidConsolidationMerkleTreeHash,
