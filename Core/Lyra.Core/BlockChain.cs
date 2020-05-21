@@ -395,7 +395,7 @@ namespace Lyra
                                         Height = prevSvcBlock.Height + 1,
                                         ServiceHash = prevSvcBlock.Hash,
                                         TransferFee = 1,           //zero for genesis. back to normal when genesis done
-                                        TokenGenerationFee = 100,
+                                        TokenGenerationFee = 10000,
                                         TradeFee = 0.1m
                                     };
 

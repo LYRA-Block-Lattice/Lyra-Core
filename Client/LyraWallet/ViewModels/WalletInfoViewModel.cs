@@ -42,7 +42,7 @@ namespace LyraWallet.ViewModels
 
             VisitCommunityCommand = new Command(async () =>
             {
-                await Browser.OpenAsync("http://lex.lyratokens.com/", BrowserLaunchMode.SystemPreferred);
+                await Browser.OpenAsync("https://wizdag.com/", BrowserLaunchMode.SystemPreferred);
                 //var nextPage = new LexCommunityPage();
                 //await _thePage.Navigation.PushAsync(nextPage);
             });

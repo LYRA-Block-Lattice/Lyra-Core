@@ -47,7 +47,7 @@
                     <Switch IsToggled="true" OnColor="Orange" ThumbColor="Green"/>
                     <Label Text="Host my shop at community site" />
                 </StackLayout>
-                <Button Margin="0,0,0,0" Text="Visit Lyra LeX Online Community" Command="{Binding VisitCommunityCommand}" />
+                <Button Margin="0,0,0,0" Text="Visit Online Community" Command="{Binding VisitCommunityCommand}" />
                 <Label Text="Or even (Please backup private key first):" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />

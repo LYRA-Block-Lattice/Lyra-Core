@@ -51,9 +51,9 @@
             <Frame VerticalOptions="EndAndExpand" Padding="25" IsVisible="{Binding GetLEX}" CornerRadius="30">
                 <StackLayout>
                     <Label x:Name="getLex" FontSize="Small"
-                            Text="You need Lyra.Coin to creat everything here. Goto &quot;Settings&quot; -> &quot;Visit Lyra Online Community&quot; to get free Lyra.Coin to play with." LineBreakMode="WordWrap" />
+                            Text="You need BES coin to creat everything here. Goto &quot;Settings&quot; -> &quot;Visit Online Community&quot; to get free coin to play with." LineBreakMode="WordWrap" />
                     <Label FontSize="Small"
-                            Text="After you got Lyra.Coin, pull-down to refresh to see the balance." LineBreakMode="WordWrap" />
+                            Text="After you got BES coin, pull-down to refresh to see the balance." LineBreakMode="WordWrap" />
                 </StackLayout>
             </Frame>
             <Button BackgroundColor="LightGreen" IsVisible="{Binding NotGetLEX}" 

@@ -36,7 +36,7 @@
             <x:Arguments>
                 <views:LexCommunityPage />
             </x:Arguments>
-        </NavigationPage>-->
+        </NavigationPage>
 
         <NavigationPage Title="Exchange">
             <x:Arguments>
@@ -47,7 +47,7 @@
                     <On Platform="iOS" Value="tab_about.png"/>
                 </OnPlatform>
             </NavigationPage.Icon>
-        </NavigationPage>
+        </NavigationPage>-->
         
         <NavigationPage Title="Settings">
             <x:Arguments>
