@@ -1,4 +1,7 @@
-# Note
+# What's New
+
+[https://wizdag.com/](Official web site) launched.
+
 Testnet Live Now! (From 20 May 2020)
 
 Download Now: https://github.com/wizd/WizardDAG/releases
