@@ -1,6 +1,6 @@
 # What's New
 
-[https://wizdag.com/](Official web site) launched.
+[Official web site](https://wizdag.com/) launched.
 
 Testnet Live Now! (From 20 May 2020)
 
