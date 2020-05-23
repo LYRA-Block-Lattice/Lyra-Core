@@ -132,7 +132,7 @@ namespace Lyra.Client.CLI
                 LyraRestClient rpcClient;
                 if (!string.IsNullOrWhiteSpace(options.Node))
                 {
-                    var apiUrl = $"https://{options.Node}:4505/api/LyraNode/";
+                    var apiUrl = $"https://{options.Node}:4505/api/Node/";
                     rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "WizDAG Client Cli", "1.0a", apiUrl);
                 }
                 else

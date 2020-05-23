@@ -1,15 +1,9 @@
-### [About Lyra DAG](https://github.com/graft-project/LyraNetwork/wiki)
-### [Tokenomics](https://github.com/graft-project/LyraNetwork/wiki/Tokenomics)
-### [Roadmap](https://github.com/graft-project/LyraNetwork/wiki/Roadmap)
-
 # Note
-Testnet Live Now! (From 10 Jan 2020)
+Testnet Live Now! (From 20 May 2020)
 
-Stable Release: https://github.com/graft-project/LyraNetwork/releases
+Download Now: https://github.com/wizd/WizardDAG/releases
 
-Nightly/Testing Releases: https://github.com/wizd/LyraNetwork/releases
-
-# Lyra Permissionless Node Setup
+# Wizard DAG Permissionless Node Setup
 
 Note: 
 
@@ -32,23 +26,23 @@ https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 Install the ASP.NET Core runtime
 
-4. download Lyra releases from https://github.com/graft-project/LyraNetwork/releases to a folder, e.g. ~/lyra.permissionless-1.0.6.tar.gz
+4. download Wizard DAG releases from https://github.com/wizd/WizardDAG/releases to a folder, e.g. ~/wizdag.permissionless-1.0.6.tar.gz
 
-`tar -xjvf lyra.permissionless-1.0.6.tar.gz`
+`tar -xjvf wizdag.permissionless-1.0.6.tar.gz`
 
 5. create mongodb user
 
 `mongo`  
-`use lyra`  
-`db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'lyra'}]})`  
+`use wizdag`  
+`db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'wizdag'}]})`  
 `use dex`  
 `db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'dex'}]})`
 
 6. generate staking wallet by, give the wallet a name, e.g. "poswallet"
 
-`dotnet ~/lyra/cli/lyracli.dll --networkid testnet -p webapi -g poswallet`
+`dotnet ~/wizdag/cli/wizdag.dll --networkid testnet -p webapi -g poswallet`
 
-7. modify ~/lyra/node/config.testnet.json, change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step.
+7. modify ~/wizdag/node/config.testnet.json, change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step.
 
 
 8. run. (remember to set environment variable WIZDAG_NETWORK to testnet/mainnet etc.)
@@ -57,25 +51,25 @@ Install the ASP.NET Core runtime
 
 `dotnet dev-certs https`
 
-`cd ~/lyra/node`
+`cd ~/wizdag/node`
 
 `export WIZDAG_NETWORK=testnet`
 
-`dotnet Lyra.Node2.dll`
+`dotnet wizdagd.dll`
 
 9. verify
 
-https://localhost:4505/api/LyraNode/GetSyncState
+https://localhost:4505/api/Node/GetSyncState
 should return like:
 `{"mode":0,"newestBlockUIndex":8,"resultCode":0,"resultMessage":null}`
 mode 0 is normal, mode 1 is syncing blocks.
 
-https://localhost:4505/api/LyraNode/GetBillboard
+https://localhost:4505/api/Node/GetBillboard
 display all connected nodes.
 
 10. refresh POS wallet balance (when node not running)
 
-`dotnet ~/lyra/cli/lyracli.dll --networkid testnet -p webapi`
+`dotnet ~/wizdag/cli/wizdag.dll --networkid testnet -p webapi`
 
 `poswallet`
 

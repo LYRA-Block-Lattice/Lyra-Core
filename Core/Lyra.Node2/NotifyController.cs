@@ -10,10 +10,10 @@ namespace LyraLexWeb2
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LyraNotifyController : ControllerBase
+    public class NotifyController : ControllerBase
     {
         private INotifyAPI _notify;
-        public LyraNotifyController(INotifyAPI notify)
+        public NotifyController(INotifyAPI notify)
         {
             _notify = notify;
         }

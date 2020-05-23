@@ -16,12 +16,12 @@ namespace LyraLexWeb2
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class LyraNodeController : ControllerBase
+    public class NodeController : ControllerBase
     {
         INodeAPI _node;
         INodeTransactionAPI _trans;
         DealEngine _dex;
-        public LyraNodeController(INodeAPI node,
+        public NodeController(INodeAPI node,
             INodeTransactionAPI trans
             )
         {
@@ -36,7 +36,7 @@ namespace LyraLexWeb2
                 throw new Exception("Not fully startup");
             }
         }
-        // GET: api/LyraNode
+        // GET: api/Node
         [HttpGet]
         public async Task<AccountHeightAPIResult> GetAsync()
         {
@@ -321,20 +321,20 @@ namespace LyraLexWeb2
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 
-        // GET: api/LyraNode/5
+        // GET: api/Node/5
         //[HttpGet("{id}", Name = "Get")]
         //public string Get(int id)
         //{
         //    return "value";
         //}
 
-        //// POST: api/LyraNode
+        //// POST: api/Node
         //[HttpPost]
         //public void Post([FromBody] string value)
         //{
         //}
 
-        //// PUT: api/LyraNode/5
+        //// PUT: api/Node/5
         //[HttpPut("{id}")]
         //public void Put(int id, [FromBody] string value)
         //{

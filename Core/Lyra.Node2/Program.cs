@@ -21,7 +21,6 @@ namespace Lyra.Node2
     {
         const int PORT = 4505;
 
-        static CancellationTokenSource _cancel;
         public static async Task Main(string[] args)
         {
             if(args.Length > 0 && args[0] == "/debug")

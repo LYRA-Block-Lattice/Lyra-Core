@@ -105,7 +105,7 @@ namespace LyraNodesBot
         private async Task SendHeight(ChatId chatid)
         {
             var wc = new WebClient();
-            var json = wc.DownloadString($"https://{apiHost}:4505/api/LyraNode/GetSyncState");
+            var json = wc.DownloadString($"https://{apiHost}:4505/api/Node/GetSyncState");
             var bb = JsonConvert.DeserializeObject<GetSyncStateAPIResult>(json);
 
             //await SendGroupMessageAsync(chatid, $"Current Height: *{bb.NewestBlockUIndex}*");
@@ -113,7 +113,7 @@ namespace LyraNodesBot
         private async Task SendNodesInfoToGroupAsync(ChatId chatid)
         {
             var wc = new WebClient();
-            var json = wc.DownloadString($"https://{apiHost}:4505/api/LyraNode/GetBillboard");
+            var json = wc.DownloadString($"https://{apiHost}:4505/api/Node/GetBillboard");
             var bb = JsonConvert.DeserializeObject<BillBoard>(json);
             var sb = new StringBuilder();
 
@@ -247,7 +247,7 @@ namespace LyraNodesBot
 
         private async Task<string> SendTpsAsync()
         {
-            var url = "https://seed2.testnet.wizdag.com:4505/api/LyraNode/GetTransStats";
+            var url = "https://seed2.testnet.wizdag.com:4505/api/Node/GetTransStats";
             var wc = new HttpClient();
             var json = await wc.GetStringAsync(url);
             return json;
@@ -288,7 +288,7 @@ namespace LyraNodesBot
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/LyraNode/");
+            var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/Node/");
             await acctWallet.Sync(rpcClient, true);
             return acctWallet;
         }
