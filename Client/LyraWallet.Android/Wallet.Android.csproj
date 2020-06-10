@@ -51,10 +51,11 @@
     <AndroidManagedSymbols>true</AndroidManagedSymbols>
     <AndroidUseSharedRuntime>false</AndroidUseSharedRuntime>
     <AndroidSupportedAbis>x86;arm64-v8a</AndroidSupportedAbis>
-    <EnableProguard>true</EnableProguard>
     <AndroidCreatePackagePerAbi>true</AndroidCreatePackagePerAbi>
     <MandroidI18n />
     <AndroidLinkMode>None</AndroidLinkMode>
+    <AndroidDexTool>dx</AndroidDexTool>
+    <AndroidLinkTool>r8</AndroidLinkTool>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Android" />
