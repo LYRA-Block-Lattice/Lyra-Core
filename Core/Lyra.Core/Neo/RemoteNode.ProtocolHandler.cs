@@ -358,6 +358,12 @@ namespace Neo.Network.P2P
 
         private void OnVersionMessageReceived(VersionPayload payload)
         {
+            if(null == payload)
+            {
+                Disconnect(true);
+                return;
+            }
+
             Version = payload;
             foreach (NodeCapability capability in payload.Capabilities)
             {
