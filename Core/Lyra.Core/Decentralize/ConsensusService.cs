@@ -469,10 +469,11 @@ namespace Lyra.Core.Decentralize
             {
                 var tx = state.InputMsg.Block as TransactionBlock;
                 var allSend = _activeConsensus.Values.Where(a => a.State?.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
-                    .Select(x => x.State.InputMsg.Block as TransactionBlock)
-                    .Where(y => y.AccountID == tx.AccountID && y.Height == tx.Height);
+                    .Select(x => x.State.InputMsg.Block as TransactionBlock);
 
-                if(allSend.Any())
+                var sameHeight = allSend.Any(y => y.AccountID == tx.AccountID && y.Height == tx.Height);
+                var sameHash = _activeConsensus.Values.Any(a => a.State?.InputMsg.Hash == tx.Hash);
+                if(sameHeight || sameHash)
                 {
                     _log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
                     return;
