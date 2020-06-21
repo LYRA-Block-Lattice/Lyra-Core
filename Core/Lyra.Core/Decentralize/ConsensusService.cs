@@ -465,10 +465,22 @@ namespace Lyra.Core.Decentralize
 
         private async Task SubmitToConsensusAsync(AuthState state)
         {
-            // create UID from seed0   
+            if(state.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
+            {
+                var tx = state.InputMsg.Block as TransactionBlock;
+                var allSend = _activeConsensus.Values.Where(a => a.State?.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
+                    .Select(x => x.State.InputMsg.Block as TransactionBlock)
+                    .Where(y => y.AccountID == tx.AccountID && y.Height == tx.Height);
+
+                if(allSend.Any())
+                {
+                    _log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
+                    return;
+                }
+            }
+
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
             worker.Create(state);
-                //_log.LogInformation($"Failed to assign UID: {state.InputMsg.Block.UIndex}/{state.InputMsg.Block.Index}/{state.InputMsg.Block.Hash}");
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash)

@@ -37,10 +37,10 @@ namespace Lyra.Core.Authorizers
             throw new NotImplementedException("Must override");
         }
 
-        public virtual APIResultCodes Commit<T>(T tblock)
-        {
-            throw new NotImplementedException("Must override");
-        }
+        //public virtual APIResultCodes Commit<T>(T tblock)
+        //{
+        //    throw new NotImplementedException("Must override");
+        //}
 
         protected async Task<APIResultCodes> VerifyBlockAsync(Block block, Block previousBlock)
         {
@@ -63,6 +63,7 @@ namespace Lyra.Core.Authorizers
             else if(block is TransactionBlock)
             {
                 var blockt = block as TransactionBlock;
+
                 if (!blockt.VerifyHash())
                     _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock Index: {block.Height} by {block.GetHashInput()}");
 
