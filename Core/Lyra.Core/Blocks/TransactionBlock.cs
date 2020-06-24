@@ -55,6 +55,11 @@ namespace Lyra.Core.Blocks
         ///// </summary>
         //public string PoW { get; set; }
 
+        /// <summary>
+        /// the account ID of target authorizer
+        /// </summary>
+        public string VoteFor { get; set; }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
@@ -64,7 +69,8 @@ namespace Lyra.Core.Blocks
             extraData += FeeCode + "|";
             extraData += ServiceHash + "|";
             extraData += FeeType.ToString() + "|";
-            extraData += GetHashInputFromNonFungibleToken() + "|"; 
+            extraData += GetHashInputFromNonFungibleToken() + "|";
+            extraData += VoteFor + "|";
             return extraData;
         }
 
@@ -116,6 +122,7 @@ namespace Lyra.Core.Blocks
                 result += $"NonFungibleToken: {NonFungibleToken.Print()}\n";
             else
                 result += $"NonFungibleToken: {NonFungibleToken}\n";
+            result += $"Voted Delegate/Authorizer: {VoteFor}\n";
             return result;
         }
 
