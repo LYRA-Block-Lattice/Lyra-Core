@@ -1,12 +1,12 @@
 # What's New
 
-[Official web site](https://wizdag.com/) launched.
+LYRA Documentation Site: https://docs.lyra.live
 
 Testnet Live Now! (From 20 May 2020)
 
 Download Now: https://github.com/wizd/WizardDAG/releases
 
-# Wizard DAG Permissionless Node Setup
+# LYRA Permissionless Node Setup
 
 Note: 
 
