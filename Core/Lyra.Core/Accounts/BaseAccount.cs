@@ -24,6 +24,18 @@ namespace Lyra.Core.Accounts
 
         public string AccountId { get; set; }
 
+        public string VoteFor
+        {
+            get
+            {
+                return _storage.GetVoteFor();
+            }
+            set
+            {
+                _storage.StoreVoteFor(value);
+            }
+        }
+
         public string NetworkId { get; set; }
 
         public static string GetFullFolderName(string NetworkId, string FolderName)

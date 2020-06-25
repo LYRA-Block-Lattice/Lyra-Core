@@ -36,6 +36,7 @@ namespace Lyra.Client.CLI
         public const string COMMAND_CANCEL_TRADE_ORDER = "cancel";
         public const string COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST = "orders";
         public const string COMMAND_REDEEM_REWARDS = "redeem";
+        public const string COMMAND_VOTEFOR = "votefor";
 
         // set wallet's private key
         public const string COMMAND_RESTORE = "restore";
@@ -66,6 +67,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Display the number of transaction blocks in the account", COMMAND_COUNT));
                         Console.WriteLine(string.Format(@"{0,10}: Display Account Id (aka ""wallet address"" or ""public key"")", COMMAND_ACCOUNT_ID));
                         Console.WriteLine(string.Format(@"{0,10}: Display Account Private Key", COMMAND_PRIVATE_KEY));
+                        Console.WriteLine(string.Format(@"{0,10}: DPoS: Set Vote for Account Id", COMMAND_VOTEFOR));
                         Console.WriteLine(string.Format(@"{0,10}: Transfer funds to another account", COMMAND_SEND));
                         //Console.WriteLine(string.Format(@"{0,10}: Pay to a merchant", COMMAND_PAY));
                         //Console.WriteLine(string.Format(@"{0,10}: Accept payment from a buyer", COMMAND_SELL));
@@ -99,11 +101,31 @@ namespace Lyra.Client.CLI
                     case COMMAND_STATUS:
                         Console.WriteLine(string.Format("Network Id: {0}", _wallet.NetworkId));
                         Console.WriteLine(string.Format("Account Id: {0}", _wallet.AccountId));
+                        Console.WriteLine($"Current voting for Account Id: {_wallet.VoteFor ?? "(empty)"}");
                         Console.WriteLine(string.Format("Number of Blocks: {0}", _wallet.GetLocalAccountHeight()));
                         Console.WriteLine(              "Balance: " + await _wallet.GetDisplayBalancesAsync());
                         break;
                     case COMMAND_PRIVATE_KEY:
                         Console.WriteLine(string.Format(_wallet.PrivateKey));
+                        break;
+                    case COMMAND_VOTEFOR:
+                        Console.WriteLine("Please the account id you want vote for, or enter for not vote: ");
+                        string votefor = Console.ReadLine();
+                        Console.WriteLine("Your input is: " + (string.IsNullOrEmpty(votefor) ? "(empty)" : votefor));
+                        if(Signatures.ValidateAccountId(votefor))
+                        {
+                            _wallet.VoteFor = votefor;
+                            Console.WriteLine($"You will vote for {votefor}. The vote will take effect after next transaction (send/receive etc.).");
+                        }
+                        else if(string.IsNullOrEmpty(votefor))
+                        {
+                            _wallet.VoteFor = null;
+                            Console.WriteLine($"You will not vote for any account id. This action will take effect after next transaction (send/receive etc.).");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Invalid vote for account id.");
+                        }
                         break;
                     case COMMAND_TOKEN:
                         await ProcessNewTokenAsync();

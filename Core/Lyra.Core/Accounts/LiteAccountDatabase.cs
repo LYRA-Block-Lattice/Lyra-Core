@@ -158,6 +158,20 @@ namespace Lyra.Core.LiteDB
                 return null;
         }
 
+        public void StoreVoteFor(string VoteFor)
+        {
+            GetParamsCollection().Insert(new AccountParam() { Name = "VoteFor", Value = VoteFor });
+        }
+
+        public string GetVoteFor()
+        {
+            var result = GetParamsCollection().FindOne(x => x.Name == "VoteFor");
+            if (result != null)
+                return result.Value;
+            else
+                return null;
+        }
+
         public void SaveTokenInfo(TokenGenesisBlock tokenGewnesisBlock)
         {
             if (tokenGewnesisBlock != null && GetTokenInfo(tokenGewnesisBlock.Ticker) == null)
