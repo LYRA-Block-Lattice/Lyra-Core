@@ -583,6 +583,7 @@ namespace Lyra.Core.Accounts
                 sendBlock = new ExchangingBlock()
                 {
                     AccountID = AccountId,
+                    VoteFor = _storage.GetVoteFor(),
                     ServiceHash = svcBlockResult.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, decimal>(),
@@ -597,6 +598,7 @@ namespace Lyra.Core.Accounts
                 sendBlock = new SendTransferBlock()
                 {
                     AccountID = AccountId,
+                    VoteFor = _storage.GetVoteFor(),
                     ServiceHash = svcBlockResult.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, decimal>(),
@@ -1036,6 +1038,7 @@ namespace Lyra.Core.Accounts
             var receiveBlock = new ReceiveTransferBlock
             {
                 AccountID = AccountId,
+                VoteFor = _storage.GetVoteFor(),
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
                 Balances = new Dictionary<string, decimal>(),
