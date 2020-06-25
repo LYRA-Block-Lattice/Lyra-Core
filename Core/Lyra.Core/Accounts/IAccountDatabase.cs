@@ -37,6 +37,9 @@ namespace Lyra.Core.Accounts
 
         string GetAccountId();
 
+        void StoreVoteFor(string VoteFor);
+        string GetVoteFor();
+
         void SaveTokenInfo(TokenGenesisBlock tokenGewnesisBlock);
 
         TokenGenesisBlock GetTokenInfo(string token);
@@ -45,7 +48,4 @@ namespace Lyra.Core.Accounts
 
         void Reset();
     }
-
-
-
 }

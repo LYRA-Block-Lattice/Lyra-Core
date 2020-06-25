@@ -23,6 +23,8 @@ namespace Lyra.Core.Accounts
 
         private string _accountName;
 
+        private string _voteFor;
+
         public AccountInMemoryStorage()
         { }
 
@@ -155,6 +157,16 @@ namespace Lyra.Core.Accounts
         public string GetAccountId()
         {
             return _accountId;
+        }
+
+        public void StoreVoteFor(string VoteFor)
+        {
+            _voteFor = VoteFor;
+        }
+
+        public string GetVoteFor()
+        {
+            return _voteFor;
         }
 
         public void SaveTokenInfo(TokenGenesisBlock tokenGewnesisBlock)

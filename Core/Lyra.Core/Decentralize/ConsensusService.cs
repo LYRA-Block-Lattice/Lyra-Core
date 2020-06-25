@@ -339,7 +339,6 @@ namespace Lyra.Core.Decentralize
             if (lastCons == null)
                 return;         // wait for genesis
 
-            ConsolidationBlock currentCons = null;
             try
             {
                 // first clean cleaned states

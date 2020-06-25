@@ -212,6 +212,20 @@ namespace Lyra.Core.Accounts
                 return null;
         }
 
+        public void StoreVoteFor(string VoteFor)
+        {
+            _params.InsertOne(new AccountParam() { Name = "VoteFor", Value = VoteFor });
+        }
+
+        public string GetVoteFor()
+        {
+            var result = _params.Find(x => x.Name.Equals("VoteFor")).First();
+            if (result != null)
+                return result.Value;
+            else
+                return null;
+        }
+
         public void SaveTokenInfo(TokenGenesisBlock tokenGewnesisBlock)
         {
             throw new ApplicationException("Not supported");
@@ -227,5 +241,4 @@ namespace Lyra.Core.Accounts
             // do nothing here
         }
     }
-
 }

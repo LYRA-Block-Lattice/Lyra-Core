@@ -128,6 +128,7 @@ namespace Lyra.Core.Accounts
             CreateIndexes("SourceHash", false).Wait();
             CreateIndexes("DestinationAccountId", false).Wait();
             CreateIndexes("Ticker", false).Wait();
+            CreateIndexes("VoteFor", false).Wait();
         }
 
         /// <summary>

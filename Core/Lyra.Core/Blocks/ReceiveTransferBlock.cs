@@ -7,7 +7,6 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class ReceiveTransferBlock : TransactionBlock
     {
-
         // Hash of the send block
         public string SourceHash { get; set; }
 
