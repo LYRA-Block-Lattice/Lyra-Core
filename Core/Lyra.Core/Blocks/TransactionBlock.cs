@@ -26,7 +26,7 @@ namespace Lyra.Core.Blocks
     // this is base class for all send and receive blocks, i.e. all blocks containing transaction,
     // including genesis blocks and opening derivatives
     [BsonIgnoreExtraElements]
-    public abstract class TransactionBlock : Block
+    public class TransactionBlock : Block
     {
         // this is the wallet address
         public string AccountID { get; set; }
