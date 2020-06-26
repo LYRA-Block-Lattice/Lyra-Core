@@ -28,7 +28,6 @@ namespace Lyra.Core.Accounts
         private MongoClient _Client;
 
         private IMongoCollection<Block> _blocks;
-        private IMongoCollection<Vote> _votes;
 
         readonly string _blocksCollectionName;
         readonly string _votesCollectionName;
@@ -83,29 +82,9 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
             BsonClassMap.RegisterClassMap<NullTransactionBlock>();
 
-            BsonClassMap.RegisterClassMap<Vote>();
-
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
-            _votes = GetDatabase().GetCollection<Vote>(_votesCollectionName);
 
             Cluster = GetDatabase().Client.Cluster.ToString();
-
-            async Task CreateVoteIndexes(string columnName, bool uniq)
-            {
-                try
-                {
-                    var options = new CreateIndexOptions() { Unique = uniq };
-                    var field = new StringFieldDefinition<Vote>(columnName);
-                    var indexDefinition = new IndexKeysDefinitionBuilder<Vote>().Ascending(field);
-                    var indexModel = new CreateIndexModel<Vote>(indexDefinition, options);
-                    await _votes.Indexes.CreateOneAsync(indexModel);
-                }
-                catch (Exception ex)
-                {
-                    await _blocks.Indexes.DropOneAsync(columnName + "_1");
-                    await CreateVoteIndexes(columnName, uniq);
-                }
-            }
 
             async Task CreateIndexes(string columnName, bool uniq)
             {
@@ -152,8 +131,6 @@ namespace Lyra.Core.Accounts
             CreateIndexes("DestinationAccountId", false).Wait();
             CreateIndexes("Ticker", false).Wait();
             CreateIndexes("VoteFor", false).Wait();
-
-            CreateVoteIndexes("AccountId", true).Wait();
         }
 
         /// <summary>
@@ -648,33 +625,7 @@ namespace Lyra.Core.Accounts
             return blocks.Select(a => a.Hash);
         }
 
-        public async Task<Vote> GetVotesForAccountAsync(string accountId)
-        {
-            var options = new FindOptions<Vote, Vote>
-            {
-                Limit = 1,
-            };
-            var filter = Builders<Vote>.Filter.Eq("AccountId", accountId);
-            var result = await _votes.FindAsync(filter, options);
-            return await result.FirstOrDefaultAsync() as Vote;
-        }
-
-        public async Task UpdateVotesForAccountAsync(Vote vote)
-        {
-            var options = new FindOptions<Vote, Vote>
-            {
-                Limit = 1,
-            };
-            var filter = Builders<Vote>.Filter.Eq("AccountId", vote.AccountId);
-
-            var froptions = new FindOneAndReplaceOptions<Vote, Vote>
-            {
-                IsUpsert = true
-            };
-            await _votes.FindOneAndReplaceAsync(filter, vote, froptions);
-        }
-
-        public Dictionary<string, long> FindVotes(IEnumerable<string> posAccountIds)
+         public Dictionary<string, long> FindVotes(IEnumerable<string> posAccountIds)
         {
             var filter = Builders<Block>.Filter.AnyIn("VoteFor", posAccountIds);
 
@@ -685,7 +636,7 @@ namespace Lyra.Core.Accounts
                     x => x.AccountID,
                     g => new
                     {
-                        Result = g.Single(t => t.Height == g.Max(x => x.Height))
+                        Result = g.OrderByDescending(a => a.Height).First()
                     }
                 )
                 .Group(
