@@ -83,6 +83,8 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
             BsonClassMap.RegisterClassMap<NullTransactionBlock>();
 
+            BsonClassMap.RegisterClassMap<Vote>();
+
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
             _votes = GetDatabase().GetCollection<Vote>(_votesCollectionName);
 
