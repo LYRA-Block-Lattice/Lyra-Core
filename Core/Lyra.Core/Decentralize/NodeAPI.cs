@@ -456,7 +456,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var blocks = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+                var blocks = await BlockChain.Singleton.GetAllUnConsolidatedBlockHashesAsync();
                 if (blocks != null)
                 {
                     result.Entities = blocks.ToList();

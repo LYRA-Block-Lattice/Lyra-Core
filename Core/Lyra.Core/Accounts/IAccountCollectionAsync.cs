@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Core.Authorizers;
 using Lyra.Core.Blocks;
 
 namespace Lyra.Core.Accounts
@@ -57,7 +58,13 @@ namespace Lyra.Core.Accounts
         Task RemoveBlockAsync(string hash);
 
         Task<bool> ConsolidateBlock(string hash);
-        Task<IEnumerable<string>> GetAllUnConsolidatedBlocks();
+        Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync();
+        Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync();
+
+        //Task<Vote> GetVotesForAccountAsync(string accountId);
+        //Task UpdateVotesForAccountAsync(Vote vote);
+
+        Dictionary<string, long> FindVotes(IEnumerable<string> posAccountIds);
 
         /// <summary>
         /// Cleans up or deletes blocks collection.
