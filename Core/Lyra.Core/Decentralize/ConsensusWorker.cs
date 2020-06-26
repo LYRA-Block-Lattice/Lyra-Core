@@ -301,7 +301,7 @@ namespace Lyra.Core.Decentralize
                     string me = "";
                     if (msg.From == NodeService.Instance.PosWallet.AccountId)
                         me = "[me]";
-                    var voice = msg.IsSuccess ? "Yay" : "Nay";
+                    var voice = msg.IsSuccess ? "Yea" : "Nay";
                     var canAuth = ConsensusService.AuthorizerShapshot.Contains(msg.From);
                     sb.AppendLine($"{voice} {msg.Result} By: {msg.From.Shorten()} CanAuth: {canAuth} {seed0}{me}");
                 }
@@ -361,7 +361,7 @@ namespace Lyra.Core.Decentralize
             if (block == null)
                 return;
 
-            if (_state.CommitConsensus == ConsensusResult.Yay)
+            if (_state.CommitConsensus == ConsensusResult.Yea)
             {
                 if (!await BlockChain.Singleton.AddBlockAsync(block))
                     _log.LogWarning($"Block Save Failed Index: {block.Height}");
@@ -399,7 +399,7 @@ namespace Lyra.Core.Decentralize
             {
                 // get my authorize result
                 var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
-                if (myResult != null && myResult.Result == APIResultCodes.Success && myResult.IsSuccess == (_state.CommitConsensus == ConsensusResult.Yay))
+                if (myResult != null && myResult.Result == APIResultCodes.Success && myResult.IsSuccess == (_state.CommitConsensus == ConsensusResult.Yea))
                     return;
 
                 // crap! this node is out of sync.

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
@@ -101,7 +102,10 @@ namespace Lyra.Core.Blocks
         // This method compares this and previous blocks and returns the delta, which is the actual transaction represented by the block.
         // the trans amount is always positive, and it counts for the fee if transacting main currency, 
         // so the actual implementation will be different for send and receive blocks
-        public abstract TransactionInfoEx GetTransaction(TransactionBlock previousBlock);
+        public virtual TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
+        {
+            throw new NotImplementedException();
+        }
 
 
         // This method compares this and previous blocks and finds the non-fungible token being transacted (if any).

@@ -466,7 +466,7 @@ namespace Lyra.Core.Decentralize
             {
                 await state.Done.AsTask();
 
-                if (state.CommitConsensus == ConsensusResult.Yay)
+                if (state.CommitConsensus == ConsensusResult.Yea)
                 {
                     _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
 

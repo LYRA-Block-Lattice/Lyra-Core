@@ -94,9 +94,9 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"ApiService Timing:\n{ts1}\n{ts2}\n{ts3}\n{ts4}\n{ts5}\n");
 
             var resultMsg = state.OutputMsgs.Count > 0 ? state.OutputMsgs.First().Result.ToString() : "Unknown";
-            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.CommitConsensus == ConsensusResult.Yay} with {resultMsg}");
+            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.CommitConsensus == ConsensusResult.Yea} with {resultMsg}");
             
-            if (state.CommitConsensus == ConsensusResult.Yay)
+            if (state.CommitConsensus == ConsensusResult.Yea)
             {
                 return state;
             }
@@ -112,7 +112,7 @@ namespace Lyra.Core.Decentralize
             //AuthState state2 = null;
             var state1 = await PostToConsensusAsync(block1).ConfigureAwait(false);
 
-            if(state1 != null && state1.CommitConsensus == ConsensusResult.Yay)
+            if(state1 != null && state1.CommitConsensus == ConsensusResult.Yea)
             {
                 IsSuccess = true;
 
