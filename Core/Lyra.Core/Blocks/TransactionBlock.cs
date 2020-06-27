@@ -48,9 +48,8 @@ namespace Lyra.Core.Blocks
         //public List<INonFungibleToken> NonFungibleTokens { get; set; }
         //public List<string> NonFungibleTokens { get; set; }
 
-        // This is the non-fungible token bneing transacted.
+        // This is the non-fungible token being transacted.
         // It can be in either send or recive block.
-        [BsonExtraElements]
         public NonFungibleToken NonFungibleToken { get; set; }
 
         ///// <summary>
