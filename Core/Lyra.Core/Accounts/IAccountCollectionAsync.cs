@@ -64,7 +64,7 @@ namespace Lyra.Core.Accounts
         //Task<Vote> GetVotesForAccountAsync(string accountId);
         //Task UpdateVotesForAccountAsync(Vote vote);
 
-        Dictionary<string, long> FindVotes(IEnumerable<string> posAccountIds);
+        List<Vote> FindVotes(IEnumerable<string> posAccountIds);
 
         /// <summary>
         /// Cleans up or deletes blocks collection.

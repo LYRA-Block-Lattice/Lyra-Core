@@ -632,32 +632,59 @@ namespace Lyra.Core.Accounts
             return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
         }
 
-         public Dictionary<string, long> FindVotes(IEnumerable<string> posAccountIds)
+         public List<Vote> FindVotes(IEnumerable<string> posAccountIds)
         {
-            var filter = Builders<Block>.Filter.AnyIn("VoteFor", posAccountIds);
+            var q1 = from b in _blocks.AsQueryable<Block>().OfType<TransactionBlock>()
+                     where posAccountIds.Contains(b.VoteFor)
+                     orderby b.Height descending
+                     group b by b.AccountID into g
+                     select new { g.First().VoteFor, Balance = g.First().Balances };
 
-            var result = _blocks.Aggregate()
-                .Match(filter)
-                .OfType<TransactionBlock>()
-                .Group(
-                    x => x.AccountID,
-                    g => new
-                    {
-                        Result = g.OrderByDescending(a => a.Height).First()
-                    }
-                )
-                .Group(
-                    x => x.Result.VoteFor,
-                    g => new
-                    {
-                        voteFor = g.Key,
-                        total = g.Sum(t => t.Result.Balances[LyraGlobal.OFFICIALTICKERCODE])
-                    }
-                )
-                .ToList()
-                .ToDictionary(p => p.voteFor, p => (long)Math.Round(p.total));
+            var a = q1.ToList();
 
-            return result;
+            var q2 = from t in q1
+                     group t by t.VoteFor into g
+                     select new Vote { AccountId = g.Key, Amount = (long)Math.Floor(g.Sum(a => a.Balance.Values.First())) };
+
+            return q2.ToList();
+
+            //var filter = Builders<Block>.Filter.AnyIn("VoteFor", posAccountIds);
+
+            //var result1 = _blocks.Aggregate()
+            //    .Match(filter)
+            //    .OfType<TransactionBlock>()
+            //    .Sort(Builders<TransactionBlock>.Sort.Descending("Height"));
+
+            //var a = result1.ToList();
+
+            //var result2 = result1
+            //    .Group(
+            //        x => x.AccountID,
+            //        g => new
+            //        {
+            //            Result = g.
+            //        }
+            //    );
+
+            //var xx = result2.ToList();
+
+            //var result21 = result2.Group(
+            //        x => x.Result.VoteFor,
+            //        g => new
+            //        {
+            //            voteFor = g.Key,
+            //            total = g.Sum(t => t.Result.Balances[LyraGlobal.OFFICIALTICKERCODE])
+            //        }
+            //    );
+
+            //var b = result21.ToList();
+
+            //var result3 = result21
+            //    .Project(x => new Vote { AccountId = x.voteFor, Amount = (long)x.total });
+                
+            //var result4 = result3.As<Vote>().ToList();
+
+            //return null;
         }
     }
 }

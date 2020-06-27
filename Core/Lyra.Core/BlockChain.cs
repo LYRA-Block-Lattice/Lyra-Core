@@ -520,7 +520,7 @@ namespace Lyra
         public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash) => await StopWatcher.Track(_store.FindBlockByPreviousBlockHashAsync(previousBlockHash), StopWatcher.GetCurrentMethod());//_store.FindBlockByPreviousBlockHashAsync(previousBlockHash);
         //public async Task<Vote> GetVotesForAccountAsync(string accountId) => await _store.GetVotesForAccountAsync(accountId);
         //public async Task UpdateVotesForAccountAsync(Vote vote) => await _store.UpdateVotesForAccountAsync(vote);
-        public Dictionary<string, long> FindVotes(IEnumerable<string> posAccountIds) => _store.FindVotes(posAccountIds);
+        public List<Vote> FindVotes(IEnumerable<string> posAccountIds) => _store.FindVotes(posAccountIds);
         #endregion
         protected override void OnReceive(object message)
         {

@@ -56,7 +56,7 @@ namespace Lyra.Core.Decentralize
 
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         ConcurrentDictionary<string, ConsensusWorker> _cleanedConsensus;
-        Dictionary<string, long> _lastVotes;
+        List<Vote> _lastVotes;
         private static BillBoard _board = new BillBoard();
         private List<TransStats> _stats;
 
@@ -78,7 +78,6 @@ namespace Lyra.Core.Decentralize
 
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _cleanedConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
-            _lastVotes = new Dictionary<string, long>();
             _stats = new List<TransStats>();
 
             while (BlockChain.Singleton == null)
@@ -378,6 +377,11 @@ namespace Lyra.Core.Decentralize
                 //if necessary, insert a new ConsolidateBlock
                 if (IsThisNodeSeed0)
                 {
+                    // test code
+                    var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
+                    _lastVotes = BlockChain.Singleton.FindVotes(livingPosNodeIds);
+                    // end test code
+
                     var unConsList = await BlockChain.Singleton.GetAllUnConsolidatedBlockHashesAsync();
                     var lastConsBlock = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
 
@@ -458,13 +462,15 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState(false);
+            var state = new AuthState(true);
             state.SetView(await BlockChain.Singleton.GetLastServiceBlockAsync());
             state.InputMsg = msg;
 
             _ = Task.Run(async () =>
             {
                 await state.Done.AsTask();
+                state.Done.Close();
+                state.Done = null;
 
                 if (state.CommitConsensus == ConsensusResult.Yea)
                 {
@@ -686,12 +692,16 @@ namespace Lyra.Core.Decentralize
 
         private void RefreshAllNodesVotesAsync()
         {
+            if (_lastVotes == null)
+                return;
+
             foreach(var node in _board.AllNodes.Values.ToList())
             {
-                if (_lastVotes.ContainsKey(node.AccountID))
-                    node.Votes = _lastVotes[node.AccountID];
-                else
+                var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
+                if (vote == null)
                     node.Votes = 0;
+                else
+                    node.Votes = vote.Amount;
             }
         }
 
