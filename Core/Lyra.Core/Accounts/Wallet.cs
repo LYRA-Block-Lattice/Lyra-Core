@@ -985,7 +985,8 @@ namespace Lyra.Core.Accounts
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                NonFungibleToken = new_transfer_info.NonFungibleToken
+                NonFungibleToken = new_transfer_info.NonFungibleToken,
+                VoteFor = _storage.GetVoteFor()
             };
 
             openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount.ToLong());
@@ -1053,7 +1054,7 @@ namespace Lyra.Core.Accounts
             var newBalance = new_transfer_info.Transfer.Amount;
             // if the recipient's account has this token already, add the transaction amount to the existing balance
             if (latestBlock.Balances.ContainsKey(new_transfer_info.Transfer.TokenCode))
-                newBalance += latestBlock.Balances[new_transfer_info.Transfer.TokenCode];
+                newBalance += latestBlock.Balances[new_transfer_info.Transfer.TokenCode].ToDecimal();
 
             receiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, newBalance.ToLong());
 
@@ -1236,6 +1237,7 @@ namespace Lyra.Core.Accounts
                 Tags = tags,
                 RenewalDate = DateTime.Now.Add(TimeSpan.FromDays(365)),
                 ContractType = contractType,
+                VoteFor = _storage.GetVoteFor()
             };
             // TO DO - set service hash
 

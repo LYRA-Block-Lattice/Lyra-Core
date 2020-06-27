@@ -59,15 +59,7 @@ namespace Lyra.Core.Accounts
                 //cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, decimal>>(DictionaryRepresentation.ArrayOfDocuments));
             });
 
-            BsonClassMap.RegisterClassMap<TransactionBlock>(cm =>
-            {
-                cm.AutoMap();
-                //cm.SetIgnoreExtraElements(true);
-                cm.SetIsRootClass(true);
-                //cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, decimal>>(DictionaryRepresentation.ArrayOfDocuments));
-            });
-
-            //BsonClassMap.RegisterClassMap<TransactionBlock>();
+            BsonClassMap.RegisterClassMap<TransactionBlock>();
             BsonClassMap.RegisterClassMap<SendTransferBlock>();
             BsonClassMap.RegisterClassMap<ExchangingBlock>();
             BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
@@ -688,7 +680,7 @@ namespace Lyra.Core.Accounts
             var b = result21.ToList();
 
             var result3 = result21
-                .Project(x => new Vote { AccountId = x.voteFor, Amount = (long)x.total });
+                .Project(x => new Vote { AccountId = x.voteFor, Amount = x.total / LyraGlobal.TOKENSTORAGERITO });
 
             var result4 = result3.As<Vote>().ToList();
 
