@@ -378,7 +378,7 @@ namespace Lyra.Core.Decentralize
                 //if necessary, insert a new ConsolidateBlock
                 if (IsThisNodeSeed0)
                 {
-                    var unConsList = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+                    var unConsList = await BlockChain.Singleton.GetAllUnConsolidatedBlockHashesAsync();
                     var lastConsBlock = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
 
                     if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastConsBlock.TimeStamp > TimeSpan.FromMinutes(10)))
@@ -410,12 +410,12 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var lastCons = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
-            var collection = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+            var collection = await BlockChain.Singleton.GetAllUnConsolidatedBlockHashesAsync();
             _log.LogInformation($"Creating ConsolidationBlock... ");
 
             var consBlock = new ConsolidationBlock
             {
-                blockHashes = collection.Select(a => a.Hash).ToList(),
+                blockHashes = collection.ToList(),
                 totalBlockCount = lastCons.totalBlockCount + collection.Count()
             };
 
