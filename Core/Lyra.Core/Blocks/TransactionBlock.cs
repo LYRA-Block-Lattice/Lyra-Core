@@ -33,6 +33,7 @@ namespace Lyra.Core.Blocks
         public string AccountID { get; set; }
 
         // this is the number of atomic units; it must be divided by the number of digits after the digital point for specific currency
+        [BsonExtraElements]
         public Dictionary<string, long> Balances { get; set; }
         //public List<string, decimal> Balances { get; set; }
 
@@ -49,6 +50,7 @@ namespace Lyra.Core.Blocks
 
         // This is the non-fungible token bneing transacted.
         // It can be in either send or recive block.
+        [BsonExtraElements]
         public NonFungibleToken NonFungibleToken { get; set; }
 
         ///// <summary>
