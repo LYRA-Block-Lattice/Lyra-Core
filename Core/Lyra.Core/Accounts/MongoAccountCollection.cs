@@ -648,13 +648,13 @@ namespace Lyra.Core.Accounts
             var result01 = _blocks.Aggregate()
                 .Match(filter);
 
-            var r1 = result01.ToList();
+            //var r1 = result01.ToList();
 
             var result1 = result01
                 //.OfType<TransactionBlock>()
                 .Sort(Builders<Block>.Sort.Descending("Height"));
 
-            var a = result1.ToList();
+            //var a = result1.ToList();
 
             var result2 = result1
                 .Group(
@@ -666,7 +666,7 @@ namespace Lyra.Core.Accounts
                     }
                 );
 
-            var xx = result2.ToList();
+            //var xx = result2.ToList();
 
             var result21 = result2.Group(
                     x => x.VoteFor,
@@ -677,12 +677,12 @@ namespace Lyra.Core.Accounts
                     }
                 );
 
-            var b = result21.ToList();
+            //var b = result21.ToList();
 
             var result3 = result21
                 .Project(x => new Vote { AccountId = x.voteFor, Amount = x.total / LyraGlobal.TOKENSTORAGERITO });
 
-            var result4 = result3.As<Vote>().ToList();
+            var result4 = result3.ToList();
 
             return result4;
         }
