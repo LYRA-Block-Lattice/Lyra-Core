@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
@@ -26,13 +27,13 @@ namespace Lyra.Core.Blocks
     // this is base class for all send and receive blocks, i.e. all blocks containing transaction,
     // including genesis blocks and opening derivatives
     [BsonIgnoreExtraElements]
-    public abstract class TransactionBlock : Block
+    public class TransactionBlock : Block
     {
         // this is the wallet address
         public string AccountID { get; set; }
 
         // this is the number of atomic units; it must be divided by the number of digits after the digital point for specific currency
-        public Dictionary<string, decimal> Balances { get; set; }
+        public Dictionary<string, long> Balances { get; set; }
         //public List<string, decimal> Balances { get; set; }
 
         public decimal Fee { get; set; } // the amount of transfer fee paid to the authorizers for processing transfer
@@ -46,7 +47,7 @@ namespace Lyra.Core.Blocks
         //public List<INonFungibleToken> NonFungibleTokens { get; set; }
         //public List<string> NonFungibleTokens { get; set; }
 
-        // This is the non-fungible token bneing transacted.
+        // This is the non-fungible token being transacted.
         // It can be in either send or recive block.
         public NonFungibleToken NonFungibleToken { get; set; }
 
@@ -54,6 +55,11 @@ namespace Lyra.Core.Blocks
         ///// When fee is zero and replaced by client-calculated proof of work
         ///// </summary>
         //public string PoW { get; set; }
+
+        /// <summary>
+        /// the account ID of target authorizer
+        /// </summary>
+        public string VoteFor { get; set; }
 
         protected override string GetExtraData()
         {
@@ -64,7 +70,8 @@ namespace Lyra.Core.Blocks
             extraData += FeeCode + "|";
             extraData += ServiceHash + "|";
             extraData += FeeType.ToString() + "|";
-            extraData += GetHashInputFromNonFungibleToken() + "|"; 
+            extraData += GetHashInputFromNonFungibleToken() + "|";
+            extraData += VoteFor + "|";
             return extraData;
         }
 
@@ -95,7 +102,10 @@ namespace Lyra.Core.Blocks
         // This method compares this and previous blocks and returns the delta, which is the actual transaction represented by the block.
         // the trans amount is always positive, and it counts for the fee if transacting main currency, 
         // so the actual implementation will be different for send and receive blocks
-        public abstract TransactionInfoEx GetTransaction(TransactionBlock previousBlock);
+        public virtual TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
+        {
+            throw new NotImplementedException();
+        }
 
 
         // This method compares this and previous blocks and finds the non-fungible token being transacted (if any).
@@ -116,6 +126,7 @@ namespace Lyra.Core.Blocks
                 result += $"NonFungibleToken: {NonFungibleToken.Print()}\n";
             else
                 result += $"NonFungibleToken: {NonFungibleToken}\n";
+            result += $"Voted Delegate/Authorizer: {VoteFor}\n";
             return result;
         }
 

@@ -5,6 +5,7 @@ using Neo.Wallets;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -83,7 +84,7 @@ namespace Friday
                             {
                                 foreach (var amount in amounts)
                                 {
-                                    if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key] > amount.Value)
+                                    if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key].ToDecimal() > amount.Value)
                                     {
                                         //var stopwatch = Stopwatch.StartNew();
                                         var result = await fromWallet.Send(amount.Value, wt, amount.Key);
@@ -152,7 +153,7 @@ namespace Friday
                         {
                             privateKey = wallet.PrivateKey,
                             pulicKey = wallet.AccountId,
-                            balance = block.Balances
+                            balance = block.Balances.ToDictionary(p => p.Key, p => p.Value.ToDecimal())
                         });
                 });
                 threads.Add(tsk);

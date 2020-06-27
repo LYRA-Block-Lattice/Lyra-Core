@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
 using Clifton.Blockchain;
+using Core.Authorizers;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
@@ -55,6 +56,7 @@ namespace Lyra.Core.Decentralize
 
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         ConcurrentDictionary<string, ConsensusWorker> _cleanedConsensus;
+        List<Vote> _lastVotes;
         private static BillBoard _board = new BillBoard();
         private List<TransStats> _stats;
 
@@ -225,7 +227,7 @@ namespace Lyra.Core.Decentralize
                         await GenerateConsolidateBlockAsync();
                     }
 
-                    await HeartBeatAsync();
+                    HeartBeat();
 
                     await Task.Delay(5000).ConfigureAwait(false);
                     count++;
@@ -301,7 +303,7 @@ namespace Lyra.Core.Decentralize
             Send2P2pNetwork(msg);
         }
 
-        private async Task HeartBeatAsync()
+        private void HeartBeat()
         {
             OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
 
@@ -317,7 +319,7 @@ namespace Lyra.Core.Decentralize
 
             if (IsThisNodeSeed0)
             {
-                await BroadCastBillBoardAsync();
+                BroadCastBillBoard();
             }
         }
 
@@ -339,7 +341,6 @@ namespace Lyra.Core.Decentralize
             if (lastCons == null)
                 return;         // wait for genesis
 
-            ConsolidationBlock currentCons = null;
             try
             {
                 // first clean cleaned states
@@ -376,7 +377,12 @@ namespace Lyra.Core.Decentralize
                 //if necessary, insert a new ConsolidateBlock
                 if (IsThisNodeSeed0)
                 {
-                    var unConsList = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+                    // test code
+                    var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
+                    _lastVotes = BlockChain.Singleton.FindVotes(livingPosNodeIds);
+                    // end test code
+
+                    var unConsList = await BlockChain.Singleton.GetAllUnConsolidatedBlockHashesAsync();
                     var lastConsBlock = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
 
                     if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastConsBlock.TimeStamp > TimeSpan.FromMinutes(10)))
@@ -408,7 +414,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var lastCons = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
-            var collection = await BlockChain.Singleton.GetAllUnConsolidatedBlocksAsync();
+            var collection = await BlockChain.Singleton.GetAllUnConsolidatedBlockHashesAsync();
             _log.LogInformation($"Creating ConsolidationBlock... ");
 
             var consBlock = new ConsolidationBlock
@@ -433,6 +439,19 @@ namespace Lyra.Core.Decentralize
             
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             consBlock.ServiceHash = (await BlockChain.Singleton.GetLastServiceBlockAsync()).Hash;
+
+            // calculate votes
+            //var lastVotes = collection.Where(a => a is TransactionBlock)
+            //    .Select(b => b as TransactionBlock)
+            //    .Where(v => !string.IsNullOrEmpty(v.VoteFor))
+            //    .GroupBy(v => v.AccountID, (key, g) => g.OrderByDescending(x => x.Height).First())
+            //    .Select(async a => new Vote
+            //    {
+            //        AccountId = a.VoteFor,
+            //        Amount = await GetVoteForAccountAsync(a.VoteFor) + (long) Math.Round(a.Balances[LyraGlobal.OFFICIALTICKERCODE]),
+            //        ConsHeight = lastCons.Height + 1
+            //    });                
+
             consBlock.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
                 NodeService.Instance.PosWallet.AccountId);
 
@@ -443,9 +462,34 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState(false);
+            var state = new AuthState(true);
             state.SetView(await BlockChain.Singleton.GetLastServiceBlockAsync());
             state.InputMsg = msg;
+
+            _ = Task.Run(async () =>
+            {
+                await state.Done.AsTask();
+                state.Done.Close();
+                state.Done = null;
+
+                if (state.CommitConsensus == ConsensusResult.Yea)
+                {
+                    _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
+
+                    var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
+                    _lastVotes = BlockChain.Singleton.FindVotes(livingPosNodeIds);
+
+                    // change billboard if changed
+                    if(IsThisNodeSeed0)
+                    {
+                        BroadCastBillBoard();
+                    }
+                }
+                else
+                {
+                    _log.LogInformation($"ConsolidateBlock is Failed. vote stats not updated.");
+                }
+            });
 
             await SubmitToConsensusAsync(state);
 
@@ -646,36 +690,29 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task RefreshPosBalanceAsync()
+        private void RefreshAllNodesVotesAsync()
         {
+            if (_lastVotes == null)
+                return;
+
             foreach(var node in _board.AllNodes.Values.ToList())
             {
-                node.Balance = await LookupBalance(node.AccountID);
+                var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
+                if (vote == null)
+                    node.Votes = 0;
+                else
+                    node.Votes = vote.Amount;
             }
         }
 
-        private async Task<decimal> LookupBalance(string accountId)
+        private void BroadCastBillBoard()
         {
-            // lookup balance
-            var block = await BlockChain.Singleton.FindLatestBlockAsync() as TransactionBlock;
-            if (block != null && block.Balances != null && block.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+            if (_board != null)
             {
-                return block.Balances[LyraGlobal.OFFICIALTICKERCODE];
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        private async Task BroadCastBillBoardAsync()
-        {
-            if(_board != null)
-            {
-                await RefreshPosBalanceAsync();
+                RefreshAllNodesVotesAsync();
                 OnNodeActive(NodeService.Instance.PosWallet.AccountId);
                 var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
-                foreach(var node in deadNodes)
+                foreach (var node in deadNodes)
                 {
                     _board.AllNodes.Remove(node.AccountID);
                 }
@@ -735,15 +772,15 @@ namespace Lyra.Core.Decentralize
             if (IsThisNodeSeed0)
             {
                 // broadcast billboard
-                await BroadCastBillBoardAsync();
+                BroadCastBillBoard();
             }
 
             if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IPAddress == node.IPAddress)
                 return;
 
-            if (node.Balance < LyraGlobal.MinimalAuthorizerBalance)
+            if (node.Votes < LyraGlobal.MinimalAuthorizerBalance)
             {
-                _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Balance);
+                _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Votes);
             }
             else
             {

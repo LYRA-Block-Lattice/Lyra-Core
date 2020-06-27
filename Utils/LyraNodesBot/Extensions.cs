@@ -10,7 +10,7 @@ namespace LyraNodesBot
     {
         public static IEnumerable<string> FailReasons(this PosNode node)
         {
-            if (node.Balance < LyraGlobal.MinimalAuthorizerBalance)
+            if (node.Votes < LyraGlobal.MinimalAuthorizerBalance)
                 yield return "Low Balance";
             if (DateTime.Now - node.LastStaking > TimeSpan.FromMinutes(12))
                 yield return "Inactive";

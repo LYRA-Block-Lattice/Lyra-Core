@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
 using Clifton.Blockchain;
+using Core.Authorizers;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
@@ -450,7 +451,7 @@ namespace Lyra
         public async Task<NodeStatus> GetNodeStatusAsync()
         {
             var lastCons = await GetLastConsolidationBlockAsync();
-            var unCons = (await _store.GetAllUnConsolidatedBlocks()).ToList();
+            var unCons = (await _store.GetAllUnConsolidatedBlockHashesAsync()).ToList();
             var status = new NodeStatus
             {
                 accountId = NodeService.Instance.PosWallet.AccountId,
@@ -491,7 +492,8 @@ namespace Lyra
             return result;
         }
 
-        public async Task<IEnumerable<string>> GetAllUnConsolidatedBlocksAsync() => await StopWatcher.Track(_store.GetAllUnConsolidatedBlocks(), StopWatcher.GetCurrentMethod());
+        //public async Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync() => await StopWatcher.Track(_store.GetAllUnConsolidatedBlocksAsync(), StopWatcher.GetCurrentMethod());
+        public async Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync() => await StopWatcher.Track(_store.GetAllUnConsolidatedBlockHashesAsync(), StopWatcher.GetCurrentMethod());
         internal async Task<ConsolidationBlock> GetLastConsolidationBlockAsync() => await StopWatcher.Track(_store.GetLastConsolidationBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
         public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startHeight) => await StopWatcher.Track(_store.GetConsolidationBlocksAsync(startHeight), StopWatcher.GetCurrentMethod());
         internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await StopWatcher.Track(_store.GetLastServiceBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetLastServiceBlockAsync();
@@ -516,6 +518,9 @@ namespace Lyra
         public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId) => await StopWatcher.Track(_store.GetNonFungibleTokensAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.GetNonFungibleTokensAsync(AccountId);
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId) => await StopWatcher.Track(_store.FindUnsettledSendBlockAsync(AccountId), StopWatcher.GetCurrentMethod());//_store.FindUnsettledSendBlockAsync(AccountId);
         public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash) => await StopWatcher.Track(_store.FindBlockByPreviousBlockHashAsync(previousBlockHash), StopWatcher.GetCurrentMethod());//_store.FindBlockByPreviousBlockHashAsync(previousBlockHash);
+        //public async Task<Vote> GetVotesForAccountAsync(string accountId) => await _store.GetVotesForAccountAsync(accountId);
+        //public async Task UpdateVotesForAccountAsync(Vote vote) => await _store.UpdateVotesForAccountAsync(vote);
+        public List<Vote> FindVotes(IEnumerable<string> posAccountIds) => _store.FindVotes(posAccountIds);
         #endregion
         protected override void OnReceive(object message)
         {
@@ -616,7 +621,7 @@ namespace Lyra
                 Precision = LyraGlobal.OFFICIALTICKERPRECISION,
                 IsFinalSupply = true,
                 AccountID = NodeService.Instance.PosWallet.AccountId,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new Dictionary<string, long>(),
                 PreviousHash = svcGen.Hash,
                 ServiceHash = svcGen.Hash,
                 Fee = svcGen.TokenGenerationFee,
@@ -624,7 +629,7 @@ namespace Lyra
                 RenewalDate = DateTime.Now.AddYears(1000)
             };
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
-            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
+            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToLong()); // This is current supply in atomic units (1,000,000.00)
             openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
 
             return openTokenGenesisBlock;

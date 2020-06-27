@@ -6,6 +6,7 @@ using Lyra.Core.Cryptography;
 using Lyra.Core.API;
 using Newtonsoft.Json;
 using System.Diagnostics;
+using Lyra.Shared;
 
 namespace Lyra.Core.Accounts
 {
@@ -411,7 +412,7 @@ namespace Lyra.Core.Accounts
                     //int precision = FindTokenPrecision(balance.Key).Result;
 
                     //res = res + string.Format(@"{0} {1}    ", balance.Value / Math.Pow(10, precision != -1?precision:0), balance.Key);
-                    res += $"{balance.Value} {balance.Key}\n";
+                    res += $"{balance.Value.ToDecimal()} {balance.Key}\n";
                 }
                 //if (lastBlock.NonFungibleToken != null)
                 //{
@@ -557,7 +558,7 @@ namespace Lyra.Core.Accounts
                 balance_change += fee;
 
             // see if we have enough tokens
-            if (previousBlock.Balances[ticker] < balance_change)
+            if (previousBlock.Balances[ticker] < balance_change.ToLong())
             {
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
                 //throw new ApplicationException("Insufficient funds");
@@ -565,7 +566,7 @@ namespace Lyra.Core.Accounts
 
             // see if we have enough LYR to pay the transfer fee
             if (ticker != LyraGlobal.OFFICIALTICKERCODE)
-                if (!previousBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < fee)
+                if (!previousBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < fee.ToLong())
                 {
                     //throw new ApplicationException("Insufficient funds to pay transfer fee");
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
@@ -583,9 +584,10 @@ namespace Lyra.Core.Accounts
                 sendBlock = new ExchangingBlock()
                 {
                     AccountID = AccountId,
+                    VoteFor = _storage.GetVoteFor(),
                     ServiceHash = svcBlockResult.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
-                    Balances = new Dictionary<string, decimal>(),
+                    Balances = new Dictionary<string, long>(),
                     //PaymentID = string.Empty,
                     Fee = fee,
                     FeeCode = LyraGlobal.OFFICIALTICKERCODE,
@@ -597,9 +599,10 @@ namespace Lyra.Core.Accounts
                 sendBlock = new SendTransferBlock()
                 {
                     AccountID = AccountId,
+                    VoteFor = _storage.GetVoteFor(),
                     ServiceHash = svcBlockResult.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
-                    Balances = new Dictionary<string, decimal>(),
+                    Balances = new Dictionary<string, long>(),
                     //PaymentID = string.Empty,
                     Fee = fee,
                     FeeCode = LyraGlobal.OFFICIALTICKERCODE,
@@ -607,12 +610,12 @@ namespace Lyra.Core.Accounts
                 };
             };
 
-            sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change);
+            sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change.ToLong());
             //sendBlock.Transaction = transaction;
 
             // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
             if (ticker != LyraGlobal.OFFICIALTICKERCODE)
-                sendBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - fee);
+                sendBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - fee.ToLong());
 
             // transfer unchanged token balances from the previous block
             foreach (var balance in previousBlock.Balances)
@@ -979,13 +982,14 @@ namespace Lyra.Core.Accounts
                 AccountID = AccountId,
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new Dictionary<string, long>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                NonFungibleToken = new_transfer_info.NonFungibleToken
+                NonFungibleToken = new_transfer_info.NonFungibleToken,
+                VoteFor = _storage.GetVoteFor()
             };
 
-            openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount);
+            openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount.ToLong());
             openReceiveBlock.InitializeBlock(null, PrivateKey, AccountId);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
@@ -1036,9 +1040,10 @@ namespace Lyra.Core.Accounts
             var receiveBlock = new ReceiveTransferBlock
             {
                 AccountID = AccountId,
+                VoteFor = _storage.GetVoteFor(),
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new Dictionary<string, long>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
                 NonFungibleToken = new_transfer_info.NonFungibleToken
@@ -1049,9 +1054,9 @@ namespace Lyra.Core.Accounts
             var newBalance = new_transfer_info.Transfer.Amount;
             // if the recipient's account has this token already, add the transaction amount to the existing balance
             if (latestBlock.Balances.ContainsKey(new_transfer_info.Transfer.TokenCode))
-                newBalance += latestBlock.Balances[new_transfer_info.Transfer.TokenCode];
+                newBalance += latestBlock.Balances[new_transfer_info.Transfer.TokenCode].ToDecimal();
 
-            receiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, newBalance);
+            receiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, newBalance.ToLong());
 
             // transfer unchanged token balances from the previous block
             foreach (var balance in latestBlock.Balances)
@@ -1128,7 +1133,7 @@ namespace Lyra.Core.Accounts
                 Precision = LyraGlobal.OFFICIALTICKERPRECISION,
                 IsFinalSupply = true,
                 AccountID = AccountId,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new Dictionary<string, long>(),
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 Fee = TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
@@ -1140,7 +1145,7 @@ namespace Lyra.Core.Accounts
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
             //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
 
-            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
+            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToLong()); // This is current supply in atomic units (1,000,000.00)
             //openTokenGenesisBlock.Transaction = transaction;
             openTokenGenesisBlock.InitializeBlock(null, PrivateKey, AccountId);
 
@@ -1199,7 +1204,7 @@ namespace Lyra.Core.Accounts
             string ticker = domainName + "." + tokenName;
 
             TransactionBlock latestBlock = GetLatestBlock();
-            if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee)
+            if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToLong())
             {
                 //throw new ApplicationException("Insufficent funds");
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
@@ -1222,7 +1227,7 @@ namespace Lyra.Core.Accounts
                 //CustomFee = 0,
                 //CustomFeeAccountId = string.Empty,
                 AccountID = AccountId,
-                Balances = new Dictionary<string, decimal>(),
+                Balances = new Dictionary<string, long>(),
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 Fee = TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
@@ -1232,14 +1237,15 @@ namespace Lyra.Core.Accounts
                 Tags = tags,
                 RenewalDate = DateTime.Now.Add(TimeSpan.FromDays(365)),
                 ContractType = contractType,
+                VoteFor = _storage.GetVoteFor()
             };
             // TO DO - set service hash
 
             //var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply * (long)Math.Pow(10, precision) };
             var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply };
 
-            tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
-            tokenBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - TokenGenerationFee);
+            tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToLong()); // This is current supply in atomic units (1,000,000.00)
+            tokenBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - TokenGenerationFee.ToLong());
             //tokenBlock.Transaction = transaction;
             // transfer unchanged token balances from the previous block
             foreach (var balance in latestBlock.Balances)

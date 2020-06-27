@@ -69,6 +69,7 @@ namespace Lyra.Core.Decentralize
                     acctWallet.AccountName = "tmpAcct";
                     await acctWallet.RestoreAccountAsync("", tmpWallet.PrivateKey);
                     acctWallet.OpenAccount("", acctWallet.AccountName);
+                    acctWallet.VoteFor = tmpWallet.VoteFor;
 
                     Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
                     var rpcClient = await LyraRestClient.CreateAsync(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "WizDAG Client Cli", "1.0a");

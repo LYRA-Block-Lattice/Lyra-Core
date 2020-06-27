@@ -50,7 +50,7 @@ namespace Lyra.Core.Authorizers
                 return result;
 
             // check LYR balance
-            if (lastBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] != block.Balances[LyraGlobal.OFFICIALTICKERCODE] + block.Fee)
+            if (lastBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] != block.Balances[LyraGlobal.OFFICIALTICKERCODE] + block.Fee.ToLong())
                 return APIResultCodes.InvalidNewAccountBalance;
 
             // check if this token already exists

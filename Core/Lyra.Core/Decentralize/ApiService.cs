@@ -94,9 +94,9 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"ApiService Timing:\n{ts1}\n{ts2}\n{ts3}\n{ts4}\n{ts5}\n");
 
             var resultMsg = state.OutputMsgs.Count > 0 ? state.OutputMsgs.First().Result.ToString() : "Unknown";
-            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.CommitConsensus == ConsensusResult.Yay} with {resultMsg}");
+            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.CommitConsensus == ConsensusResult.Yea} with {resultMsg}");
             
-            if (state.CommitConsensus == ConsensusResult.Yay)
+            if (state.CommitConsensus == ConsensusResult.Yea)
             {
                 return state;
             }
@@ -112,7 +112,7 @@ namespace Lyra.Core.Decentralize
             //AuthState state2 = null;
             var state1 = await PostToConsensusAsync(block1).ConfigureAwait(false);
 
-            if(state1 != null && state1.CommitConsensus == ConsensusResult.Yay)
+            if(state1 != null && state1.CommitConsensus == ConsensusResult.Yea)
             {
                 IsSuccess = true;
 
@@ -333,9 +333,9 @@ namespace Lyra.Core.Decentralize
                     SourceHash = source,
                     Fee = 0,
                     FeeType = AuthorizationFeeTypes.NoFee,
-                    Balances = new Dictionary<string, decimal>()
+                    Balances = new Dictionary<string, long>()
                 };
-                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fee);
+                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fee.ToLong());
                 receiveBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
@@ -351,11 +351,11 @@ namespace Lyra.Core.Decentralize
                     SourceHash = source,
                     Fee = 0,
                     FeeType = AuthorizationFeeTypes.NoFee,
-                    Balances = new Dictionary<string, decimal>()
+                    Balances = new Dictionary<string, long>()
                 };
 
-                decimal newBalance = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + fee;
-                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, newBalance);
+                decimal newBalance = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + fee.ToLong();
+                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, newBalance.ToLong());
                 receiveBlock.InitializeBlock(latestBlock, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");

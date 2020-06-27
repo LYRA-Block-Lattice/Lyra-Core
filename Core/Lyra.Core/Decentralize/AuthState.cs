@@ -13,7 +13,7 @@ using System.Threading;
 
 namespace Lyra.Core.Decentralize
 {
-    public enum ConsensusResult { Uncertain, Yay, Nay }
+    public enum ConsensusResult { Uncertain, Yea, Nay }
     public class AuthState
     {
         public DateTime Created { get; private set; }
@@ -130,7 +130,7 @@ namespace Lyra.Core.Decentralize
             var AuthMsgList = OutputMsgs.ToList();
             var ok = AuthMsgList.Count(a => a.IsSuccess);
             if (ok >= WinNumber)
-                return ConsensusResult.Yay;
+                return ConsensusResult.Yea;
 
             var notok = AuthMsgList.Count(a => !a.IsSuccess);
             if (notok >= WinNumber)
@@ -142,9 +142,9 @@ namespace Lyra.Core.Decentralize
         private ConsensusResult CheckCommitedResults()
         {
             var CommitMsgList = CommitMsgs.ToList();
-            var ok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yay);
+            var ok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yea);
             if (ok >= WinNumber)
-                return ConsensusResult.Yay;
+                return ConsensusResult.Yea;
 
             var notok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Nay);
             if (notok >= WinNumber)
@@ -171,8 +171,8 @@ namespace Lyra.Core.Decentralize
 
             var authResult = CheckAuthorizedResults();
 
-            if (authResult == ConsensusResult.Yay)
-                return ConsensusResult.Yay;
+            if (authResult == ConsensusResult.Yea)
+                return ConsensusResult.Yea;
 
             if (authResult == ConsensusResult.Nay)
                 return ConsensusResult.Nay;
@@ -184,8 +184,8 @@ namespace Lyra.Core.Decentralize
         {
             var commitResult = CheckCommitedResults();
 
-            if (commitResult == ConsensusResult.Yay)
-                return ConsensusResult.Yay;
+            if (commitResult == ConsensusResult.Yea)
+                return ConsensusResult.Yea;
 
             if (commitResult == ConsensusResult.Nay)
                 return ConsensusResult.Nay;
