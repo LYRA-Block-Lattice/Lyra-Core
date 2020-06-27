@@ -378,8 +378,8 @@ namespace Lyra.Core.Decentralize
                 if (IsThisNodeSeed0)
                 {
                     // test code
-                    var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
-                    _lastVotes = BlockChain.Singleton.FindVotes(livingPosNodeIds);
+                    //var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
+                    //_lastVotes = BlockChain.Singleton.FindVotes(livingPosNodeIds);
                     // end test code
 
                     var unConsList = await BlockChain.Singleton.GetAllUnConsolidatedBlockHashesAsync();

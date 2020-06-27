@@ -58,13 +58,14 @@ namespace Lyra.Core.Accounts
                 //cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, decimal>>(DictionaryRepresentation.ArrayOfDocuments));
             });
 
-            BsonClassMap.RegisterClassMap<TransactionBlock>(cm =>
-            {
-                cm.AutoMap();
-                cm.SetIgnoreExtraElements(true);
-                cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, decimal>>(DictionaryRepresentation.ArrayOfDocuments));
-            });
+            //BsonClassMap.RegisterClassMap<TransactionBlock>(cm =>
+            //{
+            //    cm.AutoMap();
+            //    cm.SetIgnoreExtraElements(true);
+            //    cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, decimal>>(DictionaryRepresentation.ArrayOfDocuments));
+            //});
 
+            BsonClassMap.RegisterClassMap<TransactionBlock>();
             BsonClassMap.RegisterClassMap<SendTransferBlock>();
             BsonClassMap.RegisterClassMap<ExchangingBlock>();
             BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
@@ -638,13 +639,13 @@ namespace Lyra.Core.Accounts
                      where posAccountIds.Contains(b.VoteFor)
                      orderby b.Height descending
                      group b by b.AccountID into g
-                     select new { g.First().VoteFor, Balance = g.First().Balances };
+                     select new { g.First().VoteFor, Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] };
 
             var a = q1.ToList();
 
             var q2 = from t in q1
                      group t by t.VoteFor into g
-                     select new Vote { AccountId = g.Key, Amount = (long)Math.Floor(g.Sum(a => a.Balance.Values.First())) };
+                     select new Vote { AccountId = g.Key, Amount = g.Sum(a => a.Balance) };
 
             return q2.ToList();
 

@@ -30,6 +30,8 @@ namespace Lyra.Core.API
         };
 #endif
 
+        public const int TOKENSTORAGERITO = 100000000;
+
         // get api for (rpcurl, resturl)
         public static string SelectNode(string networkID)
         {
@@ -46,6 +48,19 @@ namespace Lyra.Core.API
                 default:
                     throw new Exception("Unsupported network ID: " + networkID);
             }
+        }
+    }
+
+    public static class LyraExtensions
+    {
+        public static long ToLong(this decimal currency)
+        {
+            return (long)Math.Round(currency * LyraGlobal.TOKENSTORAGERITO);
+        }
+
+        public static decimal ToDecimal(this long currency)
+        {
+            return ((decimal)currency) / LyraGlobal.TOKENSTORAGERITO;
         }
     }
 }
