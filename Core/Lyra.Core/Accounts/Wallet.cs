@@ -412,7 +412,7 @@ namespace Lyra.Core.Accounts
                     //int precision = FindTokenPrecision(balance.Key).Result;
 
                     //res = res + string.Format(@"{0} {1}    ", balance.Value / Math.Pow(10, precision != -1?precision:0), balance.Key);
-                    res += $"{balance.Value} {balance.Key}\n";
+                    res += $"{balance.Value.ToDecimal()} {balance.Key}\n";
                 }
                 //if (lastBlock.NonFungibleToken != null)
                 //{
