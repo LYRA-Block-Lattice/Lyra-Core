@@ -2,7 +2,7 @@
 
 [LYRA Documentation Site](https://docs.lyra.live)
 
-[LYRA Website](https://lyra/live)
+[LYRA Website](https://lyra.live)
 
 [LYRA on Twitter](https://twitter.com/LYRAblockchain)
 
