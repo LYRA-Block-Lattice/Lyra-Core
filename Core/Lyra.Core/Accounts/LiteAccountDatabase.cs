@@ -3,7 +3,7 @@ using System.IO;
 using Lyra.Core.Blocks;
 using Lyra.Core.Accounts;
 using LiteDB;
-
+using Microsoft.Extensions.Logging;
 
 namespace Lyra.Core.LiteDB
 {
@@ -160,7 +160,16 @@ namespace Lyra.Core.LiteDB
 
         public void StoreVoteFor(string VoteFor)
         {
-            GetParamsCollection().Insert(new AccountParam() { Name = "VoteFor", Value = VoteFor });
+            var coll = GetParamsCollection();
+            var count = coll.Delete(a => a.Name == "VoteFor");
+
+            var result = coll.Upsert(new AccountParam() { Name = "VoteFor", Value = VoteFor });
+
+            var saved = GetVoteFor();
+            if(saved != VoteFor)
+            {
+                // wtf
+            }
         }
 
         public string GetVoteFor()
@@ -192,7 +201,7 @@ namespace Lyra.Core.LiteDB
 
         private LiteCollection<AccountParam> GetParamsCollection()
         {
-            if (_params == null)
+            //if (_params == null)
                 _params = _db.GetCollection<AccountParam>("params");
             return _params;
         }
