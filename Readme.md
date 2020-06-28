@@ -1,6 +1,12 @@
 # What's New
 
-LYRA Documentation Site: https://docs.lyra.live
+[LYRA Documentation Site](https://docs.lyra.live)
+
+[LYRA Website](https://lyra/live)
+
+[LYRA on Twitter](https://twitter.com/LYRAblockchain)
+
+[LYRA white paper](https://github.com/LYRA-Block-Lattice/LYRA-Docs/blob/master/LYRA-BLock-Lattice-White-Paper.md)
 
 Testnet Live Now! (From 20 May 2020)
 
