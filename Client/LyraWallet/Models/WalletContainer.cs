@@ -28,6 +28,7 @@ namespace LyraWallet.Models
         private string currentNetwork;
         private string accountID;
         private string privateKey;
+        private string voteFor;
 
         private Wallet wallet;
         private Dictionary<string, Decimal> balances;
@@ -44,6 +45,17 @@ namespace LyraWallet.Models
         public string CurrentNetwork { get => currentNetwork; set => SetProperty(ref currentNetwork, value); }
         public string AccountID { get => accountID; set => SetProperty(ref accountID, value); }
         public string PrivateKey { get => privateKey; set => SetProperty(ref privateKey, value); }
+        public string VoteFor { get
+            {
+                return voteFor;
+            }
+            set
+            {
+                SetProperty(ref voteFor, value);
+                wallet.VoteFor = value;
+            }
+        }
+
         public Dictionary<string, decimal> Balances { get => balances; set {
                 var sorted = value?.OrderBy(a => a.Key).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                 SetProperty(ref balances, sorted); }
@@ -65,6 +77,7 @@ namespace LyraWallet.Models
 
             AccountID = wallet.AccountId;
             PrivateKey = wallet.PrivateKey;
+            VoteFor = wallet.VoteFor;
 
             if (AccountID == null || PrivateKey == null)
                 throw new Exception("no private key");

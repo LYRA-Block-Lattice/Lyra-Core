@@ -1,4 +1,5 @@
-﻿using LyraWallet.Services;
+﻿using Lyra.Core.Cryptography;
+using LyraWallet.Services;
 using LyraWallet.Views;
 using System;
 using System.Collections.Generic;
@@ -17,22 +18,48 @@ namespace LyraWallet.ViewModels
         {
             get => App.Container.AccountID;
         }
+
         public string CurrentNetwork
         {
             get => App.Container.CurrentNetwork;
         }
 
+        private string _voteFor;
+
+        public ICommand ChangeVoteCommand { get; }
         public ICommand BarcodeGenCommand { get; }
         public ICommand CreateTokenCommand { get; }
         public ICommand RedeemCodeCommand { get; }
         public ICommand ShowBlocksCommand { get; }
         public ICommand RemoveAccountCommand { get; }
         public ICommand VisitCommunityCommand { get;  }
+        public string VoteFor
+        {
+            get => App.Container.VoteFor; 
+            set
+            {
+                var vf = value;
+                if (string.IsNullOrWhiteSpace(vf))
+                    App.Container.VoteFor = null;
+                else if (Signatures.ValidateAccountId(vf))
+                    App.Container.VoteFor = vf;
+            }
+        }
+
         public WalletInfoViewModel (Page page)
 		{
             _thePage = page;
 
             App.Container.PropertyChanged += (o, e) => OnPropertyChanged(e.PropertyName);
+
+            ChangeVoteCommand = new Command(async () => {
+                if (string.IsNullOrWhiteSpace(VoteFor))
+                    App.Container.VoteFor = null;
+                else if (Signatures.ValidateAccountId(VoteFor))
+                    App.Container.VoteFor = VoteFor;
+                else
+                    await _thePage.DisplayAlert("Alert", "Not a valid Account ID. If unvote, leave it blank.", "OK");
+            });
 
             BarcodeGenCommand = new Command(async () =>
             {
