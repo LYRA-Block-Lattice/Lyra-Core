@@ -306,6 +306,8 @@ namespace Lyra
                 await Task.Delay(1000);
 
                 var tokenGen = GetLyraTokenGenesisBlock(svcGen);
+                // DEBUG
+                _log.LogInformation("genesis block string:\n" + tokenGen.GetHashInput());
                 await SendBlockToConsensusAsync(tokenGen);
 
                 await Task.Delay(1000);

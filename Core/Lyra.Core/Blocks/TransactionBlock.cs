@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Java.Lang;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
@@ -65,7 +66,7 @@ namespace Lyra.Core.Blocks
         {
             string extraData = base.GetExtraData();
             extraData += AccountID + "|";
-            extraData += JsonConvert.SerializeObject(Balances) + "|";
+            extraData += BalanceToString() + "|";
             extraData += JsonConvert.SerializeObject(Fee) + "|";//Fee.ToString("0.############");
             extraData += FeeCode + "|";
             extraData += ServiceHash + "|";
@@ -118,7 +119,7 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"AccountID: {AccountID}\n";
             result += $"ServiceHash: {ServiceHash}\n";
-            result += $"Balances: {JsonConvert.SerializeObject(Balances)}\n";
+            result += $"Balances: {BalanceToString()}\n";
             result += $"Fee: {JsonConvert.SerializeObject(Fee)}\n";
             result += $"FeeCode: {FeeCode}\n";
             result += $"FeeType: {FeeType.ToString()}\n";
@@ -130,7 +131,17 @@ namespace Lyra.Core.Blocks
             return result;
         }
 
-
+        private string BalanceToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach(var kvp in Balances)
+            {
+                if (sb.Length() > 0)
+                    sb.Append(',');
+                sb.Append($"{kvp.Key}:{kvp.Value}");
+            }
+            return sb.ToString();
+        }
     }
 }
 
