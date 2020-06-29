@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Java.Lang;
+using System.Text;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
@@ -133,10 +133,10 @@ namespace Lyra.Core.Blocks
 
         private string BalanceToString()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             foreach(var kvp in Balances)
             {
-                if (sb.Length() > 0)
+                if (sb.Length > 0)
                     sb.Append(',');
                 sb.Append($"{kvp.Key}:{kvp.Value}");
             }
