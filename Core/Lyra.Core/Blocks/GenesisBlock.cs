@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using Lyra.Core.API;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 
 namespace Lyra.Core.Blocks
@@ -175,7 +176,7 @@ namespace Lyra.Core.Blocks
                 throw new ApplicationException("Precision is out of range");
 
             var Supply = Balances[Ticker];
-            if (Supply <= 0 || Supply > 1000000000000000) // quadrillion, or 10^15, or 15 zeros
+            if (Supply <= 0 || Supply > 90000000000 * LyraGlobal.TOKENSTORAGERITO) // bellow long.maxvalue
                 throw new ApplicationException("Supply is out of range");
 
             return true;

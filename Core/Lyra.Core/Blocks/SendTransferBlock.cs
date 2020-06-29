@@ -51,7 +51,7 @@ namespace Lyra.Core.Blocks
                 if (previousBlock.Balances[balance.Key] != balance.Value && balance.Key != LyraGlobal.OFFICIALTICKERCODE)
                 {
                     transaction.TokenCode = balance.Key;
-                    transaction.Amount = previousBlock.Balances[balance.Key] - this.Balances[balance.Key];
+                    transaction.Amount = (previousBlock.Balances[balance.Key] - this.Balances[balance.Key]).ToDecimal();
                     transaction.TotalBalanceChange = transaction.Amount;
                     break;
                 }
@@ -59,7 +59,7 @@ namespace Lyra.Core.Blocks
             // if no token is being transfered, it's default token (like LYR ot LGT depending on configuration) itself
             if (transaction.TokenCode == LyraGlobal.OFFICIALTICKERCODE)
             {
-                transaction.Amount = previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - this.Balances[LyraGlobal.OFFICIALTICKERCODE] - this.Fee;
+                transaction.Amount = (previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - this.Balances[LyraGlobal.OFFICIALTICKERCODE] - this.Fee.ToLong()).ToDecimal();
                 transaction.TotalBalanceChange = transaction.Amount + this.Fee;
             }
 

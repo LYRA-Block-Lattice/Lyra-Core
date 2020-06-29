@@ -13,6 +13,8 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Core.Authorizers;
+using Lyra.Core.API;
 
 namespace Lyra.Core.Accounts
 {
@@ -28,7 +30,7 @@ namespace Lyra.Core.Accounts
         private IMongoCollection<Block> _blocks;
 
         readonly string _blocksCollectionName;
-        readonly string _authorizersViewCollectionName;
+        readonly string _votesCollectionName;
 
         IMongoDatabase _db;
 
@@ -47,22 +49,17 @@ namespace Lyra.Core.Accounts
             _DatabaseName = _config.Lyra.Database.DatabaseName;
 
             _blocksCollectionName = $"{_config.Lyra.NetworkId}_blocks";
-            _authorizersViewCollectionName = $"{_config.Lyra.NetworkId}_views";
+            _votesCollectionName = $"{_config.Lyra.NetworkId}_votes";
 
             BsonClassMap.RegisterClassMap<Block>(cm =>
             {
                 cm.AutoMap();
-                cm.SetIgnoreExtraElements(true);
+                //cm.SetIgnoreExtraElements(true);
+                cm.SetIsRootClass(true);
                 //cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, decimal>>(DictionaryRepresentation.ArrayOfDocuments));
             });
 
-            BsonClassMap.RegisterClassMap<TransactionBlock>(cm =>
-            {
-                cm.AutoMap();
-                cm.SetIgnoreExtraElements(true);
-                cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, decimal>>(DictionaryRepresentation.ArrayOfDocuments));
-            });
-
+            BsonClassMap.RegisterClassMap<TransactionBlock>();
             BsonClassMap.RegisterClassMap<SendTransferBlock>();
             BsonClassMap.RegisterClassMap<ExchangingBlock>();
             BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
@@ -604,17 +601,90 @@ namespace Lyra.Core.Accounts
             return result.ModifiedCount == 1;
         }
 
-        public async Task<IEnumerable<string>> GetAllUnConsolidatedBlocks()
+        //public async Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync()
+        //{
+        //    var options = new FindOptions<Block, Block>
+        //    {
+        //        Limit = 100,
+        //        Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
+        //        Projection = Builders<Block>.Projection.Include(a => a.Hash)
+        //    };
+        //    var filter = Builders<Block>.Filter.Eq("Consolidated", false);
+        //    var result = await _blocks.FindAsync(filter, options);
+        //    return await result.ToListAsync();
+        //}
+
+        public async Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync()
         {
             var options = new FindOptions<Block, BsonDocument>
             {
-                Limit = 100,
+                Limit = 1000,
                 Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
                 Projection = Builders<Block>.Projection.Include(a => a.Hash)
             };
             var filter = Builders<Block>.Filter.Eq("Consolidated", false);
             var result = await _blocks.FindAsync(filter, options);
             return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
+        }
+
+         public List<Vote> FindVotes(IEnumerable<string> posAccountIds)
+        {
+            //var q1 = from b in _blocks.AsQueryable<Block>().OfType<TransactionBlock>()
+            //         where posAccountIds.Contains(b.VoteFor)
+            //         orderby b.Height descending
+            //         group b by b.AccountID into g
+            //         select new { g.Key, g.First().VoteFor, Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] };
+
+            //var a = q1.ToList();
+
+            //var q2 = from t in q1
+            //         group t by t.VoteFor into g
+            //         select new Vote { AccountId = g.Key, Amount = g.Sum(a => a.Balance) };
+
+            //return q2.ToList();
+
+            var filter = Builders<Block>.Filter.AnyIn("VoteFor", posAccountIds);
+
+            var result01 = _blocks.Aggregate()
+                .Match(filter);
+
+            //var r1 = result01.ToList();
+
+            var result1 = result01
+                //.OfType<TransactionBlock>()
+                .Sort(Builders<Block>.Sort.Descending("Height"));
+
+            //var a = result1.ToList();
+
+            var result2 = result1
+                .Group(
+                    x => ((TransactionBlock)x).AccountID,
+                    g => new
+                    {
+                        VoteFor = g.Select(a => ((TransactionBlock)a).VoteFor).First(),
+                        Result = g.Select(a => ((TransactionBlock)a).Balances).First()
+                    }
+                );
+
+            //var xx = result2.ToList();
+
+            var result21 = result2.Group(
+                    x => x.VoteFor,
+                    g => new
+                    {
+                        voteFor = g.Key,
+                        total = g.Sum(t => t.Result[LyraGlobal.OFFICIALTICKERCODE])
+                    }
+                );
+
+            //var b = result21.ToList();
+
+            var result3 = result21
+                .Project(x => new Vote { AccountId = x.voteFor, Amount = x.total / LyraGlobal.TOKENSTORAGERITO });
+
+            var result4 = result3.ToList();
+
+            return result4;
         }
     }
 }

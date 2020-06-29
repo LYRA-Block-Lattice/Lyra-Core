@@ -167,7 +167,7 @@ namespace LyraNodesBot
             if (bb.PrimaryAuthorizers.Take(3).Contains(accountId))
                 return "seed";
 
-            var balance = bb.AllNodes[accountId].Balance;
+            var balance = bb.AllNodes[accountId].Votes;
             return $"{balance} Lyra";
         }
 

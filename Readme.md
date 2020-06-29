@@ -1,6 +1,12 @@
 # What's New
 
-LYRA Documentation Site: https://docs.lyra.live
+[LYRA Documentation Site](https://docs.lyra.live)
+
+[LYRA Website](https://lyra.live)
+
+[LYRA on Twitter](https://twitter.com/LYRAblockchain)
+
+[LYRA white paper](https://github.com/LYRA-Block-Lattice/LYRA-Docs/blob/master/LYRA-BLock-Lattice-White-Paper.md)
 
 Testnet Live Now! (From 20 May 2020)
 
@@ -70,7 +76,7 @@ mode 0 is normal, mode 1 is syncing blocks.
 https://localhost:4505/api/Node/GetBillboard
 display all connected nodes.
 
-10. refresh POS wallet balance (when node not running)
+10. refresh DPoS wallet balance (when node not running)
 
 `dotnet ~/wizdag/cli/wizdag.dll --networkid testnet -p webapi`
 
@@ -82,6 +88,6 @@ display all connected nodes.
 
 `stop`
 
+11. set DPoS vote Account ID
 
-
-
+use "votefor" command in wallet cli.

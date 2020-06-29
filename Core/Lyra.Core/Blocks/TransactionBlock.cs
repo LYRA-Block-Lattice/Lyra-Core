@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Text;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
@@ -26,13 +28,13 @@ namespace Lyra.Core.Blocks
     // this is base class for all send and receive blocks, i.e. all blocks containing transaction,
     // including genesis blocks and opening derivatives
     [BsonIgnoreExtraElements]
-    public abstract class TransactionBlock : Block
+    public class TransactionBlock : Block
     {
         // this is the wallet address
         public string AccountID { get; set; }
 
         // this is the number of atomic units; it must be divided by the number of digits after the digital point for specific currency
-        public Dictionary<string, decimal> Balances { get; set; }
+        public Dictionary<string, long> Balances { get; set; }
         //public List<string, decimal> Balances { get; set; }
 
         public decimal Fee { get; set; } // the amount of transfer fee paid to the authorizers for processing transfer
@@ -46,7 +48,7 @@ namespace Lyra.Core.Blocks
         //public List<INonFungibleToken> NonFungibleTokens { get; set; }
         //public List<string> NonFungibleTokens { get; set; }
 
-        // This is the non-fungible token bneing transacted.
+        // This is the non-fungible token being transacted.
         // It can be in either send or recive block.
         public NonFungibleToken NonFungibleToken { get; set; }
 
@@ -64,7 +66,7 @@ namespace Lyra.Core.Blocks
         {
             string extraData = base.GetExtraData();
             extraData += AccountID + "|";
-            extraData += JsonConvert.SerializeObject(Balances) + "|";
+            extraData += BalanceToString() + "|";
             extraData += JsonConvert.SerializeObject(Fee) + "|";//Fee.ToString("0.############");
             extraData += FeeCode + "|";
             extraData += ServiceHash + "|";
@@ -101,7 +103,10 @@ namespace Lyra.Core.Blocks
         // This method compares this and previous blocks and returns the delta, which is the actual transaction represented by the block.
         // the trans amount is always positive, and it counts for the fee if transacting main currency, 
         // so the actual implementation will be different for send and receive blocks
-        public abstract TransactionInfoEx GetTransaction(TransactionBlock previousBlock);
+        public virtual TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
+        {
+            throw new NotImplementedException();
+        }
 
 
         // This method compares this and previous blocks and finds the non-fungible token being transacted (if any).
@@ -114,7 +119,7 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"AccountID: {AccountID}\n";
             result += $"ServiceHash: {ServiceHash}\n";
-            result += $"Balances: {JsonConvert.SerializeObject(Balances)}\n";
+            result += $"Balances: {BalanceToString()}\n";
             result += $"Fee: {JsonConvert.SerializeObject(Fee)}\n";
             result += $"FeeCode: {FeeCode}\n";
             result += $"FeeType: {FeeType.ToString()}\n";
@@ -126,7 +131,17 @@ namespace Lyra.Core.Blocks
             return result;
         }
 
-
+        private string BalanceToString()
+        {
+            var sb = new StringBuilder();
+            foreach(var kvp in Balances)
+            {
+                if (sb.Length > 0)
+                    sb.Append(',');
+                sb.Append($"{kvp.Key}:{kvp.Value}");
+            }
+            return sb.ToString();
+        }
     }
 }
 

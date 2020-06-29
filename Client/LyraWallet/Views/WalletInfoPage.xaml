@@ -37,6 +37,14 @@
                 </Grid>
                 <Editor x:Name="txtPrivateKey" Text="****************************"
                         IsReadOnly="True"  FontSize="Small" AutoSize="TextChanges"/>
+                <Label Text="Vote For Authorizer:" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Start" />
+                <Editor Text="{Binding VoteFor}" IsReadOnly="False" FontSize="Small" AutoSize="TextChanges"/>
+                <Button Margin="0,0,0,0" Text="Change My Vote" Command="{Binding ChangeVoteCommand}" />
+                <BoxView HeightRequest="5" HorizontalOptions="FillAndExpand" />
+                <BoxView HeightRequest="1" BackgroundColor="Black" HorizontalOptions="FillAndExpand" />
+                <BoxView HeightRequest="5" HorizontalOptions="FillAndExpand" />
                 <Label Text="You can also:" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />

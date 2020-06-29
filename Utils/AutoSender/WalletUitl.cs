@@ -4,6 +4,7 @@ using Lyra.Core.Blocks;
 using Lyra.Core.LiteDB;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,7 +32,7 @@ namespace AutoSender
             var result = await wallet.Sync(rpcClient);
             if (result == Lyra.Core.Blocks.APIResultCodes.Success)
             {
-                return wallet.GetLatestBlock()?.Balances;
+                return wallet.GetLatestBlock()?.Balances.ToDictionary(p => p.Key, p => p.Value.ToDecimal());
             }
             else
             {

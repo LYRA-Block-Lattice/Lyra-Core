@@ -30,7 +30,7 @@ namespace Lyra.Core.Decentralize
         public void SnapShot()
         {
             var nonSeeds = AllNodes.Values.Where(a => a.AbleToAuthorize && !ProtocolSettings.Default.StandbyValidators.Any(b => b == a.AccountID))
-                    .OrderByDescending(b => b.Balance)
+                    .OrderByDescending(b => b.Votes)
                     .ThenByDescending(c => c.LastStaking)
                     .Take(ProtocolSettings.Default.ConsensusTotalNumber - ProtocolSettings.Default.StandbyValidators.Length)
                     .Select(n => n.AccountID)
@@ -44,7 +44,7 @@ namespace Lyra.Core.Decentralize
             if(nonPrimaryNodes.Any())
             {
                 BackupAuthorizers = nonPrimaryNodes
-                    .OrderByDescending(b => b.Balance)
+                    .OrderByDescending(b => b.Votes)
                     .ThenByDescending(c => c.LastStaking)
                     .Take(ProtocolSettings.Default.ConsensusTotalNumber)
                     .Select(a => a.AccountID).ToArray();
@@ -103,7 +103,7 @@ namespace Lyra.Core.Decentralize
     {
         public string AccountID { get; set; }
         public string IPAddress { get; set; }
-        public decimal Balance { get; set; }
+        public decimal Votes { get; set; }
         public DateTime LastStaking { get; set; }
         public string Signature { get; set; }
 
@@ -111,7 +111,7 @@ namespace Lyra.Core.Decentralize
         {
             AccountID = accountId;
             LastStaking = DateTime.Now;
-            Balance = 0;
+            Votes = 0;
         }
 
         public void Sign()
@@ -121,6 +121,6 @@ namespace Lyra.Core.Decentralize
         }
 
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die
-        public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Balance >= LyraGlobal.MinimalAuthorizerBalance) && (DateTime.Now - LastStaking < TimeSpan.FromSeconds(90));
+        public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Votes >= LyraGlobal.MinimalAuthorizerBalance) && (DateTime.Now - LastStaking < TimeSpan.FromSeconds(90));
     }
 }
