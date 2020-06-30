@@ -412,7 +412,7 @@ namespace Lyra.Core.Accounts
                     //int precision = FindTokenPrecision(balance.Key).Result;
 
                     //res = res + string.Format(@"{0} {1}    ", balance.Value / Math.Pow(10, precision != -1?precision:0), balance.Key);
-                    res += $"{balance.Value.ToDecimal()} {balance.Key}\n";
+                    res += $"{balance.Value.ToBalanceDecimal()} {balance.Key}\n";
                 }
                 //if (lastBlock.NonFungibleToken != null)
                 //{
@@ -558,7 +558,7 @@ namespace Lyra.Core.Accounts
                 balance_change += fee;
 
             // see if we have enough tokens
-            if (previousBlock.Balances[ticker] < balance_change.ToLong())
+            if (previousBlock.Balances[ticker] < balance_change.ToBalanceLong())
             {
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
                 //throw new ApplicationException("Insufficient funds");
@@ -566,7 +566,7 @@ namespace Lyra.Core.Accounts
 
             // see if we have enough LYR to pay the transfer fee
             if (ticker != LyraGlobal.OFFICIALTICKERCODE)
-                if (!previousBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < fee.ToLong())
+                if (!previousBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < fee.ToBalanceLong())
                 {
                     //throw new ApplicationException("Insufficient funds to pay transfer fee");
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
@@ -610,12 +610,12 @@ namespace Lyra.Core.Accounts
                 };
             };
 
-            sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change.ToLong());
+            sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change.ToBalanceLong());
             //sendBlock.Transaction = transaction;
 
             // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
             if (ticker != LyraGlobal.OFFICIALTICKERCODE)
-                sendBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - fee.ToLong());
+                sendBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - fee.ToBalanceLong());
 
             // transfer unchanged token balances from the previous block
             foreach (var balance in previousBlock.Balances)
@@ -989,7 +989,7 @@ namespace Lyra.Core.Accounts
                 VoteFor = _storage.GetVoteFor()
             };
 
-            openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount.ToLong());
+            openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount.ToBalanceLong());
             openReceiveBlock.InitializeBlock(null, PrivateKey, AccountId);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
@@ -1054,9 +1054,9 @@ namespace Lyra.Core.Accounts
             var newBalance = new_transfer_info.Transfer.Amount;
             // if the recipient's account has this token already, add the transaction amount to the existing balance
             if (latestBlock.Balances.ContainsKey(new_transfer_info.Transfer.TokenCode))
-                newBalance += latestBlock.Balances[new_transfer_info.Transfer.TokenCode].ToDecimal();
+                newBalance += latestBlock.Balances[new_transfer_info.Transfer.TokenCode].ToBalanceDecimal();
 
-            receiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, newBalance.ToLong());
+            receiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, newBalance.ToBalanceLong());
 
             // transfer unchanged token balances from the previous block
             foreach (var balance in latestBlock.Balances)
@@ -1145,7 +1145,7 @@ namespace Lyra.Core.Accounts
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
             //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
 
-            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToLong()); // This is current supply in atomic units (1,000,000.00)
+            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
             //openTokenGenesisBlock.Transaction = transaction;
             openTokenGenesisBlock.InitializeBlock(null, PrivateKey, AccountId);
 
@@ -1204,7 +1204,7 @@ namespace Lyra.Core.Accounts
             string ticker = domainName + "." + tokenName;
 
             TransactionBlock latestBlock = GetLatestBlock();
-            if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToLong())
+            if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToBalanceLong())
             {
                 //throw new ApplicationException("Insufficent funds");
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
@@ -1244,8 +1244,8 @@ namespace Lyra.Core.Accounts
             //var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply * (long)Math.Pow(10, precision) };
             var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply };
 
-            tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToLong()); // This is current supply in atomic units (1,000,000.00)
-            tokenBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - TokenGenerationFee.ToLong());
+            tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
+            tokenBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - TokenGenerationFee.ToBalanceLong());
             //tokenBlock.Transaction = transaction;
             // transfer unchanged token balances from the previous block
             foreach (var balance in latestBlock.Balances)

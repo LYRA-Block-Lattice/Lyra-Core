@@ -631,7 +631,7 @@ namespace Lyra
                 RenewalDate = DateTime.Now.AddYears(1000)
             };
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
-            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToLong()); // This is current supply in atomic units (1,000,000.00)
+            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
             openTokenGenesisBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, AccountId: NodeService.Instance.PosWallet.AccountId);
 
             return openTokenGenesisBlock;

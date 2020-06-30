@@ -69,7 +69,7 @@ namespace Lyra.Core.Exchange
                             acct.Balance.Clear();
                         foreach (var b in transb.Balances)
                         {
-                            acct.Balance.Add(b.Key, b.Value.ToDecimal());
+                            acct.Balance.Add(b.Key, b.Value.ToBalanceDecimal());
                         }
                         _exchangeAccounts.ReplaceOne(a => a.AssociatedToAccountId == accountID, acct);
                     }
@@ -315,7 +315,7 @@ namespace Lyra.Core.Exchange
                         {
                             if (kvp.Value > 0 && kvp.Key != LyraGlobal.OFFICIALTICKERCODE)
                             {
-                                var ret = await fromWallet.Send(kvp.Value.ToDecimal(), associatedAccountId, kvp.Key, true);
+                                var ret = await fromWallet.Send(kvp.Value.ToBalanceDecimal(), associatedAccountId, kvp.Key, true);
                                 Trace.Assert(ret.ResultCode == APIResultCodes.Success);
                                 sendCount++;
                             }
@@ -323,9 +323,9 @@ namespace Lyra.Core.Exchange
 
                         sendCount++;
 
-                        if (transb.Balances[LyraGlobal.OFFICIALTICKERCODE] - (sendCount * ExchangingBlock.FEE).ToLong() > 0)
+                        if (transb.Balances[LyraGlobal.OFFICIALTICKERCODE] - (sendCount * ExchangingBlock.FEE).ToBalanceLong() > 0)
                         {
-                            var ret2 = await fromWallet.Send(transb.Balances[LyraGlobal.OFFICIALTICKERCODE] - (sendCount * ExchangingBlock.FEE).ToLong(), associatedAccountId, LyraGlobal.OFFICIALTICKERCODE, true);
+                            var ret2 = await fromWallet.Send(transb.Balances[LyraGlobal.OFFICIALTICKERCODE] - (sendCount * ExchangingBlock.FEE).ToBalanceLong(), associatedAccountId, LyraGlobal.OFFICIALTICKERCODE, true);
                             Trace.Assert(ret2.ResultCode == APIResultCodes.Success);
                         }
                     }
@@ -344,9 +344,9 @@ namespace Lyra.Core.Exchange
             var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
 
             var transb = fromWallet.GetLatestBlock();
-            if (transb != null && transb.Balances[tokenName].ToDecimal() >= amount)
+            if (transb != null && transb.Balances[tokenName].ToBalanceDecimal() >= amount)
             {
-                var bLast = transb.Balances[tokenName].ToDecimal() - amount;
+                var bLast = transb.Balances[tokenName].ToBalanceDecimal() - amount;
                 var ret = await fromWallet.Send(amount, toAcct.AccountId, tokenName, true);
                 return (ret.ResultCode == APIResultCodes.Success, bLast);
             }
@@ -363,9 +363,9 @@ namespace Lyra.Core.Exchange
 
             var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
             var transb = fromWallet.GetLatestBlock();
-            if (transb != null && transb.Balances[tokenName].ToDecimal() >= amount)
+            if (transb != null && transb.Balances[tokenName].ToBalanceDecimal() >= amount)
             {
-                var bLast = transb.Balances[tokenName].ToDecimal() - amount;
+                var bLast = transb.Balances[tokenName].ToBalanceDecimal() - amount;
                 var ret = await fromWallet.Send(amount, fromAcct.AssociatedToAccountId, tokenName, true);
                 return (ret.ResultCode == APIResultCodes.Success, bLast);
             }

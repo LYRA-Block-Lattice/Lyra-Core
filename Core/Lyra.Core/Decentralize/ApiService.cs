@@ -335,7 +335,7 @@ namespace Lyra.Core.Decentralize
                     FeeType = AuthorizationFeeTypes.NoFee,
                     Balances = new Dictionary<string, long>()
                 };
-                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fee.ToLong());
+                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fee.ToBalanceLong());
                 receiveBlock.InitializeBlock(null, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
@@ -354,8 +354,8 @@ namespace Lyra.Core.Decentralize
                     Balances = new Dictionary<string, long>()
                 };
 
-                decimal newBalance = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + fee.ToLong();
-                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, newBalance.ToLong());
+                decimal newBalance = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + fee.ToBalanceLong();
+                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, newBalance.ToBalanceLong());
                 receiveBlock.InitializeBlock(latestBlock, NodeService.Instance.PosWallet.PrivateKey, NodeService.Instance.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");

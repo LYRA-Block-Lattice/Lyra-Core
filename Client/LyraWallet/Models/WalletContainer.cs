@@ -155,7 +155,7 @@ namespace LyraWallet.Models
         public async Task GetBalance()
         {
             var latestBlock = await Task.FromResult(wallet.GetLatestBlock());
-            App.Container.Balances = latestBlock?.Balances.ToDictionary(p => p.Key, p => p.Value.ToDecimal());
+            App.Container.Balances = latestBlock?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
             App.Container.TokenList = App.Container.Balances?.Keys.ToList();
         }
         public async Task RefreshBalance(string webApiUrl = null)
@@ -177,7 +177,7 @@ namespace LyraWallet.Models
 
             if (result == APIResultCodes.Success)
             {
-                App.Container.Balances = wallet.GetLatestBlock()?.Balances.ToDictionary(p => p.Key, p => p.Value.ToDecimal());
+                App.Container.Balances = wallet.GetLatestBlock()?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
                 App.Container.TokenList = App.Container.Balances?.Keys.ToList();
             }
             else
@@ -228,7 +228,7 @@ namespace LyraWallet.Models
                     type = block.BlockType.ToString(),
                     balance = block.Balances.Aggregate(new StringBuilder(),
                           (sb, kvp) => sb.AppendFormat("{0}{1} = {2}",
-                                       sb.Length > 0 ? ", " : "", kvp.Key, kvp.Value.ToDecimal()),
+                                       sb.Length > 0 ? ", " : "", kvp.Key, kvp.Value.ToBalanceDecimal()),
                           sb => sb.ToString())
                 });
             }

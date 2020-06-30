@@ -84,7 +84,7 @@ namespace Friday
                             {
                                 foreach (var amount in amounts)
                                 {
-                                    if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key].ToDecimal() > amount.Value)
+                                    if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key].ToBalanceDecimal() > amount.Value)
                                     {
                                         //var stopwatch = Stopwatch.StartNew();
                                         var result = await fromWallet.Send(amount.Value, wt, amount.Key);
@@ -153,7 +153,7 @@ namespace Friday
                         {
                             privateKey = wallet.PrivateKey,
                             pulicKey = wallet.AccountId,
-                            balance = block.Balances.ToDictionary(p => p.Key, p => p.Value.ToDecimal())
+                            balance = block.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal())
                         });
                 });
                 threads.Add(tsk);

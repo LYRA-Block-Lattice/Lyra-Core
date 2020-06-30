@@ -37,9 +37,9 @@ namespace Lyra.Core.Blocks
                         transaction.TokenCode = balance.Key;
 
                         if (!previousBlock.Balances.ContainsKey(balance.Key))
-                            transaction.Amount = this.Balances[balance.Key].ToDecimal();
+                            transaction.Amount = this.Balances[balance.Key].ToBalanceDecimal();
                         else
-                            transaction.Amount = (this.Balances[balance.Key] - previousBlock.Balances[balance.Key]).ToDecimal();
+                            transaction.Amount = (this.Balances[balance.Key] - previousBlock.Balances[balance.Key]).ToBalanceDecimal();
 
                         break;
                     }
@@ -47,7 +47,7 @@ namespace Lyra.Core.Blocks
                 else
                 {
                     transaction.TokenCode = balance.Key;
-                    transaction.Amount = this.Balances[balance.Key].ToDecimal();
+                    transaction.Amount = this.Balances[balance.Key].ToBalanceDecimal();
                     break;
                 }
 

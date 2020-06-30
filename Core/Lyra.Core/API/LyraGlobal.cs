@@ -53,12 +53,12 @@ namespace Lyra.Core.API
 
     public static class LyraExtensions
     {
-        public static long ToLong(this decimal currency)
+        public static long ToBalanceLong(this decimal currency)
         {
             return (long)Math.Round(currency * LyraGlobal.TOKENSTORAGERITO);
         }
 
-        public static decimal ToDecimal(this long currency)
+        public static decimal ToBalanceDecimal(this long currency)
         {
             return ((decimal)currency) / LyraGlobal.TOKENSTORAGERITO;
         }
