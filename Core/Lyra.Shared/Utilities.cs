@@ -53,19 +53,18 @@ namespace Lyra.Shared
         public static string PathSeperator => (Environment.OSVersion.Platform == PlatformID.Unix ||
                    Environment.OSVersion.Platform == PlatformID.MacOSX) ? "/" : "\\";
 
-        public static string GetLyraDataDir(string networkId = null)
+        public static string GetLyraDataDir(string networkId, string productShortName)
         {
             string homePath = (Environment.OSVersion.Platform == PlatformID.Unix ||
                Environment.OSVersion.Platform == PlatformID.MacOSX)
                 ? Environment.GetEnvironmentVariable("HOME")
                 : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
 
-            var path = $"{homePath}{PathSeperator}.wizdag";
+            var path = $"{homePath}{PathSeperator}.{productShortName}";
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            var netEnv = networkId == null ? Environment.GetEnvironmentVariable("WIZDAG_NETWORK") : networkId;
-            var net = string.IsNullOrWhiteSpace(netEnv) ? "devnet" : netEnv;
+            var net = string.IsNullOrWhiteSpace(networkId) ? "devnet" : networkId;
 
             path = $"{path}{PathSeperator}{net}";
             if (!Directory.Exists(path))

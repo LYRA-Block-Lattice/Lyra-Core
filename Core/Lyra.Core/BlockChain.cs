@@ -223,7 +223,7 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
                 {
-                    var stateFn = $"{Utilities.GetLyraDataDir()}{Utilities.PathSeperator}Consolidation.json";
+                    var stateFn = $"{Utilities.GetLyraDataDir(Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}Consolidation.json";
 
                     var state = new ConsolidationState { LocalLastConsolidationHeight = 0 };
                     if (File.Exists(stateFn))

@@ -36,18 +36,17 @@ namespace Lyra
         private bool suspend = false;
         public static DagSystem Singleton { get; private set; }
 
-        public string NetworkId { get; private set; }
         private ILogger _log;
 
-        public DagSystem()
+        public DagSystem(string networkId)
         {
             _log = new SimpleLogger("DagSystem").Logger;
 
+            LyraNodeConfig.Init(networkId);
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this));
             TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
 
-            NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
             Singleton = this;
         }
 

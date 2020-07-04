@@ -2,7 +2,6 @@
   "ApplicationConfiguration": {
     "LyraNode": {
       "Lyra": {
-        "NetworkId": "devnet",
         "Database": {
           "DatabaseName": "wizdag",
           "DBConnect": "mongodb://lexuser:Xejg03sjd@127.0.0.1/wizdag",

@@ -1,4 +1,5 @@
 using Lyra;
+using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -279,7 +280,7 @@ namespace Neo
         /// <returns>IConfigurationRoot</returns>
         public static IConfigurationRoot LoadConfig(string config)
         {
-            var env = Environment.GetEnvironmentVariable("WIZDAG_NETWORK");
+            var env = LyraNodeConfig.GetNetworkId();
             var configFile = string.IsNullOrWhiteSpace(env) ? $"{config}.json" : $"{config}.{env}.json";
             return new ConfigurationBuilder()
                 //.SetBasePath(Utilities.LyraDataDir)

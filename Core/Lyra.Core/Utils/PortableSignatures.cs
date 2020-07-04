@@ -5,6 +5,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Math;
+using Lyra.Core.API;
 
 namespace Lyra.Core.Cryptography
 {
@@ -17,7 +18,7 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                if (AccountId[0] != 'W')
+                if (AccountId[0] != LyraGlobal.ADDRESSPREFIX)
                     return false;
 
                 Base58Encoding.DecodeAccountId(AccountId);

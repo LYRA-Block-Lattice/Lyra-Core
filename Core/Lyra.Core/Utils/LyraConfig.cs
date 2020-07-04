@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Lyra.Shared;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,14 +17,21 @@ namespace Lyra.Core.Utils
     }
     public class LyraNodeConfig
     {
-        public string NetworkId { get; }
+        private static string _networkId;
+        public static void Init(string NetworkId)
+        {
+            if (_networkId == null)
+                _networkId = NetworkId;
+        }
+        public static string GetNetworkId() => _networkId;
+
+        public string NetworkId => _networkId;
         public LyraDatabaseConfig Database { get; }
         public LyraWalletConfig Wallet { get; }
         public string FeeAccountId { get; }
 
         public LyraNodeConfig(IConfigurationSection section)
         {
-            NetworkId = section.GetSection("NetworkId").Value;
             Database = new LyraDatabaseConfig(section.GetSection("Database"));
             Wallet = new LyraWalletConfig(section.GetSection("Wallet"));
             FeeAccountId = section.GetSection("FeeAccountId").Value;

@@ -295,7 +295,7 @@ namespace Lyra.Core.Decentralize
         {
             // declare to the network
             PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
-            me.IPAddress = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId != "devnet")}";
+            me.IPAddress = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId)}";
             me.Sign();
 
             var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);

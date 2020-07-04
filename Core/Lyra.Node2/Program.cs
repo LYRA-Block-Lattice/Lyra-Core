@@ -59,7 +59,7 @@ namespace Lyra.Node2
                                 SslProtocols = System.Security.Authentication.SslProtocols.Tls,
                             };
 
-                            listenOptions.UseHttps("grpcServer.pfx", "1511");
+                            //listenOptions.UseHttps("grpcServer.pfx", "1511");
 
                             listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
                         });                       

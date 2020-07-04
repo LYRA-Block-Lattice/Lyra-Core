@@ -1,3 +1,4 @@
+using Lyra.Core.API;
 using System;
 using System.Linq;
 using System.Numerics;
@@ -108,7 +109,7 @@ namespace Lyra.Core.Cryptography
             //Buffer.BlockCopy(public_key_data, 0, L_encoded, 1, public_key_data.Length);
             ///// ***
 
-            return "W" + EncodeWithCheckSum(public_key_data);
+            return LyraGlobal.ADDRESSPREFIX + EncodeWithCheckSum(public_key_data);
         }
 
         public static byte[] DecodePrivateKey(string privateKey)

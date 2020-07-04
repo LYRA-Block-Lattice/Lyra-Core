@@ -17,6 +17,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\..\Core\Lyra.Node2\config.json" Link="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\Core\Lyra.Node2\protocol.json" Link="protocol.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="Archive\AuthorizerAndTradesTest %28conflict%29.cs" />
     <None Include="Archive\AuthorizerAndTradesTest.cs" />
     <None Include="Archive\CryptographyTest.cs" />
@@ -27,7 +36,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Akka.TestKit" Version="1.4.8" />
+    <PackageReference Include="Akka.TestKit.Xunit2" Version="1.4.8" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="Moq" Version="4.14.5" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
     <PackageReference Include="coverlet.collector" Version="1.2.0" />

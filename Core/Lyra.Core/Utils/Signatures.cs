@@ -1,3 +1,4 @@
+using Lyra.Core.API;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Neo.Wallets;
@@ -34,7 +35,7 @@ namespace Lyra.Core.Cryptography
         {
             try
             {
-                if (AccountId[0] != 'W')
+                if (AccountId[0] != LyraGlobal.ADDRESSPREFIX)
                     return false;
 
                 Base58Encoding.DecodeAccountId(AccountId);

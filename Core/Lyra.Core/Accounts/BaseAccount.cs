@@ -3,6 +3,7 @@ using Lyra.Core.Cryptography;
 using Lyra.Core.Blocks;
 using System.Threading.Tasks;
 using Lyra.Shared;
+using Lyra.Core.API;
 
 namespace Lyra.Core.Accounts
 {
@@ -40,7 +41,7 @@ namespace Lyra.Core.Accounts
 
         public static string GetFullFolderName(string NetworkId, string FolderName)
         {
-            return $"{Utilities.GetLyraDataDir(NetworkId)}{Utilities.PathSeperator}{FolderName}{Utilities.PathSeperator}";
+            return $"{Utilities.GetLyraDataDir(NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}{FolderName}{Utilities.PathSeperator}";
         }
 
         public BaseAccount(string accountName, IAccountDatabase storage, string NetworkId)

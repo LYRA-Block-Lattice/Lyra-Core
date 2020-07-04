@@ -6,10 +6,12 @@ namespace Lyra.Core.API
 {
     public sealed class LyraGlobal
     {
-        public const string APPLICATIONNAME = "Wizard DAG Permisionless Blockchain";
-        public const string OFFICIALDOMAIN = "wizdag";
-        public const string OFFICIALTICKERCODE = "BES";
+        public const string APPLICATIONNAME = "LYRA Block Lattice";
+        public const string OFFICIALDOMAIN = "lyra";
+        public const string OFFICIALTICKERCODE = "LYR";
         public const int OFFICIALTICKERPRECISION = 8;
+
+        public const char ADDRESSPREFIX = 'L';
 
         public const int MAXMIMUMAUTHORIZERS = 21;
 
