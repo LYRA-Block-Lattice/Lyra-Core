@@ -68,7 +68,7 @@ namespace Lyra.Core.Decentralize
                     var memStor = new AccountInMemoryStorage();
                     var acctWallet = new ExchangeAccountWallet(memStor, networkId);
                     acctWallet.AccountName = "tmpAcct";
-                    await acctWallet.RestoreAccountAsync("", tmpWallet.PrivateKey);
+                    acctWallet.RestoreAccount("", tmpWallet.PrivateKey);
                     acctWallet.OpenAccount("", acctWallet.AccountName);
                     acctWallet.VoteFor = tmpWallet.VoteFor;
 

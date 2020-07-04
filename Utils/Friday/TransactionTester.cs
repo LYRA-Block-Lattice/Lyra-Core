@@ -128,7 +128,7 @@ namespace Friday
             var memStor = new AccountInMemoryStorage();
             var acctWallet = new ExchangeAccountWallet(memStor, Program.network_id);
             acctWallet.AccountName = "tmpAcct";
-            await acctWallet.RestoreAccountAsync("", masterKey);
+            acctWallet.RestoreAccount("", masterKey);
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);

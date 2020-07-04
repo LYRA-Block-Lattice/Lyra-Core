@@ -112,7 +112,7 @@ namespace LyraWallet.Models
             //}, _cancel.Token);
         }
 
-        public async Task CreateNew(string network_id)
+        public void CreateNew(string network_id)
         {
             if (wallet != null)
                 throw new Exception("Wallet opening");
@@ -126,7 +126,7 @@ namespace LyraWallet.Models
             wallet.CreateAccount(path, wallet.AccountName, AccountTypes.Standard);
         }
 
-        public async Task CreateByPrivateKey(string network_id, string privatekey)
+        public void CreateByPrivateKey(string network_id, string privatekey)
         {
             if (wallet != null)
                 throw new Exception("Wallet opening");
@@ -142,9 +142,9 @@ namespace LyraWallet.Models
             {
                 wallet = null;
                 throw new InvalidDataException("Invalid Private Key");
-            }                
+            }
 
-            var result = await wallet.RestoreAccountAsync(path, privatekey);
+            var result = wallet.RestoreAccount(path, privatekey);
             if (!result.Successful())
             {
                 wallet = null;

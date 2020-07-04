@@ -38,7 +38,7 @@ namespace LyraWallet.ViewModels
             {
                 try
                 {
-                    await App.Container.CreateNew(NetworkId);
+                    App.Container.CreateNew(NetworkId);
                     await App.Container.CloseWallet();
 
                     var nextPage = new MainPage();
@@ -57,7 +57,7 @@ namespace LyraWallet.ViewModels
             {
                 try
                 {
-                    await App.Container.CreateByPrivateKey(NetworkId, PrivateKey);
+                    App.Container.CreateByPrivateKey(NetworkId, PrivateKey);
                     await App.Container.CloseWallet();
 
                     var nextPage = new MainPage();

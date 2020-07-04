@@ -86,7 +86,7 @@ namespace Lyra.Client.CLI
                             string private_key = System.IO.File.ReadAllText(fileName);
                             if (wallet.ValidatePrivateKey(private_key))
                             {
-                                var result = await wallet.RestoreAccountAsync(lyra_folder, private_key);
+                                var result = wallet.RestoreAccount(lyra_folder, private_key);
                                 if (!result.Successful())
                                 {
                                     Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
@@ -112,7 +112,7 @@ namespace Lyra.Client.CLI
                             if (!wallet.ValidatePrivateKey(privatekey))
                                 continue;
 
-                            var result = await wallet.RestoreAccountAsync(lyra_folder, privatekey);
+                            var result = wallet.RestoreAccount(lyra_folder, privatekey);
                             if (!result.Successful())
                             {
                                 Console.WriteLine("Could not restore account from file: " + result.ResultMessage);

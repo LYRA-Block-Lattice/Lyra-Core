@@ -50,7 +50,7 @@ namespace Lyra.Core.Exchange
                 var memStor = new AccountInMemoryStorage();
                 var acctWallet = new ExchangeAccountWallet(memStor, _config.Lyra.NetworkId);
                 acctWallet.AccountName = "tmpAcct";
-                await acctWallet.RestoreAccountAsync("", acct.PrivateKey);
+                acctWallet.RestoreAccount("", acct.PrivateKey);
                 acctWallet.OpenAccount("", acctWallet.AccountName);
                 for (int i = 0; i < 300; i++)
                 {
@@ -382,7 +382,7 @@ namespace Lyra.Core.Exchange
 
             var fromWallet = new Wallet(memStor, _config.Lyra.NetworkId);
             fromWallet.AccountName = "tmpAcct";
-            await fromWallet.RestoreAccountAsync("", privateKey);
+            fromWallet.RestoreAccount("", privateKey);
             fromWallet.OpenAccount("", fromWallet.AccountName);
             APIResultCodes result = APIResultCodes.UnknownError;
             for (int i = 0; i < 300; i++)

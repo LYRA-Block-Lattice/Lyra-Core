@@ -21,7 +21,7 @@ namespace Lyra.Core.Accounts
             var memStor = new AccountInMemoryStorage();
             var acctWallet = new ExchangeAccountWallet(memStor, networkId);
             acctWallet.AccountName = "tmpAcct";
-            await acctWallet.RestoreAccountAsync("", privateKey);
+            acctWallet.RestoreAccount("", privateKey);
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
@@ -42,7 +42,7 @@ namespace Lyra.Core.Accounts
             var memStor = new AccountInMemoryStorage();
             var acctWallet = new ExchangeAccountWallet(memStor, networkId);
             acctWallet.AccountName = "tmpAcct";
-            await acctWallet.RestoreAccountAsync("", tmpWallet.PrivateKey);
+            acctWallet.RestoreAccount("", tmpWallet.PrivateKey);
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);

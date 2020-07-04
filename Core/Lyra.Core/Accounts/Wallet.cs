@@ -430,7 +430,7 @@ namespace Lyra.Core.Accounts
             return res;
         }
 
-        public async Task<APIResult> RestoreAccountAsync(string path, string privateKey)
+        public APIResult RestoreAccount(string path, string privateKey)
         {
             try
             {
