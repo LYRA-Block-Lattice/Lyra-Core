@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Cryptography;
+﻿using Lyra.Core.API;
+using Lyra.Core.Cryptography;
 using LyraWallet.Services;
 using LyraWallet.Views;
 using System;
@@ -69,7 +70,7 @@ namespace LyraWallet.ViewModels
 
             VisitCommunityCommand = new Command(async () =>
             {
-                await Browser.OpenAsync("https://wizdag.com/", BrowserLaunchMode.SystemPreferred);
+                await Browser.OpenAsync(LyraGlobal.PRODUCTWEBLINK, BrowserLaunchMode.SystemPreferred);
                 //var nextPage = new LexCommunityPage();
                 //await _thePage.Navigation.PushAsync(nextPage);
             });

@@ -46,7 +46,7 @@ namespace Lyra.Core.Decentralize
             _waitOrder = new AutoResetEvent(false);
             try
             {
-                var networkId = Environment.GetEnvironmentVariable("WIZDAG_NETWORK");
+                var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
                 _log.LogInformation($"NodeService: ExecuteAsync Called.");
 
                 // something must be initialized first
@@ -73,7 +73,7 @@ namespace Lyra.Core.Decentralize
                     acctWallet.VoteFor = tmpWallet.VoteFor;
 
                     Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-                    var rpcClient = await LyraRestClient.CreateAsync(networkId, Environment.OSVersion.Platform.ToString(), "WizDAG Client Cli", "1.0a");
+                    var rpcClient = await LyraRestClient.CreateAsync(networkId, Environment.OSVersion.Platform.ToString(), $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
                     await acctWallet.Sync(rpcClient);
 
                     PosWallet = acctWallet;

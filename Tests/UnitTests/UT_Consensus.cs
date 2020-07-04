@@ -53,7 +53,7 @@ namespace UnitTests
             wallet1.AccountId.Should().Be(ADDRESS_ID_1);
 
             //Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            //var rpcClient = await LyraRestClient.CreateAsync(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "WizDAG Client Cli", "1.0a");
+            //var rpcClient = await LyraRestClient.CreateAsync(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
             //await acctWallet.Sync(rpcClient);
         }
 
@@ -65,7 +65,7 @@ namespace UnitTests
             wallet1.Should().BeNull();
 
             //Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            //var rpcClient = await LyraRestClient.CreateAsync(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "WizDAG Client Cli", "1.0a");
+            //var rpcClient = await LyraRestClient.CreateAsync(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
             //await acctWallet.Sync(rpcClient);
         }
     }

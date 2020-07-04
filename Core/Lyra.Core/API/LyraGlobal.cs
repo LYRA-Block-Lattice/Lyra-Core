@@ -6,7 +6,8 @@ namespace Lyra.Core.API
 {
     public sealed class LyraGlobal
     {
-        public const string APPLICATIONNAME = "LYRA Block Lattice";
+        public const string PRODUCTNAME = "LYRA Block Lattice";
+        public const string PRODUCTWEBLINK = "https://lyra.live";
         public const string OFFICIALDOMAIN = "lyra";
         public const string OFFICIALTICKERCODE = "LYR";
         public const int OFFICIALTICKERPRECISION = 8;
@@ -18,7 +19,7 @@ namespace Lyra.Core.API
         public const int ProtocolVersion = 1;
         public const int DatabaseVersion = 1;
 
-        public static string NodeAppName = APPLICATIONNAME + " " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
+        public static string NodeAppName = PRODUCTNAME + " " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 
         public const int MinimalAuthorizerBalance = 1000000;
         public const decimal OFFICIALGENESISAMOUNT = 12000000000;

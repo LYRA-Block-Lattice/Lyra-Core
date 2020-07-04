@@ -22,7 +22,7 @@ namespace Lyra.Client.CLI
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("WizDAG Command Line Client");
+            Console.WriteLine(LyraGlobal.PRODUCTNAME + " Command Line Client");
             Console.WriteLine("Version: " + "1.5.0");
 
             ParserResult<Options> result = Parser.Default.ParseArguments<Options>(args);

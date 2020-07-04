@@ -132,7 +132,7 @@ namespace Friday
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            var rpcClient = await LyraRestClient.CreateAsync(Program.network_id, "Windows", "WizDAG Client Cli", "1.0a");
+            var rpcClient = await LyraRestClient.CreateAsync(Program.network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
             await acctWallet.Sync(rpcClient);
             return acctWallet;
         }

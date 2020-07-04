@@ -215,163 +215,163 @@ namespace Lyra.Core.Accounts
             }
         }
 
-/*        public async Task<AuthorizationAPIResult> RedeemRewards(string reward_token_code, decimal discount_amount)
-        {
-            var trade_orders = await GetActiveTradeOrders("*", reward_token_code, TradeOrderListTypes.SellOnly);
-            if (trade_orders.ResultCode != APIResultCodes.Success)
-            {
-                return new AuthorizationAPIResult() { ResultCode = trade_orders.ResultCode, ResultMessage = trade_orders.ResultMessage };
-            }
-
-            var sell_order = trade_orders.GetList()[0];
-
-            var trade_order_result = await TradeOrder(TradeOrderTypes.Buy, sell_order.BuyTokenCode, sell_order.SellTokenCode, discount_amount, discount_amount, sell_order.Price, false, true);
-
-            if (trade_order_result.ResultCode == APIResultCodes.Success)
-            {
-                var cancel_result = CancelTradeOrder(sell_order.Hash).Result;
-                if (cancel_result.ResultCode != APIResultCodes.Success)
+        /*        public async Task<AuthorizationAPIResult> RedeemRewards(string reward_token_code, decimal discount_amount)
                 {
-                    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound, ResultMessage = "No matching trade order found. Failed to cancel the redemption order." };
-                }
-                else
-                {
-                    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound, ResultMessage = "No matching trade order found. Redemption order has been cancelled successfully" };
-                }
-            }
-            else
-            if (trade_order_result.ResultCode == APIResultCodes.TradeOrderMatchFound)
-            {
-                var trade = trade_order_result.GetBlock();
+                    var trade_orders = await GetActiveTradeOrders("*", reward_token_code, TradeOrderListTypes.SellOnly);
+                    if (trade_orders.ResultCode != APIResultCodes.Success)
+                    {
+                        return new AuthorizationAPIResult() { ResultCode = trade_orders.ResultCode, ResultMessage = trade_orders.ResultMessage };
+                    }
 
-                var trade_result = await Trade(trade);
+                    var sell_order = trade_orders.GetList()[0];
 
-                return trade_result;
-            }
-            else
-            {
-                return new AuthorizationAPIResult() { ResultCode = trade_order_result.ResultCode, ResultMessage = trade_order_result.ResultMessage };
-            }
-        }*/
+                    var trade_order_result = await TradeOrder(TradeOrderTypes.Buy, sell_order.BuyTokenCode, sell_order.SellTokenCode, discount_amount, discount_amount, sell_order.Price, false, true);
 
- /*       public async Task<AuthorizationAPIResult> ExecuteSellOrder(TradeBlock trade, TradeOrderBlock order, NonFungibleToken nonfungible_token = null)
-        {
-            TransactionBlock previousBlock = GetLatestBlock();
-            if (previousBlock == null)
-                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
+                    if (trade_order_result.ResultCode == APIResultCodes.Success)
+                    {
+                        var cancel_result = CancelTradeOrder(sell_order.Hash).Result;
+                        if (cancel_result.ResultCode != APIResultCodes.Success)
+                        {
+                            return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound, ResultMessage = "No matching trade order found. Failed to cancel the redemption order." };
+                        }
+                        else
+                        {
+                            return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound, ResultMessage = "No matching trade order found. Redemption order has been cancelled successfully" };
+                        }
+                    }
+                    else
+                    if (trade_order_result.ResultCode == APIResultCodes.TradeOrderMatchFound)
+                    {
+                        var trade = trade_order_result.GetBlock();
 
-            int sell_precision = await FindTokenPrecision(trade.BuyTokenCode);
-            if (sell_precision < 0)
-                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
+                        var trade_result = await Trade(trade);
 
-            if (order == null)
-            {
-                order = await GetBlockByHash(trade.TradeOrderId) as TradeOrderBlock;
-                if (order == null)
-                    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound };
-            }
+                        return trade_result;
+                    }
+                    else
+                    {
+                        return new AuthorizationAPIResult() { ResultCode = trade_order_result.ResultCode, ResultMessage = trade_order_result.ResultMessage };
+                    }
+                }*/
 
-            if (trade.BuyAmount > order.TradeAmount)
-                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InvalidTradeAmount };
+        /*       public async Task<AuthorizationAPIResult> ExecuteSellOrder(TradeBlock trade, TradeOrderBlock order, NonFungibleToken nonfungible_token = null)
+               {
+                   TransactionBlock previousBlock = GetLatestBlock();
+                   if (previousBlock == null)
+                       return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
 
-            var balance_change = trade.BuyAmount;
+                   int sell_precision = await FindTokenPrecision(trade.BuyTokenCode);
+                   if (sell_precision < 0)
+                       return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
 
-            var fee = TradeFee;
-            var fee_type = AuthorizationFeeTypes.Regular;
-            if (order.CoverAnotherTradersFee)
-            {
-                fee = TradeFee * 2;
-                fee_type = AuthorizationFeeTypes.BothParties;
-            }
-            else
-            if (order.AnotherTraderWillCoverFee)
-            {
-                fee = 0;
-                fee_type = AuthorizationFeeTypes.NoFee;
-            }
+                   if (order == null)
+                   {
+                       order = await GetBlockByHash(trade.TradeOrderId) as TradeOrderBlock;
+                       if (order == null)
+                           return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound };
+                   }
 
-            if (trade.BuyTokenCode == LyraGlobal.LYRA_TICKER_CODE)
-                balance_change += fee;
+                   if (trade.BuyAmount > order.TradeAmount)
+                       return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InvalidTradeAmount };
 
-            // see if we have enough tokens
-            if (previousBlock.Balances[trade.BuyTokenCode] < balance_change)
-                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
+                   var balance_change = trade.BuyAmount;
 
-            // see if we have enough LYR to pay the transfer fee
-            if (fee > 0)
-            {
-                if (trade.BuyTokenCode != LyraGlobal.LYRA_TICKER_CODE)
-                    if (previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] < fee)
-                        return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
-            }
+                   var fee = TradeFee;
+                   var fee_type = AuthorizationFeeTypes.Regular;
+                   if (order.CoverAnotherTradersFee)
+                   {
+                       fee = TradeFee * 2;
+                       fee_type = AuthorizationFeeTypes.BothParties;
+                   }
+                   else
+                   if (order.AnotherTraderWillCoverFee)
+                   {
+                       fee = 0;
+                       fee_type = AuthorizationFeeTypes.NoFee;
+                   }
 
-            var execute_block = new ExecuteTradeOrderBlock()
-            {
-                AccountID = AccountId,
-                DestinationAccountId = trade.AccountID,
-                Balances = new Dictionary<string, decimal>(),
-                TradeId = trade.Hash,
-                TradeOrderId = trade.TradeOrderId,
-                SellTokenCode = trade.BuyTokenCode,
-                SellAmount = trade.BuyAmount,
-                Fee = fee,
-                FeeType = fee_type,
-                FeeCode = LyraGlobal.LYRA_TICKER_CODE
-            };
+                   if (trade.BuyTokenCode == LyraGlobal.LYRA_TICKER_CODE)
+                       balance_change += fee;
 
-            // The funds were previously locked by the sell order so we only put the difference between the previously locked amount and the actual trade amount
-            var final_balance_change = order.TradeAmount - balance_change;
+                   // see if we have enough tokens
+                   if (previousBlock.Balances[trade.BuyTokenCode] < balance_change)
+                       return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
 
-            // If the trade amount fully covers the order, there is no change in the balance as the entire Tx amount was previously "locked" by the original order 
-            execute_block.Balances.Add(execute_block.SellTokenCode, previousBlock.Balances[execute_block.SellTokenCode] - final_balance_change);
+                   // see if we have enough LYR to pay the transfer fee
+                   if (fee > 0)
+                   {
+                       if (trade.BuyTokenCode != LyraGlobal.LYRA_TICKER_CODE)
+                           if (previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] < fee)
+                               return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
+                   }
 
-            // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
-            if (fee > 0)
-            {
-                if (execute_block.SellTokenCode != LyraGlobal.LYRA_TICKER_CODE)
-                    execute_block.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - fee);
-            }
+                   var execute_block = new ExecuteTradeOrderBlock()
+                   {
+                       AccountID = AccountId,
+                       DestinationAccountId = trade.AccountID,
+                       Balances = new Dictionary<string, decimal>(),
+                       TradeId = trade.Hash,
+                       TradeOrderId = trade.TradeOrderId,
+                       SellTokenCode = trade.BuyTokenCode,
+                       SellAmount = trade.BuyAmount,
+                       Fee = fee,
+                       FeeType = fee_type,
+                       FeeCode = LyraGlobal.LYRA_TICKER_CODE
+                   };
 
-            // transfer unchanged token balances from the previous block
-            foreach (var balance in previousBlock.Balances)
-                if (!(execute_block.Balances.ContainsKey(balance.Key)))
-                    execute_block.Balances.Add(balance.Key, balance.Value);
+                   // The funds were previously locked by the sell order so we only put the difference between the previously locked amount and the actual trade amount
+                   var final_balance_change = order.TradeAmount - balance_change;
 
-            if (nonfungible_token != null)
-            {
-                if (nonfungible_token.Denomination != execute_block.SellAmount)
-                    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InvalidNonFungibleAmount };
+                   // If the trade amount fully covers the order, there is no change in the balance as the entire Tx amount was previously "locked" by the original order 
+                   execute_block.Balances.Add(execute_block.SellTokenCode, previousBlock.Balances[execute_block.SellTokenCode] - final_balance_change);
 
-                if (nonfungible_token.TokenCode != execute_block.SellTokenCode)
-                    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InvalidNonFungibleTokenCode };
+                   // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
+                   if (fee > 0)
+                   {
+                       if (execute_block.SellTokenCode != LyraGlobal.LYRA_TICKER_CODE)
+                           execute_block.Balances.Add(LyraGlobal.LYRA_TICKER_CODE, previousBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - fee);
+                   }
 
-                //execute_block.NonFungibleTokens = new List<INonFungibleToken>();
-                //execute_block.NonFungibleTokens.Add(nonfungible_token);
-                execute_block.NonFungibleToken = nonfungible_token;
-            }
+                   // transfer unchanged token balances from the previous block
+                   foreach (var balance in previousBlock.Balances)
+                       if (!(execute_block.Balances.ContainsKey(balance.Key)))
+                           execute_block.Balances.Add(balance.Key, balance.Value);
 
-            execute_block.InitializeBlock(previousBlock, PrivateKey, NetworkId);
+                   if (nonfungible_token != null)
+                   {
+                       if (nonfungible_token.Denomination != execute_block.SellAmount)
+                           return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InvalidNonFungibleAmount };
 
-            // TO DO - override the trasanction validation method in ExecuteTradeBlock
-            //if (!execute_block.ValidateTransaction(previousBlock))
-            //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
+                       if (nonfungible_token.TokenCode != execute_block.SellTokenCode)
+                           return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InvalidNonFungibleTokenCode };
 
-            //execute_block.Signature = Signatures.GetSignature(PrivateKey, execute_block.Hash);
+                       //execute_block.NonFungibleTokens = new List<INonFungibleToken>();
+                       //execute_block.NonFungibleTokens.Add(nonfungible_token);
+                       execute_block.NonFungibleToken = nonfungible_token;
+                   }
 
-            var result = await _rpcClient.ExecuteTradeOrder(execute_block);
+                   execute_block.InitializeBlock(previousBlock, PrivateKey, NetworkId);
 
-            if (result.ResultCode == APIResultCodes.Success)
-            {
-                execute_block.Authorizations = result.Authorizations;
-                execute_block.ServiceHash = result.ServiceHash;
-                AddBlock(execute_block);
-            }
-            else
-            {
-                //
-            }
-            return result;
-        }*/
+                   // TO DO - override the trasanction validation method in ExecuteTradeBlock
+                   //if (!execute_block.ValidateTransaction(previousBlock))
+                   //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
+
+                   //execute_block.Signature = Signatures.GetSignature(PrivateKey, execute_block.Hash);
+
+                   var result = await _rpcClient.ExecuteTradeOrder(execute_block);
+
+                   if (result.ResultCode == APIResultCodes.Success)
+                   {
+                       execute_block.Authorizations = result.Authorizations;
+                       execute_block.ServiceHash = result.ServiceHash;
+                       AddBlock(execute_block);
+                   }
+                   else
+                   {
+                       //
+                   }
+                   return result;
+               }*/
 
         // launches a live wallet with auto-updates enabled
         //public void Launch(INodeAPI RPCClient)
@@ -400,7 +400,7 @@ namespace Lyra.Core.Accounts
         //}
 
 
-        public async Task<string> GetDisplayBalancesAsync()
+        public string GetDisplayBalances()
         {
             string res = "0";
             TransactionBlock lastBlock = GetLatestBlock();
@@ -1017,7 +1017,7 @@ namespace Lyra.Core.Accounts
                 //openReceiveBlock.Authorizations = result.Authorizations;
                 openReceiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openReceiveBlock);
-                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + GetDisplayBalances());
             }
             Console.Write(string.Format("{0}> ", AccountName));
             return result;
@@ -1095,7 +1095,7 @@ namespace Lyra.Core.Accounts
                 //receiveBlock.Authorizations = result.Authorizations;
                 receiveBlock.ServiceHash = result.ServiceHash;
                 AddBlock(receiveBlock);
-                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + GetDisplayBalances());
             }
             Console.Write(string.Format("{0}> ", AccountName));
             return result;
@@ -1129,7 +1129,7 @@ namespace Lyra.Core.Accounts
                 Ticker = LyraGlobal.OFFICIALTICKERCODE,
                 DomainName = LyraGlobal.OFFICIALDOMAIN,
                 ContractType = ContractTypes.Cryptocurrency,
-                Description = LyraGlobal.APPLICATIONNAME + " Gas Token",
+                Description = LyraGlobal.PRODUCTNAME + " Gas Token",
                 Precision = LyraGlobal.OFFICIALTICKERPRECISION,
                 IsFinalSupply = true,
                 AccountID = AccountId,
@@ -1177,7 +1177,7 @@ namespace Lyra.Core.Accounts
                 //openTokenGenesisBlock.Authorizations = result.Authorizations;
                 openTokenGenesisBlock.ServiceHash = result.ServiceHash;
                 AddBlock(openTokenGenesisBlock);
-                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + GetDisplayBalances());
             }
             //Console.Write(string.Format("{0}> ", AccountName));
             return result.ResultCode;

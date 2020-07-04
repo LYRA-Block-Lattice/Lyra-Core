@@ -133,10 +133,10 @@ namespace Lyra.Client.CLI
                 if (!string.IsNullOrWhiteSpace(options.Node))
                 {
                     var apiUrl = $"https://{options.Node}:4505/api/Node/";
-                    rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "WizDAG Client Cli", "1.0a", apiUrl);
+                    rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a", apiUrl);
                 }
                 else
-                    rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "WizDAG Client Cli", "1.0a");//await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
+                    rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");//await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
 
                 Console.WriteLine("Type 'help' to see the list of available commands");
                 Console.WriteLine("");
@@ -170,12 +170,12 @@ namespace Lyra.Client.CLI
                     input = Console.ReadLine();
                 }
 
-                Console.WriteLine("WizDAG Client is shutting down");
+                Console.WriteLine($"{LyraGlobal.PRODUCTNAME} Client is shutting down");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(string.Format("Exception: {0}", ex.Message));
-                Console.WriteLine("WizDAG Client is shutting down");
+                Console.WriteLine($"{LyraGlobal.PRODUCTNAME} Client is shutting down");
             }
             finally
             {

@@ -619,7 +619,7 @@ namespace Lyra
                 Ticker = LyraGlobal.OFFICIALTICKERCODE,
                 DomainName = LyraGlobal.OFFICIALDOMAIN,
                 ContractType = ContractTypes.Cryptocurrency,
-                Description = LyraGlobal.APPLICATIONNAME + " Gas Token",
+                Description = LyraGlobal.PRODUCTNAME + " Gas Token",
                 Precision = LyraGlobal.OFFICIALTICKERPRECISION,
                 IsFinalSupply = true,
                 AccountID = NodeService.Instance.PosWallet.AccountId,
