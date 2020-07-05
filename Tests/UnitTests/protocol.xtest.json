@@ -1,0 +1,20 @@
+{
+  "ProtocolConfiguration": {
+    "Magic": 20200408,
+    "ConsensusNumber": 2,
+    "StandbyValidators": [
+      "WV5Tcd2dFj1rPHfmfkaLR3qYPJLR6nmBZWE9v2nVG1uaW4xiA2ueiX4wSChj9kK84kh4TZ5n22LfWGEdeELy7Lh5etXg6Q",
+      "WXoWR3KripmGQd6Uaa4bP9Jg5mwNNLgQ71s4n8nD25Ubtn87xW6nC8LKHVKVRxwRkzCFFdwpzbBQkRrn3PV8DkhgQUNuvt",
+      "WTkcJBV5RiXaFzrK1vaUxBNx31CXByxM53uY3GnRir2XyGCVA4vDpRBWm2PxhZff32PaD7N36pStXp1eeo3i9SYvqP2juu",
+      "WWvjEqoPS7vrttJwrhszryXBYxFasWE1tTum72kb72nZcwtpkSiCEtwDJcFTV2tnTwerTSqwHTbcW5r2LzbrUqct9VQjHT"
+    ],
+    "SeedList": [
+      "seed.testnet.wizdag.com:4503",
+      "seed2.testnet.wizdag.com:4503",
+      "seed3.testnet.wizdag.com:4503",
+      "seed4.testnet.wizdag.com:4503"
+    ],
+    "StartupValidators": [
+    ]
+  }
+}

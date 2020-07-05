@@ -94,7 +94,7 @@ namespace Lyra.Core.Decentralize
 		}
 		public ChatMsg(string msg, ChatMessageType msgType)
 		{
-			From = NodeService.Instance.PosWallet.AccountId;
+			From = DagSystem.Singleton.PosWallet.AccountId;
 			MsgType = msgType;
 			Text = msg;
 		}

@@ -17,11 +17,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\..\Core\Lyra.Node2\config.json" Link="config.json">
+    <None Remove="config.xtest.json" />
+    <None Remove="protocol.xtest.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="config.xtest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="..\..\Core\Lyra.Node2\protocol.json" Link="protocol.json">
+    <Content Include="protocol.xtest.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 

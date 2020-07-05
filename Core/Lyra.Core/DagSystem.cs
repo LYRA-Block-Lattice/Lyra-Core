@@ -32,19 +32,23 @@ namespace Lyra
         internal IActorRef TaskManager { get; }
         public IActorRef Consensus { get; private set; }
 
+        public Wallet PosWallet { get; private set; }
+
         private ChannelsConfig start_message = null;
         private bool suspend = false;
         public static DagSystem Singleton { get; private set; }
 
         private ILogger _log;
 
-        public DagSystem(string networkId)
+        public DagSystem(string networkId, IAccountCollectionAsync store, Wallet posWallet)
         {
             _log = new SimpleLogger("DagSystem").Logger;
 
+            PosWallet = posWallet;
+
             LyraNodeConfig.Init(networkId);
             LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
-            TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this));
+            TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, store));
             TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
 
             Singleton = this;
@@ -82,7 +86,7 @@ namespace Lyra
 
                 TheBlockchain.Tell(new BlockChain.Startup());
 
-                //if (NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
+                //if (DagSystem.Singleton.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
                 //{
                 //    ActorSystem.Scheduler
                 //       .ScheduleTellRepeatedly(TimeSpan.FromSeconds(20),

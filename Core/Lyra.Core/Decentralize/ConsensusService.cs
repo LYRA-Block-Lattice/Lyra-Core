@@ -60,7 +60,7 @@ namespace Lyra.Core.Decentralize
         private static BillBoard _board = new BillBoard();
         private List<TransStats> _stats;
 
-        public static bool IsThisNodeSeed0 => NodeService.Instance.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
+        public static bool IsThisNodeSeed0 => DagSystem.Singleton.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public bool IsMessageFromSeed0(SourceSignedMessage msg)
         {
             return msg.From == ProtocolSettings.Default.StandbyValidators[0];
@@ -135,7 +135,7 @@ namespace Lyra.Core.Decentralize
                 //_board = bb;
                 //foreach (var node in _board.AllNodes.Values)
                 //    {
-                //        if(node.AccountID != NodeService.Instance.PosWallet.AccountId)
+                //        if(node.AccountID != DagSystem.Singleton.PosWallet.AccountId)
                 //            _pBFTNet.AddPosNode(node);
                 //    }                    
             });
@@ -277,15 +277,18 @@ namespace Lyra.Core.Decentralize
 
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
-            item.Sign(NodeService.Instance.PosWallet.PrivateKey, item.From);
+            item.Sign(DagSystem.Singleton.PosWallet.PrivateKey, item.From);
             //item.Hash = "a";
             //item.Signature = "a";
 
-            while (LocalNode.Singleton.ConnectedCount < 1)
-            {
-                _log.LogInformation("p2p network not connected. delay sending message...");
-                Task.Delay(1000).Wait();
-            }
+            //if(LyraNodeConfig.GetNetworkId() != "xtest")
+            //{
+            //    while (LocalNode.Singleton.ConnectedCount < 1)
+            //    {
+            //        _log.LogInformation("p2p network not connected. delay sending message...");
+            //        Task.Delay(1000).Wait();
+            //    }
+            //}
 
             //_log.LogInformation($"Send2P2pNetwork {item.MsgType}");
             _localNode.Tell(item);
@@ -294,7 +297,7 @@ namespace Lyra.Core.Decentralize
         private async Task DeclareConsensusNodeAsync()
         {
             // declare to the network
-            PosNode me = new PosNode(NodeService.Instance.PosWallet.AccountId);
+            PosNode me = new PosNode(DagSystem.Singleton.PosWallet.AccountId);
             me.IPAddress = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId)}";
             me.Sign();
 
@@ -305,12 +308,12 @@ namespace Lyra.Core.Decentralize
 
         private void HeartBeat()
         {
-            OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+            OnNodeActive(DagSystem.Singleton.PosWallet.AccountId);     // update billboard
 
             // declare to the network
             var msg = new ChatMsg
             {
-                From = NodeService.Instance.PosWallet.AccountId,
+                From = DagSystem.Singleton.PosWallet.AccountId,
                 MsgType = ChatMessageType.HeartBeat,
                 Text = "I'm live"
             };
@@ -452,12 +455,12 @@ namespace Lyra.Core.Decentralize
             //        ConsHeight = lastCons.Height + 1
             //    });                
 
-            consBlock.InitializeBlock(lastCons, NodeService.Instance.PosWallet.PrivateKey,
-                NodeService.Instance.PosWallet.AccountId);
+            consBlock.InitializeBlock(lastCons, DagSystem.Singleton.PosWallet.PrivateKey,
+                DagSystem.Singleton.PosWallet.AccountId);
 
             AuthorizingMsg msg = new AuthorizingMsg
             {
-                From = NodeService.Instance.PosWallet.AccountId,
+                From = DagSystem.Singleton.PosWallet.AccountId,
                 Block = consBlock,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
@@ -679,7 +682,7 @@ namespace Lyra.Core.Decentralize
                 BlockChain.Singleton.AuthorizerCountChanged(_board.PrimaryAuthorizers.Length);
 
                 // no me?
-                if (!_board.AllNodes.ContainsKey(NodeService.Instance.PosWallet.AccountId))
+                if (!_board.AllNodes.ContainsKey(DagSystem.Singleton.PosWallet.AccountId))
                 {
                     Task.Run(async () => { 
                         await DeclareConsensusNodeAsync();
@@ -710,7 +713,7 @@ namespace Lyra.Core.Decentralize
             if (_board != null)
             {
                 RefreshAllNodesVotesAsync();
-                OnNodeActive(NodeService.Instance.PosWallet.AccountId);
+                OnNodeActive(DagSystem.Singleton.PosWallet.AccountId);
                 var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
                 foreach (var node in deadNodes)
                 {

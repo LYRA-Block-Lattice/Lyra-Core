@@ -18,7 +18,7 @@ namespace Lyra.Core.Decentralize
 {
     public class NodeService : BackgroundService
     {
-        public static NodeService Instance { get; private set; } 
+        //public static NodeService Instance { get; private set; } 
         public static DealEngine Dealer { get; private set; }
         public Wallet PosWallet { get; private set; }
 
@@ -33,10 +33,10 @@ namespace Lyra.Core.Decentralize
 
         public NodeService(ILogger<NodeService> logger)
         {
-            if (Instance == null)
-                Instance = this;
-            else
-                throw new InvalidOperationException("Should not do this");
+            //if (Instance == null)
+            //    Instance = this;
+            //else
+            //    throw new InvalidOperationException("Should not do this");
 
             _log = logger;
         }
@@ -77,9 +77,10 @@ namespace Lyra.Core.Decentralize
                     await acctWallet.Sync(rpcClient);
 
                     PosWallet = acctWallet;
-                }              
+                }
 
-                var sys = new DagSystem(networkId);
+                var store = new MongoAccountCollection();
+                var sys = new DagSystem(networkId, store, PosWallet);
                 sys.Start();
 
                 if (_db == null)

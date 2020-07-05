@@ -1,8 +1,12 @@
+using Akka.Actor;
 using Akka.TestKit.Xunit2;
 using FluentAssertions;
 using Lyra.Core.Accounts;
+using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Neo.Network.P2P;
+using System;
 using System.Threading.Tasks;
 
 namespace UnitTests
@@ -28,45 +32,27 @@ namespace UnitTests
             Shutdown();
         }
 
-        private Wallet Restore(string privateKey)
-        {
-            var memStor = new AccountInMemoryStorage();
-            var acctWallet = new ExchangeAccountWallet(memStor, LyraNodeConfig.GetNetworkId());
-            acctWallet.AccountName = "tmpAcct";
-            var result = acctWallet.RestoreAccount("", privateKey);
-            if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
-            {
-                acctWallet.OpenAccount("", acctWallet.AccountName);
-                return acctWallet;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         [TestMethod]
-        public void WalletRestore()
+        public void WalletRestoreTest()
         {
-            // create wallet and update balance
-            var wallet1 = Restore(PRIVATE_KEY_1);
-            wallet1.AccountId.Should().Be(ADDRESS_ID_1);
-
-            //Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            //var rpcClient = await LyraRestClient.CreateAsync(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
-            //await acctWallet.Sync(rpcClient);
-        }
-
-        [TestMethod]
-        public void WalletRestore2()
-        {
-            // create wallet and update balance
-            var wallet1 = Restore("");
+            var wallet1 = TestBlockChain.Restore("");
             wallet1.Should().BeNull();
 
-            //Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            //var rpcClient = await LyraRestClient.CreateAsync(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
-            //await acctWallet.Sync(rpcClient);
+            var wallet2 = TestBlockChain.Restore(PRIVATE_KEY_1);
+            wallet2.AccountId.Should().Be(ADDRESS_ID_1);
+        }
+
+        [TestMethod]
+        public void ConsensusServiceTest()
+        {
+            var probe = CreateTestProbe();
+
+            //var ln = Sys.ActorOf(Props.Create(() => new LocalNode(TestBlockChain.TheDagSystem)));
+            var cs = Sys.ActorOf(Props.Create(() => new ConsensusService(probe)));
+
+            // NodeInquiry
+            cs.Tell(new ConsensusService.NodeInquiry());
+            probe.ExpectMsg<SourceSignedMessage>(TimeSpan.FromSeconds(1000));
         }
     }
 }

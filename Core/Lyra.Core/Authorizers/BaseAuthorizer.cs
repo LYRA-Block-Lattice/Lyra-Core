@@ -245,9 +245,9 @@ namespace Lyra.Core.Authorizers
             // sign with the authorizer key
             AuthorizationSignature authSignature = new AuthorizationSignature
             {
-                Key = NodeService.Instance.PosWallet.AccountId,
-                Signature = Signatures.GetSignature(NodeService.Instance.PosWallet.PrivateKey,
-                    block.Hash, NodeService.Instance.PosWallet.AccountId)
+                Key = DagSystem.Singleton.PosWallet.AccountId,
+                Signature = Signatures.GetSignature(DagSystem.Singleton.PosWallet.PrivateKey,
+                    block.Hash, DagSystem.Singleton.PosWallet.AccountId)
             };
 
             return authSignature;

@@ -121,7 +121,7 @@ namespace Lyra.Core.Decentralize
             //{
             //    errCode = APIResultCodes.PBFTNetworkNotReadyForConsensus;
             //}
-            //else if(!ConsensusService.AuthorizerShapshot.Contains(NodeService.Instance.PosWallet.AccountId))
+            //else if(!ConsensusService.AuthorizerShapshot.Contains(DagSystem.Singleton.PosWallet.AccountId))
             //{
             //    errCode = APIResultCodes.NotListedAsQualifiedAuthorizer;
             //}
@@ -130,7 +130,7 @@ namespace Lyra.Core.Decentralize
             {
                 var result0 = new AuthorizedMsg
                 {
-                    From = NodeService.Instance.PosWallet.AccountId,
+                    From = DagSystem.Singleton.PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
                     Result = errCode
@@ -147,7 +147,7 @@ namespace Lyra.Core.Decentralize
                 var localAuthResult = await authorizer.AuthorizeAsync(item.Block);
                 result = new AuthorizedMsg
                 {
-                    From = NodeService.Instance.PosWallet.AccountId,
+                    From = DagSystem.Singleton.PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
                     Result = localAuthResult.Item1,
@@ -162,7 +162,7 @@ namespace Lyra.Core.Decentralize
 
                 result = new AuthorizedMsg
                 {
-                    From = NodeService.Instance.PosWallet.AccountId,
+                    From = DagSystem.Singleton.PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
                     Result = APIResultCodes.UnknownError,
@@ -189,7 +189,7 @@ namespace Lyra.Core.Decentralize
         public async Task OnPrePrepareAsync(AuthorizingMsg msg, WaitHandle waitHandle = null)
         {
             _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash}");
-            _context.OnNodeActive(NodeService.Instance.PosWallet.AccountId);     // update billboard
+            _context.OnNodeActive(DagSystem.Singleton.PosWallet.AccountId);     // update billboard
 
             if (msg.Version != LyraGlobal.ProtocolVersion)
             {
@@ -299,7 +299,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
                     string me = "";
-                    if (msg.From == NodeService.Instance.PosWallet.AccountId)
+                    if (msg.From == DagSystem.Singleton.PosWallet.AccountId)
                         me = "[me]";
                     var voice = msg.IsSuccess ? "Yea" : "Nay";
                     var canAuth = ConsensusService.AuthorizerShapshot.Contains(msg.From);
@@ -335,7 +335,7 @@ namespace Lyra.Core.Decentralize
 
                     var msg = new AuthorizerCommitMsg
                     {
-                        From = NodeService.Instance.PosWallet.AccountId,
+                        From = DagSystem.Singleton.PosWallet.AccountId,
                         MsgType = ChatMessageType.AuthorizerCommit,
                         BlockHash = state.InputMsg.Block.Hash,
                         Consensus = state.PrepareConsensus
@@ -369,12 +369,12 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
 
                 // if self result is Nay, need (re)send commited msg here
-                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
+                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == DagSystem.Singleton.PosWallet.AccountId);
                 if(myResult == null || myResult.Result != APIResultCodes.Success)
                 {
                     var msg = new AuthorizerCommitMsg
                     {
-                        From = NodeService.Instance.PosWallet.AccountId,
+                        From = DagSystem.Singleton.PosWallet.AccountId,
                         MsgType = ChatMessageType.AuthorizerCommit,
                         BlockHash = _state.InputMsg.Block.Hash,
                         Consensus = _state.PrepareConsensus
@@ -398,7 +398,7 @@ namespace Lyra.Core.Decentralize
             if (block is ConsolidationBlock)
             {
                 // get my authorize result
-                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == NodeService.Instance.PosWallet.AccountId);
+                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == DagSystem.Singleton.PosWallet.AccountId);
                 if (myResult != null && myResult.Result == APIResultCodes.Success && myResult.IsSuccess == (_state.CommitConsensus == ConsensusResult.Yea))
                     return;
 
