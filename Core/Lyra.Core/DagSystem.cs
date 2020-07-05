@@ -40,14 +40,14 @@ namespace Lyra
 
         private ILogger _log;
 
-        public DagSystem(string networkId, IAccountCollectionAsync store, Wallet posWallet)
+        public DagSystem(string networkId, IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {
             _log = new SimpleLogger("DagSystem").Logger;
 
             PosWallet = posWallet;
 
             LyraNodeConfig.Init(networkId);
-            LocalNode = ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props(this));
+            LocalNode = localNode;
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, store));
             TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
 

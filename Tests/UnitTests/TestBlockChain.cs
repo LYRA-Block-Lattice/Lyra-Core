@@ -14,18 +14,13 @@ namespace UnitTests
 {
     public static class TestBlockChain
     {
-        public static readonly DagSystem TheDagSystem;
+        
 
         static TestBlockChain()
         {
             Console.WriteLine("initialize DagSystem");
 
-            SimpleLogger.Factory = new NullLoggerFactory();
 
-            var mockStore = new Mock<IAccountCollectionAsync>();
-            var posWallet = Restore("25kksnE589CTHcDeMNbatGBGoCjiMNFzcDCuGULj1vgCMAfxNV");
-
-            TheDagSystem = new DagSystem("xtest", mockStore.Object, posWallet);
 
             // Ensure that blockchain is loaded
 
@@ -36,21 +31,6 @@ namespace UnitTests
         {
         }
 
-        public static Wallet Restore(string privateKey)
-        {
-            var memStor = new AccountInMemoryStorage();
-            var acctWallet = new ExchangeAccountWallet(memStor, LyraNodeConfig.GetNetworkId());
-            acctWallet.AccountName = "tmpAcct";
-            var result = acctWallet.RestoreAccount("", privateKey);
-            if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
-            {
-                acctWallet.OpenAccount("", acctWallet.AccountName);
-                return acctWallet;
-            }
-            else
-            {
-                return null;
-            }
-        }
+
     }
 }

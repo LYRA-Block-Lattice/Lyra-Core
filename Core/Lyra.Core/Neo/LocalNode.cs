@@ -30,7 +30,7 @@ namespace Neo.Network.P2P
         private readonly IPEndPoint[] SeedList = new IPEndPoint[ProtocolSettings.Default.SeedList.Length];
 
         private static readonly object lockObj = new object();
-        private readonly DagSystem system;
+        //private readonly DagSystem system;
         internal readonly ConcurrentDictionary<IActorRef, RemoteNode> RemoteNodes = new ConcurrentDictionary<IActorRef, RemoteNode>();
 
         public int ConnectedCount => RemoteNodes.Count;
@@ -57,7 +57,7 @@ namespace Neo.Network.P2P
             UserAgent = $"/{Assembly.GetExecutingAssembly().GetName().Name}:{Assembly.GetExecutingAssembly().GetVersion()}/";
         }
 
-        public LocalNode(DagSystem system)
+        public LocalNode()
         {
             _log = new SimpleLogger("LocalNode").Logger;
 
@@ -65,7 +65,6 @@ namespace Neo.Network.P2P
             {
                 if (singleton != null)
                     throw new InvalidOperationException();
-                this.system = system;
                 singleton = this;
 
                 // Start dns resolution in parallel
@@ -181,8 +180,8 @@ namespace Neo.Network.P2P
                     BroadcastMessage(MessageCommand.Consensus, signedMsg);
                     break;
                 case SignedMessageRelay signedMessageRelay:
-                    if(system.Consensus != null && signedMessageRelay != null)
-                        system.Consensus.Tell(signedMessageRelay);
+                    if(DagSystem.Singleton.Consensus != null && signedMessageRelay != null)
+                        DagSystem.Singleton.Consensus.Tell(signedMessageRelay);
                     break;
                 case Message msg:
                     BroadcastMessage(msg);
@@ -210,8 +209,8 @@ namespace Neo.Network.P2P
         private void OnRelay(IInventory inventory)
         {
             if (inventory is Transaction transaction)
-                system.Consensus?.Tell(transaction);
-            system.TheBlockchain.Tell(inventory);
+                DagSystem.Singleton.Consensus?.Tell(transaction);
+            DagSystem.Singleton.TheBlockchain.Tell(inventory);
         }
 
         private void OnRelayDirectly(IInventory inventory)
@@ -238,14 +237,14 @@ namespace Neo.Network.P2P
             connection.Tell(new RemoteNode.StartProtocol());
         }
 
-        public static Props Props(DagSystem system)
+        public static Props Props()
         {
-            return Akka.Actor.Props.Create(() => new LocalNode(system));
+            return Akka.Actor.Props.Create(() => new LocalNode());
         }
 
         protected override Props ProtocolProps(object connection, IPEndPoint remote, IPEndPoint local)
         {
-            return RemoteNode.Props(system, connection, remote, local);
+            return RemoteNode.Props(DagSystem.Singleton, connection, remote, local);
         }
     }
 }

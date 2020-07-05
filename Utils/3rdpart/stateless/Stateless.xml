@@ -936,7 +936,7 @@
             <param name="possibleDestinationStates">Optional array of possible destination states (used by output formatters) </param>
             <returns>The reciever.</returns>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamic``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamic``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -945,10 +945,11 @@
             <param name="destinationStateSelector">Function to calculate the state
             that the trigger will cause a transition to.</param>
             <param name="destinationStateSelectorDescription">Optional description of the function to calculate the state </param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamic``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamic``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -957,11 +958,12 @@
             <param name="destinationStateSelector">Function to calculate the state
             that the trigger will cause a transition to.</param>
             <param name="destinationStateSelectorDescription">Optional description of the function to calculate the state </param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamic``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamic``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -970,12 +972,13 @@
             <param name="destinationStateSelector">Function to calculate the state
             that the trigger will cause a transition to.</param>
             <param name="destinationStateSelectorDescription">Optional description of the function to calculate the state </param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
             <typeparam name="TArg2">Type of the third trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf(`1,System.Func{`0},System.Func{System.Boolean},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf(`1,System.Func{`0},System.Func{System.Boolean},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -986,9 +989,10 @@
             <param name="guard">Function that must return true in order for the
             trigger to be accepted.</param>
             <param name="guardDescription">Guard description</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf(`1,System.Func{`0},System.String,System.Func{System.Boolean},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf(`1,System.Func{`0},System.String,System.Func{System.Boolean},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1000,9 +1004,10 @@
             <param name="guard">Function that must return true in order for the
             trigger to be accepted.</param>
             <param name="guardDescription">Guard description</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf(`1,System.Func{`0},System.Tuple{System.Func{System.Boolean},System.String}[])">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf(`1,System.Func{`0},Stateless.Reflection.DynamicStateInfos,System.Tuple{System.Func{System.Boolean},System.String}[])">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1012,9 +1017,10 @@
             that the trigger will cause a transition to.</param>
             <param name="guards">Functions and their descriptions that must return true in order for the
             trigger to be accepted.</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf(`1,System.Func{`0},System.String,System.Tuple{System.Func{System.Boolean},System.String}[])">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf(`1,System.Func{`0},System.String,Stateless.Reflection.DynamicStateInfos,System.Tuple{System.Func{System.Boolean},System.String}[])">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1025,9 +1031,10 @@
             <param name="destinationStateSelectorDescription">Description of the function to calculate the state </param>
             <param name="guards">Functions and their descriptions that must return true in order for the
             trigger to be accepted.</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},System.Func{System.Boolean},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},System.Func{System.Boolean},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1038,10 +1045,11 @@
             <param name="guard">Function that must return true in order for the
             trigger to be accepted.</param>
             <param name="guardDescription">Guard description</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},System.Tuple{System.Func{System.Boolean},System.String}[])">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},Stateless.Reflection.DynamicStateInfos,System.Tuple{System.Func{System.Boolean},System.String}[])">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1049,12 +1057,13 @@
             <param name="trigger">The accepted trigger.</param>
             <param name="destinationStateSelector">Function to calculate the state
             that the trigger will cause a transition to.</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <param name="guards">Functions and their descriptions that must return true in order for the
             trigger to be accepted.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},System.Func{System.Boolean},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},System.Func{System.Boolean},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1065,11 +1074,12 @@
             <param name="guard">Function that must return true in order for the
             trigger to be accepted.</param>
             <param name="guardDescription">Guard description</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},System.Tuple{System.Func{System.Boolean},System.String}[])">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},Stateless.Reflection.DynamicStateInfos,System.Tuple{System.Func{System.Boolean},System.String}[])">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1077,13 +1087,14 @@
             <param name="trigger">The accepted trigger.</param>
             <param name="destinationStateSelector">Function to calculate the state
             that the trigger will cause a transition to.</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <param name="guards">Functions and their descriptions that must return true in order for the
             trigger to be accepted.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},System.Func{System.Boolean},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},System.Func{System.Boolean},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1095,11 +1106,12 @@
             <param name="guard">Function that must return true in order for the
             trigger to be accepted.</param>
             <param name="guardDescription">Guard description</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
             <typeparam name="TArg2">Type of the third trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},System.Tuple{System.Func{System.Boolean},System.String}[])">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},Stateless.Reflection.DynamicStateInfos,System.Tuple{System.Func{System.Boolean},System.String}[])">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1107,6 +1119,7 @@
             <param name="trigger">The accepted trigger.</param>
             <param name="destinationStateSelector">Function to calculate the state
             that the trigger will cause a transition to.</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <param name="guards">Functions ant their descriptions that must return true in order for the
             trigger to be accepted.</param>
@@ -1114,7 +1127,7 @@
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
             <typeparam name="TArg2">Type of the third trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},System.Func{``0,System.Boolean},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},System.Func{``0,System.Boolean},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1125,10 +1138,11 @@
             <param name="guard">Parameterized Function that must return true in order for the
             trigger to be accepted.</param>
             <param name="guardDescription">Guard description</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},System.Tuple{System.Func{``0,System.Boolean},System.String}[])">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``1(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0},System.Func{``0,`0},Stateless.Reflection.DynamicStateInfos,System.Tuple{System.Func{``0,System.Boolean},System.String}[])">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1136,12 +1150,13 @@
             <param name="trigger">The accepted trigger.</param>
             <param name="destinationStateSelector">Function to calculate the state
             that the trigger will cause a transition to.</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <param name="guards">Functions and their descriptions that must return true in order for the
             trigger to be accepted.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},System.Func{``0,``1,System.Boolean},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},System.Func{``0,``1,System.Boolean},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1152,11 +1167,12 @@
             <param name="guard">Function that must return true in order for the
             trigger to be accepted.</param>
             <param name="guardDescription">Guard description</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},System.Tuple{System.Func{``0,``1,System.Boolean},System.String}[])">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``2(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1},System.Func{``0,``1,`0},System.Tuple{System.Func{``0,``1,System.Boolean},System.String}[],Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1166,11 +1182,12 @@
             that the trigger will cause a transition to.</param>
             <param name="guards">Functions that must return true in order for the
             trigger to be accepted.</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},System.Func{``0,``1,``2,System.Boolean},System.String)">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},System.Func{``0,``1,``2,System.Boolean},System.String,Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1181,12 +1198,13 @@
             <param name="guard">Function that must return true in order for the
             trigger to be accepted.</param>
             <param name="guardDescription">Guard description</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
             <typeparam name="TArg2"></typeparam>
         </member>
-        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},System.Tuple{System.Func{``0,``1,``2,System.Boolean},System.String}[])">
+        <member name="M:Stateless.StateMachine`2.StateConfiguration.PermitDynamicIf``3(Stateless.StateMachine{`0,`1}.TriggerWithParameters{``0,``1,``2},System.Func{``0,``1,``2,`0},System.Tuple{System.Func{``0,``1,``2,System.Boolean},System.String}[],Stateless.Reflection.DynamicStateInfos)">
             <summary>
             Accept the specified trigger and transition to the destination state, calculated
             dynamically by the supplied function.
@@ -1196,6 +1214,7 @@
             that the trigger will cause a transition to.</param>
             <param name="guards">Functions that must return true in order for the
             trigger to be accepted.</param>
+            <param name="possibleDestinationStates">Optional list of possible target states.</param>
             <returns>The reciever.</returns>
             <typeparam name="TArg0">Type of the first trigger argument.</typeparam>
             <typeparam name="TArg1">Type of the second trigger argument.</typeparam>
@@ -2341,6 +2360,11 @@
         <member name="T:Stateless.Reflection.StateMachineInfo">
             <summary>
             An info object which exposes the states, transitions, and actions of this machine.
+            </summary>
+        </member>
+        <member name="P:Stateless.Reflection.StateMachineInfo.InitialState">
+            <summary>
+            Exposes the initial state of this state machine.
             </summary>
         </member>
         <member name="P:Stateless.Reflection.StateMachineInfo.States">
