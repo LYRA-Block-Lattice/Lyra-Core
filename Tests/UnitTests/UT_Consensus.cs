@@ -6,6 +6,7 @@ using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neo.Network.P2P;
+using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
@@ -51,8 +52,13 @@ namespace UnitTests
             var cs = Sys.ActorOf(Props.Create(() => new ConsensusService(probe)));
 
             // NodeInquiry
-            cs.Tell(new ConsensusService.NodeInquiry());
-            probe.ExpectMsg<SourceSignedMessage>(TimeSpan.FromSeconds(1000));
+            var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
+            cs.Tell(new LocalNode.SignedMessageRelay { signedMessage = inq });
+            var msg = probe.FishForMessage<ChatMsg>(a => a.MsgType == ChatMessageType.NodeStatusReply);
+            msg.Should().NotBeNull();
+            var inqResult = JsonConvert.DeserializeObject<NodeStatus>(msg.Text);
+            inqResult.totalBlockCount.Should().Be(0);
+
         }
     }
 }
