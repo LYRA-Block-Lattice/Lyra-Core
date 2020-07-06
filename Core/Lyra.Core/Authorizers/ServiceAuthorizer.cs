@@ -30,13 +30,13 @@ namespace Lyra.Core.Authorizers
             var block = tblock as ServiceBlock;
 
             //// 1. check if the block already exists
-            //if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
+            //if (null != await DagSystem.Singleton.Storage.GetBlockByUIndexAsync(block.UIndex))
             //    return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
             // service specifice feature
             //block.
 
-            var prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+            var prevBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash);
 
             var result = await VerifyBlockAsync(block, prevBlock);
             if (result != APIResultCodes.Success)

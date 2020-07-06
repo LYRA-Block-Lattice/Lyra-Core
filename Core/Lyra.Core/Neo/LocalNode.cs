@@ -208,9 +208,9 @@ namespace Neo.Network.P2P
         /// <param name="inventory">The inventory to be relayed.</param>
         private void OnRelay(IInventory inventory)
         {
-            if (inventory is Transaction transaction)
-                DagSystem.Singleton.Consensus?.Tell(transaction);
-            DagSystem.Singleton.TheBlockchain.Tell(inventory);
+            //if (inventory is Transaction transaction)
+            //    DagSystem.Singleton.Consensus?.Tell(transaction);
+            //DagSystem.Singleton.TheBlockchain.Tell(inventory);
         }
 
         private void OnRelayDirectly(IInventory inventory)

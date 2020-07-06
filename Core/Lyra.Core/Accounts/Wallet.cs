@@ -915,7 +915,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<string> PrintActiveTradeOrdersAsync()
         {
-            var orders_result = _rpcClient.GetActiveTradeOrders(AccountId, null, null, TradeOrderListTypes.All, SignAPICallAsync()).Result;
+            var orders_result = await _rpcClient.GetActiveTradeOrders(AccountId, null, null, TradeOrderListTypes.All, SignAPICallAsync());
             if (orders_result.ResultCode != APIResultCodes.Success)
             {
                 return "No active trade orders found";

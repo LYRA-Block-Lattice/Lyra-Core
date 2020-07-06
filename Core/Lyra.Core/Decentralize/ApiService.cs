@@ -31,7 +31,7 @@ namespace Lyra.Core.Decentralize
         //public async Task OnActivateAsync()
         //{
         //    _log.LogInformation("ApiService: Activated");
-        //    _useed = await BlockChain.Singleton.GetBlockCount();
+        //    _useed = await DagSystem.Singleton.Storage.GetBlockCount();
 
         //    //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
         //}
@@ -76,7 +76,7 @@ namespace Lyra.Core.Decentralize
             };
 
             var state = new AuthState(true);
-            state.SetView(await BlockChain.Singleton.GetLastServiceBlockAsync());
+            state.SetView(await DagSystem.Singleton.Storage.GetLastServiceBlockAsync());
             state.InputMsg = msg;
 
             DagSystem.Singleton.Consensus.Tell(state);
@@ -298,7 +298,7 @@ namespace Lyra.Core.Decentralize
                 if(sendBlock.Fee != ExchangingBlock.FEE)
                     return (APIResultCodes.InvalidFeeAmount, null);
             }
-            else if (sendBlock.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TransferFee)
+            else if (sendBlock.Fee != (await DagSystem.Singleton.Storage.GetLastServiceBlockAsync()).TransferFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             if(sendBlock.FeeType == AuthorizationFeeTypes.NoFee)
@@ -309,7 +309,7 @@ namespace Lyra.Core.Decentralize
 
         async Task<(APIResultCodes result, TransactionBlock block)> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
         {
-            if (tokenBlock.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TokenGenerationFee)
+            if (tokenBlock.Fee != (await DagSystem.Singleton.Storage.GetLastServiceBlockAsync()).TokenGenerationFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(tokenBlock.Hash, tokenBlock.Fee);
@@ -320,9 +320,9 @@ namespace Lyra.Core.Decentralize
             var callresult = APIResultCodes.Success;
             TransactionBlock blockresult = null;
 
-            var svcBlockResult = await BlockChain.Singleton.GetLastServiceBlockAsync();
+            var svcBlockResult = await DagSystem.Singleton.Storage.GetLastServiceBlockAsync();
 
-            TransactionBlock latestBlock = await BlockChain.Singleton.FindLatestBlockAsync(DagSystem.Singleton.PosWallet.AccountId) as TransactionBlock;
+            TransactionBlock latestBlock = await DagSystem.Singleton.Storage.FindLatestBlockAsync(DagSystem.Singleton.PosWallet.AccountId) as TransactionBlock;
             if(latestBlock == null)
             {
                 var receiveBlock = new OpenWithReceiveFeeBlock
@@ -363,7 +363,7 @@ namespace Lyra.Core.Decentralize
                 blockresult = receiveBlock;
             }
 
-            //receiveBlock.Signature = Signatures.GetSignature(BlockChain.Singleton.ServiceAccount.PrivateKey, receiveBlock.Hash);
+            //receiveBlock.Signature = Signatures.GetSignature(DagSystem.Singleton.Storage.ServiceAccount.PrivateKey, receiveBlock.Hash);
             return (callresult, blockresult);
         }
 

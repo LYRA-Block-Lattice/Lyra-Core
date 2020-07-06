@@ -27,7 +27,7 @@ namespace Lyra
     $"remote-node-mailbox {{ mailbox-type: \"{typeof(RemoteNodeMailbox).AssemblyQualifiedName}\" }}" +
     $"consensus-service-mailbox {{ mailbox-type: \"{typeof(ConsensusServiceMailbox).AssemblyQualifiedName}\" }}");
 
-        public IActorRef TheBlockchain { get; }
+        internal IActorRef TheBlockchain { get; }
         public IActorRef LocalNode { get; }
         internal IActorRef TaskManager { get; }
         public IActorRef Consensus { get; private set; }
@@ -40,14 +40,18 @@ namespace Lyra
 
         private ILogger _log;
 
+        public IAccountCollectionAsync Storage { get; private set; }
+
         public DagSystem(string networkId, IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {
             _log = new SimpleLogger("DagSystem").Logger;
 
+            Storage = store;
             PosWallet = posWallet;
 
             LyraNodeConfig.Init(networkId);
             LocalNode = localNode;
+
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, store));
             TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
 
@@ -78,10 +82,6 @@ namespace Lyra
                 }
                 _log.LogWarning($"p2p network connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
 
-                while (BlockChain.Singleton == null)
-                {
-                    await Task.Delay(100);
-                }
                 StartConsensus();
 
                 TheBlockchain.Tell(new BlockChain.Startup());
@@ -98,7 +98,7 @@ namespace Lyra
 
         public void StartConsensus()
         {
-            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode));
+            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode, TheBlockchain));
             //Consensus.Tell(new ConsensusService.Start { IgnoreRecoveryLogs = ignoreRecoveryLogs }, Blockchain);
         }
 

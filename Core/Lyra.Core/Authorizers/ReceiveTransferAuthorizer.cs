@@ -31,10 +31,10 @@ namespace Lyra.Core.Authorizers
             var block = tblock as ReceiveTransferBlock;
 
             // 1. check if the account already exists
-            if (!await BlockChain.Singleton.AccountExistsAsync(block.AccountID))
+            if (!await DagSystem.Singleton.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
-            TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
@@ -58,7 +58,7 @@ namespace Lyra.Core.Authorizers
                 return result;
 
             // Check duplicate receives (kind of double spending up down)
-            var duplicate_block = await BlockChain.Singleton.FindBlockBySourceHashAsync(block.SourceHash);
+            var duplicate_block = await DagSystem.Singleton.Storage.FindBlockBySourceHashAsync(block.SourceHash);
             if (duplicate_block != null)
                 return APIResultCodes.DuplicateReceiveBlock;
 
@@ -80,7 +80,7 @@ namespace Lyra.Core.Authorizers
         protected async Task<APIResultCodes> ValidateReceiveTransAmountAsync(ReceiveTransferBlock block, TransactionInfo receiveTransaction)
         {
             //find the corresponding send block and validate the added transaction amount
-            var sourceBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.SourceHash) as TransactionBlock;
+            var sourceBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.SourceHash) as TransactionBlock;
             if (sourceBlock == null)
                 return APIResultCodes.SourceSendBlockNotFound;
 
@@ -92,7 +92,7 @@ namespace Lyra.Core.Authorizers
                 if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
                     return APIResultCodes.InvalidDestinationAccountId;
 
-                TransactionBlock prevToSendBlock = await BlockChain.Singleton.FindBlockByHashAsync(sourceBlock.PreviousHash) as TransactionBlock;
+                TransactionBlock prevToSendBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(sourceBlock.PreviousHash) as TransactionBlock;
                 if (prevToSendBlock == null)
                     return APIResultCodes.CouldNotTraceSendBlockChain;
 
@@ -130,7 +130,7 @@ namespace Lyra.Core.Authorizers
             if (send_or_receice_block.NonFungibleToken == null)
                 return APIResultCodes.Success;
 
-            var originBlock = await BlockChain.Singleton.FindBlockByHashAsync((send_or_receice_block as ReceiveTransferBlock).SourceHash) as TransactionBlock;
+            var originBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync((send_or_receice_block as ReceiveTransferBlock).SourceHash) as TransactionBlock;
             if (originBlock == null)
                 return APIResultCodes.OriginNonFungibleBlockNotFound;
 

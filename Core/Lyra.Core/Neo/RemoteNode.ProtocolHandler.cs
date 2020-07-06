@@ -26,8 +26,8 @@ namespace Neo.Network.P2P
         }
 
         private readonly PendingKnownHashesCollection pendingKnownHashes = new PendingKnownHashesCollection();
-        //private readonly HashSetCache<UInt256> knownHashes = new HashSetCache<UInt256>(BlockChain.Singleton.MemPool.Capacity * 2 / 5);
-        //private readonly HashSetCache<UInt256> sentHashes = new HashSetCache<UInt256>(BlockChain.Singleton.MemPool.Capacity * 2 / 5);
+        //private readonly HashSetCache<UInt256> knownHashes = new HashSetCache<UInt256>(DagSystem.Singleton.Storage.MemPool.Capacity * 2 / 5);
+        //private readonly HashSetCache<UInt256> sentHashes = new HashSetCache<UInt256>(DagSystem.Singleton.Storage.MemPool.Capacity * 2 / 5);
         private bool verack = false;
         private BloomFilter bloom_filter;
 
@@ -181,15 +181,15 @@ namespace Neo.Network.P2P
             UInt256 hash = payload.HashStart;
             // The default value of payload.Count is -1
             int count = payload.Count < 0 || payload.Count > InvPayload.MaxHashesCount ? InvPayload.MaxHashesCount : payload.Count;
-            TrimmedBlock state = BlockChain.Singleton.View.Blocks.TryGet(hash);
+            TrimmedBlock state = DagSystem.Singleton.Storage.View.Blocks.TryGet(hash);
             if (state == null) return;
             List<UInt256> hashes = new List<UInt256>();
             for (uint i = 1; i <= count; i++)
             {
                 uint index = state.Index + i;
-                if (index > BlockChain.Singleton.Height)
+                if (index > DagSystem.Singleton.Storage.Height)
                     break;
-                hash = BlockChain.Singleton.GetBlockHash(index);
+                hash = DagSystem.Singleton.Storage.GetBlockHash(index);
                 if (hash == null) break;
                 hashes.Add(hash);
             }
@@ -201,7 +201,7 @@ namespace Neo.Network.P2P
         {
             for (uint i = payload.IndexStart, max = payload.IndexStart + payload.Count; i < max; i++)
             {
-                Block block = BlockChain.Singleton.GetBlock(i);
+                Block block = DagSystem.Singleton.Storage.GetBlock(i);
                 if (block == null)
                     break;
 
@@ -231,14 +231,14 @@ namespace Neo.Network.P2P
                 switch (payload.Type)
                 {
                     case InventoryType.TX:
-                        Transaction tx = BlockChain.Singleton.GetTransaction(hash);
+                        Transaction tx = DagSystem.Singleton.Storage.GetTransaction(hash);
                         if (tx != null)
                             EnqueueMessage(Message.Create(MessageCommand.Transaction, tx));
                         else
                             notFound.Add(hash);
                         break;
                     case InventoryType.Block:
-                        Block block = BlockChain.Singleton.GetBlock(hash);
+                        Block block = DagSystem.Singleton.Storage.GetBlock(hash);
                         if (block != null)
                         {
                             if (bloom_filter == null)
@@ -257,7 +257,7 @@ namespace Neo.Network.P2P
                         }
                         break;
                     default:
-                        if (BlockChain.Singleton.RelayCache.TryGet(hash, out IInventory inventory))
+                        if (DagSystem.Singleton.Storage.RelayCache.TryGet(hash, out IInventory inventory))
                             EnqueueMessage(Message.Create((MessageCommand)payload.Type, inventory));
                         break;
                 }
@@ -280,14 +280,14 @@ namespace Neo.Network.P2P
         {
             UInt256 hash = payload.HashStart;
             int count = payload.Count < 0 || payload.Count > HeadersPayload.MaxHeadersCount ? HeadersPayload.MaxHeadersCount : payload.Count;
-            DataCache<UInt256, TrimmedBlock> cache = BlockChain.Singleton.View.Blocks;
+            DataCache<UInt256, TrimmedBlock> cache = DagSystem.Singleton.Storage.View.Blocks;
             TrimmedBlock state = cache.TryGet(hash);
             if (state == null) return;
             List<Header> headers = new List<Header>();
             for (uint i = 1; i <= count; i++)
             {
                 uint index = state.Index + i;
-                hash = BlockChain.Singleton.GetBlockHash(index);
+                hash = DagSystem.Singleton.Storage.GetBlockHash(index);
                 if (hash == null) break;
                 Header header = cache.TryGet(hash)?.Header;
                 if (header == null) break;
@@ -318,11 +318,11 @@ namespace Neo.Network.P2P
             switch (payload.Type)
             {
                 case InventoryType.Block:
-                    using (SnapshotView snapshot = BlockChain.Singleton.GetSnapshot())
+                    using (SnapshotView snapshot = DagSystem.Singleton.Storage.GetSnapshot())
                         hashes = hashes.Where(p => !snapshot.ContainsBlock(p)).ToArray();
                     break;
                 case InventoryType.TX:
-                    using (SnapshotView snapshot = BlockChain.Singleton.GetSnapshot())
+                    using (SnapshotView snapshot = DagSystem.Singleton.Storage.GetSnapshot())
                         hashes = hashes.Where(p => !snapshot.ContainsTransaction(p)).ToArray();
                     break;
             }
@@ -334,14 +334,14 @@ namespace Neo.Network.P2P
 
         private void OnMemPoolMessageReceived()
         {
-            foreach (InvPayload payload in InvPayload.CreateGroup(InventoryType.TX, BlockChain.Singleton.MemPool.GetVerifiedTransactions().Select(p => p.Hash).ToArray()))
+            foreach (InvPayload payload in InvPayload.CreateGroup(InventoryType.TX, DagSystem.Singleton.Storage.MemPool.GetVerifiedTransactions().Select(p => p.Hash).ToArray()))
                 EnqueueMessage(Message.Create(MessageCommand.Inv, payload));
         }*/
 
         private void OnPingMessageReceived(PingPayload payload)
         {
             UpdateLastBlockIndex(payload);
-            EnqueueMessage(Message.Create(MessageCommand.Pong, PingPayload.Create(BlockChain.Singleton.Height, payload.Nonce)));
+            EnqueueMessage(Message.Create(MessageCommand.Pong, PingPayload.Create(0/*DagSystem.Singleton.Storage.Height*/, payload.Nonce)));
         }
 
         private void OnPongMessageReceived(PingPayload payload)

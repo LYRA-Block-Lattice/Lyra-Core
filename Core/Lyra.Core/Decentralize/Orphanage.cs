@@ -129,7 +129,7 @@ namespace Lyra.Core.Decentralize
 
             if (block.PreviousHash != null)
             {
-                var prevBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+                var prevBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash);
                 if(prevBlock == null)
                 {
                     _log.LogInformation("Found an orphan!");

@@ -62,7 +62,7 @@ namespace Lyra.Core.Decentralize
         //        if (PrimaryAuthorizers == null)
         //            return false;
 
-        //        if (BlockChain.Singleton.CurrentState == BlockChainState.Almighty)
+        //        if (DagSystem.Singleton.Storage.CurrentState == BlockChainState.Almighty)
         //            return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusTotalNumber;
         //        else
         //            return PrimaryAuthorizers.Length >= ProtocolSettings.Default.StandbyValidators.Length;

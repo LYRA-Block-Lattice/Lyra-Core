@@ -39,10 +39,10 @@ namespace Lyra.Core.Authorizers
             var block = tblock as ConsolidationBlock;
 
             //// 1. check if the block already exists
-            //if (null != await BlockChain.Singleton.GetBlockByUIndexAsync(block.UIndex))
+            //if (null != await DagSystem.Singleton.Storage.GetBlockByUIndexAsync(block.UIndex))
             //    return APIResultCodes.BlockWithThisUIndexAlreadyExists;
 
-            var lastCons = await BlockChain.Singleton.GetLastConsolidationBlockAsync();
+            var lastCons = await DagSystem.Singleton.Storage.GetLastConsolidationBlockAsync();
             if(block.Height > 1)
             {
                 if (lastCons == null)

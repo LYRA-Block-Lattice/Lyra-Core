@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static Lyra.Core.Decentralize.ConsensusService;
 using Settings = Neo.Settings;
 
 namespace Lyra
@@ -56,8 +57,9 @@ namespace Lyra
         GenesisDone
     }
 
-    public class BlockChain : UntypedActor
+    public class BlockChain : ReceiveActor
     {
+        public class QueryBlockchainStatus { }
         public class NeedSync { public long ToUIndex { get; set; } }
         public class Startup { }
         public class PersistCompleted { }
@@ -73,13 +75,9 @@ namespace Lyra
         {
             public long LocalLastConsolidationHeight { get; set; }
         }
+        public class AuthorizerCountChanged { public int count { get; set; } }
 
-        public static bool IsThisNodeSeed0 => DagSystem.Singleton.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         private LyraRestClient _seed0Client;
-
-        public static BlockChain Singleton;
-        public static readonly ECPoint[] StandbyValidators = ProtocolSettings.Default.StandbyValidators.OfType<string>().Select(p => //ECPoint.DecodePoint(p.HexToBytes(), ECCurve.Secp256r1)).ToArray();
-                                                        ECPoint.FromBytes(Base58Encoding.DecodeAccountId(p), ECCurve.Secp256r1)).ToArray();
 
         public uint Height;
         public string NetworkID { get; private set; }
@@ -101,9 +99,6 @@ namespace Lyra
         private List<NodeStatus> _nodeStatus;
         public BlockChain(DagSystem sys, IAccountCollectionAsync store)
         {
-            if (Singleton != null)
-                throw new Exception("Blockchain reinitialization");
-
             _sys = sys;
 
             _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
@@ -119,8 +114,81 @@ namespace Lyra
             _nodeConfig = nodeConfig;
             NetworkID = nodeConfig.Lyra.NetworkId;
 
-            Singleton = this;
+            ReceiveAsync<QueryBlockchainStatus>(async _ =>
+            {
+                var status = await GetNodeStatusAsync();
+                Sender.Tell(status);
+            });
+
+            Receive<NeedSync>(cmd => SyncBlocksFromSeeds(cmd.ToUIndex));
+            Receive<Startup>(_ => _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup));
+            Receive<NodeStatus>(nodeStatus => {
+                // only accept status from seeds.
+                _log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
+                if (_nodeStatus != null)
+                {
+                    if (!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
+                        _nodeStatus.Add(nodeStatus);
+                }
+            });
+            Receive<Idle>(_ => { });
+            ReceiveAsync<ConsolidateFailed>(async (x) =>
+            {
+                await ConsolidationBlockFailedAsync(x.consolidationBlockHash);
+            });
+            Receive<AuthorizerCountChanged>(x => AuthorizerCountChangedProc(x.count));
         }
+
+        //protected override void OnReceive(object message)
+        //{
+        //    switch (message)
+        //    {
+        //        case NeedSync cmd:
+        //            SyncBlocksFromSeeds(cmd.ToUIndex);
+        //            break;
+        //        case Startup _:
+        //            _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup);
+        //            break;
+        //        case NodeStatus nodeStatus:
+        //            // only accept status from seeds.
+        //            _log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
+        //            if (_nodeStatus != null)
+        //            {
+        //                if (!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
+        //                    _nodeStatus.Add(nodeStatus);
+        //            }
+        //            break;
+        //        //    case Import import:
+        //        //        OnImport(import.Blocks);
+        //        //        break;
+        //        //    case FillMemoryPool fill:
+        //        //        OnFillMemoryPool(fill.Transactions);
+        //        //        break;
+        //        //    case Header[] headers:
+        //        //        OnNewHeaders(headers);
+        //        //        break;
+        //        //    case Block block:
+        //        //        Sender.Tell(OnNewBlock(block));
+        //        //        break;
+        //        //    case Transaction[] transactions:
+        //        //        {
+        //        //            // This message comes from a mempool's revalidation, already relayed
+        //        //            foreach (var tx in transactions) OnNewTransaction(tx, false);
+        //        //            break;
+        //        //        }
+        //        //    case Transaction transaction:
+        //        //        Sender.Tell(OnNewTransaction(transaction, true));
+        //        //        break;
+        //        //    case ConsensusPayload payload:
+        //        //        Sender.Tell(OnNewConsensus(payload));
+        //        //        break;
+        //        case Idle _:
+        //            //        if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
+        //            //            Self.Tell(Idle.Instance, ActorRefs.NoSender);
+        //            break;
+        //    }
+        //}
+
         public static Props Props(DagSystem system, IAccountCollectionAsync store)
         {
             return Akka.Actor.Props.Create(() => new BlockChain(system, store)).WithMailbox("blockchain-mailbox");
@@ -164,8 +232,9 @@ namespace Lyra
 
                         await Task.Delay(10000);
 
+                        var board = await DagSystem.Singleton.Consensus.Ask<BillBoard>(new AskForBillboard());
                         var q = from ns in _nodeStatus
-                                where ConsensusService.Board.PrimaryAuthorizers != null && ConsensusService.Board.PrimaryAuthorizers.Contains(ns.accountId)
+                                where board.PrimaryAuthorizers != null && board.PrimaryAuthorizers.Contains(ns.accountId)
                                 group ns by ns.totalBlockCount into heights
                                 orderby heights.Count() descending
                                 select new
@@ -185,7 +254,8 @@ namespace Lyra
                             {
                                 _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                                 //_stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
-                                if (await FindLatestBlockAsync() == null && ConsensusService.IsThisNodeSeed0)
+                                var IsSeed0 = await DagSystem.Singleton.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
+                                if (await FindLatestBlockAsync() == null && IsSeed0)
                                 {
                                     await Task.Delay(15000);
                                     Genesis();
@@ -213,7 +283,8 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    if (await FindLatestBlockAsync() == null && ConsensusService.IsThisNodeSeed0)
+                    var IsSeed0 = await DagSystem.Singleton.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
+                    if (await FindLatestBlockAsync() == null && IsSeed0)
                     {
                         Genesis();
                     }
@@ -369,9 +440,10 @@ namespace Lyra
             }
         }
 
-        public void AuthorizerCountChanged(int count)
+        public void AuthorizerCountChangedProc(int count)
         {
-            if (ConsensusService.IsThisNodeSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)
+            var IsSeed0 = DagSystem.Singleton.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0()).Result;
+            if (IsSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)
             {
                 //_log.LogInformation($"AuthorizerCountChanged: {count}");
                 // look for changes. if necessary create a new svc block.
@@ -384,11 +456,11 @@ namespace Lyra
                         try
                         {
                             var prevSvcBlock = await GetLastServiceBlockAsync();
-
+                            var board = await DagSystem.Singleton.Consensus.Ask<BillBoard>(new AskForBillboard());
                             if (prevSvcBlock != null && DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
                             {
                                 var comp = new MultiSetComparer<string>();
-                                if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), ConsensusService.Board.PrimaryAuthorizers))
+                                if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), board.PrimaryAuthorizers))
                                 {
                                     _log.LogInformation($"PrimaryAuthorizers Changed: {count} Creating new ServiceBlock.");
 
@@ -403,10 +475,10 @@ namespace Lyra
                                     };
 
                                     svcBlock.Authorizers = new List<PosNode>();
-                                    foreach (var accId in ConsensusService.Board.PrimaryAuthorizers)
+                                    foreach (var accId in board.PrimaryAuthorizers)
                                     {
-                                        if(ConsensusService.Board.AllNodes.ContainsKey(accId))
-                                            svcBlock.Authorizers.Add(ConsensusService.Board.AllNodes[accId]);
+                                        if(board.AllNodes.ContainsKey(accId))
+                                            svcBlock.Authorizers.Add(board.AllNodes[accId]);
 
                                         if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXMIMUMAUTHORIZERS)
                                             break;
@@ -458,7 +530,7 @@ namespace Lyra
             {
                 accountId = DagSystem.Singleton.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
-                mode = _stateMachine.State,
+                state = _stateMachine.State,
                 totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount + unCons.Count(),
                 lastConsolidationHash = lastCons?.Hash,
                 lastUnSolidationHash = GetUnConsolidatedHash(unCons),
@@ -524,55 +596,6 @@ namespace Lyra
         //public async Task UpdateVotesForAccountAsync(Vote vote) => await _store.UpdateVotesForAccountAsync(vote);
         public List<Vote> FindVotes(IEnumerable<string> posAccountIds) => _store.FindVotes(posAccountIds);
         #endregion
-        protected override void OnReceive(object message)
-        {
-            switch (message)
-            {
-                case NeedSync cmd:
-                    SyncBlocksFromSeeds(cmd.ToUIndex);
-                    break;
-                case Startup _:
-                    _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup);
-                    break;
-                case NodeStatus nodeStatus:
-                    // only accept status from seeds.
-                    _log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
-                    if (_nodeStatus != null)
-                    {
-                        if (!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
-                            _nodeStatus.Add(nodeStatus);
-                    }
-                    break;
-                    //    case Import import:
-                    //        OnImport(import.Blocks);
-                    //        break;
-                    //    case FillMemoryPool fill:
-                    //        OnFillMemoryPool(fill.Transactions);
-                    //        break;
-                    //    case Header[] headers:
-                    //        OnNewHeaders(headers);
-                    //        break;
-                    //    case Block block:
-                    //        Sender.Tell(OnNewBlock(block));
-                    //        break;
-                    //    case Transaction[] transactions:
-                    //        {
-                    //            // This message comes from a mempool's revalidation, already relayed
-                    //            foreach (var tx in transactions) OnNewTransaction(tx, false);
-                    //            break;
-                    //        }
-                    //    case Transaction transaction:
-                    //        Sender.Tell(OnNewTransaction(transaction, true));
-                    //        break;
-                    //    case ConsensusPayload payload:
-                    //        Sender.Tell(OnNewConsensus(payload));
-                    //        break;
-                        case Idle _:
-                    //        if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
-                    //            Self.Tell(Idle.Instance, ActorRefs.NoSender);
-                            break;
-            }
-        }
 
         public async Task<LyraRestClient> GetClientForSeed0()
         {
@@ -650,7 +673,8 @@ namespace Lyra
             };
 
             svcGenesis.Authorizers = new List<PosNode>();
-            foreach (var pn in ConsensusService.Board.AllNodes.Values.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
+            var board = DagSystem.Singleton.Consensus.Ask<BillBoard>(new AskForBillboard()).Result;
+            foreach (var pn in board.AllNodes.Values.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
             {
                 svcGenesis.Authorizers.Add(pn);
             }
@@ -912,7 +936,7 @@ namespace Lyra
                             //// check missing block
                             //for(long k = 1; k <= startUIndex; k++)
                             //{
-                            //    if(await BlockChain.Singleton.GetBlockByUIndex(k) == null)
+                            //    if(await DagSystem.Singleton.Storage.GetBlockByUIndex(k) == null)
                             //    {
                             //        _log.LogInformation($"syncing one missing block: {k}");
                             //        await DoCopyBlock(k, k).ConfigureAwait(false);

@@ -43,7 +43,7 @@ namespace Neo.Network.P2P
         public TaskManager(DagSystem system)
         {
             this.system = system;
-            this.knownHashes = new HashSetCache<UInt256>(10);// BlockChain.Singleton.MemPool.Capacity * 2 / 5);
+            this.knownHashes = new HashSetCache<UInt256>(10);// DagSystem.Singleton.Storage.MemPool.Capacity * 2 / 5);
         }
 
         private void OnHeaderTaskCompleted()
@@ -60,7 +60,7 @@ namespace Neo.Network.P2P
             if (!sessions.TryGetValue(Sender, out TaskSession session))
                 return;
             // Do not accept payload of type InventoryType.TX if not synced on best known HeaderHeight
-            if (payload.Type == InventoryType.TX && BlockChain.Singleton.Height < BlockChain.Singleton.HeaderHeight)
+            if (payload.Type == InventoryType.TX && DagSystem.Singleton.Storage.Height < DagSystem.Singleton.Storage.HeaderHeight)
             {
                 RequestTasks(session);
                 return;
@@ -228,7 +228,7 @@ namespace Neo.Network.P2P
             {
                 session.AvailableTasks.Remove(knownHashes);
                 // Search any similar hash that is on Singleton's knowledge, which means, on the way or already processed
-                session.AvailableTasks.RemoveWhere(p => BlockChain.Singleton.ContainsBlock(p));
+                session.AvailableTasks.RemoveWhere(p => DagSystem.Singleton.Storage.ContainsBlock(p));
                 HashSet<UInt256> hashes = new HashSet<UInt256>(session.AvailableTasks);
                 if (hashes.Count > 0)
                 {
@@ -248,30 +248,30 @@ namespace Neo.Network.P2P
 
             // When the number of AvailableTasks is no more than 0, no pending tasks of InventoryType.Block, it should process pending the tasks of headers
             // If not HeaderTask pending to be processed it should ask for more Blocks
-            if ((!HasHeaderTask || globalTasks[HeaderTaskHash] < MaxConncurrentTasks) && BlockChain.Singleton.HeaderHeight < session.LastBlockIndex)
+            if ((!HasHeaderTask || globalTasks[HeaderTaskHash] < MaxConncurrentTasks) && DagSystem.Singleton.Storage.HeaderHeight < session.LastBlockIndex)
             {
                 session.Tasks[HeaderTaskHash] = DateTime.UtcNow;
                 IncrementGlobalTask(HeaderTaskHash);
-                session.RemoteNode.Tell(Message.Create(MessageCommand.GetHeaders, GetBlocksPayload.Create(BlockChain.Singleton.CurrentHeaderHash)));
+                session.RemoteNode.Tell(Message.Create(MessageCommand.GetHeaders, GetBlocksPayload.Create(DagSystem.Singleton.Storage.CurrentHeaderHash)));
             }
-            else if (BlockChain.Singleton.Height < session.LastBlockIndex)
+            else if (DagSystem.Singleton.Storage.Height < session.LastBlockIndex)
             {
-                UInt256 hash = BlockChain.Singleton.CurrentBlockHash;
-                for (uint i = BlockChain.Singleton.Height + 1; i <= BlockChain.Singleton.HeaderHeight; i++)
+                UInt256 hash = DagSystem.Singleton.Storage.CurrentBlockHash;
+                for (uint i = DagSystem.Singleton.Storage.Height + 1; i <= DagSystem.Singleton.Storage.HeaderHeight; i++)
                 {
-                    hash = BlockChain.Singleton.GetBlockHash(i);
+                    hash = DagSystem.Singleton.Storage.GetBlockHash(i);
                     if (!globalTasks.ContainsKey(hash))
                     {
-                        hash = BlockChain.Singleton.GetBlockHash(i - 1);
+                        hash = DagSystem.Singleton.Storage.GetBlockHash(i - 1);
                         break;
                     }
                 }
                 session.RemoteNode.Tell(Message.Create(MessageCommand.GetBlocks, GetBlocksPayload.Create(hash)));
             }
-            else if (BlockChain.Singleton.HeaderHeight >= session.LastBlockIndex
-                    && TimeProvider.Current.UtcNow.ToTimestamp() - PingCoolingOffPeriod >= BlockChain.Singleton.GetBlock(BlockChain.Singleton.CurrentHeaderHash)?.Timestamp)
+            else if (DagSystem.Singleton.Storage.HeaderHeight >= session.LastBlockIndex
+                    && TimeProvider.Current.UtcNow.ToTimestamp() - PingCoolingOffPeriod >= DagSystem.Singleton.Storage.GetBlock(DagSystem.Singleton.Storage.CurrentHeaderHash)?.Timestamp)
             {
-                session.RemoteNode.Tell(Message.Create(MessageCommand.Ping, PingPayload.Create(BlockChain.Singleton.Height)));
+                session.RemoteNode.Tell(Message.Create(MessageCommand.Ping, PingPayload.Create(DagSystem.Singleton.Storage.Height)));
             }*/
         }
     }

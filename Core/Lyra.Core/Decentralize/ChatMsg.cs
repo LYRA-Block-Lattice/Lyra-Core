@@ -268,7 +268,7 @@ namespace Lyra.Core.Decentralize
 	{
 		public string accountId { get; set; }
 		public string version { get; set; }
-		public BlockChainState mode { get; set; }
+		public BlockChainState state { get; set; }
 		public long totalBlockCount { get; set; }
 		public string lastConsolidationHash { get; set; }
 		public string lastUnSolidationHash { get; set; }

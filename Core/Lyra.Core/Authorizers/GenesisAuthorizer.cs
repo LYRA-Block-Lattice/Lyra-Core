@@ -33,7 +33,7 @@ namespace Lyra.Core.Authorizers
 
             // Local node validations - before it sends it out to the authorization sample:
             // 1. check if the account already exists
-                if (await BlockChain.Singleton.AccountExistsAsync(block.AccountID))
+                if (await DagSystem.Singleton.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists; // 
 
             // 2. Validate blocks
@@ -44,7 +44,7 @@ namespace Lyra.Core.Authorizers
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
             //if (genesis_blocks.FindTokenGenesisBlock(testTokenGenesisBlock) != null)
-            if (await BlockChain.Singleton.FindTokenGenesisBlockAsync(block.Hash, LyraGlobal.OFFICIALTICKERCODE) != null)
+            if (await DagSystem.Singleton.Storage.FindTokenGenesisBlockAsync(block.Hash, LyraGlobal.OFFICIALTICKERCODE) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
             return APIResultCodes.Success;

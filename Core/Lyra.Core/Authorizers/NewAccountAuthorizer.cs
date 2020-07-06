@@ -29,11 +29,11 @@ namespace Lyra.Core.Authorizers
             var block = tblock as OpenWithReceiveTransferBlock;
 
             // 1. check if the account already exists
-            if (await BlockChain.Singleton.AccountExistsAsync(block.AccountID))
+            if (await DagSystem.Singleton.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists;
 
             // This is redundant but just in case
-            if (await BlockChain.Singleton.FindLatestBlockAsync(block.AccountID) != null)
+            if (await DagSystem.Singleton.Storage.FindLatestBlockAsync(block.AccountID) != null)
                 return APIResultCodes.AccountBlockAlreadyExists;
 
             var result = await VerifyBlockAsync(block, null);

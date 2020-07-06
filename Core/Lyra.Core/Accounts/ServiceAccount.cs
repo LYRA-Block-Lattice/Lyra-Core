@@ -35,7 +35,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<ServiceBlock> GetLastServiceBlockAsync()
         {
-            return await BlockChain.Singleton.GetLastServiceBlockAsync();
+            return await DagSystem.Singleton.Storage.GetLastServiceBlockAsync();
             ////var lstServiceBlock = base._storage. _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("SourceHash", sendBlock.Hash)));
             //Block lastBlock = GetLatestBlock();
             //if (lastBlock.BlockType == BlockTypes.Service)
@@ -67,7 +67,7 @@ namespace Lyra.Core.Accounts
         //    firstServiceBlock.InitializeBlock(null, _svcWallet.PrivateKey, _config.Lyra.NetworkId, AccountId: _svcWallet.AccountId);
 
         //    //firstServiceBlock.Signature = Signatures.GetSignature(PrivateKey, firstServiceBlock.Hash);
-        //    BlockChain.Singleton.AddBlock(firstServiceBlock);
+        //    DagSystem.Singleton.Storage.AddBlock(firstServiceBlock);
         //}
 
         public void Start(bool ModeConsensus, string Path)
@@ -117,7 +117,7 @@ namespace Lyra.Core.Accounts
             //    sync.InitializeBlock(latestBlock, PrivateKey, NetworkId, AccountId: AccountId);
 
             //    //sync.Signature = Signatures.GetSignature(PrivateKey, sync.Hash);
-            //    BlockChain.Singleton.AddBlock(sync);
+            //    DagSystem.Singleton.Storage.AddBlock(sync);
             //}
             //catch (Exception e)
             //{

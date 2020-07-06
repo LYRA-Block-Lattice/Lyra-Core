@@ -31,10 +31,10 @@ namespace LyraLexWeb2
         }
         private void CheckSyncState()
         {
-            if (BlockChain.Singleton == null)
-            {
-                throw new Exception("Not fully startup");
-            }
+            //if (BlockChain.Singleton == null)
+            //{
+            //    throw new Exception("Not fully startup");
+            //}
         }
         // GET: api/Node
         [HttpGet]

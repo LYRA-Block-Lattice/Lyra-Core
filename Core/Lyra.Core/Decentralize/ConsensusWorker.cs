@@ -72,7 +72,7 @@ namespace Lyra.Core.Decentralize
             //}
 
             var state = new AuthState();
-            state.SetView(await BlockChain.Singleton.GetLastServiceBlockAsync());
+            state.SetView(await DagSystem.Singleton.Storage.GetLastServiceBlockAsync());
             state.InputMsg = item;
 
             //// add possible out of ordered messages belong to the block
@@ -96,14 +96,14 @@ namespace Lyra.Core.Decentralize
             //}
 
             // check if block existing
-            //if (null != BlockChain.Singleton.FindBlockByHash(item.Block.Hash))
+            //if (null != DagSystem.Singleton.Storage.FindBlockByHash(item.Block.Hash))
             //{
             //    _log.LogInformation("CreateAuthringState: Block is already in database.");
             //    return null;
             //}
 
             // check if block was replaced by nulltrans
-            //if (null != BlockChain.Singleton.FindNullTransBlockByHash(item.Block.Hash))
+            //if (null != DagSystem.Singleton.Storage.FindNullTransBlockByHash(item.Block.Hash))
             //{
             //    _log.LogInformation("CreateAuthringState: Block is already consolidated by nulltrans.");
             //    return null;
@@ -302,7 +302,7 @@ namespace Lyra.Core.Decentralize
                     if (msg.From == DagSystem.Singleton.PosWallet.AccountId)
                         me = "[me]";
                     var voice = msg.IsSuccess ? "Yea" : "Nay";
-                    var canAuth = ConsensusService.AuthorizerShapshot.Contains(msg.From);
+                    var canAuth = _context.AuthorizerShapshot.Contains(msg.From);
                     sb.AppendLine($"{voice} {msg.Result} By: {msg.From.Shorten()} CanAuth: {canAuth} {seed0}{me}");
                 }
                 _log.LogInformation(sb.ToString());
@@ -363,7 +363,7 @@ namespace Lyra.Core.Decentralize
 
             if (_state.CommitConsensus == ConsensusResult.Yea)
             {
-                if (!await BlockChain.Singleton.AddBlockAsync(block))
+                if (!await DagSystem.Singleton.Storage.AddBlockAsync(block))
                     _log.LogWarning($"Block Save Failed Index: {block.Height}");
                 else
                     _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
@@ -403,7 +403,7 @@ namespace Lyra.Core.Decentralize
                     return;
 
                 // crap! this node is out of sync.
-                DagSystem.Singleton.Consensus.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
+                DagSystem.Singleton.TheBlockchain.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
             }
         }
 

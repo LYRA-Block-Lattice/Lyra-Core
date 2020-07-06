@@ -33,10 +33,10 @@ namespace Lyra.Core.Authorizers
 
             // Local node validations - before it sends it out to the authorization sample:
             // 1. check if the account already exists
-            if (!await BlockChain.Singleton.AccountExistsAsync(block.AccountID))
+            if (!await DagSystem.Singleton.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist; // 
 
-            TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
@@ -56,10 +56,10 @@ namespace Lyra.Core.Authorizers
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
             //if (genesis_blocks.FindTokenGenesisBlock(testTokenGenesisBlock) != null)
-            if (await BlockChain.Singleton.FindTokenGenesisBlockAsync(block.Hash, block.Ticker) != null)
+            if (await DagSystem.Singleton.Storage.FindTokenGenesisBlockAsync(block.Hash, block.Ticker) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
-            if (block.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TokenGenerationFee)
+            if (block.Fee != (await DagSystem.Singleton.Storage.GetLastServiceBlockAsync()).TokenGenerationFee)
                 return APIResultCodes.InvalidFeeAmount;
 
             if (block.IsNonFungible)
@@ -79,7 +79,7 @@ namespace Lyra.Core.Authorizers
             if (block.FeeType != AuthorizationFeeTypes.Regular)
                 return APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TokenGenerationFee)
+            if (block.Fee != (await DagSystem.Singleton.Storage.GetLastServiceBlockAsync()).TokenGenerationFee)
                 return APIResultCodes.InvalidFeeAmount;
 
             return APIResultCodes.Success;

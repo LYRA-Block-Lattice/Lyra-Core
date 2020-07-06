@@ -35,7 +35,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.CannotSendToSelf;
 
             //// 1. check if the account already exists
-            //if (!await BlockChain.Singleton.AccountExists(block.AccountID))
+            //if (!await DagSystem.Singleton.Storage.AccountExists(block.AccountID))
             //    return APIResultCodes.AccountDoesNotExist;
             //var stopwatch = Stopwatch.StartNew();
 
@@ -43,15 +43,15 @@ namespace Lyra.Core.Authorizers
                 //int count = 50;
                 //while(count-- > 0)
                 //{
-                //    lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash);
+                //    lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash);
                 //    if (lastBlock != null)
                 //        break;
                 //    Task.Delay(100).Wait();
                 //}
 
-            TransactionBlock lastBlock = await BlockChain.Singleton.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
 
-            //TransactionBlock lastBlock = await BlockChain.Singleton.FindLatestBlock(block.AccountID);
+            //TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.PreviousBlockNotFound;
             
@@ -96,7 +96,7 @@ namespace Lyra.Core.Authorizers
             if (block.FeeType != AuthorizationFeeTypes.Regular)
                 result = APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != (await BlockChain.Singleton.GetLastServiceBlockAsync()).TransferFee)
+            if (block.Fee != (await DagSystem.Singleton.Storage.GetLastServiceBlockAsync()).TransferFee)
                 result = APIResultCodes.InvalidFeeAmount;
 
             result = APIResultCodes.Success;
