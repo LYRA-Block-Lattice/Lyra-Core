@@ -25,12 +25,14 @@ namespace UnitTests
         {
             Console.WriteLine("initialize DagSystem");
 
+            LyraNodeConfig.Init("xtest");
+
             fakeP2P = testProbe;
             mockStore = new Mock<IAccountCollectionAsync>();
             var keypair = Signatures.GenerateWallet();
             posWallet = UT_Wallet.Restore(keypair.privateKey);
 
-            TheDagSystem = new DagSystem("xtest", mockStore.Object, posWallet, fakeP2P);
+            TheDagSystem = new DagSystem(mockStore.Object, posWallet, fakeP2P);
         }
     }
 }

@@ -41,14 +41,13 @@ namespace Lyra
 
         public IAccountCollectionAsync Storage { get; private set; }
 
-        public DagSystem(string networkId, IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
+        public DagSystem(IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {
             _log = new SimpleLogger("DagSystem").Logger;
 
             Storage = store;
             PosWallet = posWallet;
-
-            LyraNodeConfig.Init(networkId);
+            
             LocalNode = localNode;
             this.LocalNode.Tell(this);
 

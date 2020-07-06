@@ -282,6 +282,9 @@ namespace Neo
         {
             var env = LyraNodeConfig.GetNetworkId();
             var configFile = string.IsNullOrWhiteSpace(env) ? $"{config}.json" : $"{config}.{env}.json";
+            if (env == "devnet")
+                configFile = $"{config}.json";
+
             return new ConfigurationBuilder()
                 //.SetBasePath(Utilities.LyraDataDir)
                 .AddJsonFile(configFile, false)

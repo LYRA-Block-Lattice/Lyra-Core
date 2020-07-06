@@ -47,13 +47,13 @@ namespace Lyra.Core.Decentralize
             _waitOrder = new AutoResetEvent(false);
             try
             {
-                var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
-                if (networkId == null)
-                    networkId = "devnet";   // for dev convenient
-                _log.LogInformation($"NodeService: ExecuteAsync Called.");
+                var networkId = LyraNodeConfig.GetNetworkId();
+
+                _log.LogInformation($"NodeService: Starting node for {networkId}.");
 
                 // something must be initialized first
                 new AuthorizersFactory().Init();
+
 
                 var walletStore = new LiteAccountDatabase();
                 var tmpWallet = new Wallet(walletStore, networkId);
@@ -85,7 +85,7 @@ namespace Lyra.Core.Decentralize
 
                 var store = new MongoAccountCollection();
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
-                Dag = new DagSystem(networkId, store, PosWallet, localNode);
+                Dag = new DagSystem(store, PosWallet, localNode);
                 Dag.Start();
 
                 if (_db == null)

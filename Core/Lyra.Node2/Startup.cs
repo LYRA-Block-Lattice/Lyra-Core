@@ -50,6 +50,13 @@ namespace Lyra.Node2
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            // lyra network ID must be set early
+            var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
+            if (networkId == null)
+                networkId = "devnet";   // for dev convenient
+
+            LyraNodeConfig.Init(networkId);
+
             var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
             loggerFactory.AddFile(logPath + "noded-{Date}.txt");
 
