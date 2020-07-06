@@ -1201,7 +1201,7 @@ namespace Lyra.Core.Accounts
             if (string.IsNullOrWhiteSpace(domainName))
                 domainName = "Custom";
 
-            string ticker = domainName + "." + tokenName;
+            string ticker = domainName + "/" + tokenName;
 
             TransactionBlock latestBlock = GetLatestBlock();
             if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToBalanceLong())

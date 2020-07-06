@@ -30,7 +30,6 @@ namespace Lyra.Core.Accounts
         private IMongoCollection<Block> _blocks;
 
         readonly string _blocksCollectionName;
-        readonly string _votesCollectionName;
 
         IMongoDatabase _db;
 
@@ -49,14 +48,11 @@ namespace Lyra.Core.Accounts
             _DatabaseName = _config.Lyra.Database.DatabaseName;
 
             _blocksCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blocks";
-            _votesCollectionName = $"{LyraNodeConfig.GetNetworkId()}_votes";
 
             BsonClassMap.RegisterClassMap<Block>(cm =>
             {
                 cm.AutoMap();
-                //cm.SetIgnoreExtraElements(true);
                 cm.SetIsRootClass(true);
-                //cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, decimal>>(DictionaryRepresentation.ArrayOfDocuments));
             });
 
             BsonClassMap.RegisterClassMap<TransactionBlock>();
