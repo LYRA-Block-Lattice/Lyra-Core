@@ -48,6 +48,8 @@ namespace Lyra.Core.Decentralize
             try
             {
                 var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
+                if (networkId == null)
+                    networkId = "devnet";   // for dev convenient
                 _log.LogInformation($"NodeService: ExecuteAsync Called.");
 
                 // something must be initialized first

@@ -59,7 +59,7 @@ namespace UnitTests
         [TestMethod]
         public void DagStatus()
         {
-            //authorizers.First().TheDagSystem.TheBlockchain.
+            
         }
 
         [TestMethod]
