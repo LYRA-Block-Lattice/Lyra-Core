@@ -48,8 +48,8 @@ namespace Lyra.Core.Accounts
 
             _DatabaseName = _config.Lyra.Database.DatabaseName;
 
-            _blocksCollectionName = $"{_config.Lyra.NetworkId}_blocks";
-            _votesCollectionName = $"{_config.Lyra.NetworkId}_votes";
+            _blocksCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blocks";
+            _votesCollectionName = $"{LyraNodeConfig.GetNetworkId()}_votes";
 
             BsonClassMap.RegisterClassMap<Block>(cm =>
             {

@@ -211,6 +211,7 @@ namespace Lyra.Core.Decentralize
 
             Receive<NodeInquiry>((_) => {
                 var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
+                inq.From = _sys.PosWallet.AccountId;
                 Send2P2pNetwork(inq);
                 _log.LogInformation("Inquiry for node status.");
             });
@@ -307,6 +308,7 @@ namespace Lyra.Core.Decentralize
                     me.IPAddress, _sys.PosWallet.AccountId);
 
             var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);
+            msg.From = _sys.PosWallet.AccountId;
             _board.Add(me);
             Send2P2pNetwork(msg);
         }
@@ -651,6 +653,7 @@ namespace Lyra.Core.Decentralize
                     var status = await _sys.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
                     //var status = await _sys.Storage.GetNodeStatusAsync();
                     var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);
+                    resp.From = _sys.PosWallet.AccountId;
                     Send2P2pNetwork(resp);
                     break;
                 case ChatMessageType.NodeStatusReply:
@@ -728,6 +731,7 @@ namespace Lyra.Core.Decentralize
                 _board.SnapShot();
                 AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
                 var msg = new ChatMsg(JsonConvert.SerializeObject(_board), ChatMessageType.BillBoardBroadcast);
+                msg.From = _sys.PosWallet.AccountId;
                 Send2P2pNetwork(msg);
 
                 // switch to protect mode if necessary
