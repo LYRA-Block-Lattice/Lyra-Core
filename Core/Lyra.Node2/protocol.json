@@ -3,19 +3,17 @@
     "Magic": 3335087,
     "ConsensusNumber": 2,
     "StandbyValidators": [
-      "WN1srWfFpMtg2BqcYjFwpQMuAEECzz3eUGZiWJuzoLKPBgwwbWzpPadaLzE1RvWz8DetC6f1QtAtUAqJZ227ANm2VVHvPZ",
-      "W348D2Fw7hksjqERLUsUNkKvMz55dUo1kL54P7Syp4LA5dBA5rzus5a1DdJCHyty4NLnxAfihK8WEfbgFafpPoCnrTszfh",
-      "WE4A534N365PyH9oQLC44g8pktp6WkKmP26NyJMTXLBPtYHBAMwK3qJ6jADKHfdCGfnk93Cv9a6notBMb2xcHRp63ZsqP",
-      "WTtWDsodgRJ4x4xqzj5tQHxvhir5mw4gDQz4pQpSehUer1Bj7togNmcM5qQ1Lc2RrPej38Fsb8b4gc9AWtuTcM4BUPo1TJ"
+      "LQqbMdksgJNzWpzYovdpMK6kqUdRwdCBhG2NBYNDA3GTWwD47b4RuL9F3aqhiYHMyU4F6MPpNKZKTUe7eGtgU8Lr4jPVk2",
+      "L4mZbhb4e4kTGPLtp7Rn8dXheuNR2y8PbF2EszRRrgiGbYJcXXmRnCD35oW5qUjwmiqSatQqHvB2G52dDZsmozugfmmpbJ",
+      "L6DUQsXhbK7nhRq1EGArzssBZ2MHZo5oTUBzcJHpCVUNxBGyPtmrLuZ1LQiDPjy2b6y528cCmrGrF2VEBU7u9j2nEC1652",
+      "LFvA4NFnVYHvh5g2aQxEFUJVgv7vb7jY2WixpBm7jQrEpD6pcU1pgUBGbXSFX3vvBGhXsrYF36UqNgEcfCW1AxLftJBrm8"
     ],
     "SeedList": [
       "seed.devnet.wizdag.com:4503",
       "seed2.devnet.wizdag.com:4503"
     ],
     "StartupValidators": [
-      "WK9hAaYW5MgkGwVv6BpQiZQdb19b1aGCr3J9bcY57CTsvzkVSgzE6VzhcL21Sye3AjQ5Q3DPoYr9mWQjVpB1h2T7duRbaz",
-      "W4ENh56j82ve3QPmJLRVAeQHYLDyZ2o5pEMKQWQ76yeUWqMef6W5YJQ38qieQxm9Z5ASayKik2LHXPHnBxpw5moyGJXiaL",
-      "W6usB3ZgjEepeB2qZTRh28aMCEWGx1Aq48k5LJSbQbKapJYEpWmcRJadmTGxs7tBPHB975H4C4Mxo6RsFyGNznrijpYauC"
+
     ]
   }
 }
