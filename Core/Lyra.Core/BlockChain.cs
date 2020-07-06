@@ -602,7 +602,7 @@ namespace Lyra
             if (_seed0Client == null)
             {
                 var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
-                var apiUrl = $"https://{addr}:4505/api/Node/";
+                var apiUrl = $"http://{addr}:4505/api/Node/";
                 _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                 _seed0Client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
 
@@ -806,7 +806,7 @@ namespace Lyra
                 } while (_sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
 
                 var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
-                var apiUrl = $"https://{addr}:4505/api/Node/";
+                var apiUrl = $"http://{addr}:4505/api/Node/";
                 _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                 var client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
                 var mode = await client.GetSyncState();

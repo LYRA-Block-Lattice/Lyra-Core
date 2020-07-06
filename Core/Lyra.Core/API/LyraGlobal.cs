@@ -42,12 +42,12 @@ namespace Lyra.Core.API
             {
 #if DEBUG
                 case "devnet":
-                    return "https://192.168.3.93:4505/api/";
+                    return "http://192.168.3.73:4505/api/";
 #endif
                 case "testnet":
-                    return "https://seed.testnet.wizdag.com:4505/api/";
+                    return "http://seed.testnet.wizdag.com:4505/api/";
                 case "mainnet":
-                    return "https://seed.mainnet.wizdag.com:4505/api/";
+                    return "http://seed.mainnet.wizdag.com:4505/api/";
                 default:
                     throw new Exception("Unsupported network ID: " + networkID);
             }

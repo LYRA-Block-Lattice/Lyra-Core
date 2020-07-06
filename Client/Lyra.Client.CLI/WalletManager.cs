@@ -132,7 +132,7 @@ namespace Lyra.Client.CLI
                 LyraRestClient rpcClient;
                 if (!string.IsNullOrWhiteSpace(options.Node))
                 {
-                    var apiUrl = $"https://{options.Node}:4505/api/Node/";
+                    var apiUrl = $"http://{options.Node}:4505/api/Node/";
                     rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a", apiUrl);
                 }
                 else

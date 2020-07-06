@@ -105,7 +105,7 @@ namespace LyraNodesBot
         private async Task SendHeight(ChatId chatid)
         {
             var wc = new WebClient();
-            var json = wc.DownloadString($"https://{apiHost}:4505/api/Node/GetSyncState");
+            var json = wc.DownloadString($"http://{apiHost}:4505/api/Node/GetSyncState");
             var bb = JsonConvert.DeserializeObject<GetSyncStateAPIResult>(json);
 
             //await SendGroupMessageAsync(chatid, $"Current Height: *{bb.NewestBlockUIndex}*");

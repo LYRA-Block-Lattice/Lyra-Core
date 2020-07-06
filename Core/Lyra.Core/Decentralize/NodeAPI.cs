@@ -28,7 +28,7 @@ namespace Lyra.Core.Decentralize
             if (_seed0Client == null)
             {
                 var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
-                var apiUrl = $"https://{addr}:4505/api/Node/";
+                var apiUrl = $"http://{addr}:4505/api/Node/";
                 _seed0Client = await LyraRestClient.CreateAsync(LyraNodeConfig.GetNetworkId(), Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
 
             }
