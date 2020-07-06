@@ -120,7 +120,7 @@ namespace Lyra.Core.Decentralize
                 await DeclareConsensusNodeAsync();
             });
 
-            Receive<AskIfSeed0>(_ => { return IsThisNodeSeed0; });
+            Receive<AskIfSeed0>((_) => Sender.Tell(IsThisNodeSeed0));
 
             ReceiveAsync<BlockChain.BlockAdded>(async (ba) =>
             {
