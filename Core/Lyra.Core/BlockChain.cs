@@ -232,7 +232,7 @@ namespace Lyra
 
                         await Task.Delay(10000);
 
-                        var board = await DagSystem.Singleton.Consensus.Ask<BillBoard>(new AskForBillboard());
+                        var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                         var q = from ns in _nodeStatus
                                 where board.PrimaryAuthorizers != null && board.PrimaryAuthorizers.Contains(ns.accountId)
                                 group ns by ns.totalBlockCount into heights
@@ -254,7 +254,7 @@ namespace Lyra
                             {
                                 _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                                 //_stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
-                                var IsSeed0 = await DagSystem.Singleton.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
+                                var IsSeed0 = await _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
                                 if (await FindLatestBlockAsync() == null && IsSeed0)
                                 {
                                     await Task.Delay(15000);
@@ -283,7 +283,7 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    var IsSeed0 = await DagSystem.Singleton.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
+                    var IsSeed0 = await _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
                     if (await FindLatestBlockAsync() == null && IsSeed0)
                     {
                         Genesis();
@@ -303,7 +303,7 @@ namespace Lyra
                     var unConsSynced = 0;
                     while (true)
                     {
-                        var client = new LyraClientForNode(await FindValidSeedForSyncAsync());
+                        var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
 
                         // compare state
                         var seedSyncState = await client.GetSyncState();
@@ -357,7 +357,7 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    DagSystem.Singleton.Consensus.Tell(new ConsensusService.Startup());
+                    _sys.Consensus.Tell(new ConsensusService.Startup());
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup);
 
@@ -393,7 +393,7 @@ namespace Lyra
                 await Task.Delay(3000);
 
                 // distribute staking coin to pre-defined authorizers
-                var gensWallet = await ShadowWallet.OpenWithKeyAsync(NetworkID, DagSystem.Singleton.PosWallet.PrivateKey);
+                var gensWallet = await ShadowWallet.OpenWithKeyAsync(NetworkID, _sys.PosWallet.PrivateKey);
                 foreach (var accId in ProtocolSettings.Default.StartupValidators)
                 {
                     await gensWallet.Sync(null);
@@ -410,7 +410,7 @@ namespace Lyra
 
                 await Task.Delay(3000);
 
-                DagSystem.Singleton.Consensus.Tell(new ConsensusService.Consolidate());
+                _sys.Consensus.Tell(new ConsensusService.Consolidate());
 
                 await Task.Delay(3000);
 
@@ -422,7 +422,7 @@ namespace Lyra
         {
             _log.LogError($"ConsolidationBlockFailed for {hash.Shorten()}");
 
-            var client = new LyraClientForNode(await FindValidSeedForSyncAsync());
+            var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
             var consBlockReq = await client.GetBlockByHash(hash);
             if(consBlockReq.ResultCode == APIResultCodes.Success)
             {
@@ -442,7 +442,7 @@ namespace Lyra
 
         public void AuthorizerCountChangedProc(int count)
         {
-            var IsSeed0 = DagSystem.Singleton.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0()).Result;
+            var IsSeed0 = _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0()).Result;
             if (IsSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)
             {
                 //_log.LogInformation($"AuthorizerCountChanged: {count}");
@@ -456,7 +456,7 @@ namespace Lyra
                         try
                         {
                             var prevSvcBlock = await GetLastServiceBlockAsync();
-                            var board = await DagSystem.Singleton.Consensus.Ask<BillBoard>(new AskForBillboard());
+                            var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                             if (prevSvcBlock != null && DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
                             {
                                 var comp = new MultiSetComparer<string>();
@@ -486,8 +486,8 @@ namespace Lyra
 
                                     if(svcBlock.Authorizers.Count() >= prevSvcBlock.Authorizers.Count())
                                     {
-                                        svcBlock.InitializeBlock(prevSvcBlock, DagSystem.Singleton.PosWallet.PrivateKey,
-                                            DagSystem.Singleton.PosWallet.AccountId);
+                                        svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,
+                                            _sys.PosWallet.AccountId);
 
                                         await SendBlockToConsensusAsync(svcBlock);
                                     }
@@ -528,7 +528,7 @@ namespace Lyra
             var unCons = (await _store.GetAllUnConsolidatedBlockHashesAsync()).ToList();
             var status = new NodeStatus
             {
-                accountId = DagSystem.Singleton.PosWallet.AccountId,
+                accountId = _sys.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
                 state = _stateMachine.State,
                 totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount + unCons.Count(),
@@ -545,7 +545,7 @@ namespace Lyra
             var result = await _store.AddBlockAsync(block);
             if (result)
             {
-                DagSystem.Singleton.Consensus.Tell(new BlockAdded { hash = block.Hash });
+                _sys.Consensus.Tell(new BlockAdded { hash = block.Hash });
             }
 
             if (block is ConsolidationBlock)
@@ -627,8 +627,8 @@ namespace Lyra
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             consBlock.ServiceHash = svcGen.Hash;
-            consBlock.InitializeBlock(null, DagSystem.Singleton.PosWallet.PrivateKey,
-                DagSystem.Singleton.PosWallet.AccountId);
+            consBlock.InitializeBlock(null, _sys.PosWallet.PrivateKey,
+                _sys.PosWallet.AccountId);
 
             return consBlock;
         }
@@ -645,7 +645,7 @@ namespace Lyra
                 Description = LyraGlobal.PRODUCTNAME + " Gas Token",
                 Precision = LyraGlobal.OFFICIALTICKERPRECISION,
                 IsFinalSupply = true,
-                AccountID = DagSystem.Singleton.PosWallet.AccountId,
+                AccountID = _sys.PosWallet.AccountId,
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = svcGen.Hash,
                 ServiceHash = svcGen.Hash,
@@ -655,7 +655,7 @@ namespace Lyra
             };
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
-            openTokenGenesisBlock.InitializeBlock(null, DagSystem.Singleton.PosWallet.PrivateKey, AccountId: DagSystem.Singleton.PosWallet.AccountId);
+            openTokenGenesisBlock.InitializeBlock(null, _sys.PosWallet.PrivateKey, AccountId: _sys.PosWallet.AccountId);
 
             return openTokenGenesisBlock;
         }
@@ -673,13 +673,13 @@ namespace Lyra
             };
 
             svcGenesis.Authorizers = new List<PosNode>();
-            var board = DagSystem.Singleton.Consensus.Ask<BillBoard>(new AskForBillboard()).Result;
+            var board = _sys.Consensus.Ask<BillBoard>(new AskForBillboard()).Result;
             foreach (var pn in board.AllNodes.Values.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
             {
                 svcGenesis.Authorizers.Add(pn);
             }
-            svcGenesis.InitializeBlock(null, DagSystem.Singleton.PosWallet.PrivateKey,
-                DagSystem.Singleton.PosWallet.AccountId);
+            svcGenesis.InitializeBlock(null, _sys.PosWallet.PrivateKey,
+                _sys.PosWallet.AccountId);
             return svcGenesis;
         }
 
@@ -687,7 +687,7 @@ namespace Lyra
         {
             AuthorizingMsg msg = new AuthorizingMsg
             {
-                From = DagSystem.Singleton.PosWallet.AccountId,
+                From = _sys.PosWallet.AccountId,
                 Block = block,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
@@ -803,7 +803,7 @@ namespace Lyra
                 do
                 {
                     ndx = rand.Next(0, ProtocolSettings.Default.SeedList.Length);
-                } while (DagSystem.Singleton.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
+                } while (_sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
 
                 var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
                 var apiUrl = $"https://{addr}:4505/api/Node/";
@@ -841,7 +841,7 @@ namespace Lyra
                     if (syncWithUrl == null)
                     {
                         // no node to sync.
-                        if (DagSystem.Singleton.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
+                        if (_sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
                         {
                             // seed0. no seed to sync. this seed must have the NORMAL blockchain     
                             break;
@@ -856,13 +856,13 @@ namespace Lyra
                     {
                         // update latest billboard
                         var board = await client.GetBillBoardAsync();
-                        DagSystem.Singleton.Consensus.Tell(board);
+                        _sys.Consensus.Tell(board);
 
                         // do sync with node
                         long startUIndex = 0;//await _store.GetNewestBlockUIndexAsync() + 1;
 
                         // seed0 not rollback. seed0 rollback manually if necessary.
-                        if (startUIndex - 1 > syncToUIndex && DagSystem.Singleton.PosWallet.AccountId != ProtocolSettings.Default.StandbyValidators[0])
+                        if (startUIndex - 1 > syncToUIndex && _sys.PosWallet.AccountId != ProtocolSettings.Default.StandbyValidators[0])
                         {
                             // detect blockchain rollback
                             _log.LogCritical($"BlockChain roll back detected!!! Roll back from {startUIndex} to {syncToUIndex}.");// Confirm? [Y/n]");
@@ -951,7 +951,7 @@ namespace Lyra
                     }
                 }
 
-                DagSystem.Singleton.Consensus.Tell(new ConsensusService.BlockChainSynced());
+                _sys.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 _log.LogInformation("BlockChain Sync Completed.");
             });
         }

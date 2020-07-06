@@ -22,13 +22,15 @@ namespace Lyra.Core.Decentralize
         ConcurrentDictionary<string, AuthorizingMsg> _orphanAuthorizingMsg { get; } = new ConcurrentDictionary<string, AuthorizingMsg>();
         ConcurrentDictionary<string, List<AuthorizedMsg>> _orphanAuthorizedMsg { get; } = new ConcurrentDictionary<string, List<AuthorizedMsg>>();
         ConcurrentDictionary<string, List<AuthorizerCommitMsg>> _orphanAuthorizerCommitMsg { get; } = new ConcurrentDictionary<string, List<AuthorizerCommitMsg>>();
-        
-        public Orphanage(Func<AuthState, Task> onAuthStateReady,
+
+        private DagSystem _sys;
+        public Orphanage(DagSystem sys, Func<AuthState, Task> onAuthStateReady,
                         Func<AuthorizingMsg, Task> onAuthorizingMsgReady,
                         Func<List<AuthorizedMsg>, Task> onAuthorizedMsgReady,
                         Func<List<AuthorizerCommitMsg>, Task> onAuthorizerCommitMsgReady)
         {
             _log = new SimpleLogger("Orphanage").Logger;
+            _sys = sys;
 
             OnAuthStateReady = onAuthStateReady;
             OnAuthorizingMsgReady = onAuthorizingMsgReady;
@@ -129,7 +131,7 @@ namespace Lyra.Core.Decentralize
 
             if (block.PreviousHash != null)
             {
-                var prevBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash);
+                var prevBlock = await _sys.Storage.FindBlockByHashAsync(block.PreviousHash);
                 if(prevBlock == null)
                 {
                     _log.LogInformation("Found an orphan!");

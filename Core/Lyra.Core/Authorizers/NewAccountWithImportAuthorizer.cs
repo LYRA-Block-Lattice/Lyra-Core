@@ -13,15 +13,15 @@ namespace Lyra.Core.Authorizers
         {
         }
 
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            var result = await AuthorizeImplAsync(tblock);
+            var result = await AuthorizeImplAsync(sys, tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, Sign(sys, tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is OpenWithReceiveTransferBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -29,26 +29,26 @@ namespace Lyra.Core.Authorizers
             var block = tblock as OpenWithReceiveTransferBlock;
 
             // 1. check if the account already exists
-            if (await DagSystem.Singleton.Storage.AccountExistsAsync(block.AccountID))
+            if (await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists;
 
             // This is redundant but just in case
-            if (await DagSystem.Singleton.Storage.FindLatestBlockAsync(block.AccountID) != null)
+            if (await sys.Storage.FindLatestBlockAsync(block.AccountID) != null)
                 return APIResultCodes.AccountBlockAlreadyExists;
 
-            var result = await VerifyBlockAsync(block, null);
+            var result = await VerifyBlockAsync(sys, block, null);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await VerifyTransactionBlockAsync(block);
+            result = await VerifyTransactionBlockAsync(sys, block);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await ValidateReceiveTransAmountAsync(block as ReceiveTransferBlock, block.GetTransaction(null));
+            result = await ValidateReceiveTransAmountAsync(sys, block as ReceiveTransferBlock, block.GetTransaction(null));
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await ValidateNonFungibleAsync(block, null);
+            result = await ValidateNonFungibleAsync(sys, block, null);
             if (result != APIResultCodes.Success)
                 return result;
 

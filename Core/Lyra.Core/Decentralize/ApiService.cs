@@ -31,7 +31,7 @@ namespace Lyra.Core.Decentralize
         //public async Task OnActivateAsync()
         //{
         //    _log.LogInformation("ApiService: Activated");
-        //    _useed = await DagSystem.Singleton.Storage.GetBlockCount();
+        //    _useed = await NodeService.Dag.Storage.GetBlockCount();
 
         //    //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
         //}
@@ -44,17 +44,17 @@ namespace Lyra.Core.Decentralize
 
         public async Task<BillBoard> GetBillBoardAsync()
         {
-            return await DagSystem.Singleton.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
+            return await NodeService.Dag.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
         }
 
         public async Task<List<TransStats>> GetTransStatsAsync()
         {
-            return await DagSystem.Singleton.Consensus.Ask<List<TransStats>>(new ConsensusService.AskForStats());
+            return await NodeService.Dag.Consensus.Ask<List<TransStats>>(new ConsensusService.AskForStats());
         }
 
         public async Task<string> GetDbStats()
         {
-            return await DagSystem.Singleton.Consensus.Ask<string>(new ConsensusService.AskForDbStats());
+            return await NodeService.Dag.Consensus.Ask<string>(new ConsensusService.AskForDbStats());
         }
 
         private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
@@ -63,23 +63,23 @@ namespace Lyra.Core.Decentralize
 
             //AuthorizingMsg msg = new AuthorizingMsg
             //{
-            //    From = DagSystem.Singleton.PosWallet.AccountId,
+            //    From = NodeService.Dag.PosWallet.AccountId,
             //    Block = block,
             //    MsgType = ChatMessageType.AuthorizerPrePrepare
             //};
 
             AuthorizingMsg msg = new AuthorizingMsg
             {
-                From = DagSystem.Singleton.PosWallet.AccountId,
+                From = NodeService.Dag.PosWallet.AccountId,
                 Block = block,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
             var state = new AuthState(true);
-            state.SetView(await DagSystem.Singleton.Storage.GetLastServiceBlockAsync());
+            state.SetView(await NodeService.Dag.Storage.GetLastServiceBlockAsync());
             state.InputMsg = msg;
 
-            DagSystem.Singleton.Consensus.Tell(state);
+            NodeService.Dag.Consensus.Tell(state);
 
             await state.Done.AsTask();
             state.Done.Close();
@@ -298,7 +298,7 @@ namespace Lyra.Core.Decentralize
                 if(sendBlock.Fee != ExchangingBlock.FEE)
                     return (APIResultCodes.InvalidFeeAmount, null);
             }
-            else if (sendBlock.Fee != (await DagSystem.Singleton.Storage.GetLastServiceBlockAsync()).TransferFee)
+            else if (sendBlock.Fee != (await NodeService.Dag.Storage.GetLastServiceBlockAsync()).TransferFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             if(sendBlock.FeeType == AuthorizationFeeTypes.NoFee)
@@ -309,7 +309,7 @@ namespace Lyra.Core.Decentralize
 
         async Task<(APIResultCodes result, TransactionBlock block)> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
         {
-            if (tokenBlock.Fee != (await DagSystem.Singleton.Storage.GetLastServiceBlockAsync()).TokenGenerationFee)
+            if (tokenBlock.Fee != (await NodeService.Dag.Storage.GetLastServiceBlockAsync()).TokenGenerationFee)
                 return (APIResultCodes.InvalidFeeAmount, null);
 
             return await ProcessFee(tokenBlock.Hash, tokenBlock.Fee);
@@ -320,15 +320,15 @@ namespace Lyra.Core.Decentralize
             var callresult = APIResultCodes.Success;
             TransactionBlock blockresult = null;
 
-            var svcBlockResult = await DagSystem.Singleton.Storage.GetLastServiceBlockAsync();
+            var svcBlockResult = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
 
-            TransactionBlock latestBlock = await DagSystem.Singleton.Storage.FindLatestBlockAsync(DagSystem.Singleton.PosWallet.AccountId) as TransactionBlock;
+            TransactionBlock latestBlock = await NodeService.Dag.Storage.FindLatestBlockAsync(NodeService.Dag.PosWallet.AccountId) as TransactionBlock;
             if(latestBlock == null)
             {
                 var receiveBlock = new OpenWithReceiveFeeBlock
                 {
                     AccountType = AccountTypes.Service,
-                    AccountID = DagSystem.Singleton.PosWallet.AccountId,
+                    AccountID = NodeService.Dag.PosWallet.AccountId,
                     ServiceHash = svcBlockResult.Hash,
                     SourceHash = source,
                     Fee = 0,
@@ -336,7 +336,7 @@ namespace Lyra.Core.Decentralize
                     Balances = new Dictionary<string, long>()
                 };
                 receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fee.ToBalanceLong());
-                receiveBlock.InitializeBlock(null, DagSystem.Singleton.PosWallet.PrivateKey, DagSystem.Singleton.PosWallet.AccountId);
+                receiveBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, NodeService.Dag.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
@@ -346,7 +346,7 @@ namespace Lyra.Core.Decentralize
             {
                 var receiveBlock = new ReceiveFeeBlock
                 {
-                    AccountID = DagSystem.Singleton.PosWallet.AccountId,
+                    AccountID = NodeService.Dag.PosWallet.AccountId,
                     ServiceHash = svcBlockResult.Hash,
                     SourceHash = source,
                     Fee = 0,
@@ -356,14 +356,14 @@ namespace Lyra.Core.Decentralize
 
                 decimal newBalance = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + fee.ToBalanceLong();
                 receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, newBalance.ToBalanceLong());
-                receiveBlock.InitializeBlock(latestBlock, DagSystem.Singleton.PosWallet.PrivateKey, DagSystem.Singleton.PosWallet.AccountId);
+                receiveBlock.InitializeBlock(latestBlock, NodeService.Dag.PosWallet.PrivateKey, NodeService.Dag.PosWallet.AccountId);
 
                 //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");
                 //callresult = await authorizer.Authorize(receiveBlock);
                 blockresult = receiveBlock;
             }
 
-            //receiveBlock.Signature = Signatures.GetSignature(DagSystem.Singleton.Storage.ServiceAccount.PrivateKey, receiveBlock.Hash);
+            //receiveBlock.Signature = Signatures.GetSignature(NodeService.Dag.Storage.ServiceAccount.PrivateKey, receiveBlock.Hash);
             return (callresult, blockresult);
         }
 

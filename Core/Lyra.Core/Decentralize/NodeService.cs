@@ -20,7 +20,6 @@ namespace Lyra.Core.Decentralize
     {
         //public static NodeService Instance { get; private set; } 
         public static DealEngine Dealer { get; private set; }
-        public Wallet PosWallet { get; private set; }
 
         //private INodeAPI _dataApi;
         public MongoClient client;
@@ -30,6 +29,8 @@ namespace Lyra.Core.Decentralize
         ILogger _log;
 
         public string Leader { get; private set; }
+
+        public static DagSystem Dag;
 
         public NodeService(ILogger<NodeService> logger)
         {
@@ -57,6 +58,7 @@ namespace Lyra.Core.Decentralize
                 string lyrawalletfolder = BaseAccount.GetFullFolderName(networkId, "wallets");
                 tmpWallet.OpenAccount(lyrawalletfolder, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name);
 
+                Wallet PosWallet;
                 if(ProtocolSettings.Default.StandbyValidators.Any(a => a == tmpWallet.AccountId))
                 {
                     // not update balance for seed nodes.
@@ -80,9 +82,9 @@ namespace Lyra.Core.Decentralize
                 }
 
                 var store = new MongoAccountCollection();
-                var localNode = DagSystem.Singleton.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
-                var sys = new DagSystem(networkId, store, PosWallet, localNode);
-                sys.Start();
+                var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
+                Dag = new DagSystem(networkId, store, PosWallet, localNode);
+                Dag.Start();
 
                 if (_db == null)
                 {

@@ -72,7 +72,7 @@ namespace Lyra.Core.Decentralize
             //}
 
             var state = new AuthState();
-            state.SetView(await DagSystem.Singleton.Storage.GetLastServiceBlockAsync());
+            state.SetView(await _context.GetDagSystem().Storage.GetLastServiceBlockAsync());
             state.InputMsg = item;
 
             //// add possible out of ordered messages belong to the block
@@ -96,14 +96,14 @@ namespace Lyra.Core.Decentralize
             //}
 
             // check if block existing
-            //if (null != DagSystem.Singleton.Storage.FindBlockByHash(item.Block.Hash))
+            //if (null != _context.GetDagSystem().Storage.FindBlockByHash(item.Block.Hash))
             //{
             //    _log.LogInformation("CreateAuthringState: Block is already in database.");
             //    return null;
             //}
 
             // check if block was replaced by nulltrans
-            //if (null != DagSystem.Singleton.Storage.FindNullTransBlockByHash(item.Block.Hash))
+            //if (null != _context.GetDagSystem().Storage.FindNullTransBlockByHash(item.Block.Hash))
             //{
             //    _log.LogInformation("CreateAuthringState: Block is already consolidated by nulltrans.");
             //    return null;
@@ -121,7 +121,7 @@ namespace Lyra.Core.Decentralize
             //{
             //    errCode = APIResultCodes.PBFTNetworkNotReadyForConsensus;
             //}
-            //else if(!ConsensusService.AuthorizerShapshot.Contains(DagSystem.Singleton.PosWallet.AccountId))
+            //else if(!ConsensusService.AuthorizerShapshot.Contains(_context.GetDagSystem().PosWallet.AccountId))
             //{
             //    errCode = APIResultCodes.NotListedAsQualifiedAuthorizer;
             //}
@@ -130,7 +130,7 @@ namespace Lyra.Core.Decentralize
             {
                 var result0 = new AuthorizedMsg
                 {
-                    From = DagSystem.Singleton.PosWallet.AccountId,
+                    From = _context.GetDagSystem().PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
                     Result = errCode
@@ -144,10 +144,10 @@ namespace Lyra.Core.Decentralize
             AuthorizedMsg result;
             try
             {
-                var localAuthResult = await authorizer.AuthorizeAsync(item.Block);
+                var localAuthResult = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
                 result = new AuthorizedMsg
                 {
-                    From = DagSystem.Singleton.PosWallet.AccountId,
+                    From = _context.GetDagSystem().PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
                     Result = localAuthResult.Item1,
@@ -162,7 +162,7 @@ namespace Lyra.Core.Decentralize
 
                 result = new AuthorizedMsg
                 {
-                    From = DagSystem.Singleton.PosWallet.AccountId,
+                    From = _context.GetDagSystem().PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
                     Result = APIResultCodes.UnknownError,
@@ -189,7 +189,7 @@ namespace Lyra.Core.Decentralize
         public async Task OnPrePrepareAsync(AuthorizingMsg msg, WaitHandle waitHandle = null)
         {
             _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash}");
-            _context.OnNodeActive(DagSystem.Singleton.PosWallet.AccountId);     // update billboard
+            _context.OnNodeActive(_context.GetDagSystem().PosWallet.AccountId);     // update billboard
 
             if (msg.Version != LyraGlobal.ProtocolVersion)
             {
@@ -299,7 +299,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
                     string me = "";
-                    if (msg.From == DagSystem.Singleton.PosWallet.AccountId)
+                    if (msg.From == _context.GetDagSystem().PosWallet.AccountId)
                         me = "[me]";
                     var voice = msg.IsSuccess ? "Yea" : "Nay";
                     var canAuth = _context.AuthorizerShapshot.Contains(msg.From);
@@ -335,7 +335,7 @@ namespace Lyra.Core.Decentralize
 
                     var msg = new AuthorizerCommitMsg
                     {
-                        From = DagSystem.Singleton.PosWallet.AccountId,
+                        From = _context.GetDagSystem().PosWallet.AccountId,
                         MsgType = ChatMessageType.AuthorizerCommit,
                         BlockHash = state.InputMsg.Block.Hash,
                         Consensus = state.PrepareConsensus
@@ -363,18 +363,18 @@ namespace Lyra.Core.Decentralize
 
             if (_state.CommitConsensus == ConsensusResult.Yea)
             {
-                if (!await DagSystem.Singleton.Storage.AddBlockAsync(block))
+                if (!await _context.GetDagSystem().Storage.AddBlockAsync(block))
                     _log.LogWarning($"Block Save Failed Index: {block.Height}");
                 else
                     _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
 
                 // if self result is Nay, need (re)send commited msg here
-                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == DagSystem.Singleton.PosWallet.AccountId);
+                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == _context.GetDagSystem().PosWallet.AccountId);
                 if(myResult == null || myResult.Result != APIResultCodes.Success)
                 {
                     var msg = new AuthorizerCommitMsg
                     {
-                        From = DagSystem.Singleton.PosWallet.AccountId,
+                        From = _context.GetDagSystem().PosWallet.AccountId,
                         MsgType = ChatMessageType.AuthorizerCommit,
                         BlockHash = _state.InputMsg.Block.Hash,
                         Consensus = _state.PrepareConsensus
@@ -398,12 +398,12 @@ namespace Lyra.Core.Decentralize
             if (block is ConsolidationBlock)
             {
                 // get my authorize result
-                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == DagSystem.Singleton.PosWallet.AccountId);
+                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == _context.GetDagSystem().PosWallet.AccountId);
                 if (myResult != null && myResult.Result == APIResultCodes.Success && myResult.IsSuccess == (_state.CommitConsensus == ConsensusResult.Yea))
                     return;
 
                 // crap! this node is out of sync.
-                DagSystem.Singleton.TheBlockchain.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
+                _context.GetDagSystem().TheBlockchain.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
             }
         }
 

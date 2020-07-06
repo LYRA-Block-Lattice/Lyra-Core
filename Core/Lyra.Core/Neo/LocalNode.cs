@@ -20,7 +20,7 @@ namespace Neo.Network.P2P
 {
     public class LocalNode : Peer
     {
-        public class SignedMessageRelay { public SourceSignedMessage signedMessage;  }
+        public class SignedMessageRelay { public SourceSignedMessage signedMessage; }
         public class Relay { public IInventory Inventory; }
         internal class RelayDirectly { public IInventory Inventory; }
         internal class SendDirectly { public IInventory Inventory; }
@@ -47,6 +47,17 @@ namespace Neo.Network.P2P
             {
                 while (singleton == null) Thread.Sleep(10);
                 return singleton;
+            }
+        }
+
+        private DagSystem _sys;
+        public DagSystem Sys { get => _sys;
+            set
+            {
+                if (_sys == null)
+                    _sys = value;
+                else
+                    _log.LogCritical("Cannot reset Sys");
             }
         }
 
@@ -180,8 +191,8 @@ namespace Neo.Network.P2P
                     BroadcastMessage(MessageCommand.Consensus, signedMsg);
                     break;
                 case SignedMessageRelay signedMessageRelay:
-                    if(DagSystem.Singleton.Consensus != null && signedMessageRelay != null)
-                        DagSystem.Singleton.Consensus.Tell(signedMessageRelay);
+                    if(_sys.Consensus != null && signedMessageRelay != null)
+                        _sys.Consensus.Tell(signedMessageRelay);
                     break;
                 case Message msg:
                     BroadcastMessage(msg);
@@ -194,6 +205,9 @@ namespace Neo.Network.P2P
                     break;
                 case SendDirectly send:
                     OnSendDirectly(send.Inventory);
+                    break;
+                case DagSystem sys:
+                    Sys = sys;
                     break;
                 //case RelayResultReason _:
                 //    break;
@@ -244,7 +258,7 @@ namespace Neo.Network.P2P
 
         protected override Props ProtocolProps(object connection, IPEndPoint remote, IPEndPoint local)
         {
-            return RemoteNode.Props(DagSystem.Singleton, connection, remote, local);
+            return RemoteNode.Props(_sys, connection, remote, local);
         }
     }
 }

@@ -16,15 +16,15 @@ namespace Lyra.Core.Authorizers
         {
         }
 
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            var result = await AuthorizeImplAsync(tblock);
+            var result = await AuthorizeImplAsync(sys, tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, Sign(sys, tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is SendTransferBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -35,7 +35,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.CannotSendToSelf;
 
             //// 1. check if the account already exists
-            //if (!await DagSystem.Singleton.Storage.AccountExists(block.AccountID))
+            //if (!await sys.Storage.AccountExists(block.AccountID))
             //    return APIResultCodes.AccountDoesNotExist;
             //var stopwatch = Stopwatch.StartNew();
 
@@ -43,19 +43,19 @@ namespace Lyra.Core.Authorizers
                 //int count = 50;
                 //while(count-- > 0)
                 //{
-                //    lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash);
+                //    lastBlock = await sys.Storage.FindBlockByHashAsync(block.PreviousHash);
                 //    if (lastBlock != null)
                 //        break;
                 //    Task.Delay(100).Wait();
                 //}
 
-            TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+            TransactionBlock lastBlock = await sys.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
 
-            //TransactionBlock lastBlock = await DagSystem.Singleton.Storage.FindLatestBlock(block.AccountID);
+            //TransactionBlock lastBlock = await sys.Storage.FindLatestBlock(block.AccountID);
             if (lastBlock == null)
                 return APIResultCodes.PreviousBlockNotFound;
             
-            var result = await VerifyBlockAsync(block, lastBlock);
+            var result = await VerifyBlockAsync(sys, block, lastBlock);
             //stopwatch.Stop();
             //Console.WriteLine($"SendTransfer VerifyBlock takes {stopwatch.ElapsedMilliseconds} ms.");
 
@@ -70,7 +70,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidDestinationAccountId;
 
             //var stopwatch2 = Stopwatch.StartNew();
-            result = await VerifyTransactionBlockAsync(block);
+            result = await VerifyTransactionBlockAsync(sys, block);
             //stopwatch2.Stop();
             //Console.WriteLine($"SendTransfer VerifyTransactionBlock takes {stopwatch2.ElapsedMilliseconds} ms.");
             if (result != APIResultCodes.Success)
@@ -80,7 +80,7 @@ namespace Lyra.Core.Authorizers
             if (!block.ValidateTransaction(lastBlock))
                 return APIResultCodes.SendTransactionValidationFailed;
 
-            result = await ValidateNonFungibleAsync(block, lastBlock);
+            result = await ValidateNonFungibleAsync(sys, block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -90,13 +90,13 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected override async Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
+        protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
         {
             APIResultCodes result;
             if (block.FeeType != AuthorizationFeeTypes.Regular)
                 result = APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != (await DagSystem.Singleton.Storage.GetLastServiceBlockAsync()).TransferFee)
+            if (block.Fee != (await sys.Storage.GetLastServiceBlockAsync()).TransferFee)
                 result = APIResultCodes.InvalidFeeAmount;
 
             result = APIResultCodes.Success;
@@ -104,9 +104,9 @@ namespace Lyra.Core.Authorizers
             return result;
         }
 
-        protected override async Task<APIResultCodes> ValidateNonFungibleAsync(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        protected override async Task<APIResultCodes> ValidateNonFungibleAsync(DagSystem sys, TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
-            var result = await base.ValidateNonFungibleAsync(send_or_receice_block, previousBlock);
+            var result = await base.ValidateNonFungibleAsync(sys, send_or_receice_block, previousBlock);
             if (result != APIResultCodes.Success)
                 return result;
 

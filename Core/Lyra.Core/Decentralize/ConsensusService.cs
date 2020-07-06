@@ -8,6 +8,7 @@ using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Neo;
 using Neo.IO.Actors;
 using Neo.Network.P2P;
@@ -62,7 +63,7 @@ namespace Lyra.Core.Decentralize
         private BillBoard _board = new BillBoard();
         private List<TransStats> _stats;
 
-        public bool IsThisNodeSeed0 => DagSystem.Singleton.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
+        public bool IsThisNodeSeed0 => _sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public bool IsMessageFromSeed0(SourceSignedMessage msg)
         {
             return msg.From == ProtocolSettings.Default.StandbyValidators[0];
@@ -73,8 +74,11 @@ namespace Lyra.Core.Decentralize
         // authorizer snapshot
         public HashSet<string> AuthorizerShapshot { get; private set; }
 
-        public ConsensusService(IActorRef localNode, IActorRef blockchain)
+        private DagSystem _sys;
+        public DagSystem GetDagSystem() => _sys;
+        public ConsensusService(DagSystem sys, IActorRef localNode, IActorRef blockchain)
         {
+            _sys = sys;
             _localNode = localNode;
             _blockchain = blockchain;
             _log = new SimpleLogger("ConsensusService").Logger;
@@ -84,6 +88,7 @@ namespace Lyra.Core.Decentralize
             _stats = new List<TransStats>();
 
             _orphange = new Orphanage(
+                    _sys,
                     async (state) => {
                         _log.LogInformation($"AuthState from Orphanage: {state.InputMsg.Block.Height}/{state.InputMsg.Block.Hash}");
                         var worker = await GetWorkerAsync(state.InputMsg.Block.Hash); 
@@ -137,7 +142,7 @@ namespace Lyra.Core.Decentralize
                 //_board = bb;
                 //foreach (var node in _board.AllNodes.Values)
                 //    {
-                //        if(node.AccountID != DagSystem.Singleton.PosWallet.AccountId)
+                //        if(node.AccountID != _sys.PosWallet.AccountId)
                 //            _pBFTNet.AddPosNode(node);
                 //    }                    
             });
@@ -276,7 +281,7 @@ namespace Lyra.Core.Decentralize
 
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
-            item.Sign(DagSystem.Singleton.PosWallet.PrivateKey, item.From);
+            item.Sign(_sys.PosWallet.PrivateKey, item.From);
             //item.Hash = "a";
             //item.Signature = "a";
 
@@ -296,9 +301,10 @@ namespace Lyra.Core.Decentralize
         private async Task DeclareConsensusNodeAsync()
         {
             // declare to the network
-            PosNode me = new PosNode(DagSystem.Singleton.PosWallet.AccountId);
+            PosNode me = new PosNode(_sys.PosWallet.AccountId);
             me.IPAddress = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId)}";
-            me.Sign();
+            me.Signature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
+                    me.IPAddress, _sys.PosWallet.AccountId);
 
             var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);
             _board.Add(me);
@@ -307,12 +313,12 @@ namespace Lyra.Core.Decentralize
 
         private void HeartBeat()
         {
-            OnNodeActive(DagSystem.Singleton.PosWallet.AccountId);     // update billboard
+            OnNodeActive(_sys.PosWallet.AccountId);     // update billboard
 
             // declare to the network
             var msg = new ChatMsg
             {
-                From = DagSystem.Singleton.PosWallet.AccountId,
+                From = _sys.PosWallet.AccountId,
                 MsgType = ChatMessageType.HeartBeat,
                 Text = "I'm live"
             };
@@ -339,7 +345,7 @@ namespace Lyra.Core.Decentralize
             // expire partial transaction.
             // "patch" the exmpty UIndex
             // collec fees and do redistribute
-            var lastCons = await DagSystem.Singleton.Storage.GetLastConsolidationBlockAsync();
+            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
             if (lastCons == null)
                 return;         // wait for genesis
 
@@ -381,11 +387,11 @@ namespace Lyra.Core.Decentralize
                 {
                     // test code
                     var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
-                    _lastVotes = DagSystem.Singleton.Storage.FindVotes(livingPosNodeIds);
+                    _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
                     // end test code
 
-                    var unConsList = await DagSystem.Singleton.Storage.GetAllUnConsolidatedBlockHashesAsync();
-                    var lastConsBlock = await DagSystem.Singleton.Storage.GetLastConsolidationBlockAsync();
+                    var unConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
+                    var lastConsBlock = await _sys.Storage.GetLastConsolidationBlockAsync();
 
                     if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastConsBlock.TimeStamp > TimeSpan.FromMinutes(10)))
                     {
@@ -415,8 +421,8 @@ namespace Lyra.Core.Decentralize
             if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State?.InputMsg.Block is ConsolidationBlock))
                 return;
 
-            var lastCons = await DagSystem.Singleton.Storage.GetLastConsolidationBlockAsync();
-            var collection = await DagSystem.Singleton.Storage.GetAllUnConsolidatedBlockHashesAsync();
+            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+            var collection = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
             _log.LogInformation($"Creating ConsolidationBlock... ");
 
             var consBlock = new ConsolidationBlock
@@ -432,7 +438,7 @@ namespace Lyra.Core.Decentralize
                 mt.AppendLeaf(MerkleHash.Create(hash));
 
                 // aggregate fees
-                var transBlock = (await DagSystem.Singleton.Storage.FindBlockByHashAsync(hash)) as TransactionBlock;
+                var transBlock = (await _sys.Storage.FindBlockByHashAsync(hash)) as TransactionBlock;
                 if(transBlock != null)
                 {
                     feeAggregated += transBlock.Fee;
@@ -440,7 +446,7 @@ namespace Lyra.Core.Decentralize
             }
             
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
-            consBlock.ServiceHash = (await DagSystem.Singleton.Storage.GetLastServiceBlockAsync()).Hash;
+            consBlock.ServiceHash = (await _sys.Storage.GetLastServiceBlockAsync()).Hash;
 
             // calculate votes
             //var lastVotes = collection.Where(a => a is TransactionBlock)
@@ -454,18 +460,18 @@ namespace Lyra.Core.Decentralize
             //        ConsHeight = lastCons.Height + 1
             //    });                
 
-            consBlock.InitializeBlock(lastCons, DagSystem.Singleton.PosWallet.PrivateKey,
-                DagSystem.Singleton.PosWallet.AccountId);
+            consBlock.InitializeBlock(lastCons, _sys.PosWallet.PrivateKey,
+                _sys.PosWallet.AccountId);
 
             AuthorizingMsg msg = new AuthorizingMsg
             {
-                From = DagSystem.Singleton.PosWallet.AccountId,
+                From = _sys.PosWallet.AccountId,
                 Block = consBlock,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
             var state = new AuthState(true);
-            state.SetView(await DagSystem.Singleton.Storage.GetLastServiceBlockAsync());
+            state.SetView(await _sys.Storage.GetLastServiceBlockAsync());
             state.InputMsg = msg;
 
             _ = Task.Run(async () =>
@@ -479,7 +485,7 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
 
                     var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
-                    _lastVotes = DagSystem.Singleton.Storage.FindVotes(livingPosNodeIds);
+                    _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
 
                     // change billboard if changed
                     if(IsThisNodeSeed0)
@@ -498,9 +504,9 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"ConsolidationBlock was submited. ");
         }
 
-        public static Props Props(IActorRef localNode, IActorRef blockchain)
+        public static Props Props(DagSystem sys, IActorRef localNode, IActorRef blockchain)
         {
-            return Akka.Actor.Props.Create(() => new ConsensusService(localNode, blockchain)).WithMailbox("consensus-service-mailbox");
+            return Akka.Actor.Props.Create(() => new ConsensusService(sys, localNode, blockchain)).WithMailbox("consensus-service-mailbox");
         }
 
         public void FinishBlock(string hash)
@@ -533,7 +539,7 @@ namespace Lyra.Core.Decentralize
         private async Task<ConsensusWorker> GetWorkerAsync(string hash)
         {
             // if a block is in database
-            var aBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(hash);
+            var aBlock = await _sys.Storage.FindBlockByHashAsync(hash);
             if (aBlock != null)
                 return null;
 
@@ -642,8 +648,8 @@ namespace Lyra.Core.Decentralize
                 //    await OnBlockConsolicationAsync(chat);
                 //    break;
                 case ChatMessageType.NodeStatusInquiry:
-                    var status = await DagSystem.Singleton.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-                    //var status = await DagSystem.Singleton.Storage.GetNodeStatusAsync();
+                    var status = await _sys.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
+                    //var status = await _sys.Storage.GetNodeStatusAsync();
                     var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);
                     Send2P2pNetwork(resp);
                     break;
@@ -661,7 +667,7 @@ namespace Lyra.Core.Decentralize
                 var block = JsonConvert.DeserializeObject<ConsolidationBlock>(msg.Text);
                 try
                 {
-                    await DagSystem.Singleton.Storage.AddBlockAsync(block);
+                    await _sys.Storage.AddBlockAsync(block);
                     _log.LogInformation($"Receive and store ConsolidateBlock of UIndex: {block.Height}");
                 }
                 catch(Exception e)
@@ -679,10 +685,10 @@ namespace Lyra.Core.Decentralize
                 AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
 
                 // switch to protect mode if necessary
-                DagSystem.Singleton.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { count = _board.PrimaryAuthorizers.Length });
+                _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { count = _board.PrimaryAuthorizers.Length });
 
                 // no me?
-                if (!_board.AllNodes.ContainsKey(DagSystem.Singleton.PosWallet.AccountId))
+                if (!_board.AllNodes.ContainsKey(_sys.PosWallet.AccountId))
                 {
                     Task.Run(async () => { 
                         await DeclareConsensusNodeAsync();
@@ -713,7 +719,7 @@ namespace Lyra.Core.Decentralize
             if (_board != null)
             {
                 RefreshAllNodesVotesAsync();
-                OnNodeActive(DagSystem.Singleton.PosWallet.AccountId);
+                OnNodeActive(_sys.PosWallet.AccountId);
                 var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
                 foreach (var node in deadNodes)
                 {
@@ -725,7 +731,7 @@ namespace Lyra.Core.Decentralize
                 Send2P2pNetwork(msg);
 
                 // switch to protect mode if necessary
-                DagSystem.Singleton.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { count = _board.PrimaryAuthorizers.Length });
+                _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { count = _board.PrimaryAuthorizers.Length });
             }
         }
 

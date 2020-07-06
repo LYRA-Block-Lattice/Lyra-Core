@@ -33,19 +33,19 @@ namespace Lyra.Core.Accounts
             return Akka.Actor.Props.Create(() => new ServiceAccount(blockChain, svcWallet));
         }
 
-        public async Task<ServiceBlock> GetLastServiceBlockAsync()
-        {
-            return await DagSystem.Singleton.Storage.GetLastServiceBlockAsync();
-            ////var lstServiceBlock = base._storage. _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("SourceHash", sendBlock.Hash)));
-            //Block lastBlock = GetLatestBlock();
-            //if (lastBlock.BlockType == BlockTypes.Service)
-            //    return lastBlock as ServiceBlock;
-            //if (lastBlock == null)
-            //    return null;
-            //string hash = (lastBlock as SyncBlock).LastServiceBlockHash;
-            //ServiceBlock lastServiceBlock = FindBlockByHash(hash) as ServiceBlock;
-            //return lastServiceBlock;
-        }
+        //public async Task<ServiceBlock> GetLastServiceBlockAsync()
+        //{
+        //    return await DagSystem.Singleton.Storage.GetLastServiceBlockAsync();
+        //    ////var lstServiceBlock = base._storage. _blocks.FindOne(Query.And(Query.EQ("AccountID", AccountId), Query.EQ("SourceHash", sendBlock.Hash)));
+        //    //Block lastBlock = GetLatestBlock();
+        //    //if (lastBlock.BlockType == BlockTypes.Service)
+        //    //    return lastBlock as ServiceBlock;
+        //    //if (lastBlock == null)
+        //    //    return null;
+        //    //string hash = (lastBlock as SyncBlock).LastServiceBlockHash;
+        //    //ServiceBlock lastServiceBlock = FindBlockByHash(hash) as ServiceBlock;
+        //    //return lastServiceBlock;
+        //}
 
         //public void InitializeServiceAccountAsync(string Path)
         //{

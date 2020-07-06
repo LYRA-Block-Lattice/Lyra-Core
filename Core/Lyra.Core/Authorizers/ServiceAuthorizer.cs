@@ -8,21 +8,21 @@ namespace Lyra.Core.Authorizers
 {
     public class ServiceAuthorizer : BaseAuthorizer
     {
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            var result = await AuthorizeImplAsync(tblock);
+            var result = await AuthorizeImplAsync(sys, tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, Sign(sys, tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
 
-        protected override Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
+        protected override Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
         {
             return Task.FromResult(APIResultCodes.Success);
         }
 
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ServiceBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -36,9 +36,9 @@ namespace Lyra.Core.Authorizers
             // service specifice feature
             //block.
 
-            var prevBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash);
+            var prevBlock = await sys.Storage.FindBlockByHashAsync(block.PreviousHash);
 
-            var result = await VerifyBlockAsync(block, prevBlock);
+            var result = await VerifyBlockAsync(sys, block, prevBlock);
             if (result != APIResultCodes.Success)
                 return result;
 

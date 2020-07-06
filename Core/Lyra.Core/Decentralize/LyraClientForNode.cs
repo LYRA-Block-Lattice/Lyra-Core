@@ -10,37 +10,39 @@ namespace Lyra.Core.Decentralize
 {
     public class LyraClientForNode
     {
+        DagSystem _sys;
         private LyraRestClient _client;
 
-        public LyraClientForNode(LyraRestClient client)
+        public LyraClientForNode(DagSystem sys, LyraRestClient client)
         {
+            _sys = sys;
             _client = client;
         }
 
         public async Task<string> SignAPICallAsync()
         {
             var syncInfo = await _client.GetSyncHeight();
-            return Signatures.GetSignature(DagSystem.Singleton.PosWallet.PrivateKey, syncInfo.SyncHash, DagSystem.Singleton.PosWallet.AccountId);
+            return Signatures.GetSignature(_sys.PosWallet.PrivateKey, syncInfo.SyncHash, _sys.PosWallet.AccountId);
         }
 
         internal async Task<BlockAPIResult> GetLastConsolidationBlockAsync()
         {            
-            return await _client.GetLastConsolidationBlock(DagSystem.Singleton.PosWallet.AccountId, await SignAPICallAsync());
+            return await _client.GetLastConsolidationBlock(_sys.PosWallet.AccountId, await SignAPICallAsync());
         }
 
         internal async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string consolidationHash)
         {
-            return await _client.GetBlocksByConsolidation(DagSystem.Singleton.PosWallet.AccountId, await SignAPICallAsync(), consolidationHash);
+            return await _client.GetBlocksByConsolidation(_sys.PosWallet.AccountId, await SignAPICallAsync(), consolidationHash);
         }
 
         internal async Task<MultiBlockAPIResult> GetConsolidationBlocks(long startConsHeight)
         {
-            return await _client.GetConsolidationBlocks(DagSystem.Singleton.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight);
+            return await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight);
         }
 
         public async Task<BlockAPIResult> GetBlockByHash(string Hash)
         {
-            return await _client.GetBlockByHash(DagSystem.Singleton.PosWallet.AccountId, Hash, await SignAPICallAsync());
+            return await _client.GetBlockByHash(_sys.PosWallet.AccountId, Hash, await SignAPICallAsync());
         }
 
         public async Task<GetSyncStateAPIResult> GetSyncState()
@@ -50,7 +52,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks()
         {
-            return await _client.GetUnConsolidatedBlocks(DagSystem.Singleton.PosWallet.AccountId, await SignAPICallAsync());
+            return await _client.GetUnConsolidatedBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync());
         }
     }
 }

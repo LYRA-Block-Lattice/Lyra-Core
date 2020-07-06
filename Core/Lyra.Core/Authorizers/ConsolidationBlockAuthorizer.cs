@@ -17,21 +17,21 @@ namespace Lyra.Core.Authorizers
         {
         }
 
-        public async override Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
+        public async override Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            var result = await AuthorizeImplAsync(tblock);
+            var result = await AuthorizeImplAsync(sys, tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, Sign(sys, tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
 
-        protected override Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
+        protected override Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
         {
             return Task.FromResult(APIResultCodes.Success);
         }
 
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ConsolidationBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -42,14 +42,14 @@ namespace Lyra.Core.Authorizers
             //if (null != await DagSystem.Singleton.Storage.GetBlockByUIndexAsync(block.UIndex))
             //    return APIResultCodes.BlockWithThisUIndexAlreadyExists;
 
-            var lastCons = await DagSystem.Singleton.Storage.GetLastConsolidationBlockAsync();
+            var lastCons = await sys.Storage.GetLastConsolidationBlockAsync();
             if(block.Height > 1)
             {
                 if (lastCons == null)
                     return APIResultCodes.CouldNotFindLatestBlock;
             }
 
-            var result = await VerifyBlockAsync(block, lastCons);
+            var result = await VerifyBlockAsync(sys, block, lastCons);
             if (result != APIResultCodes.Success)
                 return result;
 

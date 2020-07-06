@@ -20,7 +20,7 @@ namespace Lyra
 {
     public class DagSystem
     {
-        public ActorSystem ActorSystem { get; } = ActorSystem.Create(nameof(DagSystem),
+        public static ActorSystem ActorSystem { get; } = ActorSystem.Create(nameof(DagSystem),
     $"akka {{ log-dead-letters = off }}" +
     $"blockchain-mailbox {{ mailbox-type: \"{typeof(BlockchainMailbox).AssemblyQualifiedName}\" }}" +
     $"task-manager-mailbox {{ mailbox-type: \"{typeof(TaskManagerMailbox).AssemblyQualifiedName}\" }}" +
@@ -36,7 +36,6 @@ namespace Lyra
 
         private ChannelsConfig start_message = null;
         private bool suspend = false;
-        public static DagSystem Singleton { get; private set; }
 
         private ILogger _log;
 
@@ -51,11 +50,10 @@ namespace Lyra
 
             LyraNodeConfig.Init(networkId);
             LocalNode = localNode;
+            this.LocalNode.Tell(this);
 
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, store));
             TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
-
-            Singleton = this;
         }
 
         public void Start()
@@ -98,7 +96,7 @@ namespace Lyra
 
         public void StartConsensus()
         {
-            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this.LocalNode, TheBlockchain));
+            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this, this.LocalNode, TheBlockchain));
             //Consensus.Tell(new ConsensusService.Start { IgnoreRecoveryLogs = ignoreRecoveryLogs }, Blockchain);
         }
 

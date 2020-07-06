@@ -13,15 +13,15 @@ namespace Lyra.Core.Authorizers
         {
         }
 
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            var result = await AuthorizeImplAsync(tblock);
+            var result = await AuthorizeImplAsync(sys, tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(tblock));
+                return (APIResultCodes.Success, Sign(sys, tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is LyraTokenGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -33,18 +33,18 @@ namespace Lyra.Core.Authorizers
 
             // Local node validations - before it sends it out to the authorization sample:
             // 1. check if the account already exists
-                if (await DagSystem.Singleton.Storage.AccountExistsAsync(block.AccountID))
+                if (await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists; // 
 
             // 2. Validate blocks
-            var result = await VerifyBlockAsync(block, null);
+            var result = await VerifyBlockAsync(sys, block, null);
             if (result != APIResultCodes.Success)
                 return result;
 
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
             //if (genesis_blocks.FindTokenGenesisBlock(testTokenGenesisBlock) != null)
-            if (await DagSystem.Singleton.Storage.FindTokenGenesisBlockAsync(block.Hash, LyraGlobal.OFFICIALTICKERCODE) != null)
+            if (await sys.Storage.FindTokenGenesisBlockAsync(block.Hash, LyraGlobal.OFFICIALTICKERCODE) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
             return APIResultCodes.Success;

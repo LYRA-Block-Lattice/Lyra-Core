@@ -32,7 +32,7 @@ namespace Lyra.Core.Authorizers
             _log = new SimpleLogger("BaseAuthorizer").Logger;
         }
 
-        public virtual Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
+        public virtual Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
             throw new NotImplementedException("Must override");
         }
@@ -42,7 +42,7 @@ namespace Lyra.Core.Authorizers
         //    throw new NotImplementedException("Must override");
         //}
 
-        protected async Task<APIResultCodes> VerifyBlockAsync(Block block, Block previousBlock)
+        protected async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
         {
             if (previousBlock != null && !block.IsBlockValid(previousBlock))
                 return APIResultCodes.BlockValidationFailed;
@@ -75,23 +75,23 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // check if this Index already exists (double-spending, kind of)
-                if (block.BlockType != BlockTypes.NullTransaction && await (DagSystem.Singleton.Storage.FindBlockByIndexAsync(blockt.AccountID, block.Height)) != null)
+                if (block.BlockType != BlockTypes.NullTransaction && await (sys.Storage.FindBlockByIndexAsync(blockt.AccountID, block.Height)) != null)
                     return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
                 // check service hash
                 if (string.IsNullOrWhiteSpace(blockt.ServiceHash))
                     return APIResultCodes.ServiceBlockNotFound;
 
-                var svcBlock = await DagSystem.Singleton.Storage.GetLastServiceBlockAsync();
+                var svcBlock = await sys.Storage.GetLastServiceBlockAsync();
                 if (blockt.ServiceHash != svcBlock.Hash)
                     return APIResultCodes.ServiceBlockNotFound;
 
-                if (!await ValidateRenewalDateAsync(blockt, previousBlock as TransactionBlock))
+                if (!await ValidateRenewalDateAsync(sys, blockt, previousBlock as TransactionBlock))
                     return APIResultCodes.TokenExpired;
             }         
 
             // This is the double-spending check for send block!
-            if (!string.IsNullOrEmpty(block.PreviousHash) && (await DagSystem.Singleton.Storage.FindBlockByPreviousBlockHashAsync(block.PreviousHash)) != null)
+            if (!string.IsNullOrEmpty(block.PreviousHash) && (await sys.Storage.FindBlockByPreviousBlockHashAsync(block.PreviousHash)) != null)
                 return APIResultCodes.BlockWithThisPreviousHashAlreadyExists;
 
             if (block.Height <= 0)
@@ -109,7 +109,7 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected async Task<bool> ValidateRenewalDateAsync(TransactionBlock block, TransactionBlock previousBlock)
+        protected async Task<bool> ValidateRenewalDateAsync(DagSystem sys, TransactionBlock block, TransactionBlock previousBlock)
         {
             if (previousBlock == null)
                 return true;
@@ -119,7 +119,7 @@ namespace Lyra.Core.Authorizers
             if (trs.Amount <= 0)
                 return true;
 
-            var token = await DagSystem.Singleton.Storage.FindTokenGenesisBlockAsync(null, trs.TokenCode);
+            var token = await sys.Storage.FindTokenGenesisBlockAsync(null, trs.TokenCode);
             if (token != null)
                 if (token.RenewalDate < DateTime.Now)
                     return false;
@@ -128,7 +128,7 @@ namespace Lyra.Core.Authorizers
         }
 
         // common validations for Send and Receive blocks
-        protected async Task<APIResultCodes> VerifyTransactionBlockAsync(TransactionBlock block)
+        protected async Task<APIResultCodes> VerifyTransactionBlockAsync(DagSystem sys, TransactionBlock block)
         {
             // Validate the account id
             if (!Signatures.ValidateAccountId(block.AccountID))
@@ -142,7 +142,7 @@ namespace Lyra.Core.Authorizers
                 //while (!(thisBlock is IOpeningBlock))
                 if (!(thisBlock is IOpeningBlock))      //save time
                 {
-                    prevBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(thisBlock.PreviousHash) as TransactionBlock;
+                    prevBlock = await sys.Storage.FindBlockByHashAsync(thisBlock.PreviousHash) as TransactionBlock;
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
@@ -154,7 +154,7 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // verify the spending
-                TransactionBlock previousTransaction = await DagSystem.Singleton.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+                TransactionBlock previousTransaction = await sys.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
                 foreach (var prevbalance in previousTransaction.Balances)
                 {
                     // make sure all balances from the previous block are present in a new block even if they are unchanged
@@ -165,15 +165,15 @@ namespace Lyra.Core.Authorizers
                 // TODO: fee aggregation
                 //// Verify fee
                 //if (block.BlockType == BlockTypes.SendTransfer)
-                //    if ((block as SendTransferBlock).Fee != await DagSystem.Singleton.Storage.GetLastServiceBlock().TransferFee)
+                //    if ((block as SendTransferBlock).Fee != await sys.Storage.GetLastServiceBlock().TransferFee)
                 //        return APIResultCodes.InvalidFeeAmount;
 
                 //if (block.BlockType == BlockTypes.TokenGenesis)
-                //    if ((block as TokenGenesisBlock).Fee != await DagSystem.Singleton.Storage.GetLastServiceBlock().TokenGenerationFee)
+                //    if ((block as TokenGenesisBlock).Fee != await sys.Storage.GetLastServiceBlock().TokenGenerationFee)
                 //        return APIResultCodes.InvalidFeeAmount;
             }
 
-            var res = await ValidateFeeAsync(block);
+            var res = await ValidateFeeAsync(sys, block);
             if (res != APIResultCodes.Success)
                 return res;
 
@@ -182,7 +182,7 @@ namespace Lyra.Core.Authorizers
 
         //protected abstract Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block);
 
-        protected virtual Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
+        protected virtual Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
         {
             APIResultCodes result;
             if (block.FeeType != AuthorizationFeeTypes.NoFee)
@@ -196,14 +196,14 @@ namespace Lyra.Core.Authorizers
             return Task.FromResult(result);
         }
 
-        protected virtual async Task<APIResultCodes> ValidateNonFungibleAsync(TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        protected virtual async Task<APIResultCodes> ValidateNonFungibleAsync(DagSystem sys, TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
             TransactionInfoEx transaction = send_or_receice_block.GetTransaction(previousBlock);
 
             if (transaction.TokenCode == LyraGlobal.OFFICIALTICKERCODE)
                 return APIResultCodes.Success;
 
-            var token_block = await DagSystem.Singleton.Storage.FindTokenGenesisBlockAsync(null, transaction.TokenCode);
+            var token_block = await sys.Storage.FindTokenGenesisBlockAsync(null, transaction.TokenCode);
             if (token_block == null)
                 return APIResultCodes.TokenGenesisBlockNotFound;
 
@@ -228,7 +228,7 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected AuthorizationSignature Sign<T>(T tblock)
+        protected AuthorizationSignature Sign<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is Block))
                 throw new System.ApplicationException("APIResultCodes.InvalidBlockType");
@@ -239,15 +239,15 @@ namespace Lyra.Core.Authorizers
             //{
             //    // ServiceHash is excluded when calculating the block hash,
             //    // but it is included when creating/validating the authorization signature
-            //    (block as TransactionBlock).ServiceHash = (await DagSystem.Singleton.Storage.GetSyncBlockAsync()).Hash;
+            //    (block as TransactionBlock).ServiceHash = (await sys.Storage.GetSyncBlockAsync()).Hash;
             //}
 
             // sign with the authorizer key
             AuthorizationSignature authSignature = new AuthorizationSignature
             {
-                Key = DagSystem.Singleton.PosWallet.AccountId,
-                Signature = Signatures.GetSignature(DagSystem.Singleton.PosWallet.PrivateKey,
-                    block.Hash, DagSystem.Singleton.PosWallet.AccountId)
+                Key = sys.PosWallet.AccountId,
+                Signature = Signatures.GetSignature(sys.PosWallet.PrivateKey,
+                    block.Hash, sys.PosWallet.AccountId)
             };
 
             return authSignature;
@@ -255,13 +255,13 @@ namespace Lyra.Core.Authorizers
 
         //protected async Task<bool> VerifyAuthorizationSignaturesAsync(TransactionBlock block)
         //{
-        //    //block.ServiceHash = await DagSystem.Singleton.Storage.ServiceAccount.GetLatestBlock(block.ServiceHash);
+        //    //block.ServiceHash = await sys.Storage.ServiceAccount.GetLatestBlock(block.ServiceHash);
 
         //    // TO DO - support multy nodes
         //    if (block.Authorizations == null || block.Authorizations.Count != 1)
         //        return false;
 
-        //    if (block.Authorizations[0].Key != await DagSystem.Singleton.Storage.ServiceAccount.AccountId)
+        //    if (block.Authorizations[0].Key != await sys.Storage.ServiceAccount.AccountId)
         //        return false;
 
         //    return Signatures.VerifyAuthorizerSignature(block.Hash + block.ServiceHash, block.Authorizations[0].Key, block.Authorizations[0].Signature);

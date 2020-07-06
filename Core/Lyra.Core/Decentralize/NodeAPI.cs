@@ -38,10 +38,10 @@ namespace Lyra.Core.Decentralize
         private async Task<bool> VerifyClientAsync(string accountId, string signature)
         {
             // seeds accountid not exists.
-            //if (!await DagSystem.Singleton.Storage.AccountExistsAsync(accountId))
+            //if (!await NodeService.Dag.Storage.AccountExistsAsync(accountId))
             //    return false;
 
-            var lastSvcBlock = await DagSystem.Singleton.Storage.GetLastServiceBlockAsync();
+            var lastSvcBlock = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
             if (lastSvcBlock == null)
                 return false;
 
@@ -50,15 +50,15 @@ namespace Lyra.Core.Decentralize
 
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
-            var consBlock = await DagSystem.Singleton.Storage.GetLastConsolidationBlockAsync();
-            var chainStatus = await DagSystem.Singleton.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
+            var consBlock = await NodeService.Dag.Storage.GetLastConsolidationBlockAsync();
+            var chainStatus = await NodeService.Dag.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
             var result = new GetSyncStateAPIResult
             {
                 ResultCode = APIResultCodes.Success,
                 NetworkID = LyraNodeConfig.GetNetworkId(),
                 SyncState = chainStatus.state == BlockChainState.Almighty ? ConsensusWorkingMode.Normal : ConsensusWorkingMode.OutofSyncWaiting,
                 LastConsolidationHash = consBlock == null ? null : consBlock.Hash,
-                //NewestBlockUIndex = await DagSystem.Singleton.Storage.GetNewestBlockUIndexAsync(),
+                //NewestBlockUIndex = await NodeService.Dag.Storage.GetNewestBlockUIndexAsync(),
                 Status = chainStatus
             };
             return result;
@@ -67,7 +67,7 @@ namespace Lyra.Core.Decentralize
         //public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
         //{
         //    BlockAPIResult result;
-        //    var block = await DagSystem.Singleton.Storage.GetBlockByUIndexAsync(uindex);
+        //    var block = await NodeService.Dag.Storage.GetBlockByUIndexAsync(uindex);
         //    if(block == null)
         //    {
         //        result = new BlockAPIResult { ResultCode = APIResultCodes.BlockNotFound };
@@ -103,7 +103,7 @@ namespace Lyra.Core.Decentralize
             var result = new AccountHeightAPIResult();
             try
             {
-                var last_svc_block = await DagSystem.Singleton.Storage.GetLastServiceBlockAsync();
+                var last_svc_block = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
                 //if(last_svc_block == null)
                 //{
                 //    // empty database. 
@@ -133,10 +133,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                //if (!DagSystem.Singleton.Storage.AccountExists(AccountId))
+                //if (!NodeService.Dag.Storage.AccountExists(AccountId))
                 //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var blocks = await DagSystem.Singleton.Storage.FindTokenGenesisBlocksAsync(keyword == "(null)" ? null : keyword);
+                var blocks = await NodeService.Dag.Storage.FindTokenGenesisBlocksAsync(keyword == "(null)" ? null : keyword);
                 if (blocks != null)
                 {
                     result.Entities = blocks.Select(a => a.Ticker).ToList();
@@ -164,11 +164,11 @@ namespace Lyra.Core.Decentralize
             }
             try
             {
-                if (await DagSystem.Singleton.Storage.AccountExistsAsync(AccountId))
+                if (await NodeService.Dag.Storage.AccountExistsAsync(AccountId))
                 {
-                    result.Height = (await DagSystem.Singleton.Storage.FindLatestBlockAsync(AccountId)).Height;
+                    result.Height = (await NodeService.Dag.Storage.FindLatestBlockAsync(AccountId)).Height;
                     result.NetworkId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
-                    result.SyncHash = (await DagSystem.Singleton.Storage.GetLastConsolidationBlockAsync()).Hash;
+                    result.SyncHash = (await NodeService.Dag.Storage.GetLastConsolidationBlockAsync()).Hash;
                     result.ResultCode = APIResultCodes.Success;
                 }
                 else
@@ -194,9 +194,9 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                if (await DagSystem.Singleton.Storage.AccountExistsAsync(AccountId))
+                if (await NodeService.Dag.Storage.AccountExistsAsync(AccountId))
                 {
-                    var block = await DagSystem.Singleton.Storage.FindBlockByIndexAsync(AccountId, Index);
+                    var block = await NodeService.Dag.Storage.FindBlockByIndexAsync(AccountId, Index);
                     if (block != null)
                     {
                         result.BlockData = Json(block);
@@ -229,10 +229,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                if (!await DagSystem.Singleton.Storage.AccountExistsAsync(AccountId))
+                if (!await NodeService.Dag.Storage.AccountExistsAsync(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = await DagSystem.Singleton.Storage.FindBlockByHashAsync(Hash);
+                var block = await NodeService.Dag.Storage.FindBlockByHashAsync(Hash);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -262,10 +262,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                if (!await DagSystem.Singleton.Storage.AccountExistsAsync(AccountId))
+                if (!await NodeService.Dag.Storage.AccountExistsAsync(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var list = await DagSystem.Singleton.Storage.GetNonFungibleTokensAsync(AccountId);
+                var list = await NodeService.Dag.Storage.GetNonFungibleTokensAsync(AccountId);
                 if (list != null)
                 {
                     result.ListDataSerialized = Json(list);
@@ -294,10 +294,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                //if (!DagSystem.Singleton.Storage.AccountExists(AccountId))
+                //if (!NodeService.Dag.Storage.AccountExists(AccountId))
                 //    result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = await DagSystem.Singleton.Storage.FindTokenGenesisBlockAsync(null, TokenTicker);
+                var block = await NodeService.Dag.Storage.FindTokenGenesisBlockAsync(null, TokenTicker);
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -327,10 +327,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                if (!await DagSystem.Singleton.Storage.AccountExistsAsync(AccountId))
+                if (!await NodeService.Dag.Storage.AccountExistsAsync(AccountId))
                     result.ResultCode = APIResultCodes.AccountDoesNotExist;
 
-                var block = await DagSystem.Singleton.Storage.GetLastServiceBlockAsync();
+                var block = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -360,7 +360,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var block = await DagSystem.Singleton.Storage.GetLastConsolidationBlockAsync();
+                var block = await NodeService.Dag.Storage.GetLastConsolidationBlockAsync();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -388,7 +388,7 @@ namespace Lyra.Core.Decentralize
                 return result;
             }
 
-            var consBlock = (await DagSystem.Singleton.Storage.FindBlockByHashAsync(consolidationHash)) as ConsolidationBlock;
+            var consBlock = (await NodeService.Dag.Storage.FindBlockByHashAsync(consolidationHash)) as ConsolidationBlock;
             if(consBlock == null)
             {
                 result.ResultCode = APIResultCodes.BlockNotFound;
@@ -399,7 +399,7 @@ namespace Lyra.Core.Decentralize
             var blocks = new Block[consBlock.blockHashes.Count];
             for (int i = 0; i < blocks.Length; i++)
             {
-                blocks[i] = await DagSystem.Singleton.Storage.FindBlockByHashAsync(consBlock.blockHashes[i]);
+                blocks[i] = await NodeService.Dag.Storage.FindBlockByHashAsync(consBlock.blockHashes[i]);
                 mt.AppendLeaf(MerkleHash.Create(blocks[i].Hash));
             }
             var merkelTreeHash = mt.BuildTree().ToString();
@@ -429,7 +429,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var blocks = await DagSystem.Singleton.Storage.GetConsolidationBlocksAsync(startHeight);
+                var blocks = await NodeService.Dag.Storage.GetConsolidationBlocksAsync(startHeight);
                 if (blocks != null)
                 {
                     result.SetBlocks(blocks.ToArray());
@@ -458,7 +458,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var blocks = await DagSystem.Singleton.Storage.GetAllUnConsolidatedBlockHashesAsync();
+                var blocks = await NodeService.Dag.Storage.GetAllUnConsolidatedBlockHashesAsync();
                 if (blocks != null)
                 {
                     result.Entities = blocks.ToList();
@@ -486,11 +486,11 @@ namespace Lyra.Core.Decentralize
             }
             try
             {
-                SendTransferBlock sendBlock = await DagSystem.Singleton.Storage.FindUnsettledSendBlockAsync(AccountId);
+                SendTransferBlock sendBlock = await NodeService.Dag.Storage.FindUnsettledSendBlockAsync(AccountId);
 
                 if (sendBlock != null)
                 {
-                    TransactionBlock previousBlock = await DagSystem.Singleton.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+                    TransactionBlock previousBlock = await NodeService.Dag.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
                     if (previousBlock == null)
                         transfer_info.ResultCode = APIResultCodes.CouldNotTraceSendBlockChain;
                     else

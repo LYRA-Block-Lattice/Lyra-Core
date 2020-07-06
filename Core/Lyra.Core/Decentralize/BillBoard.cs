@@ -114,12 +114,6 @@ namespace Lyra.Core.Decentralize
             Votes = 0;
         }
 
-        public void Sign()
-        {
-            Signature = Signatures.GetSignature(DagSystem.Singleton.PosWallet.PrivateKey,
-                    IPAddress, DagSystem.Singleton.PosWallet.AccountId);
-        }
-
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die
         public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Votes >= LyraGlobal.MinimalAuthorizerBalance) && (DateTime.Now - LastStaking < TimeSpan.FromSeconds(90));
     }
