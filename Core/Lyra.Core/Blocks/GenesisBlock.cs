@@ -235,7 +235,7 @@ namespace Lyra.Core.Blocks
             if (this.Ticker.Length < 3)
                 throw new ApplicationException("Ticker Length < 3");
 
-            char[] separator = { '.' };
+            char[] separator = { '/' };
 
             // using the method 
             String[] names = this.Ticker.Split(separator);
