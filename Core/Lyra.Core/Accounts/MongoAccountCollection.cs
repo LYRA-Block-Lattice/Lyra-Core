@@ -55,13 +55,7 @@ namespace Lyra.Core.Accounts
                 cm.SetIsRootClass(true);
             });
 
-            BsonClassMap.RegisterClassMap<TransactionBlock>(cm =>
-            {
-                cm.AutoMap();
-                cm.SetIgnoreExtraElements(true);
-                cm.MapMember(c => c.Balances).SetSerializer(new DictionaryInterfaceImplementerSerializer<Dictionary<string, long>>(DictionaryRepresentation.ArrayOfDocuments));
-            });
-
+            BsonClassMap.RegisterClassMap<TransactionBlock>();
             BsonClassMap.RegisterClassMap<SendTransferBlock>();
             BsonClassMap.RegisterClassMap<ExchangingBlock>();
             BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
