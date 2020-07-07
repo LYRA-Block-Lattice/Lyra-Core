@@ -366,7 +366,31 @@ namespace Lyra.Core.Decentralize
                 if (!await _context.GetDagSystem().Storage.AddBlockAsync(block))
                     _log.LogWarning($"Block Save Failed Index: {block.Height}");
                 else
+                {
                     _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
+
+                    // event hooks
+                    var sys = _context.GetDagSystem();
+                    sys.Consensus.Tell(new BlockChain.BlockAdded { hash = block.Hash });
+
+                    if (block is ConsolidationBlock)
+                    {
+                        var status = await sys.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
+                        var consBlock = block as ConsolidationBlock;
+                        // we need to update the consolidation flag
+                        foreach (var hash in consBlock.blockHashes)
+                        {
+                            if (!await sys.Storage.ConsolidateBlock(hash) && status.state != BlockChainState.Engaging)
+                                _log.LogCritical($"BlockChain Not consolidate block properly: {hash}");
+                        }
+
+                        // debug
+                        var blockCountInDb = await sys.Storage.GetBlockCountAsync();
+                        if (consBlock.totalBlockCount + 1 > blockCountInDb)
+                            _log.LogCritical($"Consolidation block miscalculate!! total: {blockCountInDb} calculated: {consBlock.totalBlockCount}");
+                    }
+                }
+                    
 
                 // if self result is Nay, need (re)send commited msg here
                 var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == _context.GetDagSystem().PosWallet.AccountId);
