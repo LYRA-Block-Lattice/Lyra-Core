@@ -57,7 +57,10 @@ namespace Lyra.Client.CLI
                 wallet.CreateAccount(lyra_folder, wallet.AccountName, AccountTypes.Standard);
                 var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(Base58Encoding.DecodeAccountId(wallet.AccountId), Neo.Cryptography.ECC.ECCurve.Secp256r1);
                 Console.WriteLine($"The new wallet {wallet.AccountName} for {network_id}: ");
-                Console.WriteLine(ep.ToString());
+                // *** Show a correctly formatted private key  
+                //Console.WriteLine(ep.ToString());
+                Console.WriteLine(wallet.PrivateKey);
+                // ***
                 Console.WriteLine(wallet.AccountId);
                 return 0;
             }
@@ -115,7 +118,8 @@ namespace Lyra.Client.CLI
                             var result = wallet.RestoreAccount(lyra_folder, privatekey);
                             if (!result.Successful())
                             {
-                                Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
+                                //Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
+                                Console.WriteLine("Could not restore account from a private key: " + result.ResultMessage);
                                 continue;
                             }
                         }
