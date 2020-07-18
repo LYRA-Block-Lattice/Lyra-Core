@@ -1,6 +1,8 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -41,6 +43,13 @@ namespace Lyra.Core.Authorizers
             var result = await VerifyBlockAsync(sys, block, prevBlock);
             if (result != APIResultCodes.Success)
                 return result;
+
+            // verify fees
+            var allConsBlocks = await sys.Storage.GetConsolidationBlocksAsync(prevBlock.Hash);
+            var feesGened = allConsBlocks.Sum(a => a.totalFees);
+
+            if (block.FeesGenerated != feesGened)
+                return APIResultCodes.InvalidServiceBlockTotalFees;
 
             return APIResultCodes.Success;
         }

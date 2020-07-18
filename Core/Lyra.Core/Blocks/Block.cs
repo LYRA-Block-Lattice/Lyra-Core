@@ -307,7 +307,9 @@ namespace Lyra.Core.Blocks
         CannotSendToSelf = 68,
 
         // service blocks related
-        InvalidConsolidationMerkleTreeHash,
+        InvalidConsolidationMerkleTreeHash = 80,
+        InvalidConsolidationTotalFees,
+        InvalidServiceBlockTotalFees,
 
         DuplicateReceiveBlock = 100,
 

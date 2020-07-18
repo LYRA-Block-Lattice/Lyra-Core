@@ -8,6 +8,7 @@ using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using Clifton.Blockchain;
 using System.Linq;
+using Lyra.Core.API;
 
 namespace Lyra.Core.Authorizers
 {
@@ -56,19 +57,27 @@ namespace Lyra.Core.Authorizers
             // recalculate merkeltree
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
             var mt = new MerkleTree();
-            foreach(var hash in block.blockHashes)
+            decimal feeAggregated = 0;
+            foreach (var hash in block.blockHashes)
             {
                 mt.AppendLeaf(MerkleHash.Create(hash));
+
+                // aggregate fees
+                var transBlock = (await sys.Storage.FindBlockByHashAsync(hash)) as TransactionBlock;
+                if (transBlock != null)
+                {
+                    feeAggregated += transBlock.Fee;
+                }
             }
 
             var mkhash = mt.BuildTree().ToString();
+            if(block.MerkelTreeHash != mkhash)
+                return APIResultCodes.InvalidConsolidationMerkleTreeHash;
 
-            if (block.MerkelTreeHash == mkhash)
-            {
-                return APIResultCodes.Success;
-            }
+            if (block.totalFees != feeAggregated.ToBalanceLong())
+                return APIResultCodes.InvalidConsolidationTotalFees;
 
-            return APIResultCodes.InvalidConsolidationMerkleTreeHash;
+            return APIResultCodes.Success;
         }
 
     }
