@@ -446,21 +446,10 @@ namespace Lyra.Core.Decentralize
                     feeAggregated += transBlock.Fee;
                 }
             }
-            
+
+            consBlock.totalFees = feeAggregated.ToBalanceLong();
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             consBlock.ServiceHash = (await _sys.Storage.GetLastServiceBlockAsync()).Hash;
-
-            // calculate votes
-            //var lastVotes = collection.Where(a => a is TransactionBlock)
-            //    .Select(b => b as TransactionBlock)
-            //    .Where(v => !string.IsNullOrEmpty(v.VoteFor))
-            //    .GroupBy(v => v.AccountID, (key, g) => g.OrderByDescending(x => x.Height).First())
-            //    .Select(async a => new Vote
-            //    {
-            //        AccountId = a.VoteFor,
-            //        Amount = await GetVoteForAccountAsync(a.VoteFor) + (long) Math.Round(a.Balances[LyraGlobal.OFFICIALTICKERCODE]),
-            //        ConsHeight = lastCons.Height + 1
-            //    });                
 
             consBlock.InitializeBlock(lastCons, _sys.PosWallet.PrivateKey,
                 _sys.PosWallet.AccountId);

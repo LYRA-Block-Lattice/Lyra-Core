@@ -13,6 +13,9 @@ namespace Lyra.Core.Blocks
         public string MerkelTreeHash { get; set; }
         public long totalBlockCount { get; set; }
 
+        // fee aggregation
+        public long totalFees { get; set; }
+
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.Consolidation;
@@ -29,6 +32,7 @@ namespace Lyra.Core.Blocks
             }
             return base.GetExtraData() +
                 nui +
+                $"|{totalFees}" +
                 $"|{MerkelTreeHash}";
         }
     }

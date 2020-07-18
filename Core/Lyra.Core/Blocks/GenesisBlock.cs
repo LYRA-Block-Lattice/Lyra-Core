@@ -54,7 +54,7 @@ namespace Lyra.Core.Blocks
         // Free text
         public string Description { get; set; }
 
-        // Number of digits after decimal point, can be 0 - 12.
+        // Number of digits after decimal point, can be 0 - 8.
         public sbyte Precision { get; set; }
 
         // Can issue extra tokens?

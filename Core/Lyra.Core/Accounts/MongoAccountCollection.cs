@@ -597,18 +597,18 @@ namespace Lyra.Core.Accounts
             return result.ModifiedCount == 1;
         }
 
-        //public async Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync()
-        //{
-        //    var options = new FindOptions<Block, Block>
-        //    {
-        //        Limit = 100,
-        //        Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
-        //        Projection = Builders<Block>.Projection.Include(a => a.Hash)
-        //    };
-        //    var filter = Builders<Block>.Filter.Eq("Consolidated", false);
-        //    var result = await _blocks.FindAsync(filter, options);
-        //    return await result.ToListAsync();
-        //}
+        public async Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync()
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1000,
+                Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
+                Projection = Builders<Block>.Projection.Include(a => a.Hash)
+            };
+            var filter = Builders<Block>.Filter.Eq("Consolidated", false);
+            var result = await _blocks.FindAsync(filter, options);
+            return await result.ToListAsync();
+        }
 
         public async Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync()
         {

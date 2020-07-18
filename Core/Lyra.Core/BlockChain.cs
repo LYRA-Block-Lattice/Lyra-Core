@@ -627,6 +627,7 @@ namespace Lyra
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             consBlock.ServiceHash = svcGen.Hash;
+            consBlock.totalFees = lyraGen.Fee.ToBalanceLong();
             consBlock.InitializeBlock(null, _sys.PosWallet.PrivateKey,
                 _sys.PosWallet.AccountId);
 
