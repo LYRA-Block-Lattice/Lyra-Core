@@ -209,12 +209,27 @@ namespace Lyra.Core.Accounts
         {
             var options = new FindOptions<Block, Block>
             {
-                Limit = 100,
+                //Limit = 100,
                 Sort = Builders<Block>.Sort.Ascending(o => o.Height)
             };
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.Consolidation),
                 builder.Gte("Height", startHeight));
+
+            var result = await _blocks.FindAsync(filterDefinition, options);
+            return result.ToList().Cast<ConsolidationBlock>().ToList();
+        }
+
+        public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(string belongToSvcHash)
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                //Limit = 100,
+                Sort = Builders<Block>.Sort.Ascending(o => o.Height)
+            };
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.Consolidation),
+                builder.Eq("ServiceHash", belongToSvcHash));
 
             var result = await _blocks.FindAsync(filterDefinition, options);
             return result.ToList().Cast<ConsolidationBlock>().ToList();

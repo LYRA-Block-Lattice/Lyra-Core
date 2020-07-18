@@ -484,6 +484,10 @@ namespace Lyra
                                             break;
                                     }
 
+                                    // fees aggregation
+                                    var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
+                                    svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
+
                                     if(svcBlock.Authorizers.Count() >= prevSvcBlock.Authorizers.Count())
                                     {
                                         svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,
@@ -670,7 +674,8 @@ namespace Lyra
                 FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
                 TransferFee = 0, //1,           zero for genesis. back to normal when genesis done
                 TokenGenerationFee = 0, //100,
-                TradeFee = 0m //0.1m
+                TradeFee = 0m, //0.1m
+                FeesGenerated = 0
             };
 
             svcGenesis.Authorizers = new List<PosNode>();

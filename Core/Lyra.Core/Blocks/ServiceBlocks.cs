@@ -65,6 +65,9 @@ namespace Lyra.Core.Blocks
         //public int TokenGenerationDifficulty { get; set; }
         //public int TradeDifficulty { get; set; }
 
+        // all fees generated since last service block
+        public long FeesGenerated { get; set; }
+
         public ServiceBlock()
         {
             
@@ -80,6 +83,7 @@ namespace Lyra.Core.Blocks
             extraData = extraData + JsonConvert.SerializeObject(TransferFee) + "|";
             extraData = extraData + JsonConvert.SerializeObject(TokenGenerationFee) + "|";
             extraData = extraData + JsonConvert.SerializeObject(TradeFee) + "|";
+            extraData += $"{FeesGenerated}|";
             return extraData;
         }
 
