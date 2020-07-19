@@ -66,8 +66,7 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<TradeOrderBlock>();
             BsonClassMap.RegisterClassMap<ExecuteTradeOrderBlock>();
             BsonClassMap.RegisterClassMap<CancelTradeOrderBlock>();
-            BsonClassMap.RegisterClassMap<OpenWithReceiveFeeBlock>();
-            BsonClassMap.RegisterClassMap<ReceiveFeeBlock>();
+            BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
             BsonClassMap.RegisterClassMap<ConsolidationBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
@@ -460,6 +459,43 @@ namespace Lyra.Core.Accounts
 
             }
             return null;
+        }
+
+        public async Task<IEnumerable<ServiceBlock>> FindUnsettledFeeBlockAsync(string AuthorizerAccountId)
+        {
+            // get the latest feeblock
+            // get all new service since the latest feeblock
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1,
+                Sort = Builders<Block>.Sort.Descending(o => o.Height)
+            };
+            var builder = new FilterDefinitionBuilder<Block>();
+            var filterDefinition = builder.And(builder.Eq("AccountID", AuthorizerAccountId),
+                    builder.Eq("BlockType", BlockTypes.ReceiveAuthorizerFee));
+
+            long fromHeight = 1;
+            var latestFb = await(await _blocks.FindAsync(filterDefinition, options)).FirstOrDefaultAsync();
+            if(latestFb != null)
+            {
+                fromHeight = (latestFb as ReceiveAuthorizerFeeBlock).ServiceBlockHeight;
+            }
+
+            //var nodeFilter = builder.AnyIn("Authorizers", new[] { AuthorizerAccountId });
+            var nodeFilter = builder.Eq("Authorizers.AccountID", AuthorizerAccountId);
+            var heightFilter = builder.Gte("Height", fromHeight);
+
+            var options2 = new FindOptions<Block, Block>
+            {
+                Limit = 100,
+                Sort = Builders<Block>.Sort.Ascending(o => o.Height)
+            };
+
+            var sbs = await _blocks.FindAsync(builder.And(nodeFilter, heightFilter), options2);
+            if (sbs.Any())
+                return sbs.ToList().Cast<ServiceBlock>();
+            else
+                return Enumerable.Empty<ServiceBlock>();
         }
 
         /// <summary>

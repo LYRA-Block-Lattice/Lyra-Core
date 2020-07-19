@@ -173,12 +173,15 @@ namespace Lyra.Core.API
                 case BlockTypes.OpenAccountWithReceiveTransfer:
                     block = JsonConvert.DeserializeObject<OpenWithReceiveTransferBlock>(BlockData);
                     break;
-                case BlockTypes.ReceiveFee:
-                    block = JsonConvert.DeserializeObject<ReceiveFeeBlock>(BlockData);
+                case BlockTypes.ReceiveAuthorizerFee:
+                    block = JsonConvert.DeserializeObject<ReceiveAuthorizerFeeBlock>(BlockData);
                     break;
-                case BlockTypes.OpenAccountWithReceiveFee:
-                    block = JsonConvert.DeserializeObject<OpenWithReceiveFeeBlock>(BlockData);
-                    break;
+                //case BlockTypes.ReceiveFee:
+                //    block = JsonConvert.DeserializeObject<Blocks.Fees.ReceiveFeeBlock>(BlockData);
+                //    break;
+                //case BlockTypes.OpenAccountWithReceiveFee:
+                //    block = JsonConvert.DeserializeObject<OpenWithReceiveFeeBlock>(BlockData);
+                //    break;
                 case BlockTypes.Service:
                     block = JsonConvert.DeserializeObject<ServiceBlock>(BlockData);
                     break;
@@ -220,6 +223,11 @@ namespace Lyra.Core.API
         public TransactionInfo Transfer { get; set; }
         public string SourceHash { get; set; }
         public NonFungibleToken NonFungibleToken { get; set; }
+    }
+
+    public class NewFeesAPIResult : APIResult
+    {
+        public IEnumerable<ServiceBlock> pendingFeeBlocks { get; set; }
     }
 
     public class GetListStringAPIResult : APIResult

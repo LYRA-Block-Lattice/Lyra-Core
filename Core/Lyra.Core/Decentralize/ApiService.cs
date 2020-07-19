@@ -147,11 +147,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
-            return await Pre_PrepareAsync(block, async (b) =>
-            {
-                var feeResult = await ProcessTokenGenerationFee(b as LyraTokenGenesisBlock).ConfigureAwait(false);
-                return feeResult.block;
-            }).ConfigureAwait(false);
+            return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
         public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
@@ -167,11 +163,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
-            return await Pre_PrepareAsync(sendBlock, async (b) =>
-            {
-                var feeResult = await ProcessTransferFee(b as SendTransferBlock);
-                return feeResult.block;
-            }).ConfigureAwait(false);
+            return await Pre_PrepareAsync(sendBlock).ConfigureAwait(false);
         }
 
         public Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
@@ -180,6 +172,11 @@ namespace Lyra.Core.Decentralize
         }
 
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
+        {
+            return await Pre_PrepareAsync(receiveBlock).ConfigureAwait(false);
+        }
+
+        public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock receiveBlock)
         {
             return await Pre_PrepareAsync(receiveBlock).ConfigureAwait(false);
         }
@@ -201,11 +198,7 @@ namespace Lyra.Core.Decentralize
                 return result;
             }
 
-            return await Pre_PrepareAsync(tokenBlock, async (b) =>
-            {
-                var feeResult = await ProcessTokenGenerationFee(b as TokenGenesisBlock);
-                return feeResult.block;
-            }).ConfigureAwait(false);
+            return await Pre_PrepareAsync(tokenBlock).ConfigureAwait(false);
         }
 
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
@@ -288,86 +281,86 @@ namespace Lyra.Core.Decentralize
             throw new NotImplementedException();
         }
 
-        #region Fee processing private methods
+        //#region Fee processing private methods
 
-        async Task<(APIResultCodes result, TransactionBlock block)> ProcessTransferFee(SendTransferBlock sendBlock)
-        {
-            // TO DO: handle all token balances, not just LYRA
-            if(sendBlock is ExchangingBlock)
-            {
-                if(sendBlock.Fee != ExchangingBlock.FEE)
-                    return (APIResultCodes.InvalidFeeAmount, null);
-            }
-            else if (sendBlock.Fee != (await NodeService.Dag.Storage.GetLastServiceBlockAsync()).TransferFee)
-                return (APIResultCodes.InvalidFeeAmount, null);
+        //async Task<(APIResultCodes result, TransactionBlock block)> ProcessTransferFee(SendTransferBlock sendBlock)
+        //{
+        //    // TO DO: handle all token balances, not just LYRA
+        //    if(sendBlock is ExchangingBlock)
+        //    {
+        //        if(sendBlock.Fee != ExchangingBlock.FEE)
+        //            return (APIResultCodes.InvalidFeeAmount, null);
+        //    }
+        //    else if (sendBlock.Fee != (await NodeService.Dag.Storage.GetLastServiceBlockAsync()).TransferFee)
+        //        return (APIResultCodes.InvalidFeeAmount, null);
 
-            if(sendBlock.FeeType == AuthorizationFeeTypes.NoFee)
-                return (APIResultCodes.Success, null);
+        //    if(sendBlock.FeeType == AuthorizationFeeTypes.NoFee)
+        //        return (APIResultCodes.Success, null);
 
-            return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
-        }
+        //    return await ProcessFee(sendBlock.Hash, sendBlock.Fee);
+        //}
 
-        async Task<(APIResultCodes result, TransactionBlock block)> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
-        {
-            if (tokenBlock.Fee != (await NodeService.Dag.Storage.GetLastServiceBlockAsync()).TokenGenerationFee)
-                return (APIResultCodes.InvalidFeeAmount, null);
+        //async Task<(APIResultCodes result, TransactionBlock block)> ProcessTokenGenerationFee(TokenGenesisBlock tokenBlock)
+        //{
+        //    if (tokenBlock.Fee != (await NodeService.Dag.Storage.GetLastServiceBlockAsync()).TokenGenerationFee)
+        //        return (APIResultCodes.InvalidFeeAmount, null);
 
-            return await ProcessFee(tokenBlock.Hash, tokenBlock.Fee);
-        }
+        //    return await ProcessFee(tokenBlock.Hash, tokenBlock.Fee);
+        //}
 
-        private async Task<(APIResultCodes result, TransactionBlock block)> ProcessFee(string source, decimal fee)
-        {
-            var callresult = APIResultCodes.Success;
-            TransactionBlock blockresult = null;
+        //private async Task<(APIResultCodes result, TransactionBlock block)> ProcessFee(string source, decimal fee)
+        //{
+        //    var callresult = APIResultCodes.Success;
+        //    TransactionBlock blockresult = null;
 
-            var svcBlockResult = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
+        //    var svcBlockResult = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
 
-            TransactionBlock latestBlock = await NodeService.Dag.Storage.FindLatestBlockAsync(NodeService.Dag.PosWallet.AccountId) as TransactionBlock;
-            if(latestBlock == null)
-            {
-                var receiveBlock = new OpenWithReceiveFeeBlock
-                {
-                    AccountType = AccountTypes.Service,
-                    AccountID = NodeService.Dag.PosWallet.AccountId,
-                    ServiceHash = svcBlockResult.Hash,
-                    SourceHash = source,
-                    Fee = 0,
-                    FeeType = AuthorizationFeeTypes.NoFee,
-                    Balances = new Dictionary<string, long>()
-                };
-                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fee.ToBalanceLong());
-                receiveBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, NodeService.Dag.PosWallet.AccountId);
+        //    TransactionBlock latestBlock = await NodeService.Dag.Storage.FindLatestBlockAsync(NodeService.Dag.PosWallet.AccountId) as TransactionBlock;
+        //    if(latestBlock == null)
+        //    {
+        //        var receiveBlock = new OpenWithReceiveFeeBlock
+        //        {
+        //            AccountType = AccountTypes.Service,
+        //            AccountID = NodeService.Dag.PosWallet.AccountId,
+        //            ServiceHash = svcBlockResult.Hash,
+        //            SourceHash = source,
+        //            Fee = 0,
+        //            FeeType = AuthorizationFeeTypes.NoFee,
+        //            Balances = new Dictionary<string, long>()
+        //        };
+        //        receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fee.ToBalanceLong());
+        //        receiveBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, NodeService.Dag.PosWallet.AccountId);
 
-                //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
-                //callresult = await authorizer.Authorize(receiveBlock);
-                blockresult = receiveBlock;
-            }
-            else
-            {
-                var receiveBlock = new ReceiveFeeBlock
-                {
-                    AccountID = NodeService.Dag.PosWallet.AccountId,
-                    ServiceHash = svcBlockResult.Hash,
-                    SourceHash = source,
-                    Fee = 0,
-                    FeeType = AuthorizationFeeTypes.NoFee,
-                    Balances = new Dictionary<string, long>()
-                };
+        //        //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.NewAccountAuthorizer");
+        //        //callresult = await authorizer.Authorize(receiveBlock);
+        //        blockresult = receiveBlock;
+        //    }
+        //    else
+        //    {
+        //        var receiveBlock = new ReceiveAuthorizerFeeBlock
+        //        {
+        //            AccountID = NodeService.Dag.PosWallet.AccountId,
+        //            ServiceHash = svcBlockResult.Hash,
+        //            SourceHash = source,
+        //            Fee = 0,
+        //            FeeType = AuthorizationFeeTypes.NoFee,
+        //            Balances = new Dictionary<string, long>()
+        //        };
 
-                decimal newBalance = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + fee.ToBalanceLong();
-                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, newBalance.ToBalanceLong());
-                receiveBlock.InitializeBlock(latestBlock, NodeService.Dag.PosWallet.PrivateKey, NodeService.Dag.PosWallet.AccountId);
+        //        decimal newBalance = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + fee.ToBalanceLong();
+        //        receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, newBalance.ToBalanceLong());
+        //        receiveBlock.InitializeBlock(latestBlock, NodeService.Dag.PosWallet.PrivateKey, NodeService.Dag.PosWallet.AccountId);
 
-                //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");
-                //callresult = await authorizer.Authorize(receiveBlock);
-                blockresult = receiveBlock;
-            }
+        //        //var authorizer = GrainFactory.GetGrain<IAuthorizer>(Guid.NewGuid(), "Lyra.Core.Authorizers.ReceiveTransferAuthorizer");
+        //        //callresult = await authorizer.Authorize(receiveBlock);
+        //        blockresult = receiveBlock;
+        //    }
 
-            //receiveBlock.Signature = Signatures.GetSignature(NodeService.Dag.Storage.ServiceAccount.PrivateKey, receiveBlock.Hash);
-            return (callresult, blockresult);
-        }
+        //    //receiveBlock.Signature = Signatures.GetSignature(NodeService.Dag.Storage.ServiceAccount.PrivateKey, receiveBlock.Hash);
+        //    return (callresult, blockresult);
+        //}
 
-        #endregion
+        //#endregion
 
         // util 
         private T FromJson<T>(string json)

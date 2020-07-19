@@ -511,6 +511,30 @@ namespace Lyra.Core.Decentralize
             return transfer_info;
         }
 
+        public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
+        {
+            NewFeesAPIResult fbs = new NewFeesAPIResult();
+            if (!await VerifyClientAsync(AccountId, Signature))
+            {
+                fbs.pendingFeeBlocks = Enumerable.Empty<ServiceBlock>();
+                fbs.ResultCode = APIResultCodes.APISignatureValidationFailed;
+                return fbs;
+            }
+
+            try
+            {
+                fbs.pendingFeeBlocks = await NodeService.Dag.Storage.FindUnsettledFeeBlockAsync(AccountId);
+                fbs.ResultCode = APIResultCodes.Success;
+                return fbs;
+            }
+            catch (Exception ex)
+            {
+                fbs.ResultCode = APIResultCodes.UnknownError;
+                fbs.ResultMessage = ex.Message;
+                return fbs;
+            }
+        }
+
         // util 
         private T FromJson<T>(string json)
         {

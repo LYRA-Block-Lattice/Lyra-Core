@@ -44,6 +44,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature);
 
         Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature);
+        Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature);
 
         Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature);
         #endregion Account maintenance methods
@@ -62,6 +63,7 @@ namespace Lyra.Core.API
         Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block);
 
         Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block);
+        Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock block);
 
         Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block);
 

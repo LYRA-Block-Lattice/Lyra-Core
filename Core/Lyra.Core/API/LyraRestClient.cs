@@ -335,6 +335,18 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
+        public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"LookForNewFees/?AccountId={AccountId}&Signature={Signature}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<NewFeesAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
             return await PostBlock("OpenAccountWithGenesis", block);
@@ -348,6 +360,11 @@ namespace Lyra.Core.API
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block)
         {
             return await PostBlock("ReceiveTransfer", block);
+        }
+
+        public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock block)
+        {
+            return await PostBlock("ReceiveFee", block);
         }
 
         public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)

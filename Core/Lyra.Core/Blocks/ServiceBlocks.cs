@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Lyra.Core.API;
 using Lyra.Core.Decentralize;
 using MongoDB.Bson.Serialization.Attributes;
 using Neo;
@@ -95,7 +96,7 @@ namespace Lyra.Core.Blocks
         public override bool IsBlockValid(Block prevBlock)
         {
             if (string.IsNullOrWhiteSpace(this.FeeTicker) 
-                || this.FeeTicker != "BES"
+                || this.FeeTicker != LyraGlobal.OFFICIALTICKERCODE
                 || string.IsNullOrWhiteSpace(this.NetworkId) 
                 || Authorizers.Count < ProtocolSettings.Default.StandbyValidators.Length)
                 return false;

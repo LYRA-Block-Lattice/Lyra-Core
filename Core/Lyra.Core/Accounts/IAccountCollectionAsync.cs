@@ -28,6 +28,7 @@ namespace Lyra.Core.Accounts
         Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash);
         Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index);
         Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId);
+        Task<IEnumerable<ServiceBlock>> FindUnsettledFeeBlockAsync(string AuthorizerAccountId);
 
         // for service blocks
         Task<ServiceBlock> GetLastServiceBlockAsync();

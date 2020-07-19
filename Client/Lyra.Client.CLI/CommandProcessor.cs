@@ -37,6 +37,7 @@ namespace Lyra.Client.CLI
         public const string COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST = "orders";
         public const string COMMAND_REDEEM_REWARDS = "redeem";
         public const string COMMAND_VOTEFOR = "votefor";
+        public const string COMMAND_SYNCFEE = "syncfee";
 
         // set wallet's private key
         public const string COMMAND_RESTORE = "restore";
@@ -80,6 +81,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Print transaction block", COMMAND_PRINT_BLOCK));
                         //Console.WriteLine(string.Format(@"{0,10}: Print the list of active trade orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up with the node", COMMAND_SYNC));
+                        Console.WriteLine(string.Format(@"{0,10}: Sync up authorizer node's fees", COMMAND_SYNCFEE));
                         Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Exit this app", COMMAND_STOP));
                         //Console.WriteLine(string.Format(@"{0,10}: Generate a network genesis block (testnet only)", COMMAND_GEN_NOTE));
@@ -151,6 +153,10 @@ namespace Lyra.Client.CLI
                     case COMMAND_RESYNC:
                         var sync_result2 = await _wallet.Sync(null, true);
                         Console.WriteLine("Sync Result: " + sync_result2.ToString());
+                        break;
+                    case COMMAND_SYNCFEE:
+                        var sfeeResult = await _wallet.SyncNodeFees();
+                        Console.WriteLine($"Sync Fees Result: {sfeeResult}");
                         break;
                     //case COMMAND_TRADE_ORDER:
                     //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);

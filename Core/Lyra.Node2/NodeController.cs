@@ -187,6 +187,14 @@ namespace LyraLexWeb2
             return await _node.LookForNewTransfer(AccountId, Signature);
         }
 
+        [Route("LookForNewFees")]
+        [HttpGet]
+        public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
+        {
+            CheckSyncState();
+            return await _node.LookForNewFees(AccountId, Signature);
+        }
+
         [Route("OpenAccountWithGenesis")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
@@ -233,6 +241,14 @@ namespace LyraLexWeb2
         {
             CheckSyncState();
             return await _trans.ReceiveTransfer(receiveBlock);
+        }
+
+        [Route("ReceiveFee")]
+        [HttpPost]
+        public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock receiveBlock)
+        {
+            CheckSyncState();
+            return await _trans.ReceiveFee(receiveBlock);
         }
 
         [Route("ImportAccount")]

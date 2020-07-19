@@ -203,8 +203,10 @@ namespace Lyra.Core.Blocks
         ImportAccount = 34,
 
         ReceiveMultipleFee = 35,
-        // Trading blocks
 
+        ReceiveAuthorizerFee = 36,
+
+        // Trading blocks
         // Put Sell or Buy trade order to exchange tokens
         TradeOrder = 40,
 
