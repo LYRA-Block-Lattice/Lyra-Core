@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace Lyra.Core.Blocks
 {
     [BsonIgnoreExtraElements]
-    public class ReceiveAuthorizerFeeBlock : TransactionBlock
+    public class ReceiveAuthorizerFeeBlock : ReceiveTransferBlock
     {        
         public long ServiceBlockHeight { get; set; }
         public string ToAccountId { get; set; }

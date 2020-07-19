@@ -222,6 +222,7 @@ namespace Lyra.Core.Accounts
                         AccountID = AccountId,
                         VoteFor = _storage.GetVoteFor(),
                         ServiceHash = svcBlockResult.GetBlock().Hash,
+                        SourceHash = sb.Hash,
                         ServiceBlockHeight = sb.Height,
                         Balances = new Dictionary<string, long>(),
                         Fee = 0,
@@ -232,7 +233,7 @@ namespace Lyra.Core.Accounts
                     TransactionBlock latestBlock = GetLatestBlock();
                     if(latestBlock != null)
                     {
-                        if(receiveBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                        if(latestBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                             receiveBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + sb.FeesGenerated / sb.Authorizers.Count;
                         else
                             receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, sb.FeesGenerated / sb.Authorizers.Count);

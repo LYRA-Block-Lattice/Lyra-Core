@@ -484,6 +484,7 @@ namespace Lyra.Core.Accounts
             //var nodeFilter = builder.AnyIn("Authorizers", new[] { AuthorizerAccountId });
             var nodeFilter = builder.Eq("Authorizers.AccountID", AuthorizerAccountId);
             var heightFilter = builder.Gte("Height", fromHeight);
+            var feeFilter = builder.Gt("FeesGenerated", 21);    // make sure that every node has a minimal share
 
             var options2 = new FindOptions<Block, Block>
             {
@@ -491,11 +492,11 @@ namespace Lyra.Core.Accounts
                 Sort = Builders<Block>.Sort.Ascending(o => o.Height)
             };
 
-            var sbs = await _blocks.FindAsync(builder.And(nodeFilter, heightFilter), options2);
-            if (sbs.Any())
-                return sbs.ToList().Cast<ServiceBlock>();
-            else
-                return Enumerable.Empty<ServiceBlock>();
+            var sbs = await _blocks.FindAsync(builder.And(nodeFilter, heightFilter, feeFilter), options2);
+            //if (sbs.Any())
+            return sbs.ToList().Cast<ServiceBlock>();
+            //else
+            //    return Enumerable.Empty<ServiceBlock>();
         }
 
         /// <summary>
