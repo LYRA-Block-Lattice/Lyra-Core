@@ -13,7 +13,9 @@
       "seed2.devnet.wizdag.com:4503"
     ],
     "StartupValidators": [
-
+      "LMXwpzKcvkf5jccVADe9zfa97KDjQVG4bZuZqxYQaDMKUsjz2BGtdA6tJgc5uUo36d7hjYfpXUtqi3uFx1PcdSsBEjJ4nX",
+      "LKqshPTADX2PRDUfKDoWiUprJhZTUUvssgf3VbrP1bWNw5Voxtf4pKSPVBnxeGGCDrnqbykMe5tjjkMzUpFi8NsUD6afg6",
+      "LZNorAM3itMj9NRzMCgTTSYZYpMcMwdAegyf52wAUf4T7nQwMfP72eLXXpAJ3B2AbLMsj3p1oo5CCwer4iHjapLjwrLHb6"
     ]
   }
 }
