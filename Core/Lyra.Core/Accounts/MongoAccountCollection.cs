@@ -483,7 +483,7 @@ namespace Lyra.Core.Accounts
 
             //var nodeFilter = builder.AnyIn("Authorizers", new[] { AuthorizerAccountId });
             var nodeFilter = builder.Eq("Authorizers.AccountID", AuthorizerAccountId);
-            var heightFilter = builder.Gte("Height", fromHeight);
+            var heightFilter = builder.Gt("Height", fromHeight);
             var feeFilter = builder.Gt("FeesGenerated", 21);    // make sure that every node has a minimal share
 
             var options2 = new FindOptions<Block, Block>

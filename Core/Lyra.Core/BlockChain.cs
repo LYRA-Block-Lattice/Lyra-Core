@@ -444,7 +444,8 @@ namespace Lyra
         public void AuthorizerCountChangedProc(int count)
         {
             var IsSeed0 = _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0()).Result;
-            if (IsSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)
+
+            if (this._stateMachine.State == BlockChainState.Almighty && IsSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)
             {
                 //_log.LogInformation($"AuthorizerCountChanged: {count}");
                 // look for changes. if necessary create a new svc block.
@@ -469,6 +470,7 @@ namespace Lyra
                                     {
                                         NetworkId = prevSvcBlock.NetworkId,
                                         Height = prevSvcBlock.Height + 1,
+                                        FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
                                         ServiceHash = prevSvcBlock.Hash,
                                         TransferFee = 1,           //zero for genesis. back to normal when genesis done
                                         TokenGenerationFee = 10000,

@@ -231,10 +231,11 @@ namespace Lyra.Core.Accounts
                     };
 
                     TransactionBlock latestBlock = GetLatestBlock();
+                    var prevSb = (await _rpcClient.GetBlockByHash(AccountId, sb.PreviousHash, SignAPICallAsync())).GetBlock() as ServiceBlock;
                     if(latestBlock != null)
                     {
                         if(latestBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                            receiveBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + sb.FeesGenerated / sb.Authorizers.Count;
+                            receiveBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + sb.FeesGenerated / prevSb.Authorizers.Count;
                         else
                             receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, sb.FeesGenerated / sb.Authorizers.Count);
 

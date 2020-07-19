@@ -387,10 +387,10 @@ namespace Lyra.Core.Decentralize
                 //if necessary, insert a new ConsolidateBlock
                 if (IsThisNodeSeed0)
                 {
-                    // test code
-                    var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
-                    _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
-                    // end test code
+                    //// test code
+                    //var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
+                    //_lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
+                    //// end test code
 
                     var unConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
                     var lastConsBlock = await _sys.Storage.GetLastConsolidationBlockAsync();
@@ -693,10 +693,10 @@ namespace Lyra.Core.Decentralize
 
         private void RefreshAllNodesVotesAsync()
         {
-            if (_lastVotes == null)
-                return;
+            var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
+            _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
 
-            foreach(var node in _board.AllNodes.Values.ToList())
+            foreach (var node in _board.AllNodes.Values.ToList())
             {
                 var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
                 if (vote == null)
