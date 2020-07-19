@@ -45,11 +45,14 @@ namespace Lyra.Core.Authorizers
                 return result;
 
             // verify fees
-            var allConsBlocks = await sys.Storage.GetConsolidationBlocksAsync(prevBlock.Hash);
-            var feesGened = allConsBlocks.Sum(a => a.totalFees);
+            if(prevBlock != null)
+            {
+                var allConsBlocks = await sys.Storage.GetConsolidationBlocksAsync(prevBlock.Hash);
+                var feesGened = allConsBlocks.Sum(a => a.totalFees);
 
-            if (block.FeesGenerated != feesGened)
-                return APIResultCodes.InvalidServiceBlockTotalFees;
+                if (block.FeesGenerated != feesGened)
+                    return APIResultCodes.InvalidServiceBlockTotalFees;
+            }
 
             return APIResultCodes.Success;
         }
