@@ -114,6 +114,20 @@ namespace Lyra.Core.Decentralize
             Votes = 0;
         }
 
+        public override bool Equals(object obj)
+        {
+            if(obj is PosNode pn)
+            {
+                return AccountID == pn.AccountID
+                    && IPAddress == pn.IPAddress
+                    && Votes == pn.Votes
+                    && LastStaking == pn.LastStaking
+                    && Signature == pn.Signature;
+            }
+
+            return base.Equals(obj);
+        }
+
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die
         public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Votes >= LyraGlobal.MinimalAuthorizerBalance) && (DateTime.Now - LastStaking < TimeSpan.FromSeconds(90));
     }

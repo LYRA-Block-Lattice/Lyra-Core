@@ -1,10 +1,13 @@
-﻿using Lyra.Core.API;
+﻿using Akka.Actor;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Lyra.Core.Decentralize.ConsensusService;
 
 namespace Lyra.Core.Authorizers
 {
@@ -31,27 +34,36 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as ServiceBlock;
 
-            //// 1. check if the block already exists
-            //if (null != await DagSystem.Singleton.Storage.GetBlockByUIndexAsync(block.UIndex))
-            //    return APIResultCodes.BlockWithThisIndexAlreadyExists;
-
-            // service specifice feature
-            //block.
-
             var prevBlock = await sys.Storage.FindBlockByHashAsync(block.PreviousHash);
 
             var result = await VerifyBlockAsync(sys, block, prevBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
+            // service specifice feature
+            if (block.FeeTicker != LyraGlobal.OFFICIALTICKERCODE)
+                return APIResultCodes.InvalidFeeTicker;
+
             // verify fees
-            if(prevBlock != null)
+            if (prevBlock != null)
             {
                 var allConsBlocks = await sys.Storage.GetConsolidationBlocksAsync(prevBlock.Hash);
                 var feesGened = allConsBlocks.Sum(a => a.totalFees);
 
                 if (block.FeesGenerated != feesGened)
                     return APIResultCodes.InvalidServiceBlockTotalFees;
+            }
+
+            // authorizers
+            if (block.Authorizers.Count > LyraGlobal.MAXMIMUMAUTHORIZERS
+                || block.Authorizers.Count < (prevBlock as ServiceBlock).Authorizers.Count)
+                return APIResultCodes.InvalidAuthorizerCount;
+
+            var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+            for(int i = 0; i < block.Authorizers.Count; i++)
+            {
+                if (!block.Authorizers[i].Equals(board.PrimaryAuthorizers[i]))
+                    return APIResultCodes.InvalidAuthorizerInBillBoard;
             }
 
             return APIResultCodes.Success;
