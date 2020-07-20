@@ -62,7 +62,7 @@ namespace Lyra.Core.Authorizers
             var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
             for(int i = 0; i < block.Authorizers.Count; i++)
             {
-                if (!block.Authorizers[i].Equals(board.PrimaryAuthorizers[i]))
+                if (!block.Authorizers[i].AccountID.Equals(board.PrimaryAuthorizers[i]))
                     return APIResultCodes.InvalidAuthorizerInBillBoard;
             }
 
