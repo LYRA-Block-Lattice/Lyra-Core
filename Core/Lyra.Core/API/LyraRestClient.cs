@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.WebSockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -149,7 +150,8 @@ namespace Lyra.Core.API
 
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}");
+            var api_call = $"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}";
+            HttpResponseMessage response = await _client.GetAsync(api_call);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<GetVersionAPIResult>();
@@ -176,12 +178,62 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        #region All reward trade methods
+
+        public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
-            throw new NotImplementedException();
+            var args = new Dictionary<string, string>();
+            args.Add("AccountId", AccountId);
+            args.Add("BuyTokenCode", BuyTokenCode);
+            args.Add("SellTokenCode", SellTokenCode);
+            args.Add("Signature", Signature);
+            return await Get<TradeAPIResult>("LookForNewTrade", args);
         }
 
-        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        {
+            var args = new Dictionary<string, string>();
+            args.Add("AccountId", AccountId);
+            args.Add("SellToken", SellToken);
+            args.Add("BuyToken", BuyToken);
+            args.Add("OrderType", OrderType.ToString());
+            args.Add("Signature", Signature);
+            return await Get<ActiveTradeOrdersAPIResult>("GetActiveTradeOrders", args);
+        }
+
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock tradeOrderBlock)
+        {
+            //return await PostBlock("TradeOrder", tradeOrderBlock);
+
+            HttpResponseMessage response = await _client.PostAsJsonAsync("TradeOrder", tradeOrderBlock).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<TradeOrderAuthorizationAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
+        {
+            return await PostBlock("Trade", block);
+        }
+
+        public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
+        {
+            return await PostBlock("ExecuteTradeOrder", block);
+        }
+
+        public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
+        {
+            return await PostBlock("CancelTradeOrder", block);
+        }
+
+        #endregion
+
+public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
             if (response.IsSuccessStatusCode)
@@ -316,11 +368,6 @@ namespace Lyra.Core.API
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
             return await PostBlock("ImportAccount", block);
-        }
-
-        public Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)

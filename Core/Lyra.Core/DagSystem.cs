@@ -15,6 +15,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Settings = Neo.Settings;
+using Lyra.Core.Authorizers;
 
 namespace Lyra
 {
@@ -41,6 +42,8 @@ namespace Lyra
 
         public IAccountCollectionAsync Storage { get; private set; }
 
+        public TradeMatchEngine TradeEngine { get; private set; }
+
         public DagSystem(IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {
             _log = new SimpleLogger("DagSystem").Logger;
@@ -53,6 +56,8 @@ namespace Lyra
 
             TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, store));
             TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
+
+            TradeEngine = new TradeMatchEngine(Storage);
         }
 
         public void Start()

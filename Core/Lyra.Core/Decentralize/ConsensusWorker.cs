@@ -359,7 +359,12 @@ namespace Lyra.Core.Decentralize
         {
             var block = _state.InputMsg?.Block;
             if (block == null)
+            // debug 
+            {
+                _log.LogWarning($"Block is null");
                 return;
+            }
+            //
 
             if (_state.CommitConsensus == ConsensusResult.Yea)
             {
@@ -424,10 +429,11 @@ namespace Lyra.Core.Decentralize
             }
             else if (_state.CommitConsensus == ConsensusResult.Nay)
             {
-
+                _log.LogWarning($"Block not saved because ConsensusResult is Nay: {block.Height}");
             }
             else
             {
+                //_log.LogWarning($"Block not saved because ConsensusResult is Uncertain: {block.Height}");
                 return;
             }
 
@@ -461,8 +467,11 @@ namespace Lyra.Core.Decentralize
             //if (_activeConsensus.ContainsKey(item.BlockHash))
             //{
             //    var state = _activeConsensus[item.BlockHash];
-            if(_state.AddCommitedResult(item))
+            bool committed_result = _state.AddCommitedResult(item);
+            if (committed_result)
                 await CheckCommitedOKAsync();
+
+            //_log.LogInformation($"committed_result: {committed_result}");
 
             _log.LogInformation($"OnCommit: {_state.CommitMsgs.Count}/{_state.WinNumber} From {item.From.Shorten()}, {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash.Shorten()}");
 

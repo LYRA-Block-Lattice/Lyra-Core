@@ -2,13 +2,14 @@
   "ApplicationConfiguration": {
     "LyraNode": {
       "Lyra": {
+        "NetworkId": "devnet",
         "Database": {
-          "DatabaseName": "lyra",
-          "DBConnect": "mongodb://lexuser:Xejg03sjd@127.0.0.1/lyra",
-          "DexDBConnect": "mongodb://lexuser:Xejg03sjd@127.0.0.1/dex"
+          "DatabaseName": "wizdag",
+          "DBConnect": "mongodb://lexuser:alongpassword@127.0.0.1/wizdag",
+          "DexDBConnect": "mongodb://lexuser:alongpassword@127.0.0.1/wizdex"
         },
         "Wallet": {
-          "Name": "poswallet"
+          "Name": "devwallet_1"
         },
         "FeeAccountId": "LHrtDCqUNVCTSu7YkuKHufdx47AB1qDKshSjUpdjSwNKSUbg5SX94ucQnsoVhb4V3jqNNTV8cHCVLQYLNUawg2MDc9rkHe"
       }
@@ -20,6 +21,9 @@
       "Port": 4503,
       "WsPort": 4504,
       "WebAPI": 4505
+      //"Port": 45031,
+      //"WsPort": 45041,
+      //"WebAPI": 45051
     },
     "UnlockWallet": {
       "Path": "",

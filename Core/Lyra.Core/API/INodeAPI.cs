@@ -48,6 +48,15 @@ namespace Lyra.Core.API
 
         Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature);
         #endregion Account maintenance methods
+
+        #region Reward trade methods
+
+        Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature);
+
+        Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature);
+
+        #endregion
+
     }
 
     public interface INodeTransactionAPI
@@ -76,6 +85,18 @@ namespace Lyra.Core.API
         Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block);
 
         #endregion Authorization methods
+
+        #region Reward Trade Athorization Methods
+        
+        Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block);
+
+        Task<AuthorizationAPIResult> Trade(TradeBlock block);
+
+        Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block);
+
+        Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block);
+        
+        #endregion
     }
 
     public interface INodeDexAPI

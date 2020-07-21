@@ -73,13 +73,13 @@ namespace Lyra.Client.CLI
                         //Console.WriteLine(string.Format(@"{0,10}: Pay to a merchant", COMMAND_PAY));
                         //Console.WriteLine(string.Format(@"{0,10}: Accept payment from a buyer", COMMAND_SELL));
                         Console.WriteLine(string.Format(@"{0,10}: Display the account status summary", COMMAND_STATUS));
-                       // Console.WriteLine(string.Format(@"{0,10}: Place a trade order", COMMAND_TRADE_ORDER));
+                        //Console.WriteLine(string.Format(@"{0,10}: Place a trade order", COMMAND_TRADE_ORDER));
                         //Console.WriteLine(string.Format(@"{0,10}: Cancel trade order", COMMAND_CANCEL_TRADE_ORDER));
-                        //Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
+                        Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new custom digital asset (token)", COMMAND_TOKEN));
                         Console.WriteLine(string.Format(@"{0,10}: Print last transaction block", COMMAND_PRINT_LAST_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Print transaction block", COMMAND_PRINT_BLOCK));
-                        //Console.WriteLine(string.Format(@"{0,10}: Print the list of active trade orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
+                        Console.WriteLine(string.Format(@"{0,10}: Print the list of active reward orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up with the node", COMMAND_SYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up authorizer node's fees", COMMAND_SYNCFEE));
                         Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
@@ -161,14 +161,14 @@ namespace Lyra.Client.CLI
                     //case COMMAND_TRADE_ORDER:
                     //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
                     //    ProcessTradeOrder();
-                    //    break;
-                    //case COMMAND_REDEEM_REWARDS:
-                    //    ProcessRedeemRewardsTradeOrder();
-                    //    break;
-                    //case COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST:
-                    //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-                    //    Console.WriteLine(_wallet.PrintActiveTradeOrders());
-                    //    break;
+                        break;
+                    case COMMAND_REDEEM_REWARDS:
+                        ProcessRedeemRewardsTradeOrder();
+                        break;
+                    case COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST:
+                        //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
+                        Console.WriteLine(await _wallet.PrintActiveTradeOrdersAsync());
+                        break;
                     //                  case COMMAND_TRADE_ORDER_SELL_TEST:
                     //                      //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
                     ////                    TradeOrderSellTest();
@@ -194,98 +194,99 @@ namespace Lyra.Client.CLI
             return 0;
         }
 
-/*        void TradeOrderSellTest()
-        {
-            var orderType = TradeOrderTypes.Sell;
-            var sell_token = "USD";
-            var buy_token = LyraGlobal.LYRA_TICKER_CODE;
-            var max_amount = 5;
-            var price = 10;
-            var result = _wallet.TradeOrder(orderType, sell_token, buy_token, max_amount, 0, price, true, true).Result;
-            Console.WriteLine($"Result code: {result.ResultCode}");
-            Console.WriteLine($"Result Message: {result.ResultMessage}");
-        }
+       
+        /*        void TradeOrderSellTest()
+                {
+                    var orderType = TradeOrderTypes.Sell;
+                    var sell_token = "USD";
+                    var buy_token = LyraGlobal.LYRA_TICKER_CODE;
+                    var max_amount = 5;
+                    var price = 10;
+                    var result = _wallet.TradeOrder(orderType, sell_token, buy_token, max_amount, 0, price, true, true).Result;
+                    Console.WriteLine($"Result code: {result.ResultCode}");
+                    Console.WriteLine($"Result Message: {result.ResultMessage}");
+                }
 
-        void TradeOrderBuyTest()
-        {
-            var orderType = TradeOrderTypes.Buy;
-            var buy_token = "USD";
-            var sell_token = LyraGlobal.LYRA_TICKER_CODE;
-            var max_amount = 5;
-            var price = 10;
-            var result = _wallet.TradeOrder(orderType, sell_token, buy_token, max_amount, 0, price, false, false).Result;
-            Console.WriteLine($"Result code: {result.ResultCode}");
-            Console.WriteLine($"Result Message: {result.ResultMessage}");
-        }
+                void TradeOrderBuyTest()
+                {
+                    var orderType = TradeOrderTypes.Buy;
+                    var buy_token = "USD";
+                    var sell_token = LyraGlobal.LYRA_TICKER_CODE;
+                    var max_amount = 5;
+                    var price = 10;
+                    var result = _wallet.TradeOrder(orderType, sell_token, buy_token, max_amount, 0, price, false, false).Result;
+                    Console.WriteLine($"Result code: {result.ResultCode}");
+                    Console.WriteLine($"Result Message: {result.ResultMessage}");
+                }
 
-        void ProcessTradeOrder()
-        {
-            Console.WriteLine("Please enter \"s\" for Sell order or \"b\" for Buy order: ");
-            string ordertype = Console.ReadLine();
+                void ProcessTradeOrder()
+                {
+                    Console.WriteLine("Please enter \"s\" for Sell order or \"b\" for Buy order: ");
+                    string ordertype = Console.ReadLine();
 
-            if (string.IsNullOrWhiteSpace(ordertype) || (ordertype != "s" && ordertype != "b"))
-            {
-                Console.WriteLine($"Invalid order type");
-                //Console.Write(string.Format("{0}> ", _wallet.AccountName));
-                return;
-            }
+                    if (string.IsNullOrWhiteSpace(ordertype) || (ordertype != "s" && ordertype != "b"))
+                    {
+                        Console.WriteLine($"Invalid order type");
+                        //Console.Write(string.Format("{0}> ", _wallet.AccountName));
+                        return;
+                    }
 
-            TradeOrderTypes orderType = ordertype == "s" ? TradeOrderTypes.Sell : TradeOrderTypes.Buy;
+                    TradeOrderTypes orderType = ordertype == "s" ? TradeOrderTypes.Sell : TradeOrderTypes.Buy;
 
-            decimal max_amount;
-            decimal price;
-            string sell_token;
-            string buy_token;
-            string amountstr;
+                    decimal max_amount;
+                    decimal price;
+                    string sell_token;
+                    string buy_token;
+                    string amountstr;
 
-            if (orderType == TradeOrderTypes.Sell)
-            {
-                Console.WriteLine("Sell token code: ");
-                sell_token = Console.ReadLine();
+                    if (orderType == TradeOrderTypes.Sell)
+                    {
+                        Console.WriteLine("Sell token code: ");
+                        sell_token = Console.ReadLine();
 
-                Console.WriteLine("Sale Amount: ");
-                amountstr = Console.ReadLine();
-                decimal.TryParse(amountstr, out max_amount);
+                        Console.WriteLine("Sale Amount: ");
+                        amountstr = Console.ReadLine();
+                        decimal.TryParse(amountstr, out max_amount);
 
-                Console.WriteLine("Buy Token Code: ");
-                buy_token = Console.ReadLine();
+                        Console.WriteLine("Buy Token Code: ");
+                        buy_token = Console.ReadLine();
 
-                Console.WriteLine("Price (how much \"buy\" tokens you would like to get for one token you sell: ");
-                amountstr = Console.ReadLine();
-                decimal.TryParse(amountstr, out price);
-            }
-            else
-            {
-                Console.WriteLine("Buy Token Code: ");
-                buy_token = Console.ReadLine();
+                        Console.WriteLine("Price (how much \"buy\" tokens you would like to get for one token you sell: ");
+                        amountstr = Console.ReadLine();
+                        decimal.TryParse(amountstr, out price);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Buy Token Code: ");
+                        buy_token = Console.ReadLine();
 
-                Console.WriteLine("Buy Amount: ");
-                amountstr = Console.ReadLine();
-                decimal.TryParse(amountstr, out max_amount);
+                        Console.WriteLine("Buy Amount: ");
+                        amountstr = Console.ReadLine();
+                        decimal.TryParse(amountstr, out max_amount);
 
-                Console.WriteLine("Sell token code: ");
-                sell_token = Console.ReadLine();
+                        Console.WriteLine("Sell token code: ");
+                        sell_token = Console.ReadLine();
 
-                Console.WriteLine("Price (how much tokens you would like to pay for one token you buy: ");
-                amountstr = Console.ReadLine();
-                decimal.TryParse(amountstr, out price);
+                        Console.WriteLine("Price (how much tokens you would like to pay for one token you buy: ");
+                        amountstr = Console.ReadLine();
+                        decimal.TryParse(amountstr, out price);
 
-            }
+                    }
 
-            var result = _wallet.TradeOrder(orderType, sell_token, buy_token, max_amount, 0, price, false, true).Result;
-            if (result.ResultCode != APIResultCodes.Success)
-            {
-                Console.WriteLine($"Failed to add trade order block with error code: {result.ResultCode}");
-                Console.WriteLine("Error Message: " + result.ResultMessage);
-            }
-            else
-            {
-                Console.WriteLine($"Trade Order has been authorized successfully");
-                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
-            }
-            //Console.Write(string.Format("{0}> ", _wallet.AccountName));
-        }
-
+                    var result = _wallet.TradeOrder(orderType, sell_token, buy_token, max_amount, 0, price, false, true).Result;
+                    if (result.ResultCode != APIResultCodes.Success)
+                    {
+                        Console.WriteLine($"Failed to add trade order block with error code: {result.ResultCode}");
+                        Console.WriteLine("Error Message: " + result.ResultMessage);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Trade Order has been authorized successfully");
+                        Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
+                    }
+                    //Console.Write(string.Format("{0}> ", _wallet.AccountName));
+                }
+         */
         void ProcessRedeemRewardsTradeOrder()
         {
             decimal discount_amount;
@@ -309,7 +310,7 @@ namespace Lyra.Client.CLI
                     Console.WriteLine("Redemption failed:" + result.ResultMessage);
             }
         }
-        */
+      
         async Task ProcessSendAsync()
         {
             Console.WriteLine("Please enter destination account id: ");

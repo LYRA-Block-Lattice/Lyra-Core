@@ -7,10 +7,12 @@
     <Authors>wizdagd</Authors>
     <Product>wizdagd</Product>
     <AssemblyName>wizdagd</AssemblyName>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <WarningLevel>0</WarningLevel>
+    <OutputPath></OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -73,5 +75,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy $(OutDir)* \\Mac\slava\LYRA_FILES\NODE&#xD;&#xA;copy C:\Users\slava\source\LOCAL_LYRA_CONFIG\config.json $(OutDir)&#xD;&#xA;copy C:\Users\slava\source\LOCAL_LYRA_CONFIG\protocol.json $(OutDir)&#xD;&#xA;" />
+  </Target>
 
 </Project>

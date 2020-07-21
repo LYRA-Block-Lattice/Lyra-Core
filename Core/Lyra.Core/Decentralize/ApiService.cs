@@ -372,33 +372,64 @@ namespace Lyra.Core.Decentralize
             return JsonConvert.SerializeObject(o);
         }
 
-
-        public Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        #region Reward Trade Athorization Methods 
+        
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock tradeOrderBlock)
         {
-            throw new NotImplementedException();
+            var result = new TradeOrderAuthorizationAPIResult();
+
+            try
+            {
+                var auth_result = await Pre_PrepareAsync(tradeOrderBlock).ConfigureAwait(false);
+
+                if (auth_result.ResultCode == APIResultCodes.TradeOrderMatchFound)
+                {
+                    var result_block = await NodeService.Dag.TradeEngine.Match(tradeOrderBlock);
+                    if (result_block != null)
+                    {
+                        result.ResultCode = APIResultCodes.TradeOrderMatchFound;
+                        result.SetBlock(result_block);
+                        result.ServiceHash = result_block.ServiceHash;
+                    }
+                    else
+                    {
+                        result.ResultCode = APIResultCodes.NoTradesFound;
+                    }
+                    return result;
+                }
+                else
+                {
+                    result.ResultCode = auth_result.ResultCode;
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in TradeOrder: " + e.Message);
+                result.ResultCode = APIResultCodes.ExceptionInTradeOrderAuthorizer;
+                result.ResultMessage = e.Message;
+            }
+
+            return result;
         }
 
 
-        public Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
         {
-            throw new NotImplementedException();
+            return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
-
-        public Task<AuthorizationAPIResult> Trade(TradeBlock block)
+        public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
         {
-            throw new NotImplementedException();
+             return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
-        public Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
         {
-            throw new NotImplementedException();
+            return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
-        public Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
-        {
-            throw new NotImplementedException();
-        }
+        #endregion
 
         public async Task<APIResult> RequestMarket(string tokenName)
         {

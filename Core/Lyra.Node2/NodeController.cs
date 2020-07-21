@@ -195,6 +195,64 @@ namespace LyraLexWeb2
             return await _node.LookForNewFees(AccountId, Signature);
         }
 
+        #region Reward trade methods
+
+        [Route("GetActiveTradeOrders")]
+        [HttpGet]
+        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        {
+            CheckSyncState();
+            return await _node.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, Signature);
+        }
+
+        [Route("LookForNewTrade")]
+        [HttpGet] 
+        public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
+        {
+            CheckSyncState();
+            return await _node.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, Signature);
+        }
+
+        #endregion
+
+        #region Reward Trade Athorization Methods
+
+        [Route("TradeOrder")]
+        [HttpGet] 
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
+        {
+            CheckSyncState();
+            return await _trans.TradeOrder(block);
+        }
+
+        [Route("Trade")]
+        [HttpGet] 
+        public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
+        {
+            CheckSyncState();
+            return await _trans.Trade(block);
+        }
+
+        [Route("ExecuteTradeOrder")]
+        [HttpGet] 
+        public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
+        {
+            CheckSyncState();
+            return await _trans.ExecuteTradeOrder(block);
+        }
+
+        [Route("CancelTradeOrder")]
+        [HttpGet] 
+        public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
+        {
+            CheckSyncState();
+            return await _trans.CancelTradeOrder(block);
+        }
+
+        #endregion
+
+
+
         [Route("OpenAccountWithGenesis")]
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)

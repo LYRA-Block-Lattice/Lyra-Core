@@ -537,6 +537,81 @@ namespace Lyra.Core.Decentralize
 
         // util 
         private T FromJson<T>(string json)
+        #region Reward trade methods
+
+        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        {
+            var result = new ActiveTradeOrdersAPIResult();
+
+            try
+            {
+                if (! await NodeService.Dag.Storage.AccountExistsAsync(AccountId))
+                    result.ResultCode = APIResultCodes.AccountDoesNotExist;
+
+                if (!await VerifyClientAsync(AccountId, Signature))
+                {
+                    result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+                    return result;
+                }
+
+                var list = NodeService.Dag.TradeEngine.GetActiveTradeOrders(SellToken, BuyToken, OrderType);
+                if (list != null && list.Count > 0)
+                {
+                    result.SetList(list);
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.NoTradesFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetActiveTradeOrders: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = e.Message;
+            }
+
+            return result;
+        }
+
+        public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
+        {
+            var result = new TradeAPIResult();
+            try
+            {
+                if (!await NodeService.Dag.Storage.AccountExistsAsync(AccountId))
+                    result.ResultCode = APIResultCodes.AccountDoesNotExist;
+
+                if (!await VerifyClientAsync(AccountId, Signature))
+                {
+                    result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+                    return result;
+                }
+
+                var trade = NodeService.Dag.Storage.FindUnexecutedTrade(AccountId, BuyTokenCode, SellTokenCode);
+
+                if (trade != null)
+                {
+                    result.SetBlock(trade);
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.NoTradesFound;
+            }
+            catch (Exception e)
+            {
+                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = e.Message;
+            }
+            return result;
+        }
+
+    #endregion
+
+
+
+
+    // util 
+    private T FromJson<T>(string json)
         {
             return JsonConvert.DeserializeObject<T>(json);
         }

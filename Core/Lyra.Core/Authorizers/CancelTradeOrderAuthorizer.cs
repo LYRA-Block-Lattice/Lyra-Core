@@ -1,10 +1,5 @@
 ﻿using Lyra.Core.Blocks;
-using Lyra.Core.Decentralize;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using Lyra.Core.Cryptography;
-using Lyra.Core.Utils;
-using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {
@@ -12,18 +7,18 @@ namespace Lyra.Core.Authorizers
     {
         public CancelTradeOrderAuthorizer()
         {
-            
         }
 
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(T tblock, bool WithSign = true)
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            var result = await AuthorizeImplAsync(tblock);
+            var result = await AuthorizeImplAsync(sys, tblock);
             if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, await SignAsync(tblock));
+                return (APIResultCodes.Success, Sign(sys, tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(T tblock)
+
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is CancelTradeOrderBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -31,37 +26,39 @@ namespace Lyra.Core.Authorizers
             var block = tblock as CancelTradeOrderBlock;
 
             // 1. check if the account exists
-            if (!BlockChain.Singleton.AccountExistsAsync(block.AccountID))
+            if (!await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
-            TransactionBlock lastBlock = BlockChain.Singleton.FindLatestBlockAsync(block.AccountID);
+            var lastBlock = await sys.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            var result = VerifyBlockAsync(block, lastBlock);
+            var result = await VerifyBlockAsync(sys, block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = VerifyTransactionBlockAsync(block);
+            result = await VerifyTransactionBlockAsync(sys, block);
             if (result != APIResultCodes.Success)
                 return result;
 
-            var original_order = BlockChain.Singleton.FindBlockByHashAsync(block.AccountID, block.TradeOrderId) as TradeOrderBlock;
+            var original_order = await sys.Storage.FindBlockByHashAsync(block.AccountID, block.TradeOrderId) as TradeOrderBlock;
             if (original_order == null)
                 return APIResultCodes.NoTradesFound;
 
-            result = ValidateCancellationBalance(block, lastBlock, original_order);
+            result = await ValidateCancellationBalance(sys, block, lastBlock, original_order);
             if (result != APIResultCodes.Success)
                 return result;
+
+            sys.TradeEngine.RemoveOrder(original_order);
 
             return APIResultCodes.Success;
         }
 
         // The cancellation should restore the balance that was locked by the trade order.
         // Thus, it should take the balance from the latest block and add the balamce (transactin amount) locked by the order block.
-        APIResultCodes ValidateCancellationBalance(CancelTradeOrderBlock block, TransactionBlock lastBlock, TradeOrderBlock original_order)
+        private async Task<APIResultCodes> ValidateCancellationBalance(DagSystem sys, CancelTradeOrderBlock block, TransactionBlock lastBlock, TradeOrderBlock original_order)
         {
-            var order_previous_block = BlockChain.Singleton.FindBlockByHashAsync(original_order.PreviousHash);
+            var order_previous_block = await sys.Storage.FindBlockByHashAsync(original_order.PreviousHash) as TransactionBlock;
 
             var order_transaction = original_order.GetTransaction(order_previous_block);
             var cancel_transaction = block.GetTransaction(lastBlock);
@@ -72,7 +69,16 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
+        protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
+        {
+            if (block.FeeType != AuthorizationFeeTypes.NoFee)
+                return APIResultCodes.InvalidFeeAmount;
 
+            if (block.Fee != 0)
+                return APIResultCodes.InvalidFeeAmount;
+
+            return await Task.FromResult(APIResultCodes.Success);
+        }
 
     }
 }
