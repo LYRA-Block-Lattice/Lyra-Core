@@ -44,27 +44,39 @@ namespace Lyra.Core.Authorizers
             // service specifice feature
             if (block.FeeTicker != LyraGlobal.OFFICIALTICKERCODE)
                 return APIResultCodes.InvalidFeeTicker;
-
-            // verify fees
-            if (prevBlock != null)
+            
+            if (prevBlock != null) // only if this is not very first service block
             {
+                // verify fees
                 var allConsBlocks = await sys.Storage.GetConsolidationBlocksAsync(prevBlock.Hash);
                 var feesGened = allConsBlocks.Sum(a => a.totalFees);
 
                 if (block.FeesGenerated != feesGened)
                     return APIResultCodes.InvalidServiceBlockTotalFees;
+
+                // authorizers
+                if (block.Authorizers.Count > LyraGlobal.MAXIMUM_AUTHORIZERS
+                    || block.Authorizers.Count < (prevBlock as ServiceBlock).Authorizers.Count)
+                    return APIResultCodes.InvalidAuthorizerCount;
+            }
+            else
+            {
+                if (block.Authorizers.Count < LyraGlobal.MINIMUM_AUTHORIZERS)
+                    return APIResultCodes.InvalidAuthorizerCount;
             }
 
-            // authorizers
-            if (block.Authorizers.Count > LyraGlobal.MAXMIMUMAUTHORIZERS
-                || block.Authorizers.Count < (prevBlock as ServiceBlock).Authorizers.Count)
-                return APIResultCodes.InvalidAuthorizerCount;
-
             var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-            for(int i = 0; i < block.Authorizers.Count; i++)
+            //for(int i = 0; i < block.Authorizers.Count; i++)
+            //{
+            //    if (!block.Authorizers[i].AccountID.Equals(board.PrimaryAuthorizers[i])
+            //        && Signatures.VerifyAccountSignature(block.Authorizers[i].IPAddress, block.Authorizers[i].AccountID, block.Authorizers[i].Signature))
+            //        return APIResultCodes.InvalidAuthorizerInBillBoard;
+            //}
+            // make sure the service block's authorizers are taken from the billboard, and they are all valid
+            foreach (var authorizer in block.Authorizers) // they can be listed in different order!
             {
-                if (!block.Authorizers[i].AccountID.Equals(board.PrimaryAuthorizers[i])
-                    && Signatures.VerifyAccountSignature(block.Authorizers[i].IPAddress, block.Authorizers[i].AccountID, block.Authorizers[i].Signature))
+                if (!board.PrimaryAuthorizers.Contains(authorizer.AccountID) ||
+                    !Signatures.VerifyAccountSignature(authorizer.IPAddress, authorizer.AccountID, authorizer.Signature))
                     return APIResultCodes.InvalidAuthorizerInBillBoard;
             }
 

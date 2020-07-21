@@ -14,7 +14,8 @@ namespace Lyra.Core.API
 
         public const char ADDRESSPREFIX = 'L';
 
-        public const int MAXMIMUMAUTHORIZERS = 21;
+        public const int MAXIMUM_AUTHORIZERS = 21;
+        public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
 
         public const int ProtocolVersion = 1;
         public const int DatabaseVersion = 1;

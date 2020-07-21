@@ -483,7 +483,7 @@ namespace Lyra
                                         if(board.AllNodes.ContainsKey(accId))
                                             svcBlock.Authorizers.Add(board.AllNodes[accId]);
 
-                                        if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXMIMUMAUTHORIZERS)
+                                        if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
                                             break;
                                     }
 
