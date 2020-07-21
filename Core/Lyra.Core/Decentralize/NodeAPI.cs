@@ -537,6 +537,14 @@ namespace Lyra.Core.Decentralize
 
         // util 
         private T FromJson<T>(string json)
+        {
+                return JsonConvert.DeserializeObject<T>(json);
+        }
+        private string Json(object o)
+        {
+            return JsonConvert.SerializeObject(o);
+        }
+
         #region Reward trade methods
 
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
@@ -606,18 +614,5 @@ namespace Lyra.Core.Decentralize
         }
 
     #endregion
-
-
-
-
-    // util 
-    private T FromJson<T>(string json)
-        {
-            return JsonConvert.DeserializeObject<T>(json);
-        }
-        private string Json(object o)
-        {
-            return JsonConvert.SerializeObject(o);
-        }
     }
 }

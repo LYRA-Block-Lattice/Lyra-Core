@@ -289,6 +289,8 @@ namespace Lyra.Core.Accounts
             }      
         }
 
+        #region Reward Trade Processing
+
         public async Task<TradeAPIResult> LookForNewTrade(string BuyTokenCode, string SellTokenCode)
         {
             try
