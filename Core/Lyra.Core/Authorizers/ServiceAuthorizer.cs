@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.Cryptography;
 using Lyra.Core.Decentralize;
 using System;
 using System.Collections.Generic;
@@ -62,7 +63,8 @@ namespace Lyra.Core.Authorizers
             var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
             for(int i = 0; i < block.Authorizers.Count; i++)
             {
-                if (!block.Authorizers[i].Equals(board.PrimaryAuthorizers[i]))
+                if (!block.Authorizers[i].AccountID.Equals(board.PrimaryAuthorizers[i])
+                    && Signatures.VerifyAccountSignature(block.Authorizers[i].IPAddress, block.Authorizers[i].AccountID, block.Authorizers[i].Signature))
                     return APIResultCodes.InvalidAuthorizerInBillBoard;
             }
 
