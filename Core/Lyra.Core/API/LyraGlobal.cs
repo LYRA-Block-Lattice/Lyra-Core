@@ -23,7 +23,7 @@ namespace Lyra.Core.API
         public static string NodeAppName = PRODUCTNAME + " " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 
         public const int MinimalAuthorizerBalance = 1000000;
-        public const decimal OFFICIALGENESISAMOUNT = 12000000000;
+        public const decimal OFFICIALGENESISAMOUNT = 10000000000;
 
 #if DEBUG
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
@@ -44,13 +44,14 @@ namespace Lyra.Core.API
 #if DEBUG
                 case "devnet":
                     //return "http://192.168.3.73:4505/api/";
-                    return "http://10.211.55.5:4505/api/";
+                    //return "http://10.211.55.5:4505/api/";
+                    return "http://seed.devnet:4505/api/";
 
 #endif
                 case "testnet":
-                    return "http://seed.testnet.wizdag.com:4505/api/";
+                    return "http://api.testnet.lyra.live:4505/api/";
                 case "mainnet":
-                    return "http://seed.mainnet.wizdag.com:4505/api/";
+                    return "http://api.mainnet.lyra.live:4505/api/";
                 default:
                     throw new Exception("Unsupported network ID: " + networkID);
             }
