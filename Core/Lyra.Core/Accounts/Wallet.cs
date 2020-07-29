@@ -441,7 +441,7 @@ namespace Lyra.Core.Accounts
                 execute_block.NonFungibleToken = nonfungible_token;
             }
 
-            execute_block.InitializeBlock(previousBlock, PrivateKey, NetworkId);
+            execute_block.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
             // TO DO - override the trasanction validation method in ExecuteTradeBlock
             //if (!execute_block.ValidateTransaction(previousBlock))
@@ -449,12 +449,14 @@ namespace Lyra.Core.Accounts
 
             //execute_block.Signature = Signatures.GetSignature(PrivateKey, execute_block.Hash);
 
+            execute_block.ServiceHash = await GetLastServiceBlockHash();
+
             var result = await _rpcClient.ExecuteTradeOrder(execute_block);
 
             if (result.ResultCode == APIResultCodes.Success)
             {
                 //execute_block.Authorizations = result.Authorizations;
-                execute_block.ServiceHash = result.ServiceHash;
+                //execute_block.ServiceHash = result.ServiceHash;
                 AddBlock(execute_block);
             }
             else
@@ -831,10 +833,12 @@ namespace Lyra.Core.Accounts
             if (previousBlock.Balances[SellToken] < balance_change)
                 return new TradeOrderAuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
 
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+
             var tradeBlock = new TradeOrderBlock
             {
                 AccountID = AccountId,
-                ServiceHash = string.Empty,
+                ServiceHash = await GetLastServiceBlockHash(),
                 DestinationAccountId = string.Empty, // we are sending to nowhere
                 Balances = new Dictionary<string, long>(),
                 //PaymentID = string.Empty,
@@ -865,7 +869,7 @@ namespace Lyra.Core.Accounts
                 if (!(tradeBlock.Balances.ContainsKey(balance.Key)))
                     tradeBlock.Balances.Add(balance.Key, balance.Value);
 
-            tradeBlock.InitializeBlock(previousBlock, PrivateKey, NetworkId);
+            tradeBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
             if (!tradeBlock.ValidateTransaction(previousBlock))
                 return new TradeOrderAuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderValidationFailed };
@@ -909,7 +913,9 @@ namespace Lyra.Core.Accounts
                 if (!(trade.Balances.ContainsKey(balance.Key)))
                     trade.Balances.Add(balance.Key, balance.Value);
 
-            trade.InitializeBlock(previousBlock, PrivateKey, NetworkId);
+            trade.ServiceHash = await GetLastServiceBlockHash();
+            trade.InitializeBlock(previousBlock, PrivateKey, AccountId);
+
 
             var trade_result = await _rpcClient.Trade(trade);
 
@@ -951,7 +957,7 @@ namespace Lyra.Core.Accounts
             var cancelBlock = new CancelTradeOrderBlock
             {
                 AccountID = AccountId,
-                ServiceHash = string.Empty,
+                ServiceHash = await GetLastServiceBlockHash(),
                 Balances = new Dictionary<string, long>(),
                 FeeType = AuthorizationFeeTypes.NoFee,
                 TradeOrderId = OrderId
@@ -972,7 +978,7 @@ namespace Lyra.Core.Accounts
                 if (!(cancelBlock.Balances.ContainsKey(balance.Key)))
                     cancelBlock.Balances.Add(balance.Key, balance.Value);
 
-            cancelBlock.InitializeBlock(previousBlock, PrivateKey, NetworkId);
+            cancelBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
             var result = await _rpcClient.CancelTradeOrder(cancelBlock);
 
@@ -1443,6 +1449,17 @@ namespace Lyra.Core.Accounts
             //if (_rpcClient != null)
             //_rpcClient.Dispose();
         }
-    }
 
+        private async Task<string> GetLastServiceBlockHash()
+        {
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            if (svcBlockResult.ResultCode != APIResultCodes.Success)
+            {
+                throw new Exception($"Unable to retrieve the latest service block. Result Code: {svcBlockResult.ResultCode}");
+            }
+            return svcBlockResult.GetBlock().Hash;
+        }
+    }
 }
+
+

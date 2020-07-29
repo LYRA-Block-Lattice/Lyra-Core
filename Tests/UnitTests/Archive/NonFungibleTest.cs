@@ -290,7 +290,7 @@ namespace Lyra.Node.Test
                 _OpenAccount2Block.NonFungibleToken = discount_token;
             }
 
-            _OpenAccount2Block.InitializeBlock(null, PrivateKey2, NETWORK_ID);
+            _OpenAccount2Block.InitializeBlock(null, PrivateKey2, AccountId2);
 
             // _OpenAccountBlock.Signature = Signatures.GetSignature(PrivateKey2, _OpenAccountBlock.Hash);
 
@@ -340,7 +340,7 @@ namespace Lyra.Node.Test
             tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
             tokenBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - TokenGenerationFee);
 
-            tokenBlock.InitializeBlock(previousBlock, PrivateKey1, NETWORK_ID);
+            tokenBlock.InitializeBlock(previousBlock, PrivateKey1, AccountId1);
 
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey1, tokenBlock.Hash);
 
@@ -380,7 +380,7 @@ namespace Lyra.Node.Test
             }
 
 
-            sendBlock.InitializeBlock(previousBlock, PrivateKey1, NETWORK_ID);
+            sendBlock.InitializeBlock(previousBlock, PrivateKey1, AccountId1);
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey1, sendBlock.Hash);
 

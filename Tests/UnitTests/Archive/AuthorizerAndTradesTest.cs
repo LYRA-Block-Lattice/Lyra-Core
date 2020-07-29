@@ -707,7 +707,7 @@ namespace Lyra.Node.Test
                 if (!(_ReceiveTransferBlockAcc2.Balances.ContainsKey(balance.Key)))
                     _ReceiveTransferBlockAcc2.Balances.Add(balance.Key, balance.Value);
 
-            _ReceiveTransferBlockAcc2.InitializeBlock(_TradeBlock, PrivateKey2, NETWORK_ID);
+            _ReceiveTransferBlockAcc2.InitializeBlock(_TradeBlock, PrivateKey2, AccountId2);
 
             //_ReceiveTransferBlockAcc2.Signature = Signatures.GetSignature(PrivateKey2, _ReceiveTransferBlockAcc2.Hash);
 
@@ -744,7 +744,7 @@ namespace Lyra.Node.Test
                 if (!(_ReceiveTransferBlockAcc1.Balances.ContainsKey(balance.Key)))
                     _ReceiveTransferBlockAcc1.Balances.Add(balance.Key, balance.Value);
 
-            _ReceiveTransferBlockAcc1.InitializeBlock(_ExecuteTradeOrderBlock, PrivateKey1, NETWORK_ID);
+            _ReceiveTransferBlockAcc1.InitializeBlock(_ExecuteTradeOrderBlock, PrivateKey1, AccountId1);
 
             //_ReceiveTransferBlockAcc1.Signature = Signatures.GetSignature(PrivateKey1, _ReceiveTransferBlockAcc1.Hash);
 
@@ -808,7 +808,7 @@ namespace Lyra.Node.Test
 
             _ExecuteTradeOrderBlock.NonFungibleToken = discount_token;
 
-            _ExecuteTradeOrderBlock.InitializeBlock(previousBlock, PrivateKey1, NETWORK_ID);
+            _ExecuteTradeOrderBlock.InitializeBlock(previousBlock, PrivateKey1, AccountId1);
             // _ExecuteTradeOrderBlock.Signature = Signatures.GetSignature(PrivateKey1, _ExecuteTradeOrderBlock.Hash);
 
             return _ExecuteTradeOrderBlock;
@@ -850,7 +850,7 @@ namespace Lyra.Node.Test
                 if (!(_TradeBlock.Balances.ContainsKey(balance.Key)))
                     _TradeBlock.Balances.Add(balance.Key, balance.Value);
 
-            _TradeBlock.InitializeBlock(previousBlock, PrivateKey2, NETWORK_ID);
+            _TradeBlock.InitializeBlock(previousBlock, PrivateKey2, AccountId2);
             //_TradeBlock.Signature = Signatures.GetSignature(PrivateKey2, _TradeBlock.Hash);
 
             return _TradeBlock;
@@ -950,7 +950,7 @@ namespace Lyra.Node.Test
             var transaction = new TransactionInfo() { TokenCode = block.Ticker, Amount = 1800000000 };
             block.Balances.Add(transaction.TokenCode, transaction.Amount);
 
-            block.InitializeBlock(null, PrivateKey1, NETWORK_ID);
+            block.InitializeBlock(null, PrivateKey1, AccountId1);
 
             //block.Signature = Signatures.GetSignature(PrivateKey1, block.Hash);
 
@@ -984,7 +984,7 @@ namespace Lyra.Node.Test
             tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount); // This is current supply in atomic units (1,000,000.00)
             tokenBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - TokenGenerationFee);
 
-            tokenBlock.InitializeBlock(previousBlock, PrivateKey1, NETWORK_ID);
+            tokenBlock.InitializeBlock(previousBlock, PrivateKey1, AccountId1);
 
             // tokenBlock.Signature = Signatures.GetSignature(PrivateKey1, tokenBlock.Hash);
 
@@ -1020,7 +1020,7 @@ namespace Lyra.Node.Test
                 if (!(sendBlock.Balances.ContainsKey(balance.Key)))
                     sendBlock.Balances.Add(balance.Key, balance.Value);
 
-            sendBlock.InitializeBlock(previousBlock, PrivateKey1, NETWORK_ID);
+            sendBlock.InitializeBlock(previousBlock, PrivateKey1, AccountId1);
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey1, sendBlock.Hash);
 
@@ -1045,7 +1045,7 @@ namespace Lyra.Node.Test
 
             openReceiveBlock.Balances.Add(_FirstGenesisBlock.Ticker, _SendTransferBlock.GetTransaction(_USDTokenBlock).Amount);
 
-            openReceiveBlock.InitializeBlock(null, PrivateKey2, NETWORK_ID);
+            openReceiveBlock.InitializeBlock(null, PrivateKey2, AccountId2);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey2, openReceiveBlock.Hash);
 
@@ -1067,7 +1067,7 @@ namespace Lyra.Node.Test
 
             openReceiveBlock.Balances.Add(_FirstGenesisBlock.Ticker, _SendTransferBlock.GetTransaction(_USDTokenBlock).Amount);
 
-            openReceiveBlock.InitializeBlock(null, PrivateKey3, NETWORK_ID);
+            openReceiveBlock.InitializeBlock(null, PrivateKey3, AccountId3);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey2, openReceiveBlock.Hash);
 
@@ -1088,7 +1088,7 @@ namespace Lyra.Node.Test
 
             ReceiveBlock.Balances.Add(_FirstGenesisBlock.Ticker, _SendTransferBlock.GetTransaction(_USDTokenBlock).Amount * 2);
 
-            ReceiveBlock.InitializeBlock(_OpenAccount2Block, PrivateKey2, NETWORK_ID);
+            ReceiveBlock.InitializeBlock(_OpenAccount2Block, PrivateKey2, AccountId2);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey2, openReceiveBlock.Hash);
 
@@ -1159,7 +1159,7 @@ namespace Lyra.Node.Test
                 if (!(tradeBlock.Balances.ContainsKey(balance.Key)))
                     tradeBlock.Balances.Add(balance.Key, balance.Value);
 
-            tradeBlock.InitializeBlock(previousBlock, PrivateKey1, NETWORK_ID);
+            tradeBlock.InitializeBlock(previousBlock, PrivateKey1, AccountId1);
             //tradeBlock.Signature = Signatures.GetSignature(PrivateKey1, tradeBlock.Hash);
 
             return tradeBlock;
@@ -1225,7 +1225,7 @@ namespace Lyra.Node.Test
                 if (!(tradeBlock.Balances.ContainsKey(balance.Key)))
                     tradeBlock.Balances.Add(balance.Key, balance.Value);
 
-            tradeBlock.InitializeBlock(previousBlock, PrivateKey2, NETWORK_ID);
+            tradeBlock.InitializeBlock(previousBlock, PrivateKey2, AccountId2);
             // tradeBlock.Signature = Signatures.GetSignature(PrivateKey2, tradeBlock.Hash);
 
             return tradeBlock;

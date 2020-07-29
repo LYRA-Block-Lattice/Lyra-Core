@@ -218,7 +218,7 @@ namespace LyraLexWeb2
         #region Reward Trade Athorization Methods
 
         [Route("TradeOrder")]
-        [HttpGet] 
+        [HttpPost] 
         public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
         {
             CheckSyncState();
@@ -226,7 +226,7 @@ namespace LyraLexWeb2
         }
 
         [Route("Trade")]
-        [HttpGet] 
+        [HttpPost] 
         public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
         {
             CheckSyncState();
@@ -234,7 +234,7 @@ namespace LyraLexWeb2
         }
 
         [Route("ExecuteTradeOrder")]
-        [HttpGet] 
+        [HttpPost] 
         public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
         {
             CheckSyncState();
@@ -242,7 +242,7 @@ namespace LyraLexWeb2
         }
 
         [Route("CancelTradeOrder")]
-        [HttpGet] 
+        [HttpPost] 
         public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
         {
             CheckSyncState();

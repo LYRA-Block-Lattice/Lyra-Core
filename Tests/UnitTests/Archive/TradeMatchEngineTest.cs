@@ -316,9 +316,9 @@ namespace Lyra.Node.Test
                     cancelBlock.Balances.Add(balance.Key, balance.Value);
 
             if (order.AccountID == AccountId1)
-                cancelBlock.InitializeBlock(previousBlock, PrivateKey1, NETWORK_ID);
+                cancelBlock.InitializeBlock(previousBlock, PrivateKey1, AccountId1);
             else
-                cancelBlock.InitializeBlock(previousBlock, PrivateKey2, NETWORK_ID);
+                cancelBlock.InitializeBlock(previousBlock, PrivateKey2, AccountId2);
 
             return cancelBlock;
         }
