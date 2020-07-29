@@ -3,9 +3,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AssemblyName>wizdag</AssemblyName>
+    <AssemblyName>lyra</AssemblyName>
     <ReleaseVersion>0.5.1</ReleaseVersion>
-    <Version>1.5.0</Version>
+    <Version>1.6</Version>
+    <PackageId>lyra.cli</PackageId>
+    <Company>lyra</Company>
+    <Authors>lyra</Authors>
+    <Product>lyra</Product>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

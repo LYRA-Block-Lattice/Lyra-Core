@@ -3,8 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <ReleaseVersion>0.5.1</ReleaseVersion>
-    <Version>1.5</Version>
-    <AssemblyName>wizdag.core</AssemblyName>
+    <Version>1.6</Version>
+    <AssemblyName>lyra.core</AssemblyName>
+    <PackageId>lyra.core</PackageId>
+    <Authors>lyra.core</Authors>
+    <Company>lyra.core</Company>
+    <Product>lyra.core</Product>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
