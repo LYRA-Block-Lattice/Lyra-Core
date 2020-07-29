@@ -38,7 +38,7 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.Service, "ServiceAuthorizer");
             _authorizers.Add(BlockTypes.TradeOrder, "TradeOrderAuthorizer");
             _authorizers.Add(BlockTypes.Trade, "TradeAuthorizer");
-            //_authorizers.Add(BlockTypes.CancelTradeOrder, "CancelTradeOrderAuthorizer"); //HACK: wait for code check in
+            _authorizers.Add(BlockTypes.CancelTradeOrder, "CancelTradeOrderAuthorizer"); //HACK: wait for code check in
             _authorizers.Add(BlockTypes.ExecuteTradeOrder, "ExecuteTradeOrderAuthorizer");
 
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
