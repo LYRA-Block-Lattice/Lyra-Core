@@ -3,10 +3,10 @@
     "Magic": 20200729,
     "ConsensusNumber": 2,
     "StandbyValidators": [
-      "WV5Tcd2dFj1rPHfmfkaLR3qYPJLR6nmBZWE9v2nVG1uaW4xiA2ueiX4wSChj9kK84kh4TZ5n22LfWGEdeELy7Lh5etXg6Q",
-      "WXoWR3KripmGQd6Uaa4bP9Jg5mwNNLgQ71s4n8nD25Ubtn87xW6nC8LKHVKVRxwRkzCFFdwpzbBQkRrn3PV8DkhgQUNuvt",
-      "WTkcJBV5RiXaFzrK1vaUxBNx31CXByxM53uY3GnRir2XyGCVA4vDpRBWm2PxhZff32PaD7N36pStXp1eeo3i9SYvqP2juu",
-      "WWvjEqoPS7vrttJwrhszryXBYxFasWE1tTum72kb72nZcwtpkSiCEtwDJcFTV2tnTwerTSqwHTbcW5r2LzbrUqct9VQjHT"
+      "LQdN8nrDSuqCr1S4YTmnPieX3heB93aXwmFuidN4Yiurkvm9NFqHbpvR8pcU89WQJofdJiYYvhoVJQQwAUj9oBXpLFAgh2",
+      "LK8vWAFcrsK8Re44Q54ESKT7yfW5WuWaZPgSmKgpFbBQjp5jAADa85jizRyTzjN6RxQowoKXsbiWENy1Bs6cH6xcMdJtaL",
+      "LDwYs2QzUqDFT9os9EVk71Yq1P4XmwCwMuDQTNSmbxoYvgsCo4qvq45ujEhp6Sawxu9scLNQjNWEPwqh6CF5idHh4y5MZK",
+      "LHneTZ8QwdXTKCaod7yFpHLJTDGApEnBBvgc3UX7DMpRyXweAiDQE3vXJZJ7S2hAqfwY6DJBQLtZGSEv9YBJdZq4Wgv5s1"
     ],
     "SeedList": [
       "seed.testnet.lyra.live:4503",
@@ -15,6 +15,7 @@
       "seed4.testnet.lyra.live:4503"
     ],
     "StartupValidators": [
+      "LKsoWmTgfBXFKk7SDiCZskPdEc6ZpjMS2BbucK9xchfe9Nr7ymwr3XD3p83nSKP7ejJNZBkoj2ybBh1WRe3ZbinXmZii7V"
     ]
   }
 }
