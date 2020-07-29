@@ -8,9 +8,9 @@
 
 [LYRA white paper](https://github.com/LYRA-Block-Lattice/LYRA-Docs/blob/master/LYRA-BLock-Lattice-White-Paper.md)
 
-Testnet Live Now! (From 20 May 2020)
+Testnet Live Now! (From 29 July 2020)
 
-Download Now: https://github.com/wizd/WizardDAG/releases
+Download Now: https://github.com/LYRA-Block-Lattice/Lyra-Core/releases
 
 # LYRA Permissionless Node Setup
 
@@ -35,36 +35,39 @@ https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 Install the ASP.NET Core runtime
 
-4. download Wizard DAG releases from https://github.com/wizd/WizardDAG/releases to a folder, e.g. ~/wizdag.permissionless-1.0.6.tar.gz
+4. download releases from https://github.com/LYRA-Block-Lattice/Lyra-Core/releases to a folder, e.g. ~/lyra.permissionless-1.6.1.tar.gz
 
-`tar -xjvf wizdag.permissionless-1.0.6.tar.gz`
+`tar -xjvf lyra.permissionless-1.6.1.tar.gz`
 
 5. create mongodb user
 
 `mongo`  
-`use wizdag`  
-`db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'wizdag'}]})`  
+`use lyra`  
+`db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'lyra'}]})`  
 `use dex`  
 `db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'dex'}]})`
 
 6. generate staking wallet by, give the wallet a name, e.g. "poswallet"
 
-`dotnet ~/wizdag/cli/wizdag.dll --networkid testnet -p webapi -g poswallet`
+`dotnet ~/lyra/cli/lyra.dll --networkid testnet -p webapi -g poswallet`
 
-7. modify ~/wizdag/node/config.testnet.json, change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step.
+7. modify ~/lyra/noded/config.testnet.json
+
+change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step.
+or see step 12
 
 
-8. run. (remember to set environment variable WIZDAG_NETWORK to testnet/mainnet etc.)
+8. run. (remember to set environment variable LYRA_NETWORK to testnet/mainnet etc.)
 
 `dotnet dev-certs https --clean`
 
 `dotnet dev-certs https`
 
-`cd ~/wizdag/node`
+`cd ~/lyra/noded`
 
-`export WIZDAG_NETWORK=testnet`
+`export LYRA_NETWORK=testnet`
 
-`dotnet wizdagd.dll`
+`dotnet lyra.noded.dll`
 
 9. verify
 
@@ -76,9 +79,9 @@ mode 0 is normal, mode 1 is syncing blocks.
 https://localhost:4505/api/Node/GetBillboard
 display all connected nodes.
 
-10. refresh DPoS wallet balance (when node not running)
+10. refresh DPoS wallet balance
 
-`dotnet ~/wizdag/cli/wizdag.dll --networkid testnet -p webapi`
+`dotnet ~/lyra/cli/lyra.dll --networkid testnet -p webapi`
 
 `poswallet`
 
