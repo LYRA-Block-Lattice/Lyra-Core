@@ -288,6 +288,7 @@ namespace Neo
             return new ConfigurationBuilder()
                 //.SetBasePath(Utilities.LyraDataDir)
                 .AddJsonFile(configFile, false)
+                .AddEnvironmentVariables("LYRA_")
                 .Build();
         }
     }
