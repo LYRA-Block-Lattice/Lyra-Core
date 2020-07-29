@@ -3,7 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <ReleaseVersion>0.5.1</ReleaseVersion>
-    <AssemblyName>wizdag.client</AssemblyName>
+    <AssemblyName>lyra.client</AssemblyName>
+    <PackageId>lyra.client</PackageId>
+    <Version>1.6</Version>
+    <Authors>lyra.client</Authors>
+    <Product>lyra.client</Product>
   </PropertyGroup>
 
   <ItemGroup>
