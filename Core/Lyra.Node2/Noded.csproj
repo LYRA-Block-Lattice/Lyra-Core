@@ -6,7 +6,7 @@
     <PackageId>wizdagd</PackageId>
     <Authors>wizdagd</Authors>
     <Product>wizdagd</Product>
-    <AssemblyName>wizdagd</AssemblyName>
+    <AssemblyName>lyra.noded</AssemblyName>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
   </PropertyGroup>
 

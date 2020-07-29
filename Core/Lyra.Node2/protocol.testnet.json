@@ -9,10 +9,10 @@
       "WWvjEqoPS7vrttJwrhszryXBYxFasWE1tTum72kb72nZcwtpkSiCEtwDJcFTV2tnTwerTSqwHTbcW5r2LzbrUqct9VQjHT"
     ],
     "SeedList": [
-      "seed.testnet.wizdag.com:4503",
-      "seed2.testnet.wizdag.com:4503",
-      "seed3.testnet.wizdag.com:4503",
-      "seed4.testnet.wizdag.com:4503"
+      "seed.testnet.lyra.live:4503",
+      "seed2.testnet.lyra.live:4503",
+      "seed3.testnet.lyra.live:4503",
+      "seed4.testnet.lyra.live:4503"
     ],
     "StartupValidators": [
     ]
