@@ -11,8 +11,7 @@
     "SeedList": [
       "seed.testnet.lyra.live:4503",
       "seed2.testnet.lyra.live:4503",
-      "seed3.testnet.lyra.live:4503",
-      "seed4.testnet.lyra.live:4503"
+      "seed3.testnet.lyra.live:4503"
     ],
     "StartupValidators": [
       "LKsoWmTgfBXFKk7SDiCZskPdEc6ZpjMS2BbucK9xchfe9Nr7ymwr3XD3p83nSKP7ejJNZBkoj2ybBh1WRe3ZbinXmZii7V"
