@@ -284,6 +284,8 @@ namespace Lyra.Core.Decentralize
         {
             // check state
             // debug: show all states
+            _log.LogInformation($"Consensus Result Received: {state.OutputMsgs.Count} Win Number: {state.WinNumber}");
+
             if (state.OutputMsgs.Count < state.WinNumber)
             {
                 return;
