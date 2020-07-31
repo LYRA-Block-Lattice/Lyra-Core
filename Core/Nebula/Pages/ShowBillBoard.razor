@@ -34,18 +34,18 @@ else
 <pre>@error</pre>
 
 @code{
-        // get svc gen
-        string error;
-        BillBoard billBoard;
+    // get svc gen
+    string error;
+    BillBoard billBoard;
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var wc = new System.Net.WebClient();
-            var bbStr = wc.DownloadString(new Uri("http://api.testnet.lyra.live:4505/api/Node/GetBillBoard"));
+            //var wc = new System.Net.WebClient();
+            //var bbStr = wc.DownloadString(new Uri("http://api.testnet.lyra.live:4505/api/Node/GetBillBoard"));
 
-            //var ls = await LyraRestClient.CreateAsync("devnet", "Windows", "", "1.0");
-            //billBoard = await ls.GetBillBoardAsync();
+            var ls = await LyraRestClient.CreateAsync("devnet", "Windows", "", "1.0");
+            billBoard = await ls.GetBillBoardAsync();
         }
         catch (Exception ex)
         {
