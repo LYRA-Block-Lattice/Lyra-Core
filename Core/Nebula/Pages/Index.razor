@@ -1,12 +1,35 @@
 ﻿@page "/"
-
+@inject LyraRestClient client
 
 <h1>Block Explorer for LYRA Block Lattice </h1>
 
 <a href="/ShowBillBoard">BillBoard</a>
 
+@if (sbgen == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @sbgen.Hash
+}
+
 @code{
     // get svc gen
-
+    string error;
+    ServiceBlock sbgen;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var ret = await client.GetServiceGenesisBlock();
+            if (ret.ResultCode == APIResultCodes.Success)
+                sbgen = ret.GetBlock() as ServiceBlock;
+        }
+        catch (Exception ex)
+        {
+            error = ex.ToString();
+        }
+    }
 
 }

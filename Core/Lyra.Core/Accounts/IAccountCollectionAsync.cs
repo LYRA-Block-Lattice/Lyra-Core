@@ -31,6 +31,8 @@ namespace Lyra.Core.Accounts
         Task<IEnumerable<ServiceBlock>> FindUnsettledFeeBlockAsync(string AuthorizerAccountId);
 
         // for service blocks
+        Task<ServiceBlock> GetServiceGenesisBlock();
+        Task<LyraTokenGenesisBlock> GetLyraTokenGenesisBlock();
         Task<ServiceBlock> GetLastServiceBlockAsync();
         Task<ConsolidationBlock> GetLastConsolidationBlockAsync();
         Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startHeight);

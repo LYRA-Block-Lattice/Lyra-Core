@@ -734,5 +734,33 @@ namespace Lyra.Core.Accounts
 
             return result4;
         }
+
+        async Task<ServiceBlock> IAccountCollectionAsync.GetServiceGenesisBlock()
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1,
+                Sort = Builders<Block>.Sort.Ascending(o => o.Height)
+            };
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
+
+            var finds = await _blocks.FindAsync(filterDefination, options);
+            return await finds.FirstOrDefaultAsync() as ServiceBlock;
+        }
+
+        async Task<LyraTokenGenesisBlock> IAccountCollectionAsync.GetLyraTokenGenesisBlock()
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1
+                //Sort = Builders<Block>.Sort.Ascending(o => o.Height)
+            };
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("BlockType", BlockTypes.LyraTokenGenesis);
+
+            var finds = await _blocks.FindAsync(filterDefination, options);
+            return await finds.FirstOrDefaultAsync() as LyraTokenGenesisBlock;
+        }
     }
 }

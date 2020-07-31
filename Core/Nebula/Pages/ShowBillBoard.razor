@@ -1,4 +1,5 @@
 ﻿@page "/ShowBillBoard"
+@inject LyraRestClient client
 
 <h1>Show Bill Board Here </h1>
 
@@ -41,11 +42,7 @@ else
     {
         try
         {
-            //var wc = new System.Net.WebClient();
-            //var bbStr = wc.DownloadString(new Uri("http://api.testnet.lyra.live:4505/api/Node/GetBillBoard"));
-
-            var ls = LyraRestClient.Create("devnet", "Windows", "", "1.0");
-            billBoard = await ls.GetBillBoardAsync();
+            billBoard = await client.GetBillBoardAsync();
         }
         catch (Exception ex)
         {

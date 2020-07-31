@@ -491,5 +491,29 @@ public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, 
         {
             throw new NotImplementedException();
         }
+
+        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetServiceGenesisBlock");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetLyraTokenGenesisBlock");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
     }
 }

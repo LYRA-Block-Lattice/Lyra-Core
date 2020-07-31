@@ -98,6 +98,55 @@ namespace Lyra.Core.Decentralize
             return Task.FromResult(result);
         }
 
+        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.GetServiceGenesisBlock();
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.ServiceBlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetServiceGenesisBlock: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
+        }
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.GetLyraTokenGenesisBlock();
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.ServiceBlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetLyraTokenGenesisBlock: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
+        }
+
         public async Task<AccountHeightAPIResult> GetSyncHeight()
         {
             var result = new AccountHeightAPIResult();
