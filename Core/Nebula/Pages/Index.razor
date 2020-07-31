@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using Nebula.Shared
 @inject LyraRestClient client
 
 <h1>Block Explorer for LYRA Block Lattice </h1>
@@ -11,7 +12,9 @@
 }
 else
 {
-    @sbgen.Hash
+
+<ShowBlock Hash="@sbgen.Hash"></ShowBlock>
+
 }
 
 @code{

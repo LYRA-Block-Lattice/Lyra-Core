@@ -246,9 +246,21 @@ namespace Lyra.Core.API
 
         #endregion
 
-public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<BlockAPIResult> GetBlock(string Hash)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetBlock");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();

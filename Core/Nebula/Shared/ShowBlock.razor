@@ -1,0 +1,31 @@
+﻿@inject LyraRestClient client
+ 
+<div>
+    <p>Block Details</p>
+    <pre>@block.Print()</pre>
+</div>
+
+@code {    
+    private string _hash;
+    [Parameter]
+    public string Hash
+    {
+        get
+        {
+            return _hash;
+        }
+        set
+        {
+            _hash = value;
+
+            new Task(async () =>
+            {
+                var ret = await client.GetBlock(_hash);
+                if (ret.ResultCode == APIResultCodes.Success)
+                    block = ret.GetBlock();
+            }).Start();
+        }
+    }
+
+    private Block block { get; set; }
+}

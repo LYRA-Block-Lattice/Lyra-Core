@@ -123,6 +123,14 @@ namespace LyraLexWeb2
             return await _node.GetBlockByHash(AccountId, Hash, Signature);
         }
 
+        [Route("GetBlock")]
+        [HttpGet]
+        public async Task<BlockAPIResult> GetBlock(string Hash)
+        {
+            CheckSyncState();
+            return await _node.GetBlock(Hash);
+        }
+
         [Route("GetNonFungibleTokens")]
         [HttpGet]
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
