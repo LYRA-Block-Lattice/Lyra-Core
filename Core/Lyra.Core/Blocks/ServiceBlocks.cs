@@ -103,5 +103,18 @@ namespace Lyra.Core.Blocks
 
             return base.IsBlockValid(prevBlock);
         }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"NetworkId: {NetworkId}\n";
+            result += $"FeeTicker: {FeeTicker}\n";
+            result += $"TransferFee: {TransferFee.ToString()}\n";
+            result += $"TokenGenerationFee: {TokenGenerationFee.ToString()}\n";
+            result += $"TradeFee: {TradeFee.ToString()}\n";
+            result += $"FeesGenerated: {FeesGenerated.ToString()}\n";
+            return result;
+        }
+
     }
 }

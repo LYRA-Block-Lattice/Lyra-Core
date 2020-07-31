@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Diagnostics;
 using Lyra.Shared;
 using System.Linq;
+using Akka.Util;
 
 namespace Lyra.Core.Accounts
 {
@@ -49,7 +50,7 @@ namespace Lyra.Core.Accounts
         // one-time "manual" sync up with the node 
         public async Task<APIResultCodes> Sync(LyraRestClient RPCClient, bool ResetLocalDatabase = false)
         {
-            if(ResetLocalDatabase)
+            if (ResetLocalDatabase)
             {
                 _storage.Reset();
             }
@@ -95,7 +96,7 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                while(true)
+                while (true)
                 {
                     var result = await _rpcClient.GetSyncHeight();
                     if (result.ResultCode != APIResultCodes.Success)
@@ -203,13 +204,13 @@ namespace Lyra.Core.Accounts
 
         public async Task<APIResultCodes> SyncNodeFees()
         {
-            while(true)
+            while (true)
             {
                 var fbsResult = await _rpcClient.LookForNewFees(AccountId, SignAPICallAsync());
                 if (fbsResult.ResultCode != APIResultCodes.Success || !fbsResult.pendingFeeBlocks.Any())
                     return fbsResult.ResultCode;
 
-                foreach(var sb in fbsResult.pendingFeeBlocks)
+                foreach (var sb in fbsResult.pendingFeeBlocks)
                 {
                     var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
                     if (svcBlockResult.ResultCode != APIResultCodes.Success)
@@ -232,9 +233,9 @@ namespace Lyra.Core.Accounts
 
                     TransactionBlock latestBlock = GetLatestBlock();
                     var prevSb = (await _rpcClient.GetBlockByHash(AccountId, sb.PreviousHash, SignAPICallAsync())).GetBlock() as ServiceBlock;
-                    if(latestBlock != null)
+                    if (latestBlock != null)
                     {
-                        if(latestBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                        if (latestBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                             receiveBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + sb.FeesGenerated / prevSb.Authorizers.Count;
                         else
                             receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, sb.FeesGenerated / sb.Authorizers.Count);
@@ -286,7 +287,7 @@ namespace Lyra.Core.Accounts
                     Console.Write(string.Format("{0}> ", AccountName));
                     return result.ResultCode;
                 }
-            }      
+            }
         }
 
         #region Reward Trade Processing
@@ -310,40 +311,29 @@ namespace Lyra.Core.Accounts
         {
             var trade_orders = await GetActiveTradeOrders("*", reward_token_code, TradeOrderListTypes.SellOnly);
             if (trade_orders.ResultCode != APIResultCodes.Success)
-            {
-                return new AuthorizationAPIResult() { ResultCode = trade_orders.ResultCode, ResultMessage = trade_orders.ResultMessage };
-            }
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound, ResultMessage = "No matching order for redemption found." };
 
+            // let's try the first order in the list, there should be only one matching order anyway
             var sell_order = trade_orders.GetList()[0];
 
-            var trade_order_result = await TradeOrder(TradeOrderTypes.Buy, sell_order.BuyTokenCode, sell_order.SellTokenCode, discount_amount, discount_amount, sell_order.Price, false, true);
-
-            if (trade_order_result.ResultCode == APIResultCodes.Success)
+            var redeem_block = new TradeBlock
             {
-                var cancel_result = CancelTradeOrder(sell_order.Hash).Result;
-                if (cancel_result.ResultCode != APIResultCodes.Success)
-                {
-                    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound, ResultMessage = "No matching trade order found. Failed to cancel the redemption order." };
-                }
-                else
-                {
-                    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound, ResultMessage = "No matching trade order found. Redemption order has been cancelled successfully" };
-                }
-            }
-            else
-            if (trade_order_result.ResultCode == APIResultCodes.TradeOrderMatchFound)
-            {
-                var trade = trade_order_result.GetBlock();
+                AccountID = AccountId,
+                SellTokenCode = sell_order.BuyTokenCode,
+                BuyTokenCode = sell_order.SellTokenCode,
+                BuyAmount = discount_amount,
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee,
+                SellAmount = discount_amount * sell_order.Price,
+                Balances = new Dictionary<string, long>(),
+                DestinationAccountId = sell_order.AccountID,
+                TradeOrderId = sell_order.Hash
+            };
 
-                var trade_result = await Trade(trade);
-
-                return trade_result;
-            }
-            else
-            {
-                return new AuthorizationAPIResult() { ResultCode = trade_order_result.ResultCode, ResultMessage = trade_order_result.ResultMessage };
-            }
+            var redeem_result = await Trade(redeem_block);
+            return redeem_result;
         }
+
 
         public async Task<AuthorizationAPIResult> ExecuteSellOrder(TradeBlock trade, TradeOrderBlock order, NonFungibleToken nonfungible_token = null)
         {
@@ -449,7 +439,7 @@ namespace Lyra.Core.Accounts
 
             //execute_block.Signature = Signatures.GetSignature(PrivateKey, execute_block.Hash);
 
-            execute_block.ServiceHash = await GetLastServiceBlockHash();
+            execute_block.ServiceHash = await getLastServiceBlockHashAsync();
 
             var result = await _rpcClient.ExecuteTradeOrder(execute_block);
 
@@ -664,7 +654,7 @@ namespace Lyra.Core.Accounts
                 }
 
             var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-            if(svcBlockResult.ResultCode != APIResultCodes.Success)
+            if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
             }
@@ -723,7 +713,7 @@ namespace Lyra.Core.Accounts
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
             AuthorizationAPIResult result;
-            if(ToExchange)
+            if (ToExchange)
                 result = await _rpcClient.SendExchangeTransfer((ExchangingBlock)sendBlock);
             else
             {
@@ -732,7 +722,7 @@ namespace Lyra.Core.Accounts
                 //stopwatch.Stop();
                 //Console.WriteLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
             }
-                
+
 
             if (result.ResultCode == APIResultCodes.Success)
             {
@@ -759,48 +749,22 @@ namespace Lyra.Core.Accounts
             if (previousBlock == null)
                 return new TradeOrderAuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
 
-            //int sell_token_precision = await FindTokenPrecision(SellToken);
-            //if (sell_token_precision < 0)
-            //    return new TradeOrderAuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
-
-            //int buy_token_precision = await FindTokenPrecision(BuyToken);
-            //if (buy_token_precision < 0)
-            //    return new TradeOrderAuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
-
-            //var atomic_amount; // that's the amount we "lock" (send to no one) no matter it's buy or sell order
-
-
             // For sell order: how many buy tokens are needed to buy one sell token
             // For buy order: how many sell tokens are needed to buy one buy token
-            //long atomic_price; // that's the price (selling or buying depending on order); the price of the order and the trade should match
 
-            //long max_atomic_amount; // that's the max buy for buy order and max sell for sell order
-            //long min_atomic_amount; // that's the minimum amount of the trade (we don;t want to pay fees for a thousand of trades with frusctions
             decimal balance_change;
 
             if (orderType == TradeOrderTypes.Sell)
             {
-                // sell order locks (sends to nowhere) the MaxAmount or sell tokens
-                //atomic_amount = (long)(MaxAmount * (decimal)Math.Pow(10, sell_token_precision));
-                //max_atomic_amount = atomic_amount;
-
-                //min_atomic_amount = (long)(MinAmount * (decimal)Math.Pow(10, sell_token_precision));
-
                 // For sell order: how many buy tokens are needed to buy one sell token
-                //atomic_price = (long)(Price * (decimal)Math.Pow(10, buy_token_precision));
                 balance_change = MaxAmount;
             }
             else
             {
                 // For buy order: how many sell tokens are needed to buy one buy token
-                //atomic_price = (long)(Price * (decimal)Math.Pow(10, sell_token_precision));
 
                 // buy order locks (sends to nowhere) the MaxAmount of Sell tokens multiplied by Price
-                //atomic_amount = (long)(MaxAmount * Price * (decimal)Math.Pow(10, sell_token_precision));
 
-                //max_atomic_amount = (long)(MaxAmount * (decimal)Math.Pow(10, buy_token_precision));
-
-                //min_atomic_amount = (long)(MinAmount * (decimal)Math.Pow(10, buy_token_precision));
                 balance_change = MaxAmount * Price;
             }
 
@@ -833,12 +797,12 @@ namespace Lyra.Core.Accounts
             if (previousBlock.Balances[SellToken] < balance_change)
                 return new TradeOrderAuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            //var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
 
             var tradeBlock = new TradeOrderBlock
             {
                 AccountID = AccountId,
-                ServiceHash = await GetLastServiceBlockHash(),
+                ServiceHash = await getLastServiceBlockHashAsync(),
                 DestinationAccountId = string.Empty, // we are sending to nowhere
                 Balances = new Dictionary<string, long>(),
                 //PaymentID = string.Empty,
@@ -913,9 +877,8 @@ namespace Lyra.Core.Accounts
                 if (!(trade.Balances.ContainsKey(balance.Key)))
                     trade.Balances.Add(balance.Key, balance.Value);
 
-            trade.ServiceHash = await GetLastServiceBlockHash();
+            trade.ServiceHash = await getLastServiceBlockHashAsync();
             trade.InitializeBlock(previousBlock, PrivateKey, AccountId);
-
 
             var trade_result = await _rpcClient.Trade(trade);
 
@@ -957,7 +920,7 @@ namespace Lyra.Core.Accounts
             var cancelBlock = new CancelTradeOrderBlock
             {
                 AccountID = AccountId,
-                ServiceHash = await GetLastServiceBlockHash(),
+                ServiceHash = await getLastServiceBlockHashAsync(),
                 Balances = new Dictionary<string, long>(),
                 FeeType = AuthorizationFeeTypes.NoFee,
                 TradeOrderId = OrderId
@@ -1005,7 +968,8 @@ namespace Lyra.Core.Accounts
 
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string SellToken, string BuyToken, TradeOrderListTypes OrderType)
         {
-            return await _rpcClient.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, SignAPICallAsync());
+            var result = await _rpcClient.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, SignAPICallAsync());
+            return result;
         }
 
         public async Task<string> PrintActiveTradeOrdersAsync()
@@ -1124,7 +1088,7 @@ namespace Lyra.Core.Accounts
             // *** Slava - July 19, 2020 - I am not sure if we need this call anymore? 
             //await FindTokenPrecision(new_transfer_info.Transfer.TokenCode);
             // ***
- 
+
             if (GetLocalAccountHeight() == 0) // if this is new account with no blocks
                 return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
 
@@ -1243,7 +1207,7 @@ namespace Lyra.Core.Accounts
             //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
 
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
-            //openTokenGenesisBlock.Transaction = transaction;
+                                                                                                           //openTokenGenesisBlock.Transaction = transaction;
             openTokenGenesisBlock.InitializeBlock(null, PrivateKey, AccountId);
 
             //openTokenGenesisBlock.Signature = Signatures.GetSignature(PrivateKey, openTokenGenesisBlock.Hash);
@@ -1450,14 +1414,24 @@ namespace Lyra.Core.Accounts
             //_rpcClient.Dispose();
         }
 
-        private async Task<string> GetLastServiceBlockHash()
+        public async Task<ServiceBlock> GetLastServiceBlockAsync()
         {
             var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception($"Unable to retrieve the latest service block. Result Code: {svcBlockResult.ResultCode}");
             }
-            return svcBlockResult.GetBlock().Hash;
+            return svcBlockResult.GetBlock() as ServiceBlock;
+        }
+
+        private async Task<string> getLastServiceBlockHashAsync()
+        {
+            var svcBlockResult = await GetLastServiceBlockAsync();
+            if (svcBlockResult == null)
+            {
+                throw new Exception($"Unable to retrieve the latest service block. ");
+            }
+            return svcBlockResult.Hash;
         }
     }
 }
