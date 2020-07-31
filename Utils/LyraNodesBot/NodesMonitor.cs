@@ -122,7 +122,7 @@ namespace LyraNodesBot
             sb.AppendLine($"Consensus Win Number: {ProtocolSettings.Default.ConsensusWinNumber}");
             sb.AppendLine($"Maxmimum Tolerant Node Number: {ProtocolSettings.Default.ConsensusNumber}");
             sb.AppendLine($"Current Running Node Count: {bb.AllNodes.Count}");
-            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.Value.AbleToAuthorize)}");
+            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.Value.GetAbleToAuthorize())}");
             var cando = "unknown"; // bb.CanDoConsensus ? "Yes" : "No";
             sb.AppendLine($"Consensus Can be Made Now: {cando}");
 

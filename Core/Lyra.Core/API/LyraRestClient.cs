@@ -40,11 +40,24 @@ namespace Lyra.Core.API
 
             if(platform == "Android" || platform == "Windows" || platform == "Win32NT")
             {
-                httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;                    
+                try
+                {
+                    httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+                }
+                catch { }
             }
 
-            System.Net.ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true;
-            httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+            try
+            {
+                System.Net.ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true;
+            }
+            catch { }
+
+            try
+            {
+                httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+            }
+            catch { }            
 
             _client = new HttpClient(httpClientHandler);
             _client.BaseAddress = new Uri(url);
