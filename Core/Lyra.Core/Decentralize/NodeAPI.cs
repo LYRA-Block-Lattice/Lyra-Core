@@ -23,13 +23,13 @@ namespace Lyra.Core.Decentralize
         {
         }
 
-        public async Task<LyraRestClient> GetClientForSeed0()
+        public LyraRestClient GetClientForSeed0()
         {
             if (_seed0Client == null)
             {
                 var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
                 var apiUrl = $"http://{addr}:4505/api/Node/";
-                _seed0Client = await LyraRestClient.CreateAsync(LyraNodeConfig.GetNetworkId(), Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+                _seed0Client = LyraRestClient.Create(LyraNodeConfig.GetNetworkId(), Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
 
             }
             return _seed0Client;

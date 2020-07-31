@@ -137,10 +137,10 @@ namespace Lyra.Client.CLI
                 if (!string.IsNullOrWhiteSpace(options.Node))
                 {
                     var apiUrl = $"http://{options.Node}:4505/api/Node/";
-                    rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a", apiUrl);
+                    rpcClient = LyraRestClient.Create(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a", apiUrl);
                 }
                 else
-                    rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");//await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
+                    rpcClient = LyraRestClient.Create(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");//await LyraRpcClient.CreateAsync(network_id, "Lyra Client Cli", "1.0");
 
                 Console.WriteLine("Type 'help' to see the list of available commands");
                 Console.WriteLine("");

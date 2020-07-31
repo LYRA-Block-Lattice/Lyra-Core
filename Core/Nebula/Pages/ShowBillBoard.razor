@@ -23,7 +23,7 @@ else
                 <tr>
                     <td>@node.LastStaking</td>
                     <td>@node.AccountID</td>
-                    <td>@node.IPAddress</td>
+                    <td>@node.IPAddress.Shorten()</td>
                     <td>@node.Votes</td>
                 </tr>
             }
@@ -44,7 +44,7 @@ else
             //var wc = new System.Net.WebClient();
             //var bbStr = wc.DownloadString(new Uri("http://api.testnet.lyra.live:4505/api/Node/GetBillBoard"));
 
-            var ls = await LyraRestClient.CreateAsync("devnet", "Windows", "", "1.0");
+            var ls = LyraRestClient.Create("devnet", "Windows", "", "1.0");
             billBoard = await ls.GetBillBoardAsync();
         }
         catch (Exception ex)

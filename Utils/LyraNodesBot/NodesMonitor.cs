@@ -288,7 +288,7 @@ namespace LyraNodesBot
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/Node/");
+            var rpcClient = LyraRestClient.Create(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/Node/");
             await acctWallet.Sync(rpcClient, true);
             return acctWallet;
         }
