@@ -260,7 +260,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetBlock(string Hash)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlock");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlock/?Hash={Hash}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();

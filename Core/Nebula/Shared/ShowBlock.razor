@@ -1,11 +1,18 @@
 ﻿@inject LyraRestClient client
- 
+
 <div>
-    <p>Block Details</p>
-    <pre>@block.Print()</pre>
+    @if (block == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <p>Block Details</p>
+        <pre>@block.Print()</pre>
+    }
 </div>
 
-@code {    
+@code {
     private string _hash;
     [Parameter]
     public string Hash
