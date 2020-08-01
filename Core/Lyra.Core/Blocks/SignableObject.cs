@@ -67,7 +67,7 @@ namespace Lyra.Core.Blocks
             string result = string.Empty;
             //result += $"HashInput: {GetHashInput()}\n";
             result += $"Hash: {Hash}\n";
-            result += $"CaclulatedHash: {CalculateHash()}\n";
+            result += $"CalculatedHash: {CalculateHash()}\n";
             result += $"Signature: {Signature}\n";
             return result;
         }

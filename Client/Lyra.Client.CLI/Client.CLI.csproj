@@ -690,4 +690,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.3" />
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="if &quot;%25COMPUTERNAME%25&quot; == &quot;xyz&quot; (&#xD;&#xA;copy $(OutDir)* \\Mac\slava\LYRA_FILES\CLI&#xD;&#xA;)" />
+  </Target>
 </Project>

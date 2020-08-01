@@ -103,9 +103,11 @@ namespace Lyra.Client.CLI
                     case COMMAND_STATUS:
                         Console.WriteLine(string.Format("Network Id: {0}", _wallet.NetworkId));
                         Console.WriteLine(string.Format("Account Id: {0}", _wallet.AccountId));
-                        Console.WriteLine($"Current voting for Account Id: {_wallet.VoteFor ?? "(empty)"}");
+                        Console.WriteLine($"Current voting for Account Id: {_wallet.VoteFor ?? "(Not Set)"}");
                         Console.WriteLine(string.Format("Number of Blocks: {0}", _wallet.GetLocalAccountHeight()));
                         Console.WriteLine(              "Balance: " + _wallet.GetDisplayBalances());
+                        Console.WriteLine("Last Status Block: ");
+                        Console.WriteLine((await _wallet.GetLastServiceBlockAsync()).Print());
                         break;
                     case COMMAND_PRIVATE_KEY:
                         Console.WriteLine(string.Format(_wallet.PrivateKey));
