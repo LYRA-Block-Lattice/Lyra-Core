@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Fluxor;
 using Lyra.Core.API;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
@@ -33,6 +34,9 @@ namespace Nebula
 
             var networkid = Configuration["network"];
             services.AddTransient<LyraRestClient>(a => LyraRestClient.Create(networkid, Environment.OSVersion.ToString(), "Nebula", "1.0"));
+
+            var currentAssembly = typeof(Startup).Assembly;
+            services.AddFluxor(options => options.ScanAssemblies(currentAssembly));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
