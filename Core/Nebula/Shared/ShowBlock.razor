@@ -25,12 +25,18 @@
         {
             _hash = value;
 
-            new Task(async () =>
+            var t = new Task(async () =>
             {
                 var ret = await client.GetBlock(_hash);
                 if (ret.ResultCode == APIResultCodes.Success)
                     block = ret.GetBlock();
-            }).Start();
+            });
+            t.ContinueWith(a => InvokeAsync(() =>
+            {
+
+                StateHasChanged();
+            }));
+            t.Start();            
         }
     }
 

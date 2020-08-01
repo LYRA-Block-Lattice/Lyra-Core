@@ -4,7 +4,8 @@
 
 <h1>Block Explorer for LYRA Block Lattice </h1>
 
-<a href="/ShowBillBoard">BillBoard</a>
+Search by Hash
+<input type="text" @oninput="oninput" @bind-value="@SearchHash" />
 
 @if (sbgen == null)
 {
@@ -13,7 +14,10 @@
 else
 {
 
-<ShowBlock Hash="@sbgen.Hash"></ShowBlock>
+<div style="border: 1px, solid">
+    <p>Block Details</p>
+    <pre>@sbgen.Print()</pre>
+</div>
 
 }
 
@@ -21,18 +25,30 @@ else
     // get svc gen
     string error;
     ServiceBlock sbgen;
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            var ret = await client.GetServiceGenesisBlock();
-            if (ret.ResultCode == APIResultCodes.Success)
-                sbgen = ret.GetBlock() as ServiceBlock;
-        }
-        catch (Exception ex)
-        {
-            error = ex.ToString();
-        }
-    }
+    string SearchHash;
 
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    try
+    //    {
+    //        var ret = await client.GetServiceGenesisBlock();
+    //        if (ret.ResultCode == APIResultCodes.Success)
+    //            sbgen = ret.GetBlock() as ServiceBlock;
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        error = ex.ToString();
+    //    }
+    //}
+
+    public async void oninput(ChangeEventArgs args)
+    {
+        var ret = await client.GetBlock(args.Value.ToString());
+        if (ret.ResultCode == APIResultCodes.Success)
+        {
+            sbgen = ret.GetBlock() as ServiceBlock;
+            //StateHasChanged();
+        }
+
+    }
 }
