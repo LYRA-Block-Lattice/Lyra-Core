@@ -45,7 +45,7 @@ namespace Lyra.Core.API
                 case "devnet":
                     //return "http://192.168.3.73:4505/api/";
                     //return "http://10.211.55.5:4505/api/";
-                    return "http://seed.devnet:4505/api/";
+                    return "http://api.devnet:4505/api/";       // better set static hosts entry
 
 #endif
                 case "testnet":

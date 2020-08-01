@@ -604,14 +604,14 @@ namespace Lyra
         public List<Vote> FindVotes(IEnumerable<string> posAccountIds) => _store.FindVotes(posAccountIds);
         #endregion
 
-        public async Task<LyraRestClient> GetClientForSeed0()
+        public LyraRestClient GetClientForSeed0()
         {
             if (_seed0Client == null)
             {
                 var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
                 var apiUrl = $"http://{addr}:4505/api/Node/";
                 _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-                _seed0Client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+                _seed0Client = LyraRestClient.Create(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
 
             }
             return _seed0Client;
@@ -817,7 +817,7 @@ namespace Lyra
                 var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
                 var apiUrl = $"http://{addr}:4505/api/Node/";
                 _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-                var client = await LyraRestClient.CreateAsync(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+                var client = LyraRestClient.Create(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
                 var mode = await client.GetSyncState();
                 if (mode.ResultCode == APIResultCodes.Success)
                 {

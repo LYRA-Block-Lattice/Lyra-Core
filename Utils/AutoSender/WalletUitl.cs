@@ -27,7 +27,7 @@ namespace AutoSender
 
         public async Task<Dictionary<string, Decimal>> RefreshBalance(string networkId)
         {
-            var rpcClient = await LyraRestClient.CreateAsync(networkId, "Windows", "AutoSender", "0.1");
+            var rpcClient = LyraRestClient.Create(networkId, "Windows", "AutoSender", "0.1");
 
             var result = await wallet.Sync(rpcClient);
             if (result == Lyra.Core.Blocks.APIResultCodes.Success)

@@ -11,6 +11,9 @@ namespace Lyra.Core.API
         #region Blocklist information methods
         Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion);
 
+        Task<BlockAPIResult> GetServiceGenesisBlock();
+        Task<BlockAPIResult> GetLyraTokenGenesisBlock();
+
         Task<GetSyncStateAPIResult> GetSyncState();
 
         // this one can be cached for a few milliseconds
@@ -42,6 +45,7 @@ namespace Lyra.Core.API
 
         // Retrives a block by its hash
         Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature);
+        Task<BlockAPIResult> GetBlock(string Hash);
 
         Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature);
         Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature);

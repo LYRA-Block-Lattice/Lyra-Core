@@ -39,7 +39,7 @@ namespace Friday
             var wallets = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(workingFolder + @"\\wallets.json"));
 
             //var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", "Lyra Client Cli", "1.0a", "http://192.168.3.62:4505/api/Node/");
-            var rpcClient = await LyraRestClient.CreateAsync(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
+            var rpcClient = LyraRestClient.Create(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
             var tt = new TransactionTester(rpcClient);
 
             var masterWallet = new Wallet(new LiteAccountDatabase(), network_id);

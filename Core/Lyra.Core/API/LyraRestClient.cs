@@ -40,11 +40,24 @@ namespace Lyra.Core.API
 
             if(platform == "Android" || platform == "Windows" || platform == "Win32NT")
             {
-                httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;                    
+                try
+                {
+                    httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+                }
+                catch { }
             }
 
-            System.Net.ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true;
-            httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+            try
+            {
+                System.Net.ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true;
+            }
+            catch { }
+
+            try
+            {
+                httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+            }
+            catch { }            
 
             _client = new HttpClient(httpClientHandler);
             _client.BaseAddress = new Uri(url);
@@ -56,14 +69,14 @@ namespace Lyra.Core.API
 #endif
         }
 
-        public static async Task<LyraRestClient> CreateAsync(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
+        public static LyraRestClient Create(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
         {
             var url = apiUrl == null ? LyraGlobal.SelectNode(networkId) + "Node/" : apiUrl;
             var restClient = new LyraRestClient(platform, appName, appVersion, url);
-            if (!await restClient.CheckApiVersion().ConfigureAwait(false))
-                throw new Exception("Unable to use API. Must upgrade your App.");
-            else
-                return restClient;
+            //if (!await restClient.CheckApiVersion().ConfigureAwait(false))
+            //    throw new Exception("Unable to use API. Must upgrade your App.");
+            //else
+            return restClient;
         }
 
         private async Task<AuthorizationAPIResult> PostBlock(string action, Block block)
@@ -233,9 +246,21 @@ namespace Lyra.Core.API
 
         #endregion
 
-public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<BlockAPIResult> GetBlock(string Hash)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetBlock/?Hash={Hash}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -477,6 +502,30 @@ public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, 
         public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetServiceGenesisBlock");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetLyraTokenGenesisBlock");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
         }
     }
 }

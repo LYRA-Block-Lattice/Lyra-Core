@@ -23,13 +23,13 @@ namespace Lyra.Core.Decentralize
         {
         }
 
-        public async Task<LyraRestClient> GetClientForSeed0()
+        public LyraRestClient GetClientForSeed0()
         {
             if (_seed0Client == null)
             {
                 var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
                 var apiUrl = $"http://{addr}:4505/api/Node/";
-                _seed0Client = await LyraRestClient.CreateAsync(LyraNodeConfig.GetNetworkId(), Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+                _seed0Client = LyraRestClient.Create(LyraNodeConfig.GetNetworkId(), Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
 
             }
             return _seed0Client;
@@ -96,6 +96,55 @@ namespace Lyra.Core.Decentralize
                 MustUpgradeToConnect = apiVersion < LyraGlobal.ProtocolVersion
             };
             return Task.FromResult(result);
+        }
+
+        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.GetServiceGenesisBlock();
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.ServiceBlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetServiceGenesisBlock: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
+        }
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.GetLyraTokenGenesisBlock();
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.ServiceBlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetLyraTokenGenesisBlock: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
         }
 
         public async Task<AccountHeightAPIResult> GetSyncHeight()
@@ -250,6 +299,32 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        public async Task<BlockAPIResult> GetBlock(string Hash)
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.FindBlockByHashAsync(Hash);
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetBlock(Hash): " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
+        }
+
 
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {

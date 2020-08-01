@@ -1,0 +1,52 @@
+﻿@page "/ShowBillBoard"
+@inject LyraRestClient client
+
+<h1>Show Bill Board Here </h1>
+
+@if (billBoard == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var node in billBoard.AllNodes.Values)
+            {
+                <tr>
+                    <td>@node.LastStaking</td>
+                    <td>@node.AccountID</td>
+                    <td>@node.IPAddress.Shorten()</td>
+                    <td>@node.Votes</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<pre>@error</pre>
+
+@code{
+    // get svc gen
+    string error;
+    BillBoard billBoard;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            billBoard = await client.GetBillBoardAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.ToString();
+        }
+    }
+}

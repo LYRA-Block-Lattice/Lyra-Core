@@ -123,6 +123,14 @@ namespace LyraLexWeb2
             return await _node.GetBlockByHash(AccountId, Hash, Signature);
         }
 
+        [Route("GetBlock")]
+        [HttpGet]
+        public async Task<BlockAPIResult> GetBlock(string Hash)
+        {
+            CheckSyncState();
+            return await _node.GetBlock(Hash);
+        }
+
         [Route("GetNonFungibleTokens")]
         [HttpGet]
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
@@ -145,6 +153,22 @@ namespace LyraLexWeb2
         {
             CheckSyncState();
             return await _node.GetLastServiceBlock(AccountId, Signature);
+        }
+
+        [Route("GetServiceGenesisBlock")]
+        [HttpGet]
+        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        {
+            CheckSyncState();
+            return await _node.GetServiceGenesisBlock();
+        }
+
+        [Route("GetLyraTokenGenesisBlock")]
+        [HttpGet]
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        {
+            CheckSyncState();
+            return await _node.GetLyraTokenGenesisBlock();
         }
 
         [Route("GetLastConsolidationBlock")]

@@ -1,0 +1,22 @@
+﻿@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+@page "/"
+
+<h1>Block Explorer for LYRA Block Lattice </h1>
+
+Search by Hash
+<input type="text" @oninput="oninput" />
+
+@if (searchState.Value.IsLoading)
+{
+    <p><em>Loading...</em></p>
+}
+@if (searchState.Value.block != null)
+{
+
+    <div style="border: 1px, solid">
+        <p>Block Details</p>
+        <pre>@searchState.Value.block.Print()</pre>
+    </div>
+
+}
+

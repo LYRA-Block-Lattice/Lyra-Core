@@ -31,6 +31,16 @@ namespace Lyra.Node2
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            //services.AddCors(options =>
+            //{
+            //    options.AddPolicy("my", builder =>
+            //                      {
+            //                          builder.WithOrigins("http://lyra.live/",
+            //                                          "http://seed.devnet", "https://localhost:44324/")
+            //                          .AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            //                      });
+            //});
+
             // the apis
             services.AddSingleton<INodeAPI, NodeAPI>();
             services.AddSingleton<INodeTransactionAPI, ApiService>();
@@ -50,6 +60,8 @@ namespace Lyra.Node2
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            //app.UseCors("my");
+
             // lyra network ID must be set early
             var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
             if (networkId == null)

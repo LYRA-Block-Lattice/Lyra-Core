@@ -90,7 +90,7 @@ namespace LyraWallet.Models
             //_nodeApiClient = new DAGAPIClient((DAGClientHostedService)client);
             //while ((client as DAGClientHostedService).Node == null)
             //    await Task.Delay(100);
-            _nodeApiClient = await LyraRestClient.CreateAsync(CurrentNetwork, platform, AppInfo.Name, AppInfo.VersionString);
+            _nodeApiClient = LyraRestClient.Create(CurrentNetwork, platform, AppInfo.Name, AppInfo.VersionString);
             //_notifyApiClient = new LyraRestNotify(platform, LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
 
             //_cancel = new CancellationTokenSource();

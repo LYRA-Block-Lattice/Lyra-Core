@@ -122,7 +122,7 @@ namespace LyraNodesBot
             sb.AppendLine($"Consensus Win Number: {ProtocolSettings.Default.ConsensusWinNumber}");
             sb.AppendLine($"Maxmimum Tolerant Node Number: {ProtocolSettings.Default.ConsensusNumber}");
             sb.AppendLine($"Current Running Node Count: {bb.AllNodes.Count}");
-            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.Value.AbleToAuthorize)}");
+            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.Value.GetAbleToAuthorize())}");
             var cando = "unknown"; // bb.CanDoConsensus ? "Yes" : "No";
             sb.AppendLine($"Consensus Can be Made Now: {cando}");
 
@@ -288,7 +288,7 @@ namespace LyraNodesBot
             acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            var rpcClient = await LyraRestClient.CreateAsync(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/Node/");
+            var rpcClient = LyraRestClient.Create(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/Node/");
             await acctWallet.Sync(rpcClient, true);
             return acctWallet;
         }

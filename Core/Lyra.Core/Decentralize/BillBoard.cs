@@ -29,7 +29,7 @@ namespace Lyra.Core.Decentralize
 
         public void SnapShot()
         {
-            var nonSeeds = AllNodes.Values.Where(a => a.AbleToAuthorize && !ProtocolSettings.Default.StandbyValidators.Any(b => b == a.AccountID))
+            var nonSeeds = AllNodes.Values.Where(a => a.GetAbleToAuthorize() && !ProtocolSettings.Default.StandbyValidators.Any(b => b == a.AccountID))
                     .OrderByDescending(b => b.Votes)
                     .ThenByDescending(c => c.LastStaking)
                     .Take(ProtocolSettings.Default.ConsensusTotalNumber - ProtocolSettings.Default.StandbyValidators.Length)
@@ -40,7 +40,7 @@ namespace Lyra.Core.Decentralize
             if(nonSeeds.Length > 0)
                 Array.Copy(nonSeeds, 0, PrimaryAuthorizers, ProtocolSettings.Default.StandbyValidators.Length, nonSeeds.Length);
 
-            var nonPrimaryNodes = AllNodes.Values.Where(a => a.AbleToAuthorize && !Array.Exists(PrimaryAuthorizers, x => x == a.AccountID));
+            var nonPrimaryNodes = AllNodes.Values.Where(a => a.GetAbleToAuthorize() && !Array.Exists(PrimaryAuthorizers, x => x == a.AccountID));
             if(nonPrimaryNodes.Any())
             {
                 BackupAuthorizers = nonPrimaryNodes
@@ -129,6 +129,6 @@ namespace Lyra.Core.Decentralize
         }
 
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die
-        public bool AbleToAuthorize => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Votes >= LyraGlobal.MinimalAuthorizerBalance) && (DateTime.Now - LastStaking < TimeSpan.FromSeconds(90));
+        public bool GetAbleToAuthorize() => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Votes >= LyraGlobal.MinimalAuthorizerBalance) && (DateTime.Now - LastStaking < TimeSpan.FromSeconds(90));
     }
 }
