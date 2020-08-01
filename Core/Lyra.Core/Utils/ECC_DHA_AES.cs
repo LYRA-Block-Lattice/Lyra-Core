@@ -9,6 +9,8 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Crypto.Agreement.Kdf;
 using System.Security.Cryptography;
 
+using System.Linq;
+
 namespace Lyra.Core.Cryptography
 {
     public class ECC_DHA_AES_Encryptor
@@ -86,15 +88,18 @@ namespace Lyra.Core.Cryptography
 
         public byte[] GetSharedSecret(string LocalPrivateKey, string RemoteAccountId)
         {
-            var curve = SecNamedCurves.GetByName("secp256k1");
+            //var pvtKey = Base58Encoding.DecodePrivateKey(privateKey);
+            //var kp = new Neo.Wallets.KeyPair(pvtKey);
+            //return Base58Encoding.EncodeAccountId(kp.PublicKey.EncodePoint(false).Skip(1).ToArray());
+
+            //var curve = SecNamedCurves.GetByName("secp256k1");
+            var curve = SecNamedCurves.GetByName("secp256r1");
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
 
             //byte[] pkbytes = Base58Encoding.DecodeWithCheckSum(LocalPrivateKey);
             byte[] pkbytes = Base58Encoding.DecodePrivateKey(LocalPrivateKey);
 
-            var privateKeyParameters = new
-                    ECPrivateKeyParameters(new BigInteger(pkbytes),
-                    domain);
+            var privateKeyParameters = new ECPrivateKeyParameters(new BigInteger(1, pkbytes), domain);
 
             var dh = new ECDHCBasicAgreement();
             dh.Init(privateKeyParameters);
@@ -103,7 +108,10 @@ namespace Lyra.Core.Cryptography
             //var publicKeyBytes = Base58Encoding.DecodeWithCheckSum(RemotePublicKey);
             var publicKeyBytes = Base58Encoding.DecodeAccountId(RemoteAccountId);
 
-            var q = curve.Curve.DecodePoint(publicKeyBytes);
+
+
+            //var q = curve.Curve.DecodePoint(publicKeyBytes);
+            var q = curve.Curve.CreatePoint(new BigInteger(1, publicKeyBytes.Take(32).ToArray()), new BigInteger(1, publicKeyBytes.Skip(32).ToArray()));
 
             var publicKeyParameters = new ECPublicKeyParameters(q, domain);
 
