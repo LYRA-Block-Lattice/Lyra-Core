@@ -27,7 +27,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task<BlockAPIResult> GetLastConsolidationBlockAsync()
         {            
-            return await _client.GetLastConsolidationBlock(_sys.PosWallet.AccountId, await SignAPICallAsync());
+            return await _client.GetLastConsolidationBlock();
         }
 
         internal async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string consolidationHash)

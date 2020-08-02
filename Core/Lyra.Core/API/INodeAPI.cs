@@ -27,7 +27,7 @@ namespace Lyra.Core.API
         // this one can be definitely cached forever as the result never changes if the block exists
         Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature);
 
-        Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature);
+        Task<BlockAPIResult> GetLastConsolidationBlock();
         Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight);
         Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash);
         Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature);

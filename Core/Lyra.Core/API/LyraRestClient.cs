@@ -294,9 +294,9 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature)
+        public async Task<BlockAPIResult> GetLastConsolidationBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLastConsolidationBlock/?AccountId={AccountId}&Signature={Signature}");
+            HttpResponseMessage response = await _client.GetAsync($"GetLastConsolidationBlock");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();

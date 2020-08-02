@@ -142,10 +142,10 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
+            result += $"BlockType: {BlockType.ToString()}\n";
+            result += $"Version: {Version}\n";
             result += $"Index: {Height.ToString()}\n";
             result += $"TimeStamp: {DateTimeToString(TimeStamp)}\n"; 
-            result += $"Version: {Version}\n";
-            result += $"BlockType: {BlockType.ToString()}\n";
             result += $"PreviousHash: {PreviousHash}\n";
             result += $"Tags: {JsonConvert.SerializeObject(Tags)}\n";
             //result += $"Authorizations: {JsonConvert.SerializeObject(Authorizations)}\n";

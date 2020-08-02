@@ -27,7 +27,7 @@ namespace Nebula.Store.BlockSearchUseCase
 			Block blockResult = null;
 			if(string.IsNullOrWhiteSpace(hashToSearch))
             {
-				var genSvcRet = await client.GetServiceGenesisBlock();
+				var genSvcRet = await client.GetLastConsolidationBlock();
 				if(genSvcRet.ResultCode == APIResultCodes.Success)
                 {
 					blockResult = genSvcRet.GetBlock();					

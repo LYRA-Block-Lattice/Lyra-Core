@@ -424,14 +424,9 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature)
+        public async Task<BlockAPIResult> GetLastConsolidationBlock()
         {
             var result = new BlockAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
 
             try
             {

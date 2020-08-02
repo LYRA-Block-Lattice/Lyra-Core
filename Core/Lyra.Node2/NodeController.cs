@@ -173,10 +173,10 @@ namespace LyraLexWeb2
 
         [Route("GetLastConsolidationBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetLastConsolidationBlock(string AccountId, string Signature)
+        public async Task<BlockAPIResult> GetLastConsolidationBlock()
         {
             CheckSyncState();
-            return await _node.GetLastConsolidationBlock(AccountId, Signature);
+            return await _node.GetLastConsolidationBlock();
         }
 
         [Route("GetBlocksByConsolidation")]

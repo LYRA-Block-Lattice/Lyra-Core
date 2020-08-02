@@ -35,6 +35,16 @@ namespace Lyra.Core.Blocks
                 $"|{totalFees}" +
                 $"|{MerkelTreeHash}";
         }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"totalBlockCount: {totalBlockCount}\n";
+            result += $"totalFees: {totalFees}\n";
+            result += $"MerkelTreeHash: {MerkelTreeHash}\n";
+            result += $"blockHashes: {string.Join(',', blockHashes)}\n";
+            return result;
+        }
     }
 
     // Sync block:
