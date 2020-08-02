@@ -25,7 +25,14 @@ namespace Nebula.Pages
 			Dispatcher.Dispatch(new BlockSearchAction(hash));
 		}
 
-		public void oninput(ChangeEventArgs args)
+        protected override async Task OnParametersSetAsync()
+        {
+			Dispatcher.Dispatch(new BlockSearchAction(hash));
+
+			await base.OnParametersSetAsync();
+        }
+
+        public void oninput(ChangeEventArgs args)
 		{
 			Dispatcher.Dispatch(new BlockSearchAction(args.Value.ToString()));
 		}

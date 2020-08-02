@@ -2,10 +2,8 @@
 @page "/showblock"
 @page "/showblock/{hash}"
 
-<h1>Block Explorer for LYRA Block Lattice </h1>
-
-<h3>Search by Hash</h3>
-<p><input size="100" type="text" @oninput="oninput" /></p>
+<h2 style="text-align: center">Search by Hash</h2>
+<p style="text-align: center"><input size="100" type="text" @oninput="oninput" /></p>
 
 @if (searchState.Value.IsLoading)
 {
@@ -16,7 +14,7 @@
 
     <div style="border: 1px, solid">
         <p>Block Details</p>
-        <pre>@searchState.Value.block.Print()</pre>
+        <pre>@((MarkupString)searchState.Value.FancyShow())</pre>
     </div>
 
 }
