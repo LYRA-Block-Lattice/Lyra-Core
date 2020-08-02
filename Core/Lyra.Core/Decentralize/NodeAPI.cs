@@ -382,20 +382,12 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
+        public async Task<BlockAPIResult> GetLastServiceBlock()
         {
             var result = new BlockAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
 
             try
             {
-                if (!await NodeService.Dag.Storage.AccountExistsAsync(AccountId))
-                    result.ResultCode = APIResultCodes.AccountDoesNotExist;
-
                 var block = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
                 if (block != null)
                 {

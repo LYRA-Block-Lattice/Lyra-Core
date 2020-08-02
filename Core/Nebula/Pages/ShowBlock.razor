@@ -21,6 +21,7 @@
     @if (searchState.Value.block is TransactionBlock && searchState.Value.MaxHeight > 0)
     {
 <div class="pagination">
+    <a href="/showblock/@hash/1">&larrb;</a>
     <a href="/showblock/@hash/@searchState.Value.prevHeight">&laquo;</a>
     @for (int i = 1; i <= searchState.Value.MaxHeight; i++)
         {
@@ -34,6 +35,7 @@
             }
         }
     <a href="/showblock/@hash/@searchState.Value.nextHeight">&raquo;</a>
+    <a href="/showblock/@hash/@searchState.Value.MaxHeight">&rarrb;</a>
 </div>
     }
 }

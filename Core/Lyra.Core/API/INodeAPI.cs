@@ -22,7 +22,7 @@ namespace Lyra.Core.API
         Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword);
 
         // this one can be cached for a few seconds
-        Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature);
+        Task<BlockAPIResult> GetLastServiceBlock();
 
         // this one can be definitely cached forever as the result never changes if the block exists
         Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature);

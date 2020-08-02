@@ -117,7 +117,7 @@ namespace Lyra.Core.Accounts
 
                 if (TransferFee == 0 || TokenGenerationFee == 0 || TradeFee == 0)
                 {
-                    var blockresult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+                    var blockresult = await _rpcClient.GetLastServiceBlock();
 
                     if (blockresult.ResultCode != APIResultCodes.Success)
                         return blockresult.ResultCode;
@@ -1029,7 +1029,7 @@ namespace Lyra.Core.Accounts
 
         private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult new_transfer_info)
         {
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -1092,7 +1092,7 @@ namespace Lyra.Core.Accounts
             if (GetLocalAccountHeight() == 0) // if this is new account with no blocks
                 return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -1177,7 +1177,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<APIResultCodes> CreateGenesisForCoreTokenAsync()
         {
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -1271,7 +1271,7 @@ namespace Lyra.Core.Accounts
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
             }
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -1416,7 +1416,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<ServiceBlock> GetLastServiceBlockAsync()
         {
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception($"Unable to retrieve the latest service block. Result Code: {svcBlockResult.ResultCode}");

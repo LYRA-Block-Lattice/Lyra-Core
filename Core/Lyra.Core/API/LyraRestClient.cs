@@ -282,9 +282,9 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task<BlockAPIResult> GetLastServiceBlock(string AccountId, string Signature)
+        public async Task<BlockAPIResult> GetLastServiceBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLastServiceBlock/?AccountId={AccountId}&Signature={Signature}");
+            HttpResponseMessage response = await _client.GetAsync($"GetLastServiceBlock");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();

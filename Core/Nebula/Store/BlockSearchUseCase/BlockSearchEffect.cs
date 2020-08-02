@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Net.Http.Json;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Akka;
 
 namespace Nebula.Store.BlockSearchUseCase
 {
@@ -57,7 +58,34 @@ namespace Nebula.Store.BlockSearchUseCase
 				}
 			}
 
+			maxHeight = await GetMaxHeightAsync(blockResult);
 			dispatcher.Dispatch(new BlockSearchResultAction(blockResult, maxHeight));
 		}
+
+		private async Task<long> GetMaxHeightAsync(Block block)
+        {
+			BlockAPIResult lastBlockResult = null;
+			switch(block)
+            {
+				case ServiceBlock sb:
+					lastBlockResult = await client.GetLastServiceBlock();
+					break;
+				case ConsolidationBlock cb:
+					lastBlockResult = await client.GetLastConsolidationBlock();
+					break;
+				case TransactionBlock tb:
+					var tbLastResult = await client.GetAccountHeight(tb.AccountID);
+					if (tbLastResult.ResultCode == APIResultCodes.Success)
+						return tbLastResult.Height;
+					break;
+				default:
+					break;
+            }
+
+			if (lastBlockResult != null && lastBlockResult.ResultCode == APIResultCodes.Success)
+				return lastBlockResult.GetBlock().Height;
+			else
+				return 0;
+        }
 	}
 }
