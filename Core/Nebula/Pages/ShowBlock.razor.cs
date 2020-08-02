@@ -12,6 +12,8 @@ namespace Nebula.Pages
 	{
 		[Parameter] 
 		public string hash { get; set; }
+		[Parameter]
+		public long height { get; set; }
 
 		[Inject]
 		private IState<BlockSearchState> searchState { get; set; }
@@ -22,19 +24,19 @@ namespace Nebula.Pages
 		protected override void OnInitialized()
 		{
 			base.OnInitialized();
-			Dispatcher.Dispatch(new BlockSearchAction(hash));
+			Dispatcher.Dispatch(new BlockSearchAction(hash, height));
 		}
 
         protected override async Task OnParametersSetAsync()
         {
-			Dispatcher.Dispatch(new BlockSearchAction(hash));
+			Dispatcher.Dispatch(new BlockSearchAction(hash, height));
 
 			await base.OnParametersSetAsync();
         }
 
         public void oninput(ChangeEventArgs args)
 		{
-			Dispatcher.Dispatch(new BlockSearchAction(args.Value.ToString()));
+			Dispatcher.Dispatch(new BlockSearchAction(args.Value.ToString(), height));
 		}
 	}
 }

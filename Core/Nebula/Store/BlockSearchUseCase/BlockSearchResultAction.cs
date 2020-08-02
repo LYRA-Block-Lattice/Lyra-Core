@@ -10,10 +10,12 @@ namespace Nebula.Store.BlockSearchUseCase
 	public class BlockSearchResultAction
 	{
 		public Block block { get; }
+		public long maxHeight { get; }
 
-		public BlockSearchResultAction(Block resultBlock)
+		public BlockSearchResultAction(Block resultBlock, long resultHeight)
 		{
 			block = resultBlock;
+			maxHeight = resultHeight;
 		}
 	}
 }

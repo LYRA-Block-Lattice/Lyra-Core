@@ -1,11 +1,9 @@
 ﻿@inherits Fluxor.Blazor.Web.Components.FluxorComponent
 @page "/showblock"
 @page "/showblock/{hash}"
+@page "/showblock/{hash}/{height:long}"
 
-<h2 style="text-align: center">Search by Hash</h2>
-<p style="text-align: center"><input size="100" type="text" @oninput="oninput" /></p>
-
-<h2 style="text-align: center">Search by Account ID</h2>
+<h2 style="text-align: center">Search by Hash or Account ID</h2>
 <p style="text-align: center"><input size="100" type="text" @oninput="oninput" /></p>
 
 @if (searchState.Value.IsLoading)
@@ -20,5 +18,23 @@
         <pre>@((MarkupString)searchState.Value.FancyShow())</pre>
     </div>
 
+    @if (searchState.Value.block is TransactionBlock && searchState.Value.MaxHeight > 0)
+    {
+<div class="pagination">
+    <a href="#">&laquo;</a>
+        @for (int i = 1; i <= searchState.Value.MaxHeight; i++)
+        {
+            @if (i == searchState.Value.block.Height)
+            {
+                <a class="active" href="/showblock/@hash/@i">@i</a>
+            }
+            else
+            {
+                <a href="/showblock/@hash/@i">@i</a>
+            }
+        }
+    <a href="#">&raquo;</a>
+</div>
+    }
 }
 

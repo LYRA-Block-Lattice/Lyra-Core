@@ -12,12 +12,14 @@ namespace Nebula.Store.BlockSearchUseCase
 		public static BlockSearchState ReduceFetchDataAction(BlockSearchState state, BlockSearchAction action) =>
 			new BlockSearchState(
 				isLoading: true,
-				blockResult: null);
+				blockResult: null,
+				maxHeight: 0);
 
 		[ReducerMethod]
 		public static BlockSearchState ReduceFetchDataResultAction(BlockSearchState state, BlockSearchResultAction action) =>
 			new BlockSearchState(
 				isLoading: false,
-				blockResult: action.block);
+				blockResult: action.block,
+				maxHeight: action.maxHeight);
 	}
 }

@@ -12,6 +12,7 @@ namespace Nebula.Store.BlockSearchUseCase
 		protected override BlockSearchState GetInitialState() =>
 			new BlockSearchState(
 				isLoading: false,
-				blockResult: null);
+				blockResult: null,
+				maxHeight: 0);
 	}
 }
