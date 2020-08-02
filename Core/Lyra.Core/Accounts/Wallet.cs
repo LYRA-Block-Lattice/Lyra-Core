@@ -144,7 +144,7 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                var result = await _rpcClient.GetAccountHeight(AccountId, SignAPICallAsync());
+                var result = await _rpcClient.GetAccountHeight(AccountId);
                 if (result.ResultCode != APIResultCodes.Success)
                     return result.ResultCode;
 
@@ -560,7 +560,7 @@ namespace Lyra.Core.Accounts
             var block = _storage.FindBlockByIndex(Index) as TransactionBlock;
             if (block == null)
             {
-                var result = await _rpcClient.GetBlockByIndex(AccountId, Index, SignAPICallAsync());
+                var result = await _rpcClient.GetBlockByIndex(AccountId, Index);
                 if (result.ResultCode == APIResultCodes.Success)
                 {
                     block = result.GetBlock() as TransactionBlock;

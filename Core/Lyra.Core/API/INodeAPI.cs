@@ -39,9 +39,9 @@ namespace Lyra.Core.API
         // using Diffie-Helman shared secret algorithm with AccountId as a sender's public key and Node's account id as the recipient's public key.
         // This way only account holders can request the account information which will prevent DoS and add some privacy in centralized network configuration. 
 
-        Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature);
+        Task<AccountHeightAPIResult> GetAccountHeight(string AccountId);
 
-        Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index, string Signature);
+        Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index);
 
         // Retrives a block by its hash
         Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature);

@@ -101,18 +101,18 @@ namespace LyraLexWeb2
 
         [Route("GetAccountHeight")]
         [HttpGet]
-        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
+        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
         {
             CheckSyncState();
-            return await _node.GetAccountHeight(AccountId, Signature);
+            return await _node.GetAccountHeight(AccountId);
         }
 
         [Route("GetBlockByIndex")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index, string Signature)
+        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index)
         {
             CheckSyncState();
-            return await _node.GetBlockByIndex(AccountId, Index, Signature);
+            return await _node.GetBlockByIndex(AccountId, Index);
         }
 
         [Route("GetBlockByHash")]

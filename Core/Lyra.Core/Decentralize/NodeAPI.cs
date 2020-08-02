@@ -203,14 +203,10 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
+        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
         {
             var result = new AccountHeightAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
+
             try
             {
                 if (await NodeService.Dag.Storage.AccountExistsAsync(AccountId))
@@ -232,14 +228,9 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index, string Signature)
+        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
         {
             var result = new BlockAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
 
             try
             {

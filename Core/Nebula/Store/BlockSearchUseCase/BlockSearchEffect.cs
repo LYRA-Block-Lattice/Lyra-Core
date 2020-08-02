@@ -35,8 +35,21 @@ namespace Nebula.Store.BlockSearchUseCase
             }
 			else
             {
-				var ret = await client.GetBlock(action.hash);
-				if (ret.ResultCode == APIResultCodes.Success)
+				BlockAPIResult ret = null;
+				if(hashToSearch.Length == 44)	// hash
+                {
+					ret = await client.GetBlock(action.hash);
+				}
+				else
+                {
+					var exists = await client.GetAccountHeight(action.hash);
+					if(exists.ResultCode == APIResultCodes.Success)
+                    {
+						ret = await client.GetBlockByIndex(action.hash, exists.Height);
+                    }
+                }
+				
+				if (ret != null && ret.ResultCode == APIResultCodes.Success)
 				{
 					blockResult = ret.GetBlock();
 				}

@@ -179,9 +179,9 @@ namespace Lyra.Core.API
             return await PostBlock("CreateToken", block);
         }
 
-        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId, string Signature)
+        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetAccountHeight/?AccountId={AccountId}&Signature={Signature}");
+            HttpResponseMessage response = await _client.GetAsync($"GetAccountHeight/?AccountId={AccountId}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
@@ -270,9 +270,9 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index, string Signature)
+        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByIndex/?AccountId={AccountId}&Signature={Signature}&Index={Index}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockByIndex/?AccountId={AccountId}&Index={Index}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
