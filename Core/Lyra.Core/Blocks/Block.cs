@@ -147,6 +147,7 @@ namespace Lyra.Core.Blocks
             result += $"Index: {Height.ToString()}\n";
             result += $"TimeStamp: {DateTimeToString(TimeStamp)}\n"; 
             result += $"PreviousHash: {PreviousHash}\n";
+            result += $"ServiceHash: {ServiceHash}\n";
             result += $"Tags: {JsonConvert.SerializeObject(Tags)}\n";
             //result += $"Authorizations: {JsonConvert.SerializeObject(Authorizations)}\n";
             return result;

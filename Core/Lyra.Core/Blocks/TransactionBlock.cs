@@ -118,7 +118,6 @@ namespace Lyra.Core.Blocks
         {
             string result = base.Print();
             result += $"AccountID: {AccountID}\n";
-            result += $"ServiceHash: {ServiceHash}\n";
             result += $"Balances: {BalanceToString()}\n";
             result += $"Fee: {JsonConvert.SerializeObject(Fee)}\n";
             result += $"FeeCode: {FeeCode}\n";
