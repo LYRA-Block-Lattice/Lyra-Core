@@ -11,20 +11,11 @@ namespace Nebula.Pages
 	public partial class Index
 	{
 		[Inject]
-		private IState<BlockSearchState> searchState { get; set; }
-
-		[Inject]
-		private IDispatcher Dispatcher { get; set; }
-
-		protected override void OnInitialized()
-		{
-			base.OnInitialized();
-			Dispatcher.Dispatch(new BlockSearchAction(null));
-		}
+		public NavigationManager navigationManager { get; set; }
 
 		public void oninput(ChangeEventArgs args)
 		{
-			Dispatcher.Dispatch(new BlockSearchAction(args.Value.ToString()));
+			navigationManager.NavigateTo($"/showblock/{args.Value}");
 		}
 	}
 }
