@@ -42,7 +42,7 @@ namespace Lyra.Core.Blocks
             result += $"totalBlockCount: {totalBlockCount}\n";
             result += $"totalFees: {totalFees}\n";
             result += $"MerkelTreeHash: {MerkelTreeHash}\n";
-            result += $"blockHashes: {string.Join(',', blockHashes)}\n";
+            result += $"blockHashes: {string.Join(", ", blockHashes)}\n";
             return result;
         }
     }
