@@ -13,6 +13,7 @@ namespace Nebula.Store.BlockSearchUseCase
 			new BlockSearchState(
 				isLoading: true,
 				blockResult: null,
+				pageKey: null,
 				maxHeight: 0);
 
 		[ReducerMethod]
@@ -20,6 +21,7 @@ namespace Nebula.Store.BlockSearchUseCase
 			new BlockSearchState(
 				isLoading: false,
 				blockResult: action.block,
+				pageKey: action.key,
 				maxHeight: action.maxHeight);
 	}
 }

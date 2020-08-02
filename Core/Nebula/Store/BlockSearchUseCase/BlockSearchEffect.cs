@@ -27,6 +27,7 @@ namespace Nebula.Store.BlockSearchUseCase
 			var hashToSearch = action.hash;
 			Block blockResult = null;
 			long maxHeight = 0;
+			string key = null;
 			if(string.IsNullOrWhiteSpace(hashToSearch))
             {
 				var genSvcRet = await client.GetLastConsolidationBlock();
@@ -38,7 +39,11 @@ namespace Nebula.Store.BlockSearchUseCase
 			else
             {
 				BlockAPIResult ret = null;
-				if(hashToSearch.Length == 44)	// hash
+				if(hashToSearch.Length < 40)
+                {
+
+                }
+				else if(hashToSearch.Length == 44)	// hash
                 {
 					ret = await client.GetBlock(action.hash);
 				}
@@ -48,6 +53,7 @@ namespace Nebula.Store.BlockSearchUseCase
 					if(exists.ResultCode == APIResultCodes.Success)
                     {
 						maxHeight = exists.Height;
+						key = action.hash;
 						ret = await client.GetBlockByIndex(action.hash, action.height == 0 ? exists.Height : action.height);
                     }
                 }
@@ -58,11 +64,12 @@ namespace Nebula.Store.BlockSearchUseCase
 				}
 			}
 
-			maxHeight = await GetMaxHeightAsync(blockResult);
-			dispatcher.Dispatch(new BlockSearchResultAction(blockResult, maxHeight));
+			(key, maxHeight) = await GetMaxHeightAsync(blockResult);
+			
+			dispatcher.Dispatch(new BlockSearchResultAction(blockResult, key, maxHeight));
 		}
 
-		private async Task<long> GetMaxHeightAsync(Block block)
+		private async Task<(string, long)> GetMaxHeightAsync(Block block)
         {
 			BlockAPIResult lastBlockResult = null;
 			switch(block)
@@ -76,16 +83,19 @@ namespace Nebula.Store.BlockSearchUseCase
 				case TransactionBlock tb:
 					var tbLastResult = await client.GetAccountHeight(tb.AccountID);
 					if (tbLastResult.ResultCode == APIResultCodes.Success)
-						return tbLastResult.Height;
+						return (tb.AccountID, tbLastResult.Height);
 					break;
 				default:
 					break;
             }
 
 			if (lastBlockResult != null && lastBlockResult.ResultCode == APIResultCodes.Success)
-				return lastBlockResult.GetBlock().Height;
+            {
+				var lb = lastBlockResult.GetBlock();
+				return (lb.BlockType.ToString(), lb.Height);
+			}				
 			else
-				return 0;
+				return (null, 0);
         }
 	}
 }

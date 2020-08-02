@@ -42,6 +42,7 @@ namespace Lyra.Core.API
         Task<AccountHeightAPIResult> GetAccountHeight(string AccountId);
 
         Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index);
+        Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index);
 
         // Retrives a block by its hash
         Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature);

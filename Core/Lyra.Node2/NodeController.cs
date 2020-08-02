@@ -115,6 +115,14 @@ namespace LyraLexWeb2
             return await _node.GetBlockByIndex(AccountId, Index);
         }
 
+        [Route("GetServiceBlockByIndex")]
+        [HttpGet]
+        public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, int Index)
+        {
+            CheckSyncState();
+            return await _node.GetServiceBlockByIndex(blockType, Index);
+        }
+
         [Route("GetBlockByHash")]
         [HttpGet]
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)

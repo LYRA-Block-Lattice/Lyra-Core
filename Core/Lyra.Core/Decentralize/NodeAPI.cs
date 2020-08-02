@@ -258,6 +258,32 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.FindServiceBlockByIndexAsync(blockType, Index);
+
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetServiceBlockByIndex: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
+        }
+
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             var result = new BlockAPIResult();

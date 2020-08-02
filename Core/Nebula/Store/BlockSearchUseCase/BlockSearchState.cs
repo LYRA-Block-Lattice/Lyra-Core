@@ -13,15 +13,17 @@ namespace Nebula.Store.BlockSearchUseCase
 		public bool IsLoading { get; }
 		public Block block { get; }
 
+		public string Key { get; }
 		public long MaxHeight { get; }
 
 		public long prevHeight => block.Height > 0 ? block.Height - 1 : block.Height;
 		public long nextHeight => block.Height < MaxHeight ? block.Height + 1 : block.Height;
 
-		public BlockSearchState(bool isLoading, Block blockResult, long maxHeight)
+		public BlockSearchState(bool isLoading, Block blockResult, string pageKey, long maxHeight)
 		{
 			IsLoading = isLoading;
 			block = blockResult ?? null;
+			Key = pageKey;
 			MaxHeight = maxHeight;
 		}
 

@@ -401,6 +401,22 @@ namespace Lyra.Core.Accounts
             return block as TransactionBlock;
         }
 
+        public async Task<Block> FindServiceBlockByIndexAsync(string blockType, Int64 index)
+        {
+            BlockTypes types;
+            if (Enum.TryParse<BlockTypes>(blockType, out types))
+            {
+                var builder = new FilterDefinitionBuilder<Block>();
+                var filterDefinition = builder.And(builder.Eq("BlockType", types),
+                    builder.Eq("Height", index));
+
+                var block = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
+                return block as TransactionBlock;
+            }
+            else
+                return null;
+        }
+
         private async Task<ReceiveTransferBlock> FindLastRecvBlock(string AccountId)
         {
             var options = new FindOptions<Block, Block>

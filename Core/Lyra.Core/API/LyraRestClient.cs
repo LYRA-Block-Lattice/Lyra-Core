@@ -282,6 +282,18 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
+        public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetServiceBlockByIndex/?blockType={blockType}&Index={Index}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
         public async Task<BlockAPIResult> GetLastServiceBlock()
         {
             HttpResponseMessage response = await _client.GetAsync($"GetLastServiceBlock");

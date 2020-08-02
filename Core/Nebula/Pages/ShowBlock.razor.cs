@@ -36,6 +36,7 @@ namespace Nebula.Pages
 
         public void oninput(ChangeEventArgs args)
 		{
+			hash = args.Value.ToString();
 			Dispatcher.Dispatch(new BlockSearchAction(args.Value.ToString(), height));
 		}
 	}
