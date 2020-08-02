@@ -411,7 +411,7 @@ namespace Lyra.Core.Accounts
                     builder.Eq("Height", index));
 
                 var block = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
-                return block as TransactionBlock;
+                return block;
             }
             else
                 return null;

@@ -41,7 +41,7 @@ namespace Nebula.Store.BlockSearchUseCase
 				BlockAPIResult ret = null;
 				if(hashToSearch.Length < 40)
                 {
-
+					ret = await client.GetServiceBlockByIndex(action.hash, action.height);
                 }
 				else if(hashToSearch.Length == 44)	// hash
                 {
