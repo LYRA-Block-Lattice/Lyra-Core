@@ -212,17 +212,17 @@ namespace Lyra.Core.Accounts
 
                 foreach (var sb in fbsResult.pendingFeeBlocks)
                 {
-                    var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-                    if (svcBlockResult.ResultCode != APIResultCodes.Success)
-                    {
-                        throw new Exception("Unable to get latest service block.");
-                    }
+                    //var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+                    //if (svcBlockResult.ResultCode != APIResultCodes.Success)
+                    //{
+                    //    throw new Exception("Unable to get latest service block.");
+                    //}
 
                     var receiveBlock = new ReceiveAuthorizerFeeBlock
                     {
                         AccountID = AccountId,
                         VoteFor = _storage.GetVoteFor(),
-                        ServiceHash = svcBlockResult.GetBlock().Hash,
+                        ServiceHash = await getLastServiceBlockHashAsync(),//svcBlockResult.GetBlock().Hash,
                         SourceHash = sb.Hash,
                         ServiceBlockHeight = sb.Height,
                         Balances = new Dictionary<string, long>(),
@@ -431,15 +431,13 @@ namespace Lyra.Core.Accounts
                 execute_block.NonFungibleToken = nonfungible_token;
             }
 
+            execute_block.ServiceHash = await getLastServiceBlockHashAsync();
+
             execute_block.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
             // TO DO - override the trasanction validation method in ExecuteTradeBlock
             //if (!execute_block.ValidateTransaction(previousBlock))
             //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
-
-            //execute_block.Signature = Signatures.GetSignature(PrivateKey, execute_block.Hash);
-
-            execute_block.ServiceHash = await getLastServiceBlockHashAsync();
 
             var result = await _rpcClient.ExecuteTradeOrder(execute_block);
 
@@ -451,7 +449,9 @@ namespace Lyra.Core.Accounts
             }
             else
             {
-                //
+                // thsi is for debug purpose only
+                if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
+                    result.ResultMessage = execute_block.GetHashInput();
             }
             return result;
         }
@@ -653,11 +653,11 @@ namespace Lyra.Core.Accounts
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
                 }
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-            if (svcBlockResult.ResultCode != APIResultCodes.Success)
-            {
-                throw new Exception("Unable to get latest service block.");
-            }
+            //var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            //if (svcBlockResult.ResultCode != APIResultCodes.Success)
+            //{
+            //    throw new Exception("Unable to get latest service block.");
+            //}
 
             SendTransferBlock sendBlock;
             if (ToExchange)
@@ -666,7 +666,7 @@ namespace Lyra.Core.Accounts
                 {
                     AccountID = AccountId,
                     VoteFor = _storage.GetVoteFor(),
-                    ServiceHash = svcBlockResult.GetBlock().Hash,
+                    ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, long>(),
                     //PaymentID = string.Empty,
@@ -681,7 +681,7 @@ namespace Lyra.Core.Accounts
                 {
                     AccountID = AccountId,
                     VoteFor = _storage.GetVoteFor(),
-                    ServiceHash = svcBlockResult.GetBlock().Hash,
+                    ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, long>(),
                     //PaymentID = string.Empty,
