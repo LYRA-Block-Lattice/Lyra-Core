@@ -65,7 +65,9 @@ namespace Lyra.Core.API
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
 #if DEBUG
-            _client.Timeout = new TimeSpan(1, 0, 0);
+            _client.Timeout = new TimeSpan(0, 0, 30);
+#else
+            _client.Timeout = new TimeSpan(0, 0, 5);
 #endif
         }
 

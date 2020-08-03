@@ -1,52 +1,61 @@
-﻿@page "/ShowBillBoard"
-@inject LyraRestClient client
+﻿@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+@page "/showbb"
 
-<h1>Show Bill Board Here </h1>
+<h1>Status of All Authorizer Nodes </h1>
 
-@if (billBoard == null)
+@if (NodeState.Value.IsLoading)
 {
-    <p><em>Loading...</em></p>
+    <p><em>Checking all nodes... This may take a while.</em></p>
 }
-else
+@if (NodeState.Value.nodeStatus != null)
 {
     <table class="table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
+                <th>PoS Wallet</th>
+                <th>IP Address</th>
+                <th>API Status</th>
+                <th>Last Cons Block</th>
+                <th>In Sync</th>
+                <th>Version</th>
+                <th>Status</th>
+                <th>Total Block Count</th>
+                <th>Last Float Hash</th>
+                <th>Connected Peers</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var node in billBoard.AllNodes.Values)
+            @foreach (var kvp in NodeState.Value.nodeStatus)
             {
-                <tr>
-                    <td>@node.LastStaking</td>
-                    <td>@node.AccountID</td>
-                    <td>@node.IPAddress.Shorten()</td>
-                    <td>@node.Votes</td>
-                </tr>
+            <tr>
+                <td>@kvp.Key.Substring(0, 10)...</td>
+                <td>@NodeState.Value.bb.AllNodes[kvp.Key].IPAddress</td>
+                @if(kvp.Value != null)
+                    {
+                <td>Connected OK.</td>
+                <td>@kvp.Value.LastConsolidationHash.Substring(0, 10)...</td>
+                <td>@kvp.Value.SyncState</td>
+                <td>@kvp.Value.Status.version</td>
+                <td>@kvp.Value.Status.state</td>
+                <td>@kvp.Value.Status.totalBlockCount</td>
+                <td>@kvp.Value.Status.lastUnSolidationHash.Substring(0, 10)...</td>
+                <td>@kvp.Value.Status.connectedPeers</td>
+                    }
+                else
+                {
+                <td>Failed to connect</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                }
+            </tr>
             }
         </tbody>
     </table>
 }
 
-<pre>@error</pre>
 
-@code{
-    // get svc gen
-    string error;
-    BillBoard billBoard;
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            billBoard = await client.GetBillBoardAsync();
-        }
-        catch (Exception ex)
-        {
-            error = ex.ToString();
-        }
-    }
-}
