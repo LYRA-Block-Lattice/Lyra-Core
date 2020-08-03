@@ -13,34 +13,34 @@
 @if (searchState.Value.block != null)
 {
 
-    <div style="border: 1px, solid">
-        <p>Block Details</p>
-        <pre>@((MarkupString)searchState.Value.FancyShow())</pre>
-    </div>
-
+<div>
     @if (searchState.Value.MaxHeight > 0)
     {
-<div class="pagination">
-    <a href="/showblock/@searchState.Value.Key/1">&larrb;</a>
-    <a href="/showblock/@searchState.Value.Key/@searchState.Value.prevHeight">&laquo;</a>
-    @for (int i = 1; i <= searchState.Value.MaxHeight; i++)
+    <div class="pagination">
+        <a href="/showblock/@searchState.Value.Key/1">&larrb;</a>
+        <a href="/showblock/@searchState.Value.Key/@searchState.Value.prevHeight">&laquo;</a>
+        @for (int i = 1; i <= searchState.Value.MaxHeight; i++)
         {
-    @if (i == searchState.Value.block.Height)
+        @if (i == searchState.Value.block.Height)
             {
-    <a class="active" href="/showblock/@searchState.Value.Key/@i">@i</a>
+        <a class="active" href="/showblock/@searchState.Value.Key/@i">@i</a>
             }
             else if (i < 3 || (i > searchState.Value.block.Height - 3 && i < searchState.Value.block.Height) || (i > searchState.Value.block.Height && i < searchState.Value.block.Height + 3) || i > searchState.Value.MaxHeight - 3)
             {
-    <a href="/showblock/@searchState.Value.Key/@i">@i</a>
+        <a href="/showblock/@searchState.Value.Key/@i">@i</a>
             }
             else
             {
-                <span>.</span>
+        <span>.</span>
             }
         }
-    <a href="/showblock/@searchState.Value.Key/@searchState.Value.nextHeight">&raquo;</a>
-    <a href="/showblock/@searchState.Value.Key/@searchState.Value.MaxHeight">&rarrb;</a>
-</div>
+        <a href="/showblock/@searchState.Value.Key/@searchState.Value.nextHeight">&raquo;</a>
+        <a href="/showblock/@searchState.Value.Key/@searchState.Value.MaxHeight">&rarrb;</a>
+    </div>
     }
+    <hr />
+    <div><pre>@((MarkupString)searchState.Value.FancyShow())</pre></div>
+</div>
+
 }
 
