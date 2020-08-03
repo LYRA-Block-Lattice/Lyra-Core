@@ -8,14 +8,18 @@
 
 [LYRA white paper](https://github.com/LYRA-Block-Lattice/LYRA-Docs/blob/master/LYRA-BLock-Lattice-White-Paper.md)
 
-Testnet Live Now! (From 29 July 2020)
+Testnet Live Now! (From July 29, 2020)
 
-Download Now: https://github.com/LYRA-Block-Lattice/Lyra-Core/releases
+[Testnet Block Explorer](https://blockexplorer.testnet.lyra.live/)
+
+[How to run Lyra CLI wallet on testnet](https://github.com/LYRA-Block-Lattice/LYRA-Docs/blob/master/How%20to%20run%20Lyra%20CLI%20Wallet%20on%20testnet.md)
 
 # LYRA Permissionless Node Setup
 
-Note: 
-* for docker: http://gitlab.com/uiii/lyranetwork-node Many thanks to our community member Jan Svobada.
+Notes:
+* You don’t need to run Lyra node in order to use the Lyra network. Simply install CLI wallet by following [How to run Lyra CLI wallet on testnet](https://github.com/LYRA-Block-Lattice/LYRA-Docs/blob/master/How%20to%20run%20Lyra%20CLI%20Wallet%20on%20testnet.md) guide and start exploring the network by making transfers or even creating your own tokens! Mobile wallets are coming soon as well.
+* More detailed and updated Windows setup guide is coming soon
+* For docker setup: http://gitlab.com/uiii/lyranetwork-node Many thanks to our community member Jan Svobada.
 
 1. Install Linux (Ubuntu 18.04), or Windows, macOS
 
