@@ -32,7 +32,7 @@ namespace Nebula.Store.BlockSearchUseCase
 			var r = new Regex(@"BlockType: \w+");
 			var html = r.Replace(block.Print(), Matcher);
 
-			html = Regex.Replace(html, @"\s(\w{44,})\W", HashMatcher);
+			html = Regex.Replace(html, @"\s(\w{43,})\W", HashMatcher);
 
 			return html;
         }
@@ -44,7 +44,7 @@ namespace Nebula.Store.BlockSearchUseCase
 
 			if (hash == block.Hash)
 				return all;
-			if (hash.Length == 44 || (hash.Length > 90 && hash.StartsWith('L')))
+			if (hash.Length == 43 || hash.Length == 44 || (hash.Length > 90 && hash.StartsWith('L')))
 				return all.Replace(hash, $"<a href='/showblock/{hash}'>{hash}</a>");
 			else
 				return all;

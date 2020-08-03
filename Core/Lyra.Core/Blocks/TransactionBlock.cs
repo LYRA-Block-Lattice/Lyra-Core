@@ -136,7 +136,7 @@ namespace Lyra.Core.Blocks
             foreach(var kvp in Balances)
             {
                 if (sb.Length > 0)
-                    sb.Append(',');
+                    sb.Append(", ");
                 sb.Append($"{kvp.Key}:{kvp.Value}");
             }
             return sb.ToString();

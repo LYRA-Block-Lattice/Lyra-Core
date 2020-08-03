@@ -29,9 +29,13 @@
             {
     <a class="active" href="/showblock/@searchState.Value.Key/@i">@i</a>
             }
-            else
+            else if (i < 3 || (i > searchState.Value.block.Height - 3 && i < searchState.Value.block.Height) || (i > searchState.Value.block.Height && i < searchState.Value.block.Height + 3) || i > searchState.Value.MaxHeight - 3)
             {
     <a href="/showblock/@searchState.Value.Key/@i">@i</a>
+            }
+            else
+            {
+                <span>.</span>
             }
         }
     <a href="/showblock/@searchState.Value.Key/@searchState.Value.nextHeight">&raquo;</a>

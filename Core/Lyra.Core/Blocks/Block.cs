@@ -144,7 +144,7 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"BlockType: {BlockType.ToString()}\n";
             result += $"Version: {Version}\n";
-            result += $"Index: {Height.ToString()}\n";
+            result += $"Height: {Height.ToString()}\n";
             result += $"TimeStamp: {DateTimeToString(TimeStamp)}\n"; 
             result += $"PreviousHash: {PreviousHash}\n";
             result += $"ServiceHash: {ServiceHash}\n";
