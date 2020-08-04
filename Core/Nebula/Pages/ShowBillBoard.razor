@@ -12,8 +12,10 @@
     <table class="table">
         <thead>
             <tr>
+                <th>Primary</th>
                 <th>PoS Wallet</th>
                 <th>IP Address</th>
+                <th>Votes</th>
                 <th>API Status</th>
                 <th>Last Cons Block</th>
                 <th>In Sync</th>
@@ -25,21 +27,23 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var kvp in NodeState.Value.nodeStatus)
+            @foreach (var nodeInfo in NodeState.Value.RankedList)
             {
             <tr>
-                <td>@kvp.Key.Substring(0, 10)...</td>
-                <td>@NodeState.Value.bb.AllNodes[kvp.Key].IPAddress</td>
-                @if(kvp.Value != null)
+                <td>@nodeInfo.IsPrimary</td>
+                <td>@nodeInfo.ID.Substring(0, 10)...</td>
+                <td>@NodeState.Value.bb.AllNodes[nodeInfo.ID].IPAddress</td>
+                <td>@nodeInfo.Votes</td>
+                @if(nodeInfo.Status != null)
                     {
                 <td>Connected OK.</td>
-                <td>@kvp.Value.LastConsolidationHash.Substring(0, 10)...</td>
-                <td>@kvp.Value.SyncState</td>
-                <td>@kvp.Value.Status.version</td>
-                <td>@kvp.Value.Status.state</td>
-                <td>@kvp.Value.Status.totalBlockCount</td>
-                <td>@kvp.Value.Status.lastUnSolidationHash.Substring(0, 10)...</td>
-                <td>@kvp.Value.Status.connectedPeers</td>
+                <td>@nodeInfo.Status.LastConsolidationHash.Substring(0, 10)...</td>
+                <td>@nodeInfo.Status.SyncState</td>
+                <td>@nodeInfo.Status.Status.version</td>
+                <td>@nodeInfo.Status.Status.state</td>
+                <td>@nodeInfo.Status.Status.totalBlockCount</td>
+                <td>@nodeInfo.Status.Status.lastUnSolidationHash.Substring(0, 10)...</td>
+                <td>@nodeInfo.Status.Status.connectedPeers</td>
                     }
                 else
                 {

@@ -18,6 +18,7 @@ namespace Nebula.Store.BlockSearchUseCase
 
 		public long prevHeight => block.Height > 1 ? block.Height - 1 : block.Height;
 		public long nextHeight => block.Height < MaxHeight ? block.Height + 1 : block.Height;
+		public bool IsBlockValid => block.Hash.Equals(block.CalculateHash());
 
 		public BlockSearchState(bool isLoading, Block blockResult, string pageKey, long maxHeight)
 		{

@@ -16,29 +16,39 @@
 <div>
     @if (searchState.Value.MaxHeight > 0)
     {
-    <div class="pagination">
-        <a href="/showblock/@searchState.Value.Key/1">&larrb;</a>
-        <a href="/showblock/@searchState.Value.Key/@searchState.Value.prevHeight">&laquo;</a>
-        @for (int i = 1; i <= searchState.Value.MaxHeight; i++)
-        {
-        @if (i == searchState.Value.block.Height)
+        <div class="pagination">
+            <a href="/showblock/@searchState.Value.Key/1">&larrb;</a>
+            <a href="/showblock/@searchState.Value.Key/@searchState.Value.prevHeight">&laquo;</a>
+            @for (int i = 1; i <= searchState.Value.MaxHeight; i++)
             {
-        <a class="active" href="/showblock/@searchState.Value.Key/@i">@i</a>
+                @if (i == searchState.Value.block.Height)
+                {
+                    <a class="active" href="/showblock/@searchState.Value.Key/@i">@i</a>
+                }
+                else if (i < 3 || (i > searchState.Value.block.Height - 3 && i < searchState.Value.block.Height) || (i > searchState.Value.block.Height && i < searchState.Value.block.Height + 3) || i > searchState.Value.MaxHeight - 3)
+                {
+                    <a href="/showblock/@searchState.Value.Key/@i">@i</a>
+                }
+                else
+                {
+                    <span>.</span>
+                }
             }
-            else if (i < 3 || (i > searchState.Value.block.Height - 3 && i < searchState.Value.block.Height) || (i > searchState.Value.block.Height && i < searchState.Value.block.Height + 3) || i > searchState.Value.MaxHeight - 3)
-            {
-        <a href="/showblock/@searchState.Value.Key/@i">@i</a>
-            }
-            else
-            {
-        <span>.</span>
-            }
-        }
-        <a href="/showblock/@searchState.Value.Key/@searchState.Value.nextHeight">&raquo;</a>
-        <a href="/showblock/@searchState.Value.Key/@searchState.Value.MaxHeight">&rarrb;</a>
-    </div>
+            <a href="/showblock/@searchState.Value.Key/@searchState.Value.nextHeight">&raquo;</a>
+            <a href="/showblock/@searchState.Value.Key/@searchState.Value.MaxHeight">&rarrb;</a>
+        </div>
     }
     <hr />
+    <div>
+        @if (searchState.Value.IsBlockValid)
+        {
+            <span style="background-color: greenyellow">Block is valid: Yes</span>
+        }
+        else
+        {
+            <span style="background-color: orangered">Block is valid: No</span>
+        }
+    </div>
     <div><pre>@((MarkupString)searchState.Value.FancyShow())</pre></div>
 </div>
 
