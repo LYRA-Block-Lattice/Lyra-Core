@@ -641,7 +641,7 @@ namespace Lyra.Core.Decentralize
                     return result;
                 }
 
-                var list = NodeService.Dag.TradeEngine.GetActiveTradeOrders(SellToken, BuyToken, OrderType);
+                var list = await NodeService.Dag.TradeEngine.GetActiveTradeOrders(SellToken, BuyToken, OrderType);
                 if (list != null && list.Count > 0)
                 {
                     result.SetList(list);

@@ -169,7 +169,8 @@ namespace Lyra.Client.CLI
                         break;
                     case COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST:
                         //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
-                        Console.WriteLine(await _wallet.PrintActiveTradeOrdersAsync());
+                        //Console.WriteLine(await _wallet.PrintActiveTradeOrdersAsync());
+                        Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
                         break;
                     //                  case COMMAND_TRADE_ORDER_SELL_TEST:
                     //                      //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);

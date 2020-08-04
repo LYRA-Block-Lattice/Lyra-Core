@@ -49,7 +49,7 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            sys.TradeEngine.RemoveOrder(original_order);
+            //sys.TradeEngine.RemoveOrder(original_order);
 
             return APIResultCodes.Success;
         }

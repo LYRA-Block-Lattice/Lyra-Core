@@ -53,11 +53,16 @@ namespace Lyra.Core.Accounts
         TradeBlock FindUnexecutedTrade(string AccountId, string BuyTokenCode, string SellTokenCode);
 
         List<TradeOrderBlock> GetTradeOrderBlocks();
+        Task<List<TradeOrderBlock>> GetSellTradeOrdersForToken(string BuyTokenCode);
+        Task<List<TradeOrderBlock>> GetSellTradeOrders(string SellTokenCode, string BuyTokenCode);
 
         List<string> GetTradeOrderCancellations();
 
         // returns the list of hashes (order IDs) of all cancelled trade order blocks
         List<string> GetExecutedTradeOrderBlocks();
+
+        Task<CancelTradeOrderBlock> GetCancelTradeOrderBlock(string TradeOrderId);
+        Task<ExecuteTradeOrderBlock> GetExecuteTradeOrderBlock(string TradeOrderId);
 
         Task<bool> AddBlockAsync(Block block);
         Task RemoveBlockAsync(string hash);

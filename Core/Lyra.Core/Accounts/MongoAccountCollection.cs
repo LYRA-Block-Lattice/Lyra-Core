@@ -121,6 +121,12 @@ namespace Lyra.Core.Accounts
             CreateIndexes("DestinationAccountId", false).Wait();
             CreateIndexes("Ticker", false).Wait();
             CreateIndexes("VoteFor", false).Wait();
+
+            CreateNoneStringIndex("OrderType", false).Wait();
+            CreateIndexes("SellTokenCode", false).Wait();
+            CreateIndexes("BuyTokenCode", false).Wait();
+            CreateIndexes("TradeOrderId", false).Wait();
+            
         }
 
         /// <summary>
@@ -582,6 +588,50 @@ namespace Lyra.Core.Accounts
             return list;
         }
 
+        public async Task<List<TradeOrderBlock>> GetSellTradeOrders(string SellTokenCode, string BuyTokenCode)
+        {
+            var list = new List<TradeOrderBlock>();
+
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1000,
+                Sort = Builders<Block>.Sort.Descending(o => o.TimeStamp)
+            };
+
+            var builder = Builders<Block>.Filter;
+
+            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.TradeOrder), builder.Eq("OrderType", TradeOrderTypes.Sell), builder.Eq("SellTokenCode", SellTokenCode), builder.Eq("BuyTokenCode", BuyTokenCode));
+
+            var trade_blocks = await _blocks.Find(filterDefinition).ToListAsync();
+
+            foreach (TradeOrderBlock block in trade_blocks)
+                list.Add(block);
+
+            return list;
+        }
+
+        public async Task<List<TradeOrderBlock>> GetSellTradeOrdersForToken(string BuyTokenCode)
+        {
+            var list = new List<TradeOrderBlock>();
+
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1000,
+                Sort = Builders<Block>.Sort.Descending(o => o.TimeStamp) 
+            };
+
+            var builder = Builders<Block>.Filter;
+
+            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.TradeOrder), builder.Eq("OrderType", TradeOrderTypes.Sell), builder.Eq("BuyTokenCode", BuyTokenCode));
+
+            var trade_blocks = await _blocks.Find(filterDefinition).ToListAsync();
+
+            foreach (TradeOrderBlock block in trade_blocks)
+                list.Add(block);
+
+            return list;
+        }
+
         // returns the list of hashes (order IDs) of all cancelled trade order blocks
         public List<string> GetTradeOrderCancellations()
         {
@@ -598,6 +648,14 @@ namespace Lyra.Core.Accounts
             return list;
         }
 
+        public async Task<CancelTradeOrderBlock> GetCancelTradeOrderBlock(string TradeOrderId)
+        {
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.CancelTradeOrder), builder.Eq("TradeOrderId", TradeOrderId));
+            var block = await _blocks.Find(filterDefinition).FirstOrDefaultAsync();
+            return block as CancelTradeOrderBlock;
+        }
+
         // returns the list of hashes (order IDs) of all cancelled trade order blocks
         public List<string> GetExecutedTradeOrderBlocks()
         {
@@ -611,6 +669,14 @@ namespace Lyra.Core.Accounts
                 list.Add(block.TradeOrderId);
 
             return list;
+        }
+
+        public async Task<ExecuteTradeOrderBlock> GetExecuteTradeOrderBlock(string TradeOrderId)
+        {
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.ExecuteTradeOrder), builder.Eq("TradeOrderId", TradeOrderId));
+            var block = await _blocks.Find(filterDefinition).FirstOrDefaultAsync();
+            return block as ExecuteTradeOrderBlock;
         }
 
         public async Task<bool> AddBlockAsync(Block block)
