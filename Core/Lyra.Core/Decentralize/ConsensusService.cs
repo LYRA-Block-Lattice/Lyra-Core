@@ -225,11 +225,11 @@ namespace Lyra.Core.Decentralize
                 int count = 0;
                 while (true)
                 {
-                    var blockchainStatus = await blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-                    if (IsThisNodeSeed0 && blockchainStatus.state == BlockChainState.Almighty)
-                    {
-                        await GenerateConsolidateBlockAsync();
-                    }
+                    //var blockchainStatus = await blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
+                    //if (blockchainStatus.state == BlockChainState.Almighty)
+                    //{
+                        await StateMaintainceAsync();
+                    //}
 
                     await Task.Delay(15000).ConfigureAwait(false);
 
@@ -342,7 +342,7 @@ namespace Lyra.Core.Decentralize
             //    .Any(a => a.AccountID == accountId && a.Index == index && a is SendTransferBlock);
         }
 
-        private async Task GenerateConsolidateBlockAsync()
+        private async Task StateMaintainceAsync()
         {
             // expire partial transaction.
             // "patch" the exmpty UIndex
