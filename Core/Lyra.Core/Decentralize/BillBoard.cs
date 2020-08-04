@@ -81,6 +81,7 @@ namespace Lyra.Core.Decentralize
             else
             {
                 AllNodes[node.AccountID].IPAddress = node.IPAddress;      // support for dynamic IP address
+                AllNodes[node.AccountID].Signature = node.Signature;
             }
 
             node.LastStaking = DateTime.Now;
