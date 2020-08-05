@@ -518,7 +518,7 @@ namespace Lyra
         public string GetUnConsolidatedHash(List<string> unCons)
         {
             if (unCons.Count() == 0)
-                return null;
+                return "";
 
             var mt = new MerkleTree();
             foreach (var hash in unCons)

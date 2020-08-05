@@ -111,8 +111,6 @@ namespace Lyra.Core.Blocks
             return result;
         }
 
-
-
         //public override bool ValidateTransaction(TransactionBlock previousBlock)
         //{
         //    if (!base.ValidateTransaction(previousBlock))
