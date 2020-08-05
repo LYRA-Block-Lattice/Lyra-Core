@@ -45,6 +45,9 @@ namespace Lyra.Core.Blocks
             {
                 Height = prevBlock.Height + 1;
                 PreviousHash = prevBlock.Hash;
+
+                if (prevBlock.Hash != prevBlock.CalculateHash())
+                    throw new Exception("Invalid previous block, possible data tampered.");
             }
             else
             {
@@ -111,6 +114,11 @@ namespace Lyra.Core.Blocks
                 if (BlockType == BlockTypes.Service && Height > 1)
                     return false;
             }
+
+            if (prevBlock != null && prevBlock.Hash != prevBlock.CalculateHash())
+            {                
+                return false;
+            }                
 
             return true;
         }

@@ -31,13 +31,13 @@
             {
             <tr>
                 <td>@nodeInfo.IsPrimary</td>
-                <td>@nodeInfo.ID.Substring(0, 10)...</td>
+                <td><a href="/showblock/@nodeInfo.ID">@nodeInfo.ID.Substring(0, 10)...</a></td>
                 <td>@NodeState.Value.bb.AllNodes[nodeInfo.ID].IPAddress</td>
                 <td>@nodeInfo.Votes</td>
                 @if(nodeInfo.Status != null)
                     {
                 <td>Connected OK.</td>
-                <td>@nodeInfo.Status.LastConsolidationHash.Substring(0, 10)...</td>
+                <td><a href="/showblock/@nodeInfo.Status.LastConsolidationHash">@nodeInfo.Status.LastConsolidationHash.Substring(0, 10)...</a></td>
                 <td>@nodeInfo.Status.SyncState</td>
                 <td>@nodeInfo.Status.Status.version</td>
                 <td>@nodeInfo.Status.Status.state</td>
