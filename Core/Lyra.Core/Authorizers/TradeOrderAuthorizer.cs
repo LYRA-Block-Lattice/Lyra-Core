@@ -78,7 +78,7 @@ namespace Lyra.Core.Authorizers
             if (MatchTradeBlock != null)
                 return APIResultCodes.TradeOrderMatchFound;
 
-            sys.TradeEngine.AddOrder(block);
+            //sys.TradeEngine.AddOrder(block);
 
             return APIResultCodes.Success;
         }

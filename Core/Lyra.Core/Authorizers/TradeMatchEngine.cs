@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Lyra.Core.Blocks;
 using Lyra.Core.Accounts;
+using System;
 
 namespace Lyra.Core.Authorizers
 {
@@ -10,33 +11,33 @@ namespace Lyra.Core.Authorizers
     {
         protected IAccountCollectionAsync _AccountCollection { get; set; }
         //protected ServiceAccount _ServiceAccount { get; set; }
-        protected Dictionary<string, TradeOrderBlock> ActiveSellOrders { get; set; }
-        protected Dictionary<string, TradeOrderBlock> ActiveBuyOrders { get; set; }
+        //protected Dictionary<string, TradeOrderBlock> ActiveSellOrders { get; set; }
+        //protected Dictionary<string, TradeOrderBlock> ActiveBuyOrders { get; set; }
 
         public TradeMatchEngine(IAccountCollectionAsync accountCollection)
         {
             _AccountCollection = accountCollection;
             //_ServiceAccount = serviceAccount;
-            ActiveSellOrders = new Dictionary<string, TradeOrderBlock>();
-            ActiveBuyOrders = new Dictionary<string, TradeOrderBlock>();
-            LoadOrders();
+            //ActiveSellOrders = new Dictionary<string, TradeOrderBlock>();
+            //ActiveBuyOrders = new Dictionary<string, TradeOrderBlock>();
+            //LoadOrders();
         }
 
-        public void AddOrder(TradeOrderBlock order)
-        {
-            if (order.OrderType == TradeOrderTypes.Sell)
-                ActiveSellOrders.Add(order.Hash, order);
-            else
-                ActiveBuyOrders.Add(order.Hash, order);
-        }
+        //public void AddOrder(TradeOrderBlock order)
+        //{
+        //    if (order.OrderType == TradeOrderTypes.Sell)
+        //        ActiveSellOrders.Add(order.Hash, order);
+        //    else
+        //        ActiveBuyOrders.Add(order.Hash, order);
+        //}
 
-        public void RemoveOrder(TradeOrderBlock order)
-        {
-            if (order.OrderType == TradeOrderTypes.Sell)
-                ActiveSellOrders.Remove(order.Hash);
-            else
-                ActiveBuyOrders.Remove(order.Hash);
-        }
+        //public void RemoveOrder(TradeOrderBlock order)
+        //{
+        //    if (order.OrderType == TradeOrderTypes.Sell)
+        //        ActiveSellOrders.Remove(order.Hash);
+        //    else
+        //        ActiveBuyOrders.Remove(order.Hash);
+        //}
 
         public async Task<TradeBlock> Match(TradeOrderBlock order)
         {
@@ -45,70 +46,75 @@ namespace Lyra.Core.Authorizers
             if (order.MaxQuantity != 1)
                 return null;
 
-            if (order.OrderType == TradeOrderTypes.Buy)
+            // not implemented yet for matching sell orders
+            if (order.OrderType == TradeOrderTypes.Sell)
+                return null;
+
+            var active_sellorders = await getActiveSellOrders(order.BuyTokenCode, order.SellTokenCode);
+
+            if (active_sellorders == null)
+                return null;
+
+            foreach (TradeOrderBlock sellorder in active_sellorders)
             {
-                if (ActiveSellOrders == null)
-                    return null;
-
-                foreach (TradeOrderBlock sellorder in ActiveSellOrders.Values)
+                if (order.BuyTokenCode == sellorder.SellTokenCode &&
+                    order.SellTokenCode == sellorder.BuyTokenCode &&
+                    order.TradeAmount <= sellorder.TradeAmount &&
+                    order.TradeAmount >= sellorder.MinTradeAmount &&
+                    order.Price >= sellorder.Price)
                 {
-                    if (order.BuyTokenCode == sellorder.SellTokenCode &&
-                        order.SellTokenCode == sellorder.BuyTokenCode &&
-                        order.TradeAmount <= sellorder.TradeAmount &&
-                        order.TradeAmount >= sellorder.MinTradeAmount &&
-                        order.Price >= sellorder.Price)
+                    //int sell_token_precision = FindTokenPrecision(order.SellTokenCode);
+                    //if (sell_token_precision < 0)
+                    //    continue;
+
+                    //int buy_token_precision = FindTokenPrecision(order.BuyTokenCode);
+                    //if (buy_token_precision < 0)
+                    //    continue;
+
+                    var trade = new TradeBlock
                     {
-                        //int sell_token_precision = FindTokenPrecision(order.SellTokenCode);
-                        //if (sell_token_precision < 0)
-                        //    continue;
+                        AccountID = order.AccountID,
+                        SellTokenCode = order.SellTokenCode,
+                        BuyTokenCode = order.BuyTokenCode,
+                        BuyAmount = order.TradeAmount
+                    };
 
-                        //int buy_token_precision = FindTokenPrecision(order.BuyTokenCode);
-                        //if (buy_token_precision < 0)
-                        //    continue;
-
-                        var trade = new TradeBlock
-                        {
-                            AccountID = order.AccountID,
-                            SellTokenCode = order.SellTokenCode,
-                            BuyTokenCode = order.BuyTokenCode,
-                            BuyAmount = order.TradeAmount
-                        };
-
-                        if (sellorder.CoverAnotherTradersFee)
-                        {
-                            trade.Fee = 0;
-                            trade.FeeType = AuthorizationFeeTypes.NoFee;
-                        }
-                        else
-                        if (sellorder.AnotherTraderWillCoverFee)
-                        {
-                            trade.Fee = (await _AccountCollection.GetLastServiceBlockAsync()).TradeFee * 2;
-                            trade.FeeType = AuthorizationFeeTypes.BothParties;
-                        }
-                        else
-                        {
-                            trade.Fee = (await _AccountCollection.GetLastServiceBlockAsync()).TradeFee;
-                            trade.FeeType = AuthorizationFeeTypes.Regular;
-                        }
-
-                        // We take the seller's price since it can be lower that the one offered by the buyer.
-                        // If it is really lower, the Trade block should take into account the fact that the buyers pays less than expected.
-                        // It is achieved by getting a "change" to the balance of SellToken.
-                        // The Authorizer should also take this difference into account as the TransactionInfo and SellAmount can be different.
-                        // It can be validated by formula: Original Buy Order's MaxAmount * Price = Trade.SellAmount + "Change"
-                        //decimal real_price = sellorder.Price / (decimal)Math.Pow(10, sell_token_precision);
-                        //decimal real_buy_amount = trade.BuyAmount / (decimal)Math.Pow(10, buy_token_precision);
-                        //trade.SellAmount = (long)(real_price * real_buy_amount * (decimal)Math.Pow(10, sell_token_precision));
-                        trade.SellAmount = order.TradeAmount * sellorder.Price;
-                        trade.Balances = new Dictionary<string, long>();
-
-                        trade.DestinationAccountId = sellorder.AccountID;
-                        trade.TradeOrderId = sellorder.Hash;
-
-                        return trade;
+                    if (sellorder.CoverAnotherTradersFee)
+                    {
+                        trade.Fee = 0;
+                        trade.FeeType = AuthorizationFeeTypes.NoFee;
                     }
+                    else
+                    if (sellorder.AnotherTraderWillCoverFee)
+                    {
+                        trade.Fee = (await _AccountCollection.GetLastServiceBlockAsync()).TradeFee * 2;
+                        trade.FeeType = AuthorizationFeeTypes.BothParties;
+                    }
+                    else
+                    {
+                        trade.Fee = (await _AccountCollection.GetLastServiceBlockAsync()).TradeFee;
+                        trade.FeeType = AuthorizationFeeTypes.Regular;
+                    }
+
+                    // We take the seller's price since it can be lower that the one offered by the buyer.
+                    // If it is really lower, the Trade block should take into account the fact that the buyers pays less than expected.
+                    // It is achieved by getting a "change" to the balance of SellToken.
+                    // The Authorizer should also take this difference into account as the TransactionInfo and SellAmount can be different.
+                    // It can be validated by formula: Original Buy Order's MaxAmount * Price = Trade.SellAmount + "Change"
+                    //decimal real_price = sellorder.Price / (decimal)Math.Pow(10, sell_token_precision);
+                    //decimal real_buy_amount = trade.BuyAmount / (decimal)Math.Pow(10, buy_token_precision);
+                    //trade.SellAmount = (long)(real_price * real_buy_amount * (decimal)Math.Pow(10, sell_token_precision));
+                    trade.SellAmount = order.TradeAmount * sellorder.Price;
+                    trade.Balances = new Dictionary<string, long>();
+
+                    trade.DestinationAccountId = sellorder.AccountID;
+                    trade.TradeOrderId = sellorder.Hash;
+
+                    return trade;
                 }
+
             }
+
             return null;
         }
 
@@ -127,30 +133,60 @@ namespace Lyra.Core.Authorizers
         // If neither SellToken nor BuyToken is specified, and OrderType is "All", it will return the  list of all active orders in the network.
         /// </returns>
         /// </summary>
-        public List<TradeOrderBlock> GetActiveTradeOrders(string SellTokenCode, string BuyTokenCode, TradeOrderListTypes OrderType)
+        public async Task<List<TradeOrderBlock>> GetActiveTradeOrders(string SellTokenCode, string BuyTokenCode, TradeOrderListTypes OrderType)
         {
             var result_list = new List<TradeOrderBlock>();
 
             if (BuyTokenCode == "*")
-                BuyTokenCode = null;
-
-            if (SellTokenCode == "*")
-                SellTokenCode = null;
-
-            if (OrderType == TradeOrderListTypes.All || OrderType == TradeOrderListTypes.SellOnly)
-            {
-                foreach (var order in ActiveSellOrders.Values)
-                    if ((string.IsNullOrEmpty(SellTokenCode) || order.SellTokenCode == SellTokenCode) && (string.IsNullOrEmpty(BuyTokenCode) || order.BuyTokenCode == BuyTokenCode))
-                        result_list.Add(order);
-            }
+                //BuyTokenCode = null;
+                throw new ApplicationException("Not supported");
 
             if (OrderType == TradeOrderListTypes.All || OrderType == TradeOrderListTypes.BuyOnly)
+                throw new ApplicationException("Not supported");
+
+            
+            return await getActiveSellOrders(SellTokenCode, BuyTokenCode);
+
+            //if (OrderType == TradeOrderListTypes.All || OrderType == TradeOrderListTypes.SellOnly)
+            //{
+            //    foreach (var order in ActiveSellOrders.Values)
+            //        if ((string.IsNullOrEmpty(SellTokenCode) || order.SellTokenCode == SellTokenCode) && (string.IsNullOrEmpty(BuyTokenCode) || order.BuyTokenCode == BuyTokenCode))
+            //            result_list.Add(order);
+            //}
+
+            //if (OrderType == TradeOrderListTypes.All || OrderType == TradeOrderListTypes.BuyOnly)
+            //{
+            //    foreach (var order in ActiveBuyOrders.Values)
+            //        if ((string.IsNullOrEmpty(SellTokenCode) || order.SellTokenCode == SellTokenCode) && (string.IsNullOrEmpty(BuyTokenCode) || order.BuyTokenCode == BuyTokenCode))
+            //            result_list.Add(order);
+            //}
+            //return result_list;
+        }
+
+        private async Task<List<TradeOrderBlock>> getActiveSellOrders(string SellTokenCode, string BuyTokenCode)
+        {
+            var active_sellorders = new List<TradeOrderBlock>();
+            List<TradeOrderBlock> sellorders;
+            if (SellTokenCode == "*")
+                sellorders = await _AccountCollection.GetSellTradeOrdersForToken(BuyTokenCode);
+            else
+                sellorders = await _AccountCollection.GetSellTradeOrders(SellTokenCode, BuyTokenCode);
+
+            // now let's filter out all inactive orders
+            foreach (var order in sellorders)
             {
-                foreach (var order in ActiveBuyOrders.Values)
-                    if ((string.IsNullOrEmpty(SellTokenCode) || order.SellTokenCode == SellTokenCode) && (string.IsNullOrEmpty(BuyTokenCode) || order.BuyTokenCode == BuyTokenCode))
-                        result_list.Add(order);
+                var cancel_block = await _AccountCollection.GetCancelTradeOrderBlock(order.Hash);
+                if (cancel_block != null)
+                    continue;
+
+                var execute_block = await _AccountCollection.GetExecuteTradeOrderBlock(order.Hash);
+                if (execute_block != null)
+                    continue;
+               
+                active_sellorders.Add(order);
             }
-            return result_list;
+            
+            return active_sellorders;
         }
 
         //private int FindTokenPrecision(string token)
@@ -166,22 +202,22 @@ namespace Lyra.Core.Authorizers
         //    return precision;
         //}
 
-        private void LoadOrders()
-        {
-            var orders = _AccountCollection.GetTradeOrderBlocks();
-            var cancellations = _AccountCollection.GetTradeOrderCancellations();
-            var executions = _AccountCollection.GetExecutedTradeOrderBlocks();
+        //private void LoadOrders()
+        //{
+        //    var orders = _AccountCollection.GetTradeOrderBlocks();
+        //    var cancellations = _AccountCollection.GetTradeOrderCancellations();
+        //    var executions = _AccountCollection.GetExecutedTradeOrderBlocks();
 
-            // now let's filter out all inactive orders
-            foreach (var order in orders)
-                if (!cancellations.Contains(order.Hash) && !executions.Contains(order.Hash))
-                {
-                    if (order.OrderType == TradeOrderTypes.Sell)
-                        ActiveSellOrders.Add(order.Hash, order);
-                    else
-                        ActiveBuyOrders.Add(order.Hash, order);
-                }
+        //    // now let's filter out all inactive orders
+        //    foreach (var order in orders)
+        //        if (!cancellations.Contains(order.Hash) && !executions.Contains(order.Hash))
+        //        {
+        //            if (order.OrderType == TradeOrderTypes.Sell)
+        //                ActiveSellOrders.Add(order.Hash, order);
+        //            else
+        //                ActiveBuyOrders.Add(order.Hash, order);
+        //        }
 
-        }
+        //}
     }
 }

@@ -972,28 +972,28 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<string> PrintActiveTradeOrdersAsync()
-        {
-            var orders_result = await _rpcClient.GetActiveTradeOrders(AccountId, null, null, TradeOrderListTypes.All, SignAPICallAsync());
-            if (orders_result.ResultCode != APIResultCodes.Success)
-            {
-                return "No active trade orders found";
-            }
+        //public async Task<string> PrintActiveTradeOrdersAsync()
+        //{
+        //    var orders_result = await _rpcClient.GetActiveTradeOrders(AccountId, null, null, TradeOrderListTypes.All, SignAPICallAsync());
+        //    if (orders_result.ResultCode != APIResultCodes.Success)
+        //    {
+        //        return "No active trade orders found";
+        //    }
 
-            var orders = orders_result.GetList();
+        //    var orders = orders_result.GetList();
 
-            string result = "Sell Orders:\n";
-            foreach (var order in orders)
-                if (order.OrderType == TradeOrderTypes.Sell)
-                    result += $"Sell: {order.TradeAmount} {order.SellTokenCode} Price: {order.Price} {order.BuyTokenCode}\n";
+        //    string result = "Sell Orders:\n";
+        //    foreach (var order in orders)
+        //        if (order.OrderType == TradeOrderTypes.Sell)
+        //            result += $"Sell: {order.TradeAmount} {order.SellTokenCode} Price: {order.Price} {order.BuyTokenCode}\n";
 
-            Console.WriteLine("Buy Orders:");
-            foreach (var order in orders)
-                if (order.OrderType == TradeOrderTypes.Buy)
-                    result += $"Buy: {order.TradeAmount} {order.BuyTokenCode} Price: {order.Price} {order.SellTokenCode}\n";
+        //    Console.WriteLine("Buy Orders:");
+        //    foreach (var order in orders)
+        //        if (order.OrderType == TradeOrderTypes.Buy)
+        //            result += $"Buy: {order.TradeAmount} {order.BuyTokenCode} Price: {order.Price} {order.SellTokenCode}\n";
 
-            return result;
-        }
+        //    return result;
+        //}
 
 
         //private async Task<int> FindTokenPrecision(string token)

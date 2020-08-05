@@ -78,9 +78,9 @@ namespace Lyra.Core.Authorizers
 
             // TO DO validate amounts match
 
-            // Deactivate the order if it allows only one matching trade
-            if (trade_order.MaxQuantity == 1)
-                sys.TradeEngine.RemoveOrder(trade_order);
+            //// Deactivate the order if it allows only one matching trade
+            //if (trade_order.MaxQuantity == 1)
+            //    sys.TradeEngine.RemoveOrder(trade_order);
 
             return APIResultCodes.Success;
 
