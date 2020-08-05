@@ -312,6 +312,7 @@ namespace Lyra.Core.Blocks
         // service blocks related
         InvalidConsolidationMerkleTreeHash = 80,
         InvalidConsolidationTotalFees,
+        InvalidConsolidationMissingBlocks,
         InvalidServiceBlockTotalFees,
         InvalidFeeTicker,
         InvalidAuthorizerCount,

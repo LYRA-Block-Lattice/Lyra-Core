@@ -391,20 +391,28 @@ namespace Lyra.Core.Decentralize
                     //var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
                     //_lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
                     //// end test code
-
-                    var unConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
-                    var lastConsBlock = await _sys.Storage.GetLastConsolidationBlockAsync();
-
-                    if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastConsBlock.TimeStamp > TimeSpan.FromMinutes(10)))
+                    
+                    if(await CheckPrimaryNodesStatus())
                     {
-                        try
+                        var unConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
+                        var lastConsBlock = await _sys.Storage.GetLastConsolidationBlockAsync();
+
+                        if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastConsBlock.TimeStamp > TimeSpan.FromMinutes(10)))
                         {
-                            await CreateConsolidateBlockAsync();
+                            try
+                            {
+                                await CreateConsolidateBlockAsync();
+                            }
+                            catch (Exception ex)
+                            {
+                                _log.LogError($"In creating consolidation block: {ex.Message}");
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            _log.LogError($"In creating consolidation block: {ex.Message}");
-                        }
+                    }
+                    else
+                    {
+                        // so there is inconsistant between seed0 and other nodes.
+
                     }
                 }
             }
@@ -415,6 +423,44 @@ namespace Lyra.Core.Decentralize
             finally
             {
                 
+            }
+        }
+
+        private async Task<bool> CheckPrimaryNodesStatus()
+        {
+            var bag = new ConcurrentDictionary<string, GetSyncStateAPIResult>();
+            var tasks = Board.AllNodes
+                .Where(a => Board.PrimaryAuthorizers.Contains(a.Key))  // exclude self
+                .Select(b => b.Value)
+                .Select(async node =>
+                {
+                    var lcx = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.ToString(), "Seed0", "1.0", $"http://{node.IPAddress}:4505/api/Node/");
+                    try
+                    {
+                        var syncState = await lcx.GetSyncState();
+                        bag.TryAdd(node.AccountID, syncState);
+                    }
+                    catch (Exception ex)
+                    {
+                        bag.TryAdd(node.AccountID, null);
+                    }
+                });
+            await Task.WhenAll(tasks);
+            var mySyncState = bag[_sys.PosWallet.AccountId];
+            var q = bag.Where(a => a.Key != _sys.PosWallet.AccountId)
+                .Select(a => a.Value)
+                .GroupBy(x => x.Status.lastUnSolidationHash)
+                .Select(g => new { Hash = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .First();
+
+            if(mySyncState.Status.lastUnSolidationHash == q.Hash && q.Count > (int)Math.Ceiling((double)(Board.PrimaryAuthorizers.Length) * 3 / 2))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
