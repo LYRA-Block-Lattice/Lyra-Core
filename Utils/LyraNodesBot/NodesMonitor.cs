@@ -283,9 +283,9 @@ namespace LyraNodesBot
             // create wallet and update balance
             var memStor = new AccountInMemoryStorage();
             var acctWallet = new ExchangeAccountWallet(memStor, _network);
-            acctWallet.AccountName = "tmpAcct";
-            acctWallet.RestoreAccount("", masterKey);
-            acctWallet.OpenAccount("", acctWallet.AccountName);
+            //acctWallet.AccountName = "tmpAcct";
+            //acctWallet.RestoreAccount("", masterKey);
+            //acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
             var rpcClient = LyraRestClient.Create(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/Node/");

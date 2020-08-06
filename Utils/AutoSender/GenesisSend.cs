@@ -25,7 +25,7 @@ namespace AutoSender
         public async Task Send()
         {
             // open wallet
-            var wallet = await ShadowWallet.OpenAsync(_netName, _walletName);
+            Wallet wallet = null;// await ShadowWallet.OpenAsync(_netName, _walletName);
 
             var bb = JsonConvert.DeserializeObject<BillBoard>(File.ReadAllText(_fnBillBoard));
 

@@ -1,7 +1,6 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.LiteDB;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,11 +17,11 @@ namespace AutoSender
             if (wallet != null)
                 throw new Exception("Wallet opening");
 
-            wallet = new Wallet(new LiteAccountDatabase(), netName);
-            wallet.AccountName = walletName;
-            wallet.OpenAccount(dataPath, wallet.AccountName);
-            var AccountID = wallet.AccountId;
-            var PrivateKey = wallet.PrivateKey;
+            //wallet = new Wallet(new LiteAccountDatabase(), netName);
+            //wallet.AccountName = walletName;
+            //wallet.OpenAccount(dataPath, wallet.AccountName);
+            //var AccountID = wallet.AccountId;
+            //var PrivateKey = wallet.PrivateKey;
         }
 
         public async Task<Dictionary<string, Decimal>> RefreshBalance(string networkId)
@@ -32,7 +31,8 @@ namespace AutoSender
             var result = await wallet.Sync(rpcClient);
             if (result == Lyra.Core.Blocks.APIResultCodes.Success)
             {
-                return wallet.GetLatestBlock()?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
+                var block = await wallet.GetLatestBlockAsync();
+                return block?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
             }
             else
             {

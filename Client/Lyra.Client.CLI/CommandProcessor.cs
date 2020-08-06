@@ -95,17 +95,17 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(_wallet.AccountId);
                         break;
                     case COMMAND_BALANCE:
-                        Console.WriteLine(_wallet.GetDisplayBalances());
+                        Console.WriteLine(_wallet.GetDisplayBalancesAsync());
                         break;
                     case COMMAND_COUNT:
-                        Console.WriteLine(_wallet.GetLocalAccountHeight());
+                        Console.WriteLine(await _wallet.GetLocalAccountHeight());
                         break;
                     case COMMAND_STATUS:
                         Console.WriteLine(string.Format("Network Id: {0}", _wallet.NetworkId));
                         Console.WriteLine(string.Format("Account Id: {0}", _wallet.AccountId));
                         Console.WriteLine($"Current voting for Account Id: {_wallet.VoteFor ?? "(Not Set)"}");
-                        Console.WriteLine(string.Format("Number of Blocks: {0}", _wallet.GetLocalAccountHeight()));
-                        Console.WriteLine(              "Balance: " + _wallet.GetDisplayBalances());
+                        Console.WriteLine(string.Format("Number of Blocks: {0}", await _wallet.GetLocalAccountHeight()));
+                        Console.WriteLine(              "Balance: " + _wallet.GetDisplayBalancesAsync());
                         Console.WriteLine("Last Status Block: ");
                         Console.WriteLine((await _wallet.GetLastServiceBlockAsync()).Print());
                         break;
@@ -141,7 +141,7 @@ namespace Lyra.Client.CLI
                         await _wallet.CreateGenesisForCoreTokenAsync();
                         break;
                     case COMMAND_PRINT_LAST_BLOCK:
-                        Console.WriteLine(_wallet.PrintLastBlock());
+                        Console.WriteLine(await _wallet.PrintLastBlockAsync());
                         break;
                     case COMMAND_PRINT_BLOCK:
                         Console.WriteLine("Please enter transaction block index: ");
@@ -323,7 +323,7 @@ namespace Lyra.Client.CLI
             decimal.TryParse(amountstr, out decimal amount);
 
             string ticker = null;
-            if (_wallet.NumberOfNonZeroBalances > 1)
+            if (await _wallet.GetNumberOfNonZeroBalancesAsync() > 1)
             {
                 Console.WriteLine(string.Format("Please select token to send, or press Enter for {0}: ", LyraGlobal.OFFICIALTICKERCODE));
                 ticker = Console.ReadLine();
@@ -343,7 +343,7 @@ namespace Lyra.Client.CLI
             else
             {
                 Console.WriteLine($"Send Transfer block has been authorized successfully");
-                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
+                Console.WriteLine("Balance: " + _wallet.GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
         }
@@ -407,7 +407,7 @@ namespace Lyra.Client.CLI
             else
             {
                 Console.WriteLine($"Token generation has been authorized successfully");
-                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
+                Console.WriteLine("Balance: " + _wallet.GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
 

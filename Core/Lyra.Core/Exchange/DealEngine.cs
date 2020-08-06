@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
+using Java.Util;
 
 namespace Lyra.Core.Exchange
 {
@@ -48,10 +49,11 @@ namespace Lyra.Core.Exchange
             {
                 // create wallet and update balance
                 var memStor = new AccountInMemoryStorage();
-                var acctWallet = new ExchangeAccountWallet(memStor, _config.Lyra.NetworkId);
-                acctWallet.AccountName = "tmpAcct";
-                acctWallet.RestoreAccount("", acct.PrivateKey);
-                acctWallet.OpenAccount("", acctWallet.AccountName);
+                var acctWallet = Wallet.Create(memStor, "tmpAcct", "", "", acct.PrivateKey);
+                //var acctWallet = new ExchangeAccountWallet(memStor, _config.Lyra.NetworkId);
+                //acctWallet.AccountName = "tmpAcct";
+                //acctWallet.RestoreAccount("", acct.PrivateKey);
+                //acctWallet.OpenAccount("", acctWallet.AccountName);
                 for (int i = 0; i < 300; i++)
                 {
                     var result = await acctWallet.Sync(null);
@@ -60,7 +62,7 @@ namespace Lyra.Core.Exchange
                 }
 
                 {
-                    var transb = acctWallet.GetLatestBlock();
+                    var transb = await acctWallet.GetLatestBlockAsync();
                     if (transb != null)
                     {
                         if (acct.Balance == null)
@@ -307,7 +309,7 @@ namespace Lyra.Core.Exchange
                 var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
 
                 {
-                    var transb = fromWallet.GetLatestBlock();
+                    var transb = await fromWallet.GetLatestBlockAsync();
                     if (transb != null)
                     {
                         int sendCount = 0;
@@ -343,7 +345,7 @@ namespace Lyra.Core.Exchange
 
             var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
 
-            var transb = fromWallet.GetLatestBlock();
+            var transb = await fromWallet.GetLatestBlockAsync();
             if (transb != null && transb.Balances[tokenName].ToBalanceDecimal() >= amount)
             {
                 var bLast = transb.Balances[tokenName].ToBalanceDecimal() - amount;
@@ -362,7 +364,7 @@ namespace Lyra.Core.Exchange
             var fromAcct = await fromResult.FirstOrDefaultAsync();
 
             var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
-            var transb = fromWallet.GetLatestBlock();
+            var transb = await fromWallet.GetLatestBlockAsync();
             if (transb != null && transb.Balances[tokenName].ToBalanceDecimal() >= amount)
             {
                 var bLast = transb.Balances[tokenName].ToBalanceDecimal() - amount;
@@ -381,9 +383,10 @@ namespace Lyra.Core.Exchange
             var memStor = new AccountInMemoryStorage();
 
             var fromWallet = new Wallet(memStor, _config.Lyra.NetworkId);
-            fromWallet.AccountName = "tmpAcct";
-            fromWallet.RestoreAccount("", privateKey);
-            fromWallet.OpenAccount("", fromWallet.AccountName);
+            throw new NotImplementedException();
+            //fromWallet.AccountName = "tmpAcct";
+            //fromWallet.RestoreAccount("", privateKey);
+            //fromWallet.OpenAccount("", fromWallet.AccountName);
             APIResultCodes result = APIResultCodes.UnknownError;
             for (int i = 0; i < 300; i++)
             {

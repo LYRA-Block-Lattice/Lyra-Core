@@ -9,6 +9,7 @@
     <Authors>lyra.core</Authors>
     <Company>lyra.core</Company>
     <Product>lyra.core</Product>
+    <RootNamespace>Lyra.Core</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -51,6 +52,7 @@
 
   <ItemGroup>
     <Compile Remove=":Users:slava:Projects:Lyra:lyranode:GenesisBlocks.cs" />
+    <Compile Remove="Accounts\LiteAccountDatabase.cs" />
     <Compile Remove="API\APIResultCodes.cs" />
     <Compile Remove="API\LyraRpcClient.cs" />
     <Compile Remove="BaseAccount %281%29.cs" />

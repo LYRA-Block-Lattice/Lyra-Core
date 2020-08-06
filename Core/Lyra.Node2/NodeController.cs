@@ -107,6 +107,14 @@ namespace LyraLexWeb2
             return await _node.GetAccountHeight(AccountId);
         }
 
+        [Route("GetLastBlock")]
+        [HttpGet]
+        public async Task<TransactionBlock> GetLastBlock(string AccountId)
+        {
+            CheckSyncState();
+            return await _node.GetLastBlock(AccountId);
+        }
+
         [Route("GetBlockByIndex")]
         [HttpGet]
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index)

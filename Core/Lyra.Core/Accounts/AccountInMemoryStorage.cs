@@ -25,6 +25,14 @@ namespace Lyra.Core.Accounts
 
         private string _voteFor;
 
+        public string PrivateKey => _privateKey;
+
+        public string NetworkId => throw new NotImplementedException();
+
+        public string AccountId => _accountId;
+
+        public string VoteFor { get => _voteFor; set => throw new NotImplementedException(); }
+
         public AccountInMemoryStorage()
         { }
 
@@ -191,6 +199,16 @@ namespace Lyra.Core.Accounts
 
         public void Dispose()
         {
+        }
+
+        public bool Exists(string accountName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Create(string accountName, string password, string networkId, string privateKey, string accountId, string voteFor)
+        {
+            throw new NotImplementedException();
         }
     }
 

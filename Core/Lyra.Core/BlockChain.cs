@@ -392,23 +392,23 @@ namespace Lyra
 
                 await Task.Delay(3000);
 
-                // distribute staking coin to pre-defined authorizers
-                var gensWallet = await ShadowWallet.OpenWithKeyAsync(NetworkID, _sys.PosWallet.PrivateKey);
-                foreach (var accId in ProtocolSettings.Default.StartupValidators)
-                {
-                    await gensWallet.Sync(null);
-                    var sendResult = await gensWallet.Send(LyraGlobal.MinimalAuthorizerBalance, accId);
-                    if (sendResult.ResultCode == APIResultCodes.Success)
-                    {
-                        _log.LogInformation($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} successfull to accountId: {accId}");
-                    }
-                    else
-                    {
-                        _log.LogError($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} failed to accountId: {accId}");
-                    }
-                }
+                //// distribute staking coin to pre-defined authorizers
+                //var gensWallet = await ShadowWallet.OpenWithKeyAsync(NetworkID, _sys.PosWallet.PrivateKey);
+                //foreach (var accId in ProtocolSettings.Default.StartupValidators)
+                //{
+                //    await gensWallet.Sync(null);
+                //    var sendResult = await gensWallet.Send(LyraGlobal.MinimalAuthorizerBalance, accId);
+                //    if (sendResult.ResultCode == APIResultCodes.Success)
+                //    {
+                //        _log.LogInformation($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} successfull to accountId: {accId}");
+                //    }
+                //    else
+                //    {
+                //        _log.LogError($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} failed to accountId: {accId}");
+                //    }
+                //}
 
-                await Task.Delay(3000);
+                //await Task.Delay(3000);
 
                 if(ProtocolSettings.Default.StartupValidators.Any())
                 {

@@ -21,19 +21,20 @@ namespace UnitTests
 
         public static Wallet Restore(string privateKey)
         {
-            var memStor = new AccountInMemoryStorage();
-            var acctWallet = new ExchangeAccountWallet(memStor, LyraNodeConfig.GetNetworkId());
-            acctWallet.AccountName = "tmpAcct";
-            var result = acctWallet.RestoreAccount("", privateKey);
-            if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
-            {
-                acctWallet.OpenAccount("", acctWallet.AccountName);
-                return acctWallet;
-            }
-            else
-            {
-                return null;
-            }
+            return null;
+            //var memStor = new AccountInMemoryStorage();
+            //var acctWallet = new ExchangeAccountWallet(memStor, LyraNodeConfig.GetNetworkId());
+            //acctWallet.AccountName = "tmpAcct";
+            //var result = acctWallet.RestoreAccount("", privateKey);
+            //if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
+            //{
+            //    acctWallet.OpenAccount("", acctWallet.AccountName);
+            //    return acctWallet;
+            //}
+            //else
+            //{
+            //    return null;
+            //}
         }
 
         [TestMethod]

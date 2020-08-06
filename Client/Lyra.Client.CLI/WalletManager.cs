@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 using Lyra.Core.Blocks;
 using Lyra.Core.Accounts;
-
-using Lyra.Core.LiteDB;
 using System.Net.Http;
 using Lyra.Core.API;
 using Microsoft.Extensions.Hosting;
@@ -35,6 +33,7 @@ namespace Lyra.Client.CLI
             bool WEB = options.Protocol == Options.WEBAPI_PROTOCOL;
 
             Wallet wallet;
+            string lyra_folder = Wallet.GetFullFolderName(network_id, "wallets");
             if (INMEMORY)
             {
                 var inmemory_storage = new AccountInMemoryStorage();
@@ -42,10 +41,10 @@ namespace Lyra.Client.CLI
             }
             else
             {
-                wallet = new Wallet(new LiteAccountDatabase(), network_id);
+                var secureFile = new SecuredFileStore(lyra_folder);
+                wallet = new Wallet(secureFile, network_id);
             }
 
-            string lyra_folder = BaseAccount.GetFullFolderName(network_id, "wallets");
             if (!Directory.Exists(lyra_folder))
                 Directory.CreateDirectory(lyra_folder);
 
@@ -53,15 +52,17 @@ namespace Lyra.Client.CLI
 
             if(options.GenWalletName != null)
             {
-                wallet.AccountName = options.GenWalletName;
-                wallet.CreateAccount(lyra_folder, wallet.AccountName, AccountTypes.Standard);
-                var ep = Neo.Cryptography.ECC.ECPoint.FromBytes(Base58Encoding.DecodeAccountId(wallet.AccountId), Neo.Cryptography.ECC.ECCurve.Secp256r1);
-                Console.WriteLine($"The new wallet {wallet.AccountName} for {network_id}: ");
-                // *** Show a correctly formatted private key  
-                //Console.WriteLine(ep.ToString());
+                Console.WriteLine("Please input a password:");
+                var password = Console.ReadLine();
+
+                (var privateKey, var publicKey) = Signatures.GenerateWallet();
+
+                Console.WriteLine($"The new wallet {options.GenWalletName} for {network_id}: ");
                 Console.WriteLine(wallet.PrivateKey);
-                // ***
                 Console.WriteLine(wallet.AccountId);
+                var secureFile = new SecuredFileStore(lyra_folder);
+                secureFile.Create(options.GenWalletName, password, network_id, privateKey, publicKey, "");
+
                 return 0;
             }
 
@@ -69,7 +70,7 @@ namespace Lyra.Client.CLI
             string input = null;
             try
             {
-                while (!wallet.AccountExistsLocally(lyra_folder, input))
+                while (!File.Exists($"{lyra_folder}{Path.DirectorySeparatorChar}{input}{LyraGlobal.WALLETFILEEXT}"))
                 {
                     Console.WriteLine("Press Enter for default account, or enter account name: ");
                     input = Console.ReadLine();
@@ -77,49 +78,56 @@ namespace Lyra.Client.CLI
                     if (string.IsNullOrEmpty(input))
                         input = "My Account";
 
-                    wallet.AccountName = input;
-
                     string fileName = "";
-                    if (INMEMORY)
-                    {
-                        fileName = lyra_folder + wallet.AccountName + ".key";
+                    //if (INMEMORY)
+                    //{
+                    //    fileName = lyra_folder + wallet.AccountName + ".key";
 
-                        if (System.IO.File.Exists(fileName))
-                        {
-                            string private_key = System.IO.File.ReadAllText(fileName);
-                            if (wallet.ValidatePrivateKey(private_key))
-                            {
-                                var result = wallet.RestoreAccount(lyra_folder, private_key);
-                                if (!result.Successful())
-                                {
-                                    Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
-                                    continue;
-                                }
-                            }
-                        }
-                    }
+                    //    if (System.IO.File.Exists(fileName))
+                    //    {
+                    //        string private_key = System.IO.File.ReadAllText(fileName);
+                    //        if (wallet.ValidatePrivateKey(private_key))
+                    //        {
+                    //            var result = wallet.RestoreAccount(lyra_folder, private_key);
+                    //            if (!result.Successful())
+                    //            {
+                    //                Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
+                    //                continue;
+                    //            }
+                    //        }
+                    //    }
+                    //}
 
 
-                    if (!wallet.AccountExistsLocally(lyra_folder, wallet.AccountName))
+                    if (!File.Exists($"{lyra_folder}{Path.DirectorySeparatorChar}{input}{LyraGlobal.WALLETFILEEXT}"))
                     {
                         Console.WriteLine("Local account data not found. Would you like to create a new account? (Y/n): ");
                         if (command.ReadYesNoAnswer())
                         {
-                            wallet.CreateAccount(lyra_folder, wallet.AccountName, AccountTypes.Standard);
+                            Console.WriteLine("Please input a password:");
+                            var password = Console.ReadLine();
+
+                            (var privateKey, var publicKey) = Signatures.GenerateWallet();
+
+                            var secureFile = new SecuredFileStore(lyra_folder);
+                            secureFile.Create(input, password, network_id, privateKey, publicKey, "");
                         }
                         else
                         {
                             Console.WriteLine("Please enter private key to restore account: ");
                             string privatekey = Console.ReadLine();
 
+                            Console.WriteLine("Please input a password:");
+                            var password = Console.ReadLine();
+
                             if (!wallet.ValidatePrivateKey(privatekey))
                                 continue;
 
-                            var result = wallet.RestoreAccount(lyra_folder, privatekey);
-                            if (!result.Successful())
+                            var secureFile = new SecuredFileStore(lyra_folder);
+                            var result = secureFile.Create(input, password, network_id, privatekey, Signatures.GetAccountIdFromPrivateKey(privatekey), "");
+                            if (!result)
                             {
-                                //Console.WriteLine("Could not restore account from file: " + result.ResultMessage);
-                                Console.WriteLine("Could not restore account from a private key: " + result.ResultMessage);
+                                Console.WriteLine("Could not restore account from a private key. ");
                                 continue;
                             }
                         }
@@ -130,7 +138,13 @@ namespace Lyra.Client.CLI
 
                     }
                     else
-                        wallet.OpenAccount(lyra_folder, wallet.AccountName);
+                    {
+                        Console.WriteLine($"Please input a password to open wallet {input}:");
+                        var password = Console.ReadLine();
+
+                        var secureFile = new SecuredFileStore(lyra_folder);
+                        wallet = Wallet.Open(secureFile, input + LyraGlobal.WALLETFILEEXT, password);
+                    }
                 }
 
                 LyraRestClient rpcClient;
@@ -180,11 +194,6 @@ namespace Lyra.Client.CLI
             {
                 Console.WriteLine(string.Format("Exception: {0}", ex.Message));
                 Console.WriteLine($"{LyraGlobal.PRODUCTNAME} Client is shutting down");
-            }
-            finally
-            {
-                if (wallet != null)
-                    wallet.Dispose();
             }
 
             return 0;

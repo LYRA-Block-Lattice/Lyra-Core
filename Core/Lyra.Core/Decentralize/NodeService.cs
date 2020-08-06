@@ -10,7 +10,6 @@ using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using Lyra.Core.Exchange;
-using Lyra.Core.LiteDB;
 using Neo;
 using System.Linq;
 
@@ -54,11 +53,9 @@ namespace Lyra.Core.Decentralize
                 // something must be initialized first
                 new AuthorizersFactory().Init();
 
-
-                var walletStore = new LiteAccountDatabase();
-                var tmpWallet = new Wallet(walletStore, networkId);
-                string lyrawalletfolder = BaseAccount.GetFullFolderName(networkId, "wallets");
-                tmpWallet.OpenAccount(lyrawalletfolder, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name);
+                string lyrawalletfolder = Wallet.GetFullFolderName(networkId, "wallets");
+                var walletStore = new SecuredFileStore(lyrawalletfolder);
+                var tmpWallet = Wallet.Open(walletStore, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, "");
 
                 Wallet PosWallet;
                 if(ProtocolSettings.Default.StandbyValidators.Any(a => a == tmpWallet.AccountId))
@@ -70,10 +67,7 @@ namespace Lyra.Core.Decentralize
                 {
                     // create wallet and update balance
                     var memStor = new AccountInMemoryStorage();
-                    var acctWallet = new ExchangeAccountWallet(memStor, networkId);
-                    acctWallet.AccountName = "tmpAcct";
-                    acctWallet.RestoreAccount("", tmpWallet.PrivateKey);
-                    acctWallet.OpenAccount("", acctWallet.AccountName);
+                    var acctWallet = Wallet.Create(memStor, "tmpAcct", "", networkId, tmpWallet.PrivateKey);
                     acctWallet.VoteFor = tmpWallet.VoteFor;
 
                     Console.WriteLine("Sync wallet for " + acctWallet.AccountId);

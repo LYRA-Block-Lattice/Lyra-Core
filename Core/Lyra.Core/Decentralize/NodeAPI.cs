@@ -228,6 +228,11 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<TransactionBlock> GetLastBlock(string AccountId)
+        {
+            return await NodeService.Dag.Storage.FindLatestBlockAsync(AccountId) as TransactionBlock;
+        }
+
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
         {
             var result = new BlockAPIResult();

@@ -1,7 +1,6 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Cryptography;
-using Lyra.Core.LiteDB;
 using Neo.Wallets;
 using Newtonsoft.Json;
 using System;
@@ -24,7 +23,7 @@ namespace Friday
         {
             var workingFolder = @"C:\working\Friday";
                       
-            var lyraFolder = BaseAccount.GetFullFolderName(network_id, "wallets");
+            var lyraFolder = Wallet.GetFullFolderName(network_id, "wallets");
 
             Console.WriteLine("Press enter to begin.");
             Console.ReadLine();
@@ -45,9 +44,9 @@ namespace Friday
 
             //var tt = new TransactionTester(rpcClient);
 
-            var masterWallet = new Wallet(new LiteAccountDatabase(), network_id);
-            masterWallet.AccountName = "My Account";
-            masterWallet.OpenAccount(lyraFolder, masterWallet.AccountName);
+            var secureStorage = new SecuredFileStore(lyraFolder);
+            var masterWallet = Wallet.Open(secureStorage, "My Account", "");
+
             await masterWallet.Sync(rpcClient);
 
             _ = Task.Run(async () =>

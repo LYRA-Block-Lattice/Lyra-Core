@@ -1,6 +1,5 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.LiteDB;
 using LyraWallet.Services;
 using LyraWallet.ViewModels;
 using System;
@@ -16,6 +15,7 @@ using Xamarin.Essentials;
 using Lyra.Exchange;
 using Lyra.Core.Accounts;
 using Microsoft.Extensions.Hosting;
+using Lyra.Core.Cryptography;
 
 namespace LyraWallet.Models
 {
@@ -71,9 +71,8 @@ namespace LyraWallet.Models
             if (wallet != null)
                 throw new Exception("Wallet opening");
 
-            wallet = new Wallet(new LiteAccountDatabase(), CurrentNetwork);
-            wallet.AccountName = "My Account";
-            wallet.OpenAccount(App.Container.DataStoragePath, wallet.AccountName);
+            var securedStore = new SecuredFileStore(App.Container.DataStoragePath);
+            wallet = Wallet.Open(securedStore, "My Account", "");
 
             AccountID = wallet.AccountId;
             PrivateKey = wallet.PrivateKey;
@@ -119,11 +118,10 @@ namespace LyraWallet.Models
 
             var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
             File.WriteAllText(path + "network.txt", network_id);
-            wallet = new Wallet(new LiteAccountDatabase(), network_id)
-            {
-                AccountName = "My Account"
-            };
-            wallet.CreateAccount(path, wallet.AccountName, AccountTypes.Standard);
+
+            var secureStore = new SecuredFileStore(path);
+            (var privateKey, var publicKey) = Signatures.GenerateWallet();
+            secureStore.Create("My Account", "", network_id, privateKey, publicKey, "");
         }
 
         public void CreateByPrivateKey(string network_id, string privatekey)
@@ -131,30 +129,21 @@ namespace LyraWallet.Models
             if (wallet != null)
                 throw new Exception("Wallet opening");
 
-            var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
-            File.WriteAllText(path + "network.txt", network_id);
-            wallet = new Wallet(new LiteAccountDatabase(), network_id)
-            {
-                AccountName = "My Account"
-            };
-
             if (!wallet.ValidatePrivateKey(privatekey))
             {
                 wallet = null;
                 throw new InvalidDataException("Invalid Private Key");
             }
 
-            var result = wallet.RestoreAccount(path, privatekey);
-            if (!result.Successful())
-            {
-                wallet = null;
-                throw new InvalidDataException("Could not restore account from file: " + result.ResultMessage);
-            }
+            var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
+            File.WriteAllText(path + "network.txt", network_id);
+            var secureStore = new SecuredFileStore(path);
+            secureStore.Create("My Account", "", network_id, privatekey, Signatures.GetAccountIdFromPrivateKey(privatekey), "");
         }
 
         public async Task GetBalance()
         {
-            var latestBlock = await Task.FromResult(wallet.GetLatestBlock());
+            var latestBlock = await wallet.GetLatestBlockAsync();
             App.Container.Balances = latestBlock?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
             App.Container.TokenList = App.Container.Balances?.Keys.ToList();
         }
@@ -177,7 +166,8 @@ namespace LyraWallet.Models
 
             if (result == APIResultCodes.Success)
             {
-                App.Container.Balances = wallet.GetLatestBlock()?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
+                var lastBlock = await wallet.GetLatestBlockAsync();
+                App.Container.Balances = lastBlock?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
                 App.Container.TokenList = App.Container.Balances?.Keys.ToList();
             }
             else
@@ -216,7 +206,7 @@ namespace LyraWallet.Models
         public async Task<List<BlockInfo>> GetBlocks()
         {
             var blocks = new List<BlockInfo>();
-            var height = wallet.GetLocalAccountHeight();
+            var height = await wallet.GetLocalAccountHeight();
             for (var i = height; i > 0; i--)
             {
                 var block = await wallet.GetBlockByIndex(i);
@@ -246,8 +236,6 @@ namespace LyraWallet.Models
             await Task.Run(() => {
                 if(_cancel != null)
                     _cancel.Cancel();
-                if (wallet != null)
-                    wallet.Dispose();
                 wallet = null;
             });
         }

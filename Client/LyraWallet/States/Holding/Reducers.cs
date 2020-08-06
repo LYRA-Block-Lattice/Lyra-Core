@@ -21,8 +21,8 @@ namespace LyraWallet.States.Holding
                     (state, action) =>
                     {
                         var wallet = new Wallet(action.database, action.network);
-                        wallet.AccountName = action.walletName;
-                        wallet.OpenAccount(action.walletPath, wallet.AccountName);
+                        //wallet.AccountName = action.walletName;
+                        //wallet.OpenAccount(action.walletPath, wallet.AccountName);
                        
                         return state.With(new {
                             lyraWallet = wallet,

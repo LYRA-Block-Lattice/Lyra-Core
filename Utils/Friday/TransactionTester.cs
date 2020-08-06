@@ -71,7 +71,7 @@ namespace Friday
                 var tsk = Task.Run(async () =>
                 {
                     var fromWallet = await RefreshBalanceAsync(masterKey);
-                    var block = fromWallet.GetLatestBlock();
+                    var block = await fromWallet.GetLatestBlockAsync();
                     if (block == null || block.Balances == null)
                     {
                         Console.WriteLine("No last block!");
@@ -127,9 +127,9 @@ namespace Friday
             // create wallet and update balance
             var memStor = new AccountInMemoryStorage();
             var acctWallet = new ExchangeAccountWallet(memStor, Program.network_id);
-            acctWallet.AccountName = "tmpAcct";
-            acctWallet.RestoreAccount("", masterKey);
-            acctWallet.OpenAccount("", acctWallet.AccountName);
+            //acctWallet.AccountName = "tmpAcct";
+            //acctWallet.RestoreAccount("", masterKey);
+            //acctWallet.OpenAccount("", acctWallet.AccountName);
 
             Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
             var rpcClient = LyraRestClient.Create(Program.network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
@@ -147,7 +147,7 @@ namespace Friday
                 var tsk = Task.Run(async () =>
                 {
                     var wallet = await RefreshBalanceAsync(mk);
-                    var block = wallet.GetLatestBlock();
+                    var block = await wallet.GetLatestBlockAsync();
                     if(block != null)
                         blances.Add(new WalletBalance
                         {

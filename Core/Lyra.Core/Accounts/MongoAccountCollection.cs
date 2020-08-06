@@ -265,7 +265,7 @@ namespace Lyra.Core.Accounts
             var options = new FindOptions<Block, Block>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.TimeStamp)
+                Sort = Builders<Block>.Sort.Descending(o => o.Height)
             };
             var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
 
