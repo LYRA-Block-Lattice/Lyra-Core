@@ -22,7 +22,7 @@ namespace Lyra.Core.Accounts
 
         public string NetworkId => _store.NetworkId;
 
-        public string VoteFor { get; set; }
+        public string VoteFor { get => _store.VoteFor; set => _store.VoteFor = value; }
 
         // to do 
         // 1) move rpcclient to CLI
