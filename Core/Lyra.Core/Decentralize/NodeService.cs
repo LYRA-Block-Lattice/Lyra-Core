@@ -55,7 +55,7 @@ namespace Lyra.Core.Decentralize
 
                 string lyrawalletfolder = Wallet.GetFullFolderName(networkId, "wallets");
                 var walletStore = new SecuredFileStore(lyrawalletfolder);
-                var tmpWallet = Wallet.Open(walletStore, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, "");
+                var tmpWallet = Wallet.Open(walletStore, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, Neo.Settings.Default.LyraNode.Lyra.Wallet.Password);
 
                 Wallet PosWallet;
                 if(ProtocolSettings.Default.StandbyValidators.Any(a => a == tmpWallet.AccountId))

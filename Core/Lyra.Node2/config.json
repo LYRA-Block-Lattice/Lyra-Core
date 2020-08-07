@@ -9,7 +9,8 @@
           "DexDBConnect": "mongodb://lexuser:alongpassword@127.0.0.1/wizdex"
         },
         "Wallet": {
-          "Name": "poswallet"
+          "Name": "poswallet",
+          "Password":  ""
         },
         "FeeAccountId": "LHrtDCqUNVCTSu7YkuKHufdx47AB1qDKshSjUpdjSwNKSUbg5SX94ucQnsoVhb4V3jqNNTV8cHCVLQYLNUawg2MDc9rkHe"
       }

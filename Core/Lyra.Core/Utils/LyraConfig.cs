@@ -41,9 +41,11 @@ namespace Lyra.Core.Utils
     public class LyraWalletConfig
     {
         public string Name { get; set; }
+        public string Password { get; set; }
         public LyraWalletConfig(IConfigurationSection section)
         {
             Name = section.GetSection("Name").Value;
+            Password = section.GetSection("Password").Value;
         }
     }
 
