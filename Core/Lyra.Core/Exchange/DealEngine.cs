@@ -49,7 +49,8 @@ namespace Lyra.Core.Exchange
             {
                 // create wallet and update balance
                 var memStor = new AccountInMemoryStorage();
-                var acctWallet = Wallet.Create(memStor, "tmpAcct", "", "", acct.PrivateKey);
+                Wallet.Create(memStor, "tmpAcct", "", "", acct.PrivateKey);
+                var acctWallet = Wallet.Open(memStor, "tmpAcct", "");
                 //var acctWallet = new ExchangeAccountWallet(memStor, _config.Lyra.NetworkId);
                 //acctWallet.AccountName = "tmpAcct";
                 //acctWallet.RestoreAccount("", acct.PrivateKey);
@@ -379,23 +380,24 @@ namespace Lyra.Core.Exchange
 
         private async Task<Wallet> GetExchangeAccountWallet(string privateKey)
         {
-            // create wallet and update balance
-            var memStor = new AccountInMemoryStorage();
-
-            var fromWallet = new Wallet(memStor, _config.Lyra.NetworkId);
             throw new NotImplementedException();
-            //fromWallet.AccountName = "tmpAcct";
-            //fromWallet.RestoreAccount("", privateKey);
-            //fromWallet.OpenAccount("", fromWallet.AccountName);
-            APIResultCodes result = APIResultCodes.UnknownError;
-            for (int i = 0; i < 300; i++)
-            {
-                result = await fromWallet.Sync(null);
-                if (result == APIResultCodes.Success)
-                    break;
-            }
-            Trace.Assert(result == APIResultCodes.Success);
-            return fromWallet;
+            //// create wallet and update balance
+            //var memStor = new AccountInMemoryStorage();
+
+            //var fromWallet = new Wallet(memStor, _config.Lyra.NetworkId);
+            //throw new NotImplementedException();
+            ////fromWallet.AccountName = "tmpAcct";
+            ////fromWallet.RestoreAccount("", privateKey);
+            ////fromWallet.OpenAccount("", fromWallet.AccountName);
+            //APIResultCodes result = APIResultCodes.UnknownError;
+            //for (int i = 0; i < 300; i++)
+            //{
+            //    result = await fromWallet.Sync(null);
+            //    if (result == APIResultCodes.Success)
+            //        break;
+            //}
+            //Trace.Assert(result == APIResultCodes.Success);
+            //return fromWallet;
         }
 
         public async Task<ExchangeOrder[]> GetNewlyPlacedOrdersAsync()

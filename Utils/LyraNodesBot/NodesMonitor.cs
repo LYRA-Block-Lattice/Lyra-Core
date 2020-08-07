@@ -280,17 +280,18 @@ namespace LyraNodesBot
 
         private async Task<Wallet> RefreshBalanceAsync(string masterKey)
         {
-            // create wallet and update balance
-            var memStor = new AccountInMemoryStorage();
-            var acctWallet = new ExchangeAccountWallet(memStor, _network);
-            //acctWallet.AccountName = "tmpAcct";
-            //acctWallet.RestoreAccount("", masterKey);
-            //acctWallet.OpenAccount("", acctWallet.AccountName);
+            throw new NotImplementedException();
+            //// create wallet and update balance
+            //var memStor = new AccountInMemoryStorage();
+            //var acctWallet = new ExchangeAccountWallet(memStor, _network);
+            ////acctWallet.AccountName = "tmpAcct";
+            ////acctWallet.RestoreAccount("", masterKey);
+            ////acctWallet.OpenAccount("", acctWallet.AccountName);
 
-            Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            var rpcClient = LyraRestClient.Create(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/Node/");
-            await acctWallet.Sync(rpcClient, true);
-            return acctWallet;
+            //Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
+            //var rpcClient = LyraRestClient.Create(_network, "Windows", "Lyra Client Cli", "1.0a", "https://seed2.testnet.wizdag.com:4505/api/Node/");
+            //await acctWallet.Sync(rpcClient, true);
+            //return acctWallet;
         }
 
         private async void BotOnCallbackQueryReceived(object sender, CallbackQueryEventArgs callbackQueryEventArgs)

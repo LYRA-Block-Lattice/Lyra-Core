@@ -67,7 +67,8 @@ namespace Lyra.Core.Decentralize
                 {
                     // create wallet and update balance
                     var memStor = new AccountInMemoryStorage();
-                    var acctWallet = Wallet.Create(memStor, "tmpAcct", "", networkId, tmpWallet.PrivateKey);
+                    Wallet.Create(memStor, "tmpAcct", "", networkId, tmpWallet.PrivateKey);
+                    var acctWallet = Wallet.Open(memStor, "tmpAcct", "");
                     acctWallet.VoteFor = tmpWallet.VoteFor;
 
                     Console.WriteLine("Sync wallet for " + acctWallet.AccountId);

@@ -20,7 +20,7 @@ namespace LyraWallet.States.Holding
                 On<OpenWallet, HoldingState>(
                     (state, action) =>
                     {
-                        var wallet = new Wallet(action.database, action.network);
+                        Wallet wallet = null;// new Wallet(action.database, action.network);
                         //wallet.AccountName = action.walletName;
                         //wallet.OpenAccount(action.walletPath, wallet.AccountName);
                        

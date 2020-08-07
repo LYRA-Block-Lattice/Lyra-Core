@@ -38,10 +38,11 @@ namespace Lyra.Core.Accounts
         public decimal TokenGenerationFee = 0; // in atomic units
         public decimal TradeFee = 0; // in atomic units
 
-        public Wallet(IAccountDatabase storage, string name)
+        private Wallet(IAccountDatabase storage, string name, LyraRestClient rpcClient = null)
         {
             _store = storage;
             AccountName = name;
+            _rpcClient = rpcClient;
         }
 
         public static string GetFullFolderName(string NetworkId, string FolderName)
@@ -49,14 +50,14 @@ namespace Lyra.Core.Accounts
             return $"{Utilities.GetLyraDataDir(NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}{FolderName}{Utilities.PathSeperator}";
         }
 
-        public static Wallet Open(IAccountDatabase store, string name, string password)
+        public static Wallet Open(IAccountDatabase store, string name, string password, LyraRestClient rpcClient = null)
         {
-            var wallet = new Wallet(store, name);
+            var wallet = new Wallet(store, name, rpcClient);
             store.Open(name, password);
             return wallet;
         }
 
-        public static Wallet Create(IAccountDatabase store, string name, string password, string networkId, string privateKey)
+        public static bool Create(IAccountDatabase store, string name, string password, string networkId, string privateKey)
         {
             if (!Signatures.ValidatePrivateKey(privateKey))
             {
@@ -64,8 +65,7 @@ namespace Lyra.Core.Accounts
             }
             var wallet = new Wallet(store, name);
             var accountId = Signatures.GetAccountIdFromPrivateKey(privateKey);
-            store.Create(name, password, networkId, privateKey, accountId, "");
-            return wallet;
+            return store.Create(name, password, networkId, privateKey, accountId, "");
         }
         // one-time "manual" sync up with the node 
         public async Task<APIResultCodes> Sync(LyraRestClient RPCClient, bool ResetLocalDatabase = false)

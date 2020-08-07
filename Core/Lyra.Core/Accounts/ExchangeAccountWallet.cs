@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 namespace Lyra.Core.Accounts
 {
     // transaction by exchange account is zero-fee
-    public class ExchangeAccountWallet : Wallet
-    {
-        public ExchangeAccountWallet(IAccountDatabase storage, string NetworkId) : base(storage, NetworkId)
-        {
-        }
-    }
+    //public class ExchangeAccountWallet : Wallet
+    //{
+    //    //public ExchangeAccountWallet(IAccountDatabase storage, string NetworkId) : base(storage, NetworkId)
+    //    //{
+    //    //}
+    //}
 }

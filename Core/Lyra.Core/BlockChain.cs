@@ -396,7 +396,8 @@ namespace Lyra
 
                 // distribute staking coin to pre-defined authorizers
                 var memStore = new AccountInMemoryStorage();
-                var gensWallet = Wallet.Create(memStore, "tmp", "", NetworkID, _sys.PosWallet.PrivateKey);
+                Wallet.Create(memStore, "tmp", "", NetworkID, _sys.PosWallet.PrivateKey);
+                var gensWallet = Wallet.Open(memStore, "tmp", "");
                 foreach (var accId in ProtocolSettings.Default.StartupValidators)
                 {
                     var client = await FindValidSeedForSyncAsync();
