@@ -284,12 +284,12 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task<TransactionBlock> GetLastBlock(string AccountId)
+        public async Task<BlockAPIResult> GetLastBlock(string AccountId)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetLastBlock/?AccountId={AccountId}");
             if (response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsAsync<TransactionBlock>();
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
                 return result;
             }
             else

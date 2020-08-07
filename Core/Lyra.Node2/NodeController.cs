@@ -109,7 +109,7 @@ namespace LyraLexWeb2
 
         [Route("GetLastBlock")]
         [HttpGet]
-        public async Task<TransactionBlock> GetLastBlock(string AccountId)
+        public async Task<BlockAPIResult> GetLastBlock(string AccountId)
         {
             CheckSyncState();
             return await _node.GetLastBlock(AccountId);

@@ -96,18 +96,22 @@ namespace Lyra.Core.Accounts
             return Signatures.GetSignature(PrivateKey, SyncHash, AccountId);
         }
 
+        public async Task<TransactionBlock> GetLatestBlockAsync()
+        {
+            var blockResult = await _rpcClient.GetLastBlock(AccountId);
+            if (blockResult.ResultCode == APIResultCodes.Success)
+                return blockResult.GetBlock() as TransactionBlock;
+            else
+                return null;
+        }
+
         public async Task<long> GetLocalAccountHeight()
         {
-            var lastTrans = await _rpcClient.GetLastBlock(AccountId);
+            var lastTrans = await GetLatestBlockAsync();
             if (lastTrans != null)
                 return lastTrans.Height;
             else
                 return 0;
-        }
-
-        public async Task<TransactionBlock> GetLatestBlockAsync()
-        {
-            return await _rpcClient.GetLastBlock(AccountId);
         }
 
         public async Task<List<string>> GetTokenNames(string keyword)
@@ -261,7 +265,7 @@ namespace Lyra.Core.Accounts
                         NonFungibleToken = null
                     };
 
-                    TransactionBlock latestBlock = await _rpcClient.GetLastBlock(AccountId);
+                    TransactionBlock latestBlock = await GetLatestBlockAsync();
                     var prevSb = (await _rpcClient.GetBlockByHash(AccountId, sb.PreviousHash, SignAPICallAsync())).GetBlock() as ServiceBlock;
                     if (latestBlock != null)
                     {
@@ -312,7 +316,7 @@ namespace Lyra.Core.Accounts
                         //receiveBlock.Authorizations = result.Authorizations;
                         receiveBlock.ServiceHash = result.ServiceHash;
                         //AddBlock(receiveBlock);
-                        Console.WriteLine("Balance: " + GetDisplayBalancesAsync());
+                        Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
                     }
                     Console.Write(string.Format("{0}> ", AccountName));
                     return result.ResultCode;
@@ -367,7 +371,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<AuthorizationAPIResult> ExecuteSellOrder(TradeBlock trade, TradeOrderBlock order, NonFungibleToken nonfungible_token = null)
         {
-            TransactionBlock previousBlock = await _rpcClient.GetLastBlock(AccountId);
+            TransactionBlock previousBlock = await GetLatestBlockAsync();
             if (previousBlock == null)
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
 
@@ -518,7 +522,7 @@ namespace Lyra.Core.Accounts
         public async Task<string> GetDisplayBalancesAsync()
         {
             string res = "0";
-            TransactionBlock lastBlock = await _rpcClient.GetLastBlock(AccountId);
+            TransactionBlock lastBlock = await GetLatestBlockAsync();
             if (lastBlock != null)
             {
                 res = $"\n";
@@ -571,7 +575,7 @@ namespace Lyra.Core.Accounts
         public async Task<int> GetNumberOfNonZeroBalancesAsync()
         {
             int result = 0;
-            var last = await _rpcClient.GetLastBlock(AccountId);
+            var last = await GetLatestBlockAsync();
             if (last != null)
             {
                 foreach (var balance in last.Balances)
@@ -630,7 +634,7 @@ namespace Lyra.Core.Accounts
             if (Amount <= 0)
                 throw new Exception("Amount must > 0");
 
-            TransactionBlock previousBlock = await _rpcClient.GetLastBlock(AccountId);
+            TransactionBlock previousBlock = await GetLatestBlockAsync();
             if (previousBlock == null)
             {
                 //throw new ApplicationException("Previous block not found");
@@ -760,7 +764,7 @@ namespace Lyra.Core.Accounts
         public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(
             TradeOrderTypes orderType, string SellToken, string BuyToken, decimal MaxAmount, decimal MinAmount, decimal Price, bool CoverAnotherTradersFee, bool AnotherTraderWillCoverFee)
         {
-            TransactionBlock previousBlock = await _rpcClient.GetLastBlock(AccountId);
+            TransactionBlock previousBlock = await GetLatestBlockAsync();
             if (previousBlock == null)
                 return new TradeOrderAuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
 
@@ -875,7 +879,7 @@ namespace Lyra.Core.Accounts
         /// <returns></returns>
         public async Task<AuthorizationAPIResult> Trade(TradeBlock trade)
         {
-            TransactionBlock previousBlock = await _rpcClient.GetLastBlock(AccountId);
+            TransactionBlock previousBlock = await GetLatestBlockAsync();
             if (previousBlock == null)
                 return new TradeOrderAuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
 
@@ -1082,7 +1086,7 @@ namespace Lyra.Core.Accounts
                 // request the authorized block and save it locally 
                 //openReceiveBlock.Authorizations = result.Authorizations;
                 openReceiveBlock.ServiceHash = result.ServiceHash;
-                Console.WriteLine("Balance: " + GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             Console.Write(string.Format("{0}> ", AccountName));
             return result;
@@ -1161,7 +1165,7 @@ namespace Lyra.Core.Accounts
                 //GetBlock(receiveBlock.Index);
                 //receiveBlock.Authorizations = result.Authorizations;
                 receiveBlock.ServiceHash = result.ServiceHash;
-                Console.WriteLine("Balance: " + GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             Console.Write(string.Format("{0}> ", AccountName));
             return result;
@@ -1242,7 +1246,7 @@ namespace Lyra.Core.Accounts
                 //GetBlock(1);
                 //openTokenGenesisBlock.Authorizations = result.Authorizations;
                 openTokenGenesisBlock.ServiceHash = result.ServiceHash;
-                Console.WriteLine("Balance: " + GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", AccountName));
             return result.ResultCode;

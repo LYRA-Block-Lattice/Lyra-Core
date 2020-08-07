@@ -428,6 +428,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task<bool> CheckPrimaryNodesStatus()
         {
+            if (Board.AllNodes.Count < 4)
+                return false;
+
             var bag = new ConcurrentDictionary<string, GetSyncStateAPIResult>();
             var tasks = Board.AllNodes
                 .Where(a => Board.PrimaryAuthorizers.Contains(a.Key))  // exclude self

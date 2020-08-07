@@ -66,7 +66,7 @@ namespace Lyra.Client.CLI
                 return 0;
             }
 
-            CommandProcessor command = new CommandProcessor(wallet);
+            CommandProcessor command = new CommandProcessor();
             string input = null;
             try
             {
@@ -143,7 +143,7 @@ namespace Lyra.Client.CLI
                         var password = Console.ReadLine();
 
                         var secureFile = new SecuredFileStore(lyra_folder);
-                        wallet = Wallet.Open(secureFile, input + LyraGlobal.WALLETFILEEXT, password);
+                        wallet = Wallet.Open(secureFile, input, password);
                     }
                 }
 
@@ -182,7 +182,7 @@ namespace Lyra.Client.CLI
 
                 while (input != CommandProcessor.COMMAND_STOP)
                 {
-                    var result = await command.Execute(input);
+                    var result = await command.Execute(wallet, input);
                     Console.Write(string.Format("{0}> ", wallet.AccountName));
                     //Console.Write
                     input = Console.ReadLine();

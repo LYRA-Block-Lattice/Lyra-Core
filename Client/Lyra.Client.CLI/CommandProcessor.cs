@@ -44,15 +44,16 @@ namespace Lyra.Client.CLI
 
         public const string UNSUPPORTED_COMMAND_MSG = "This command is in development";
 
-        readonly Wallet _wallet;
+        Wallet _wallet;
 
-        public CommandProcessor(Wallet w)
+        public CommandProcessor()
         {
-            _wallet = w;
+
         }
 
-        public async Task<int> Execute(string command)
+        public async Task<int> Execute(Wallet wallet, string command)
         {
+            _wallet = wallet;
             try
             {
                 if (string.IsNullOrEmpty(command))
@@ -95,7 +96,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(_wallet.AccountId);
                         break;
                     case COMMAND_BALANCE:
-                        Console.WriteLine(_wallet.GetDisplayBalancesAsync());
+                        Console.WriteLine(await _wallet.GetDisplayBalancesAsync());
                         break;
                     case COMMAND_COUNT:
                         Console.WriteLine(await _wallet.GetLocalAccountHeight());
@@ -105,7 +106,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format("Account Id: {0}", _wallet.AccountId));
                         Console.WriteLine($"Current voting for Account Id: {_wallet.VoteFor ?? "(Not Set)"}");
                         Console.WriteLine(string.Format("Number of Blocks: {0}", await _wallet.GetLocalAccountHeight()));
-                        Console.WriteLine(              "Balance: " + _wallet.GetDisplayBalancesAsync());
+                        Console.WriteLine(              "Balance: " + await _wallet.GetDisplayBalancesAsync());
                         Console.WriteLine("Last Status Block: ");
                         Console.WriteLine((await _wallet.GetLastServiceBlockAsync()).Print());
                         break;
@@ -343,7 +344,7 @@ namespace Lyra.Client.CLI
             else
             {
                 Console.WriteLine($"Send Transfer block has been authorized successfully");
-                Console.WriteLine("Balance: " + _wallet.GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
         }
@@ -407,7 +408,7 @@ namespace Lyra.Client.CLI
             else
             {
                 Console.WriteLine($"Token generation has been authorized successfully");
-                Console.WriteLine("Balance: " + _wallet.GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
 

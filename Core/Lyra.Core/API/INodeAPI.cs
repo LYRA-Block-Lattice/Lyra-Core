@@ -40,7 +40,7 @@ namespace Lyra.Core.API
         // This way only account holders can request the account information which will prevent DoS and add some privacy in centralized network configuration. 
 
         Task<AccountHeightAPIResult> GetAccountHeight(string AccountId);
-        Task<TransactionBlock> GetLastBlock(string AccountId);
+        Task<BlockAPIResult> GetLastBlock(string AccountId);
 
         Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index);
         Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index);
