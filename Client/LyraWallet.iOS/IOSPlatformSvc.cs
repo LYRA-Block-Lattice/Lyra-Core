@@ -18,7 +18,7 @@ namespace LyraWallet.iOS
             // (they don't want non-user-generated data in Documents)
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal); // Documents folder
             string libraryPath = Path.Combine(documentsPath, "..", "Library");
-            return libraryPath + Path.PathSeparator;
+            return libraryPath;
         }
     }
 }

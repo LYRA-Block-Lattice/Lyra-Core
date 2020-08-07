@@ -66,7 +66,7 @@ namespace LyraWallet.Models
         private CancellationTokenSource _cancel;
         public event NodeNotifyMessage OnBalanceChanged;
         public event NodeNotifyMessage OnExchangeOrderChanged;
-        public async Task OpenWalletFile()
+        public async Task OpenWalletFileAsync()
         {
             if (wallet != null)
                 throw new Exception("Wallet opening");
@@ -90,6 +90,7 @@ namespace LyraWallet.Models
             //while ((client as DAGClientHostedService).Node == null)
             //    await Task.Delay(100);
             _nodeApiClient = LyraRestClient.Create(CurrentNetwork, platform, AppInfo.Name, AppInfo.VersionString);
+            await wallet.Sync(_nodeApiClient);
             //_notifyApiClient = new LyraRestNotify(platform, LyraGlobal.SelectNode(CurrentNetwork).restUrl + "LyraNotify/");
 
             //_cancel = new CancellationTokenSource();
@@ -121,7 +122,8 @@ namespace LyraWallet.Models
 
             var secureStore = new SecuredFileStore(path);
             (var privateKey, var publicKey) = Signatures.GenerateWallet();
-            secureStore.Create("My Account", "", network_id, privateKey, publicKey, "");
+
+            wallet = Wallet.Create(secureStore, "My Account", "", network_id, privateKey);
         }
 
         public void CreateByPrivateKey(string network_id, string privatekey)
@@ -138,7 +140,7 @@ namespace LyraWallet.Models
             var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
             File.WriteAllText(path + "network.txt", network_id);
             var secureStore = new SecuredFileStore(path);
-            secureStore.Create("My Account", "", network_id, privatekey, Signatures.GetAccountIdFromPrivateKey(privatekey), "");
+            wallet = Wallet.Create(secureStore, "My Account", "", network_id, privatekey);
         }
 
         public async Task GetBalance()

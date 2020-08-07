@@ -161,7 +161,7 @@ namespace LyraWallet.ViewModels
 
                     Title = "Opening Wallet...";
                     await App.Container.CloseWallet();
-                    await App.Container.OpenWalletFile();
+                    await App.Container.OpenWalletFileAsync();
                     await App.Container.GetBalance();
                     if (App.Container.Balances == null || App.Container.Balances.Count == 0)
                     {

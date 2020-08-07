@@ -124,7 +124,7 @@ namespace Lyra.Client.CLI
                         }
                         else if(string.IsNullOrEmpty(votefor))
                         {
-                            _wallet.VoteFor = null;
+                            _wallet.VoteFor = "";
                             Console.WriteLine($"You will not vote for any account id. This action will take effect after next transaction (send/receive etc.).");
                         }
                         else

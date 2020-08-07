@@ -41,7 +41,7 @@ namespace LyraWallet.ViewModels
             {
                 var vf = value;
                 if (string.IsNullOrWhiteSpace(vf))
-                    App.Container.VoteFor = null;
+                    App.Container.VoteFor = "";
                 else if (Signatures.ValidateAccountId(vf))
                     App.Container.VoteFor = vf;
             }
@@ -55,7 +55,7 @@ namespace LyraWallet.ViewModels
 
             ChangeVoteCommand = new Command(async () => {
                 if (string.IsNullOrWhiteSpace(VoteFor))
-                    App.Container.VoteFor = null;
+                    App.Container.VoteFor = "";
                 else if (Signatures.ValidateAccountId(VoteFor))
                     App.Container.VoteFor = VoteFor;
                 else

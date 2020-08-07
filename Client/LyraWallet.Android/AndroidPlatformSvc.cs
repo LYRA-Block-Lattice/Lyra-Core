@@ -15,7 +15,7 @@ namespace LyraWallet.Droid
         public string GetStoragePath()
         {
             string libraryPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            return libraryPath + Path.PathSeparator;
+            return libraryPath;
         }
     }
 }
