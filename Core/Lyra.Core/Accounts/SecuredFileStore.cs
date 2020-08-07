@@ -60,7 +60,7 @@ namespace Lyra.Core.Accounts
 
         private void UpdateKvp(string key, string value)
         {
-            using (var sman = SecretsManager.CreateStore())
+            using (var sman = SecretsManager.LoadStore(name2fn(_name)))
             {
                 sman.LoadKeyFromPassword(_password);
 
