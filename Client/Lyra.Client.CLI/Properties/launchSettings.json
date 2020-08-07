@@ -2,7 +2,7 @@
   "profiles": {
     "Lyra.Client.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "-n testnet -p webapi -u seed.testnet.lyra.live"
+      "commandLineArgs": "-n devnet -p webapi"
     }
   }
 }

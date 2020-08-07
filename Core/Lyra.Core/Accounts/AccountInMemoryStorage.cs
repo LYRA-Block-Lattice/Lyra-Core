@@ -25,13 +25,15 @@ namespace Lyra.Core.Accounts
 
         private string _voteFor;
 
+        private string _networkId;
+
         public string PrivateKey => _privateKey;
 
-        public string NetworkId => throw new NotImplementedException();
+        public string NetworkId => _networkId;
 
         public string AccountId => _accountId;
 
-        public string VoteFor { get => _voteFor; set => throw new NotImplementedException(); }
+        public string VoteFor { get => _voteFor; set => _voteFor = value; }
 
         public AccountInMemoryStorage()
         { }
@@ -208,7 +210,12 @@ namespace Lyra.Core.Accounts
 
         public bool Create(string accountName, string password, string networkId, string privateKey, string accountId, string voteFor)
         {
-            throw new NotImplementedException();
+            _accountName = accountName;
+            _privateKey = privateKey;
+            _accountId = accountId;
+            _voteFor = voteFor;
+            _networkId = networkId;
+            return true;
         }
     }
 

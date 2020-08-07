@@ -58,8 +58,8 @@ namespace Lyra.Client.CLI
                 (var privateKey, var publicKey) = Signatures.GenerateWallet();
 
                 Console.WriteLine($"The new wallet {options.GenWalletName} for {network_id}: ");
-                Console.WriteLine(wallet.PrivateKey);
-                Console.WriteLine(wallet.AccountId);
+                Console.WriteLine(privateKey);
+                Console.WriteLine(publicKey);
                 var secureFile = new SecuredFileStore(lyra_folder);
                 secureFile.Create(options.GenWalletName, password, network_id, privateKey, publicKey, "");
 
