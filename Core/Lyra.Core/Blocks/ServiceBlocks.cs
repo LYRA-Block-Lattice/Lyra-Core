@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using Lyra.Core.API;
 using Lyra.Core.Decentralize;
+using Lyra.Shared;
 using MongoDB.Bson.Serialization.Attributes;
 using Neo;
 using Newtonsoft.Json;
@@ -113,6 +114,9 @@ namespace Lyra.Core.Blocks
             result += $"TokenGenerationFee: {TokenGenerationFee.ToString()}\n";
             result += $"TradeFee: {TradeFee.ToString()}\n";
             result += $"FeesGenerated: {FeesGenerated.ToString()}\n";
+
+            result += "Authorizers: " + Authorizers.Select(a => $"{a.IPAddress}:{a.AccountID.Shorten()}:{a.Votes}")
+                .Aggregate((a, b) => a + ", " + b);
             return result;
         }
 

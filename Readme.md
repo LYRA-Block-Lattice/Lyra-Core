@@ -53,7 +53,7 @@ Install the ASP.NET Core runtime
 
 7. modify ~/lyra/noded/config.testnet.json
 
-change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step.
+change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step. change the wallet/password if your wallet has a password.
 or see step 12
 
 
