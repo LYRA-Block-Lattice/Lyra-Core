@@ -9,7 +9,8 @@
           "DexDBConnect": "mongodb://lexuser:Xejg03sjd@127.0.0.1/dex"
         },
         "Wallet": {
-          "Name": "poswallet"
+          "Name": "poswallet",
+          "Password": ""
         }
       }
     },
