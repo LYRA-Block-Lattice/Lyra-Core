@@ -99,7 +99,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                throw new Exception("Error Initialize Node Service", ex);
+                _log.LogCritical($"NodeService: Error Initialize! {ex}");
             }
 
             while (!stoppingToken.IsCancellationRequested)

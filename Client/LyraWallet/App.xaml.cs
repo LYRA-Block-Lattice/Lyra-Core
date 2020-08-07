@@ -27,10 +27,10 @@ namespace LyraWallet
             InitializeComponent();
 
             App.Container.DataStoragePath = DependencyService.Get<IPlatformSvc>().GetStoragePath();
-            App.Container.WalletFn = App.Container.DataStoragePath + "My Account.db";
+            App.Container.WalletFn = $"{App.Container.DataStoragePath}/My Account.lyrawallet";
             if(File.Exists(App.Container.WalletFn))
             {
-                var netfn = App.Container.DataStoragePath + "network.txt";
+                var netfn = App.Container.DataStoragePath + "/network.txt";
                 App.Container.CurrentNetwork = File.ReadAllText(netfn);
                 MainPage = new MainPage();
             }

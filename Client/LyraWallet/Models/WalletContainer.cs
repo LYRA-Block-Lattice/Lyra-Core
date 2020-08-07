@@ -71,6 +71,8 @@ namespace LyraWallet.Models
             if (wallet != null)
                 throw new Exception("Wallet opening");
 
+            // setup API clients
+            var platform = DeviceInfo.Platform.ToString();
             _nodeApiClient = LyraRestClient.Create(CurrentNetwork, platform, AppInfo.Name, AppInfo.VersionString);
 
             var securedStore = new SecuredFileStore(App.Container.DataStoragePath);
@@ -82,9 +84,6 @@ namespace LyraWallet.Models
 
             if (AccountID == null || PrivateKey == null)
                 throw new Exception("no private key");
-
-            // setup API clients
-            var platform = DeviceInfo.Platform.ToString();
 
             //var client = App.ServiceProvider.GetService(typeof(IHostedService));
 
@@ -119,7 +118,7 @@ namespace LyraWallet.Models
                 throw new Exception("Wallet opening");
 
             var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
-            File.WriteAllText(path + "network.txt", network_id);
+            File.WriteAllText(path + "/network.txt", network_id);
 
             var secureStore = new SecuredFileStore(path);
             (var privateKey, var publicKey) = Signatures.GenerateWallet();
@@ -139,7 +138,7 @@ namespace LyraWallet.Models
             }
 
             var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
-            File.WriteAllText(path + "network.txt", network_id);
+            File.WriteAllText(path + "/network.txt", network_id);
             var secureStore = new SecuredFileStore(path);
             Wallet.Create(secureStore, "My Account", "", network_id, privatekey);
         }
