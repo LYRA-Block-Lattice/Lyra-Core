@@ -8,13 +8,11 @@ using Newtonsoft.Json;
 using Lyra.Core.Cryptography;
 using System.Threading.Tasks;
 using System.IO;
-using LiteDB;
 
 namespace Lyra.Core.Blocks
 {
     abstract public class SignableObject
     {
-        [BsonId]
         public string Hash { get; set; }
 
         public string Signature { get; set; }
