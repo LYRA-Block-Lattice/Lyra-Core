@@ -225,22 +225,26 @@ namespace Lyra.Core.Decentralize
                 int count = 0;
                 while (true)
                 {
-                    //var blockchainStatus = await blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-                    //if (blockchainStatus.state == BlockChainState.Almighty)
-                    //{
-                        await StateMaintainceAsync();
-                    //}
-
-                    await Task.Delay(15000).ConfigureAwait(false);
-
-                    HeartBeat();
-
-                    count++;
-
-                    if (count > 4 * 5)     // 5 minutes
+                    try
                     {
+                        _log.LogWarning("starting maintaince loop... ");
+                        await StateMaintainceAsync();
 
-                        count = 0;
+                        await Task.Delay(15000).ConfigureAwait(false);
+
+                        HeartBeat();
+
+                        count++;
+
+                        if (count > 4 * 5)     // 5 minutes
+                        {
+
+                            count = 0;
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        _log.LogWarning("In maintaince loop: " + ex.ToString());
                     }
                 }
             });
@@ -385,14 +389,23 @@ namespace Lyra.Core.Decentralize
                 }
 
                 //if necessary, insert a new ConsolidateBlock
-                if (IsThisNodeSeed0)
+                var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
+                if (IsThisNodeSeed0 && blockchainStatus.state == BlockChainState.Almighty)
                 {
                     //// test code
                     //var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
                     //_lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
                     //// end test code
-                    
-                    if(await CheckPrimaryNodesStatus())
+                    bool allNodeSyncd = false;
+                    try
+                    {
+                        allNodeSyncd = true;// await CheckPrimaryNodesStatus();
+                    }
+                    catch(Exception ex)
+                    {
+                        _log.LogWarning("Exception in CheckPrimaryNodesStatus: " + ex.ToString());
+                    }
+                    if(allNodeSyncd)
                     {
                         var unConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
                         var lastConsBlock = await _sys.Storage.GetLastConsolidationBlockAsync();

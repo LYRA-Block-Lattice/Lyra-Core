@@ -218,6 +218,7 @@ namespace Lyra
                 {
                     while(true)
                     {
+                        _log.LogInformation($"Blockchain Startup... ");
                         while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
                         {
                             await Task.Delay(1000);
@@ -232,6 +233,7 @@ namespace Lyra
 
                         await Task.Delay(10000);
 
+                        _log.LogInformation($"Querying billboard... ");
                         var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                         var q = from ns in _nodeStatus
                                 where board.PrimaryAuthorizers != null && board.PrimaryAuthorizers.Contains(ns.accountId)
