@@ -399,14 +399,15 @@ namespace Lyra
                 {
                     var client = await FindValidSeedForSyncAsync();
                     await gensWallet.Sync(client);
-                    var sendResult = await gensWallet.Send(LyraGlobal.MinimalAuthorizerBalance, accId);
+                    var amount = LyraGlobal.MinimalAuthorizerBalance + 10000;
+                    var sendResult = await gensWallet.Send(amount, accId);
                     if (sendResult.ResultCode == APIResultCodes.Success)
                     {
-                        _log.LogInformation($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} successfull to accountId: {accId}");
+                        _log.LogInformation($"Genesis send {amount} successfull to accountId: {accId}");
                     }
                     else
                     {
-                        _log.LogError($"Genesis send {LyraGlobal.MinimalAuthorizerBalance} failed to accountId: {accId}");
+                        _log.LogError($"Genesis send {amount} failed to accountId: {accId}");
                     }
                 }
 
