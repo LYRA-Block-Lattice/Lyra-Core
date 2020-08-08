@@ -29,12 +29,16 @@ namespace Nebula.Store.NodeViewUseCase
 				var list = new List<NodeInfoSet>();
 				foreach(var id in bb.PrimaryAuthorizers)
                 {
-					list.Add(new NodeInfoSet { 
-						ID = id,
-						IsPrimary = true,
-						Votes = bb.AllNodes[id].Votes,
-						Status = nodeStatus[id]
-					} );
+					if(bb.AllNodes.ContainsKey(id))		// bug in billboard. or error-proof
+                    {
+						list.Add(new NodeInfoSet
+						{
+							ID = id,
+							IsPrimary = true,
+							Votes = bb.AllNodes[id].Votes,
+							Status = nodeStatus[id]
+						});
+					}
                 }
 
 				var list2 = new List<NodeInfoSet>();

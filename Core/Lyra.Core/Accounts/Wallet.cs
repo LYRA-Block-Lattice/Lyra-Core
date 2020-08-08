@@ -13,6 +13,9 @@ using System.IO;
 
 namespace Lyra.Core.Accounts
 {
+    /// <summary>
+    /// the wallet works single threaded. if do multiple threaded operations, user muse sync before call any block creating API.
+    /// </summary>
     public class Wallet
     {
         public string AccountName { get; }
