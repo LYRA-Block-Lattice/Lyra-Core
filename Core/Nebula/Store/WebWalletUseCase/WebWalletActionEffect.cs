@@ -10,7 +10,7 @@ using System.Net.Http.Json;
 
 namespace Nebula.Store.WebWalletUseCase
 {
-	public class WebWalletActionEffect : Effect<WebWalletAction>
+	public class WebWalletActionEffect : Effect<WebWalletCreateAction>
 	{
 		private readonly HttpClient Http;
 
@@ -19,7 +19,7 @@ namespace Nebula.Store.WebWalletUseCase
 			Http = http;
 		}
 
-		protected override async Task HandleAsync(WebWalletAction action, IDispatcher dispatcher)
+		protected override async Task HandleAsync(WebWalletCreateAction action, IDispatcher dispatcher)
 		{
 			//var forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
 			//var forecasts = await (new WeatherForecastService()).GetForecastAsync(DateTime.Now);

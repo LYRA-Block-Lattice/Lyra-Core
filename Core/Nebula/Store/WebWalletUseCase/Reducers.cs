@@ -9,7 +9,7 @@ namespace Nebula.Store.WebWalletUseCase
 	public static class Reducers
 	{
 		[ReducerMethod]
-		public static WebWalletState ReduceFetchDataAction(WebWalletState state, WebWalletAction action) =>
+		public static WebWalletState ReduceFetchDataAction(WebWalletState state, WebWalletCreateAction action) =>
 			new WebWalletState(
 				isLoading: true,
 				wallet: null);

@@ -21,20 +21,16 @@ namespace UnitTests
 
         public static Wallet Restore(string privateKey)
         {
-            return null;
-            //var memStor = new AccountInMemoryStorage();
-            //var acctWallet = new ExchangeAccountWallet(memStor, LyraNodeConfig.GetNetworkId());
-            //acctWallet.AccountName = "tmpAcct";
-            //var result = acctWallet.RestoreAccount("", privateKey);
-            //if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
-            //{
-            //    acctWallet.OpenAccount("", acctWallet.AccountName);
-            //    return acctWallet;
-            //}
-            //else
-            //{
-            //    return null;
-            //}
+            var memStor = new AccountInMemoryStorage();
+            try
+            {
+                Wallet.Create(memStor, "tmpAcct", "", LyraNodeConfig.GetNetworkId(), privateKey);
+                return Wallet.Open(memStor, "tmpAcct", "");
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         [TestMethod]

@@ -109,7 +109,15 @@ namespace Lyra.Client.CLI
 
                             (var privateKey, var publicKey) = Signatures.GenerateWallet();
 
-                            Wallet.Create(storage, walletName, walletPassword, network_id, privateKey);
+                            try
+                            {
+                                Wallet.Create(storage, walletName, walletPassword, network_id, privateKey);
+                            }
+                            catch(Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                                continue;
+                            }
                         }
                         else
                         {
@@ -122,7 +130,15 @@ namespace Lyra.Client.CLI
                             if (!Signatures.ValidatePrivateKey(privatekey))
                                 continue;
 
-                            Wallet.Create(storage, walletName, walletPassword, network_id, privatekey);
+                            try
+                            {
+                                Wallet.Create(storage, walletName, walletPassword, network_id, privatekey);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                                continue;
+                            }                            
                         }
 
                         //if (INMEMORY)
