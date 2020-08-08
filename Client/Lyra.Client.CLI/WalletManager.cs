@@ -41,7 +41,7 @@ namespace Lyra.Client.CLI
             }
             else
             {
-                storage = new SecuredFileStore(lyra_folder);
+                storage = new SecuredWalletStore(lyra_folder);
             }
 
             if (!Directory.Exists(lyra_folder))
@@ -59,7 +59,7 @@ namespace Lyra.Client.CLI
                 Console.WriteLine($"The new wallet {options.GenWalletName} for {network_id}: ");
                 Console.WriteLine(privateKey);
                 Console.WriteLine(publicKey);
-                var secureFile = new SecuredFileStore(lyra_folder);
+                var secureFile = new SecuredWalletStore(lyra_folder);
                 secureFile.Create(options.GenWalletName, password, network_id, privateKey, publicKey, "");
 
                 return 0;

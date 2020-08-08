@@ -9,9 +9,10 @@ using System.Text;
 
 namespace Lyra.Core.Accounts
 {
-    public class SecuredFileStore : IAccountDatabase
+    public class SecuredWalletStore : IAccountDatabase
     {
         private string _path;
+        private Stream _stream;
         private string _name;
         private string _privateKey;
         private string _accountId;
@@ -19,9 +20,16 @@ namespace Lyra.Core.Accounts
         private string _voteFor;
         private string _password;
 
-        public SecuredFileStore(string storagePath)
+        public SecuredWalletStore(string storagePath)
         {
             _path = storagePath;
+            _stream = null;
+        }
+
+        public SecuredWalletStore(Stream stream)
+        {
+            _path = null;
+            _stream = stream;
         }
 
         public string PrivateKey => _privateKey;
@@ -53,14 +61,17 @@ namespace Lyra.Core.Accounts
                 //sman.ExportKey("secrets.key");
 
                 // Then save the store if you've made any changes to it
-                sman.SaveStore(name2fn(accountName));
+                if (_path == null)
+                    sman.SaveStore(_stream);
+                else
+                    sman.SaveStore(name2fn(accountName));
             }
             return true;
         }
 
         private void UpdateKvp(string key, string value)
         {
-            using (var sman = SecretsManager.LoadStore(name2fn(_name)))
+            using (var sman = _path == null ? SecretsManager.LoadStore(_stream) : SecretsManager.LoadStore(name2fn(_name)))
             {
                 sman.LoadKeyFromPassword(_password);
 
@@ -81,6 +92,9 @@ namespace Lyra.Core.Accounts
 
         public void Delete(string accountName)
         {
+            if (_path == null)
+                return;
+
             var fn = name2fn(accountName);
             if (File.Exists(fn))
                 File.Delete(fn);
@@ -93,14 +107,17 @@ namespace Lyra.Core.Accounts
 
         public bool Exists(string accountName)
         {
-            return File.Exists(name2fn(accountName));
+            if (_path == null)
+                return false;
+            else
+                return File.Exists(name2fn(accountName));
         }
 
         public void Open(string accountName, string password)
         {
             _name = accountName;
             _password = password;
-            using (var sman = SecretsManager.LoadStore(name2fn(accountName)))
+            using (var sman = _path == null ? SecretsManager.LoadStore(_stream) : SecretsManager.LoadStore(name2fn(_name)))
             {
                 sman.LoadKeyFromPassword(password);
 

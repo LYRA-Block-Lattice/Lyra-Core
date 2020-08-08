@@ -75,7 +75,7 @@ namespace LyraWallet.Models
             var platform = DeviceInfo.Platform.ToString();
             _nodeApiClient = LyraRestClient.Create(CurrentNetwork, platform, AppInfo.Name, AppInfo.VersionString);
 
-            var securedStore = new SecuredFileStore(App.Container.DataStoragePath);
+            var securedStore = new SecuredWalletStore(App.Container.DataStoragePath);
             wallet = Wallet.Open(securedStore, "My Account", "");
 
             AccountID = wallet.AccountId;
@@ -120,7 +120,7 @@ namespace LyraWallet.Models
             var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
             File.WriteAllText(path + "/network.txt", network_id);
 
-            var secureStore = new SecuredFileStore(path);
+            var secureStore = new SecuredWalletStore(path);
             (var privateKey, var publicKey) = Signatures.GenerateWallet();
 
             Wallet.Create(secureStore, "My Account", "", network_id, privateKey);
@@ -139,13 +139,13 @@ namespace LyraWallet.Models
 
             var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
             File.WriteAllText(path + "/network.txt", network_id);
-            var secureStore = new SecuredFileStore(path);
+            var secureStore = new SecuredWalletStore(path);
             Wallet.Create(secureStore, "My Account", "", network_id, privatekey);
         }
 
-        public async Task GetBalance()
+        public void GetBalance()
         {
-            var latestBlock = await wallet.GetLatestBlockAsync();
+            var latestBlock = wallet.GetLatestBlock();
             App.Container.Balances = latestBlock?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
             App.Container.TokenList = App.Container.Balances?.Keys.ToList();
         }
@@ -168,7 +168,7 @@ namespace LyraWallet.Models
 
             if (result == APIResultCodes.Success)
             {
-                var lastBlock = await wallet.GetLatestBlockAsync();
+                var lastBlock = wallet.GetLatestBlock();
                 App.Container.Balances = lastBlock?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
                 App.Container.TokenList = App.Container.Balances?.Keys.ToList();
             }
@@ -208,7 +208,7 @@ namespace LyraWallet.Models
         public async Task<List<BlockInfo>> GetBlocks()
         {
             var blocks = new List<BlockInfo>();
-            var height = await wallet.GetLocalAccountHeight();
+            var height = wallet.GetLocalAccountHeight();
             for (var i = height; i > 0; i--)
             {
                 var block = await wallet.GetBlockByIndex(i);

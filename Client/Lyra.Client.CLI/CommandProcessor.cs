@@ -29,7 +29,7 @@ namespace Lyra.Client.CLI
         public const string COMMAND_PRINT_LAST_BLOCK = "last";
         public const string COMMAND_PRINT_BLOCK = "print";
         public const string COMMAND_SYNC = "sync";
-        public const string COMMAND_RESYNC = "resync";
+        //public const string COMMAND_RESYNC = "resync";
         public const string COMMAND_TRADE_ORDER = "trade";
         public const string COMMAND_TRADE_ORDER_SELL_TEST = "trade-sell-test";
         public const string COMMAND_TRADE_ORDER_BUY_TEST = "trade-buy-test";
@@ -83,7 +83,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Print the list of active reward orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up with the node", COMMAND_SYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up authorizer node's fees", COMMAND_SYNCFEE));
-                        Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
+                        //Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Exit this app", COMMAND_STOP));
                         //Console.WriteLine(string.Format(@"{0,10}: Generate a network genesis block (testnet only)", COMMAND_GEN_NOTE));
 
@@ -96,17 +96,17 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(_wallet.AccountId);
                         break;
                     case COMMAND_BALANCE:
-                        Console.WriteLine(await _wallet.GetDisplayBalancesAsync());
+                        Console.WriteLine(_wallet.GetDisplayBalances());
                         break;
                     case COMMAND_COUNT:
-                        Console.WriteLine(await _wallet.GetLocalAccountHeight());
+                        Console.WriteLine(_wallet.GetLocalAccountHeight());
                         break;
                     case COMMAND_STATUS:
                         Console.WriteLine(string.Format("Network Id: {0}", _wallet.NetworkId));
                         Console.WriteLine(string.Format("Account Id: {0}", _wallet.AccountId));
                         Console.WriteLine($"Current voting for Account Id: {_wallet.VoteFor ?? "(Not Set)"}");
-                        Console.WriteLine(string.Format("Number of Blocks: {0}", await _wallet.GetLocalAccountHeight()));
-                        Console.WriteLine(              "Balance: " + await _wallet.GetDisplayBalancesAsync());
+                        Console.WriteLine(string.Format("Number of Blocks: {0}", _wallet.GetLocalAccountHeight()));
+                        Console.WriteLine(              "Balance: " + _wallet.GetDisplayBalances());
                         //Console.WriteLine("Last Status Block: ");
                         //Console.WriteLine((await _wallet.GetLastServiceBlockAsync()).Print());
                         break;
@@ -142,7 +142,7 @@ namespace Lyra.Client.CLI
                         await _wallet.CreateGenesisForCoreTokenAsync();
                         break;
                     case COMMAND_PRINT_LAST_BLOCK:
-                        Console.WriteLine(await _wallet.PrintLastBlockAsync());
+                        Console.WriteLine(_wallet.PrintLastBlock());
                         break;
                     case COMMAND_PRINT_BLOCK:
                         Console.WriteLine("Please enter transaction block index: ");
@@ -153,10 +153,10 @@ namespace Lyra.Client.CLI
                         var sync_result = await _wallet.Sync(null);
                         Console.WriteLine("Sync Result: " + sync_result.ToString());
                         break;
-                    case COMMAND_RESYNC:
-                        var sync_result2 = await _wallet.Sync(null, true);
-                        Console.WriteLine("Sync Result: " + sync_result2.ToString());
-                        break;
+                    //case COMMAND_RESYNC:
+                    //    var sync_result2 = await _wallet.Sync(null);
+                    //    Console.WriteLine("Sync Result: " + sync_result2.ToString());
+                    //    break;
                     case COMMAND_SYNCFEE:
                         var sfeeResult = await _wallet.SyncNodeFees();
                         Console.WriteLine($"Sync Fees Result: {sfeeResult}");
@@ -164,7 +164,7 @@ namespace Lyra.Client.CLI
                     //case COMMAND_TRADE_ORDER:
                     //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
                     //    ProcessTradeOrder();
-                        break;
+                   //     break;
                     case COMMAND_REDEEM_REWARDS:
                         ProcessRedeemRewardsTradeOrder();
                         break;
@@ -324,7 +324,7 @@ namespace Lyra.Client.CLI
             decimal.TryParse(amountstr, out decimal amount);
 
             string ticker = null;
-            if (await _wallet.GetNumberOfNonZeroBalancesAsync() > 1)
+            if (_wallet.GetNumberOfNonZeroBalances() > 1)
             {
                 Console.WriteLine(string.Format("Please select token to send, or press Enter for {0}: ", LyraGlobal.OFFICIALTICKERCODE));
                 ticker = Console.ReadLine();
@@ -344,7 +344,7 @@ namespace Lyra.Client.CLI
             else
             {
                 Console.WriteLine($"Send Transfer block has been authorized successfully");
-                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
         }
@@ -408,7 +408,7 @@ namespace Lyra.Client.CLI
             else
             {
                 Console.WriteLine($"Token generation has been authorized successfully");
-                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
+                Console.WriteLine("Balance: " + _wallet.GetDisplayBalances());
             }
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
 

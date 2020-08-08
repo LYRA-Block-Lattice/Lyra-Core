@@ -71,7 +71,7 @@ namespace Friday
                 var tsk = Task.Run(async () =>
                 {
                     var fromWallet = await RefreshBalanceAsync(masterKey);
-                    var block = await fromWallet.GetLatestBlockAsync();
+                    var block = fromWallet.GetLatestBlock();
                     if (block == null || block.Balances == null)
                     {
                         Console.WriteLine("No last block!");
@@ -148,7 +148,7 @@ namespace Friday
                 var tsk = Task.Run(async () =>
                 {
                     var wallet = await RefreshBalanceAsync(mk);
-                    var block = await wallet.GetLatestBlockAsync();
+                    var block = wallet.GetLatestBlock();
                     if(block != null)
                         blances.Add(new WalletBalance
                         {

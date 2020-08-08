@@ -44,7 +44,7 @@ namespace Friday
 
             //var tt = new TransactionTester(rpcClient);
 
-            var secureStorage = new SecuredFileStore(lyraFolder);
+            var secureStorage = new SecuredWalletStore(lyraFolder);
             var masterWallet = Wallet.Open(secureStorage, "My Account", "");
 
             await masterWallet.Sync(rpcClient);

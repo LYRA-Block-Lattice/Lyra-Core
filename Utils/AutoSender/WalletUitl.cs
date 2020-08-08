@@ -31,7 +31,7 @@ namespace AutoSender
             var result = await wallet.Sync(rpcClient);
             if (result == Lyra.Core.Blocks.APIResultCodes.Success)
             {
-                var block = await wallet.GetLatestBlockAsync();
+                var block = wallet.GetLatestBlock();
                 return block?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
             }
             else

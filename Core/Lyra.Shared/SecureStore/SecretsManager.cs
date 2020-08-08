@@ -565,6 +565,18 @@ namespace NeoSmart.SecureStore
             }
         }
 
+        public void SaveStore(Stream stream)
+        {
+            CreateSentinel();
+
+            using (var writer = new StreamWriter(stream, DefaultEncoding))
+            using (var jwriter = new JsonTextWriter(writer))
+            {
+                jwriter.Formatting = Formatting.Indented;
+                JsonSerializer.Create().Serialize(jwriter, _vault);
+            }
+        }
+
         public IEnumerable<string> Keys => _vault.Data.Keys;
 
         private EncryptedBlob Encrypt(SecureBuffer input)

@@ -1,0 +1,17 @@
+﻿@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+@page "/webwallet"
+
+<h1>Web Wallet for Lyra</h1>
+
+@if (walletState.Value.IsOpening)
+{
+    <div>
+        <p>Your Balance is: @walletState.Value.wallet.GetDisplayBalances()</p>
+    </div>
+}
+else
+{
+    <button class="btn btn-primary" @onclick="CreateWallet">
+        Create New Wallet
+    </button>
+}

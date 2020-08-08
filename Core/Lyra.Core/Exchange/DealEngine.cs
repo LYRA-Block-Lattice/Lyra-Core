@@ -63,7 +63,7 @@ namespace Lyra.Core.Exchange
                 }
 
                 {
-                    var transb = await acctWallet.GetLatestBlockAsync();
+                    var transb = acctWallet.GetLatestBlock();
                     if (transb != null)
                     {
                         if (acct.Balance == null)
@@ -310,7 +310,7 @@ namespace Lyra.Core.Exchange
                 var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
 
                 {
-                    var transb = await fromWallet.GetLatestBlockAsync();
+                    var transb = fromWallet.GetLatestBlock();
                     if (transb != null)
                     {
                         int sendCount = 0;
@@ -346,7 +346,7 @@ namespace Lyra.Core.Exchange
 
             var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
 
-            var transb = await fromWallet.GetLatestBlockAsync();
+            var transb = fromWallet.GetLatestBlock();
             if (transb != null && transb.Balances[tokenName].ToBalanceDecimal() >= amount)
             {
                 var bLast = transb.Balances[tokenName].ToBalanceDecimal() - amount;
@@ -365,7 +365,7 @@ namespace Lyra.Core.Exchange
             var fromAcct = await fromResult.FirstOrDefaultAsync();
 
             var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
-            var transb = await fromWallet.GetLatestBlockAsync();
+            var transb = fromWallet.GetLatestBlock();
             if (transb != null && transb.Balances[tokenName].ToBalanceDecimal() >= amount)
             {
                 var bLast = transb.Balances[tokenName].ToBalanceDecimal() - amount;
