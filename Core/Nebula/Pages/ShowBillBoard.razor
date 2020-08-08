@@ -37,12 +37,26 @@
                 @if(nodeInfo.Status != null)
                     {
                 <td>Connected OK.</td>
-                <td><a href="/showblock/@nodeInfo.Status.LastConsolidationHash">@nodeInfo.Status.LastConsolidationHash.Substring(0, 10)...</a></td>
+                        @if(nodeInfo.Status.LastConsolidationHash==null || nodeInfo.Status.LastConsolidationHash.Length < 11)
+                        {
+                            <td></td>
+                        }
+                        else
+                        {
+                            <td><a href="/showblock/@nodeInfo.Status.LastConsolidationHash">@nodeInfo.Status.LastConsolidationHash.Substring(0, 10)...</a></td>
+                        }
                 <td>@nodeInfo.Status.SyncState</td>
                 <td>@nodeInfo.Status.Status.version</td>
                 <td>@nodeInfo.Status.Status.state</td>
                 <td>@nodeInfo.Status.Status.totalBlockCount</td>
-                <td>@nodeInfo.Status.Status.lastUnSolidationHash.Substring(0, 10)...</td>
+                        @if(nodeInfo.Status.Status.lastUnSolidationHash==null || nodeInfo.Status.Status.lastUnSolidationHash.Length < 11)
+                        {
+                            <td></td>
+                        }
+                        else
+                        {
+                            <td>@nodeInfo.Status.Status.lastUnSolidationHash.Substring(0, 10)...</td>
+                        }
                 <td>@nodeInfo.Status.Status.connectedPeers</td>
                     }
                 else

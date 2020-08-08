@@ -136,7 +136,7 @@ namespace Lyra
             {
                 await ConsolidationBlockFailedAsync(x.consolidationBlockHash);
             });
-            Receive<AuthorizerCountChanged>(x => AuthorizerCountChangedProc(x.count));
+            ReceiveAsync<AuthorizerCountChanged>(async (x) => await AuthorizerCountChangedProcAsync(x.count));
         }
 
         //protected override void OnReceive(object message)
@@ -218,64 +218,71 @@ namespace Lyra
                 {
                     while(true)
                     {
-                        _log.LogInformation($"Blockchain Startup... ");
-                        while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
+                        try
                         {
-                            await Task.Delay(1000);
-                        }
-
-                        _sys.Consensus.Tell(new ConsensusService.Startup());
-
-                        await Task.Delay(10000);
-
-                        _nodeStatus = new List<NodeStatus>();
-                        _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
-
-                        await Task.Delay(10000);
-
-                        _log.LogInformation($"Querying billboard... ");
-                        var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                        var q = from ns in _nodeStatus
-                                where board.PrimaryAuthorizers != null && board.PrimaryAuthorizers.Contains(ns.accountId)
-                                group ns by ns.totalBlockCount into heights
-                                orderby heights.Count() descending
-                                select new
-                                {
-                                    Height = heights.Key,
-                                    Count = heights.Count()
-                                };
-
-                        if (q.Any())
-                        {
-                            var majorHeight = q.First();
-
-                            _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
-
-                            var myStatus = await GetNodeStatusAsync();
-                            if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 3)
+                            _log.LogInformation($"Blockchain Startup... ");
+                            while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
                             {
-                                _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
-                                //_stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
-                                var IsSeed0 = await _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
-                                if (await FindLatestBlockAsync() == null && IsSeed0)
+                                await Task.Delay(1000);
+                            }
+
+                            _sys.Consensus.Tell(new ConsensusService.Startup());
+
+                            await Task.Delay(10000);
+
+                            _nodeStatus = new List<NodeStatus>();
+                            _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
+
+                            await Task.Delay(10000);
+
+                            _log.LogInformation($"Querying billboard... ");
+                            var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                            var q = from ns in _nodeStatus
+                                    where board.PrimaryAuthorizers != null && board.PrimaryAuthorizers.Contains(ns.accountId)
+                                    group ns by ns.totalBlockCount into heights
+                                    orderby heights.Count() descending
+                                    select new
+                                    {
+                                        Height = heights.Key,
+                                        Count = heights.Count()
+                                    };
+
+                            if (q.Any())
+                            {
+                                var majorHeight = q.First();
+
+                                _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
+
+                                var myStatus = await GetNodeStatusAsync();
+                                if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 3)
                                 {
-                                    await Task.Delay(15000);
-                                    Genesis();
+                                    _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                                    //_stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                                    var IsSeed0 = await _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
+                                    if (await FindLatestBlockAsync() == null && IsSeed0)
+                                    {
+                                        await Task.Delay(15000);
+                                        Genesis();
+                                    }
                                 }
+                                else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
+                                {
+                                    _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                                }
+                                //else if (majorHeight.Height > 2 && majorHeight.Count < 2)
+                                //{
+                                //    _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
+                                //}
+                                else
+                                {
+                                    _stateMachine.Fire(BlockChainTrigger.QueryingConsensusNode);
+                                }
+                                break;
                             }
-                            else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
-                            {
-                                _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
-                            }
-                            //else if (majorHeight.Height > 2 && majorHeight.Count < 2)
-                            //{
-                            //    _state.Fire(BlockChainTrigger.ConsensusNodesOutOfSync);
-                            //}
-                            else
-                            {
-                                _stateMachine.Fire(BlockChainTrigger.QueryingConsensusNode);
-                            }
-                            break;
+                        }
+                        catch(Exception ex)
+                        {
+                            _log.LogCritical("In BlockChainState.Startup: " + ex.ToString());
                         }
                     }
                 }))
@@ -447,77 +454,85 @@ namespace Lyra
             }
         }
 
-        public void AuthorizerCountChangedProc(int count)
+        public async Task AuthorizerCountChangedProcAsync(int count)
         {
-            var IsSeed0 = _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0()).Result;
+            bool IsSeed0 = false;
+            try
+            {
+                IsSeed0 = await _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0(), TimeSpan.FromSeconds(3));
+            }
+            catch(Exception ex)
+            {
+                _log.LogError("AuthorizerCountChangedProcAsync ask if seed0 failed: " + ex.Message);
+            }
 
             if (this._stateMachine.State == BlockChainState.Almighty && IsSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)
             {
                 //_log.LogInformation($"AuthorizerCountChanged: {count}");
                 // look for changes. if necessary create a new svc block.
-                Task.Run(async () =>
-                {
-                    if (!_creatingSvcBlock)
-                    {
-                        _creatingSvcBlock = true;
+                _ = Task.Run(async () =>
+                  {
+                      if (!_creatingSvcBlock)
+                      {
+                          _creatingSvcBlock = true;
 
-                        try
-                        {
-                            var prevSvcBlock = await GetLastServiceBlockAsync();
-                            var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                            if (prevSvcBlock != null && DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
-                            {
-                                var comp = new MultiSetComparer<string>();
-                                if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), board.PrimaryAuthorizers))
-                                {
-                                    _log.LogInformation($"PrimaryAuthorizers Changed: {count} Creating new ServiceBlock.");
+                          try
+                          {
+                              var prevSvcBlock = await GetLastServiceBlockAsync();
+                              var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                              if (prevSvcBlock != null && DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
+                              {
+                                  var comp = new MultiSetComparer<string>();
+                                  if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), board.PrimaryAuthorizers))
+                                  {
+                                      _log.LogInformation($"PrimaryAuthorizers Changed: {count} Creating new ServiceBlock.");
 
-                                    var svcBlock = new ServiceBlock
-                                    {
-                                        NetworkId = prevSvcBlock.NetworkId,
-                                        Height = prevSvcBlock.Height + 1,
-                                        FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
-                                        ServiceHash = prevSvcBlock.Hash,
-                                        TransferFee = 1,           //zero for genesis. back to normal when genesis done
+                                      var svcBlock = new ServiceBlock
+                                      {
+                                          NetworkId = prevSvcBlock.NetworkId,
+                                          Height = prevSvcBlock.Height + 1,
+                                          FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
+                                          ServiceHash = prevSvcBlock.Hash,
+                                          TransferFee = 1,           //zero for genesis. back to normal when genesis done
                                         TokenGenerationFee = 10000,
-                                        TradeFee = 0.1m
-                                    };
+                                          TradeFee = 0.1m
+                                      };
 
-                                    svcBlock.Authorizers = new List<PosNode>();
-                                    foreach (var accId in board.PrimaryAuthorizers)
-                                    {
-                                        if(board.AllNodes.ContainsKey(accId))
-                                            svcBlock.Authorizers.Add(board.AllNodes[accId]);
+                                      svcBlock.Authorizers = new List<PosNode>();
+                                      foreach (var accId in board.PrimaryAuthorizers)
+                                      {
+                                          if (board.AllNodes.ContainsKey(accId))
+                                              svcBlock.Authorizers.Add(board.AllNodes[accId]);
 
-                                        if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
-                                            break;
-                                    }
+                                          if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
+                                              break;
+                                      }
 
                                     // fees aggregation
                                     var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
-                                    svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
+                                      svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
 
-                                    if(svcBlock.Authorizers.Count() >= prevSvcBlock.Authorizers.Count())
-                                    {
-                                        svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,
-                                            _sys.PosWallet.AccountId);
+                                      if (svcBlock.Authorizers.Count() >= prevSvcBlock.Authorizers.Count())
+                                      {
+                                          svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,
+                                              _sys.PosWallet.AccountId);
 
-                                        await SendBlockToConsensusAsync(svcBlock);
-                                    }
-                                    else
-                                    {
-                                        _log.LogError($"Authorizers count can't be less than {prevSvcBlock.Authorizers.Count()}");
-                                    }
-                                }
-                            }                            
-                        }
-                        finally
-                        {
-                            await Task.Delay(10000);
-                            _creatingSvcBlock = false;
-                        }                        
-                    }
-                });
+                                          await SendBlockToConsensusAsync(svcBlock);
+                                      }
+                                      else
+                                      {
+                                          _log.LogError($"Authorizers count can't be less than {prevSvcBlock.Authorizers.Count()}");
+                                      }
+                                  }
+                              }
+                          }
+                          finally
+                          {
+                              await Task.Delay(10000);
+                              _creatingSvcBlock = false;
+                          }
+                      }
+                  });
             }
         }
 
