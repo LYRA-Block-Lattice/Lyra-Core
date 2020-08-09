@@ -409,7 +409,7 @@ namespace Lyra
                 {
                     var client = await FindValidSeedForSyncAsync();
                     await gensWallet.Sync(client);
-                    var amount = LyraGlobal.MinimalAuthorizerBalance + 10000;
+                    var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                     var sendResult = await gensWallet.Send(amount, accId);
                     if (sendResult.ResultCode == APIResultCodes.Success)
                     {
@@ -521,7 +521,7 @@ namespace Lyra
                                       }
                                       else
                                       {
-                                          _log.LogError($"Authorizers count can't be less than {prevSvcBlock.Authorizers.Count()}");
+                                          _log.LogError($"Authorizers count {svcBlock.Authorizers.Count()} can't be less than {prevSvcBlock.Authorizers.Count()}");
                                       }
                                   }
                               }

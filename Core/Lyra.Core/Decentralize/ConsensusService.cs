@@ -806,50 +806,58 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnNodeUpAsync(ChatMsg chat)
         {
-            if (_board == null)
-                return;
+            _log.LogInformation($"OnNodeUpAsync: Node is up: {chat.From}");
 
-            var node = chat.Text.UnJson<PosNode>();
-
-            // verify signature
-            if (string.IsNullOrWhiteSpace(node.IPAddress))
-                return;
-
-            if (!Signatures.VerifyAccountSignature(node.IPAddress, node.AccountID, node.Signature))
-                return;
-
-            if (_board.AllNodes.Values.Any(a => a.IPAddress == node.IPAddress))
+            try
             {
-                // only allow one node per ip
-                return;
-            }
-            
-            // add network/ip verifycation here
+                if (_board == null)
+                    throw new Exception("_board is null");
 
-            _ = _board.Add(node);
+                var node = chat.Text.UnJson<PosNode>();
 
-            if (IsMessageFromSeed0(chat))    // seed0 up
-            {
-                await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
-            }
-
-            if (IsThisNodeSeed0)
-            {
-                // broadcast billboard
-                BroadCastBillBoard();
-            }
-
-            if (_board.AllNodes.ContainsKey(node.AccountID) && _board.AllNodes[node.AccountID].IPAddress == node.IPAddress)
-                return;
-
-            if (node.Votes < LyraGlobal.MinimalAuthorizerBalance)
-            {
-                _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Votes);
-            }
-            else
-            {
                 // verify signature
-                
+                if (string.IsNullOrWhiteSpace(node.IPAddress))
+                    throw new Exception("No public IP specified.");
+
+                if (!Signatures.VerifyAccountSignature(node.IPAddress, node.AccountID, node.Signature))
+                    throw new Exception("Signature verification failed.");
+
+                // the same node up again, not properly.
+                //if (_board.AllNodes.Values.Any(a => a.IPAddress == node.IPAddress))
+                //{
+                //    // only allow one node per ip
+                //    throw new Exception("Only allow one authorizer per IP.");
+                //}
+
+                // add network/ip verifycation here
+
+                _ = _board.Add(node);
+
+                if (IsMessageFromSeed0(chat))    // seed0 up
+                {
+                    _log.LogInformation("Seed0 is UP. Declare node again.");
+                    await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
+                }
+
+                if (IsThisNodeSeed0)
+                {
+                    // broadcast billboard
+                    _log.LogInformation("Seed0 is broadcasting billboard.");
+                    BroadCastBillBoard();
+                }
+
+                if (node.Votes < LyraGlobal.MinimalAuthorizerBalance)
+                {
+                    _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Votes);
+                }
+                else
+                {
+                    // verify signature
+                }
+            }
+            catch(Exception ex)
+            {
+                _log.LogWarning($"OnNodeUpAsync: {ex.ToString()}");
             }
         }
     }
