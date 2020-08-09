@@ -11,7 +11,8 @@ namespace Nebula.Store.WebWalletUseCase
 		public override string GetName() => "WebWallet";
 		protected override WebWalletState GetInitialState() =>
 			new WebWalletState(
-				isLoading: false,
-				wallet: null);
+				IsOpeing: false,
+				wallet: null,
+				Stage: UIStage.Entry);
 	}
 }

@@ -1,17 +1,58 @@
 ﻿@inherits Fluxor.Blazor.Web.Components.FluxorComponent
 @page "/webwallet"
+@using Nebula.Store.WebWalletUseCase
 
 <h1>Web Wallet for Lyra</h1>
 
-@if (walletState.Value.IsOpening)
+@if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Main)
 {
+   <div>
+        <button class="btn btn-primary" @onclick="Refresh">
+        Refresh Balance
+    </button>
+        <button class="btn btn-primary" @onclick="Send">
+        Send
+    </button>
+        <button class="btn btn-primary" @onclick="CloseWallet">
+        Close Wallet
+    </button>
+    </div>
+    <hr />
     <div>
+        <p>Your Wallet's Private Key is: @walletState.Value.wallet.PrivateKey</p>
+        <p>Your Wallet Address is: <a href="/showblock/@walletState.Value.wallet.AccountId">@walletState.Value.wallet.AccountId</a></p>
         <p>Your Balance is: @walletState.Value.wallet.GetDisplayBalances()</p>
     </div>
 }
-else
+else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Send)
 {
+    <div>
+        <p>Destination Wallet Address:</p>
+        <input size="100" type="text" @bind="@dstAddr" />
+        <p>Token:</p>
+        <input size="20" type="text" @bind="@tokenName" />
+        <p>Amount:</p>
+        <input size="20" type="text" @bind="@amount" />        <hr />
+        <button class="btn btn-primary" @onclick="SendToken">Send Token</button>
+        <button class="btn btn-primary" @onclick="CancelSend">Cancel</button>
+    </div>
+
+}
+else if (walletState.Value.stage == UIStage.Entry)
+{
+    <div>
     <button class="btn btn-primary" @onclick="CreateWallet">
         Create New Wallet
     </button>
+    </div>
+    <hr />
+    <div>
+        <p>Private Key:</p>
+        <input size="100" type="text" @bind="@prvKey" />
+        <hr />
+        <button class="btn btn-primary" @onclick="RestoreWallet">
+            Restore Wallet
+        </button>
+    </div>
+
 }

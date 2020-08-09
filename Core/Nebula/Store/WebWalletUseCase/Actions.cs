@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lyra.Core.Accounts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,9 +8,22 @@ namespace Nebula.Store.WebWalletUseCase
 {
     public class WebWalletCreateAction { }
 
-    public class WebWalletRefreshBalanceAction { }
+    public class WebWalletRestoreAction { public string privateKey { get; set; } }
+
+    public class WebWalletCloseAction { }
+
+    public class WebWalletRefreshBalanceAction { public Wallet wallet { get; set; } }
 
     public class WebWalletSendAction { }
+
+    public class WebWalletSendTokenAction {
+        public Wallet wallet { get; set; }
+        public string DstAddr { get; set; }
+        public string TokenName { get; set; }
+        public decimal Amount { get; set; }
+    }
+
+    public class WebWalletCancelSendAction { }
 
     public class WebWalletCreateTokenAction { }
 }

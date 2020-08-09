@@ -9,11 +9,15 @@ namespace Nebula.Store.WebWalletUseCase
 {
 	public class WebWalletResultAction
 	{
-		public Wallet Forecasts { get; }
+		public bool IsOpening { get; }
+		public Wallet wallet { get; }
+		public UIStage stage { get; }
 
-		public WebWalletResultAction(Wallet forecasts)
+		public WebWalletResultAction(Wallet wallet, bool isOpening, UIStage Stage)
 		{
-			Forecasts = forecasts;
+			this.IsOpening = isOpening;
+			this.wallet = wallet;
+			this.stage = Stage;
 		}
 	}
 }

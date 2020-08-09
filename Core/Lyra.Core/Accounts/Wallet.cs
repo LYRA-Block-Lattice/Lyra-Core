@@ -62,6 +62,12 @@ namespace Lyra.Core.Accounts
             return wallet;
         }
 
+        public static void Create(IAccountDatabase store, string name, string password, string networkId)
+        {
+            (var privateKey, var publicKey) = Signatures.GenerateWallet();
+            Create(store, name, password, networkId, privateKey);
+        }
+
         public static void Create(IAccountDatabase store, string name, string password, string networkId, string privateKey)
         {
             if (!Signatures.ValidatePrivateKey(privateKey))

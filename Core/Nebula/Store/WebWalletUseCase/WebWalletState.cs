@@ -7,15 +7,19 @@ using System.Threading.Tasks;
 
 namespace Nebula.Store.WebWalletUseCase
 {
+	public enum UIStage { Entry, Main, Send };
+
 	public class WebWalletState
 	{
+		public UIStage stage { get; }
 		public bool IsOpening { get; }
 		public Wallet wallet { get; }
 
-		public WebWalletState(bool isLoading, Wallet wallet)
+		public WebWalletState(bool IsOpeing, Wallet wallet, UIStage Stage)
 		{
-			IsOpening = isLoading;
+			this.IsOpening = IsOpeing;
 			this.wallet = wallet ?? null;
+			this.stage = Stage;
 		}
 	}
 }

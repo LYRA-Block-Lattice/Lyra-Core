@@ -18,9 +18,46 @@ namespace Nebula.Pages
 		[Inject]
 		private IDispatcher Dispatcher { get; set; }
 
+		public string prvKey { get; set; }
+
+		// for send
+		public string dstAddr { get; set; }
+		public string tokenName { get; set; }
+		public decimal amount { get; set; }
+
+		private void CloseWallet(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletCloseAction());
+		}
+
 		private void CreateWallet(MouseEventArgs e)
         {
 			Dispatcher.Dispatch(new WebWalletCreateAction());
+		}
+
+		private void RestoreWallet(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletRestoreAction { privateKey = prvKey });
+		}
+
+		private void Refresh(MouseEventArgs e)
+        {
+			Dispatcher.Dispatch(new WebWalletRefreshBalanceAction { wallet = walletState.Value.wallet });
+        }
+
+		private void Send(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletSendAction {   });
+		}
+
+		private void SendToken(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletSendTokenAction { DstAddr = dstAddr, TokenName = tokenName, Amount = amount, wallet = walletState.Value.wallet });
+		}
+
+		private void CancelSend(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletCancelSendAction ());
 		}
 	}
 }
