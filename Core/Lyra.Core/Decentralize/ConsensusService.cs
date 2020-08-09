@@ -422,6 +422,9 @@ namespace Lyra.Core.Decentralize
                         // so there is inconsistant between seed0 and other nodes.
 
                     }
+
+                    _log.LogInformation("Seed0 is broadcasting billboard.");
+                    BroadCastBillBoard();
                 }
             }
             catch (Exception ex)

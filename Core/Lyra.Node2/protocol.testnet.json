@@ -1,7 +1,7 @@
 {
   "ProtocolConfiguration": {
     "Magic": 20200729,
-    "ConsensusNumber": 2,
+    "ConsensusNumber": 6,
     "StandbyValidators": [
       "LQdN8nrDSuqCr1S4YTmnPieX3heB93aXwmFuidN4Yiurkvm9NFqHbpvR8pcU89WQJofdJiYYvhoVJQQwAUj9oBXpLFAgh2",
       "LK8vWAFcrsK8Re44Q54ESKT7yfW5WuWaZPgSmKgpFbBQjp5jAADa85jizRyTzjN6RxQowoKXsbiWENy1Bs6cH6xcMdJtaL",
