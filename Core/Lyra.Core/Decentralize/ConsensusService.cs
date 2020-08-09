@@ -749,7 +749,7 @@ namespace Lyra.Core.Decentralize
                 AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
 
                 // switch to protect mode if necessary
-                _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { count = _board.PrimaryAuthorizers.Length });
+                _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { IsSeed0 = false, count = _board.PrimaryAuthorizers.Length });
 
                 // no me?
                 if (!_board.AllNodes.ContainsKey(_sys.PosWallet.AccountId))
@@ -797,7 +797,7 @@ namespace Lyra.Core.Decentralize
                 Send2P2pNetwork(msg);
 
                 // switch to protect mode if necessary
-                _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { count = _board.PrimaryAuthorizers.Length });
+                _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { IsSeed0 = true, count = _board.PrimaryAuthorizers.Length });
             }
         }
 

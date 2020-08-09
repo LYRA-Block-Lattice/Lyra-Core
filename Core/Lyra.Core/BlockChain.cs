@@ -75,7 +75,9 @@ namespace Lyra
         {
             public long LocalLastConsolidationHeight { get; set; }
         }
-        public class AuthorizerCountChanged { public int count { get; set; } }
+        public class AuthorizerCountChanged { public int count { get; set; }
+            public bool IsSeed0 { get; set; }
+        }
 
         private LyraRestClient _seed0Client;
 
@@ -136,7 +138,7 @@ namespace Lyra
             {
                 await ConsolidationBlockFailedAsync(x.consolidationBlockHash);
             });
-            ReceiveAsync<AuthorizerCountChanged>(async (x) => await AuthorizerCountChangedProcAsync(x.count));
+            Receive<AuthorizerCountChanged>(x => AuthorizerCountChangedProc(x.count, x.IsSeed0));
         }
 
         //protected override void OnReceive(object message)
@@ -454,22 +456,11 @@ namespace Lyra
             }
         }
 
-        public async Task AuthorizerCountChangedProcAsync(int count)
+        public void AuthorizerCountChangedProc(int count, bool IsSeed0)
         {
-            bool IsSeed0 = false;
-            try
-            {
-                var askResult = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0(), TimeSpan.FromSeconds(3));
-                IsSeed0 = askResult.IsSeed0;
-            }
-            catch(Exception ex)
-            {
-                _log.LogError("AuthorizerCountChangedProcAsync ask if seed0 failed: " + ex.ToString());
-            }
-
             if (this._stateMachine.State == BlockChainState.Almighty && IsSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)
             {
-                //_log.LogInformation($"AuthorizerCountChanged: {count}");
+                _log.LogInformation($"AuthorizerCountChanged: {count} IsSeed0: {IsSeed0}");
                 // look for changes. if necessary create a new svc block.
                 _ = Task.Run(async () =>
                   {
@@ -495,7 +486,7 @@ namespace Lyra
                                           FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
                                           ServiceHash = prevSvcBlock.Hash,
                                           TransferFee = 1,           //zero for genesis. back to normal when genesis done
-                                        TokenGenerationFee = 10000,
+                                          TokenGenerationFee = 10000,
                                           TradeFee = 0.1m
                                       };
 
@@ -509,8 +500,8 @@ namespace Lyra
                                               break;
                                       }
 
-                                    // fees aggregation
-                                    var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
+                                      // fees aggregation
+                                      var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
                                       svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
 
                                       if (svcBlock.Authorizers.Count() >= prevSvcBlock.Authorizers.Count())
