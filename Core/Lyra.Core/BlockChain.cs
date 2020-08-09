@@ -258,8 +258,8 @@ namespace Lyra
                                 {
                                     _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                                     //_stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
-                                    var IsSeed0 = await _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
-                                    if (await FindLatestBlockAsync() == null && IsSeed0)
+                                    var IsSeed0 = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0());
+                                    if (await FindLatestBlockAsync() == null && IsSeed0.IsSeed0)
                                     {
                                         await Task.Delay(15000);
                                         Genesis();
@@ -292,8 +292,8 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    var IsSeed0 = await _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0());
-                    if (await FindLatestBlockAsync() == null && IsSeed0)
+                    var IsSeed0 = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0());
+                    if (await FindLatestBlockAsync() == null && IsSeed0.IsSeed0)
                     {
                         Genesis();
                     }
@@ -459,11 +459,12 @@ namespace Lyra
             bool IsSeed0 = false;
             try
             {
-                IsSeed0 = await _sys.Consensus.Ask<bool>(new ConsensusService.AskIfSeed0(), TimeSpan.FromSeconds(3));
+                var askResult = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0(), TimeSpan.FromSeconds(3));
+                IsSeed0 = askResult.IsSeed0;
             }
             catch(Exception ex)
             {
-                _log.LogError("AuthorizerCountChangedProcAsync ask if seed0 failed: " + ex.Message);
+                _log.LogError("AuthorizerCountChangedProcAsync ask if seed0 failed: " + ex.ToString());
             }
 
             if (this._stateMachine.State == BlockChainState.Almighty && IsSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)

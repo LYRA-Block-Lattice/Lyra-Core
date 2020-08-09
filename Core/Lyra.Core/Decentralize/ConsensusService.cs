@@ -44,7 +44,7 @@ namespace Lyra.Core.Decentralize
         public class AskForStats { }
         public class AskForDbStats { }
         public class AskForMaxActiveUID { }
-        public class AskIfSeed0 { }
+        public class AskIfSeed0 { public bool IsSeed0 { get; set; } }
         public class ReplyForMaxActiveUID { public long? uid { get; set; } }
         public class BlockChainSynced { }
         public class NodeInquiry { }
@@ -120,7 +120,7 @@ namespace Lyra.Core.Decentralize
                 await DeclareConsensusNodeAsync();
             });
 
-            Receive<AskIfSeed0>((_) => Sender.Tell(IsThisNodeSeed0));
+            Receive<AskIfSeed0>((_) => Sender.Tell(new AskIfSeed0 { IsSeed0 = IsThisNodeSeed0 }));
 
             ReceiveAsync<BlockChain.BlockAdded>(async (ba) =>
             {
