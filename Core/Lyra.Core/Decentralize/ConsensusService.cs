@@ -615,7 +615,7 @@ namespace Lyra.Core.Decentralize
         {
             //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
 
-            if(null == AuthorizerShapshot)
+            if(null == AuthorizerShapshot && !(item is ChatMsg))
             {
                 _log.LogWarning("AuthorizerShapshot is null.");
                 return;
