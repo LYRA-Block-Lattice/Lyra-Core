@@ -614,20 +614,25 @@ namespace Lyra.Core.Decentralize
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
             //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
+            if (item.MsgType != ChatMessageType.NodeUp)
+                OnNodeActive(item.From);
 
-            if(null == AuthorizerShapshot && !(item is ChatMsg))
+            if (item is ChatMsg chatMsg)
+            {
+                await OnRecvChatMsg(chatMsg);
+                return;
+            }
+
+            if(null == AuthorizerShapshot)
             {
                 _log.LogWarning("AuthorizerShapshot is null.");
                 return;
             }
 
-            if (item.MsgType != ChatMessageType.NodeUp)
-                OnNodeActive(item.From);
-
-            if (!AuthorizerShapshot.Contains(item.From))
+            if (AuthorizerShapshot != null && !AuthorizerShapshot.Contains(item.From))
             {
                 // only allow AuthorizingMsg and ChatMsg
-                if(!(item is AuthorizingMsg) && !(item is ChatMsg))
+                if(!(item is AuthorizingMsg))
                 {
                     _log.LogWarning($"Voting message source {item.From.Shorten()} not in AuthorizerShapshot.");
                     return;
@@ -682,11 +687,9 @@ namespace Lyra.Core.Decentralize
                     else
                         _log.LogInformation($"No worker3 from {msg3.From.Shorten()} for {msg3.BlockHash.Shorten()}");
                     break;
-                case ChatMsg chat:
-                    await OnRecvChatMsg(chat);
-                    break;
                 default:
                     // log msg unknown
+                    _log.LogInformation($"Message unknown from {item.From} type {item.MsgType} not processed: ");
                     break;
             }
         }
