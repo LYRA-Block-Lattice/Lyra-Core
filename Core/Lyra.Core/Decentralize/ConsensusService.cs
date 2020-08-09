@@ -330,11 +330,6 @@ namespace Lyra.Core.Decentralize
             };
 
             Send2P2pNetwork(msg);
-
-            if (IsThisNodeSeed0)
-            {
-                BroadCastBillBoard();
-            }
         }
 
         public bool FindActiveBlock(string accountId, long index)
@@ -529,6 +524,8 @@ namespace Lyra.Core.Decentralize
 
             _ = Task.Run(async () =>
             {
+                _log.LogInformation($"Waiting for ConsolidateBlock authorizing...");
+
                 await state.Done.AsTask();
                 state.Done.Close();
                 state.Done = null;
@@ -618,14 +615,24 @@ namespace Lyra.Core.Decentralize
         {
             //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
 
-            if(null == AuthorizerShapshot && !(item is ChatMsg))
+            if(null == AuthorizerShapshot)
             {
                 _log.LogWarning("AuthorizerShapshot is null.");
                 return;
             }
 
-            if(item.MsgType != ChatMessageType.NodeUp)
+            if (item.MsgType != ChatMessageType.NodeUp)
                 OnNodeActive(item.From);
+
+            if (!AuthorizerShapshot.Contains(item.From))
+            {
+                // only allow AuthorizingMsg and ChatMsg
+                if(!(item is AuthorizingMsg) && !(item is ChatMsg))
+                {
+                    _log.LogWarning($"Voting message source {item.From.Shorten()} not in AuthorizerShapshot.");
+                    return;
+                }
+            }
 
             switch (item)
             {
@@ -777,9 +784,10 @@ namespace Lyra.Core.Decentralize
                 var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
                 foreach (var node in deadNodes)
                 {
+                    _log.LogInformation("Remove un-active node from billboard: " + node.AccountID);
                     _board.AllNodes.Remove(node.AccountID);
                 }
-                _board.SnapShot();
+                _board.SnapShot();      // primary node list updated.
                 AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
                 var msg = new ChatMsg(JsonConvert.SerializeObject(_board), ChatMessageType.BillBoardBroadcast);
                 msg.From = _sys.PosWallet.AccountId;
@@ -846,9 +854,9 @@ namespace Lyra.Core.Decentralize
                     BroadCastBillBoard();
                 }
 
-                if (node.Votes < LyraGlobal.MinimalAuthorizerBalance)
+                if (_board.AllNodes[node.AccountID].Votes < LyraGlobal.MinimalAuthorizerBalance)
                 {
-                    _log.LogInformation("Node {0} has not enough balance: {1}.", node.AccountID, node.Votes);
+                    _log.LogInformation("Node {0} has not enough votes: {1}.", node.AccountID, node.Votes);
                 }
                 else
                 {
