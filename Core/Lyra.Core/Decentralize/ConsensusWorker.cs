@@ -56,7 +56,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task ProcessMessage(ConsensusMessage msg)
         {
-            if(_state == null)
+            if(_state == null && !(msg is AuthorizingMsg))
             {
                 _outOfOrderedMessages.Enqueue(msg);
             }               
