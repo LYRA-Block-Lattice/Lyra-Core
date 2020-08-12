@@ -54,6 +54,12 @@ namespace Lyra.Core.Decentralize
                 return false;
         }
 
+        public async Task ProcessState(AuthState state)
+        {
+            _state = state;
+            await ProcessMessage(state.InputMsg);
+        }
+
         public async Task ProcessMessage(ConsensusMessage msg)
         {
             if(_state == null && !(msg is AuthorizingMsg))
@@ -106,12 +112,6 @@ namespace Lyra.Core.Decentralize
 
             if (msg.Version != LyraGlobal.ProtocolVersion)
             {
-                return;
-            }
-
-            if (_state != null)
-            {
-                _log.LogError("State exists.");
                 return;
             }
 
