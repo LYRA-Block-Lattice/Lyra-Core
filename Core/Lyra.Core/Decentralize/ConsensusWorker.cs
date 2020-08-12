@@ -116,8 +116,8 @@ namespace Lyra.Core.Decentralize
             }
 
             // first try auth locally
-            //if(_state == null)
-            _state = await CreateAuthringStateAsync(msg);
+            if(_state == null)
+                _state = await CreateAuthringStateAsync(msg);
             _currentView = await _context.GetDagSystem().Storage.FindBlockByHashAsync(_state.InputMsg.Block.ServiceHash) as ServiceBlock;
 
             ConsensusMessage queuedMsg;
