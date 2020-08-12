@@ -357,7 +357,7 @@ namespace Lyra.Core.Decentralize
                     if (msg.From == _context.GetDagSystem().PosWallet.AccountId)
                         me = "[me]";
                     var voice = msg.IsSuccess ? "Yea" : "Nay";
-                    var canAuth = _context.AuthorizerShapshot.Contains(msg.From);
+                    var canAuth = _currentView.Authorizers.Any(a => a.AccountID == msg.From);
                     sb.AppendLine($"{voice} {msg.Result} By: {msg.From.Shorten()} CanAuth: {canAuth} {seed0}{me}");
                 }
                 _log.LogInformation(sb.ToString());
