@@ -59,6 +59,7 @@ namespace Lyra
 
     public class BlockChain : ReceiveActor
     {
+        public class QueryState { }
         public class QueryBlockchainStatus { }
         public class NeedSync { public long ToUIndex { get; set; } }
         public class Startup { }
@@ -118,6 +119,7 @@ namespace Lyra
                 var status = await GetNodeStatusAsync();
                 Sender.Tell(status);
             });
+            Receive<QueryState>(x => Sender.Tell(CurrentState));
 
             Receive<NeedSync>(cmd => SyncBlocksFromSeeds(cmd.ToUIndex));
             Receive<Startup>(_ => _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup));
@@ -131,80 +133,17 @@ namespace Lyra
                 }
             });
             Receive<Idle>(_ => { });
-            ReceiveAsync<ConsolidateFailed>(async (x) =>
+            Receive<ConsolidateFailed>(x =>
             {
-                await ConsolidationBlockFailedAsync(x.consolidationBlockHash);
+                ConsolidationBlockFailed(x.consolidationBlockHash);
             });
             Receive<AuthorizerCountChanged>(x => AuthorizerCountChangedProc(x.count, x.IsSeed0));
         }
-
-        //protected override void OnReceive(object message)
-        //{
-        //    switch (message)
-        //    {
-        //        case NeedSync cmd:
-        //            SyncBlocksFromSeeds(cmd.ToUIndex);
-        //            break;
-        //        case Startup _:
-        //            _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup);
-        //            break;
-        //        case NodeStatus nodeStatus:
-        //            // only accept status from seeds.
-        //            _log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
-        //            if (_nodeStatus != null)
-        //            {
-        //                if (!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
-        //                    _nodeStatus.Add(nodeStatus);
-        //            }
-        //            break;
-        //        //    case Import import:
-        //        //        OnImport(import.Blocks);
-        //        //        break;
-        //        //    case FillMemoryPool fill:
-        //        //        OnFillMemoryPool(fill.Transactions);
-        //        //        break;
-        //        //    case Header[] headers:
-        //        //        OnNewHeaders(headers);
-        //        //        break;
-        //        //    case Block block:
-        //        //        Sender.Tell(OnNewBlock(block));
-        //        //        break;
-        //        //    case Transaction[] transactions:
-        //        //        {
-        //        //            // This message comes from a mempool's revalidation, already relayed
-        //        //            foreach (var tx in transactions) OnNewTransaction(tx, false);
-        //        //            break;
-        //        //        }
-        //        //    case Transaction transaction:
-        //        //        Sender.Tell(OnNewTransaction(transaction, true));
-        //        //        break;
-        //        //    case ConsensusPayload payload:
-        //        //        Sender.Tell(OnNewConsensus(payload));
-        //        //        break;
-        //        case Idle _:
-        //            //        if (MemPool.ReVerifyTopUnverifiedTransactionsIfNeeded(MaxTxToReverifyPerIdle, currentSnapshot))
-        //            //            Self.Tell(Idle.Instance, ActorRefs.NoSender);
-        //            break;
-        //    }
-        //}
 
         public static Props Props(DagSystem system, IAccountCollectionAsync store)
         {
             return Akka.Actor.Props.Create(() => new BlockChain(system, store)).WithMailbox("blockchain-mailbox");
         }
-
-        //private async Task ResetUIDAsync()
-        //{
-        //    long uid = -1;
-        //    if (_sys.Consensus != null)
-        //    {
-        //        var uidObj = await _sys.Consensus.Ask(new ConsensusService.AskForMaxActiveUID()) as ConsensusService.ReplyForMaxActiveUID;
-        //        if (uidObj != null && uidObj.uid.HasValue)
-        //        {
-        //            uid = uidObj.uid.Value;
-        //        }
-        //    }
-        //}
 
         private void CreateStateMachine()
         {
@@ -353,7 +292,7 @@ namespace Lyra
                 .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
 
             _stateMachine.Configure(BlockChainState.Almighty)
-                .OnEntry(() => Task.Run(async () =>
+                .OnEntry(() => Task.Run(() =>
                 {
                     _sys.Consensus.Tell(new ConsensusService.Startup());
                 }))
@@ -421,26 +360,30 @@ namespace Lyra
             });
         }
 
-        public async Task ConsolidationBlockFailedAsync(string hash)
+        public void ConsolidationBlockFailed(string hash)
         {
             _log.LogError($"ConsolidationBlockFailed for {hash.Shorten()}");
 
-            var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
-            var consBlockReq = await client.GetBlockByHash(hash);
-            if(consBlockReq.ResultCode == APIResultCodes.Success)
-            {
-                var consBlock = consBlockReq.GetBlock() as ConsolidationBlock;
-
-                if (!await VerifyConsolidationBlock(consBlock))
-                {
-                    await SyncManyBlocksAsync(client, consBlock.blockHashes);
-                }
-            }
+            if (_stateMachine.State == BlockChainState.Almighty)
+                _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
             else
-            {
-                if (_stateMachine.State == BlockChainState.Almighty)
-                    _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
-            }
+                _log.LogCritical("Current state not Almighty. something error.");
+
+            //var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
+            //var consBlockReq = await client.GetBlockByHash(hash);
+            //if(consBlockReq.ResultCode == APIResultCodes.Success)
+            //{
+            //    var consBlock = consBlockReq.GetBlock() as ConsolidationBlock;
+
+            //    if (!await VerifyConsolidationBlock(consBlock))
+            //    {
+            //        await SyncManyBlocksAsync(client, consBlock.blockHashes);
+            //    }
+            //}
+            //else
+            //{
+
+            //}
         }
 
         public void AuthorizerCountChangedProc(int count, bool IsSeed0)

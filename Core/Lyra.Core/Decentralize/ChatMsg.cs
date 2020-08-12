@@ -22,6 +22,8 @@ namespace Lyra.Core.Decentralize
 		AuthorizerPrePrepare = 100,
 		AuthorizerPrepare = 101,
 		AuthorizerCommit = 102,
+
+		ShouldNotExist = 1000
 	};
 
 	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable
@@ -125,7 +127,40 @@ namespace Lyra.Core.Decentralize
 		}
 	}
 
-	public class AuthorizingMsg : SourceSignedMessage
+	public class ConsensusMessage: SourceSignedMessage
+    {
+		public string BlockHash { get; set; }
+
+		public ConsensusMessage()
+        {
+			MsgType = ChatMessageType.ShouldNotExist;
+        }
+
+		public override int Size => base.Size + BlockHash.Length;
+
+        public override void Serialize(BinaryWriter writer)
+        {
+            base.Serialize(writer);
+
+			if (string.IsNullOrEmpty(BlockHash))
+				throw new InvalidOperationException("BlockHash Should not be null");
+
+			writer.Write(BlockHash);
+		}
+
+        public override void Deserialize(BinaryReader reader)
+        {
+            base.Deserialize(reader);
+			BlockHash = reader.ReadString();
+		}
+
+        public override string GetHashInput()
+        {
+            return BlockHash + "|" + base.GetHashInput();
+        }
+    }
+
+	public class AuthorizingMsg : ConsensusMessage
 	{
 		public Block Block { get => _block; set 
 			{ 
@@ -179,10 +214,9 @@ namespace Lyra.Core.Decentralize
 		}
 	}
 
-	public class AuthorizedMsg : SourceSignedMessage
+	public class AuthorizedMsg : ConsensusMessage
 	{
 		// block uindex, block hash (replace block itself), error code, authsign
-		public string BlockHash { get; set; }
 		public APIResultCodes Result { get; set; }
 		public AuthorizationSignature AuthSign { get; set; }
 
@@ -192,7 +226,7 @@ namespace Lyra.Core.Decentralize
 		}
 		public override string GetHashInput()
 		{
-			return $"{BlockHash}|{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|" + base.GetHashInput();
+			return $"{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|" + base.GetHashInput();
 		}
 
 		public bool IsSuccess => Result == APIResultCodes.Success;
@@ -203,14 +237,12 @@ namespace Lyra.Core.Decentralize
 		}
 
 		public override int Size => base.Size +
-			BlockHash.Length +
 			sizeof(int) +
 			JsonConvert.SerializeObject(AuthSign).Length;
 
 		public override void Serialize(BinaryWriter writer)
 		{
-			base.Serialize(writer);
-			writer.Write(BlockHash);
+			base.Serialize(writer);			
 			writer.Write((int)Result);
 			writer.Write(JsonConvert.SerializeObject(AuthSign));
 		}
@@ -218,15 +250,13 @@ namespace Lyra.Core.Decentralize
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
-			BlockHash = reader.ReadString();
 			Result = (APIResultCodes)reader.ReadInt32();
 			AuthSign = JsonConvert.DeserializeObject<AuthorizationSignature>(reader.ReadString());
 		}
 	}
 
-	public class AuthorizerCommitMsg : SourceSignedMessage
+	public class AuthorizerCommitMsg : ConsensusMessage
 	{
-		public string BlockHash { get; set; }
 		public ConsensusResult Consensus { get; set; }
 
 		public AuthorizerCommitMsg()
@@ -236,7 +266,7 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{BlockHash}|{Consensus}" + base.GetHashInput();
+			return $"{Consensus}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
@@ -245,20 +275,17 @@ namespace Lyra.Core.Decentralize
 		}
 
 		public override int Size => base.Size +
-			BlockHash.Length +
 			sizeof(ConsensusResult);
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
-			writer.Write(BlockHash);
 			writer.Write((int)Consensus);
 		}
 
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
-			BlockHash = reader.ReadString();
 			Consensus = (ConsensusResult)reader.ReadInt32();
 		}
 	}

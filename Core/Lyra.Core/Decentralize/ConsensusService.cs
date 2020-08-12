@@ -55,7 +55,6 @@ namespace Lyra.Core.Decentralize
         private readonly IActorRef _blockchain;
 
         ILogger _log;
-        Orphanage _orphange;
 
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         ConcurrentDictionary<string, ConsensusWorker> _cleanedConsensus;
@@ -63,6 +62,7 @@ namespace Lyra.Core.Decentralize
         private BillBoard _board;
         private List<TransStats> _stats;
 
+        public async Task<BlockChainState> GetBlockChainState() => await _blockchain.Ask<BlockChainState>(new BlockChain.QueryState());
         public bool IsThisNodeSeed0 => _sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
         public bool IsMessageFromSeed0(SourceSignedMessage msg)
         {
@@ -91,34 +91,6 @@ namespace Lyra.Core.Decentralize
             _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
             _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
 
-            _orphange = new Orphanage(
-                    _sys,
-                    async (state) => {
-                        _log.LogInformation($"AuthState from Orphanage: {state.InputMsg.Block.Height}/{state.InputMsg.Block.Hash}");
-                        var worker = await GetWorkerAsync(state.InputMsg.Block.Hash); 
-                        worker.Create(state); 
-                    },
-                    async (msg1) => {
-                        await OnNextConsensusMessageAsync(msg1);
-                    },
-                    async (msg2s) => {
-                        foreach (var msg2 in msg2s)
-                        {
-                            var worker2 = await GetWorkerAsync(msg2.BlockHash);
-                            if (worker2 != null)
-                                await worker2.OnPrepareAsync(msg2);
-                        }
-                    },
-                    async (msg3s) => {
-                        foreach (var msg3 in msg3s)
-                        {
-                            var worker3 = await GetWorkerAsync(msg3.BlockHash);
-                            if (worker3 != null)
-                                await worker3.OnCommitAsync(msg3);
-                        }
-                    }
-                );
-
             ReceiveAsync<Startup>(async state =>
             {
                 // generate billboard from last service block
@@ -136,9 +108,9 @@ namespace Lyra.Core.Decentralize
 
             Receive<AskIfSeed0>((_) => Sender.Tell(new AskIfSeed0 { IsSeed0 = IsThisNodeSeed0 }));
 
-            ReceiveAsync<BlockChain.BlockAdded>(async (ba) =>
+            Receive<BlockChain.BlockAdded>(ba =>
             {
-                await _orphange.BlockAddedAsync(ba.hash);
+                
             });
 
             Receive<Consolidate>((_) =>
@@ -207,7 +179,7 @@ namespace Lyra.Core.Decentralize
             ReceiveAsync<AuthState>(async state =>
             {
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
-                if(state.InputMsg.Block is TransactionBlock)
+                if (state.InputMsg.Block is TransactionBlock)
                 {
                     var acctId = (state.InputMsg.Block as TransactionBlock).AccountID;
                     if (FindActiveBlock(acctId, state.InputMsg.Block.Height))
@@ -216,9 +188,6 @@ namespace Lyra.Core.Decentralize
                         return;
                     }
                 }
-
-                if (await AddOrphanAsync(state))
-                    return;
 
                 await SubmitToConsensusAsync(state);
             });
@@ -233,6 +202,22 @@ namespace Lyra.Core.Decentralize
             Receive<Idle>(o => { });
 
             ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
+
+            new Timer((o) => { 
+                foreach(var worker in _activeConsensus.Values.ToArray())
+                {
+                    if(worker.CheckTimeout())
+                    {
+                        if (worker.State != null)
+                        {
+                            worker.State.Done?.Set();
+                            worker.State.Close();
+                        }                            
+
+                        _activeConsensus.TryRemove(worker.Hash, out _);
+                    }
+                }
+            }, null, Timeout.Infinite, 100);
 
             Task.Run(async () =>
             {
@@ -262,11 +247,6 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             });
-        }
-
-        public Task<bool> AddOrphanAsync(AuthState state)
-        {
-            return _orphange.TryAddOneAsync(state);
         }
 
         private string PrintProfileInfo()
@@ -491,75 +471,75 @@ namespace Lyra.Core.Decentralize
 
         private async Task CreateConsolidateBlockAsync()
         {
-            if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State?.InputMsg.Block is ConsolidationBlock))
-                return;
+        //    if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State?.InputMsg.Block is ConsolidationBlock))
+        //        return;
 
-            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-            var collection = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
-            _log.LogInformation($"Creating ConsolidationBlock... ");
+        //    var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+        //    var collection = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
+        //    _log.LogInformation($"Creating ConsolidationBlock... ");
 
-            var consBlock = new ConsolidationBlock
-            {
-                blockHashes = collection.ToList(),
-                totalBlockCount = lastCons.totalBlockCount + collection.Count()
-            };
+        //    var consBlock = new ConsolidationBlock
+        //    {
+        //        blockHashes = collection.ToList(),
+        //        totalBlockCount = lastCons.totalBlockCount + collection.Count()
+        //    };
 
-            var mt = new MerkleTree();
-            decimal feeAggregated = 0;
-            foreach(var hash in consBlock.blockHashes)
-            {
-                mt.AppendLeaf(MerkleHash.Create(hash));
+        //    var mt = new MerkleTree();
+        //    decimal feeAggregated = 0;
+        //    foreach(var hash in consBlock.blockHashes)
+        //    {
+        //        mt.AppendLeaf(MerkleHash.Create(hash));
 
-                // aggregate fees
-                var transBlock = (await _sys.Storage.FindBlockByHashAsync(hash)) as TransactionBlock;
-                if(transBlock != null)
-                {
-                    feeAggregated += transBlock.Fee;
-                }
-            }
+        //        // aggregate fees
+        //        var transBlock = (await _sys.Storage.FindBlockByHashAsync(hash)) as TransactionBlock;
+        //        if(transBlock != null)
+        //        {
+        //            feeAggregated += transBlock.Fee;
+        //        }
+        //    }
 
-            consBlock.totalFees = feeAggregated.ToBalanceLong();
-            consBlock.MerkelTreeHash = mt.BuildTree().ToString();
-            consBlock.ServiceHash = (await _sys.Storage.GetLastServiceBlockAsync()).Hash;
+        //    consBlock.totalFees = feeAggregated.ToBalanceLong();
+        //    consBlock.MerkelTreeHash = mt.BuildTree().ToString();
+        //    consBlock.ServiceHash = (await _sys.Storage.GetLastServiceBlockAsync()).Hash;
 
-            consBlock.InitializeBlock(lastCons, _sys.PosWallet.PrivateKey,
-                _sys.PosWallet.AccountId);
+        //    consBlock.InitializeBlock(lastCons, _sys.PosWallet.PrivateKey,
+        //        _sys.PosWallet.AccountId);
 
-            AuthorizingMsg msg = new AuthorizingMsg
-            {
-                From = _sys.PosWallet.AccountId,
-                Block = consBlock,
-                MsgType = ChatMessageType.AuthorizerPrePrepare
-            };
+        //    AuthorizingMsg msg = new AuthorizingMsg
+        //    {
+        //        From = _sys.PosWallet.AccountId,
+        //        Block = consBlock,
+        //        MsgType = ChatMessageType.AuthorizerPrePrepare
+        //    };
 
-            var state = new AuthState(true);
-            state.SetView(await _sys.Storage.GetLastServiceBlockAsync());
-            state.InputMsg = msg;
+        //    var state = new AuthState(true);
+        //    state.SetView(await _sys.Storage.GetLastServiceBlockAsync());
+        //    state.InputMsg = msg;
 
-            _ = Task.Run(async () =>
-            {
-                _log.LogInformation($"Waiting for ConsolidateBlock authorizing...");
+        //    _ = Task.Run(async () =>
+        //    {
+        //        _log.LogInformation($"Waiting for ConsolidateBlock authorizing...");
 
-                await state.Done.AsTask();
-                state.Done.Close();
-                state.Done = null;
+        //        await state.Done.AsTask();
+        //        state.Done.Close();
+        //        state.Done = null;
 
-                if (state.CommitConsensus == ConsensusResult.Yea)
-                {
-                    _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
+        //        if (state.CommitConsensus == ConsensusResult.Yea)
+        //        {
+        //            _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
 
-                    var livingPosNodeIds = _board.AllNodes.Select(a => a.AccountID);
-                    _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
-                }
-                else
-                {
-                    _log.LogInformation($"ConsolidateBlock is Failed. vote stats not updated.");
-                }
-            });
+        //            var livingPosNodeIds = _board.AllNodes.Select(a => a.AccountID);
+        //            _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
+        //        }
+        //        else
+        //        {
+        //            _log.LogInformation($"ConsolidateBlock is Failed. vote stats not updated.");
+        //        }
+        //    });
 
-            await SubmitToConsensusAsync(state);
+        //    await SubmitToConsensusAsync(state);
 
-            _log.LogInformation($"ConsolidationBlock was submited. ");
+        //    _log.LogInformation($"ConsolidationBlock was submited. ");
         }
 
         public static Props Props(DagSystem sys, IActorRef localNode, IActorRef blockchain)
@@ -575,23 +555,32 @@ namespace Lyra.Core.Decentralize
 
         private async Task SubmitToConsensusAsync(AuthState state)
         {
-            if(state.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
-            {
-                var tx = state.InputMsg.Block as TransactionBlock;
-                var allSend = _activeConsensus.Values.Where(a => a.State?.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
-                    .Select(x => x.State.InputMsg.Block as TransactionBlock);
+            //if(state.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
+            //{
+            //    var tx = state.InputMsg.Block as TransactionBlock;
+            //    var allSend = _activeConsensus.Values.Where(a => a.State?.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
+            //        .Select(x => x.State.InputMsg.Block as TransactionBlock);
 
-                var sameHeight = allSend.Any(y => y.AccountID == tx.AccountID && y.Height == tx.Height);
-                var sameHash = _activeConsensus.Values.Any(a => a.State?.InputMsg.Hash == tx.Hash);
-                if(sameHeight || sameHash)
-                {
-                    _log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
-                    return;
-                }
-            }
+            //    var sameHeight = allSend.Any(y => y.AccountID == tx.AccountID && y.Height == tx.Height);
+            //    var sameHash = _activeConsensus.Values.Any(a => a.State?.InputMsg.Hash == tx.Hash);
+            //    if(sameHeight || sameHash)
+            //    {
+            //        _log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
+            //        return;
+            //    }
+            //}
 
-            var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
-            worker.Create(state);
+            //AuthorizingMsg msg = new AuthorizingMsg
+            //{
+            //    From = _sys.PosWallet.AccountId,
+            //    Block = block,
+            //    MsgType = ChatMessageType.AuthorizerPrePrepare
+            //};
+
+            //var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
+            //worker.Create(state);
+
+            throw new NotImplementedException();
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash)
@@ -611,7 +600,7 @@ namespace Lyra.Core.Decentralize
                 return _activeConsensus[hash];
             else
             {
-                var worker = new ConsensusWorker(this);
+                var worker = new ConsensusWorker(this, hash);
                 if (_activeConsensus.TryAdd(hash, worker))
                     return worker;
                 else
@@ -647,7 +636,14 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            switch (item)
+            if(item is ConsensusMessage cm)
+            {
+                var worker = await GetWorkerAsync(cm.BlockHash);
+                await worker.ProcessMessage(cm);
+                return;
+            }
+
+/*            switch (item)
             {
                 case AuthorizingMsg msg1:
                     if(msg1.Block is TransactionBlock)
@@ -699,7 +695,7 @@ namespace Lyra.Core.Decentralize
                     // log msg unknown
                     _log.LogInformation($"Message unknown from {item.From} type {item.MsgType} not processed: ");
                     break;
-            }
+            }*/
         }
 
         private async Task OnRecvChatMsg(ChatMsg chat)

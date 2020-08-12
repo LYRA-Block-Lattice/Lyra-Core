@@ -61,13 +61,6 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"ApiService: PostToConsensusAsync Called: {block.BlockType}");
 
-            //AuthorizingMsg msg = new AuthorizingMsg
-            //{
-            //    From = NodeService.Dag.PosWallet.AccountId,
-            //    Block = block,
-            //    MsgType = ChatMessageType.AuthorizerPrePrepare
-            //};
-
             AuthorizingMsg msg = new AuthorizingMsg
             {
                 From = NodeService.Dag.PosWallet.AccountId,

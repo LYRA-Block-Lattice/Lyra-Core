@@ -193,5 +193,13 @@ namespace Lyra.Core.Decentralize
 
             return ConsensusResult.Uncertain;
         }
+
+        public void Close()
+        {
+            if (Semaphore != null)
+                Semaphore.Dispose();
+            if (Done != null)
+                Done.Dispose();
+        }
     }
 }

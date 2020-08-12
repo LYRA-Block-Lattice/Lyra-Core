@@ -12,6 +12,7 @@ namespace Neo
         public string[] StandbyValidators { get; }
         public string[] StartupValidators { get; }
         public string[] SeedList { get; }
+        public int ConsensusTimeout { get; }
         public int ConsensusNumber { get; }
         public int ConsensusWinNumber => ConsensusNumber * 2 + 1;
         public int ConsensusTotalNumber => ConsensusNumber * 3 + 1;
@@ -71,6 +72,7 @@ namespace Neo
                     "seed.devnet.wizdag.com:4503"
                 };
             this.ConsensusNumber = (int)section.GetValue("ConsensusNumber", 1);
+            this.ConsensusTimeout = (int)section.GetValue("ConsensusTimeout", 4);
             this.MemoryPoolMaxTransactions = Math.Max(1, section.GetValue("MemoryPoolMaxTransactions", 50_000));
             IConfigurationSection section_startupv = section.GetSection("StartupValidators");
             this.StartupValidators = section_startupv.GetChildren().Select(p => p.Get<string>()).ToArray();
