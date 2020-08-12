@@ -72,8 +72,6 @@ namespace Lyra.Core.Decentralize
         public List<TransStats> Stats { get => _stats; }
 
         // authorizer snapshot
-        public HashSet<string> AuthorizerShapshot { get; private set; }
-
         private DagSystem _sys;
         public DagSystem GetDagSystem() => _sys;
         public ConsensusService(DagSystem sys, IActorRef localNode, IActorRef blockchain)
@@ -610,22 +608,6 @@ namespace Lyra.Core.Decentralize
             {
                 await OnRecvChatMsg(chatMsg);
                 return;
-            }
-
-            if(null == AuthorizerShapshot)
-            {
-                _log.LogWarning("AuthorizerShapshot is null.");
-                return;
-            }
-
-            if (AuthorizerShapshot != null && !AuthorizerShapshot.Contains(item.From))
-            {
-                // only allow AuthorizingMsg and ChatMsg
-                if(!(item is AuthorizingMsg))
-                {
-                    _log.LogWarning($"Voting message source {item.From.Shorten()} not in AuthorizerShapshot.");
-                    return;
-                }
             }
 
             if(item is ConsensusMessage cm)
