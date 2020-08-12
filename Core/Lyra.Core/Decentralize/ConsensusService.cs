@@ -201,21 +201,25 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
 
-            new Timer((o) => { 
-                foreach(var worker in _activeConsensus.Values.ToArray())
+            var timr = new System.Timers.Timer(100);
+            timr.Elapsed += (s, o) =>
+            {
+                foreach (var worker in _activeConsensus.Values.ToArray())
                 {
-                    if(worker.CheckTimeout())
+                    if (worker.CheckTimeout())
                     {
                         if (worker.State != null)
                         {
                             worker.State.Done?.Set();
                             worker.State.Close();
-                        }                            
+                        }
 
                         _activeConsensus.TryRemove(worker.Hash, out _);
                     }
                 }
-            }, null, Timeout.Infinite, 100);
+            };
+            timr.AutoReset = true;
+            timr.Enabled = true;
 
             Task.Run(async () =>
             {
