@@ -555,32 +555,24 @@ namespace Lyra.Core.Decentralize
 
         private async Task SubmitToConsensusAsync(AuthState state)
         {
-            //if(state.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
-            //{
-            //    var tx = state.InputMsg.Block as TransactionBlock;
-            //    var allSend = _activeConsensus.Values.Where(a => a.State?.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
-            //        .Select(x => x.State.InputMsg.Block as TransactionBlock);
+            if (state.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
+            {
+                var tx = state.InputMsg.Block as TransactionBlock;
+                var allSend = _activeConsensus.Values.Where(a => a.State?.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
+                    .Select(x => x.State.InputMsg.Block as TransactionBlock);
 
-            //    var sameHeight = allSend.Any(y => y.AccountID == tx.AccountID && y.Height == tx.Height);
-            //    var sameHash = _activeConsensus.Values.Any(a => a.State?.InputMsg.Hash == tx.Hash);
-            //    if(sameHeight || sameHash)
-            //    {
-            //        _log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
-            //        return;
-            //    }
-            //}
+                var sameHeight = allSend.Any(y => y.AccountID == tx.AccountID && y.Height == tx.Height);
+                var sameHash = _activeConsensus.Values.Any(a => a.State?.InputMsg.Hash == tx.Hash);
+                if (sameHeight || sameHash)
+                {
+                    _log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
+                    return;
+                }
+            }
 
-            //AuthorizingMsg msg = new AuthorizingMsg
-            //{
-            //    From = _sys.PosWallet.AccountId,
-            //    Block = block,
-            //    MsgType = ChatMessageType.AuthorizerPrePrepare
-            //};
-
-            //var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
-            //worker.Create(state);
-
-            throw new NotImplementedException();
+            var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
+            await worker.ProcessMessage(state.InputMsg);
+            Send2P2pNetwork(state.InputMsg);
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash)

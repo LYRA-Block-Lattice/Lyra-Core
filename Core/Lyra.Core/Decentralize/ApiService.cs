@@ -65,6 +65,7 @@ namespace Lyra.Core.Decentralize
             {
                 From = NodeService.Dag.PosWallet.AccountId,
                 Block = block,
+                BlockHash = block.Hash,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 

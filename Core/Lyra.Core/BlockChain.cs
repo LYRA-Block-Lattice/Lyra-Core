@@ -641,6 +641,7 @@ namespace Lyra
             {
                 From = _sys.PosWallet.AccountId,
                 Block = block,
+                BlockHash = block.Hash,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
