@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Lyra.Shared;
@@ -19,17 +20,20 @@ namespace Lyra.Core.Decentralize
     // if the node is dead for a long time (> 45 seconds), it will be put into freezing pool
     public class BillBoard
     {
-        public Dictionary<string, PosNode> AllNodes { get; } = new Dictionary<string, PosNode>();
+        public List<PosNode> AllNodes { get; }
         public string[] PrimaryAuthorizers { get; set; }
         public string[] BackupAuthorizers { get; set; }
 
+        public string CurrentLeader { get; set; }
+
         public BillBoard()
         {
+            AllNodes = new List<PosNode>();
         }
 
         public void SnapShot()
         {
-            var nonSeeds = AllNodes.Values.Where(a => a.GetAbleToAuthorize() && !ProtocolSettings.Default.StandbyValidators.Any(b => b == a.AccountID))
+            var nonSeeds = AllNodes.Where(a => a.GetAbleToAuthorize() && !ProtocolSettings.Default.StandbyValidators.Any(b => b == a.AccountID))
                     .OrderByDescending(b => b.Votes)
                     .ThenByDescending(c => c.LastStaking)
                     .Take(ProtocolSettings.Default.ConsensusTotalNumber - ProtocolSettings.Default.StandbyValidators.Length)
@@ -40,7 +44,7 @@ namespace Lyra.Core.Decentralize
             if(nonSeeds.Length > 0)
                 Array.Copy(nonSeeds, 0, PrimaryAuthorizers, ProtocolSettings.Default.StandbyValidators.Length, nonSeeds.Length);
 
-            var nonPrimaryNodes = AllNodes.Values.Where(a => a.GetAbleToAuthorize() && !Array.Exists(PrimaryAuthorizers, x => x == a.AccountID));
+            var nonPrimaryNodes = AllNodes.Where(a => a.GetAbleToAuthorize() && !Array.Exists(PrimaryAuthorizers, x => x == a.AccountID));
             if(nonPrimaryNodes.Any())
             {
                 BackupAuthorizers = nonPrimaryNodes
@@ -55,33 +59,19 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        //public bool CanDoConsensus
-        //{
-        //    get
-        //    {
-        //        if (PrimaryAuthorizers == null)
-        //            return false;
-
-        //        if (DagSystem.Singleton.Storage.CurrentState == BlockChainState.Almighty)
-        //            return PrimaryAuthorizers.Length >= ProtocolSettings.Default.ConsensusTotalNumber;
-        //        else
-        //            return PrimaryAuthorizers.Length >= ProtocolSettings.Default.StandbyValidators.Length;
-        //    }            
-        //}
-
-        public bool HasNode(string accountId) { return AllNodes.ContainsKey(accountId); }
-        public PosNode GetNode(string accountId) { return AllNodes[accountId]; }
+        public bool HasNode(string accountId) { return AllNodes.Any(a => a.AccountID == accountId); }
+        public PosNode GetNode(string accountId) { return AllNodes.First(a => a.AccountID == accountId); }
 
         public PosNode Add(PosNode node)
         {
-            if (!AllNodes.ContainsKey(node.AccountID))
+            if (!HasNode(node.AccountID))
             {
-                AllNodes.Add(node.AccountID, node);
+                AllNodes.Add(node);
             }
             else
             {
-                AllNodes[node.AccountID].IPAddress = node.IPAddress;      // support for dynamic IP address
-                AllNodes[node.AccountID].Signature = node.Signature;
+                var oldNode = AllNodes.RemoveAll(a => a.AccountID == node.AccountID);
+                AllNodes.Add(node);
             }
 
             node.LastStaking = DateTime.Now;
@@ -92,9 +82,9 @@ namespace Lyra.Core.Decentralize
         public void Refresh(string accountId)
         {
             PosNode node;
-            if (AllNodes.ContainsKey(accountId))
+            if (HasNode(accountId))
             {
-                node = AllNodes[accountId];
+                node = GetNode(accountId);
                 node.LastStaking = DateTime.Now;
             }
         }
@@ -131,5 +121,10 @@ namespace Lyra.Core.Decentralize
 
         // heartbeat/consolidation block: 10 min so if 30 min no message the node die
         public bool GetAbleToAuthorize() => (ProtocolSettings.Default.StandbyValidators.Any(a => a == AccountID) || Votes >= LyraGlobal.MinimalAuthorizerBalance) && (DateTime.Now - LastStaking < TimeSpan.FromSeconds(180));
+
+        internal string ToHashInputString()
+        {
+            return $"{AccountID}|{IPAddress}|{Votes.ToBalanceLong()}|{SignableObject.DateTimeToString(LastStaking)}|{Signature}";
+        }
     }
 }

@@ -122,7 +122,7 @@ namespace LyraNodesBot
             sb.AppendLine($"Consensus Win Number: {ProtocolSettings.Default.ConsensusWinNumber}");
             sb.AppendLine($"Maxmimum Tolerant Node Number: {ProtocolSettings.Default.ConsensusNumber}");
             sb.AppendLine($"Current Running Node Count: {bb.AllNodes.Count}");
-            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.Value.GetAbleToAuthorize())}");
+            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.GetAbleToAuthorize())}");
             var cando = "unknown"; // bb.CanDoConsensus ? "Yes" : "No";
             sb.AppendLine($"Consensus Can be Made Now: {cando}");
 
@@ -147,11 +147,11 @@ namespace LyraNodesBot
 
             sb.AppendLine("\n*Other Nodes*\n");
 
-            var voting = bb.AllNodes.Keys.Where(a => !bb.PrimaryAuthorizers.Contains(a) && !bb.BackupAuthorizers.Contains(a));
+            var voting = bb.AllNodes.Where(a => !bb.PrimaryAuthorizers.Contains(a.AccountID) && !bb.BackupAuthorizers.Contains(a.AccountID));
             if(voting.Any())
             {
                 sb.AppendLine("`" + voting
-                    .Select((a, i) => $"{i}. {a.Shorten()} [{GetBalance(bb, a)}]")
+                    .Select((a, i) => $"{i}. {a.AccountID.Shorten()} [{GetBalance(bb, a.AccountID)}]")
                     .Aggregate((c, d) => c + "\n" + d) + "`");
             }
             else
@@ -167,7 +167,7 @@ namespace LyraNodesBot
             if (bb.PrimaryAuthorizers.Take(3).Contains(accountId))
                 return "seed";
 
-            var balance = bb.AllNodes[accountId].Votes;
+            var balance = bb.AllNodes.First(a => a.AccountID == accountId).Votes;
             return $"{balance} Lyra";
         }
 

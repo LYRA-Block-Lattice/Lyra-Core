@@ -19,7 +19,7 @@ namespace Lyra.Core.API
         public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
 
         public const int ProtocolVersion = 1;
-        public const int DatabaseVersion = 1;
+        public const int DatabaseVersion = 2;
 
         public static string NodeAppName = PRODUCTNAME + " " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 
@@ -36,6 +36,8 @@ namespace Lyra.Core.API
 #endif
 
         public const int TOKENSTORAGERITO = 100000000;
+
+        public const int CONSENSUSTIMEOUT = 4000;       // 4 seconds
 
         // get api for (rpcurl, resturl)
         public static string SelectNode(string networkID)

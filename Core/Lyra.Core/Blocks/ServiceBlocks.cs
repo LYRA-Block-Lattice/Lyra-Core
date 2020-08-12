@@ -81,7 +81,17 @@ namespace Lyra.Core.Blocks
             extraData += this.NetworkId + "|";
             extraData += this.FeeTicker + "|";
             foreach (var pn in Authorizers)
-                extraData += pn.Signature + "|";
+            {
+                if(this.Version == 1)
+                {
+                    extraData += pn.Signature + "|";
+                }
+                else
+                {
+                    extraData += pn.ToHashInputString();
+                }
+            }
+                
             extraData = extraData + JsonConvert.SerializeObject(TransferFee) + "|";
             extraData = extraData + JsonConvert.SerializeObject(TokenGenerationFee) + "|";
             extraData = extraData + JsonConvert.SerializeObject(TradeFee) + "|";

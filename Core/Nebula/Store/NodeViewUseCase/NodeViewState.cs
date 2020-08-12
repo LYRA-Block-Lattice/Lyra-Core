@@ -29,13 +29,13 @@ namespace Nebula.Store.NodeViewUseCase
 				var list = new List<NodeInfoSet>();
 				foreach(var id in bb.PrimaryAuthorizers)
                 {
-					if(bb.AllNodes.ContainsKey(id))		// bug in billboard. or error-proof
+					if(bb.AllNodes.Any(a => a.AccountID == id))		// bug in billboard. or error-proof
                     {
 						list.Add(new NodeInfoSet
 						{
 							ID = id,
 							IsPrimary = true,
-							Votes = bb.AllNodes[id].Votes,
+							Votes = bb.AllNodes.First(a => a.AccountID == id).Votes,
 							Status = nodeStatus[id]
 						});
 					}
@@ -49,7 +49,7 @@ namespace Nebula.Store.NodeViewUseCase
 					{
 						ID = node.Key,
 						IsPrimary = false,
-						Votes = bb.AllNodes[node.Key].Votes,
+						Votes = bb.AllNodes.First(a => a.AccountID == node.Key).Votes,
 						Status = node.Value
 					});
 				}

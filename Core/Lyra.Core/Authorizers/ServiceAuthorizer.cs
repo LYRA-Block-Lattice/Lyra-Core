@@ -56,7 +56,8 @@ namespace Lyra.Core.Authorizers
 
                 // authorizers
                 if (block.Authorizers.Count > LyraGlobal.MAXIMUM_AUTHORIZERS
-                    || block.Authorizers.Count < (prevBlock as ServiceBlock).Authorizers.Count)
+                    || block.Authorizers.Count < LyraGlobal.MINIMUM_AUTHORIZERS)
+                    //|| block.Authorizers.Count < (prevBlock as ServiceBlock).Authorizers.Count)
                     return APIResultCodes.InvalidAuthorizerCount;
             }
             else

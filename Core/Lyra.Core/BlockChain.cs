@@ -71,10 +71,7 @@ namespace Lyra
         {
             public string hash { get; set; }
         }
-        private class ConsolidationState
-        {
-            public long LocalLastConsolidationHeight { get; set; }
-        }
+
         public class AuthorizerCountChanged { public int count { get; set; }
             public bool IsSeed0 { get; set; }
         }
@@ -305,12 +302,6 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
                 {
-                    var stateFn = $"{Utilities.GetLyraDataDir(Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}Consolidation.json";
-
-                    var state = new ConsolidationState { LocalLastConsolidationHeight = 0 };
-                    if (File.Exists(stateFn))
-                        state = JsonConvert.DeserializeObject<ConsolidationState>(File.ReadAllText(stateFn));
-
                     var unConsSynced = 0;
                     while (true)
                     {
@@ -326,19 +317,17 @@ namespace Lyra
                         }
 
                         var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
-
-                        if (state.LocalLastConsolidationHeight < latestSeedCons.Height)
+                        var lastMyCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                        if (lastMyCons.Height < latestSeedCons.Height)
                         {
-                            var consBlocksResult = await client.GetConsolidationBlocks(state.LocalLastConsolidationHeight);
+                            var consBlocksResult = await client.GetConsolidationBlocks(lastMyCons.Height);
                             if (consBlocksResult.ResultCode == APIResultCodes.Success)
                             {
                                 var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
                                 foreach (var consBlock in consBlocks)
                                 {
-                                    if(!await VerifyConsolidationBlock(consBlock, latestSeedCons.Height))
+                                    if (!await VerifyConsolidationBlock(consBlock, latestSeedCons.Height))
                                         await SyncManyBlocksAsync(client, consBlock);
-
-                                    state.LocalLastConsolidationHeight = consBlock.Height;
                                 }
                             }
                         }
@@ -355,10 +344,8 @@ namespace Lyra
                                 }
                                 else
                                     break;
-                            }                                
+                            }
                         }
-
-                        File.WriteAllText(stateFn, JsonConvert.SerializeObject(state));
                     }
 
                     _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
@@ -493,8 +480,8 @@ namespace Lyra
                                       svcBlock.Authorizers = new List<PosNode>();
                                       foreach (var accId in board.PrimaryAuthorizers)
                                       {
-                                          if (board.AllNodes.ContainsKey(accId))
-                                              svcBlock.Authorizers.Add(board.AllNodes[accId]);
+                                          if (board.AllNodes.Any(a => a.AccountID == accId))
+                                              svcBlock.Authorizers.Add(board.AllNodes.First(a => a.AccountID == accId));
 
                                           if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
                                               break;
@@ -696,7 +683,7 @@ namespace Lyra
 
             svcGenesis.Authorizers = new List<PosNode>();
             var board = _sys.Consensus.Ask<BillBoard>(new AskForBillboard()).Result;
-            foreach (var pn in board.AllNodes.Values.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
+            foreach (var pn in board.AllNodes.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
             {
                 svcGenesis.Authorizers.Add(pn);
             }

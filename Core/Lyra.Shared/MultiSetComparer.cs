@@ -13,6 +13,10 @@ namespace Lyra.Shared
             m_comparer = comparer ?? EqualityComparer<T>.Default;
         }
 
+        public MultiSetComparer()
+        {
+        }
+
         public bool Equals(IEnumerable<T> first, IEnumerable<T> second)
         {
             if (first == null)

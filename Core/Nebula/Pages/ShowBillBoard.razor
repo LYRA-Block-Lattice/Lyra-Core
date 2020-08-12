@@ -33,7 +33,7 @@
             <tr>
                 <td>@nodeInfo.IsPrimary</td>
                 <td><a href="/showblock/@nodeInfo.ID">@nodeInfo.ID.Substring(0, 10)...</a></td>
-                <td>@NodeState.Value.bb.AllNodes[nodeInfo.ID].IPAddress</td>
+                <td>@NodeState.Value.bb.AllNodes.First(a => a.AccountID == nodeInfo.ID).IPAddress</td>
                 <td>@nodeInfo.Votes</td>
                 @if(nodeInfo.Status != null)
                     {

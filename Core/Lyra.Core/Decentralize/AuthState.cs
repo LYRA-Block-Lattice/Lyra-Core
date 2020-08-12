@@ -18,12 +18,13 @@ namespace Lyra.Core.Decentralize
     {
         public DateTime Created { get; private set; }
 
+        // for debug profiling only
         public DateTime T1 { get; set; }
         public DateTime T2 { get; set; }
         public DateTime T3 { get; set; }
         public DateTime T4 { get; set; }
-
         public DateTime T5 { get; set; }
+        // end
 
         public AuthorizingMsg InputMsg { get; set; }
         public ConcurrentBag<AuthorizedMsg> OutputMsgs { get; set; }
@@ -192,31 +193,5 @@ namespace Lyra.Core.Decentralize
 
             return ConsensusResult.Uncertain;
         }
-
-
-        //public long ConsensusUIndex
-        //{
-        //    get
-        //    {
-        //        if (CommitMsgs.Count == 0)
-        //            return -1;
-
-        //        // implicty GetIsAuthoringSuccess true
-        //        // get from seed node. so we must keep seeds synced in perfect state.
-        //        var outputMsgsList = CommitMsgs.ToList();
-
-        //        // if no seed gives UIndex, get it from election
-        //        var consensusedSeed = outputMsgsList.GroupBy(a => a.BlockUIndex, a => a.From, (ndx, addr) => new { UIndex = ndx, Froms = addr.ToList() })
-        //            .OrderByDescending(b => b.Froms.Count)
-        //            .First();
-        //        if (consensusedSeed.Froms.Count >= WinNumber)
-        //        {
-        //            return consensusedSeed.UIndex;
-        //        }
-
-        //        // out of lucky??? we should halt and switch to emgergency state
-        //        return -1;
-        //    }
-        //}
     }
 }

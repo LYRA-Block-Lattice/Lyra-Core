@@ -31,7 +31,7 @@ namespace Nebula.Store.NodeViewUseCase
 			var bag = new ConcurrentDictionary<string, GetSyncStateAPIResult>();
 			var tasks = bb.AllNodes
 				//.Where(a => bb.PrimaryAuthorizers.Contains(a.Key))
-				.Select(b => b.Value)
+				.Select(b => b)
 				.Select(async node =>
 			{
 				var lcx = LyraRestClient.Create(config["network"], Environment.OSVersion.ToString(), "Nebula", "1.4", $"http://{node.IPAddress}:4505/api/Node/");

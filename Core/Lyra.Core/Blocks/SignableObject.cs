@@ -70,7 +70,7 @@ namespace Lyra.Core.Blocks
             return result;
         }
 
-        protected string DateTimeToString(DateTime dateTime)
+        public static string DateTimeToString(DateTime dateTime)
         {
             return dateTime.ToUniversalTime().ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
         }

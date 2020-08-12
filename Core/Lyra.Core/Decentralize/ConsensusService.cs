@@ -60,7 +60,7 @@ namespace Lyra.Core.Decentralize
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         ConcurrentDictionary<string, ConsensusWorker> _cleanedConsensus;
         List<Vote> _lastVotes;
-        private BillBoard _board = new BillBoard();
+        private BillBoard _board;
         private List<TransStats> _stats;
 
         public bool IsThisNodeSeed0 => _sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
@@ -86,6 +86,10 @@ namespace Lyra.Core.Decentralize
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _cleanedConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
+
+            _board = new BillBoard();
+            _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
+            _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
 
             _orphange = new Orphanage(
                     _sys,
@@ -117,6 +121,16 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<Startup>(async state =>
             {
+                // generate billboard from last service block
+                var lastSvcBlk = await _sys.Storage.GetLastServiceBlockAsync();
+                if (lastSvcBlk != null)
+                {
+                    _board.AllNodes.Clear();
+                    foreach (var node in lastSvcBlk.Authorizers)
+                        _board.AllNodes.Add(node);
+
+                    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Select(a => a.AccountID).ToArray();
+                }
                 await DeclareConsensusNodeAsync();
             });
 
@@ -227,8 +241,8 @@ namespace Lyra.Core.Decentralize
                 {
                     try
                     {
-                        _log.LogWarning("starting maintaince loop... ");
-                        await StateMaintainceAsync();
+                        //_log.LogWarning("starting maintaince loop... ");
+                        //await StateMaintainceAsync();
 
                         await Task.Delay(15000).ConfigureAwait(false);
 
@@ -422,9 +436,6 @@ namespace Lyra.Core.Decentralize
                         // so there is inconsistant between seed0 and other nodes.
 
                     }
-
-                    _log.LogInformation("Seed0 is broadcasting billboard.");
-                    BroadCastBillBoard();
                 }
             }
             catch (Exception ex)
@@ -444,8 +455,8 @@ namespace Lyra.Core.Decentralize
 
             var bag = new ConcurrentDictionary<string, GetSyncStateAPIResult>();
             var tasks = Board.AllNodes
-                .Where(a => Board.PrimaryAuthorizers.Contains(a.Key))  // exclude self
-                .Select(b => b.Value)
+                .Where(a => Board.PrimaryAuthorizers.Contains(a.AccountID))  // exclude self
+                .Select(b => b)
                 .Select(async node =>
                 {
                     var lcx = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.ToString(), "Seed0", "1.0", $"http://{node.IPAddress}:4505/api/Node/");
@@ -537,14 +548,8 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
 
-                    var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
+                    var livingPosNodeIds = _board.AllNodes.Select(a => a.AccountID);
                     _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
-
-                    // change billboard if changed
-                    if(IsThisNodeSeed0)
-                    {
-                        BroadCastBillBoard();
-                    }
                 }
                 else
                 {
@@ -707,9 +712,9 @@ namespace Lyra.Core.Decentralize
                 case ChatMessageType.NodeUp:
                     await Task.Run(async () => { await OnNodeUpAsync(chat); });                    
                     break;
-                case ChatMessageType.BillBoardBroadcast:
-                    OnBillBoardBroadcast(chat);
-                    break;
+                //case ChatMessageType.BillBoardBroadcast:
+                //    OnBillBoardBroadcast(chat);
+                //    break;
                 //case ChatMessageType.BlockConsolidation:
                 //    await OnBlockConsolicationAsync(chat);
                 //    break;
@@ -744,34 +749,34 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void OnBillBoardBroadcast(ChatMsg msg)
-        {
-            if (IsMessageFromSeed0(msg)) // only accept bbb from seeds
-            {
-                _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
-                AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
+        //private void OnBillBoardBroadcast(ChatMsg msg)
+        //{
+        //    if (IsMessageFromSeed0(msg)) // only accept bbb from seeds
+        //    {
+        //        _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
+        //        AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
 
-                // switch to protect mode if necessary
-                _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { IsSeed0 = false, count = _board.PrimaryAuthorizers.Length });
+        //        // switch to protect mode if necessary
+        //        _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { IsSeed0 = false, count = _board.PrimaryAuthorizers.Length });
 
-                // no me?
-                if (!_board.AllNodes.ContainsKey(_sys.PosWallet.AccountId))
-                {
-                    Task.Run(async () => { 
-                        await DeclareConsensusNodeAsync();
-                    });
-                }
+        //        // no me?
+        //        if (!_board.AllNodes.ContainsKey(_sys.PosWallet.AccountId))
+        //        {
+        //            Task.Run(async () => { 
+        //                await DeclareConsensusNodeAsync();
+        //            });
+        //        }
 
-                _log.LogInformation("BillBoard updated!");
-            }
-        }
+        //        _log.LogInformation("BillBoard updated!");
+        //    }
+        //}
 
         private void RefreshAllNodesVotesAsync()
         {
-            var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
+            var livingPosNodeIds = _board.AllNodes.Select(a => a.AccountID);
             _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
 
-            foreach (var node in _board.AllNodes.Values.ToList())
+            foreach (var node in _board.AllNodes)
             {
                 var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
                 if (vote == null)
@@ -781,28 +786,28 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void BroadCastBillBoard()
-        {
-            if (_board != null)
-            {
-                RefreshAllNodesVotesAsync();
-                OnNodeActive(_sys.PosWallet.AccountId);
-                var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
-                foreach (var node in deadNodes)
-                {
-                    _log.LogInformation("Remove un-active node from billboard: " + node.AccountID);
-                    _board.AllNodes.Remove(node.AccountID);
-                }
-                _board.SnapShot();      // primary node list updated.
-                AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
-                var msg = new ChatMsg(JsonConvert.SerializeObject(_board), ChatMessageType.BillBoardBroadcast);
-                msg.From = _sys.PosWallet.AccountId;
-                Send2P2pNetwork(msg);
+        //private void BroadCastBillBoard()
+        //{
+        //    if (_board != null)
+        //    {
+        //        RefreshAllNodesVotesAsync();
+        //        OnNodeActive(_sys.PosWallet.AccountId);
+        //        var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
+        //        foreach (var node in deadNodes)
+        //        {
+        //            _log.LogInformation("Remove un-active node from billboard: " + node.AccountID);
+        //            _board.AllNodes.Remove(node.AccountID);
+        //        }
+        //        _board.SnapShot();      // primary node list updated.
+        //        AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
+        //        var msg = new ChatMsg(JsonConvert.SerializeObject(_board), ChatMessageType.BillBoardBroadcast);
+        //        msg.From = _sys.PosWallet.AccountId;
+        //        Send2P2pNetwork(msg);
 
-                // switch to protect mode if necessary
-                _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { IsSeed0 = true, count = _board.PrimaryAuthorizers.Length });
-            }
-        }
+        //        // switch to protect mode if necessary
+        //        _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { IsSeed0 = true, count = _board.PrimaryAuthorizers.Length });
+        //    }
+        //}
 
         public void OnNodeActive(string nodeAccountId)
         {
@@ -853,14 +858,14 @@ namespace Lyra.Core.Decentralize
                     await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
                 }
 
-                if (IsThisNodeSeed0)
-                {
-                    // broadcast billboard
-                    _log.LogInformation("Seed0 is broadcasting billboard.");
-                    BroadCastBillBoard();
-                }
+                //if (IsThisNodeSeed0)
+                //{
+                //    // broadcast billboard
+                //    _log.LogInformation("Seed0 is broadcasting billboard.");
+                //    BroadCastBillBoard();
+                //}
 
-                if (_board.AllNodes[node.AccountID].Votes < LyraGlobal.MinimalAuthorizerBalance)
+                if (_board.AllNodes.First(a => a.AccountID == node.AccountID).Votes < LyraGlobal.MinimalAuthorizerBalance)
                 {
                     _log.LogInformation("Node {0} has not enough votes: {1}.", node.AccountID, node.Votes);
                 }
