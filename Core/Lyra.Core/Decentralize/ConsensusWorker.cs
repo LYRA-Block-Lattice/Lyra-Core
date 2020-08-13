@@ -22,6 +22,7 @@ namespace Lyra.Core.Decentralize
     {
         private AuthorizersFactory _authorizers;
 
+        AuthState _state;
         ServiceBlock _currentView;
 
         public string Hash { get; }
@@ -40,6 +41,10 @@ namespace Lyra.Core.Decentralize
             await ProcessMessage(state.InputMsg);
         }
 
+        protected override bool IsStateCreated()
+        {
+            return _state != null;
+        }
         protected override async Task InternalProcessMessage(ConsensusMessage msg)
         {
             if(_currentView != null)

@@ -9,7 +9,7 @@ namespace Lyra.Core.Decentralize
 {
     public class ViewChangeHandler : ConsensusHandlerBase
     {
-
+        
         public ViewChangeHandler(ConsensusService context) : base(context)
         {
 
@@ -17,6 +17,11 @@ namespace Lyra.Core.Decentralize
         public void HandleRequest()
         {
 
+        }
+
+        protected override bool IsStateCreated()
+        {
+            return base.IsStateCreated();
         }
 
         internal Task ProcessMessage(ViewChangeMessage vcm)

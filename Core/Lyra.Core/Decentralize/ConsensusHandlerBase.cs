@@ -14,8 +14,6 @@ namespace Lyra.Core.Decentralize
         protected ConsensusService _context;
         protected ILogger _log;
 
-        protected ConsensusState _state;
-
         DateTime dtStart = DateTime.Now;
 
         protected ConcurrentQueue<ConsensusMessage> _outOfOrderedMessages;
@@ -40,13 +38,13 @@ namespace Lyra.Core.Decentralize
 
         public async virtual Task ProcessMessage(ConsensusMessage msg)
         {
-            _log.LogInformation($"ProcessMessage {msg.MsgType} _state is null? {_state == null}");
+            _log.LogInformation($"ProcessMessage {msg.MsgType} _state is null? {!IsStateCreated()}");
             if(msg is AuthorizingMsg || msg is ViewChangeRequestMessage)
             {
                 await InternalProcessMessage(msg);
                 await ProcessQueueAsync();
             }
-            else if(_state == null)
+            else if(!IsStateCreated())
             {
                 _outOfOrderedMessages.Enqueue(msg);
             }
@@ -67,6 +65,11 @@ namespace Lyra.Core.Decentralize
                 else
                     await Task.Delay(10);
             }
+        }
+
+        protected virtual bool IsStateCreated()
+        {
+            return false;
         }
 
         protected virtual Task InternalProcessMessage(ConsensusMessage msg)
