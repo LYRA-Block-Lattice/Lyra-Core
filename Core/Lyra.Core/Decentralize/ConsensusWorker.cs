@@ -76,15 +76,12 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            _currentView = await _context.GetDagSystem().Storage.FindBlockByHashAsync(_state.InputMsg.Block.ServiceHash) as ServiceBlock;
-
             // first try auth locally
             if (_state == null)
                 _state = CreateAuthringState(msg);
 
+            _currentView = await _context.GetDagSystem().Storage.FindBlockByHashAsync(_state.InputMsg.Block.ServiceHash) as ServiceBlock;
             _state.SetView(_currentView);
-
-
 
             //_context.Send2P2pNetwork(msg);
             _ = Task.Run(async () =>
