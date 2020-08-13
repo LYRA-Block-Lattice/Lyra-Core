@@ -133,20 +133,11 @@ namespace Lyra.Core.Decentralize
 
 	public class ConsensusMessage : SourceSignedMessage
     {
-		public ConsensusMessage()
-        {
-			MsgType = ChatMessageType.Consensus;
-		}
     }
 
 	public class BlockConsensusMessage: ConsensusMessage
 	{
 		public string BlockHash { get; set; }
-
-		public BlockConsensusMessage()
-        {
-			
-        }
 
 		public override int Size => base.Size + BlockHash.Length;
 
@@ -174,13 +165,16 @@ namespace Lyra.Core.Decentralize
 
 	public class AuthorizingMsg : BlockConsensusMessage
 	{
-		public Block Block { get => _block; set 
-			{ 
-				_block = value; 
-				_blockJson = JsonConvert.SerializeObject(_block); 
-			} 
-		}
-		private string _blockJson;
+        public Block Block
+        {
+            get => _block; 
+			set
+            {
+                _block = value;
+                _blockJson = JsonConvert.SerializeObject(_block);
+            }
+        }
+        private string _blockJson;
 		private Block _block;
 
 		public AuthorizingMsg()
