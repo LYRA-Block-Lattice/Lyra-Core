@@ -22,11 +22,10 @@ namespace Lyra.Core.Decentralize
     {
         private AuthorizersFactory _authorizers;
 
-        AuthState _state;
         ServiceBlock _currentView;
 
         public string Hash { get; }
-        public AuthState State { get => _state; set => _state = value; }
+        public AuthState State { get => _state as AuthState; set => _state = value; }
 
         public ConsensusWorker(ConsensusService context, string hash) : base (context)
         {
@@ -268,7 +267,7 @@ namespace Lyra.Core.Decentralize
         private async Task AuthorizeAsync(AuthorizingMsg msg)
         {
             var localAuthResult = await LocalAuthorizingAsync(msg);
-
+            _log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
             _state.AddAuthResult(localAuthResult);
             _context.Send2P2pNetwork(localAuthResult);
             await CheckAuthorizedAllOkAsync(_state);
