@@ -60,6 +60,7 @@ namespace Lyra.Core.Decentralize
         ConcurrentDictionary<string, ConsensusWorker> _cleanedConsensus;
         List<Vote> _lastVotes;
         private BillBoard _board;
+        public bool IsViewChanging { get; private set; }
         private List<TransStats> _stats;
 
         public async Task<BlockChainState> GetBlockChainState() => await _blockchain.Ask<BlockChainState>(new BlockChain.QueryState());
@@ -70,6 +71,8 @@ namespace Lyra.Core.Decentralize
         }
         public BillBoard Board { get => _board; }
         public List<TransStats> Stats { get => _stats; }
+
+        private ViewChangeHandler _viewChangeHandler;
 
         // authorizer snapshot
         private DagSystem _sys;
@@ -88,6 +91,9 @@ namespace Lyra.Core.Decentralize
             _board = new BillBoard();
             _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
             _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
+
+            _viewChangeHandler = new ViewChangeHandler(this);
+            IsViewChanging = false;
 
             ReceiveAsync<Startup>(async state =>
             {
@@ -208,6 +214,8 @@ namespace Lyra.Core.Decentralize
                 {
                     if (worker.CheckTimeout())
                     {
+                        var result = worker.State?.CommitConsensus;
+
                         if (worker.State != null)
                         {
                             worker.State.Done?.Set();
@@ -215,6 +223,12 @@ namespace Lyra.Core.Decentralize
                         }
 
                         _activeConsensus.TryRemove(worker.Hash, out _);
+
+                        if(result.HasValue && result.Value == ConsensusResult.Uncertain)
+                        {
+                            // change view
+                            ChangeView();
+                        }
                     }
                 }
             };
@@ -335,6 +349,16 @@ namespace Lyra.Core.Decentralize
             //    .Select(t => t.State.InputMsg.Block as TransactionBlock)
             //    .Where(x => x != null)
             //    .Any(a => a.AccountID == accountId && a.Index == index && a is SendTransferBlock);
+        }
+
+        private void ChangeView()
+        {
+            IsViewChanging = true;
+            if(IsThisNodeSeed0)
+            {
+                // generate new service block
+                // blockchain.AuthorizerCountChangedProc
+            }
         }
 
         private async Task StateMaintainceAsync()
@@ -614,10 +638,16 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if(item is ConsensusMessage cm)
+            if(item is BlockConsensusMessage cm)
             {
                 var worker = await GetWorkerAsync(cm.BlockHash);
                 await worker.ProcessMessage(cm);
+                return;
+            }
+
+            if(item is ViewChangeMessage vcm)
+            {
+                await _viewChangeHandler.ProcessMessage(vcm);
                 return;
             }
 

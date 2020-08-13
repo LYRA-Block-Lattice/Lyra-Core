@@ -12,6 +12,8 @@ namespace Lyra.Core.Decentralize
 		HeartBeat = 1,
 		BillBoardBroadcast = 3,
 
+		Consensus = 5,
+
 		NodeUp = 10,
 		NodeDown = 11,
 		NodeStatusInquiry = 12,
@@ -23,7 +25,9 @@ namespace Lyra.Core.Decentralize
 		AuthorizerPrepare = 101,
 		AuthorizerCommit = 102,
 
-		ShouldNotExist = 1000
+		ViewChangeRequest = 105,
+		ViewChangeReply = 106,
+		ViewChangeCommit = 107
 	};
 
 	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable
@@ -127,13 +131,21 @@ namespace Lyra.Core.Decentralize
 		}
 	}
 
-	public class ConsensusMessage: SourceSignedMessage
+	public class ConsensusMessage : SourceSignedMessage
     {
-		public string BlockHash { get; set; }
-
 		public ConsensusMessage()
         {
-			MsgType = ChatMessageType.ShouldNotExist;
+			MsgType = ChatMessageType.Consensus;
+		}
+    }
+
+	public class BlockConsensusMessage: ConsensusMessage
+	{
+		public string BlockHash { get; set; }
+
+		public BlockConsensusMessage()
+        {
+			
         }
 
 		public override int Size => base.Size + BlockHash.Length;
@@ -160,7 +172,7 @@ namespace Lyra.Core.Decentralize
         }
     }
 
-	public class AuthorizingMsg : ConsensusMessage
+	public class AuthorizingMsg : BlockConsensusMessage
 	{
 		public Block Block { get => _block; set 
 			{ 
@@ -214,7 +226,7 @@ namespace Lyra.Core.Decentralize
 		}
 	}
 
-	public class AuthorizedMsg : ConsensusMessage
+	public class AuthorizedMsg : BlockConsensusMessage
 	{
 		// block uindex, block hash (replace block itself), error code, authsign
 		public APIResultCodes Result { get; set; }
@@ -255,7 +267,7 @@ namespace Lyra.Core.Decentralize
 		}
 	}
 
-	public class AuthorizerCommitMsg : ConsensusMessage
+	public class AuthorizerCommitMsg : BlockConsensusMessage
 	{
 		public ConsensusResult Consensus { get; set; }
 

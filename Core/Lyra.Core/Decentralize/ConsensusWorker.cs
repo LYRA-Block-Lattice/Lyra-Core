@@ -18,40 +18,21 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public class ConsensusWorker
+    public class ConsensusWorker : ConsensusHandlerBase
     {
-        ConsensusService _context;
-        ILogger _log;
         private AuthorizersFactory _authorizers;
 
-        ConcurrentQueue<ConsensusMessage> _outOfOrderedMessages;
-
-        DateTime dtStart = DateTime.Now;
         AuthState _state;
         ServiceBlock _currentView;
 
         public string Hash { get; }
         public AuthState State { get => _state; set => _state = value; }
 
-        public ConsensusWorker(ConsensusService context, string hash)
+        public ConsensusWorker(ConsensusService context, string hash) : base (context)
         {
-            _log = new SimpleLogger("ConsensusWorker").Logger;
+            _authorizers = new AuthorizersFactory();            
 
-            _authorizers = new AuthorizersFactory();
-            _outOfOrderedMessages = new ConcurrentQueue<ConsensusMessage>();
-
-            _context = context;
             Hash = hash;
-        }
-
-        public bool CheckTimeout()
-        {
-            if (DateTime.Now - dtStart > TimeSpan.FromSeconds(ProtocolSettings.Default.ConsensusTimeout))
-            {
-                return true;
-            }                
-            else
-                return false;
         }
 
         public async Task ProcessState(AuthState state)
@@ -60,27 +41,7 @@ namespace Lyra.Core.Decentralize
             await ProcessMessage(state.InputMsg);
         }
 
-        public async Task ProcessMessage(ConsensusMessage msg)
-        {
-            if(_state == null && !(msg is AuthorizingMsg))
-            {
-                _outOfOrderedMessages.Enqueue(msg);
-            }               
-            else
-            {
-                await InternalProcessMessage(msg);
-                while(_outOfOrderedMessages.Count > 0)
-                {
-                    ConsensusMessage msg1;
-                    if (_outOfOrderedMessages.TryDequeue(out msg1))
-                        await InternalProcessMessage(msg1);
-                    else
-                        await Task.Delay(10);
-                }
-            }
-        }
-
-        private async Task InternalProcessMessage(ConsensusMessage msg)
+        protected override async Task InternalProcessMessage(ConsensusMessage msg)
         {
             if(_currentView != null)
             {
@@ -115,24 +76,15 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            // first try auth locally
-            if(_state == null)
-                _state = await CreateAuthringStateAsync(msg);
             _currentView = await _context.GetDagSystem().Storage.FindBlockByHashAsync(_state.InputMsg.Block.ServiceHash) as ServiceBlock;
 
-            ConsensusMessage queuedMsg;
-            while (_outOfOrderedMessages.TryDequeue(out queuedMsg))
-            {
-                switch (queuedMsg)
-                {
-                    case AuthorizedMsg msg1:
-                        await OnPrepareAsync(msg1);
-                        break;
-                    case AuthorizerCommitMsg msg2:
-                        await OnCommitAsync(msg2);
-                        break;
-                }
-            }
+            // first try auth locally
+            if (_state == null)
+                _state = CreateAuthringState(msg);
+
+            _state.SetView(_currentView);
+
+
 
             //_context.Send2P2pNetwork(msg);
             _ = Task.Run(async () =>
@@ -155,13 +107,6 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnCommitAsync(AuthorizerCommitMsg item)
         {
-            if (_state == null)
-            {
-                _outOfOrderedMessages.Enqueue(item);
-                //_log.LogWarning($"OnCommit: _state null for {item.BlockHash.Shorten()}");
-                return;
-            }
-
             if (_state.T5 == default)
                 _state.T5 = DateTime.Now;
 
@@ -199,7 +144,7 @@ namespace Lyra.Core.Decentralize
             //}
         }
 
-        private async Task<AuthState> CreateAuthringStateAsync(AuthorizingMsg item)
+        private AuthState CreateAuthringState(AuthorizingMsg item)
         {
             _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {item.Block.Height}");
 
@@ -210,7 +155,6 @@ namespace Lyra.Core.Decentralize
             //}
 
             var state = new AuthState();
-            state.SetView(await _context.GetDagSystem().Storage.GetLastServiceBlockAsync());
             state.InputMsg = item;
 
             //// add possible out of ordered messages belong to the block
