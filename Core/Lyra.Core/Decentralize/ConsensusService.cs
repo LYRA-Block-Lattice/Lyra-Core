@@ -638,8 +638,11 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if(item is BlockConsensusMessage cm)
+            _log.LogInformation($"OnNextConsensusMessageAsync: sending to concensus.");
+
+            if (item is BlockConsensusMessage cm)
             {
+                _log.LogInformation($"OnNextConsensusMessageAsync: sending to ConsensusWorker.");
                 var worker = await GetWorkerAsync(cm.BlockHash);
                 await worker.ProcessMessage(cm);
                 return;
@@ -647,6 +650,7 @@ namespace Lyra.Core.Decentralize
 
             if(item is ViewChangeMessage vcm)
             {
+                _log.LogInformation($"OnNextConsensusMessageAsync: sending to ViewChangeHandler.");
                 await _viewChangeHandler.ProcessMessage(vcm);
                 return;
             }

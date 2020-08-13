@@ -47,20 +47,25 @@ namespace Lyra.Core.Decentralize
             else
             {
                 await InternalProcessMessage(msg);
-                while (_outOfOrderedMessages.Count > 0)
-                {
-                    ConsensusMessage msg1;
-                    if (_outOfOrderedMessages.TryDequeue(out msg1))
-                        await InternalProcessMessage(msg1);
-                    else
-                        await Task.Delay(10);
-                }
+
+            }
+        }
+
+        protected async Task ProcessQueueAsync()
+        {
+            while (_outOfOrderedMessages.Count > 0)
+            {
+                ConsensusMessage msg1;
+                if (_outOfOrderedMessages.TryDequeue(out msg1))
+                    await InternalProcessMessage(msg1);
+                else
+                    await Task.Delay(10);
             }
         }
 
         protected virtual Task InternalProcessMessage(ConsensusMessage msg)
         {
-            return Task.CompletedTask;
+            throw new InvalidOperationException("Must override.");
         }
     }
 }

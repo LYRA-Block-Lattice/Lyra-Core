@@ -276,6 +276,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAuthorizedAllOkAsync(AuthState state)
         {
+            await ProcessQueueAsync();
             // check state
             // debug: show all states
             _log.LogInformation($"Consensus Result Received: {state.OutputMsgs.Count} Win Number: {state.WinNumber}");
