@@ -247,7 +247,7 @@ namespace Lyra.Core.Decentralize
 
                         await Task.Delay(15000).ConfigureAwait(false);
 
-                        HeartBeat();
+                        //HeartBeat();
 
                         count++;
 
