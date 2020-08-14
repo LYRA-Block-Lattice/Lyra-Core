@@ -216,7 +216,7 @@ namespace Lyra.Core.Decentralize
             ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
 
             var timr = new System.Timers.Timer(100);
-            timr.Elapsed += (s, o) =>
+            timr.Elapsed += async (s, o) =>
             {
                 foreach (var worker in _activeConsensus.Values.ToArray())
                 {
@@ -235,7 +235,9 @@ namespace Lyra.Core.Decentralize
                         if(result.HasValue && result.Value == ConsensusResult.Uncertain)
                         {
                             // change view
-                            ChangeView();
+                            IsViewChanging = true;
+
+                            await _viewChangeHandler.BeginChangeViewAsync();
                         }
                     }
                 }
@@ -357,19 +359,6 @@ namespace Lyra.Core.Decentralize
             //    .Select(t => t.State.InputMsg.Block as TransactionBlock)
             //    .Where(x => x != null)
             //    .Any(a => a.AccountID == accountId && a.Index == index && a is SendTransferBlock);
-        }
-
-        private void ChangeView()
-        {
-            IsViewChanging = true;
-
-            _viewChangeHandler.BeginChangeViewAsync();
-
-            //if(IsThisNodeSeed0)
-            //{
-            //    // generate new service block
-            //    // blockchain.AuthorizerCountChangedProc
-            //}
         }
 
         private async Task StateMaintainceAsync()

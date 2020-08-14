@@ -46,6 +46,11 @@ namespace Lyra.Core.Decentralize
 			+ sizeof(int);
 			//+ TimeSize;
 
+		public SourceSignedMessage()
+        {
+
+        }
+
 		public virtual void Deserialize(BinaryReader reader)
 		{
 			Hash = reader.ReadString();

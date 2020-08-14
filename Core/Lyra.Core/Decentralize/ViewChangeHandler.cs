@@ -123,6 +123,7 @@ namespace Lyra.Core.Decentralize
             {
                 var commit = new ViewChangeCommitMessage
                 {
+                    From = _context.GetDagSystem().PosWallet.AccountId,
                     ViewID = _viewId,
                     Candidate = candidate.Candidate,
                     Consensus = ConsensusResult.Yea
@@ -147,6 +148,7 @@ namespace Lyra.Core.Decentralize
             {
                 var reply = new ViewChangeReplyMessage
                 {
+                    From = _context.GetDagSystem().PosWallet.AccountId,
                     ViewID = _viewId,
                     Result = Blocks.APIResultCodes.Success,
                     Candidate = _reqMsgs.OrderBy(a => a.requestSignature).First().From
@@ -166,6 +168,7 @@ namespace Lyra.Core.Decentralize
 
             var req = new ViewChangeRequestMessage
             {
+                From = _context.GetDagSystem().PosWallet.AccountId,
                 ViewID = lastSb.Height + 1,
                 prevViewID = lastSb.Height,
                 requestSignature = Signatures.GetSignature(_context.GetDagSystem().PosWallet.PrivateKey,
