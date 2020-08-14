@@ -100,6 +100,8 @@ namespace Lyra.Core.Decentralize
                     // its me!
                     _blockchain.Tell(new BlockChain.NewLeaderCreateView());
                 }
+
+                _viewChangeHandler.Reset();
             });
             IsViewChanging = false;
 

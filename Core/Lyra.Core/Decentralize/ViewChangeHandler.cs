@@ -39,26 +39,34 @@ namespace Lyra.Core.Decentralize
             _leaderSelected = leaderSelected;
         }
 
-        public void Finish()
-        {
-            _viewId++;
-            _reqMsgs.Clear();
-            _replyMsgs.Clear();
-            _commitMsgs.Clear();
-        }
-
-        // debug only. should remove after
-        public override bool CheckTimeout()
-        {
-            return false;
-        }
+        //// debug only. should remove after
+        //public override bool CheckTimeout()
+        //{
+        //    return false;
+        //}
         protected override bool IsStateCreated()
         {
             return true;
         }
 
+        public void Reset()
+        {
+            _viewId = 0;
+
+            _reqMsgs.Clear();
+            _replyMsgs.Clear();
+            _commitMsgs.Clear();
+        }
+
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
+            if(_viewId == 0)
+            {
+                // other node request to change view
+                var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
+                _viewId = lastSb.Height + 1;
+            }
+
             if (_viewId == vcm.ViewID && GetIsMessageLegal(vcm))      // not the next one
             {
                 switch (vcm)
@@ -174,6 +182,17 @@ namespace Lyra.Core.Decentralize
         internal async Task BeginChangeViewAsync()
         {
             _log.LogInformation($"BeginChangeViewAsync");
+
+            if(_viewId != 0)
+            {
+                _log.LogWarning("View change in progress.");
+                return;
+            }
+
+            IsLeaderSelected = false;
+            NewLeader = null;
+            NewLeaderVotes = 0;
+
             var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
             var lastCons = await _context.GetDagSystem().Storage.GetLastConsolidationBlockAsync();
 
