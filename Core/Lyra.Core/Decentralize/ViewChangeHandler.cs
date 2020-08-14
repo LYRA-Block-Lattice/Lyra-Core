@@ -183,20 +183,22 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"BeginChangeViewAsync");
 
-            if(_viewId != 0)
+            var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
+            var lastCons = await _context.GetDagSystem().Storage.GetLastConsolidationBlockAsync();
+
+            if (_viewId == 0)
             {
-                _log.LogWarning("View change in progress.");
+                _viewId = lastSb.Height + 1;
+            }
+            else if(_viewId != lastSb.Height + 1)
+            {
+                _log.LogError($"BeginChangeViewAsync with different viewID!!!");
                 return;
             }
 
             IsLeaderSelected = false;
             NewLeader = null;
-            NewLeaderVotes = 0;
-
-            var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
-            var lastCons = await _context.GetDagSystem().Storage.GetLastConsolidationBlockAsync();
-
-            _viewId = lastSb.Height + 1;
+            NewLeaderVotes = 0;            
 
             var req = new ViewChangeRequestMessage
             {
