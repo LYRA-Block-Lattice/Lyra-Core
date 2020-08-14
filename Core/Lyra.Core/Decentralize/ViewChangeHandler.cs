@@ -167,7 +167,6 @@ namespace Lyra.Core.Decentralize
             var req = new ViewChangeRequestMessage
             {
                 ViewID = lastSb.Height + 1,
-                prevLeader = lastSb.Leader,
                 prevViewID = lastSb.Height,
                 requestSignature = Signatures.GetSignature(_context.GetDagSystem().PosWallet.PrivateKey,
                     $"{lastSb.Hash}|{lastCons.Hash}", _context.GetDagSystem().PosWallet.AccountId),

@@ -39,7 +39,6 @@ namespace Lyra.Core.Decentralize
 	public class ViewChangeRequestMessage : ViewChangeMessage
 	{
 		public long prevViewID { get; set; }
-		public string prevLeader { get; set; }
 		public string requestSignature { get; set; }
 
 		public ViewChangeRequestMessage()
@@ -49,7 +48,7 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{prevViewID}|{prevLeader}|" + base.GetHashInput();
+			return $"{prevViewID}|{requestSignature}|" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
@@ -57,20 +56,20 @@ namespace Lyra.Core.Decentralize
 			return base.GetExtraData();
 		}
 
-		public override int Size => base.Size + sizeof(long) + prevLeader.Length;
+		public override int Size => base.Size + sizeof(long) + requestSignature.Length;
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
 			writer.Write(prevViewID);
-			writer.Write(prevLeader);
+			writer.Write(requestSignature);
 		}
 
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
 			prevViewID = reader.ReadInt64();
-			prevLeader = reader.ReadString();
+			requestSignature = reader.ReadString();
 		}
 	}
 
