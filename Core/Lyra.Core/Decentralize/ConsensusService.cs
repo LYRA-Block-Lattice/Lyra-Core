@@ -652,66 +652,66 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if(item is ViewChangeMessage vcm)
+            if (item is ViewChangeMessage vcm)
             {
                 _log.LogInformation($"OnNextConsensusMessageAsync: sending to ViewChangeHandler.");
                 await _viewChangeHandler.ProcessMessage(vcm);
                 return;
             }
 
-/*            switch (item)
-            {
-                case AuthorizingMsg msg1:
-                    if(msg1.Block is TransactionBlock)
-                    {
-                        var acctId = (msg1.Block as TransactionBlock).AccountID;
-                        if (FindActiveBlock(acctId, msg1.Block.Height))
+            /*            switch (item)
                         {
-                            _log.LogCritical($"Double spent detected for {acctId}, index {msg1.Block.Height}");
-                            break;
-                        }
-                    }
+                            case AuthorizingMsg msg1:
+                                if(msg1.Block is TransactionBlock)
+                                {
+                                    var acctId = (msg1.Block as TransactionBlock).AccountID;
+                                    if (FindActiveBlock(acctId, msg1.Block.Height))
+                                    {
+                                        _log.LogCritical($"Double spent detected for {acctId}, index {msg1.Block.Height}");
+                                        break;
+                                    }
+                                }
 
-                    if (msg1.Block is ServiceBlock && !IsMessageFromSeed0(item))
-                    {
-                        _log.LogError($"fake genesis block from node {item.From}");
-                        return;
-                    }                        
+                                if (msg1.Block is ServiceBlock && !IsMessageFromSeed0(item))
+                                {
+                                    _log.LogError($"fake genesis block from node {item.From}");
+                                    return;
+                                }                        
 
-                    var worker = await GetWorkerAsync(msg1.Block.Hash);
-                    if (worker != null)
-                        await worker.OnPrePrepareAsync(msg1);
-                    else
-                        _log.LogError($"No worker1 for {msg1.Block.Hash}");
-                    break;
-                case AuthorizedMsg msg2:
-                    //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync 3 {item.MsgType}");
+                                var worker = await GetWorkerAsync(msg1.Block.Hash);
+                                if (worker != null)
+                                    await worker.OnPrePrepareAsync(msg1);
+                                else
+                                    _log.LogError($"No worker1 for {msg1.Block.Hash}");
+                                break;
+                            case AuthorizedMsg msg2:
+                                //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync 3 {item.MsgType}");
 
-                    if (!AuthorizerShapshot.Contains(msg2.From))
-                        return;
+                                if (!AuthorizerShapshot.Contains(msg2.From))
+                                    return;
 
-                    var worker2 = await GetWorkerAsync(msg2.BlockHash);
-                    if (worker2 != null)
-                        await worker2.OnPrepareAsync(msg2);
-                    else
-                        _log.LogInformation($"No worker2 from {msg2.From.Shorten()} for {msg2.BlockHash.Shorten()}");
-                    //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync 4 {item.MsgType}");
-                    break;
-                case AuthorizerCommitMsg msg3:
-                    if (!AuthorizerShapshot.Contains(msg3.From))
-                        return;
+                                var worker2 = await GetWorkerAsync(msg2.BlockHash);
+                                if (worker2 != null)
+                                    await worker2.OnPrepareAsync(msg2);
+                                else
+                                    _log.LogInformation($"No worker2 from {msg2.From.Shorten()} for {msg2.BlockHash.Shorten()}");
+                                //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync 4 {item.MsgType}");
+                                break;
+                            case AuthorizerCommitMsg msg3:
+                                if (!AuthorizerShapshot.Contains(msg3.From))
+                                    return;
 
-                    var worker3 = await GetWorkerAsync(msg3.BlockHash);
-                    if (worker3 != null)
-                        await worker3.OnCommitAsync(msg3);
-                    else
-                        _log.LogInformation($"No worker3 from {msg3.From.Shorten()} for {msg3.BlockHash.Shorten()}");
-                    break;
-                default:
-                    // log msg unknown
-                    _log.LogInformation($"Message unknown from {item.From} type {item.MsgType} not processed: ");
-                    break;
-            }*/
+                                var worker3 = await GetWorkerAsync(msg3.BlockHash);
+                                if (worker3 != null)
+                                    await worker3.OnCommitAsync(msg3);
+                                else
+                                    _log.LogInformation($"No worker3 from {msg3.From.Shorten()} for {msg3.BlockHash.Shorten()}");
+                                break;
+                            default:
+                                // log msg unknown
+                                _log.LogInformation($"Message unknown from {item.From} type {item.MsgType} not processed: ");
+                                break;
+                        }*/
         }
 
         private async Task OnRecvChatMsg(ChatMsg chat)

@@ -58,7 +58,7 @@ namespace Lyra.Shared
             if (string.IsNullOrWhiteSpace(addr) || addr.Length < 10)
                 return addr;
 
-            return $"{addr.Substring(0, 3)}...{addr.Substring(addr.Length - 6, 6)}";
+            return $"{addr.Substring(0, 4)}...{addr.Substring(addr.Length - 6, 6)}";
         }
 
         public static HashSet<T> ToHashSet<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer = null)

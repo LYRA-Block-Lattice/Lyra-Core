@@ -81,7 +81,7 @@ namespace Lyra.Core.Decentralize
 
 		public ViewChangeReplyMessage()
 		{
-			MsgType = ChatMessageType.AuthorizerPrepare;
+			MsgType = ChatMessageType.ViewChangeReply;
 		}
 		public override string GetHashInput()
 		{
@@ -121,7 +121,7 @@ namespace Lyra.Core.Decentralize
 
 		public ViewChangeCommitMessage()
 		{
-			MsgType = ChatMessageType.AuthorizerCommit;
+			MsgType = ChatMessageType.ViewChangeCommit;
 		}
 
 		public override string GetHashInput()
