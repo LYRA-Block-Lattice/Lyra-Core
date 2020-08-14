@@ -60,6 +60,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
+            _log.LogInformation($"ViewChangeHandler ViewID {_viewId} ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID}");
             if(_viewId == 0)
             {
                 // other node request to change view
