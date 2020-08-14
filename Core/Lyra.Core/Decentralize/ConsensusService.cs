@@ -783,7 +783,7 @@ namespace Lyra.Core.Decentralize
         //    }
         //}
 
-        private void RefreshAllNodesVotesAsync()
+        private void RefreshAllNodesVotes()
         {
             var livingPosNodeIds = _board.AllNodes.Select(a => a.AccountID);
             _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
@@ -862,7 +862,7 @@ namespace Lyra.Core.Decentralize
 
                 // add network/ip verifycation here
 
-                _ = _board.Add(node);
+                var IsNew = _board.Add(node);
 
                 if (IsMessageFromSeed0(chat))    // seed0 up
                 {
@@ -870,12 +870,8 @@ namespace Lyra.Core.Decentralize
                     await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
                 }
 
-                //if (IsThisNodeSeed0)
-                //{
-                //    // broadcast billboard
-                //    _log.LogInformation("Seed0 is broadcasting billboard.");
-                //    BroadCastBillBoard();
-                //}
+                // calculate votes, update billboard
+                RefreshAllNodesVotes();
 
                 if (_board.AllNodes.First(a => a.AccountID == node.AccountID).Votes < LyraGlobal.MinimalAuthorizerBalance)
                 {

@@ -62,21 +62,21 @@ namespace Lyra.Core.Decentralize
         public bool HasNode(string accountId) { return AllNodes.Any(a => a.AccountID == accountId); }
         public PosNode GetNode(string accountId) { return AllNodes.First(a => a.AccountID == accountId); }
 
-        public PosNode Add(PosNode node)
+        public bool Add(PosNode node)
         {
+            node.LastStaking = DateTime.Now;
+
             if (!HasNode(node.AccountID))
             {
                 AllNodes.Add(node);
+                return true;
             }
             else
             {
                 var oldNode = AllNodes.RemoveAll(a => a.AccountID == node.AccountID);
                 AllNodes.Add(node);
+                return false;
             }
-
-            node.LastStaking = DateTime.Now;
-
-            return node;
         }
 
         public void Refresh(string accountId)
