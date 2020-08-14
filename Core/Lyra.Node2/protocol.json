@@ -1,7 +1,7 @@
 {
   "ProtocolConfiguration": {
     "Magic": 3335087,
-    "ConsensusTimeout": 300,
+    "ConsensusTimeout": 4,
     "ConsensusNumber": 2,
     "StandbyValidators": [
       "LQqbMdksgJNzWpzYovdpMK6kqUdRwdCBhG2NBYNDA3GTWwD47b4RuL9F3aqhiYHMyU4F6MPpNKZKTUe7eGtgU8Lr4jPVk2",

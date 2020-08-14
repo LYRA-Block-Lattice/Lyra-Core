@@ -26,7 +26,7 @@ namespace Lyra.Core.Decentralize
             _outOfOrderedMessages = new ConcurrentQueue<ConsensusMessage>();
         }
 
-        public bool CheckTimeout()
+        public virtual bool CheckTimeout()
         {
             if (DateTime.Now - dtStart > TimeSpan.FromSeconds(ProtocolSettings.Default.ConsensusTimeout))
             {

@@ -46,6 +46,11 @@ namespace Lyra.Core.Decentralize
             _commitMsgs.Clear();
         }
 
+        // debug only. should remove after
+        public override bool CheckTimeout()
+        {
+            return false;
+        }
         protected override bool IsStateCreated()
         {
             return true;
@@ -84,6 +89,8 @@ namespace Lyra.Core.Decentralize
 
         private void CheckCommit(ViewChangeCommitMessage vcm)
         {
+            _log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate}");
+
             _commitMsgs.AddOrUpdate(vcm.From, vcm, (key, oldValue) => vcm);
 
             var q = from rep in _commitMsgs.Values
@@ -102,6 +109,8 @@ namespace Lyra.Core.Decentralize
 
         private void CheckReply(ViewChangeReplyMessage reply)
         {
+            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate}");
+
             if (_replyMsgs.ContainsKey(reply.From))
             {
                 _replyMsgs[reply.From] = reply;
@@ -134,8 +143,10 @@ namespace Lyra.Core.Decentralize
         }
 
         private async Task CheckRequestAsync(ViewChangeRequestMessage req)
-        {            
-            if(!_reqMsgs.Any(a => a.From == req.From))
+        {
+            _log.LogInformation($"CheckRequestAsync for view {req.ViewID}");
+
+            if (!_reqMsgs.Any(a => a.From == req.From))
             {
                 var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
                 var lastCons = await _context.GetDagSystem().Storage.GetLastConsolidationBlockAsync();
@@ -161,6 +172,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task BeginChangeViewAsync()
         {
+            _log.LogInformation($"BeginChangeViewAsync");
             var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
             var lastCons = await _context.GetDagSystem().Storage.GetLastConsolidationBlockAsync();
 
