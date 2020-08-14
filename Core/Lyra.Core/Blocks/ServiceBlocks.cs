@@ -25,6 +25,7 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class ServiceBlock : Block
     {
+        public string Leader { get; set; }
         //public Dictionary<string, NodeInfo> Authorizers { get; set; }
         public List<PosNode> Authorizers { get; set; }
         //public List<NodeInfo> Candidates { get; set; }
@@ -78,6 +79,9 @@ namespace Lyra.Core.Blocks
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
+
+            extraData += this.Version == 1 ? "" : Leader + "|";
+
             extraData += this.NetworkId + "|";
             extraData += this.FeeTicker + "|";
             foreach (var pn in Authorizers)

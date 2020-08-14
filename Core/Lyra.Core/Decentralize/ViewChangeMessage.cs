@@ -40,6 +40,7 @@ namespace Lyra.Core.Decentralize
 	{
 		public long prevViewID { get; set; }
 		public string prevLeader { get; set; }
+		public string requestSignature { get; set; }
 
 		public ViewChangeRequestMessage()
 		{
@@ -77,7 +78,7 @@ namespace Lyra.Core.Decentralize
 	{
 		// block uindex, block hash (replace block itself), error code, authsign
 		public APIResultCodes Result { get; set; }
-		public AuthorizationSignature AuthSign { get; set; }
+		public string Candidate { get; set; }
 
 		public ViewChangeReplyMessage()
 		{
@@ -85,7 +86,7 @@ namespace Lyra.Core.Decentralize
 		}
 		public override string GetHashInput()
 		{
-			return $"{Result}|{AuthSign?.Key}|{AuthSign?.Signature}|" + base.GetHashInput();
+			return $"{Result}|{Candidate}" + base.GetHashInput();
 		}
 
 		public bool IsSuccess => Result == APIResultCodes.Success;
@@ -97,25 +98,26 @@ namespace Lyra.Core.Decentralize
 
 		public override int Size => base.Size +
 			sizeof(int) +
-			JsonConvert.SerializeObject(AuthSign).Length;
+			Candidate.Length;
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
 			writer.Write((int)Result);
-			writer.Write(JsonConvert.SerializeObject(AuthSign));
+			writer.Write(Candidate);
 		}
 
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
 			Result = (APIResultCodes)reader.ReadInt32();
-			AuthSign = JsonConvert.DeserializeObject<AuthorizationSignature>(reader.ReadString());
+			Candidate = reader.ReadString();
 		}
 	}
 
 	public class ViewChangeCommitMessage : ViewChangeMessage
 	{
+		public string Candidate { get; set; }
 		public ConsensusResult Consensus { get; set; }
 
 		public ViewChangeCommitMessage()
@@ -125,7 +127,7 @@ namespace Lyra.Core.Decentralize
 
 		public override string GetHashInput()
 		{
-			return $"{Consensus}" + base.GetHashInput();
+			return $"{Candidate}|{Consensus}" + base.GetHashInput();
 		}
 
 		protected override string GetExtraData()
@@ -134,17 +136,20 @@ namespace Lyra.Core.Decentralize
 		}
 
 		public override int Size => base.Size +
+			Candidate.Length +
 			sizeof(ConsensusResult);
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
+			writer.Write(Candidate);
 			writer.Write((int)Consensus);
 		}
 
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
+			Candidate = reader.ReadString();
 			Consensus = (ConsensusResult)reader.ReadInt32();
 		}
 	}

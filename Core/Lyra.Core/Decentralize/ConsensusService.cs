@@ -92,7 +92,15 @@ namespace Lyra.Core.Decentralize
             _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
             _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
 
-            _viewChangeHandler = new ViewChangeHandler(this);
+            _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes) => {
+                _log.LogInformation($"New leader selected: {sender.NewLeader} with votes {sender.NewLeaderVotes}");
+
+                if(sender.NewLeader == _sys.PosWallet.AccountId)
+                {
+                    // its me!
+                    _blockchain.Tell(new BlockChain.NewLeaderCreateView());
+                }
+            });
             IsViewChanging = false;
 
             ReceiveAsync<Startup>(async state =>
@@ -354,11 +362,14 @@ namespace Lyra.Core.Decentralize
         private void ChangeView()
         {
             IsViewChanging = true;
-            if(IsThisNodeSeed0)
-            {
-                // generate new service block
-                // blockchain.AuthorizerCountChangedProc
-            }
+
+            _viewChangeHandler.BeginChangeViewAsync();
+
+            //if(IsThisNodeSeed0)
+            //{
+            //    // generate new service block
+            //    // blockchain.AuthorizerCountChangedProc
+            //}
         }
 
         private async Task StateMaintainceAsync()

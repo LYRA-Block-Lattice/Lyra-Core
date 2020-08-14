@@ -73,9 +73,7 @@ namespace Lyra
             public string hash { get; set; }
         }
 
-        public class AuthorizerCountChanged { public int count { get; set; }
-            public bool IsSeed0 { get; set; }
-        }
+        public class NewLeaderCreateView { }
 
         private LyraRestClient _seed0Client;
 
@@ -137,7 +135,7 @@ namespace Lyra
             {
                 ConsolidationBlockFailed(x.consolidationBlockHash);
             });
-            Receive<AuthorizerCountChanged>(x => AuthorizerCountChangedProc(x.count, x.IsSeed0));
+            Receive<NewLeaderCreateView>(x => CreateNewViewAdNewLeader());
         }
 
         public static Props Props(DagSystem system, IAccountCollectionAsync store)
@@ -386,76 +384,72 @@ namespace Lyra
             //}
         }
 
-        public void AuthorizerCountChangedProc(int count, bool IsSeed0)
+        public void CreateNewViewAdNewLeader()
         {
-            if (this._stateMachine.State == BlockChainState.Almighty && IsSeed0 && count >= ProtocolSettings.Default.StandbyValidators.Length)
-            {
-                _log.LogInformation($"AuthorizerCountChanged: {count} IsSeed0: {IsSeed0}");
-                // look for changes. if necessary create a new svc block.
-                _ = Task.Run(async () =>
+            _log.LogInformation($"Creating New View...");
+            // look for changes. if necessary create a new svc block.
+            _ = Task.Run(async () =>
+              {
+                  if (!_creatingSvcBlock)
                   {
-                      if (!_creatingSvcBlock)
+                      _creatingSvcBlock = true;
+
+                      try
                       {
-                          _creatingSvcBlock = true;
-
-                          try
+                          var prevSvcBlock = await GetLastServiceBlockAsync();
+                          var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                          if (prevSvcBlock != null && DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
                           {
-                              var prevSvcBlock = await GetLastServiceBlockAsync();
-                              var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                              if (prevSvcBlock != null && DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
+                              var comp = new MultiSetComparer<string>();
+                              if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), board.PrimaryAuthorizers))
                               {
-                                  var comp = new MultiSetComparer<string>();
-                                  if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), board.PrimaryAuthorizers))
+                                  var svcBlock = new ServiceBlock
                                   {
-                                      _log.LogInformation($"PrimaryAuthorizers Changed: {count} Creating new ServiceBlock.");
+                                      NetworkId = prevSvcBlock.NetworkId,
+                                      Height = prevSvcBlock.Height + 1,
+                                      FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
+                                      ServiceHash = prevSvcBlock.Hash,
+                                      Leader = _sys.PosWallet.AccountId,
+                                      TransferFee = 1,           //zero for genesis. back to normal when genesis done
+                                      TokenGenerationFee = 10000,
+                                      TradeFee = 0.1m
+                                  };
 
-                                      var svcBlock = new ServiceBlock
-                                      {
-                                          NetworkId = prevSvcBlock.NetworkId,
-                                          Height = prevSvcBlock.Height + 1,
-                                          FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
-                                          ServiceHash = prevSvcBlock.Hash,
-                                          TransferFee = 1,           //zero for genesis. back to normal when genesis done
-                                          TokenGenerationFee = 10000,
-                                          TradeFee = 0.1m
-                                      };
+                                  svcBlock.Authorizers = new List<PosNode>();
+                                  foreach (var accId in board.PrimaryAuthorizers)
+                                  {
+                                      if (board.AllNodes.Any(a => a.AccountID == accId))
+                                          svcBlock.Authorizers.Add(board.AllNodes.First(a => a.AccountID == accId));
 
-                                      svcBlock.Authorizers = new List<PosNode>();
-                                      foreach (var accId in board.PrimaryAuthorizers)
-                                      {
-                                          if (board.AllNodes.Any(a => a.AccountID == accId))
-                                              svcBlock.Authorizers.Add(board.AllNodes.First(a => a.AccountID == accId));
-
-                                          if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
-                                              break;
-                                      }
+                                      if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
+                                          break;
+                                  }
 
                                       // fees aggregation
                                       var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
-                                      svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
+                                  svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
 
-                                      if (svcBlock.Authorizers.Count() >= prevSvcBlock.Authorizers.Count())
-                                      {
-                                          svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,
-                                              _sys.PosWallet.AccountId);
+                                  if (svcBlock.Authorizers.Count() >= prevSvcBlock.Authorizers.Count())
+                                  {
+                                      svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,
+                                          _sys.PosWallet.AccountId);
 
-                                          await SendBlockToConsensusAsync(svcBlock);
-                                      }
-                                      else
-                                      {
-                                          _log.LogError($"Authorizers count {svcBlock.Authorizers.Count()} can't be less than {prevSvcBlock.Authorizers.Count()}");
-                                      }
+                                      await SendBlockToConsensusAsync(svcBlock);
+                                  }
+                                  else
+                                  {
+                                      _log.LogError($"Authorizers count {svcBlock.Authorizers.Count()} can't be less than {prevSvcBlock.Authorizers.Count()}");
                                   }
                               }
                           }
-                          finally
-                          {
-                              await Task.Delay(10000);
-                              _creatingSvcBlock = false;
-                          }
                       }
-                  });
-            }
+                      finally
+                      {
+                          await Task.Delay(10000);
+                          _creatingSvcBlock = false;
+                      }
+                  }
+              });
         }
 
         public string GetUnConsolidatedHash(List<string> unCons)
