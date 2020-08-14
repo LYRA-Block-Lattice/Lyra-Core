@@ -606,7 +606,10 @@ namespace Lyra.Core.Decentralize
             // if a block is in database
             var aBlock = await _sys.Storage.FindBlockByHashAsync(hash);
             if (aBlock != null)
+            {
+                _log.LogWarning($"GetWorker: already in database! hash: {hash.Shorten()}");
                 return null;
+            }
 
             if (_cleanedConsensus.ContainsKey(hash))        // > 2min outdated.
             {
@@ -644,7 +647,8 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation($"OnNextConsensusMessageAsync: sending to ConsensusWorker.");
                 var worker = await GetWorkerAsync(cm.BlockHash);
-                await worker.ProcessMessage(cm);
+                if(worker != null)
+                    await worker.ProcessMessage(cm);
                 return;
             }
 
