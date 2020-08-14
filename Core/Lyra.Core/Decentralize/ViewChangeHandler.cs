@@ -99,7 +99,7 @@ namespace Lyra.Core.Decentralize
                     select new { Candidate = g.Key, Count = g.Count() };
 
             var candidate = q.First();
-            if (candidate.Count >= LyraGlobal.GetMojority(QualifiedNodeCount))
+            if (candidate.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
             {
                 NewLeader = candidate.Candidate;
                 IsLeaderSelected = true;
@@ -129,7 +129,7 @@ namespace Lyra.Core.Decentralize
 
             var candidate = q.First();
 
-            if(candidate.Count >= LyraGlobal.GetMojority(QualifiedNodeCount))
+            if(candidate.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
             {
                 var commit = new ViewChangeCommitMessage
                 {
@@ -156,7 +156,7 @@ namespace Lyra.Core.Decentralize
                     _reqMsgs.Add(req);
             }                
 
-            if(_reqMsgs.Count >= LyraGlobal.GetMojority(QualifiedNodeCount))
+            if(_reqMsgs.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
             {
                 var reply = new ViewChangeReplyMessage
                 {

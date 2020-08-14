@@ -39,9 +39,9 @@ namespace Lyra.Core.API
 
         public const int CONSENSUSTIMEOUT = 4000;       // 4 seconds
 
-        public static int GetMojority(int totalCount)
+        public static int GetMajority(int totalCount)
         {
-            return (int)Math.Ceiling((double)(((double)totalCount - 1) / 3 * 2));
+            return totalCount - (int)Math.Floor((double)(((double)totalCount - 1) / 3));
         }
 
         // get api for (rpcurl, resturl)

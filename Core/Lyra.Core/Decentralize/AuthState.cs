@@ -51,7 +51,7 @@ namespace Lyra.Core.Decentralize
                 {
                     return ProtocolSettings.Default.StandbyValidators.Length;
                 }
-                var minCount = LyraGlobal.GetMojority(_serviceBlock.Authorizers.Count());
+                var minCount = LyraGlobal.GetMajority(_serviceBlock.Authorizers.Count());
                 if (minCount < ProtocolSettings.Default.StandbyValidators.Length)
                     return ProtocolSettings.Default.StandbyValidators.Length;
                 else
