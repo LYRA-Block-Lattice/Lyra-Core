@@ -641,11 +641,8 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            _log.LogInformation($"OnNextConsensusMessageAsync: sending to concensus.");
-
             if (item is BlockConsensusMessage cm)
             {
-                _log.LogInformation($"OnNextConsensusMessageAsync: sending to ConsensusWorker.");
                 var worker = await GetWorkerAsync(cm.BlockHash);
                 if(worker != null)
                     await worker.ProcessMessage(cm);
@@ -654,7 +651,6 @@ namespace Lyra.Core.Decentralize
 
             if (item is ViewChangeMessage vcm)
             {
-                _log.LogInformation($"OnNextConsensusMessageAsync: sending to ViewChangeHandler.");
                 await _viewChangeHandler.ProcessMessage(vcm);
                 return;
             }
@@ -837,7 +833,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnNodeUpAsync(ChatMsg chat)
         {
-            _log.LogInformation($"OnNodeUpAsync: Node is up: {chat.From}");
+            _log.LogInformation($"OnNodeUpAsync: Node is up: {chat.From.Shorten()}");
 
             try
             {

@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
+using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -144,7 +145,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckRequestAsync(ViewChangeRequestMessage req)
         {
-            _log.LogInformation($"CheckRequestAsync for view {req.ViewID}");
+            _log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
 
             if (!_reqMsgs.Any(a => a.From == req.From))
             {
