@@ -41,7 +41,7 @@ namespace Lyra.Core.API
 
         public static int GetMojority(int totalCount)
         {
-            return (int)Math.Ceiling((double)((totalCount - 1) / 3 * 2));
+            return (int)Math.Ceiling((double)(((double)totalCount - 1) / 3 * 2));
         }
 
         // get api for (rpcurl, resturl)

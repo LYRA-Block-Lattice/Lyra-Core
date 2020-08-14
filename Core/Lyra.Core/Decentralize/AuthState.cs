@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Lyra.Shared;
@@ -50,7 +51,7 @@ namespace Lyra.Core.Decentralize
                 {
                     return ProtocolSettings.Default.StandbyValidators.Length;
                 }
-                var minCount = (int)Math.Ceiling((double)((_serviceBlock.Authorizers.Count() - 1) / 3 * 2));
+                var minCount = LyraGlobal.GetMojority(_serviceBlock.Authorizers.Count());
                 if (minCount < ProtocolSettings.Default.StandbyValidators.Length)
                     return ProtocolSettings.Default.StandbyValidators.Length;
                 else
