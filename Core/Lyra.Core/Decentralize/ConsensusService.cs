@@ -769,7 +769,7 @@ namespace Lyra.Core.Decentralize
             var livingPosNodeIds = _board.AllNodes.Select(a => a.AccountID);
             _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
 
-            foreach (var node in _board.AllNodes)
+            foreach (var node in _board.AllNodes.ToArray())
             {
                 var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
                 if (vote == null)
