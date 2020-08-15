@@ -43,7 +43,7 @@ namespace Lyra.Core.Decentralize
         // debug only. should remove after
         public override bool CheckTimeout()
         {
-            if (DateTime.Now - _dtStart > TimeSpan.FromSeconds(10))
+            if (_dtStart != DateTime.MinValue && DateTime.Now - _dtStart > TimeSpan.FromSeconds(10))
             {
                 return true;
             }
