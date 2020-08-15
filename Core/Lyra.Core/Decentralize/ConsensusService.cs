@@ -220,6 +220,10 @@ namespace Lyra.Core.Decentralize
             var timr = new System.Timers.Timer(100);
             timr.Elapsed += async (s, o) =>
             {
+                if(_viewChangeHandler.CheckTimeout())
+                {
+                    _viewChangeHandler.Reset();
+                }
                 foreach (var worker in _activeConsensus.Values.ToArray())
                 {
                     if (worker.CheckTimeout())

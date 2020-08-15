@@ -99,7 +99,7 @@ namespace Lyra.Core.Decentralize
 
         private void CheckCommit(ViewChangeCommitMessage vcm)
         {
-            _log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate}");
+            _log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate} of {_commitMsgs    .Count}/{QualifiedNodeCount}");
 
             _commitMsgs.AddOrUpdate(vcm.From, vcm, (key, oldValue) => vcm);
 
@@ -119,7 +119,7 @@ namespace Lyra.Core.Decentralize
 
         private void CheckReply(ViewChangeReplyMessage reply)
         {
-            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate}");
+            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate} of {_replyMsgs.Count}/{QualifiedNodeCount}");
 
             if (_replyMsgs.ContainsKey(reply.From))
             {
@@ -182,7 +182,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task BeginChangeViewAsync()
         {
-            _log.LogInformation($"BeginChangeViewAsync");
+            _log.LogInformation($"BeginChangeViewAsync, need {LyraGlobal.GetMajority(QualifiedNodeCount)} vote of {QualifiedNodeCount}");
 
             var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
             var lastCons = await _context.GetDagSystem().Storage.GetLastConsolidationBlockAsync();
