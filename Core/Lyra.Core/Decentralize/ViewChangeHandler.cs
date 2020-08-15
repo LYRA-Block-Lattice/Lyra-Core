@@ -126,6 +126,7 @@ namespace Lyra.Core.Decentralize
                 };
 
                 _context.Send2P2pNetwork(reply);
+                CheckReply(reply);
             }
 
             // reply
@@ -148,6 +149,7 @@ namespace Lyra.Core.Decentralize
                 };
 
                 _context.Send2P2pNetwork(commit);
+                CheckCommit(commit);
             }
 
             // commit
@@ -179,21 +181,24 @@ namespace Lyra.Core.Decentralize
 
         private void CheckReply(ViewChangeReplyMessage reply)
         {
-            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate} of {_replyMsgs.Count}/{QualifiedNodeCount}");
+            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {_replyMsgs.Count}/{QualifiedNodeCount}");
 
-            if (_replyMsgs.ContainsKey(reply.From))
+            if(reply.Result == Blocks.APIResultCodes.Success)
             {
-                if(_replyMsgs[reply.From].Candidate != reply.Candidate)
+                if (_replyMsgs.ContainsKey(reply.From))
                 {
-                    _replyMsgs[reply.From] = reply;
+                    if (_replyMsgs[reply.From].Candidate != reply.Candidate)
+                    {
+                        _replyMsgs[reply.From] = reply;
+                        CheckAllStats();
+                    }
+                }
+                else
+                {
+                    _replyMsgs.TryAdd(reply.From, reply);
                     CheckAllStats();
-                }      
-            }
-            else
-            {
-                _replyMsgs.TryAdd(reply.From, reply);
-                CheckAllStats();
-            }           
+                }
+            }     
         }
 
         private async Task CheckRequestAsync(ViewChangeRequestMessage req)
