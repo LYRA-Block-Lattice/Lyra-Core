@@ -99,6 +99,7 @@ namespace Lyra.Core.Decentralize
 
         private void CheckAllStats()
         {
+            _log.LogInformation($"CheckAllStats {_commitMsgs.Count}/{QualifiedNodeCount} Req: {_reqMsgs.Count} Reply {_replyMsgs.Count} Commit {_commitMsgs.Count}");
             // request
             if (_reqMsgs.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
             {
