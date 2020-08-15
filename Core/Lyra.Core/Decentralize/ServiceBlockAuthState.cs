@@ -13,11 +13,11 @@ namespace Lyra.Core.Decentralize
             _allVoters = AllVoters;
         }
 
-        public override int WinNumber => LyraGlobal.GetMajority(_allVoters.Count);
+        public override int WinNumber => LyraGlobal.GetMajority(_allVoters == null ? base.WinNumber : _allVoters.Count);
 
         protected override bool CheckSenderValid(string from)
         {
-            return _allVoters.Contains(from);
+            return _allVoters == null ? base.CheckSenderValid(from) : _allVoters.Contains(from);
         }
     }
 }
