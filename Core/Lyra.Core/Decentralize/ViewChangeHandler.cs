@@ -169,9 +169,12 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate} of {_commitMsgs.Count}/{QualifiedNodeCount}");
 
-            _commitMsgs.AddOrUpdate(vcm.From, vcm, (key, oldValue) => vcm);
+            if(!_commitMsgs.ContainsKey(vcm.From))
+            {
+                _commitMsgs.AddOrUpdate(vcm.From, vcm, (key, oldValue) => vcm);
 
-            CheckAllStats();
+                CheckAllStats();
+            }
         }
 
         private void CheckReply(ViewChangeReplyMessage reply)
@@ -180,14 +183,17 @@ namespace Lyra.Core.Decentralize
 
             if (_replyMsgs.ContainsKey(reply.From))
             {
-                _replyMsgs[reply.From] = reply;
+                if(_replyMsgs[reply.From].Candidate != reply.Candidate)
+                {
+                    _replyMsgs[reply.From] = reply;
+                    CheckAllStats();
+                }      
             }
             else
             {
                 _replyMsgs.TryAdd(reply.From, reply);
-            }
-
-            CheckAllStats();
+                CheckAllStats();
+            }           
         }
 
         private async Task CheckRequestAsync(ViewChangeRequestMessage req)
@@ -200,12 +206,13 @@ namespace Lyra.Core.Decentralize
                 var lastCons = await _context.GetDagSystem().Storage.GetLastConsolidationBlockAsync();
 
                 if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
+                {
                     _reqMsgs.Add(req);
+                    CheckAllStats();
+                }                    
                 else
                     _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
-            }
-
-            CheckAllStats();
+            }            
         }
 
         internal async Task BeginChangeViewAsync()
