@@ -83,7 +83,7 @@ namespace Lyra.Core.Decentralize
             _serviceBlock = serviceBlock;
         }
 
-        protected virtual bool CheckSenderValid(string from)
+        public virtual bool CheckSenderValid(string from)
         {
             if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.AccountID == from))
                 return false;

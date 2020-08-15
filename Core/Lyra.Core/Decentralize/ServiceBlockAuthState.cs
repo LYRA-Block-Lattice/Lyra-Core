@@ -15,7 +15,7 @@ namespace Lyra.Core.Decentralize
 
         public override int WinNumber => LyraGlobal.GetMajority(_allVoters == null ? base.WinNumber : _allVoters.Count);
 
-        protected override bool CheckSenderValid(string from)
+        public override bool CheckSenderValid(string from)
         {
             return _allVoters == null ? base.CheckSenderValid(from) : _allVoters.Contains(from);
         }

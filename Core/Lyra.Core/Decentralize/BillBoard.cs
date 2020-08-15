@@ -32,33 +32,33 @@ namespace Lyra.Core.Decentralize
             AllNodes = new List<PosNode>();
         }
 
-        public void SnapShot()
-        {
-            var nonSeeds = AllNodes.Where(a => a.GetAbleToAuthorize() && !ProtocolSettings.Default.StandbyValidators.Any(b => b == a.AccountID))
-                    .OrderByDescending(b => b.Votes)
-                    .ThenByDescending(c => c.LastStaking)
-                    .Take(ProtocolSettings.Default.ConsensusTotalNumber - ProtocolSettings.Default.StandbyValidators.Length)
-                    .Select(n => n.AccountID)
-                    .ToArray();
-            PrimaryAuthorizers = new string[ProtocolSettings.Default.StandbyValidators.Length + nonSeeds.Length];
-            Array.Copy(ProtocolSettings.Default.StandbyValidators, 0, PrimaryAuthorizers, 0, ProtocolSettings.Default.StandbyValidators.Length);
-            if(nonSeeds.Length > 0)
-                Array.Copy(nonSeeds, 0, PrimaryAuthorizers, ProtocolSettings.Default.StandbyValidators.Length, nonSeeds.Length);
+        //public void SnapShot()
+        //{
+        //    var nonSeeds = AllNodes.Where(a => a.GetAbleToAuthorize() && !ProtocolSettings.Default.StandbyValidators.Any(b => b == a.AccountID))
+        //            .OrderByDescending(b => b.Votes)
+        //            .ThenByDescending(c => c.LastStaking)
+        //            .Take(ProtocolSettings.Default.ConsensusTotalNumber - ProtocolSettings.Default.StandbyValidators.Length)
+        //            .Select(n => n.AccountID)
+        //            .ToArray();
+        //    PrimaryAuthorizers = new string[ProtocolSettings.Default.StandbyValidators.Length + nonSeeds.Length];
+        //    Array.Copy(ProtocolSettings.Default.StandbyValidators, 0, PrimaryAuthorizers, 0, ProtocolSettings.Default.StandbyValidators.Length);
+        //    if(nonSeeds.Length > 0)
+        //        Array.Copy(nonSeeds, 0, PrimaryAuthorizers, ProtocolSettings.Default.StandbyValidators.Length, nonSeeds.Length);
 
-            var nonPrimaryNodes = AllNodes.Where(a => a.GetAbleToAuthorize() && !Array.Exists(PrimaryAuthorizers, x => x == a.AccountID));
-            if(nonPrimaryNodes.Any())
-            {
-                BackupAuthorizers = nonPrimaryNodes
-                    .OrderByDescending(b => b.Votes)
-                    .ThenByDescending(c => c.LastStaking)
-                    .Take(ProtocolSettings.Default.ConsensusTotalNumber)
-                    .Select(a => a.AccountID).ToArray();
-            }
-            else
-            {
-                BackupAuthorizers = new string[0];
-            }
-        }
+        //    var nonPrimaryNodes = AllNodes.Where(a => a.GetAbleToAuthorize() && !Array.Exists(PrimaryAuthorizers, x => x == a.AccountID));
+        //    if(nonPrimaryNodes.Any())
+        //    {
+        //        BackupAuthorizers = nonPrimaryNodes
+        //            .OrderByDescending(b => b.Votes)
+        //            .ThenByDescending(c => c.LastStaking)
+        //            .Take(ProtocolSettings.Default.ConsensusTotalNumber)
+        //            .Select(a => a.AccountID).ToArray();
+        //    }
+        //    else
+        //    {
+        //        BackupAuthorizers = new string[0];
+        //    }
+        //}
 
         public bool HasNode(string accountId) { return AllNodes.Any(a => a.AccountID == accountId); }
         public PosNode GetNode(string accountId) { return AllNodes.First(a => a.AccountID == accountId); }

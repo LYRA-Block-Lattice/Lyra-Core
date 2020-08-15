@@ -91,6 +91,7 @@ namespace Lyra.Core.Decentralize
             _board = new BillBoard();
             _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
             _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
+            _board.AllVoters = _board.PrimaryAuthorizers.ToList();
 
             _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes, voters) => {
                 _log.LogInformation($"New leader selected: {sender.NewLeader} with votes {sender.NewLeaderVotes}");
@@ -119,6 +120,7 @@ namespace Lyra.Core.Decentralize
                     _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Select(a => a.AccountID).ToArray();
                     if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
                         _board.CurrentLeader = lastSvcBlk.Leader;
+                    _board.AllVoters = _board.PrimaryAuthorizers.ToList();
                 }
                 await DeclareConsensusNodeAsync();
             });
