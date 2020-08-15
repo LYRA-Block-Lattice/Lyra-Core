@@ -125,7 +125,7 @@ namespace Lyra.Core.Decentralize
 
         internal string ToHashInputString()
         {
-            return $"{AccountID}|{IPAddress}|{Votes.ToBalanceLong()}|{SignableObject.DateTimeToString(LastStaking)}|{Signature}";
+            return $"{AccountID}|{IPAddress}|{Votes.ToBalanceLong()}|{Signature}";
         }
     }
 }
