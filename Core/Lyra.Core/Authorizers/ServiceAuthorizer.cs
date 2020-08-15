@@ -72,6 +72,7 @@ namespace Lyra.Core.Authorizers
             foreach (var authorizer in block.Authorizers) // they can be listed in different order!
             {
                 if (!allVoters.Any(a => a.AccountId == authorizer.AccountID) ||
+                    allVoters.First(a => a.AccountId == authorizer.AccountID).Amount < LyraGlobal.MinimalAuthorizerBalance ||
                     !Signatures.VerifyAccountSignature(authorizer.IPAddress, authorizer.AccountID, authorizer.Signature))
                     return APIResultCodes.InvalidAuthorizerInBillBoard;
             }
