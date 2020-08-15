@@ -343,6 +343,7 @@ namespace Lyra.Core.Blocks
         PBFTNetworkNotReadyForConsensus = 304,
         DoubleSpentDetected = 305,
         NotListedAsQualifiedAuthorizer = 306,
-        ConsensusTimeout = 307
+        ConsensusTimeout = 307,
+        SystemNotReadyToServe,
     }
 }

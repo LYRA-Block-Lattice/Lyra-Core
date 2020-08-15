@@ -60,8 +60,8 @@ namespace Lyra.Core.Decentralize
         //    }
         //}
 
-        public bool HasNode(string accountId) { return AllNodes.Any(a => a.AccountID == accountId); }
-        public PosNode GetNode(string accountId) { return AllNodes.First(a => a.AccountID == accountId); }
+        public bool HasNode(string accountId) { return AllNodes.ToArray().Any(a => a.AccountID == accountId); }
+        public PosNode GetNode(string accountId) { return AllNodes.ToArray().First(a => a.AccountID == accountId); }
 
         public bool Add(PosNode node)
         {

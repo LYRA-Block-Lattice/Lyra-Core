@@ -50,6 +50,14 @@ namespace Lyra.Core.Decentralize
 
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
+            if(NodeService.Dag == null || NodeService.Dag.Storage == null)
+            {
+                return new GetSyncStateAPIResult
+                {
+                    ResultCode = APIResultCodes.SystemNotReadyToServe
+                };
+            }
+
             var consBlock = await NodeService.Dag.Storage.GetLastConsolidationBlockAsync();
             var chainStatus = await NodeService.Dag.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
             var result = new GetSyncStateAPIResult
