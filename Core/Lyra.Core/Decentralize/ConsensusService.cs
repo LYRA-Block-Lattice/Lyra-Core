@@ -122,7 +122,6 @@ namespace Lyra.Core.Decentralize
                         _board.CurrentLeader = lastSvcBlk.Leader;
                     _board.AllVoters = _board.PrimaryAuthorizers.ToList();
                 }
-                await DeclareConsensusNodeAsync();
             });
 
             Receive<AskIfSeed0>((_) => Sender.Tell(new AskIfSeed0 { IsSeed0 = IsThisNodeSeed0 }));
@@ -888,11 +887,11 @@ namespace Lyra.Core.Decentralize
 
                 var IsNew = _board.Add(node);
 
-                if (IsMessageFromSeed0(chat))    // seed0 up
-                {
-                    _log.LogInformation("Seed0 is UP. Declare node again.");
-                    await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
-                }
+                //if (IsMessageFromSeed0(chat))    // seed0 up
+                //{
+                //    _log.LogInformation("Seed0 is UP. Declare node again.");
+                //    await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
+                //}
 
                 // calculate votes, update billboard
                 // see if view change is required

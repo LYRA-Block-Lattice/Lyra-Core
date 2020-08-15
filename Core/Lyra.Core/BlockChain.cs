@@ -299,7 +299,7 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(() =>
                 {
-                    _sys.Consensus.Tell(new ConsensusService.Startup());
+                    _sys.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup);
 
