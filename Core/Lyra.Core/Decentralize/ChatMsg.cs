@@ -150,10 +150,10 @@ namespace Lyra.Core.Decentralize
         {
             base.Serialize(writer);
 
-			if (string.IsNullOrEmpty(BlockHash))
-				throw new InvalidOperationException("BlockHash Should not be null");
+            if (string.IsNullOrEmpty(BlockHash))
+                throw new InvalidOperationException("BlockHash Should not be null");
 
-			writer.Write(BlockHash);
+            writer.Write(BlockHash);
 		}
 
         public override void Deserialize(BinaryReader reader)

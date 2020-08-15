@@ -526,6 +526,7 @@ namespace Lyra.Core.Decentralize
             AuthorizingMsg msg = new AuthorizingMsg
             {
                 From = _sys.PosWallet.AccountId,
+                BlockHash = consBlock.Hash,
                 Block = consBlock,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
