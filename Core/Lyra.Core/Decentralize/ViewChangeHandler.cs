@@ -97,12 +97,45 @@ namespace Lyra.Core.Decentralize
             return false;
         }
 
-        private void CheckCommit(ViewChangeCommitMessage vcm)
+        private void CheckAllStats()
         {
-            _log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate} of {_commitMsgs    .Count}/{QualifiedNodeCount}");
+            // request
+            if (_reqMsgs.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
+            {
+                var reply = new ViewChangeReplyMessage
+                {
+                    From = _context.GetDagSystem().PosWallet.AccountId,
+                    ViewID = _viewId,
+                    Result = Blocks.APIResultCodes.Success,
+                    Candidate = _reqMsgs.OrderBy(a => a.requestSignature).First().From
+                };
 
-            _commitMsgs.AddOrUpdate(vcm.From, vcm, (key, oldValue) => vcm);
+                _context.Send2P2pNetwork(reply);
+            }
 
+            // reply
+            // only if we have enough reply
+            var qr = from rep in _replyMsgs.Values
+                     where rep.Result == Blocks.APIResultCodes.Success
+                     group rep by rep.Candidate into g
+                     select new { Candidate = g.Key, Count = g.Count() };
+
+            var candidateQR = qr.First();
+
+            if (candidateQR.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
+            {
+                var commit = new ViewChangeCommitMessage
+                {
+                    From = _context.GetDagSystem().PosWallet.AccountId,
+                    ViewID = _viewId,
+                    Candidate = candidateQR.Candidate,
+                    Consensus = ConsensusResult.Yea
+                };
+
+                _context.Send2P2pNetwork(commit);
+            }
+
+            // commit
             var q = from rep in _commitMsgs.Values
                     group rep by rep.Candidate into g
                     select new { Candidate = g.Key, Count = g.Count() };
@@ -115,6 +148,15 @@ namespace Lyra.Core.Decentralize
                 NewLeaderVotes = candidate.Count;
                 _leaderSelected(this, candidate.Candidate, candidate.Count);
             }
+        }
+
+        private void CheckCommit(ViewChangeCommitMessage vcm)
+        {
+            _log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate} of {_commitMsgs.Count}/{QualifiedNodeCount}");
+
+            _commitMsgs.AddOrUpdate(vcm.From, vcm, (key, oldValue) => vcm);
+
+            CheckAllStats();
         }
 
         private void CheckReply(ViewChangeReplyMessage reply)
@@ -130,26 +172,7 @@ namespace Lyra.Core.Decentralize
                 _replyMsgs.TryAdd(reply.From, reply);
             }
 
-            // only if we have enough reply
-            var q = from rep in _replyMsgs.Values
-                    where rep.Result == Blocks.APIResultCodes.Success
-                    group rep by rep.Candidate into g
-                    select new { Candidate = g.Key, Count = g.Count() };
-
-            var candidate = q.First();
-
-            if(candidate.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
-            {
-                var commit = new ViewChangeCommitMessage
-                {
-                    From = _context.GetDagSystem().PosWallet.AccountId,
-                    ViewID = _viewId,
-                    Candidate = candidate.Candidate,
-                    Consensus = ConsensusResult.Yea
-                };
-
-                _context.Send2P2pNetwork(commit);
-            }
+            CheckAllStats();
         }
 
         private async Task CheckRequestAsync(ViewChangeRequestMessage req)
@@ -163,21 +186,9 @@ namespace Lyra.Core.Decentralize
 
                 if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
                     _reqMsgs.Add(req);
-            }                
-
-            if(_reqMsgs.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
-            {
-                var reply = new ViewChangeReplyMessage
-                {
-                    From = _context.GetDagSystem().PosWallet.AccountId,
-                    ViewID = _viewId,
-                    Result = Blocks.APIResultCodes.Success,
-                    Candidate = _reqMsgs.OrderBy(a => a.requestSignature).First().From
-                };
-
-                _context.Send2P2pNetwork(reply);
-                CheckReply(reply);
             }
+
+            CheckAllStats();
         }
 
         internal async Task BeginChangeViewAsync()
