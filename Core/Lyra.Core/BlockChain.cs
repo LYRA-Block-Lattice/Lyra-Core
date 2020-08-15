@@ -242,46 +242,53 @@ namespace Lyra
                     var unConsSynced = 0;
                     while (true)
                     {
-                        var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
-
-                        // compare state
-                        var seedSyncState = await client.GetSyncState();
-                        var mySyncState = await GetNodeStatusAsync();
-                        if (seedSyncState.ResultCode == APIResultCodes.Success && seedSyncState.Status.Equals(mySyncState))
+                        try
                         {
-                            _log.LogInformation("Fully Synced with seeds.");
-                            break;
-                        }
+                            var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
 
-                        var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
-                        var lastMyCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                        if (lastMyCons.Height < latestSeedCons.Height)
-                        {
-                            var consBlocksResult = await client.GetConsolidationBlocks(lastMyCons.Height);
-                            if (consBlocksResult.ResultCode == APIResultCodes.Success)
+                            // compare state
+                            var seedSyncState = await client.GetSyncState();
+                            var mySyncState = await GetNodeStatusAsync();
+                            if (seedSyncState.ResultCode == APIResultCodes.Success && seedSyncState.Status.Equals(mySyncState))
                             {
-                                var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
-                                foreach (var consBlock in consBlocks)
+                                _log.LogInformation("Fully Synced with seeds.");
+                                break;
+                            }
+
+                            var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
+                            var lastMyCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                            if (lastMyCons.Height < latestSeedCons.Height)
+                            {
+                                var consBlocksResult = await client.GetConsolidationBlocks(lastMyCons.Height);
+                                if (consBlocksResult.ResultCode == APIResultCodes.Success)
                                 {
-                                    if (!await VerifyConsolidationBlock(consBlock, latestSeedCons.Height))
-                                        await SyncManyBlocksAsync(client, consBlock);
+                                    var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
+                                    foreach (var consBlock in consBlocks)
+                                    {
+                                        if (!await VerifyConsolidationBlock(consBlock, latestSeedCons.Height))
+                                            await SyncManyBlocksAsync(client, consBlock);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // sync unconsolidated blocks
+                                var unConsBlockResult = await client.GetUnConsolidatedBlocks();
+                                if (unConsBlockResult.ResultCode == APIResultCodes.Success)
+                                {
+                                    if (unConsSynced < unConsBlockResult.Entities.Count)
+                                    {
+                                        await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
+                                        unConsSynced = unConsBlockResult.Entities.Count;
+                                    }
+                                    else
+                                        break;
                                 }
                             }
                         }
-                        else
+                        catch(Exception e)
                         {
-                            // sync unconsolidated blocks
-                            var unConsBlockResult = await client.GetUnConsolidatedBlocks();
-                            if (unConsBlockResult.ResultCode == APIResultCodes.Success)
-                            {
-                                if (unConsSynced < unConsBlockResult.Entities.Count)
-                                {
-                                    await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
-                                    unConsSynced = unConsBlockResult.Entities.Count;
-                                }
-                                else
-                                    break;
-                            }
+                            _log.LogError($"In Engaging: {e}");
                         }
                     }
 
