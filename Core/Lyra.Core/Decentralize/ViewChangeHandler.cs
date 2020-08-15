@@ -121,9 +121,9 @@ namespace Lyra.Core.Decentralize
                      group rep by rep.Candidate into g
                      select new { Candidate = g.Key, Count = g.Count() };
 
-            var candidateQR = qr.First();
+            var candidateQR = qr.FirstOrDefault();
 
-            if (candidateQR.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
+            if (candidateQR?.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
             {
                 var commit = new ViewChangeCommitMessage
                 {
@@ -141,8 +141,8 @@ namespace Lyra.Core.Decentralize
                     group rep by rep.Candidate into g
                     select new { Candidate = g.Key, Count = g.Count() };
 
-            var candidate = q.First();
-            if (candidate.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
+            var candidate = q.FirstOrDefault();
+            if (candidate?.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
             {
                 NewLeader = candidate.Candidate;
                 IsLeaderSelected = true;
