@@ -254,13 +254,18 @@ namespace Lyra.Core.Decentralize
 
                         if(result.HasValue && result.Value == ConsensusResult.Uncertain)
                         {
-                            // change view
-                            IsViewChanging = true;
+                            var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
 
-                            // make sure me is in all node's billboard
-                            await DeclareConsensusNodeAsync();
+                            if(blockchainStatus.state == BlockChainState.Almighty)
+                            {
+                                // change view
+                                IsViewChanging = true;
 
-                            await _viewChangeHandler.BeginChangeViewAsync();
+                                // make sure me is in all node's billboard
+                                await DeclareConsensusNodeAsync();
+
+                                await _viewChangeHandler.BeginChangeViewAsync();
+                            }
                         }
                     }
                 }
@@ -864,13 +869,18 @@ namespace Lyra.Core.Decentralize
                     if ((qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS) ||
                         Math.Abs(newTotal - oldTotal) > 1000000)
                     {
-                        // change view
-                        IsViewChanging = true;
+                        var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
 
-                        // make sure me is in all node's billboard
-                        await DeclareConsensusNodeAsync();
+                        if (blockchainStatus.state == BlockChainState.Almighty)
+                        {
+                            // change view
+                            IsViewChanging = true;
 
-                        await _viewChangeHandler.BeginChangeViewAsync();
+                            // make sure me is in all node's billboard
+                            await DeclareConsensusNodeAsync();
+
+                            await _viewChangeHandler.BeginChangeViewAsync();
+                        }
                     }
                 }
             }
