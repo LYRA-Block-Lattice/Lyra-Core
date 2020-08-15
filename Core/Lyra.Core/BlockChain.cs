@@ -277,7 +277,7 @@ namespace Lyra
                                 if (unConsBlockResult.ResultCode == APIResultCodes.Success)
                                 {
                                     var myUnConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
-                                    foreach(var unCon in myUnConsList)
+                                    foreach(var unCon in myUnConsList.Where(a => !unConsBlockResult.Entities.Contains(a)))
                                     {
                                         await _sys.Storage.RemoveBlockAsync(unCon);
                                     }
