@@ -567,6 +567,38 @@ namespace Lyra.Core.Accounts
 
         public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
         {
+            AuthorizationAPIResult result;
+            while(true)
+            {
+                result = await SendOnce(Amount, DestinationAccountId, ticker, ToExchange);
+                if (result.ResultCode == APIResultCodes.ConsensusTimeout)
+                {
+                    var currentSvcBlock = await _rpcClient.GetLastServiceBlock();
+                    bool viewChanged = false;
+                    for (int i = 0; i < 300; i++)       // wait 30 seconds.
+                    {
+                        var nextSvcBlock = await _rpcClient.GetLastServiceBlock();
+                        if (currentSvcBlock.ResultCode == APIResultCodes.Success &&
+                            nextSvcBlock.ResultCode == APIResultCodes.Success &&
+                            nextSvcBlock.GetBlock().Height > currentSvcBlock.GetBlock().Height)
+                        {
+                            viewChanged = true;
+                            break;
+                        }
+
+                        await Task.Delay(100);
+                    }
+                    if (viewChanged)
+                        continue;
+                    else
+                        break;
+                }
+            }
+            return result;
+        }
+
+        public async Task<AuthorizationAPIResult> SendOnce(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
+        {
             Trace.Assert(Amount > 0);
             if (Amount <= 0)
                 throw new Exception("Amount must > 0");
@@ -680,7 +712,7 @@ namespace Lyra.Core.Accounts
                 //Console.WriteLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
             }
 
-            if(result.ResultCode == APIResultCodes.Success)
+            if (result.ResultCode == APIResultCodes.Success)
                 _lastTransactionBlock = sendBlock;
 
             return result;

@@ -591,7 +591,10 @@ namespace Lyra.Core.Decentralize
             }
 
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
-            await worker.ProcessState(state);
+            if(worker != null)
+            {
+                await worker.ProcessState(state);
+            }
             Send2P2pNetwork(state.InputMsg);
         }
 

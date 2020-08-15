@@ -97,57 +97,34 @@ namespace Lyra.Core.Decentralize
         {
             var result = new AuthorizationAPIResult();
 
-            while (true)
+            //AuthState state2 = null;
+            var state1 = await PostToConsensusAsync(block1).ConfigureAwait(false);
+
+            if (state1 != null && state1.CommitConsensus == ConsensusResult.Yea)
             {
-                //AuthState state2 = null;
-                var state1 = await PostToConsensusAsync(block1).ConfigureAwait(false);
+                result.ResultCode = APIResultCodes.Success;
 
-                if (state1 != null && state1.CommitConsensus == ConsensusResult.Yea)
-                {
-                    result.ResultCode = APIResultCodes.Success;
-
-                    ////fee is the bottle neck!!! must do lazy fee collection by consolidation
-                    //if (OnBlockSucceed != null)
-                    //{
-                    //    var block2 = await OnBlockSucceed(state1.InputMsg.Block as TransactionBlock).ConfigureAwait(false);
-                    //    if(block2 != null)
-                    //        state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
-                    //}
-                }
-                else if (state1 != null && state1.CommitConsensus == ConsensusResult.Nay)
-                {
-                    result.ResultCode = APIResultCodes.BlockFailedToBeAuthorized;
-                }
-                else if (state1 != null && state1.CommitConsensus == ConsensusResult.Uncertain)
-                {
-                    result.ResultCode = APIResultCodes.ConsensusTimeout;
-                }
-                else
-                {
-                    result.ResultCode = state1.OutputMsgs.Count > 0 ? state1.OutputMsgs.First().Result : APIResultCodes.BlockFailedToBeAuthorized;
-                }
-
-                if(result.ResultCode == APIResultCodes.ConsensusTimeout)
-                {
-                    var currentSvcBlock = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
-                    bool viewChanged = false;
-                    for(int i = 0; i < 200; i++)
-                    {
-                        var nextSvcBlock = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
-                        if (nextSvcBlock.Height > currentSvcBlock.Height)
-                        {
-                            viewChanged = true;
-                            break;
-                        }
-
-                        await Task.Delay(100);
-                    }
-                    if (viewChanged)
-                        continue;
-                    else
-                        break;
-                }
+                ////fee is the bottle neck!!! must do lazy fee collection by consolidation
+                //if (OnBlockSucceed != null)
+                //{
+                //    var block2 = await OnBlockSucceed(state1.InputMsg.Block as TransactionBlock).ConfigureAwait(false);
+                //    if(block2 != null)
+                //        state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
+                //}
             }
+            else if (state1 != null && state1.CommitConsensus == ConsensusResult.Nay)
+            {
+                result.ResultCode = APIResultCodes.BlockFailedToBeAuthorized;
+            }
+            else if (state1 != null && state1.CommitConsensus == ConsensusResult.Uncertain)
+            {
+                result.ResultCode = APIResultCodes.ConsensusTimeout;
+            }
+            else
+            {
+                result.ResultCode = state1.OutputMsgs.Count > 0 ? state1.OutputMsgs.First().Result : APIResultCodes.BlockFailedToBeAuthorized;
+            }
+
             return result;
         }
 
