@@ -236,7 +236,10 @@ namespace Lyra.Core.Decentralize
             {
                 if(_viewChangeHandler.CheckTimeout())
                 {
-                    //_viewChangeHandler.Reset();
+                    IsViewChanging = false;
+                    _viewChangeHandler.Reset();
+
+                    _log.LogWarning($"View Change Timeout. reset.");
                 }
                 foreach (var worker in _activeConsensus.Values.ToArray())
                 {
@@ -891,29 +894,32 @@ namespace Lyra.Core.Decentralize
                     await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
                 }
 
-                // calculate votes, update billboard
-                // see if view change is required
-                var oldTotal = Board.AllNodes
-                    .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
-                    .Select(x => x.Votes)
-                    .Sum();
-                RefreshAllNodesVotes();
-                var newTotal = Board.AllNodes
-                    .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
-                    .Select(x => x.Votes)
-                    .Sum();
-
-                var qualifiedCount = Board.AllNodes.Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance).Count();
-                if ((qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS) ||
-                    Math.Abs(newTotal - oldTotal) > 1000000)
+                if(!IsViewChanging)
                 {
-                    // change view
-                    IsViewChanging = true;
+                    // calculate votes, update billboard
+                    // see if view change is required
+                    var oldTotal = Board.AllNodes
+                        .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
+                        .Select(x => x.Votes)
+                        .Sum();
+                    RefreshAllNodesVotes();
+                    var newTotal = Board.AllNodes
+                        .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
+                        .Select(x => x.Votes)
+                        .Sum();
 
-                    // make sure me is in all node's billboard
-                    await DeclareConsensusNodeAsync();
+                    var qualifiedCount = Board.AllNodes.Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance).Count();
+                    if ((qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS) ||
+                        Math.Abs(newTotal - oldTotal) > 1000000)
+                    {
+                        // change view
+                        IsViewChanging = true;
 
-                    await _viewChangeHandler.BeginChangeViewAsync();
+                        // make sure me is in all node's billboard
+                        await DeclareConsensusNodeAsync();
+
+                        await _viewChangeHandler.BeginChangeViewAsync();
+                    }
                 }
             }
             catch(Exception ex)
