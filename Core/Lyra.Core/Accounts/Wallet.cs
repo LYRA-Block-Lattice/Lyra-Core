@@ -565,6 +565,7 @@ namespace Lyra.Core.Accounts
         //    }
         //}
 
+
         public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
         {
             AuthorizationAPIResult result;
@@ -575,7 +576,7 @@ namespace Lyra.Core.Accounts
                 {
                     var currentSvcBlock = await _rpcClient.GetLastServiceBlock();
                     bool viewChanged = false;
-                    for (int i = 0; i < 300; i++)       // wait 30 seconds.
+                    for (int i = 0; i < 300; i++)       // wait 30 seconds for consensus network to recovery
                     {
                         var nextSvcBlock = await _rpcClient.GetLastServiceBlock();
                         if (currentSvcBlock.ResultCode == APIResultCodes.Success &&
@@ -593,11 +594,13 @@ namespace Lyra.Core.Accounts
                     else
                         break;
                 }
+                else
+                    break;
             }
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> SendOnce(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
+        private async Task<AuthorizationAPIResult> SendOnce(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
         {
             Trace.Assert(Amount > 0);
             if (Amount <= 0)
