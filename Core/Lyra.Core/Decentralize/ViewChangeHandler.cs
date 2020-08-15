@@ -16,9 +16,7 @@ namespace Lyra.Core.Decentralize
     public class ViewChangeHandler : ConsensusHandlerBase
     {
         private long _viewId = 0;
-        public bool IsLeaderSelected { get; private set; }
-        public string NewLeader { get; private set; }
-        public int NewLeaderVotes { get; private set; }
+        private bool _selectedSuccess = false;
         private LeaderSelectedHandler _leaderSelected;
 
         public ConcurrentBag<ViewChangeRequestMessage> _reqMsgs { get; set; }
@@ -41,7 +39,6 @@ namespace Lyra.Core.Decentralize
                 }
             }
         }
-
 
         public ViewChangeHandler(ConsensusService context, LeaderSelectedHandler leaderSelected) : base(context)
         {
@@ -73,6 +70,7 @@ namespace Lyra.Core.Decentralize
             _log.LogWarning("Reset");
             _viewId = 0;
             _dtStart = DateTime.MinValue;
+            _selectedSuccess = false;
 
             _reqMsgs.Clear();
             _replyMsgs.Clear();
@@ -81,7 +79,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
-            if (IsLeaderSelected)
+            if (vcm.ViewID == _viewId && _selectedSuccess)
                 return;
 
             if(_viewId == 0)
@@ -176,9 +174,6 @@ namespace Lyra.Core.Decentralize
             var candidate = q.FirstOrDefault();
             if (candidate?.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
             {
-                NewLeader = candidate.Candidate;
-                IsLeaderSelected = true;
-                NewLeaderVotes = candidate.Count;
                 _leaderSelected(this, candidate.Candidate, candidate.Count, 
                     _replyMsgs.Keys.ToList()
                     );
@@ -255,10 +250,6 @@ namespace Lyra.Core.Decentralize
                 _log.LogError($"BeginChangeViewAsync with different viewID!!!");
                 return;
             }
-
-            IsLeaderSelected = false;
-            NewLeader = null;
-            NewLeaderVotes = 0;            
 
             var req = new ViewChangeRequestMessage
             {

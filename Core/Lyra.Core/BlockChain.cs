@@ -723,37 +723,36 @@ namespace Lyra
             }
         }
 
-        LyraRestClient _clientForSync;
-        public async Task<bool> SyncOneBlock(long uid, bool withAuthorize)
-        {/*
-            _log.LogInformation($"SyncOneBlock: {uid}");
+        //public async Task<bool> SyncOneBlock(long uid, bool withAuthorize)
+        //{/*
+        //    _log.LogInformation($"SyncOneBlock: {uid}");
 
-            if (_clientForSync == null)
-                _clientForSync = await FindValidSeedForSyncAsync();
+        //    if (_clientForSync == null)
+        //        _clientForSync = await FindValidSeedForSyncAsync();
 
-            var result = await _clientForSync.GetBlockByUIndex(uid);
-            if (result.ResultCode == APIResultCodes.Success)
-            {
-                var block = result.GetBlock();
+        //    var result = await _clientForSync.GetBlockByUIndex(uid);
+        //    if (result.ResultCode == APIResultCodes.Success)
+        //    {
+        //        var block = result.GetBlock();
 
-                if(withAuthorize)
-                {
-                    var authorizer = _authorizerFactory.Create(block.BlockType);
-                    var localAuthResult = await authorizer.AuthorizeAsync(block);
-                    if (localAuthResult.Item1 == APIResultCodes.Success)
-                        return await _store.AddBlockAsync(block);       // use this api directly to avoid confuse with the consensused block add
-                    else
-                    {
-                        _log.LogError($"Engaging: unable to authorize block {uid}");
-                    }
-                }
-                else
-                {
-                    return await _store.AddBlockAsync(block);       // use this api directly to avoid confuse with the consensused block add
-                }
-            }*/
-            return false;
-        }
+        //        if(withAuthorize)
+        //        {
+        //            var authorizer = _authorizerFactory.Create(block.BlockType);
+        //            var localAuthResult = await authorizer.AuthorizeAsync(block);
+        //            if (localAuthResult.Item1 == APIResultCodes.Success)
+        //                return await _store.AddBlockAsync(block);       // use this api directly to avoid confuse with the consensused block add
+        //            else
+        //            {
+        //                _log.LogError($"Engaging: unable to authorize block {uid}");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            return await _store.AddBlockAsync(block);       // use this api directly to avoid confuse with the consensused block add
+        //        }
+        //    }*/
+        //    return false;
+        //}
 
         private async Task<LyraRestClient> FindValidSeedForSyncAsync()
         {

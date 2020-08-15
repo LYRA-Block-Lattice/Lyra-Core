@@ -94,10 +94,10 @@ namespace Lyra.Core.Decentralize
             _board.AllVoters = _board.PrimaryAuthorizers.ToList();
 
             _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes, voters) => {
-                _log.LogInformation($"New leader selected: {sender.NewLeader} with votes {sender.NewLeaderVotes}");
+                _log.LogInformation($"New leader selected: {leader} with votes {votes}");
                 _board.CurrentLeader = leader;
                 _board.AllVoters = voters;
-                if(sender.NewLeader == _sys.PosWallet.AccountId)
+                if(leader == _sys.PosWallet.AccountId)
                 {
                     // its me!
                     _blockchain.Tell(new BlockChain.NewLeaderCreateView());
@@ -135,6 +135,9 @@ namespace Lyra.Core.Decentralize
                     if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
                         _board.CurrentLeader = lastSvcBlk.Leader;
                     _board.AllVoters = _board.PrimaryAuthorizers.ToList();
+
+                    IsViewChanging = false;
+                    _viewChangeHandler.Reset();
                 }
             });
 
@@ -889,15 +892,28 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // calculate votes, update billboard
+                // see if view change is required
+                var oldTotal = Board.AllNodes
+                    .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
+                    .Select(x => x.Votes)
+                    .Sum();
                 RefreshAllNodesVotes();
+                var newTotal = Board.AllNodes
+                    .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
+                    .Select(x => x.Votes)
+                    .Sum();
 
-                if (_board.AllNodes.First(a => a.AccountID == node.AccountID).Votes < LyraGlobal.MinimalAuthorizerBalance)
+                var qualifiedCount = Board.AllNodes.Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance).Count();
+                if ((qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS) ||
+                    Math.Abs(newTotal - oldTotal) > 1000000)
                 {
-                    _log.LogInformation("Node {0} has not enough votes: {1}.", node.AccountID, node.Votes);
-                }
-                else
-                {
-                    // verify signature
+                    // change view
+                    IsViewChanging = true;
+
+                    // make sure me is in all node's billboard
+                    await DeclareConsensusNodeAsync();
+
+                    await _viewChangeHandler.BeginChangeViewAsync();
                 }
             }
             catch(Exception ex)
