@@ -647,6 +647,7 @@ namespace Lyra
             AuthState state;
             if(block is ServiceBlock sb)
             {
+                _log.LogInformation($"AllVoters: {voters.Count}");
                 state = new ServiceBlockAuthState(voters, true);
             }
             else

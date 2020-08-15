@@ -152,6 +152,7 @@ namespace Lyra.Core.Decentralize
             AuthState state;
             if (item.Block.BlockType == BlockTypes.Service)
             {
+                _log.LogInformation($"AllVoters: {_context.Board.AllVoters.Count}");
                 state = new ServiceBlockAuthState(_context.Board.AllVoters);
             }
             else
