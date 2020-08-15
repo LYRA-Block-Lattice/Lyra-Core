@@ -73,7 +73,7 @@ namespace Lyra
             public string hash { get; set; }
         }
 
-        public class NewLeaderCreateView { }
+        public class NewLeaderCreateView { public List<string> Voters { get; set; } }
 
         private LyraRestClient _seed0Client;
 
@@ -135,7 +135,7 @@ namespace Lyra
             {
                 ConsolidationBlockFailed(x.consolidationBlockHash);
             });
-            Receive<NewLeaderCreateView>(x => CreateNewViewAdNewLeader());
+            Receive<NewLeaderCreateView>(x => CreateNewViewAsNewLeader(x.Voters));
         }
 
         public static Props Props(DagSystem system, IAccountCollectionAsync store)
@@ -384,9 +384,8 @@ namespace Lyra
             //}
         }
 
-        public void CreateNewViewAdNewLeader()
+        public void CreateNewViewAsNewLeader(List<string> Voters)
         {
-            _log.LogInformation($"Creating New View...");
             // look for changes. if necessary create a new svc block.
             _ = Task.Run(async () =>
               {
@@ -394,54 +393,52 @@ namespace Lyra
                   {
                       _creatingSvcBlock = true;
 
+                      _log.LogInformation($"Me was elected new leader. Creating New View...");
+
                       try
                       {
+                          var allVoters = _sys.Storage.FindVotes(Voters).OrderByDescending(a => a.Amount);
                           var prevSvcBlock = await GetLastServiceBlockAsync();
                           var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                          if (prevSvcBlock != null && DateTime.UtcNow - prevSvcBlock.TimeStamp > TimeSpan.FromMinutes(1))
+
+                          var svcBlock = new ServiceBlock
                           {
-                              var comp = new MultiSetComparer<string>();
-                              if (!comp.Equals(prevSvcBlock.Authorizers.Select(a => a.AccountID), board.PrimaryAuthorizers))
-                              {
-                                  var svcBlock = new ServiceBlock
-                                  {
-                                      NetworkId = prevSvcBlock.NetworkId,
-                                      Height = prevSvcBlock.Height + 1,
-                                      FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
-                                      ServiceHash = prevSvcBlock.Hash,
-                                      Leader = _sys.PosWallet.AccountId,
-                                      TransferFee = 1,           //zero for genesis. back to normal when genesis done
-                                      TokenGenerationFee = 10000,
-                                      TradeFee = 0.1m
-                                  };
+                              NetworkId = prevSvcBlock.NetworkId,
+                              Height = prevSvcBlock.Height + 1,
+                              FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
+                              ServiceHash = prevSvcBlock.Hash,
+                              Leader = _sys.PosWallet.AccountId,
+                              TransferFee = 1,           //zero for genesis. back to normal when genesis done
+                              TokenGenerationFee = 10000,
+                              TradeFee = 0.1m
+                          };
 
-                                  svcBlock.Authorizers = new List<PosNode>();
-                                  foreach (var accId in board.PrimaryAuthorizers)
-                                  {
-                                      if (board.AllNodes.Any(a => a.AccountID == accId))
-                                          svcBlock.Authorizers.Add(board.AllNodes.First(a => a.AccountID == accId));
+                          _log.LogInformation($"Adding {allVoters.Count()} voters...");
 
-                                      if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
-                                          break;
-                                  }
+                          svcBlock.Authorizers = new List<PosNode>();
+                          foreach (var voter in allVoters)
+                          {
+                              if (board.AllNodes.Any(a => a.AccountID == voter.AccountId))
+                                  svcBlock.Authorizers.Add(board.AllNodes.First(a => a.AccountID == voter.AccountId));
 
-                                      // fees aggregation
-                                      var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
-                                  svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
-
-                                  if (svcBlock.Authorizers.Count() >= prevSvcBlock.Authorizers.Count())
-                                  {
-                                      svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,
-                                          _sys.PosWallet.AccountId);
-
-                                      await SendBlockToConsensusAsync(svcBlock);
-                                  }
-                                  else
-                                  {
-                                      _log.LogError($"Authorizers count {svcBlock.Authorizers.Count()} can't be less than {prevSvcBlock.Authorizers.Count()}");
-                                  }
-                              }
+                              if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
+                                  break;
                           }
+
+                          // fees aggregation
+                          _log.LogInformation($"Fee aggregating...");
+                          var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
+                          svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
+
+                          svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,  _sys.PosWallet.AccountId);
+
+                          await SendBlockToConsensusAsync(svcBlock);
+
+                          _log.LogInformation($"New View was created. send to network...");
+                      }
+                      catch(Exception e)
+                      {
+                          _log.LogCritical($"CreateNewViewAsNewLeader: {e}");
                       }
                       finally
                       {

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public delegate void LeaderSelectedHandler(ViewChangeHandler sender, string NewLeader, int Votes);
+    public delegate void LeaderSelectedHandler(ViewChangeHandler sender, string NewLeader, int Votes, List<string> Voters);
     public class ViewChangeHandler : ConsensusHandlerBase
     {
         private long _viewId = 0;
@@ -68,6 +68,9 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
+            if (IsLeaderSelected)
+                return;
+
             if(_viewId == 0)
             {
                 // other node request to change view
@@ -163,7 +166,9 @@ namespace Lyra.Core.Decentralize
                 NewLeader = candidate.Candidate;
                 IsLeaderSelected = true;
                 NewLeaderVotes = candidate.Count;
-                _leaderSelected(this, candidate.Candidate, candidate.Count);
+                _leaderSelected(this, candidate.Candidate, candidate.Count, 
+                    _replyMsgs.Keys.ToList()
+                    );
             }
         }
 

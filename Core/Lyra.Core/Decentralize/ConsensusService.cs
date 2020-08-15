@@ -92,16 +92,16 @@ namespace Lyra.Core.Decentralize
             _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
             _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
 
-            _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes) => {
+            _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes, voters) => {
                 _log.LogInformation($"New leader selected: {sender.NewLeader} with votes {sender.NewLeaderVotes}");
 
                 if(sender.NewLeader == _sys.PosWallet.AccountId)
                 {
                     // its me!
-                    _blockchain.Tell(new BlockChain.NewLeaderCreateView());
+                    _blockchain.Tell(new BlockChain.NewLeaderCreateView { Voters = voters });
                 }
 
-                _viewChangeHandler.Reset();
+                //_viewChangeHandler.Reset(); 
             });
             IsViewChanging = false;
 
@@ -222,7 +222,7 @@ namespace Lyra.Core.Decentralize
             {
                 if(_viewChangeHandler.CheckTimeout())
                 {
-                    _viewChangeHandler.Reset();
+                    //_viewChangeHandler.Reset();
                 }
                 foreach (var worker in _activeConsensus.Values.ToArray())
                 {
@@ -242,6 +242,9 @@ namespace Lyra.Core.Decentralize
                         {
                             // change view
                             IsViewChanging = true;
+
+                            // make sure me is in all node's billboard
+                            await DeclareConsensusNodeAsync();
 
                             await _viewChangeHandler.BeginChangeViewAsync();
                         }

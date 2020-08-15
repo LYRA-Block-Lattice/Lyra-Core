@@ -67,13 +67,7 @@ namespace Lyra.Core.Authorizers
             }
 
             var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-            //for(int i = 0; i < block.Authorizers.Count; i++)
-            //{
-            //    if (!block.Authorizers[i].AccountID.Equals(board.PrimaryAuthorizers[i])
-            //        && Signatures.VerifyAccountSignature(block.Authorizers[i].IPAddress, block.Authorizers[i].AccountID, block.Authorizers[i].Signature))
-            //        return APIResultCodes.InvalidAuthorizerInBillBoard;
-            //}
-            // make sure the service block's authorizers are taken from the billboard, and they are all valid
+
             foreach (var authorizer in block.Authorizers) // they can be listed in different order!
             {
                 if (!board.PrimaryAuthorizers.Contains(authorizer.AccountID) ||
