@@ -346,7 +346,7 @@ namespace Lyra.Core.Decentralize
 
                     // event hooks
                     var sys = _context.GetDagSystem();
-                    sys.Consensus.Tell(new BlockChain.BlockAdded { hash = block.Hash });
+                    sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
 
                     if (block is ConsolidationBlock consBlock)
                     {

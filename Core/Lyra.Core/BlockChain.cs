@@ -70,7 +70,7 @@ namespace Lyra
         public class FillCompleted { }
         public class BlockAdded
         {
-            public string hash { get; set; }
+            public Block NewBlock { get; set; }
         }
 
         public class NewLeaderCreateView { }
@@ -494,7 +494,7 @@ namespace Lyra
             var result = await _store.AddBlockAsync(block);
             if (result)
             {
-                _sys.Consensus.Tell(new BlockAdded { hash = block.Hash });
+                _sys.Consensus.Tell(new BlockAdded { NewBlock = block });
             }
 
             if (block is ConsolidationBlock)

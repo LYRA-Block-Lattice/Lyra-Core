@@ -127,9 +127,15 @@ namespace Lyra.Core.Decentralize
 
             Receive<AskIfSeed0>((_) => Sender.Tell(new AskIfSeed0 { IsSeed0 = IsThisNodeSeed0 }));
 
-            Receive<BlockChain.BlockAdded>(ba =>
+            Receive<BlockChain.BlockAdded>(nb =>
             {
-                
+                if (nb.NewBlock is ServiceBlock lastSvcBlk)
+                {
+                    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Select(a => a.AccountID).ToArray();
+                    if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
+                        _board.CurrentLeader = lastSvcBlk.Leader;
+                    _board.AllVoters = _board.PrimaryAuthorizers.ToList();
+                }
             });
 
             Receive<Consolidate>((_) =>
