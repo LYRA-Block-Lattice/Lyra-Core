@@ -273,9 +273,11 @@ namespace Lyra.Core.Decentralize
         {
             var localAuthResult = await LocalAuthorizingAsync(msg);
             _log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
-            _state.AddAuthResult(localAuthResult);
-            _context.Send2P2pNetwork(localAuthResult);
-            await CheckAuthorizedAllOkAsync(_state);
+            if(_state.AddAuthResult(localAuthResult))
+            {
+                _context.Send2P2pNetwork(localAuthResult);
+                await CheckAuthorizedAllOkAsync(_state);
+            }
         }
 
         private async Task CheckAuthorizedAllOkAsync(AuthState state)
