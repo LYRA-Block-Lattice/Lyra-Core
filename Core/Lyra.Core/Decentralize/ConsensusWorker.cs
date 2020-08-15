@@ -283,7 +283,7 @@ namespace Lyra.Core.Decentralize
             await ProcessQueueAsync();
             // check state
             // debug: show all states
-            _log.LogInformation($"Consensus Result: {state.OutputMsgs.Count}/{state.WinNumber} {_state.OutputMsgs.Select(a => a.From).Aggregate((a, b) => a.Shorten() + "," + b.Shorten())}");
+            _log.LogInformation($"Consensus Result: {state.OutputMsgs.Count}/{state.WinNumber} {state.OutputMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + "," + y)}");
 
             if (state.OutputMsgs.Count < state.WinNumber)
             {
