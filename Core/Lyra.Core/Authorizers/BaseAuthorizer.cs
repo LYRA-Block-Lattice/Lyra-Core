@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Linq;
 using Neo;
+using Akka.Actor;
+using static Lyra.Core.Decentralize.ConsensusService;
 
 namespace Lyra.Core.Authorizers
 {
@@ -50,13 +52,16 @@ namespace Lyra.Core.Authorizers
             //if (!Signatures.VerifySignature(block.Hash, block.AccountID, block.Signature))
             //    return APIResultCodes.BlockSignatureValidationFailed;
 
-            if(block is ServiceBlock)
+            if(block is ServiceBlock bsb)
             {
-                var accountId = ProtocolSettings.Default.StandbyValidators[0];      //seed0
-                var result = block.VerifySignature(accountId);
+                var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                if (board.CurrentLeader != bsb.Leader)
+                    return APIResultCodes.InvalidLeaderInServiceBlock;
+
+                var result = block.VerifySignature(board.CurrentLeader);
                 if (!result)
                 {
-                    _log.LogWarning($"VerifyBlock failed for ServiceBlock Index: {block.Height} by {accountId}");
+                    _log.LogWarning($"VerifySignature failed for ServiceBlock Index: {block.Height} with Leader {board.CurrentLeader}");
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
             }

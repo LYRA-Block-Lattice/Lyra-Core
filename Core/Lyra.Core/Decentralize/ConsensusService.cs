@@ -94,7 +94,7 @@ namespace Lyra.Core.Decentralize
 
             _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes, voters) => {
                 _log.LogInformation($"New leader selected: {sender.NewLeader} with votes {sender.NewLeaderVotes}");
-
+                _board.CurrentLeader = leader;
                 if(sender.NewLeader == _sys.PosWallet.AccountId)
                 {
                     // its me!
@@ -116,6 +116,8 @@ namespace Lyra.Core.Decentralize
                         _board.AllNodes.Add(node);
 
                     _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Select(a => a.AccountID).ToArray();
+                    if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
+                        _board.CurrentLeader = lastSvcBlk.Leader;
                 }
                 await DeclareConsensusNodeAsync();
             });

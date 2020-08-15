@@ -325,6 +325,7 @@ namespace Lyra.Core.Blocks
         InvalidFeeTicker,
         InvalidAuthorizerCount,
         InvalidAuthorizerInBillBoard,
+        InvalidLeaderInServiceBlock,
 
         DuplicateReceiveBlock = 100,
 
