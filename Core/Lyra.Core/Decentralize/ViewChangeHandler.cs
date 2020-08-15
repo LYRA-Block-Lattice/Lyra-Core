@@ -37,6 +37,7 @@ namespace Lyra.Core.Decentralize
             _commitMsgs = new ConcurrentDictionary<string, ViewChangeCommitMessage>();
 
             _leaderSelected = leaderSelected;
+            _dtStart = DateTime.MinValue;
         }
 
         // debug only. should remove after
@@ -58,6 +59,7 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogWarning("Reset");
             _viewId = 0;
+            _dtStart = DateTime.MinValue;
 
             _reqMsgs.Clear();
             _replyMsgs.Clear();
@@ -71,6 +73,7 @@ namespace Lyra.Core.Decentralize
                 // other node request to change view
                 var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
                 _viewId = lastSb.Height + 1;
+                _dtStart = DateTime.Now;
             }
 
             _log.LogInformation($"ViewChangeHandler ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID} My ViewID {_viewId} ");
@@ -215,6 +218,7 @@ namespace Lyra.Core.Decentralize
             if (_viewId == 0)
             {
                 _viewId = lastSb.Height + 1;
+                _dtStart = DateTime.Now;
             }
             else if(_viewId != lastSb.Height + 1)
             {
