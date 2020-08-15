@@ -81,7 +81,6 @@ namespace Lyra.Core.Blocks
             string extraData = base.GetExtraData();
 
             extraData += this.Version == 1 ? "" : Leader + "|";
-
             extraData += this.NetworkId + "|";
             extraData += this.FeeTicker + "|";
             foreach (var pn in Authorizers)
@@ -123,6 +122,7 @@ namespace Lyra.Core.Blocks
         {
             string result = base.Print();
             result += $"NetworkId: {NetworkId}\n";
+            result += $"Leader: {Leader}\n";
             result += $"FeeTicker: {FeeTicker}\n";
             result += $"TransferFee: {TransferFee.ToString()}\n";
             result += $"TokenGenerationFee: {TokenGenerationFee.ToString()}\n";
