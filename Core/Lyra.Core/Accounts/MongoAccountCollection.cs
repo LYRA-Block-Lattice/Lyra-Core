@@ -707,7 +707,7 @@ namespace Lyra.Core.Accounts
             var ret = await _blocks.DeleteOneAsync(a => a.Hash == hash);
             if (ret.IsAcknowledged && ret.DeletedCount == 1)
             {
-                _log.LogWarning($"RemoveBlockAsync Block {hash} removed.");
+               // _log.LogWarning($"RemoveBlockAsync Block {hash} removed.");
             }
             else
                 _log.LogWarning($"RemoveBlockAsync Block {hash} failed.");
