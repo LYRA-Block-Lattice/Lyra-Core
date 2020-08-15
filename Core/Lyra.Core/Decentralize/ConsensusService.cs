@@ -894,20 +894,20 @@ namespace Lyra.Core.Decentralize
                     await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
                 }
 
-                if(!IsViewChanging)
-                {
-                    // calculate votes, update billboard
-                    // see if view change is required
-                    var oldTotal = Board.AllNodes
-                        .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
-                        .Select(x => x.Votes)
-                        .Sum();
-                    RefreshAllNodesVotes();
-                    var newTotal = Board.AllNodes
-                        .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
-                        .Select(x => x.Votes)
-                        .Sum();
+                // calculate votes, update billboard
+                // see if view change is required
+                var oldTotal = Board.AllNodes
+                    .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
+                    .Select(x => x.Votes)
+                    .Sum();
+                RefreshAllNodesVotes();
+                var newTotal = Board.AllNodes
+                    .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
+                    .Select(x => x.Votes)
+                    .Sum();
 
+                if (!IsViewChanging)
+                {
                     var qualifiedCount = Board.AllNodes.Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance).Count();
                     if ((qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS) ||
                         Math.Abs(newTotal - oldTotal) > 1000000)
