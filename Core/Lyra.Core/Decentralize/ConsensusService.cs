@@ -276,7 +276,7 @@ namespace Lyra.Core.Decentralize
                     try
                     {
                         //_log.LogWarning("starting maintaince loop... ");
-                        //await StateMaintainceAsync();
+                        await CreateConsolidationBlock();
 
                         await Task.Delay(15000).ConfigureAwait(false);
 
@@ -286,7 +286,6 @@ namespace Lyra.Core.Decentralize
 
                         if (count > 4 * 5)     // 5 minutes
                         {
-
                             count = 0;
                         }
                     }
