@@ -25,10 +25,23 @@ namespace Lyra.Core.Decentralize
         public ConcurrentDictionary<string, ViewChangeReplyMessage> _replyMsgs { get; set; }
         public ConcurrentDictionary<string, ViewChangeCommitMessage> _commitMsgs { get; set; }
 
-        private int QualifiedNodeCount =>
-            _context.Board.AllNodes.Count(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance) > LyraGlobal.MAXIMUM_AUTHORIZERS ?
-            LyraGlobal.MAXIMUM_AUTHORIZERS :
-            _context.Board.AllNodes.Count(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance);
+        private int QualifiedNodeCount
+        {
+            get
+            {
+                var allNodes = _context.Board.AllNodes.ToList();
+                var count = allNodes.Count(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance);
+                if (count > LyraGlobal.MAXIMUM_AUTHORIZERS)
+                {
+                    return LyraGlobal.MAXIMUM_AUTHORIZERS;
+                }
+                else
+                {
+                    return count;
+                }
+            }
+        }
+
 
         public ViewChangeHandler(ConsensusService context, LeaderSelectedHandler leaderSelected) : base(context)
         {
