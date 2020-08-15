@@ -342,6 +342,7 @@ namespace Lyra.Core.Blocks
         NodeOutOfSync = 303,
         PBFTNetworkNotReadyForConsensus = 304,
         DoubleSpentDetected = 305,
-        NotListedAsQualifiedAuthorizer = 306
+        NotListedAsQualifiedAuthorizer = 306,
+        ConsensusTimeout = 307
     }
 }

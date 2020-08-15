@@ -704,6 +704,13 @@ namespace Lyra
 
                     await AddBlockAsync(block);
                 }
+
+                // save cons block itself
+                var localCons = await FindBlockByHashAsync(consBlock.Hash);
+                if(localCons != null)
+                    await RemoveBlockAsync(consBlock.Hash);
+
+                await AddBlockAsync(consBlock);
             }
         }
 
