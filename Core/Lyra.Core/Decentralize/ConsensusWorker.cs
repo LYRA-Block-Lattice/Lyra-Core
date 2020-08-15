@@ -103,7 +103,7 @@ namespace Lyra.Core.Decentralize
                 _state.T3 = DateTime.Now;
 
             if (_state.AddAuthResult(item))
-                await CheckAuthorizedAllOkAsync(_state);
+                await CheckAuthorizedAllOkAsync();
         }
 
         private async Task OnCommitAsync(AuthorizerCommitMsg item)
@@ -276,29 +276,29 @@ namespace Lyra.Core.Decentralize
             if(_state.AddAuthResult(localAuthResult))
             {
                 _context.Send2P2pNetwork(localAuthResult);
-                await CheckAuthorizedAllOkAsync(_state);
+                await CheckAuthorizedAllOkAsync();
             }
         }
 
-        private async Task CheckAuthorizedAllOkAsync(AuthState state)
+        private async Task CheckAuthorizedAllOkAsync()
         {
             await ProcessQueueAsync();
             // check state
             // debug: show all states
-            _log.LogInformation($"Consensus Result: {state.OutputMsgs.Count}/{state.WinNumber} {state.OutputMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + "," + y)}");
+            _log.LogInformation($"Consensus Result: {_state.OutputMsgs.Count}/{_state.WinNumber} {_state.OutputMsgs.Select(a => a.From.Shorten()).Aggregate((x, y) => x + "," + y)}");
 
-            if (state.OutputMsgs.Count < state.WinNumber)
+            if (_state.OutputMsgs.Count < _state.WinNumber)
             {
                 return;
             }
-            await state.Semaphore.WaitAsync();
+            await _state.Semaphore.WaitAsync();
             try
             {
                 var sb = new StringBuilder();
                 sb.AppendLine();
-                var acctId = state.InputMsg.Block is TransactionBlock ? (state.InputMsg.Block as TransactionBlock).AccountID.Shorten() : "";
-                sb.AppendLine($"* Transaction From Node {acctId} Type: {state.InputMsg.Block.BlockType} Index: {state.InputMsg.Block.Height} Hash: {state.InputMsg.Block.Hash.Shorten()}");
-                foreach (var msg in state.OutputMsgs.ToList())
+                var acctId = _state.InputMsg.Block is TransactionBlock ? (_state.InputMsg.Block as TransactionBlock).AccountID.Shorten() : "";
+                sb.AppendLine($"* Transaction From Node {acctId} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
+                foreach (var msg in _state.OutputMsgs.ToList())
                 {
                     var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
                     string me = "";
@@ -310,42 +310,42 @@ namespace Lyra.Core.Decentralize
                 }
                 _log.LogInformation(sb.ToString());
 
-                _log.LogInformation($"state.Consensus is {state.PrepareConsensus}");
-                if (ConsensusResult.Uncertain != state.PrepareConsensus)
+                _log.LogInformation($"_state.Consensus is {_state.PrepareConsensus}");
+                if (ConsensusResult.Uncertain != _state.PrepareConsensus)
                 {
 
-                    _log.LogInformation($"got Semaphore. is it saving? {state.Saving}");
+                    _log.LogInformation($"got Semaphore. is it saving? {_state.Saving}");
 
-                    if (state.Saving)
+                    if (_state.Saving)
                         return;
 
-                    state.Saving = true;
+                    _state.Saving = true;
 
-                    state.T4 = DateTime.Now;
+                    _state.T4 = DateTime.Now;
 
-                    _log.LogInformation($"Saving {state.PrepareConsensus}: {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash}");
+                    _log.LogInformation($"Saving {_state.PrepareConsensus}: {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash}");
 
-                    var ts = DateTime.Now - state.Created;
+                    var ts = DateTime.Now - _state.Created;
                     if (_context.Stats.Count > 10000)
                         _context.Stats.RemoveRange(0, 2000);
 
-                    _context.Stats.Add(new TransStats { ms = (long)ts.TotalMilliseconds, trans = state.InputMsg.Block.BlockType });
+                    _context.Stats.Add(new TransStats { ms = (long)ts.TotalMilliseconds, trans = _state.InputMsg.Block.BlockType });
 
-                    var block = state.InputMsg.Block;
+                    var block = _state.InputMsg.Block;
 
                     // do commit
-                    //block.Authorizations = state.OutputMsgs.Select(a => a.AuthSign).ToList();
+                    //block.Authorizations = _state.OutputMsgs.Select(a => a.AuthSign).ToList();
 
                     var msg = new AuthorizerCommitMsg
                     {
                         From = _context.GetDagSystem().PosWallet.AccountId,
                         MsgType = ChatMessageType.AuthorizerCommit,
-                        BlockHash = state.InputMsg.Block.Hash,
-                        Consensus = state.PrepareConsensus
+                        BlockHash = _state.InputMsg.Block.Hash,
+                        Consensus = _state.PrepareConsensus
                     };
 
                     _context.Send2P2pNetwork(msg);
-                    state.AddCommitedResult(msg);
+                    _state.AddCommitedResult(msg);
                 }
             }
             catch (Exception ex)
@@ -354,7 +354,7 @@ namespace Lyra.Core.Decentralize
             }
             finally
             {
-                state.Semaphore.Release();
+                _state.Semaphore.Release();
             }
         }
 
