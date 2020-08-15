@@ -43,7 +43,7 @@ namespace Lyra.Core.Decentralize
 
         public ConsensusResult CommitConsensus => GetCommitConsensusSuccess();
 
-        public int WinNumber
+        public virtual int WinNumber
         {
             get
             {
@@ -83,6 +83,14 @@ namespace Lyra.Core.Decentralize
             _serviceBlock = serviceBlock;
         }
 
+        protected virtual bool CheckSenderValid(string from)
+        {
+            if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.AccountID == from))
+                return false;
+            else
+                return true;
+        }
+
         public bool AddAuthResult(AuthorizedMsg msg)
         {
             // check repeated message
@@ -103,7 +111,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // check for valid validators
-                if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.AccountID == msg.From))
+                if (!CheckSenderValid(msg.From))
                     return false;
 
                 OutputMsgs.Add(msg);
@@ -123,7 +131,7 @@ namespace Lyra.Core.Decentralize
             // check network state
             // !! only accept from svcBlock ( or associated view )
             // check for valid validators
-            if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.AccountID == msg.From))
+            if (!CheckSenderValid(msg.From))
                 return false;
 
             CommitMsgs.Add(msg);

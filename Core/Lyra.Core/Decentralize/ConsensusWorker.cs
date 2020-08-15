@@ -149,50 +149,16 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {item.Block.Height}");
 
-            var ukey = item.Block.Hash;
-            //if (_activeConsensus.ContainsKey(ukey))
-            //{
-            //    return _activeConsensus[ukey];
-            //}
-
-            var state = new AuthState();
+            AuthState state;
+            if (item.Block.BlockType == BlockTypes.Service)
+            {
+                state = new ServiceBlockAuthState(_context.Board.AllNodes.Count);
+            }
+            else
+            {
+                state = new AuthState();
+            }
             state.InputMsg = item;
-
-            //// add possible out of ordered messages belong to the block
-            //if (_outOfOrderedMessages.ContainsKey(item.Block.Hash))
-            //{
-            //    var msgs = _outOfOrderedMessages[item.Block.Hash];
-            //    _outOfOrderedMessages.Remove(item.Block.Hash);
-
-            //    foreach (var msg in msgs)
-            //    {
-            //        switch (msg)
-            //        {
-            //            case AuthorizedMsg authorized:
-            //                state.AddAuthResult(authorized);
-            //                break;
-            //            case AuthorizerCommitMsg committed:
-            //                state.AddCommitedResult(committed);
-            //                break;
-            //        }
-            //    }
-            //}
-
-            // check if block existing
-            //if (null != _context.GetDagSystem().Storage.FindBlockByHash(item.Block.Hash))
-            //{
-            //    _log.LogInformation("CreateAuthringState: Block is already in database.");
-            //    return null;
-            //}
-
-            // check if block was replaced by nulltrans
-            //if (null != _context.GetDagSystem().Storage.FindNullTransBlockByHash(item.Block.Hash))
-            //{
-            //    _log.LogInformation("CreateAuthringState: Block is already consolidated by nulltrans.");
-            //    return null;
-            //}
-
-            //_activeConsensus.Add(ukey, state);
             return state;
         }
 

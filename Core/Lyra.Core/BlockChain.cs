@@ -433,7 +433,7 @@ namespace Lyra
 
                           svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,  _sys.PosWallet.AccountId);
 
-                          await SendBlockToConsensusAsync(svcBlock);
+                          await SendBlockToConsensusAsync(svcBlock, board.AllVoters.Count);
 
                           _log.LogInformation($"New View was created. send to network...");
                       }
@@ -627,7 +627,7 @@ namespace Lyra
             return svcGenesis;
         }
 
-        private async Task SendBlockToConsensusAsync(Block block)
+        private async Task SendBlockToConsensusAsync(Block block, int totalNumber = 4)        // default is genesus, 4 default
         {
             AuthorizingMsg msg = new AuthorizingMsg
             {
@@ -637,7 +637,15 @@ namespace Lyra
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState(true);
+            AuthState state;
+            if(block is ServiceBlock sb)
+            {
+                state = new ServiceBlockAuthState(totalNumber, true);
+            }
+            else
+            {
+                state = new AuthState(true);
+            }
             state.SetView(await GetLastServiceBlockAsync());
             state.InputMsg = msg;
 
