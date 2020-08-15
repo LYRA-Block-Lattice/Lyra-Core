@@ -94,6 +94,19 @@ namespace Lyra.Core.Authorizers
                 if (!await ValidateRenewalDateAsync(sys, blockt, previousBlock as TransactionBlock))
                     return APIResultCodes.TokenExpired;
             }         
+            else if(block is ConsolidationBlock cons)
+            {
+                var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                if (board.CurrentLeader != cons.createdBy)
+                    return APIResultCodes.InvalidLeaderInConsolidationBlock;
+
+                var result = block.VerifySignature(board.CurrentLeader);
+                if (!result)
+                {
+                    _log.LogWarning($"VerifySignature failed for ConsolidationBlock Index: {block.Height} with Leader {board.CurrentLeader}");
+                    return APIResultCodes.BlockSignatureValidationFailed;
+                }
+            }
 
             // This is the double-spending check for send block!
             if (!string.IsNullOrEmpty(block.PreviousHash) && (await sys.Storage.FindBlockByPreviousBlockHashAsync(block.PreviousHash)) != null)

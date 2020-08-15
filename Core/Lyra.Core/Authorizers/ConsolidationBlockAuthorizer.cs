@@ -77,8 +77,8 @@ namespace Lyra.Core.Authorizers
             if (block.totalFees != feeAggregated.ToBalanceLong())
                 return APIResultCodes.InvalidConsolidationTotalFees;
 
-            // seed0 may lost block. if a block aged more than 10 seconds not included in cons block, there is a problem.
-            
+            // consolidation must come from leader node
+                        
 
             return APIResultCodes.Success;
         }

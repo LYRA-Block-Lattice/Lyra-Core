@@ -563,6 +563,7 @@ namespace Lyra
         {
             var consBlock = new ConsolidationBlock
             {
+                createdBy = ProtocolSettings.Default.StandbyValidators[0],
                 blockHashes = new List<string>()
                 {
                     svcGen.Hash, lyraGen.Hash
@@ -615,6 +616,7 @@ namespace Lyra
             var svcGenesis = new ServiceBlock
             {
                 NetworkId = NetworkID,
+                Leader = ProtocolSettings.Default.StandbyValidators[0],
                 Height = 1,
                 FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
                 TransferFee = 1,           //zero for genesis. back to normal when genesis done

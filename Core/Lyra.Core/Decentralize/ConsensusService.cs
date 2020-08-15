@@ -498,6 +498,7 @@ namespace Lyra.Core.Decentralize
 
             var consBlock = new ConsolidationBlock
             {
+                createdBy = _sys.PosWallet.AccountId,
                 blockHashes = collection.ToList(),
                 totalBlockCount = lastCons.totalBlockCount + collection.Count()
             };

@@ -16,6 +16,8 @@ namespace Lyra.Core.Blocks
         // fee aggregation
         public long totalFees { get; set; }
 
+        public string createdBy { get; set; }
+
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.Consolidation;
@@ -30,15 +32,21 @@ namespace Lyra.Core.Blocks
                           (sb, h) => sb.Append($"|{h}"),
                           sb => sb.ToString());
             }
-            return base.GetExtraData() +
+            var str = base.GetExtraData() +
                 nui +
                 $"|{totalFees}" +
                 $"|{MerkelTreeHash}";
+
+            if (Version > 1)
+                str += $"|{createdBy}";
+
+            return str;
         }
 
         public override string Print()
         {
             string result = base.Print();
+            result += $"created by leader: {createdBy}\n";
             result += $"totalBlockCount: {totalBlockCount}\n";
             result += $"totalFees: {totalFees}\n";
             result += $"MerkelTreeHash: {MerkelTreeHash}\n";
