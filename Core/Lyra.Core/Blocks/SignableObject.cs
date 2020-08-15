@@ -32,7 +32,7 @@ namespace Lyra.Core.Blocks
                 string hash = Base58Encoding.Encode(hash_bytes);
 
                 // debug only, temp code
-                Console.WriteLine($"Hash input: {record}\n Hash: {hash}");
+                //Console.WriteLine($"Hash input: {record}\n Hash: {hash}");
 
                 return hash;
             }
