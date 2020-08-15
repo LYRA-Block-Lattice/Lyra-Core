@@ -341,6 +341,8 @@ namespace Lyra.Core.Decentralize
             msg.From = _sys.PosWallet.AccountId;
             _board.Add(me);
             Send2P2pNetwork(msg);
+
+            RefreshAllNodesVotes();
         }
 
         private void HeartBeat()
