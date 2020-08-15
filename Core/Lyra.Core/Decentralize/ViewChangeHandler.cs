@@ -76,7 +76,7 @@ namespace Lyra.Core.Decentralize
                 _dtStart = DateTime.Now;
             }
 
-            _log.LogInformation($"ViewChangeHandler ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID} My ViewID {_viewId} ");
+            //_log.LogInformation($"ViewChangeHandler ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID} My ViewID {_viewId} ");
 
             if (_viewId == vcm.ViewID && GetIsMessageLegal(vcm))      // not the next one
             {
@@ -169,7 +169,7 @@ namespace Lyra.Core.Decentralize
 
         private void CheckCommit(ViewChangeCommitMessage vcm)
         {
-            _log.LogInformation($"CheckCommit for view {vcm.ViewID} with Candidate {vcm.Candidate} of {_commitMsgs.Count}/{QualifiedNodeCount}");
+            _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {_commitMsgs.Count}/{QualifiedNodeCount}");
 
             if(!_commitMsgs.ContainsKey(vcm.From))
             {
