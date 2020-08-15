@@ -95,10 +95,11 @@ namespace Lyra.Core.Decentralize
             _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes, voters) => {
                 _log.LogInformation($"New leader selected: {sender.NewLeader} with votes {sender.NewLeaderVotes}");
                 _board.CurrentLeader = leader;
+                _board.AllVoters = voters;
                 if(sender.NewLeader == _sys.PosWallet.AccountId)
                 {
                     // its me!
-                    _blockchain.Tell(new BlockChain.NewLeaderCreateView { Voters = voters });
+                    _blockchain.Tell(new BlockChain.NewLeaderCreateView());
                 }
 
                 //_viewChangeHandler.Reset(); 

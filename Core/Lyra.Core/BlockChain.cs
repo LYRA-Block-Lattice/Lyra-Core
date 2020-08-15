@@ -73,7 +73,7 @@ namespace Lyra
             public string hash { get; set; }
         }
 
-        public class NewLeaderCreateView { public List<string> Voters { get; set; } }
+        public class NewLeaderCreateView { }
 
         private LyraRestClient _seed0Client;
 
@@ -135,7 +135,7 @@ namespace Lyra
             {
                 ConsolidationBlockFailed(x.consolidationBlockHash);
             });
-            Receive<NewLeaderCreateView>(x => CreateNewViewAsNewLeader(x.Voters));
+            Receive<NewLeaderCreateView>(x => CreateNewViewAsNewLeader());
         }
 
         public static Props Props(DagSystem system, IAccountCollectionAsync store)
@@ -384,7 +384,7 @@ namespace Lyra
             //}
         }
 
-        public void CreateNewViewAsNewLeader(List<string> Voters)
+        public void CreateNewViewAsNewLeader()
         {
             // look for changes. if necessary create a new svc block.
             _ = Task.Run(async () =>
@@ -397,9 +397,10 @@ namespace Lyra
 
                       try
                       {
-                          var allVoters = _sys.Storage.FindVotes(Voters).OrderByDescending(a => a.Amount);
-                          var prevSvcBlock = await GetLastServiceBlockAsync();
                           var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+
+                          var allVoters = _sys.Storage.FindVotes(board.AllVoters).OrderByDescending(a => a.Amount);
+                          var prevSvcBlock = await GetLastServiceBlockAsync();
 
                           var svcBlock = new ServiceBlock
                           {

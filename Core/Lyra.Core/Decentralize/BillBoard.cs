@@ -21,6 +21,7 @@ namespace Lyra.Core.Decentralize
     public class BillBoard
     {
         public List<PosNode> AllNodes { get; }
+        public List<string> AllVoters { get; set; }
         public string[] PrimaryAuthorizers { get; set; }
         public string[] BackupAuthorizers { get; set; }
 

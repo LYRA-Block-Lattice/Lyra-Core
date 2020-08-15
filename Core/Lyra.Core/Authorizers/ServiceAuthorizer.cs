@@ -67,10 +67,11 @@ namespace Lyra.Core.Authorizers
             }
 
             var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+            var allVoters = sys.Storage.FindVotes(board.AllVoters).OrderByDescending(a => a.Amount);
 
             foreach (var authorizer in block.Authorizers) // they can be listed in different order!
             {
-                if (!board.PrimaryAuthorizers.Contains(authorizer.AccountID) ||
+                if (!allVoters.Any(a => a.AccountId == authorizer.AccountID) ||
                     !Signatures.VerifyAccountSignature(authorizer.IPAddress, authorizer.AccountID, authorizer.Signature))
                     return APIResultCodes.InvalidAuthorizerInBillBoard;
             }
