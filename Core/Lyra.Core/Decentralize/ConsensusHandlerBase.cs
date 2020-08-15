@@ -14,7 +14,7 @@ namespace Lyra.Core.Decentralize
         protected ConsensusService _context;
         protected ILogger _log;
 
-        DateTime dtStart = DateTime.Now;
+        protected DateTime _dtStart = DateTime.Now;
 
         protected ConcurrentQueue<ConsensusMessage> _outOfOrderedMessages;
 
@@ -28,7 +28,7 @@ namespace Lyra.Core.Decentralize
 
         public virtual bool CheckTimeout()
         {
-            if (DateTime.Now - dtStart > TimeSpan.FromSeconds(ProtocolSettings.Default.ConsensusTimeout))
+            if (DateTime.Now - _dtStart > TimeSpan.FromSeconds(ProtocolSettings.Default.ConsensusTimeout))
             {
                 return true;
             }

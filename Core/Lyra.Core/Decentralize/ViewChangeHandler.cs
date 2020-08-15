@@ -39,11 +39,16 @@ namespace Lyra.Core.Decentralize
             _leaderSelected = leaderSelected;
         }
 
-        //// debug only. should remove after
-        //public override bool CheckTimeout()
-        //{
-        //    return false;
-        //}
+        // debug only. should remove after
+        public override bool CheckTimeout()
+        {
+            if (DateTime.Now - _dtStart > TimeSpan.FromSeconds(10))
+            {
+                return true;
+            }
+            else
+                return false;
+        }
         protected override bool IsStateCreated()
         {
             return true;
@@ -51,6 +56,7 @@ namespace Lyra.Core.Decentralize
 
         public void Reset()
         {
+            _log.LogWarning("Reset");
             _viewId = 0;
 
             _reqMsgs.Clear();
@@ -60,13 +66,14 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
-            _log.LogInformation($"ViewChangeHandler ViewID {_viewId} ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID}");
             if(_viewId == 0)
             {
                 // other node request to change view
                 var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
                 _viewId = lastSb.Height + 1;
             }
+
+            _log.LogInformation($"ViewChangeHandler ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID} My ViewID {_viewId} ");
 
             if (_viewId == vcm.ViewID && GetIsMessageLegal(vcm))      // not the next one
             {
@@ -94,12 +101,16 @@ namespace Lyra.Core.Decentralize
             {
                 return true;
             }
-            return false;
+            else
+            {
+                _log.LogInformation($"ViewChangeMessage Not Legal from {vcm.From.Shorten()}");
+                return false;
+            }
         }
 
         private void CheckAllStats()
         {
-            _log.LogInformation($"CheckAllStats {_commitMsgs.Count}/{QualifiedNodeCount} Req: {_reqMsgs.Count} Reply {_replyMsgs.Count} Commit {_commitMsgs.Count}");
+            _log.LogInformation($"CheckAllStats Req: {_reqMsgs.Count} Reply {_replyMsgs.Count} Commit {_commitMsgs.Count} Votes {_commitMsgs.Count}/{QualifiedNodeCount} ");
             // request
             if (_reqMsgs.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
             {
@@ -187,6 +198,8 @@ namespace Lyra.Core.Decentralize
 
                 if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
                     _reqMsgs.Add(req);
+                else
+                    _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
             }
 
             CheckAllStats();
