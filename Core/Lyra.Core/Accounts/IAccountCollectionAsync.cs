@@ -67,7 +67,7 @@ namespace Lyra.Core.Accounts
         Task<bool> AddBlockAsync(Block block);
         Task RemoveBlockAsync(string hash);
 
-        Task<bool> ConsolidateBlock(string hash);
+        //Task<bool> ConsolidateBlock(string hash);
         Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync();
         Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync();
 

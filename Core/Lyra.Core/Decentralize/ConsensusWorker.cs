@@ -347,40 +347,7 @@ namespace Lyra.Core.Decentralize
                     // event hooks
                     var sys = _context.GetDagSystem();
                     sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
-
-                    if (block is ConsolidationBlock consBlock)
-                    {
-                        var status = await sys.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-                        // we need to update the consolidation flag
-                        foreach (var hash in consBlock.blockHashes)
-                        {
-                            if (!await sys.Storage.ConsolidateBlock(hash) && status.state != BlockChainState.Engaging)
-                                _log.LogCritical($"BlockChain Not consolidate block properly: {hash}");
-                        }
-
-                        // debug
-                        var blockCountInDb = await sys.Storage.GetBlockCountAsync();
-                        if (consBlock.totalBlockCount + 1 > blockCountInDb)
-                            _log.LogCritical($"Consolidation block miscalculate!! total: {blockCountInDb} calculated: {consBlock.totalBlockCount}");
-                    }
-
-                    //else if(block is ServiceBlock sb)
-                    //{
-                    //    // if this authorizer is in the previous service block's authorizers' list, it should receive fee.
-                    //    if(sb.Height > 0)
-                    //    {
-                    //        var sbPrev = await sys.Storage.FindBlockByHashAsync(sb.PreviousHash) as ServiceBlock;
-                    //        if(sbPrev != null && sbPrev.Authorizers.Any(a => a.AccountID == sys.PosWallet.AccountId))
-                    //        {
-                    //            var recvFeeBlock = new ReceiveAuthorizerFeeBlock
-                    //            {
-                    //                Height = 
-                    //            };
-                    //        }
-                    //    }
-                    //}
                 }
-                    
 
                 // if self result is Nay, need (re)send commited msg here
                 var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == _context.GetDagSystem().PosWallet.AccountId);

@@ -39,8 +39,6 @@ namespace Lyra.Core.Blocks
 
         public void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)
         {
-            Consolidated = false;
-
             if (prevBlock != null)
             {
                 Height = prevBlock.Height + 1;
@@ -348,5 +346,6 @@ namespace Lyra.Core.Blocks
         NotListedAsQualifiedAuthorizer = 306,
         ConsensusTimeout = 307,
         SystemNotReadyToServe,
+        InvalidBlockTimeStamp
     }
 }

@@ -421,13 +421,14 @@ namespace Lyra.Core.Decentralize
                     if(allNodeSyncd)
                     {
                         // consolidate time from lastcons to now - 10s
-                        var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, DateTime.Now.AddSeconds(-10));
+                        var timeStamp = DateTime.Now.AddSeconds(-10);
+                        var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
 
                         if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                         {
                             try
                             {
-                                await CreateConsolidateBlockAsync(lastCons, unConsList);
+                                await CreateConsolidateBlockAsync(lastCons, timeStamp, unConsList);
                             }
                             catch (Exception ex)
                             {
@@ -493,7 +494,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task CreateConsolidateBlockAsync(ConsolidationBlock lastCons, IEnumerable<string> collection)
+        private async Task CreateConsolidateBlockAsync(ConsolidationBlock lastCons, DateTime timeStamp, IEnumerable<string> collection)
         {
             _log.LogInformation($"Creating ConsolidationBlock... ");
 
@@ -503,6 +504,7 @@ namespace Lyra.Core.Decentralize
                 blockHashes = collection.ToList(),
                 totalBlockCount = lastCons.totalBlockCount + collection.Count()
             };
+            consBlock.TimeStamp = timeStamp;
 
             var mt = new MerkleTree();
             decimal feeAggregated = 0;

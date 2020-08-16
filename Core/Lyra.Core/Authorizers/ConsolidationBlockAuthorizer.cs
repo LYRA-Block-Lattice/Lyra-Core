@@ -93,7 +93,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidConsolidationTotalFees;
 
             // consolidation must come from leader node
-            // did in base authorizer already!
+            // done in base authorizer already!
 
             return APIResultCodes.Success;
         }
