@@ -228,46 +228,53 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
 
-            var timr = new System.Timers.Timer(100);
+            var timr = new System.Timers.Timer(200);
             timr.Elapsed += async (s, o) =>
             {
-                if(_viewChangeHandler.CheckTimeout())
+                try
                 {
-                    IsViewChanging = false;
-                    _viewChangeHandler.Reset();
-
-                    _log.LogWarning($"View Change Timeout. reset.");
-                }
-                foreach (var worker in _activeConsensus.Values.ToArray())
-                {
-                    if (worker.CheckTimeout())
+                    if (_viewChangeHandler.CheckTimeout())
                     {
-                        var result = worker.State?.CommitConsensus;
+                        IsViewChanging = false;
+                        _viewChangeHandler.Reset();
 
-                        if (worker.State != null)
+                        _log.LogWarning($"View Change Timeout. reset.");
+                    }
+                    foreach (var worker in _activeConsensus.Values.ToArray())
+                    {
+                        if (worker.CheckTimeout())
                         {
-                            worker.State.Done?.Set();
-                            worker.State.Close();
-                        }
+                            var result = worker.State?.CommitConsensus;
 
-                        _activeConsensus.TryRemove(worker.Hash, out _);
-
-                        if(result.HasValue && result.Value == ConsensusResult.Uncertain)
-                        {
-                            var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-
-                            if(blockchainStatus.state == BlockChainState.Almighty)
+                            if (worker.State != null)
                             {
-                                // change view
-                                IsViewChanging = true;
+                                worker.State.Done?.Set();
+                                worker.State.Close();
+                            }
 
-                                // make sure me is in all node's billboard
-                                await DeclareConsensusNodeAsync();
+                            _activeConsensus.TryRemove(worker.Hash, out _);
 
-                                await _viewChangeHandler.BeginChangeViewAsync();
+                            if (result.HasValue && result.Value == ConsensusResult.Uncertain)
+                            {
+                                var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
+
+                                if (blockchainStatus.state == BlockChainState.Almighty && !IsViewChanging)
+                                {
+                                    // change view
+                                    IsViewChanging = true;
+
+                                    // make sure me is in all node's billboard
+                                    await DeclareConsensusNodeAsync();
+
+                                    await _viewChangeHandler.BeginChangeViewAsync();
+                                }
                             }
                         }
                     }
+                }
+                catch(Exception e)
+                {
+                    _log.LogError($"In Time keeper: {e}");
                 }
             };
             timr.AutoReset = true;
