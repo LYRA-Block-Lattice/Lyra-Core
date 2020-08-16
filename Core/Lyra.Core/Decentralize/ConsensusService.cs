@@ -46,13 +46,14 @@ namespace Lyra.Core.Decentralize
         public class AskForMaxActiveUID { }
         public class AskIfSeed0 { public bool IsSeed0 { get; set; } }
         public class ReplyForMaxActiveUID { public long? uid { get; set; } }
-        public class BlockChainSynced { }
+        public class BlockChainStatuChanged { public BlockChainState CurrentState {get; set;} }
         public class NodeInquiry { }
 
         public class ConsolidateFailed { public string consolidationBlockHash { get; set; } }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
         private readonly IActorRef _blockchain;
+        private BlockChainState _currentBlockchainState { get; set; }
 
         ILogger _log;
 
@@ -188,17 +189,12 @@ namespace Lyra.Core.Decentralize
                     _log.LogWarning("Protocol Version Mismatch. Do nothing.");
             });
 
-            ReceiveAsync<BlockChainSynced>(async _ =>
+            ReceiveAsync<BlockChainStatuChanged>(async (state) =>
             {
-                int waitCount = 60;
-                while (LocalNode.Singleton.RemoteNodes.Count < 1 && waitCount > 0)
-                {
-                    _log.LogInformation("Not connected to p2p network. Delay sending... ");
-                    await Task.Delay(1000);
-                    waitCount--;
-                }
+                _currentBlockchainState = state.CurrentState;
 
-                await DeclareConsensusNodeAsync();
+                if(_currentBlockchainState == BlockChainState.Engaging)
+                    await DeclareConsensusNodeAsync();
             });
 
             ReceiveAsync<AuthState>(async state =>
@@ -221,7 +217,7 @@ namespace Lyra.Core.Decentralize
                 var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
                 inq.From = _sys.PosWallet.AccountId;
                 Send2P2pNetwork(inq);
-                _log.LogInformation("Inquiry for node status.");
+                //_log.LogInformation("Inquiry for node status.");
             });
 
             Receive<Idle>(o => { });
@@ -369,8 +365,6 @@ namespace Lyra.Core.Decentralize
             msg.From = _sys.PosWallet.AccountId;
             _board.Add(me);
             Send2P2pNetwork(msg);
-
-            RefreshAllNodesVotes();
         }
 
         private void HeartBeat()
@@ -640,83 +634,41 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
-            if (item.MsgType != ChatMessageType.NodeUp)
-                OnNodeActive(item.From);
-
-            if (item is ChatMsg chatMsg)
+            if(_currentBlockchainState == BlockChainState.Genesis ||
+                _currentBlockchainState == BlockChainState.Engaging ||
+                _currentBlockchainState == BlockChainState.Almighty)
             {
-                await OnRecvChatMsg(chatMsg);
-                return;
-            }
+                //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
+                if (item.MsgType != ChatMessageType.NodeUp)
+                    OnNodeActive(item.From);
 
-            if (item is BlockConsensusMessage cm)
-            {
-                var worker = await GetWorkerAsync(cm.BlockHash);
-                if(worker != null)
-                    await worker.ProcessMessage(cm);
-                return;
-            }
+                if (item is ChatMsg chatMsg)
+                {
+                    await OnRecvChatMsg(chatMsg);
+                    return;
+                }
 
-            if (item is ViewChangeMessage vcm)
-            {
-                await _viewChangeHandler.ProcessMessage(vcm);
-                return;
-            }
+                if(_currentBlockchainState == BlockChainState.Engaging || 
+                    _currentBlockchainState == BlockChainState.Almighty)
+                {
+                    if (item is BlockConsensusMessage cm)
+                    {
+                        var worker = await GetWorkerAsync(cm.BlockHash);
+                        if (worker != null)
+                            await worker.ProcessMessage(cm);
+                        return;
+                    }
 
-            /*            switch (item)
+                    if(_currentBlockchainState == BlockChainState.Almighty)
+                    {
+                        if (item is ViewChangeMessage vcm)
                         {
-                            case AuthorizingMsg msg1:
-                                if(msg1.Block is TransactionBlock)
-                                {
-                                    var acctId = (msg1.Block as TransactionBlock).AccountID;
-                                    if (FindActiveBlock(acctId, msg1.Block.Height))
-                                    {
-                                        _log.LogCritical($"Double spent detected for {acctId}, index {msg1.Block.Height}");
-                                        break;
-                                    }
-                                }
-
-                                if (msg1.Block is ServiceBlock && !IsMessageFromSeed0(item))
-                                {
-                                    _log.LogError($"fake genesis block from node {item.From}");
-                                    return;
-                                }                        
-
-                                var worker = await GetWorkerAsync(msg1.Block.Hash);
-                                if (worker != null)
-                                    await worker.OnPrePrepareAsync(msg1);
-                                else
-                                    _log.LogError($"No worker1 for {msg1.Block.Hash}");
-                                break;
-                            case AuthorizedMsg msg2:
-                                //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync 3 {item.MsgType}");
-
-                                if (!AuthorizerShapshot.Contains(msg2.From))
-                                    return;
-
-                                var worker2 = await GetWorkerAsync(msg2.BlockHash);
-                                if (worker2 != null)
-                                    await worker2.OnPrepareAsync(msg2);
-                                else
-                                    _log.LogInformation($"No worker2 from {msg2.From.Shorten()} for {msg2.BlockHash.Shorten()}");
-                                //_log.LogInformation($"Consensus: OnNextConsensusMessageAsync 4 {item.MsgType}");
-                                break;
-                            case AuthorizerCommitMsg msg3:
-                                if (!AuthorizerShapshot.Contains(msg3.From))
-                                    return;
-
-                                var worker3 = await GetWorkerAsync(msg3.BlockHash);
-                                if (worker3 != null)
-                                    await worker3.OnCommitAsync(msg3);
-                                else
-                                    _log.LogInformation($"No worker3 from {msg3.From.Shorten()} for {msg3.BlockHash.Shorten()}");
-                                break;
-                            default:
-                                // log msg unknown
-                                _log.LogInformation($"Message unknown from {item.From} type {item.MsgType} not processed: ");
-                                break;
-                        }*/
+                            await _viewChangeHandler.ProcessMessage(vcm);
+                            return;
+                        }
+                    }
+                }
+            }
         }
 
         private async Task OnRecvChatMsg(ChatMsg chat)
@@ -737,7 +689,6 @@ namespace Lyra.Core.Decentralize
                 //    break;
                 case ChatMessageType.NodeStatusInquiry:
                     var status = await _sys.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-                    //var status = await _sys.Storage.GetNodeStatusAsync();
                     var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);
                     resp.From = _sys.PosWallet.AccountId;
                     Send2P2pNetwork(resp);
@@ -748,28 +699,6 @@ namespace Lyra.Core.Decentralize
                     break;
             }
         }
-
-        //private void OnBillBoardBroadcast(ChatMsg msg)
-        //{
-        //    if (IsMessageFromSeed0(msg)) // only accept bbb from seeds
-        //    {
-        //        _board = JsonConvert.DeserializeObject<BillBoard>(msg.Text);
-        //        AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
-
-        //        // switch to protect mode if necessary
-        //        _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { IsSeed0 = false, count = _board.PrimaryAuthorizers.Length });
-
-        //        // no me?
-        //        if (!_board.AllNodes.ContainsKey(_sys.PosWallet.AccountId))
-        //        {
-        //            Task.Run(async () => { 
-        //                await DeclareConsensusNodeAsync();
-        //            });
-        //        }
-
-        //        _log.LogInformation("BillBoard updated!");
-        //    }
-        //}
 
         private void RefreshAllNodesVotes()
         {
@@ -858,23 +787,10 @@ namespace Lyra.Core.Decentralize
                 //    await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
                 //}
 
-                // calculate votes, update billboard
-                // see if view change is required
-                var oldTotal = Board.AllNodes
-                    .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
-                    .Select(x => x.Votes)
-                    .Sum();
-                RefreshAllNodesVotes();
-                var newTotal = Board.AllNodes
-                    .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
-                    .Select(x => x.Votes)
-                    .Sum();
-
                 if (!IsViewChanging)
                 {
                     var qualifiedCount = Board.AllNodes.Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance).Count();
-                    if ((qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS) ||
-                        Math.Abs(newTotal - oldTotal) > 1000000)
+                    if (qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS)
                     {
                         var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
 

@@ -146,13 +146,18 @@ namespace Lyra
         private void CreateStateMachine()
         {
             _stateMachine.Configure(BlockChainState.Initializing)
+                .OnEntry(() =>
+                {
+                    _sys.Consensus.Tell(new ConsensusService.BlockChainStatuChanged { CurrentState = _stateMachine.State });
+                })
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
 
             _stateMachine.Configure(BlockChainState.Startup)
                 .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    while(true)
+                    _sys.Consensus.Tell(new ConsensusService.BlockChainStatuChanged { CurrentState = _stateMachine.State });
+                    while (true)
                     {
                         try
                         {
@@ -165,6 +170,8 @@ namespace Lyra
                             _sys.Consensus.Tell(new ConsensusService.Startup());
 
                             await Task.Delay(10000);
+
+                            // verify local database
 
                             _nodeStatus = new List<NodeStatus>();
                             _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
@@ -228,6 +235,8 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
                 {
+                    _sys.Consensus.Tell(new ConsensusService.BlockChainStatuChanged { CurrentState = _stateMachine.State });
+
                     var IsSeed0 = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0());
                     if (await FindLatestBlockAsync() == null && IsSeed0.IsSeed0)
                     {
@@ -239,62 +248,15 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
                 {
-                    var unConsSynced = 0;
-                    while (true)
+                    _sys.Consensus.Tell(new ConsensusService.BlockChainStatuChanged { CurrentState = _stateMachine.State });
+
+                    try
                     {
-                        try
-                        {
-                            var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
-
-                            // compare state
-                            var seedSyncState = await client.GetSyncState();
-                            var mySyncState = await GetNodeStatusAsync();
-                            if (seedSyncState.ResultCode == APIResultCodes.Success && seedSyncState.Status.Equals(mySyncState))
-                            {
-                                _log.LogInformation("Fully Synced with seeds.");
-                                break;
-                            }
-
-                            var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
-                            var lastMyCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                            if (lastMyCons.Height < latestSeedCons.Height)
-                            {
-                                var consBlocksResult = await client.GetConsolidationBlocks(lastMyCons.Height);
-                                if (consBlocksResult.ResultCode == APIResultCodes.Success)
-                                {
-                                    var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
-                                    foreach (var consBlock in consBlocks)
-                                    {
-                                        if (!await VerifyConsolidationBlock(consBlock, latestSeedCons.Height))
-                                            await SyncManyBlocksAsync(client, consBlock);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                // sync unconsolidated blocks
-                                var unConsBlockResult = await client.GetUnConsolidatedBlocks();
-                                if (unConsBlockResult.ResultCode == APIResultCodes.Success)
-                                {
-                                    var myUnConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
-                                    foreach(var unCon in myUnConsList.Where(a => !unConsBlockResult.Entities.Contains(a)))
-                                    {
-                                        await _sys.Storage.RemoveBlockAsync(unCon);
-                                    }
-                                    if (unConsSynced < unConsBlockResult.Entities.Count)
-                                    {
-                                        await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
-                                        unConsSynced = unConsBlockResult.Entities.Count;
-                                    }
-                                    else
-                                        break;
-                                }
-                            }
-                        }
-                        catch(Exception e)
-                        {
-                            _log.LogError($"In Engaging: {e}");
-                        }
+                        await SyncDatabase(false);
+                    }
+                    catch (Exception e)
+                    {
+                        _log.LogError($"In Engaging: {e}");
                     }
 
                     _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
@@ -304,11 +266,102 @@ namespace Lyra
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(() =>
                 {
-                    _sys.Consensus.Tell(new ConsensusService.BlockChainSynced());
+                    _sys.Consensus.Tell(new ConsensusService.BlockChainStatuChanged { CurrentState = _stateMachine.State });
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup);
 
             _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
+        }
+
+        private async Task SyncDatabase(bool FullDbSync)
+        {
+            var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
+
+            // compare state
+            var seedSyncState = await client.GetSyncState();
+            var mySyncState = await GetNodeStatusAsync();
+            if (seedSyncState.ResultCode == APIResultCodes.Success && seedSyncState.Status.Equals(mySyncState))
+            {
+                _log.LogInformation("Fully Synced with seeds.");
+                return;
+            }
+
+            long localHeight;
+            if (FullDbSync)
+            {
+                localHeight = 0;
+            }
+            else
+            {
+                var lastMyCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                localHeight = lastMyCons.Height;
+            }
+
+            var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
+            var lastSyncConsHeight = latestSeedCons.Height;
+            while (localHeight < lastSyncConsHeight)
+            {
+                var consBlocksResult = await client.GetConsolidationBlocks(lastSyncConsHeight);
+                if (consBlocksResult.ResultCode == APIResultCodes.Success)
+                {
+                    var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
+                    foreach (var consBlock in consBlocks)
+                    {
+                        if (!await VerifyConsolidationBlock(consBlock, lastSyncConsHeight))
+                        {
+                            _log.LogInformation($"Syncing Consolidations {consBlock.Height} / {consBlock.Hash.Shorten()} ");
+
+                            var blocksResult = await client.GetBlocksByConsolidation(consBlock.Hash);
+                            if (blocksResult.ResultCode == APIResultCodes.Success)
+                            {
+                                foreach (var block in blocksResult.GetBlocks())
+                                {
+                                    var localBlock = await FindBlockByHashAsync(block.Hash);
+                                    if (localBlock != null)
+                                        await RemoveBlockAsync(block.Hash);
+
+                                    await AddBlockAsync(block);
+                                }
+
+                                // save cons block itself
+                                var localCons = await FindBlockByHashAsync(consBlock.Hash);
+                                if (localCons != null)
+                                    await RemoveBlockAsync(consBlock.Hash);
+
+                                await AddBlockAsync(consBlock);
+                            }
+                        }
+                    }
+
+                    //latestSeedCons = await client.GetBlockByHash()
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+
+
+            //{
+            //    // sync unconsolidated blocks
+            //    var unConsBlockResult = await client.GetUnConsolidatedBlocks();
+            //    if (unConsBlockResult.ResultCode == APIResultCodes.Success)
+            //    {
+            //        var myUnConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
+            //        foreach (var unCon in myUnConsList.Where(a => !unConsBlockResult.Entities.Contains(a)))
+            //        {
+            //            await _sys.Storage.RemoveBlockAsync(unCon);
+            //        }
+            //        if (unConsSynced < unConsBlockResult.Entities.Count)
+            //        {
+            //            await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
+            //            unConsSynced = unConsBlockResult.Entities.Count;
+            //        }
+            //        else
+            //            break;
+            //    }
+            //}
         }
 
         private void Genesis()
@@ -925,7 +978,7 @@ namespace Lyra
                     }
                 }
 
-                _sys.Consensus.Tell(new ConsensusService.BlockChainSynced());
+                //_sys.Consensus.Tell(new ConsensusService.BlockChainSynced());
                 _log.LogInformation("BlockChain Sync Completed.");
             });
         }
