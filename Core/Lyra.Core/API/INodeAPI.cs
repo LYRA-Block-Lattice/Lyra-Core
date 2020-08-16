@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Exchange;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -31,6 +32,7 @@ namespace Lyra.Core.API
         Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight);
         Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash);
         Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature);
+        Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime);
         #endregion Blocklist information methods
 
         #region Account maintenance methods

@@ -145,7 +145,7 @@ namespace Lyra.Core.Decentralize
 
                 Task.Run(async () =>
                 {
-                    await CreateConsolidateBlockAsync();
+                    await CreateConsolidationBlock();
                 });
             });
 
@@ -393,9 +393,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task CreateConsolidationBlock()
         {
-            // expire partial transaction.
-            // "patch" the exmpty UIndex
-            // collec fees and do redistribute
+            if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State?.InputMsg.Block is ConsolidationBlock))
+                return;
+
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
             if (lastCons == null)
                 return;         // wait for genesis
@@ -420,14 +420,14 @@ namespace Lyra.Core.Decentralize
                     }
                     if(allNodeSyncd)
                     {
-                        var unConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
-                        var lastConsBlock = await _sys.Storage.GetLastConsolidationBlockAsync();
+                        // consolidate time from lastcons to now - 10s
+                        var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, DateTime.Now.AddSeconds(-10));
 
-                        if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastConsBlock.TimeStamp > TimeSpan.FromMinutes(10)))
+                        if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                         {
                             try
                             {
-                                await CreateConsolidateBlockAsync();
+                                await CreateConsolidateBlockAsync(lastCons, unConsList);
                             }
                             catch (Exception ex)
                             {
@@ -493,13 +493,8 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task CreateConsolidateBlockAsync()
+        private async Task CreateConsolidateBlockAsync(ConsolidationBlock lastCons, IEnumerable<string> collection)
         {
-            if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State?.InputMsg.Block is ConsolidationBlock))
-                return;
-
-            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-            var collection = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
             _log.LogInformation($"Creating ConsolidationBlock... ");
 
             var consBlock = new ConsolidationBlock

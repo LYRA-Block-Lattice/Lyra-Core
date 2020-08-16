@@ -203,6 +203,15 @@ namespace LyraLexWeb2
             return await _node.GetBlocksByConsolidation(AccountId, Signature, consolidationHash);
         }
 
+        // this api generate too much data so not open to public
+        //[Route("GetBlockHashesByTimeRange")]
+        //[HttpGet]
+        //public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        //{
+        //    CheckSyncState();
+        //    return await _node.GetBlockHashesByTimeRange(startTime, endTime);
+        //}
+
         [Route("GetConsolidationBlocks")]
         [HttpGet]
         public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight)

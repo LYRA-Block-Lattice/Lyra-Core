@@ -844,5 +844,31 @@ namespace Lyra.Core.Accounts
             var finds = await _blocks.FindAsync(filterDefination, options);
             return await finds.FirstOrDefaultAsync() as LyraTokenGenesisBlock;
         }
+
+        // >= startTime < endTime
+        public async Task<List<Block>> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp)
+            };
+            var builder = Builders<Block>.Filter;
+            var filter = builder.And(builder.Gte("TimeStamp", startTime), builder.Lt("TimeStamp", endTime));
+            var result = await _blocks.FindAsync(filter, options);
+            return await result.ToListAsync();
+        }
+
+        public async Task<IEnumerable<string>> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        {
+            var options = new FindOptions<Block, BsonDocument>
+            {
+                Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
+                Projection = Builders<Block>.Projection.Include(a => a.Hash)
+            };
+            var builder = Builders<Block>.Filter;
+            var filter = builder.And(builder.Gte("TimeStamp", startTime), builder.Lt("TimeStamp", endTime));
+            var result = await _blocks.FindAsync(filter, options);
+            return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
+        }
     }
 }

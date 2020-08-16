@@ -48,6 +48,21 @@ namespace Lyra.Core.Authorizers
             {
                 if (lastCons == null)
                     return APIResultCodes.CouldNotFindLatestBlock;
+
+                // make sure the first hash is ALWAYS the previous consblock (except the first one)
+                if(block.blockHashes.First() != lastCons.Hash)
+                {
+                    return APIResultCodes.InvalidConsolidationBlockContinuty;
+                }
+
+                var allHashes = (await sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, block.TimeStamp)).ToList();
+                if (block.blockHashes.Count != allHashes.Count)
+                    return APIResultCodes.InvalidConsolidationBlockCount;
+
+                var mineNotYours = allHashes.Except(block.blockHashes).ToList();
+                var yoursNotMine = block.blockHashes.Except(allHashes).ToList();
+                if (mineNotYours.Any() || yoursNotMine.Any())
+                    return APIResultCodes.InvalidConsolidationBlockHashes;
             }
 
             var result = await VerifyBlockAsync(sys, block, lastCons);
@@ -78,7 +93,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidConsolidationTotalFees;
 
             // consolidation must come from leader node
-                        
+            // did in base authorizer already!
 
             return APIResultCodes.Success;
         }

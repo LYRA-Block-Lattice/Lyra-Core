@@ -1,5 +1,6 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
+using Akka.Streams.Util;
 using Clifton.Blockchain;
 using Core.Authorizers;
 using Lyra.Core.Accounts;
@@ -172,6 +173,7 @@ namespace Lyra
                             await Task.Delay(10000);
 
                             // verify local database
+                            await SyncDatabase(true);
 
                             _nodeStatus = new List<NodeStatus>();
                             _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
@@ -277,14 +279,14 @@ namespace Lyra
         {
             var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
 
-            // compare state
-            var seedSyncState = await client.GetSyncState();
-            var mySyncState = await GetNodeStatusAsync();
-            if (seedSyncState.ResultCode == APIResultCodes.Success && seedSyncState.Status.Equals(mySyncState))
-            {
-                _log.LogInformation("Fully Synced with seeds.");
-                return;
-            }
+            //// compare state
+            //var seedSyncState = await client.GetSyncState();
+            //var mySyncState = await GetNodeStatusAsync();
+            //if (seedSyncState.ResultCode == APIResultCodes.Success && seedSyncState.Status.Equals(mySyncState))
+            //{
+            //    _log.LogInformation("Fully Synced with seeds.");
+            //    return;
+            //}
 
             long localHeight;
             if (FullDbSync)
@@ -297,48 +299,42 @@ namespace Lyra
                 localHeight = lastMyCons.Height;
             }
 
-            var latestSeedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
-            var lastSyncConsHeight = latestSeedCons.Height;
+            var seedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
+            var lastSyncConsHeight = seedCons.Height;
             while (localHeight < lastSyncConsHeight)
-            {
-                var consBlocksResult = await client.GetConsolidationBlocks(lastSyncConsHeight);
-                if (consBlocksResult.ResultCode == APIResultCodes.Success)
+            {                
+                if (await VerifyConsolidationBlock(client, seedCons))
                 {
-                    var consBlocks = consBlocksResult.GetBlocks().Cast<ConsolidationBlock>();
-                    foreach (var consBlock in consBlocks)
-                    {
-                        if (!await VerifyConsolidationBlock(consBlock, lastSyncConsHeight))
-                        {
-                            _log.LogInformation($"Syncing Consolidations {consBlock.Height} / {consBlock.Hash.Shorten()} ");
+                    _log.LogInformation($"Consolidation block {seedCons.Height} is OK.");
+                            //_log.LogInformation($"Syncing Consolidations {consBlock.Height} / {consBlock.Hash.Shorten()} ");
 
-                            var blocksResult = await client.GetBlocksByConsolidation(consBlock.Hash);
-                            if (blocksResult.ResultCode == APIResultCodes.Success)
-                            {
-                                foreach (var block in blocksResult.GetBlocks())
-                                {
-                                    var localBlock = await FindBlockByHashAsync(block.Hash);
-                                    if (localBlock != null)
-                                        await RemoveBlockAsync(block.Hash);
+                            //var blocksResult = await client.GetBlocksByConsolidation(consBlock.Hash);
+                            //if (blocksResult.ResultCode == APIResultCodes.Success)
+                            //{
+                            //    foreach (var block in blocksResult.GetBlocks())
+                            //    {
+                            //        var localBlock = await FindBlockByHashAsync(block.Hash);
+                            //        if (localBlock != null)
+                            //            await RemoveBlockAsync(block.Hash);
 
-                                    await AddBlockAsync(block);
-                                }
+                            //        await AddBlockAsync(block);
+                            //    }
 
-                                // save cons block itself
-                                var localCons = await FindBlockByHashAsync(consBlock.Hash);
-                                if (localCons != null)
-                                    await RemoveBlockAsync(consBlock.Hash);
+                            //    // save cons block itself
+                            //    var localCons = await FindBlockByHashAsync(consBlock.Hash);
+                            //    if (localCons != null)
+                            //        await RemoveBlockAsync(consBlock.Hash);
 
-                                await AddBlockAsync(consBlock);
-                            }
-                        }
-                    }
-
-                    //latestSeedCons = await client.GetBlockByHash()
+                            //    await AddBlockAsync(consBlock);
+                            //}
+                        
                 }
                 else
                 {
-                    break;
+                    _log.LogError($"Consolidation block {seedCons.Height} is failure.");
                 }
+                seedCons = (await client.GetBlockByHash(seedCons.blockHashes.First())).GetBlock() as ConsolidationBlock;
+                lastSyncConsHeight = seedCons.Height;
             }
 
 
@@ -724,12 +720,15 @@ namespace Lyra
             state.Done = null;
         }
 
-        private async Task<bool> VerifyConsolidationBlock(ConsolidationBlock consBlock, long latestHeight = -1)
+        private async Task<bool> VerifyConsolidationBlock(LyraClientForNode client, ConsolidationBlock consBlock, long latestHeight = -1)
         {
             _log.LogInformation($"VerifyConsolidationBlock: {consBlock.Height}/{latestHeight}");
 
             var myConsBlock = await FindBlockByHashAsync(consBlock.Hash) as ConsolidationBlock;
             if (myConsBlock == null)
+                return false;
+
+            if (!myConsBlock.VerifyHash())
                 return false;
 
             var mt = new MerkleTree();
@@ -739,12 +738,35 @@ namespace Lyra
                 if (myBlock == null)
                     return false;
 
+                if (!myBlock.VerifyHash())
+                    return false;
+
                 mt.AppendLeaf(MerkleHash.Create(hash));
             }
 
             var merkelTreeHash = mt.BuildTree().ToString();
 
-            return consBlock.MerkelTreeHash == merkelTreeHash;
+            if (consBlock.MerkelTreeHash != merkelTreeHash)
+                return false;
+
+            // make sure no extra blocks here
+            if(consBlock.Height > 1)
+            {
+                var prevConsHash = consBlock.blockHashes.First();
+                var prevConsResult = await client.GetBlockByHash(prevConsHash);
+                if (prevConsResult.ResultCode != APIResultCodes.Success)
+                    return false;
+
+                var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
+                if (prevConsBlock == null)
+                    return false;
+
+                var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(prevConsBlock.TimeStamp, consBlock.TimeStamp);
+                if (blocksInTimeRange.Any(a => !consBlock.blockHashes.Contains(a)))
+                    return false;
+            }
+
+            return true;
         }
 
         private async Task SyncManyBlocksAsync(LyraClientForNode client, ConsolidationBlock consBlock)
