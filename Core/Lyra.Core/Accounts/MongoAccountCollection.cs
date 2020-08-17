@@ -49,6 +49,8 @@ namespace Lyra.Core.Accounts
 
             _blocksCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blocks";
 
+            BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Utc, BsonType.Document));
+
             BsonClassMap.RegisterClassMap<Block>(cm =>
             {
                 cm.AutoMap();
