@@ -210,6 +210,10 @@ namespace Lyra
                                         await Task.Delay(15000);
                                         Genesis();
                                     }
+                                    else
+                                    {
+                                        _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                                    }
                                 }
                                 else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
                                 {
@@ -256,14 +260,17 @@ namespace Lyra
                 .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Startup);
 
             _stateMachine.Configure(BlockChainState.Engaging)
-                .OnEntryFrom(_engageTriggerStartupSync, (uid) => Task.Run(async () =>
+                .OnEntryFrom(_engageTriggerStartupSync, (blockCount) => Task.Run(async () =>
                 {
                     _sys.Consensus.Tell(new ConsensusService.BlockChainStatuChanged { CurrentState = _stateMachine.State });
 
                     try
                     {
-                        // sync cons and uncons
-                        await EngagingSyncAsync();
+                        if(blockCount > 2)
+                        {
+                            // sync cons and uncons
+                            await EngagingSyncAsync();
+                        }
                     }
                     catch (Exception e)
                     {
