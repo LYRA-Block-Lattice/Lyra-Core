@@ -150,6 +150,9 @@ namespace Lyra
                 .OnEntry(() =>
                 {
                     _sys.Consensus.Tell(new ConsensusService.BlockChainStatuChanged { CurrentState = _stateMachine.State });
+
+                    _log.LogInformation($"Blockchain Startup... ");
+
                 })
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
 
@@ -162,7 +165,8 @@ namespace Lyra
                     {
                         try
                         {
-                            _log.LogInformation($"Blockchain Startup... ");
+                            _log.LogInformation($"Querying Lyra Network Status... ");
+
                             while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
                             {
                                 await Task.Delay(1000);
@@ -177,7 +181,7 @@ namespace Lyra
 
                             await Task.Delay(10000);
 
-                            _log.LogInformation($"Querying billboard... ");
+                            _log.LogInformation($"Querying Billboard... ");
                             var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                             var q = from ns in _nodeStatus
                                     where board.PrimaryAuthorizers != null && board.PrimaryAuthorizers.Contains(ns.accountId)
@@ -223,6 +227,10 @@ namespace Lyra
                                     _stateMachine.Fire(BlockChainTrigger.QueryingConsensusNode);
                                 }
                                 break;
+                            }
+                            else
+                            {
+                                _log.LogInformation($"Unable to get Lyra network status.");
                             }
                         }
                         catch(Exception ex)
