@@ -66,15 +66,18 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidAuthorizerCount;
             }
 
-            var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-            var allVoters = sys.Storage.FindVotes(board.AllVoters).OrderByDescending(a => a.Amount);
-
-            foreach (var authorizer in block.Authorizers) // they can be listed in different order!
+            if(block.Height > 1)        // no genesis block
             {
-                if (!allVoters.Any(a => a.AccountId == authorizer.AccountID) ||
-                    allVoters.First(a => a.AccountId == authorizer.AccountID).Amount < LyraGlobal.MinimalAuthorizerBalance ||
-                    !Signatures.VerifyAccountSignature(authorizer.IPAddress, authorizer.AccountID, authorizer.Signature))
-                    return APIResultCodes.InvalidAuthorizerInBillBoard;
+                var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                var allVoters = sys.Storage.FindVotes(board.AllVoters).OrderByDescending(a => a.Amount);
+
+                foreach (var authorizer in block.Authorizers) // they can be listed in different order!
+                {
+                    if (!allVoters.Any(a => a.AccountId == authorizer.AccountID) ||
+                        allVoters.First(a => a.AccountId == authorizer.AccountID).Amount < LyraGlobal.MinimalAuthorizerBalance ||
+                        !Signatures.VerifyAccountSignature(authorizer.IPAddress, authorizer.AccountID, authorizer.Signature))
+                        return APIResultCodes.InvalidAuthorizerInBillBoard;
+                }
             }
 
             return APIResultCodes.Success;

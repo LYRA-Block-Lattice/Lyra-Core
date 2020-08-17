@@ -408,7 +408,7 @@ namespace Lyra
                 var memStore = new AccountInMemoryStorage();
                 Wallet.Create(memStore, "tmp", "", NetworkID, _sys.PosWallet.PrivateKey);
                 var gensWallet = Wallet.Open(memStore, "tmp", "");
-                foreach (var accId in ProtocolSettings.Default.StartupValidators)
+                foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
                 {
                     var client = await LyraClientForNode.FindValidSeedForSyncAsync(_sys);
                     await gensWallet.Sync(client);
