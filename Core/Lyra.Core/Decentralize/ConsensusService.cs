@@ -641,38 +641,33 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            if(_currentBlockchainState == BlockChainState.Genesis ||
-                _currentBlockchainState == BlockChainState.Engaging ||
+            //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
+            if (item.MsgType != ChatMessageType.NodeUp)
+                OnNodeActive(item.From);
+
+            if (item is ChatMsg chatMsg)
+            {
+                await OnRecvChatMsg(chatMsg);
+                return;
+            }
+
+            if (_currentBlockchainState == BlockChainState.Engaging ||
                 _currentBlockchainState == BlockChainState.Almighty)
             {
-                //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
-                if (item.MsgType != ChatMessageType.NodeUp)
-                    OnNodeActive(item.From);
-
-                if (item is ChatMsg chatMsg)
+                if (item is BlockConsensusMessage cm)
                 {
-                    await OnRecvChatMsg(chatMsg);
+                    var worker = await GetWorkerAsync(cm.BlockHash, true);
+                    if (worker != null)
+                        await worker.ProcessMessage(cm);
                     return;
                 }
 
-                if(_currentBlockchainState == BlockChainState.Engaging || 
-                    _currentBlockchainState == BlockChainState.Almighty)
+                if (_currentBlockchainState == BlockChainState.Almighty)
                 {
-                    if (item is BlockConsensusMessage cm)
+                    if (item is ViewChangeMessage vcm)
                     {
-                        var worker = await GetWorkerAsync(cm.BlockHash, true);
-                        if (worker != null)
-                            await worker.ProcessMessage(cm);
+                        await _viewChangeHandler.ProcessMessage(vcm);
                         return;
-                    }
-
-                    if(_currentBlockchainState == BlockChainState.Almighty)
-                    {
-                        if (item is ViewChangeMessage vcm)
-                        {
-                            await _viewChangeHandler.ProcessMessage(vcm);
-                            return;
-                        }
                     }
                 }
             }
