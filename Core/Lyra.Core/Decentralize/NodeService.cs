@@ -58,7 +58,7 @@ namespace Lyra.Core.Decentralize
                 var tmpWallet = Wallet.Open(walletStore, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, Neo.Settings.Default.LyraNode.Lyra.Wallet.Password);
 
                 Wallet PosWallet;
-                if(false)//ProtocolSettings.Default.StandbyValidators.Any(a => a == tmpWallet.AccountId))
+                if(ProtocolSettings.Default.StandbyValidators[0] == tmpWallet.AccountId)
                 {
                     // not update balance for seed nodes.
                     PosWallet = tmpWallet;
