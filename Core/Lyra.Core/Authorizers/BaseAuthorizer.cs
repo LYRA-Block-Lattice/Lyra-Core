@@ -67,7 +67,10 @@ namespace Lyra.Core.Authorizers
                 }
 
                 if (block.TimeStamp < uniNow.AddSeconds(-5) || block.TimeStamp > uniNow)
+                {
+                    _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
                     return APIResultCodes.InvalidBlockTimeStamp;
+                }
             }
             else if(block is TransactionBlock)
             {
