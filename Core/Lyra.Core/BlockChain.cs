@@ -210,10 +210,6 @@ namespace Lyra
                                         await Task.Delay(15000);
                                         Genesis();
                                     }
-                                    else
-                                    {
-                                        _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
-                                    }
                                 }
                                 else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
                                 {
