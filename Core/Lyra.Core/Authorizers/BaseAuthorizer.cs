@@ -103,13 +103,19 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.TokenExpired;
 
                 if (block.TimeStamp < uniNow.AddSeconds(-5) || block.TimeStamp > uniNow.AddSeconds(3))
+                {
+                    _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
                     return APIResultCodes.InvalidBlockTimeStamp;
+                }
             }         
             else if(block is ConsolidationBlock cons)
             {
                 // time shift 10 seconds.
                 if (block.TimeStamp < uniNow.AddSeconds(-15) || block.TimeStamp > uniNow.AddSeconds(-7))
+                {
+                    _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
                     return APIResultCodes.InvalidBlockTimeStamp;
+                }
 
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                 if (board.CurrentLeader != cons.createdBy)
