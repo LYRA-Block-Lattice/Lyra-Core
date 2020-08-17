@@ -124,7 +124,7 @@ namespace Lyra
             Receive<Startup>(_ => _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup));
             Receive<NodeStatus>(nodeStatus => {
                 // only accept status from seeds.
-                _log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
+                //_log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
                 if (_nodeStatus != null)
                 {
                     if (!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
@@ -228,7 +228,7 @@ namespace Lyra
                                 }
                                 else
                                 {
-                                    _stateMachine.Fire(BlockChainTrigger.QueryingConsensusNode);
+                                    continue;
                                 }
                                 break;
                             }
@@ -388,7 +388,7 @@ namespace Lyra
                 _log.LogInformation("all seed nodes are ready. do genesis.");
 
                 var svcGen = GetServiceGenesisBlock();
-                await SendBlockToConsensusAsync(svcGen);
+                await SendBlockToConsensusAsync(svcGen, ProtocolSettings.Default.StandbyValidators.ToList());
 
                 await Task.Delay(1000);
 
