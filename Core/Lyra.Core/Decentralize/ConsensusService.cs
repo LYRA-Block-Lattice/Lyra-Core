@@ -193,7 +193,7 @@ namespace Lyra.Core.Decentralize
             {
                 _currentBlockchainState = state.CurrentState;
 
-                if(_currentBlockchainState == BlockChainState.Engaging)
+                if(_currentBlockchainState == BlockChainState.Engaging || _currentBlockchainState == BlockChainState.Genesis)
                     await DeclareConsensusNodeAsync();
             });
 

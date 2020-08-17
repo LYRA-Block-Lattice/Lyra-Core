@@ -250,7 +250,7 @@ namespace Lyra
                     else
                     {
                         // wait for genesis to finished.
-                        await Task.Delay(60000);
+                        await Task.Delay(360000);
                     }
 
                     _stateMachine.Fire(BlockChainTrigger.GenesisDone);
@@ -676,12 +676,23 @@ namespace Lyra
                 FeesGenerated = 0
             };
 
-            svcGenesis.Authorizers = new List<PosNode>();
-            var board = _sys.Consensus.Ask<BillBoard>(new AskForBillboard()).Result;
-            foreach (var pn in board.AllNodes.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
+            // wait for all nodes ready
+            while(true)
             {
-                svcGenesis.Authorizers.Add(pn);
+                svcGenesis.Authorizers = new List<PosNode>();
+                var board = _sys.Consensus.Ask<BillBoard>(new AskForBillboard()).Result;
+                foreach (var pn in board.AllNodes.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
+                {
+                    svcGenesis.Authorizers.Add(pn);
+                }
+                if (svcGenesis.Authorizers.Count >= LyraGlobal.MINIMUM_AUTHORIZERS)
+                    break;
+                else
+                    _log.LogInformation($"Waiting for seed nodes to up. Now we have {svcGenesis.Authorizers.Count} of {LyraGlobal.MINIMUM_AUTHORIZERS}");
             }
+
+            svcGenesis.TimeStamp = DateTime.UtcNow;
+
             svcGenesis.InitializeBlock(null, _sys.PosWallet.PrivateKey,
                 _sys.PosWallet.AccountId);
             return svcGenesis;
