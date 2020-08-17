@@ -122,7 +122,8 @@ namespace Lyra
 
             Receive<NeedSync>(cmd => SyncBlocksFromSeeds(cmd.ToUIndex));
             Receive<Startup>(_ => _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup));
-            Receive<NodeStatus>(nodeStatus => {
+            Receive<NodeStatus>(nodeStatus =>
+            {
                 // only accept status from seeds.
                 //_log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
                 if (_nodeStatus != null)
@@ -208,7 +209,7 @@ namespace Lyra
                                 else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
                                 {
                                     // verify local database
-                                    while(! await SyncDatabase())
+                                    while (!await SyncDatabase())
                                     {
                                         //fatal error. should not run program
                                         _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
@@ -227,7 +228,7 @@ namespace Lyra
                                 _log.LogInformation($"Unable to get Lyra network status.");
                             }
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             _log.LogCritical("In BlockChainState.Startup: " + ex.ToString());
                         }
@@ -244,7 +245,7 @@ namespace Lyra
                     var IsSeed0 = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0());
                     if (await FindLatestBlockAsync() == null && IsSeed0.IsSeed0)
                     {
-                        Genesis();
+                        await GenesisAsync();
                     }
 
                     _stateMachine.Fire(BlockChainTrigger.GenesisDone);
@@ -258,7 +259,7 @@ namespace Lyra
 
                     try
                     {
-                        if(blockCount > 2)
+                        if (blockCount > 2)
                         {
                             // sync cons and uncons
                             await EngagingSyncAsync();
@@ -340,9 +341,9 @@ namespace Lyra
                 _log.LogInformation("Engaging Sync...");
                 var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
                 var myLastCons = await GetLastConsolidationBlockAsync();
-                if(myLastCons.Height < lastConsOfSeed.GetBlock().Height)
+                if (myLastCons.Height < lastConsOfSeed.GetBlock().Height)
                 {
-                    if(! await SyncDatabase())
+                    if (!await SyncDatabase())
                     {
                         _log.LogError($"Error sync database. wait 5 minutes and retry...");
                         await Task.Delay(5 * 60 * 1000);
@@ -355,7 +356,7 @@ namespace Lyra
                 var unConsHashResult = await client.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
                 if (unConsHashResult.ResultCode == APIResultCodes.Success)
                 {
-                    foreach(var hash in unConsHashResult.Entities)
+                    foreach (var hash in unConsHashResult.Entities)
                     {
                         var blockResult = await client.GetBlockByHash(hash);
                         await AddBlockAsync(blockResult.GetBlock());
@@ -372,60 +373,57 @@ namespace Lyra
             }
         }
 
-        private void Genesis()
+        private async Task GenesisAsync()
         {
-            Task.Run(async () =>
+            // genesis
+            _log.LogInformation("all seed nodes are ready. do genesis.");
+
+            var svcGen = GetServiceGenesisBlock();
+            await SendBlockToConsensusAsync(svcGen, ProtocolSettings.Default.StandbyValidators.ToList());
+
+            await Task.Delay(1000);
+
+            var tokenGen = GetLyraTokenGenesisBlock(svcGen);
+            // DEBUG
+            //_log.LogInformation("genesis block string:\n" + tokenGen.GetHashInput());
+            await SendBlockToConsensusAsync(tokenGen);
+
+            await Task.Delay(15000);        // because cons block has a time shift.
+
+            var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
+            await SendBlockToConsensusAsync(consGen);
+
+            await Task.Delay(1000);
+
+            _log.LogInformation("svc genesis is done.");
+
+            await Task.Delay(3000);
+
+            // distribute staking coin to pre-defined authorizers
+            var memStore = new AccountInMemoryStorage();
+            Wallet.Create(memStore, "tmp", "", NetworkID, _sys.PosWallet.PrivateKey);
+            var gensWallet = Wallet.Open(memStore, "tmp", "");
+            foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                // genesis
-                _log.LogInformation("all seed nodes are ready. do genesis.");
-
-                var svcGen = GetServiceGenesisBlock();
-                await SendBlockToConsensusAsync(svcGen, ProtocolSettings.Default.StandbyValidators.ToList());
-
-                await Task.Delay(1000);
-
-                var tokenGen = GetLyraTokenGenesisBlock(svcGen);
-                // DEBUG
-                //_log.LogInformation("genesis block string:\n" + tokenGen.GetHashInput());
-                await SendBlockToConsensusAsync(tokenGen);
-
-                await Task.Delay(15000);        // because cons block has a time shift.
-
-                var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
-                await SendBlockToConsensusAsync(consGen);
-
-                await Task.Delay(1000);
-
-                _log.LogInformation("svc genesis is done.");
-
-                await Task.Delay(3000);
-
-                // distribute staking coin to pre-defined authorizers
-                var memStore = new AccountInMemoryStorage();
-                Wallet.Create(memStore, "tmp", "", NetworkID, _sys.PosWallet.PrivateKey);
-                var gensWallet = Wallet.Open(memStore, "tmp", "");
-                foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
+                var client = await LyraClientForNode.FindValidSeedForSyncAsync(_sys);
+                await gensWallet.Sync(client);
+                var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
+                var sendResult = await gensWallet.Send(amount, accId);
+                if (sendResult.ResultCode == APIResultCodes.Success)
                 {
-                    var client = await LyraClientForNode.FindValidSeedForSyncAsync(_sys);
-                    await gensWallet.Sync(client);
-                    var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
-                    var sendResult = await gensWallet.Send(amount, accId);
-                    if (sendResult.ResultCode == APIResultCodes.Success)
-                    {
-                        _log.LogInformation($"Genesis send {amount} successfull to accountId: {accId}");
-                    }
-                    else
-                    {
-                        _log.LogError($"Genesis send {amount} failed to accountId: {accId}");
-                    }
+                    _log.LogInformation($"Genesis send {amount} successfull to accountId: {accId}");
                 }
+                else
+                {
+                    _log.LogError($"Genesis send {amount} failed to accountId: {accId}");
+                }
+            }
 
-                await Task.Delay(15000);
+            await Task.Delay(15000);
 
-                _sys.Consensus.Tell(new ConsensusService.Consolidate());
+            _sys.Consensus.Tell(new ConsensusService.Consolidate());
 
-                await Task.Delay(3000);
-            });
+            await Task.Delay(3000);
         }
 
         public void ConsolidationBlockFailed(string hash)
@@ -501,13 +499,13 @@ namespace Lyra
                           var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
                           svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
 
-                          svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey,  _sys.PosWallet.AccountId);
+                          svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey, _sys.PosWallet.AccountId);
 
                           await SendBlockToConsensusAsync(svcBlock, board.AllVoters);
 
                           _log.LogInformation($"New View was created. send to network...");
                       }
-                      catch(Exception e)
+                      catch (Exception e)
                       {
                           _log.LogCritical($"CreateNewViewAsNewLeader: {e}");
                       }
@@ -695,7 +693,7 @@ namespace Lyra
             };
 
             AuthState state;
-            if(block is ServiceBlock sb)
+            if (block is ServiceBlock sb)
             {
                 _log.LogInformation($"AllVoters: {voters.Count}");
                 state = new ServiceBlockAuthState(voters, true);
@@ -755,7 +753,7 @@ namespace Lyra
                 return false;
 
             // make sure no extra blocks here
-            if(consBlock.Height > 1)
+            if (consBlock.Height > 1)
             {
                 var prevConsHash = consBlock.blockHashes.First();
                 var prevConsResult = await client.GetBlockByHash(prevConsHash);
@@ -768,7 +766,7 @@ namespace Lyra
 
                 var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(prevConsBlock.TimeStamp, consBlock.TimeStamp);
                 var q = blocksInTimeRange.Where(a => !consBlock.blockHashes.Contains(a));
-                foreach(var extraBlock in q)
+                foreach (var extraBlock in q)
                 {
                     await RemoveBlockAsync(extraBlock);
                 }
@@ -782,9 +780,9 @@ namespace Lyra
             _log.LogInformation($"Syncing Consolidations {consBlock.Height} / {consBlock.Hash.Shorten()} ");
 
             var blocksResult = await client.GetBlocksByConsolidation(consBlock.Hash);
-            if(blocksResult.ResultCode == APIResultCodes.Success)
+            if (blocksResult.ResultCode == APIResultCodes.Success)
             {
-                foreach(var block in blocksResult.GetBlocks())
+                foreach (var block in blocksResult.GetBlocks())
                 {
                     var localBlock = await FindBlockByHashAsync(block.Hash);
                     if (localBlock != null)
@@ -795,7 +793,7 @@ namespace Lyra
 
                 // save cons block itself
                 var localCons = await FindBlockByHashAsync(consBlock.Hash);
-                if(localCons != null)
+                if (localCons != null)
                     await RemoveBlockAsync(consBlock.Hash);
 
                 await AddBlockAsync(consBlock);
@@ -827,7 +825,7 @@ namespace Lyra
 
             var remoteBlock = await client.GetBlockByHash(hash);
             if (remoteBlock.ResultCode == APIResultCodes.Success)
-                return await AddBlockAsync(remoteBlock.GetBlock());        
+                return await AddBlockAsync(remoteBlock.GetBlock());
             else
                 return false;
         }
@@ -984,9 +982,9 @@ namespace Lyra
                     if (File.Exists(fn))
                         return JsonConvert.DeserializeObject<LocalDbSyncState>(File.ReadAllText(fn));
                 }
-                catch(Exception)
+                catch (Exception)
                 {
-                    
+
                 }
                 return new LocalDbSyncState();
             }
