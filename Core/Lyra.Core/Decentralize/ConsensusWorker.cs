@@ -236,7 +236,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        private async Task AuthorizeAsync(AuthorizingMsg msg)
+        protected virtual async Task AuthorizeAsync(AuthorizingMsg msg)
         {
             var localAuthResult = await LocalAuthorizingAsync(msg);
             _log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");

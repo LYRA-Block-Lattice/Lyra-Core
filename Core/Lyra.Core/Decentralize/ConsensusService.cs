@@ -199,6 +199,12 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<AuthState>(async state =>
             {
+                if (_currentBlockchainState != BlockChainState.Almighty)
+                {
+                    state.Done?.Set();
+                    return;
+                }                    
+
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
                 if (state.InputMsg.Block is TransactionBlock)
                 {
@@ -393,6 +399,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task CreateConsolidationBlock()
         {
+            if (_currentBlockchainState != BlockChainState.Almighty)
+                return;
+
             if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State?.InputMsg.Block is ConsolidationBlock))
                 return;
 
@@ -601,7 +610,7 @@ namespace Lyra.Core.Decentralize
             Send2P2pNetwork(state.InputMsg);
         }
 
-        private async Task<ConsensusWorker> GetWorkerAsync(string hash)
+        private async Task<ConsensusWorker> GetWorkerAsync(string hash, bool checkState = false)
         {
             // if a block is in database
             var aBlock = await _sys.Storage.FindBlockByHashAsync(hash);
@@ -611,17 +620,18 @@ namespace Lyra.Core.Decentralize
                 return null;
             }
 
-            //if (_cleanedConsensus.ContainsKey(hash))        // > 2min outdated.
-            //{
-            //    _log.LogWarning($"GetWorker: no worker for expired hash: {hash.Shorten()}");
-            //    return null;
-            //}
-
             if(_activeConsensus.ContainsKey(hash))
                 return _activeConsensus[hash];
             else
             {
-                var worker = new ConsensusWorker(this, hash);
+                ConsensusWorker worker;
+                if (checkState && _currentBlockchainState == BlockChainState.Almighty)
+                    worker = new ConsensusWorker(this, hash);
+                else if (checkState && _currentBlockchainState == BlockChainState.Engaging)
+                    worker = new ConsensusEngagingWorker(this, hash);
+                else
+                    worker = new ConsensusWorker(this, hash);
+
                 if (_activeConsensus.TryAdd(hash, worker))
                     return worker;
                 else
@@ -650,7 +660,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (item is BlockConsensusMessage cm)
                     {
-                        var worker = await GetWorkerAsync(cm.BlockHash);
+                        var worker = await GetWorkerAsync(cm.BlockHash, true);
                         if (worker != null)
                             await worker.ProcessMessage(cm);
                         return;

@@ -255,6 +255,7 @@ namespace Lyra
                     try
                     {
                         // sync cons and uncons
+                        await EngagingSyncAsync();
                     }
                     catch (Exception e)
                     {
@@ -321,27 +322,32 @@ namespace Lyra
             return IsSuccess;
         }
 
-        private void EngagingSync()
+        private async Task EngagingSyncAsync()
         {
-            //{
-            //    // sync unconsolidated blocks
-            //    var unConsBlockResult = await client.GetUnConsolidatedBlocks();
-            //    if (unConsBlockResult.ResultCode == APIResultCodes.Success)
-            //    {
-            //        var myUnConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
-            //        foreach (var unCon in myUnConsList.Where(a => !unConsBlockResult.Entities.Contains(a)))
-            //        {
-            //            await _sys.Storage.RemoveBlockAsync(unCon);
-            //        }
-            //        if (unConsSynced < unConsBlockResult.Entities.Count)
-            //        {
-            //            await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
-            //            unConsSynced = unConsBlockResult.Entities.Count;
-            //        }
-            //        else
-            //            break;
-            //    }
-            //}
+            // most db is synced. 
+            // so make sure Last Float Hash equal to seed.
+
+            var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
+            while (true)
+            {
+                // sync unconsolidated blocks
+                var unConsBlockResult = await client.GetUnConsolidatedBlocks();
+                if (unConsBlockResult.ResultCode == APIResultCodes.Success)
+                {
+                    var myUnConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
+                    foreach (var unCon in myUnConsList.Where(a => !unConsBlockResult.Entities.Contains(a)))
+                    {
+                        await _sys.Storage.RemoveBlockAsync(unCon);
+                    }
+                    //if (unConsSynced < unConsBlockResult.Entities.Count)
+                    //{
+                    //    await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
+                    //    unConsSynced = unConsBlockResult.Entities.Count;
+                    //}
+                    //else
+                    //    break;
+                }
+            }
         }
 
         private void Genesis()
