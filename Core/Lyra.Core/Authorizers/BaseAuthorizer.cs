@@ -65,7 +65,7 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
 
-                if (block.TimeStamp < DateTime.Now.AddSeconds(5) || block.TimeStamp > DateTime.Now)
+                if (block.TimeStamp < DateTime.Now.AddSeconds(-5) || block.TimeStamp > DateTime.Now)
                     return APIResultCodes.InvalidBlockTimeStamp;
             }
             else if(block is TransactionBlock)
@@ -97,13 +97,13 @@ namespace Lyra.Core.Authorizers
                 if (!await ValidateRenewalDateAsync(sys, blockt, previousBlock as TransactionBlock))
                     return APIResultCodes.TokenExpired;
 
-                if (block.TimeStamp < DateTime.Now.AddSeconds(5) || block.TimeStamp > DateTime.Now)
+                if (block.TimeStamp < DateTime.Now.AddSeconds(-5) || block.TimeStamp > DateTime.Now)
                     return APIResultCodes.InvalidBlockTimeStamp;
             }         
             else if(block is ConsolidationBlock cons)
             {
                 // time shift 10 seconds.
-                if (block.TimeStamp < DateTime.Now.AddSeconds(15) || block.TimeStamp > DateTime.Now.AddSeconds(-10))
+                if (block.TimeStamp < DateTime.Now.AddSeconds(-15) || block.TimeStamp > DateTime.Now.AddSeconds(-10))
                     return APIResultCodes.InvalidBlockTimeStamp;
 
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
