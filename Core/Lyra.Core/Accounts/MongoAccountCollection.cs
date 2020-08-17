@@ -744,18 +744,18 @@ namespace Lyra.Core.Accounts
             return await result.ToListAsync();
         }
 
-        public async Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync()
-        {
-            var options = new FindOptions<Block, BsonDocument>
-            {
-                Limit = 1000,
-                Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
-                Projection = Builders<Block>.Projection.Include(a => a.Hash)
-            };
-            var filter = Builders<Block>.Filter.Eq("Consolidated", false);
-            var result = await _blocks.FindAsync(filter, options);
-            return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
-        }
+        //public async Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync()
+        //{
+        //    var options = new FindOptions<Block, BsonDocument>
+        //    {
+        //        Limit = 1000,
+        //        Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
+        //        Projection = Builders<Block>.Projection.Include(a => a.Hash)
+        //    };
+        //    var filter = Builders<Block>.Filter.Eq("Consolidated", false);
+        //    var result = await _blocks.FindAsync(filter, options);
+        //    return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
+        //}
 
          public List<Vote> FindVotes(IEnumerable<string> posAccountIds)
         {

@@ -540,7 +540,7 @@ namespace Lyra
         public async Task<NodeStatus> GetNodeStatusAsync()
         {
             var lastCons = await GetLastConsolidationBlockAsync();
-            var unCons = (await _store.GetAllUnConsolidatedBlockHashesAsync()).ToList();
+            var unCons = (await _store.GetBlockHashesByTimeRange(lastCons.TimeStamp, DateTime.UtcNow)).ToList();
             var status = new NodeStatus
             {
                 accountId = _sys.PosWallet.AccountId,
@@ -566,7 +566,7 @@ namespace Lyra
         }
 
         //public async Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync() => await StopWatcher.Track(_store.GetAllUnConsolidatedBlocksAsync(), StopWatcher.GetCurrentMethod());
-        public async Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync() => await StopWatcher.Track(_store.GetAllUnConsolidatedBlockHashesAsync(), StopWatcher.GetCurrentMethod());
+        //public async Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync() => await StopWatcher.Track(_store.GetAllUnConsolidatedBlockHashesAsync(), StopWatcher.GetCurrentMethod());
         internal async Task<ConsolidationBlock> GetLastConsolidationBlockAsync() => await StopWatcher.Track(_store.GetLastConsolidationBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetSyncBlockAsync();
         public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startHeight) => await StopWatcher.Track(_store.GetConsolidationBlocksAsync(startHeight), StopWatcher.GetCurrentMethod());
         internal async Task<ServiceBlock> GetLastServiceBlockAsync() => await StopWatcher.Track(_store.GetLastServiceBlockAsync(), StopWatcher.GetCurrentMethod());//_store.GetLastServiceBlockAsync();
