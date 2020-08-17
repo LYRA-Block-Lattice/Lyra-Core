@@ -203,14 +203,14 @@ namespace LyraLexWeb2
             return await _node.GetBlocksByConsolidation(AccountId, Signature, consolidationHash);
         }
 
-        // this api generate too much data so not open to public
-        //[Route("GetBlockHashesByTimeRange")]
-        //[HttpGet]
-        //public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
-        //{
-        //    CheckSyncState();
-        //    return await _node.GetBlockHashesByTimeRange(startTime, endTime);
-        //}
+        // this api generate too much data so add some limit later
+        [Route("GetBlockHashesByTimeRange")]
+        [HttpGet]
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        {
+            CheckSyncState();
+            return await _node.GetBlockHashesByTimeRange(startTime, endTime);
+        }
 
         [Route("GetConsolidationBlocks")]
         [HttpGet]
@@ -220,13 +220,13 @@ namespace LyraLexWeb2
             return await _node.GetConsolidationBlocks(AccountId, Signature, startHeight);
         }
 
-        [Route("GetUnConsolidatedBlocks")]
-        [HttpGet]
-        public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
-        {
-            CheckSyncState();
-            return await _node.GetUnConsolidatedBlocks(AccountId, Signature);
-        }
+        //[Route("GetUnConsolidatedBlocks")]
+        //[HttpGet]
+        //public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
+        //{
+        //    CheckSyncState();
+        //    return await _node.GetUnConsolidatedBlocks(AccountId, Signature);
+        //}
 
         [Route("LookForNewTransfer")]
         [HttpGet]

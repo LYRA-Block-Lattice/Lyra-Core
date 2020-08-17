@@ -582,34 +582,34 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
-        {
-            var result = new GetListStringAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
+        //public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
+        //{
+        //    var result = new GetListStringAPIResult();
+        //    if (!await VerifyClientAsync(AccountId, Signature))
+        //    {
+        //        result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+        //        return result;
+        //    }
 
-            try
-            {
-                var blocks = await NodeService.Dag.Storage.GetAllUnConsolidatedBlockHashesAsync();
-                if (blocks != null)
-                {
-                    result.Entities = blocks.ToList();
-                    result.ResultCode = APIResultCodes.Success;
-                }
-                else
-                    result.ResultCode = APIResultCodes.BlockNotFound;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception in GetUnConsolidatedBlocks: " + e.Message);
-                result.ResultCode = APIResultCodes.UnknownError;
-            }
+        //    try
+        //    {
+        //        var blocks = await NodeService.Dag.Storage.GetAllUnConsolidatedBlockHashesAsync();
+        //        if (blocks != null)
+        //        {
+        //            result.Entities = blocks.ToList();
+        //            result.ResultCode = APIResultCodes.Success;
+        //        }
+        //        else
+        //            result.ResultCode = APIResultCodes.BlockNotFound;
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Console.WriteLine("Exception in GetUnConsolidatedBlocks: " + e.Message);
+        //        result.ResultCode = APIResultCodes.UnknownError;
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {

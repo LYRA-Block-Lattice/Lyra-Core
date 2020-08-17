@@ -278,7 +278,7 @@ namespace Lyra
 
         private async Task<bool> SyncDatabase()
         {
-            var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
+            var client = new LyraClientForNode(_sys);
 
             var localState = LocalDbSyncState.Load();
 
@@ -327,26 +327,41 @@ namespace Lyra
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
 
-            var client = new LyraClientForNode(_sys, await FindValidSeedForSyncAsync());
+            var client = new LyraClientForNode(_sys);
             while (true)
             {
-                // sync unconsolidated blocks
-                var unConsBlockResult = await client.GetUnConsolidatedBlocks();
-                if (unConsBlockResult.ResultCode == APIResultCodes.Success)
+                _log.LogInformation("Engaging Sync...");
+                var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
+                var myLastCons = await GetLastConsolidationBlockAsync();
+                if(myLastCons.Height < lastConsOfSeed.GetBlock().Height)
                 {
-                    var myUnConsList = await _sys.Storage.GetAllUnConsolidatedBlockHashesAsync();
-                    foreach (var unCon in myUnConsList.Where(a => !unConsBlockResult.Entities.Contains(a)))
+                    if(! await SyncDatabase())
                     {
-                        await _sys.Storage.RemoveBlockAsync(unCon);
+                        _log.LogError($"Error sync database. wait 5 minutes and retry...");
+                        await Task.Delay(5 * 60 * 1000);
                     }
-                    //if (unConsSynced < unConsBlockResult.Entities.Count)
-                    //{
-                    //    await SyncManyBlocksAsync(client, unConsBlockResult.Entities);
-                    //    unConsSynced = unConsBlockResult.Entities.Count;
-                    //}
-                    //else
-                    //    break;
+                    continue;
                 }
+
+                // sync unconsolidated blocks
+                var endTime = DateTime.Now.AddSeconds(2);
+                var unConsHashResult = await client.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
+                if (unConsHashResult.ResultCode == APIResultCodes.Success)
+                {
+                    foreach(var hash in unConsHashResult.Entities)
+                    {
+                        var blockResult = await client.GetBlockByHash(hash);
+                        await AddBlockAsync(blockResult.GetBlock());
+                    }
+                }
+
+                var remoteState = await client.GetSyncState();
+                var localState = await GetNodeStatusAsync();
+                if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash &&
+                    remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash)
+                    break;
+
+                _log.LogInformation("Engaging Sync partial success. continue...");
             }
         }
 
@@ -384,7 +399,7 @@ namespace Lyra
                 var gensWallet = Wallet.Open(memStore, "tmp", "");
                 foreach (var accId in ProtocolSettings.Default.StartupValidators)
                 {
-                    var client = await FindValidSeedForSyncAsync();
+                    var client = await LyraClientForNode.FindValidSeedForSyncAsync(_sys);
                     await gensWallet.Sync(client);
                     var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                     var sendResult = await gensWallet.Send(amount, accId);
@@ -812,29 +827,6 @@ namespace Lyra
                 return false;
         }
 
-        private async Task<LyraRestClient> FindValidSeedForSyncAsync()
-        {
-            do
-            {
-                var rand = new Random();
-                int ndx;
-                do
-                {
-                    ndx = rand.Next(0, ProtocolSettings.Default.SeedList.Length);
-                } while (_sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
-
-                var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
-                var apiUrl = $"http://{addr}:4505/api/Node/";
-                _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-                var client = LyraRestClient.Create(NetworkID, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
-                var mode = await client.GetSyncState();
-                if (mode.ResultCode == APIResultCodes.Success)
-                {
-                    return client;
-                }
-                await Task.Delay(10000);    // incase of hammer
-            } while (true);
-        }
 
         /// <summary>
         /// if this node is seed0 then sync with seeds others (random choice the one that is in normal state)

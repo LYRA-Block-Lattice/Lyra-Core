@@ -368,17 +368,17 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
-        {
-            HttpResponseMessage response = await _client.GetAsync($"GetUnConsolidatedBlocks/?AccountId={AccountId}&Signature={Signature}");
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
-        }
+        //public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
+        //{
+        //    HttpResponseMessage response = await _client.GetAsync($"GetUnConsolidatedBlocks/?AccountId={AccountId}&Signature={Signature}");
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
+        //        return result;
+        //    }
+        //    else
+        //        throw new Exception("Web Api Failed.");
+        //}
 
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
