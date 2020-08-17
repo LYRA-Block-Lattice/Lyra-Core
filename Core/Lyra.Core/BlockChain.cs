@@ -357,7 +357,7 @@ namespace Lyra
                 }
 
                 // sync unconsolidated blocks
-                var endTime = DateTime.Now.AddSeconds(2);
+                var endTime = DateTime.UtcNow.AddSeconds(2);
                 var unConsHashResult = await client.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
                 if (unConsHashResult.ResultCode == APIResultCodes.Success)
                 {
@@ -525,6 +525,9 @@ namespace Lyra
 
         public string GetUnConsolidatedHash(List<string> unCons)
         {
+            if (unCons == null)
+                return "";
+
             if (unCons.Count() == 0)
                 return "";
 
@@ -540,7 +543,7 @@ namespace Lyra
         public async Task<NodeStatus> GetNodeStatusAsync()
         {
             var lastCons = await GetLastConsolidationBlockAsync();
-            var unCons = (await _store.GetBlockHashesByTimeRange(lastCons.TimeStamp, DateTime.UtcNow)).ToList();
+            var unCons = lastCons == null ? null : (await _store.GetBlockHashesByTimeRange(lastCons.TimeStamp, DateTime.UtcNow)).ToList();
             var status = new NodeStatus
             {
                 accountId = _sys.PosWallet.AccountId,
@@ -752,9 +755,12 @@ namespace Lyra
             foreach (var hash in myConsBlock.blockHashes)
             {
                 var myBlock = await FindBlockByHashAsync(hash);
-                if (myBlock == null && !await SyncOneBlockAsync(client, hash, false))
+                if (myBlock == null)
                 {
-                    return false;
+                    if(!await SyncOneBlockAsync(client, hash, false))
+                        return false;
+                    else
+                        myBlock = await FindBlockByHashAsync(hash);
                 }
 
                 if (!myBlock.VerifyHash() && !await SyncOneBlockAsync(client, hash, true))
