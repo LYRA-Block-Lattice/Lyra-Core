@@ -20,6 +20,7 @@ namespace Lyra.Core.Blocks
         public long Height { get; set; }
 
         [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        [BsonRepresentation(BsonType.Document)]
         public DateTime TimeStamp { get; set; }
 
         public int Version { get; set; }
