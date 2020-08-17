@@ -37,6 +37,11 @@ namespace Lyra.Core.Blocks
 
         public virtual BlockTypes GetBlockType() { return BlockTypes.Null; }
 
+        public Block()
+        {
+            TimeStamp = DateTime.Now.ToUniversalTime();
+        }
+
         public void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)
         {
             if (prevBlock != null)
@@ -52,7 +57,6 @@ namespace Lyra.Core.Blocks
                 Height = 1;
                 PreviousHash = null;//string.Empty;
             }
-            TimeStamp = DateTime.Now.ToUniversalTime();
             Version = LyraGlobal.DatabaseVersion; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
             BlockType = GetBlockType();
 
