@@ -238,6 +238,13 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"BeginChangeViewAsync, need {LyraGlobal.GetMajority(QualifiedNodeCount)} vote of {QualifiedNodeCount}");
 
             var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
+
+            if(lastSb == null)
+            {
+                // genesis?
+                return;
+            }
+
             var lastCons = await _context.GetDagSystem().Storage.GetLastConsolidationBlockAsync();
 
             if (_viewId == 0)
