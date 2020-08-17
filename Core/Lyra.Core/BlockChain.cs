@@ -287,7 +287,7 @@ namespace Lyra
             {
                 var seedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
 
-                _log.LogInformation($"Latest consolidation block height is {seedCons.Height}. My local height is {localState.lastVerifiedConsHeight}.");
+                _log.LogInformation($"SyncDatabase: Latest consolidation block height is {seedCons.Height}. My local height is {localState.lastVerifiedConsHeight}.");
 
                 if (localState.lastVerifiedConsHeight == seedCons.Height)
                     break;
