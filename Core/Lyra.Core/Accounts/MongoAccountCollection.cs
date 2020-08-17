@@ -111,7 +111,7 @@ namespace Lyra.Core.Accounts
             }
 
             CreateIndexes("Hash", true).Wait();
-            CreateIndexes("Consolidated", false).Wait();
+            CreateIndexes("TimeStamp", false).Wait();
             CreateIndexes("PreviousHash", false).Wait();
             CreateIndexes("AccountID", false).Wait();
             CreateNoneStringIndex("Height", false).Wait();
