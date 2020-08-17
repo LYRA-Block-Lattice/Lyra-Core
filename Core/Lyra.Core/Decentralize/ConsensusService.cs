@@ -344,19 +344,6 @@ namespace Lyra.Core.Decentralize
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
             item.Sign(_sys.PosWallet.PrivateKey, item.From);
-            //item.Hash = "a";
-            //item.Signature = "a";
-
-            //if(LyraNodeConfig.GetNetworkId() != "xtest")
-            //{
-            //    while (LocalNode.Singleton.ConnectedCount < 1)
-            //    {
-            //        _log.LogInformation("p2p network not connected. delay sending message...");
-            //        Task.Delay(1000).Wait();
-            //    }
-            //}
-
-            //_log.LogInformation($"Send2P2pNetwork {item.MsgType}");
             _localNode.Tell(item);
         }
 
@@ -561,8 +548,7 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
 
-                    var livingPosNodeIds = _board.AllNodes.Select(a => a.AccountID);
-                    _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
+                    RefreshAllNodesVotes();
                 }
                 else
                 {
@@ -719,29 +705,6 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        //private void BroadCastBillBoard()
-        //{
-        //    if (_board != null)
-        //    {
-        //        RefreshAllNodesVotesAsync();
-        //        OnNodeActive(_sys.PosWallet.AccountId);
-        //        var deadNodes = _board.AllNodes.Values.Where(a => DateTime.Now - a.LastStaking > TimeSpan.FromHours(2)).ToList();
-        //        foreach (var node in deadNodes)
-        //        {
-        //            _log.LogInformation("Remove un-active node from billboard: " + node.AccountID);
-        //            _board.AllNodes.Remove(node.AccountID);
-        //        }
-        //        _board.SnapShot();      // primary node list updated.
-        //        AuthorizerShapshot = _board.PrimaryAuthorizers.ToHashSet();
-        //        var msg = new ChatMsg(JsonConvert.SerializeObject(_board), ChatMessageType.BillBoardBroadcast);
-        //        msg.From = _sys.PosWallet.AccountId;
-        //        Send2P2pNetwork(msg);
-
-        //        // switch to protect mode if necessary
-        //        _sys.TheBlockchain.Tell(new BlockChain.AuthorizerCountChanged { IsSeed0 = true, count = _board.PrimaryAuthorizers.Length });
-        //    }
-        //}
-
         public void OnNodeActive(string nodeAccountId)
         {
             if (_board != null)
@@ -774,22 +737,8 @@ namespace Lyra.Core.Decentralize
                 if (!Signatures.VerifyAccountSignature(node.IPAddress, node.AccountID, node.Signature))
                     throw new Exception("Signature verification failed.");
 
-                // the same node up again, not properly.
-                //if (_board.AllNodes.Values.Any(a => a.IPAddress == node.IPAddress))
-                //{
-                //    // only allow one node per ip
-                //    throw new Exception("Only allow one authorizer per IP.");
-                //}
-
                 // add network/ip verifycation here
-
                 var IsNew = _board.Add(node);
-
-                //if (IsMessageFromSeed0(chat))    // seed0 up
-                //{
-                //    _log.LogInformation("Seed0 is UP. Declare node again.");
-                //    await DeclareConsensusNodeAsync();      // we need resend node up message to codinator.
-                //}
 
                 if (!IsViewChanging)
                 {
