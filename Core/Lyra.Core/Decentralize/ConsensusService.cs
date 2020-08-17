@@ -199,7 +199,7 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<AuthState>(async state =>
             {
-                if (_currentBlockchainState != BlockChainState.Almighty)
+                if (_currentBlockchainState != BlockChainState.Almighty && _currentBlockchainState != BlockChainState.Genesis)
                 {
                     state.Done?.Set();
                     return;
