@@ -46,10 +46,10 @@ namespace Lyra
         // startup
         QueryingConsensusNode,
         ConsensusBlockChainEmpty,
-        ConsensusNodesSynced,
+        ConsensusNodesInitSynced,
 
         // engage
-        LocalNodeConsolidated,
+        LocalNodeFullySynced,
 
         // almighty
         LocalNodeOutOfSync,
@@ -82,7 +82,7 @@ namespace Lyra
         public string NetworkID { get; private set; }
 
         private readonly StateMachine<BlockChainState, BlockChainTrigger> _stateMachine;
-        private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStartupSync;
+        private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStart;
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<string> _engageTriggerConsolidateFailed;
         public BlockChainState CurrentState => _stateMachine.State;
 
@@ -101,7 +101,7 @@ namespace Lyra
             _sys = sys;
 
             _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
-            _engageTriggerStartupSync = _stateMachine.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesSynced);
+            _engageTriggerStart = _stateMachine.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesInitSynced);
             _engageTriggerConsolidateFailed = _stateMachine.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
             CreateStateMachine();
 
@@ -202,14 +202,8 @@ namespace Lyra
                                 var myStatus = await GetNodeStatusAsync();
                                 if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 3)
                                 {
-                                    _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
-                                    //_stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
-                                    var IsSeed0 = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0());
-                                    if (await FindLatestBlockAsync() == null && IsSeed0.IsSeed0)
-                                    {
-                                        await Task.Delay(15000);
-                                        Genesis();
-                                    }
+                                    //_stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                                    _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                                 }
                                 else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
                                 {
@@ -220,7 +214,7 @@ namespace Lyra
                                         _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
                                         await Task.Delay(60000);
                                     }
-                                    _stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                                    _stateMachine.Fire(_engageTriggerStart, majorHeight.Height);
                                 }
                                 else
                                 {
@@ -240,7 +234,7 @@ namespace Lyra
                     }
                 }))
                 .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Genesis)
-                .Permit(BlockChainTrigger.ConsensusNodesSynced, BlockChainState.Engaging);
+                .Permit(BlockChainTrigger.ConsensusNodesInitSynced, BlockChainState.Engaging);
 
             _stateMachine.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
@@ -252,11 +246,13 @@ namespace Lyra
                     {
                         Genesis();
                     }
+
+                    _stateMachine.Fire(BlockChainTrigger.GenesisDone);
                 }))
                 .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Startup);
 
             _stateMachine.Configure(BlockChainState.Engaging)
-                .OnEntryFrom(_engageTriggerStartupSync, (blockCount) => Task.Run(async () =>
+                .OnEntryFrom(_engageTriggerStart, (blockCount) => Task.Run(async () =>
                 {
                     _sys.Consensus.Tell(new ConsensusService.BlockChainStatuChanged { CurrentState = _stateMachine.State });
 
@@ -273,9 +269,9 @@ namespace Lyra
                         _log.LogError($"In Engaging: {e}");
                     }
 
-                    _stateMachine.Fire(BlockChainTrigger.LocalNodeConsolidated);
+                    _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
                 }))
-                .Permit(BlockChainTrigger.LocalNodeConsolidated, BlockChainState.Almighty);
+                .Permit(BlockChainTrigger.LocalNodeFullySynced, BlockChainState.Almighty);
 
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(() =>
@@ -393,7 +389,7 @@ namespace Lyra
                 //_log.LogInformation("genesis block string:\n" + tokenGen.GetHashInput());
                 await SendBlockToConsensusAsync(tokenGen);
 
-                await Task.Delay(1000);
+                await Task.Delay(15000);        // because cons block has a time shift.
 
                 var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
                 await SendBlockToConsensusAsync(consGen);
@@ -424,14 +420,11 @@ namespace Lyra
                     }
                 }
 
+                await Task.Delay(15000);
+
+                _sys.Consensus.Tell(new ConsensusService.Consolidate());
+
                 await Task.Delay(3000);
-
-                if (ProtocolSettings.Default.StartupValidators.Any())
-                {
-                    _sys.Consensus.Tell(new ConsensusService.Consolidate());
-
-                    await Task.Delay(3000);
-                }
             });
         }
 
@@ -624,6 +617,7 @@ namespace Lyra
                 },
                 totalBlockCount = 2     // not including self
             };
+            consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(-10);
 
             var mt = new MerkleTree();
             mt.AppendLeaf(MerkleHash.Create(svcGen.Hash));

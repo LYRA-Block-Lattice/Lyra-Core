@@ -53,7 +53,7 @@ namespace Lyra.Core.Authorizers
             //    return APIResultCodes.BlockSignatureValidationFailed;
 
             // allow time drift: form -5 to +3
-            var uniNow = DateTime.Now.ToUniversalTime();
+            var uniNow = DateTime.UtcNow;
             if (block is ServiceBlock bsb)
             {
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());

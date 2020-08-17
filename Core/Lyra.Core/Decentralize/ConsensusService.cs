@@ -290,7 +290,8 @@ namespace Lyra.Core.Decentralize
                     try
                     {
                         //_log.LogWarning("starting maintaince loop... ");
-                        await CreateConsolidationBlock();
+                        if(_currentBlockchainState == BlockChainState.Almighty)
+                            await CreateConsolidationBlock();
 
                         await Task.Delay(15000).ConfigureAwait(false);
 
@@ -430,7 +431,7 @@ namespace Lyra.Core.Decentralize
                     if(allNodeSyncd)
                     {
                         // consolidate time from lastcons to now - 10s
-                        var timeStamp = DateTime.Now.AddSeconds(-10);
+                        var timeStamp = DateTime.UtcNow.AddSeconds(-10);
                         var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
 
                         if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
@@ -651,7 +652,8 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if (_currentBlockchainState == BlockChainState.Engaging ||
+            if (_currentBlockchainState == BlockChainState.Genesis ||
+                _currentBlockchainState == BlockChainState.Engaging ||
                 _currentBlockchainState == BlockChainState.Almighty)
             {
                 if (item is BlockConsensusMessage cm)
