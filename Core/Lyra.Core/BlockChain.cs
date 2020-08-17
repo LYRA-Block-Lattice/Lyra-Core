@@ -247,6 +247,11 @@ namespace Lyra
                     {
                         await GenesisAsync();
                     }
+                    else
+                    {
+                        // wait for genesis to finished.
+                        await Task.Delay(60000);
+                    }
 
                     _stateMachine.Fire(BlockChainTrigger.GenesisDone);
                 }))
