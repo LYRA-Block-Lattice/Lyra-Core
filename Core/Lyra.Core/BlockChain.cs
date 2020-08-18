@@ -346,7 +346,7 @@ namespace Lyra
                 _log.LogInformation("Engaging Sync...");
                 var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
                 var myLastCons = await GetLastConsolidationBlockAsync();
-                if (myLastCons.Height < lastConsOfSeed.GetBlock().Height)
+                if (myLastCons == null || myLastCons.Height < lastConsOfSeed.GetBlock().Height)
                 {
                     if (!await SyncDatabase())
                     {
@@ -363,6 +363,8 @@ namespace Lyra
                 {
                     foreach (var hash in unConsHashResult.Entities)
                     {
+                        if (hash == myLastCons.Hash)
+                            continue;       // already synced by previous steps
                         var blockResult = await client.GetBlockByHash(hash);
                         await AddBlockAsync(blockResult.GetBlock());
                     }
