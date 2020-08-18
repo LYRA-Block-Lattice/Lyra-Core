@@ -361,7 +361,7 @@ namespace Lyra
                 var unConsHashResult = await client.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
                 if (unConsHashResult.ResultCode == APIResultCodes.Success)
                 {
-                    foreach (var hash in unConsHashResult.Entities)
+                    foreach (var hash in unConsHashResult.Entities.Skip(1))  // the first one is previous consolidation block
                     {
                         var blockResult = await client.GetBlockByHash(hash);
                         await AddBlockAsync(blockResult.GetBlock());
