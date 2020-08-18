@@ -33,6 +33,10 @@ namespace Lyra.Core.Decentralize
                 {
                     return LyraGlobal.MAXIMUM_AUTHORIZERS;
                 }
+                else if(count < LyraGlobal.MINIMUM_AUTHORIZERS)
+                {
+                    return LyraGlobal.MINIMUM_AUTHORIZERS;
+                }
                 else
                 {
                     return count;
