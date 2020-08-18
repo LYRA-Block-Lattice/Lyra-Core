@@ -28,7 +28,7 @@ namespace Lyra.Core.Decentralize
             get
             {
                 var allNodes = _context.Board.AllNodes.ToList();
-                var count = allNodes.Count(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance);
+                var count = allNodes.Count(a => a?.Votes >= LyraGlobal.MinimalAuthorizerBalance);
                 if (count > LyraGlobal.MAXIMUM_AUTHORIZERS)
                 {
                     return LyraGlobal.MAXIMUM_AUTHORIZERS;
