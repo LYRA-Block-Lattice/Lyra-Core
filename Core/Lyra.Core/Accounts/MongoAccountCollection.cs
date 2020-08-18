@@ -114,6 +114,7 @@ namespace Lyra.Core.Accounts
 
             CreateIndexes("Hash", true).Wait();
             CreateIndexes("TimeStamp", false).Wait();
+            CreateIndexes("TimeStamp.Ticks", false).Wait();
             CreateIndexes("PreviousHash", false).Wait();
             CreateIndexes("AccountID", false).Wait();
             CreateNoneStringIndex("Height", false).Wait();
@@ -868,7 +869,7 @@ namespace Lyra.Core.Accounts
                 Projection = Builders<Block>.Projection.Include(a => a.Hash)
             };
             var builder = Builders<Block>.Filter;
-            var filter = builder.And(builder.Gte("TimeStamp", startTime), builder.Lt("TimeStamp", endTime));
+            var filter = builder.And(builder.Gte("TimeStamp.Ticks", startTime.Ticks), builder.Lt("TimeStamp.Ticks", endTime.Ticks));
             var result = await _blocks.FindAsync(filter, options);
             return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
         }
