@@ -90,11 +90,11 @@ namespace Lyra.Core.Decentralize
             _board = new BillBoard();
             _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
             _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
-            _board.AllVoters = _board.PrimaryAuthorizers.ToList();
 
             _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes, voters) => {
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");
                 _board.CurrentLeader = leader;
+                _board.CurrentLeadersVotes = votes;
                 _board.AllVoters = voters;
                 if(leader == _sys.PosWallet.AccountId)
                 {
@@ -112,31 +112,29 @@ namespace Lyra.Core.Decentralize
                 var lastSvcBlk = await _sys.Storage.GetLastServiceBlockAsync();
                 if (lastSvcBlk != null)
                 {
-                    _board.AllNodes.Clear();
-                    foreach (var node in lastSvcBlk.Authorizers)
-                        _board.AllNodes.Add(node);
-
-                    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Select(a => a.AccountID).ToArray();
+                    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Keys.ToArray();
                     if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
                         _board.CurrentLeader = lastSvcBlk.Leader;
                     _board.AllVoters = _board.PrimaryAuthorizers.ToList();
                 }
+
+                await DeclareConsensusNodeAsync();
             });
 
             Receive<AskIfSeed0>((_) => Sender.Tell(new AskIfSeed0 { IsSeed0 = IsThisNodeLeader }));
 
             Receive<BlockChain.BlockAdded>(nb =>
             {
-                if (nb.NewBlock is ServiceBlock lastSvcBlk)
-                {
-                    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Select(a => a.AccountID).ToArray();
-                    if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
-                        _board.CurrentLeader = lastSvcBlk.Leader;
-                    _board.AllVoters = _board.PrimaryAuthorizers.ToList();
+                //if (nb.NewBlock is ServiceBlock lastSvcBlk)
+                //{
+                //    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Select(a => a.AccountID).ToArray();
+                //    if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
+                //        _board.CurrentLeader = lastSvcBlk.Leader;
+                //    _board.AllVoters = _board.PrimaryAuthorizers.ToList();
 
-                    IsViewChanging = false;
-                    _viewChangeHandler.Reset();
-                }
+                //    IsViewChanging = false;
+                //    _viewChangeHandler.Reset();
+                //}
             });
 
             Receive<Consolidate>((_) =>
@@ -192,9 +190,6 @@ namespace Lyra.Core.Decentralize
             ReceiveAsync<BlockChainStatuChanged>(async (state) =>
             {
                 _currentBlockchainState = state.CurrentState;
-
-                if(_currentBlockchainState == BlockChainState.Engaging || _currentBlockchainState == BlockChainState.Genesis)
-                    await DeclareConsensusNodeAsync();
             });
 
             ReceiveAsync<AuthState>(async state =>
@@ -265,9 +260,6 @@ namespace Lyra.Core.Decentralize
                                     // change view
                                     IsViewChanging = true;
 
-                                    // make sure me is in all node's billboard
-                                    await DeclareConsensusNodeAsync();
-
                                     await _viewChangeHandler.BeginChangeViewAsync();
                                 }
                             }
@@ -295,7 +287,7 @@ namespace Lyra.Core.Decentralize
 
                         await Task.Delay(15000).ConfigureAwait(false);
 
-                        //HeartBeat();
+                        await HeartBeatAsync();
 
                         count++;
 
@@ -352,28 +344,111 @@ namespace Lyra.Core.Decentralize
             // declare to the network
             PosNode me = new PosNode(_sys.PosWallet.AccountId);
             me.IPAddress = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId)}";
-            me.Signature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
-                    me.IPAddress, _sys.PosWallet.AccountId);
+
+            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+            var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
+
+            me.AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
+                    signAgainst, _sys.PosWallet.AccountId);
 
             var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);
             msg.From = _sys.PosWallet.AccountId;
-            _board.Add(me);
             Send2P2pNetwork(msg);
         }
 
-        private void HeartBeat()
+        private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
-            OnNodeActive(_sys.PosWallet.AccountId);     // update billboard
+            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature);
+        }
+        private async Task OnNodeActive(string accountId, string authorizerSignature)
+        {
+            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+            var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
+
+            if (Signatures.VerifyAccountSignature(signAgainst, _sys.PosWallet.AccountId, authorizerSignature))
+            {
+                if (_board.ActiveNodes.Any(a => a.AccountID == accountId))
+                {
+                    var node = _board.ActiveNodes.First(a => a.AccountID == accountId);
+                    node.LastActive = DateTime.Now;
+                    node.AuthorizerSignature = authorizerSignature;
+                }
+                else
+                {
+                    var node = new ActiveNode { AccountID = accountId, AuthorizerSignature = authorizerSignature, LastActive = DateTime.Now };
+                    _board.ActiveNodes.Add(node);
+                }
+            }
+            else
+            {
+                // make sure ActiveNodes is clean and secured.
+                _board.ActiveNodes.RemoveAll(a => a.AccountID == accountId);
+            }
+
+            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddMinutes(5));
+        }
+
+        private async Task HeartBeatAsync()
+        {
+            _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId).LastActive = DateTime.Now;
+
+            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+            var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
 
             // declare to the network
-            var msg = new ChatMsg
+            var msg = new HeartBeatMessage
             {
                 From = _sys.PosWallet.AccountId,
-                MsgType = ChatMessageType.HeartBeat,
-                Text = "I'm live"
+                Text = "I'm live",
+                AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 
             Send2P2pNetwork(msg);
+        }
+
+        private async Task OnNodeUpAsync(ChatMsg chat)
+        {
+            _log.LogInformation($"OnNodeUpAsync: Node is up: {chat.From.Shorten()}");
+
+            try
+            {
+                if (_board == null)
+                    throw new Exception("_board is null");
+
+                var node = chat.Text.UnJson<PosNode>();
+
+                // verify signature
+                if (string.IsNullOrWhiteSpace(node.IPAddress))
+                    throw new Exception("No public IP specified.");
+
+                if (!Signatures.VerifyAccountSignature(node.IPAddress, node.AccountID, node.AuthorizerSignature))
+                    throw new Exception("Signature verification failed.");
+
+                await OnNodeActive(node.AccountID, node.AuthorizerSignature);
+                // add network/ip verifycation here
+                
+
+                //if (!IsViewChanging)
+                //{
+                //    var qualifiedCount = Board.AllNodes.Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance).Count();
+                //    if (qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS)
+                //    {
+                //        var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
+
+                //        if (blockchainStatus.state == BlockChainState.Almighty)
+                //        {
+                //            // change view
+                //            IsViewChanging = true;
+
+                //            await _viewChangeHandler.BeginChangeViewAsync();
+                //        }
+                //    }
+                //}
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning($"OnNodeUpAsync: {ex.ToString()}");
+            }
         }
 
         public bool FindActiveBlock(string accountId, long index)
@@ -450,46 +525,46 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<bool> CheckPrimaryNodesStatus()
-        {
-            if (Board.AllNodes.Count < 4)
-                return false;
+        //private async Task<bool> CheckPrimaryNodesStatus()
+        //{
+        //    if (Board.AllNodes.Count < 4)
+        //        return false;
 
-            var bag = new ConcurrentDictionary<string, GetSyncStateAPIResult>();
-            var tasks = Board.AllNodes
-                .Where(a => Board.PrimaryAuthorizers.Contains(a.AccountID))  // exclude self
-                .Select(b => b)
-                .Select(async node =>
-                {
-                    var lcx = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.ToString(), "Seed0", "1.0", $"http://{node.IPAddress}:4505/api/Node/");
-                    try
-                    {
-                        var syncState = await lcx.GetSyncState();
-                        bag.TryAdd(node.AccountID, syncState);
-                    }
-                    catch (Exception ex)
-                    {
-                        bag.TryAdd(node.AccountID, null);
-                    }
-                });
-            await Task.WhenAll(tasks);
-            var mySyncState = bag[_sys.PosWallet.AccountId];
-            var q = bag.Where(a => a.Key != _sys.PosWallet.AccountId)
-                .Select(a => a.Value)
-                .GroupBy(x => x.Status.lastUnSolidationHash)
-                .Select(g => new { Hash = g.Key, Count = g.Count() })
-                .OrderByDescending(x => x.Count)
-                .First();
+        //    var bag = new ConcurrentDictionary<string, GetSyncStateAPIResult>();
+        //    var tasks = Board.AllNodes
+        //        .Where(a => Board.PrimaryAuthorizers.Contains(a.AccountID))  // exclude self
+        //        .Select(b => b)
+        //        .Select(async node =>
+        //        {
+        //            var lcx = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.ToString(), "Seed0", "1.0", $"http://{node.IPAddress}:4505/api/Node/");
+        //            try
+        //            {
+        //                var syncState = await lcx.GetSyncState();
+        //                bag.TryAdd(node.AccountID, syncState);
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                bag.TryAdd(node.AccountID, null);
+        //            }
+        //        });
+        //    await Task.WhenAll(tasks);
+        //    var mySyncState = bag[_sys.PosWallet.AccountId];
+        //    var q = bag.Where(a => a.Key != _sys.PosWallet.AccountId)
+        //        .Select(a => a.Value)
+        //        .GroupBy(x => x.Status.lastUnSolidationHash)
+        //        .Select(g => new { Hash = g.Key, Count = g.Count() })
+        //        .OrderByDescending(x => x.Count)
+        //        .First();
 
-            if(mySyncState.Status.lastUnSolidationHash == q.Hash && q.Count > (int)Math.Ceiling((double)(Board.PrimaryAuthorizers.Length) * 3 / 2))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        //    if(mySyncState.Status.lastUnSolidationHash == q.Hash && q.Count > (int)Math.Ceiling((double)(Board.PrimaryAuthorizers.Length) * 3 / 2))
+        //    {
+        //        return true;
+        //    }
+        //    else
+        //    {
+        //        return false;
+        //    }
+        //}
 
         private async Task CreateConsolidateBlockAsync(ConsolidationBlock lastCons, DateTime timeStamp, IEnumerable<string> collection)
         {
@@ -629,9 +704,6 @@ namespace Lyra.Core.Decentralize
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
             //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
-            if (item.MsgType != ChatMessageType.NodeUp)
-                OnNodeActive(item.From);
-
             if (item is ChatMsg chatMsg)
             {
                 await OnRecvChatMsg(chatMsg);
@@ -666,7 +738,7 @@ namespace Lyra.Core.Decentralize
             switch(chat.MsgType)
             {
                 case ChatMessageType.HeartBeat:
-                    OnHeartBeat(chat);
+                    await OnHeartBeatAsync(chat as HeartBeatMessage);
                     break;
                 case ChatMessageType.NodeUp:
                     await Task.Run(async () => { await OnNodeUpAsync(chat); });                    
@@ -692,10 +764,10 @@ namespace Lyra.Core.Decentralize
 
         private void RefreshAllNodesVotes()
         {
-            var livingPosNodeIds = _board.AllNodes.Select(a => a.AccountID);
+            var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID);
             _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
 
-            foreach (var node in _board.AllNodes.ToArray())
+            foreach (var node in _board.ActiveNodes.ToArray())
             {
                 var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
                 if (vote == null)
@@ -705,66 +777,11 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public void OnNodeActive(string nodeAccountId)
-        {
-            if (_board != null)
-                _board.Refresh(nodeAccountId);
-        }
-
-        private void OnHeartBeat(ChatMsg chat)
-        {
-            if (_board != null)
-            {
-                _board.Refresh(chat.From);
-            }
-        }
-
-        private async Task OnNodeUpAsync(ChatMsg chat)
-        {
-            _log.LogInformation($"OnNodeUpAsync: Node is up: {chat.From.Shorten()}");
-
-            try
-            {
-                if (_board == null)
-                    throw new Exception("_board is null");
-
-                var node = chat.Text.UnJson<PosNode>();
-
-                // verify signature
-                if (string.IsNullOrWhiteSpace(node.IPAddress))
-                    throw new Exception("No public IP specified.");
-
-                if (!Signatures.VerifyAccountSignature(node.IPAddress, node.AccountID, node.Signature))
-                    throw new Exception("Signature verification failed.");
-
-                // add network/ip verifycation here
-                var IsNew = _board.Add(node);
-
-                if (!IsViewChanging)
-                {
-                    var qualifiedCount = Board.AllNodes.Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance).Count();
-                    if (qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS)
-                    {
-                        var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-
-                        if (blockchainStatus.state == BlockChainState.Almighty)
-                        {
-                            // change view
-                            IsViewChanging = true;
-
-                            // make sure me is in all node's billboard
-                            await DeclareConsensusNodeAsync();
-
-                            await _viewChangeHandler.BeginChangeViewAsync();
-                        }
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                _log.LogWarning($"OnNodeUpAsync: {ex.ToString()}");
-            }
-        }
+        //public void OnNodeActive(string nodeAccountId)
+        //{
+        //    if (_board != null)
+        //        _board.Refresh(nodeAccountId);
+        //}
     }
 
     internal class ConsensusServiceMailbox : PriorityMailbox

@@ -41,16 +41,16 @@ namespace AutoSender
                 }
             }
 
-            amount = 1500000;
-            foreach (var ba in bb.BackupAuthorizers)
-            {
-                await wallet.Sync(null);
-                var result = await wallet.Send(amount, ba);
-                if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
-                {
-                    Console.WriteLine($"Success sent {amount} to {ba}");
-                }
-            }
+            //amount = 1500000;
+            //foreach (var ba in bb.BackupAuthorizers)
+            //{
+            //    await wallet.Sync(null);
+            //    var result = await wallet.Send(amount, ba);
+            //    if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
+            //    {
+            //        Console.WriteLine($"Success sent {amount} to {ba}");
+            //    }
+            //}
         }
     }
 }

@@ -306,7 +306,7 @@ namespace Lyra
                     break;
 
                 var latestHeight = seedCons.Height;
-                while (true)
+                while (localState.lastVerifiedConsHeight < seedCons.Height)
                 {
                     if (await SyncAndVerifyConsolidationBlock(client, seedCons))
                     {
@@ -385,7 +385,7 @@ namespace Lyra
             // genesis
             _log.LogInformation("all seed nodes are ready. do genesis.");
 
-            var svcGen = GetServiceGenesisBlock();
+            var svcGen = await GetServiceGenesisBlockAsync();
             await SendBlockToConsensusAsync(svcGen, ProtocolSettings.Default.StandbyValidators.ToList());
 
             await Task.Delay(1000);
@@ -474,7 +474,7 @@ namespace Lyra
                       {
                           var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
 
-                          var allVoters = _sys.Storage.FindVotes(board.AllVoters).OrderByDescending(a => a.Amount);
+                          var allVoters = _sys.Storage.FindVotes(board.ActiveNodes.Select(a => a.AccountID));
                           var prevSvcBlock = await GetLastServiceBlockAsync();
 
                           var svcBlock = new ServiceBlock
@@ -491,11 +491,19 @@ namespace Lyra
 
                           _log.LogInformation($"Adding {allVoters.Count()} voters...");
 
-                          svcBlock.Authorizers = new List<PosNode>();
+                          svcBlock.Authorizers = new Dictionary<string, string>();
                           foreach (var voter in allVoters)
                           {
-                              if (board.AllNodes.Any(a => a.AccountID == voter.AccountId))
-                                  svcBlock.Authorizers.Add(board.AllNodes.First(a => a.AccountID == voter.AccountId));
+                              if (board.ActiveNodes.Any(a => a.AccountID == voter.AccountId))
+                              {
+                                  var node = board.ActiveNodes.First(a => a.AccountID == voter.AccountId);
+                                  svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
+                              }
+                              else
+                              {
+                                  // impossible. viewchangehandler has already filterd all none active messages.
+                                  // or just bypass it?
+                              }
 
                               if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
                                   break;
@@ -667,7 +675,7 @@ namespace Lyra
             return openTokenGenesisBlock;
         }
 
-        public ServiceBlock GetServiceGenesisBlock()
+        public async Task<ServiceBlock> GetServiceGenesisBlockAsync()
         {
             var svcGenesis = new ServiceBlock
             {
@@ -684,16 +692,19 @@ namespace Lyra
             // wait for all nodes ready
             while(true)
             {
-                svcGenesis.Authorizers = new List<PosNode>();
+                svcGenesis.Authorizers = new Dictionary<string, string>();
                 var board = _sys.Consensus.Ask<BillBoard>(new AskForBillboard()).Result;
-                foreach (var pn in board.AllNodes.Where(a => ProtocolSettings.Default.StandbyValidators.Contains(a.AccountID)))
+                foreach (var pn in ProtocolSettings.Default.StandbyValidators)
                 {
-                    svcGenesis.Authorizers.Add(pn);
+                    svcGenesis.Authorizers.Add(pn, board.ActiveNodes.First(a => a.AccountID == pn).AuthorizerSignature);
                 }
                 if (svcGenesis.Authorizers.Count >= LyraGlobal.MINIMUM_AUTHORIZERS)
                     break;
                 else
+                {
                     _log.LogInformation($"Waiting for seed nodes to up. Now we have {svcGenesis.Authorizers.Count} of {LyraGlobal.MINIMUM_AUTHORIZERS}");
+                    await Task.Delay(1000);
+                }
             }
 
             svcGenesis.TimeStamp = DateTime.UtcNow;

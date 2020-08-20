@@ -121,8 +121,8 @@ namespace LyraNodesBot
             sb.AppendLine($"Total Needed Minimal Node Number: {ProtocolSettings.Default.ConsensusTotalNumber}");
             sb.AppendLine($"Consensus Win Number: {ProtocolSettings.Default.ConsensusWinNumber}");
             sb.AppendLine($"Maxmimum Tolerant Node Number: {ProtocolSettings.Default.ConsensusNumber}");
-            sb.AppendLine($"Current Running Node Count: {bb.AllNodes.Count}");
-            sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.GetAbleToAuthorize())}");
+            //sb.AppendLine($"Current Running Node Count: {bb.AllNodes.Count}");
+            //sb.AppendLine($"Current Nodes can do Authorizing: {bb.AllNodes.Count(a => a.GetAbleToAuthorize())}");
             var cando = "unknown"; // bb.CanDoConsensus ? "Yes" : "No";
             sb.AppendLine($"Consensus Can be Made Now: {cando}");
 
@@ -134,30 +134,30 @@ namespace LyraNodesBot
 
             sb.AppendLine("\n*Backup Authorizers*\n");
 
-            if(bb.BackupAuthorizers.Length > 0)
-            {
-                sb.AppendLine("`" + bb.BackupAuthorizers
-                    .Select((a, i) => $"{i}. {a.Shorten()} [{GetBalance(bb, a)}]")
-                    .Aggregate((c, d) => c + "\n" + d) + "`");
-            }
-            else
-            {
-                sb.AppendLine("None");
-            }
+            //if(bb.BackupAuthorizers.Length > 0)
+            //{
+            //    sb.AppendLine("`" + bb.BackupAuthorizers
+            //        .Select((a, i) => $"{i}. {a.Shorten()} [{GetBalance(bb, a)}]")
+            //        .Aggregate((c, d) => c + "\n" + d) + "`");
+            //}
+            //else
+            //{
+            //    sb.AppendLine("None");
+            //}
 
             sb.AppendLine("\n*Other Nodes*\n");
 
-            var voting = bb.AllNodes.Where(a => !bb.PrimaryAuthorizers.Contains(a.AccountID) && !bb.BackupAuthorizers.Contains(a.AccountID));
-            if(voting.Any())
-            {
-                sb.AppendLine("`" + voting
-                    .Select((a, i) => $"{i}. {a.AccountID.Shorten()} [{GetBalance(bb, a.AccountID)}]")
-                    .Aggregate((c, d) => c + "\n" + d) + "`");
-            }
-            else
-            {
-                sb.AppendLine("None");
-            }
+            //var voting = bb.AllNodes.Where(a => !bb.PrimaryAuthorizers.Contains(a.AccountID) && !bb.BackupAuthorizers.Contains(a.AccountID));
+            //if(voting.Any())
+            //{
+            //    sb.AppendLine("`" + voting
+            //        .Select((a, i) => $"{i}. {a.AccountID.Shorten()} [{GetBalance(bb, a.AccountID)}]")
+            //        .Aggregate((c, d) => c + "\n" + d) + "`");
+            //}
+            //else
+            //{
+            //    sb.AppendLine("None");
+            //}
 
             await SendGroupMessageAsync(chatid, sb.ToString());
         }
@@ -167,7 +167,7 @@ namespace LyraNodesBot
             if (bb.PrimaryAuthorizers.Take(3).Contains(accountId))
                 return "seed";
 
-            var balance = bb.AllNodes.First(a => a.AccountID == accountId).Votes;
+            var balance = bb.ActiveNodes.First(a => a.AccountID == accountId).Votes;
             return $"{balance} Lyra";
         }
 

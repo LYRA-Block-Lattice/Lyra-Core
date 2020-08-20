@@ -27,7 +27,7 @@ namespace Lyra.Core.Decentralize
         {
             get
             {
-                var allNodes = _context.Board.AllNodes.ToList();
+                var allNodes = _context.Board.ActiveNodes.ToList();
                 var count = allNodes.Count(a => a?.Votes >= LyraGlobal.MinimalAuthorizerBalance);
                 if (count > LyraGlobal.MAXIMUM_AUTHORIZERS)
                 {
@@ -83,6 +83,11 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
+            // I didn't see u I don't trust your vote
+            if (!_context.Board.ActiveNodes.Any(a => a.AccountID == vcm.From) ||
+                DateTime.Now - _context.Board.ActiveNodes.First(a => a.AccountID == vcm.From).LastActive > TimeSpan.FromMinutes(3))
+                return;
+
             if (vcm.ViewID == _viewId && _selectedSuccess)
                 return;
 
@@ -118,7 +123,7 @@ namespace Lyra.Core.Decentralize
 
         private bool GetIsMessageLegal(ViewChangeMessage vcm)
         {
-            if (_context.Board.AllNodes.OrderByDescending(a => a.Votes).Take(QualifiedNodeCount).Any(x => x.AccountID == vcm.From))
+            if (_context.Board.ActiveNodes.OrderByDescending(a => a.Votes).Take(QualifiedNodeCount).Any(x => x.AccountID == vcm.From))
             {
                 return true;
             }

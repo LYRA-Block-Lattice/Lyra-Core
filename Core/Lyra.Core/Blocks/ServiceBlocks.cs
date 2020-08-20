@@ -27,7 +27,9 @@ namespace Lyra.Core.Blocks
     {
         public string Leader { get; set; }
         //public Dictionary<string, NodeInfo> Authorizers { get; set; }
-        public List<PosNode> Authorizers { get; set; }
+        
+        // accountID, authorizerSignature (sign against lastServiceblock. if null, seed0's address)
+        public Dictionary<string, string> Authorizers { get; set; }
         //public List<NodeInfo> Candidates { get; set; }
 
         ///// <summary>
@@ -83,16 +85,9 @@ namespace Lyra.Core.Blocks
             extraData += this.Version == 1 ? "" : Leader + "|";
             extraData += this.NetworkId + "|";
             extraData += this.FeeTicker + "|";
-            foreach (var pn in Authorizers)
+            foreach (var pn in Authorizers.OrderBy(a => a.Key))
             {
-                if(this.Version == 1)
-                {
-                    extraData += pn.Signature + "|";
-                }
-                else
-                {
-                    extraData += pn.ToHashInputString();
-                }
+                extraData += $"{pn.Key}|{pn.Value}|";
             }
                 
             extraData = extraData + JsonConvert.SerializeObject(TransferFee) + "|";
@@ -112,7 +107,7 @@ namespace Lyra.Core.Blocks
             if (string.IsNullOrWhiteSpace(this.FeeTicker) 
                 || this.FeeTicker != LyraGlobal.OFFICIALTICKERCODE
                 || string.IsNullOrWhiteSpace(this.NetworkId) 
-                || Authorizers.Count < ProtocolSettings.Default.StandbyValidators.Length)
+                || Authorizers.Count < LyraGlobal.MINIMUM_AUTHORIZERS)
                 return false;
 
             return base.IsBlockValid(prevBlock);
@@ -129,7 +124,7 @@ namespace Lyra.Core.Blocks
             result += $"TradeFee: {TradeFee.ToString()}\n";
             result += $"FeesGenerated: {FeesGenerated.ToString()}\n";
 
-            result += "Authorizers: " + Authorizers.Select(a => $"{a.IPAddress}:{a.AccountID.Shorten()}:{a.Votes}")
+            result += "Authorizers: " + Authorizers.Select(a => $"{a.Key}:{a.Value}")
                 .Aggregate((a, b) => a + ", " + b);
             return result;
         }

@@ -3,6 +3,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Cryptography;
 using Lyra.Core.Decentralize;
+using Neo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,19 +67,30 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidAuthorizerCount;
             }
 
-            if(block.Height > 1)        // no genesis block
+            foreach(var kvp in block.Authorizers)
             {
-                var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                var allVoters = sys.Storage.FindVotes(board.AllVoters).OrderByDescending(a => a.Amount);
-
-                foreach (var authorizer in block.Authorizers) // they can be listed in different order!
+                var signAgainst = prevBlock == null ? ProtocolSettings.Default.StandbyValidators[0] : prevBlock.Hash;
+                if (Signatures.VerifyAccountSignature(signAgainst, kvp.Key, kvp.Value))
                 {
-                    if (!allVoters.Any(a => a.AccountId == authorizer.AccountID) ||
-                        allVoters.First(a => a.AccountId == authorizer.AccountID).Amount < LyraGlobal.MinimalAuthorizerBalance ||
-                        !Signatures.VerifyAccountSignature(authorizer.IPAddress, authorizer.AccountID, authorizer.Signature))
-                        return APIResultCodes.InvalidAuthorizerInBillBoard;
+                    return APIResultCodes.InvalidAuthorizerInServiceBlock;
                 }
+
+                // verify vote etc.
             }
+
+            //if(block.Height > 1)        // no genesis block
+            //{
+            //    var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+            //    var allVoters = sys.Storage.FindVotes(board.AllVoters).OrderByDescending(a => a.Amount);
+
+            //    foreach (var authorizer in block.Authorizers) // they can be listed in different order!
+            //    {
+            //        if (!allVoters.Any(a => a.AccountId == authorizer.AccountID) ||
+            //            allVoters.First(a => a.AccountId == authorizer.AccountID).Amount < LyraGlobal.MinimalAuthorizerBalance ||
+            //            !Signatures.VerifyAccountSignature(authorizer.IPAddress, authorizer.AccountID, authorizer.Signature))
+            //            return APIResultCodes.InvalidAuthorizerInBillBoard;
+            //    }
+            //}
 
             return APIResultCodes.Success;
         }

@@ -136,6 +136,34 @@ namespace Lyra.Core.Decentralize
 		}
 	}
 
+	public class HeartBeatMessage : ChatMsg
+    {
+		// sign against current service hash
+		// so if current service block changed an outsynced node should never valid its heartbeat.
+		public string AuthorizerSignature { get; set; }
+		public HeartBeatMessage()
+        {
+			MsgType = ChatMessageType.HeartBeat;
+        }
+		public override int Size => base.Size + AuthorizerSignature.Length;
+        public override void Serialize(BinaryWriter writer)
+        {
+            base.Serialize(writer);
+			writer.Write(AuthorizerSignature);
+        }
+        public override void Deserialize(BinaryReader reader)
+        {
+            base.Deserialize(reader);
+			AuthorizerSignature = reader.ReadString();
+        }
+
+        public override string GetHashInput()
+        {
+			return base.GetHashInput() +
+				$"|{AuthorizerSignature}";
+        }
+    }
+
 	public class ConsensusMessage : SourceSignedMessage
     {
     }

@@ -85,7 +85,7 @@ namespace Lyra.Core.Decentralize
 
         public virtual bool CheckSenderValid(string from)
         {
-            if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.AccountID == from))
+            if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.Key == from))
                 return false;
             else
                 return true;
