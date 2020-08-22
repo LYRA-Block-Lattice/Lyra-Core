@@ -293,13 +293,14 @@ namespace Lyra
         {
             var client = new LyraClientForNode(_sys);
 
+            var svcGen = await _sys.Storage.GetServiceGenesisBlock();
             var localDbState = await GetNodeStatusAsync();
             if (localDbState.totalBlockCount == 0)
                 LocalDbSyncState.Remove();
             else
             {
                 var oldState = LocalDbSyncState.Load();
-                var svcGen = await _sys.Storage.GetServiceGenesisBlock();
+                
                 if (oldState.svcGenHash != svcGen.Hash)
                     LocalDbSyncState.Remove();
             }
@@ -336,7 +337,11 @@ namespace Lyra
                     seedCons = (await client.GetBlockByHash(seedCons.blockHashes.First())).GetBlock() as ConsolidationBlock;
                 }
                 if (IsSuccess)
+                {
                     localState.lastVerifiedConsHeight = latestHeight;
+                    if (string.IsNullOrWhiteSpace(localState.svcGenHash))
+                        localState.svcGenHash = svcGen.Hash;
+                }                    
                 else
                     break;
             }
