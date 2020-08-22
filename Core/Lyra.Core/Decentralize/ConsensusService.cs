@@ -416,6 +416,10 @@ namespace Lyra.Core.Decentralize
             };
 
             Send2P2pNetwork(msg);
+
+            var me = _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId);
+            me.State = _currentBlockchainState;
+            me.LastActive = DateTime.Now;
         }
 
         private async Task OnNodeUpAsync(ChatMsg chat)
