@@ -354,6 +354,9 @@ namespace Lyra.Core.Decentralize
             var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);
             msg.From = _sys.PosWallet.AccountId;
             Send2P2pNetwork(msg);
+
+            // add self to active nodes list
+            await OnNodeActive(me.AccountID, me.AuthorizerSignature);
         }
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
