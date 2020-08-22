@@ -357,7 +357,7 @@ namespace Lyra.Core.Decentralize
             Send2P2pNetwork(msg);
 
             // add self to active nodes list
-            await OnNodeActive(me.AccountID, me.AuthorizerSignature, BlockChainState.Startup);
+            await OnNodeActive(me.AccountID, me.AuthorizerSignature, _currentBlockchainState);
         }
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)

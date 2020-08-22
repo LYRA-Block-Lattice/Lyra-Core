@@ -168,11 +168,6 @@ namespace Lyra
                         {
                             _log.LogInformation($"Querying Lyra Network Status... ");
 
-                            while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
-                            {
-                                await Task.Delay(1000);
-                            }
-
                             _sys.Consensus.Tell(new ConsensusService.Startup());
 
                             await Task.Delay(10000);
