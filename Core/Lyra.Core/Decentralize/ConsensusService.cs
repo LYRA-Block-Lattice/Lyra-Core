@@ -367,7 +367,7 @@ namespace Lyra.Core.Decentralize
 
             if (Signatures.VerifyAccountSignature(signAgainst, accountId, authorizerSignature))
             {
-                if (_board.ActiveNodes.Any(a => a.AccountID == accountId))
+                if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == accountId))
                 {
                     var node = _board.ActiveNodes.First(a => a.AccountID == accountId);
                     node.LastActive = DateTime.Now;
@@ -385,12 +385,12 @@ namespace Lyra.Core.Decentralize
                 _board.ActiveNodes.RemoveAll(a => a.AccountID == accountId);
             }
 
-            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddMinutes(5));
+            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddMinutes(-5));
         }
 
         private async Task HeartBeatAsync()
         {
-            if(_board.ActiveNodes.Any(a => a.AccountID == _sys.PosWallet.AccountId))
+            if(_board.ActiveNodes.ToArray().Any(a => a.AccountID == _sys.PosWallet.AccountId))
                 _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId).LastActive = DateTime.Now;
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
