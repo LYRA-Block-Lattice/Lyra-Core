@@ -29,20 +29,18 @@ namespace Nebula.Store.NodeViewUseCase
 			var bb = await client.GetBillBoardAsync();
 
 			var bag = new ConcurrentDictionary<string, GetSyncStateAPIResult>();
-			var tasks = bb.AllNodes
-				//.Where(a => bb.PrimaryAuthorizers.Contains(a.Key))
-				.Select(b => b)
+			var tasks = bb.NodeAddresses
 				.Select(async node =>
 			{
-				var lcx = LyraRestClient.Create(config["network"], Environment.OSVersion.ToString(), "Nebula", "1.4", $"http://{node.IPAddress}:4505/api/Node/");
+				var lcx = LyraRestClient.Create(config["network"], Environment.OSVersion.ToString(), "Nebula", "1.4", $"http://{node.Value}:4505/api/Node/");
 				try
                 {
 					var syncState = await lcx.GetSyncState();
-					bag.TryAdd(node.AccountID, syncState);
+					bag.TryAdd(node.Key, syncState);
 				}
 				catch(Exception ex)
                 {
-					bag.TryAdd(node.AccountID, null);
+					bag.TryAdd(node.Key, null);
                 }
 			});
 			await Task.WhenAll(tasks);

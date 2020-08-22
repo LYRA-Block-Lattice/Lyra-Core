@@ -390,7 +390,8 @@ namespace Lyra.Core.Decentralize
 
         private async Task HeartBeatAsync()
         {
-            _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId).LastActive = DateTime.Now;
+            if(_board.ActiveNodes.Any(a => a.AccountID == _sys.PosWallet.AccountId))
+                _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId).LastActive = DateTime.Now;
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
@@ -421,7 +422,9 @@ namespace Lyra.Core.Decentralize
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     throw new Exception("No public IP specified.");
 
-                if (!Signatures.VerifyAccountSignature(node.IPAddress, node.AccountID, node.AuthorizerSignature))
+                var lastSvcBlock = await _sys.Storage.GetLastServiceBlockAsync();
+
+                if (!Signatures.VerifyAccountSignature(lastSvcBlock.Hash, node.AccountID, node.AuthorizerSignature))
                     throw new Exception("Signature verification failed.");
 
                 await OnNodeActive(node.AccountID, node.AuthorizerSignature);
