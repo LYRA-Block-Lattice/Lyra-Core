@@ -293,6 +293,17 @@ namespace Lyra
         {
             var client = new LyraClientForNode(_sys);
 
+            var localDbState = await GetNodeStatusAsync();
+            if (localDbState.totalBlockCount == 0)
+                LocalDbSyncState.Remove();
+            else
+            {
+                var oldState = LocalDbSyncState.Load();
+                var svcGen = await _sys.Storage.GetServiceGenesisBlock();
+                if (oldState.svcGenHash != svcGen.Hash)
+                    LocalDbSyncState.Remove();
+            }
+
             var localState = LocalDbSyncState.Load();
 
             bool IsSuccess = true;
@@ -385,19 +396,19 @@ namespace Lyra
             // genesis
             _log.LogInformation("all seed nodes are ready. do genesis.");
 
-            var svcGen = await GetServiceGenesisBlockAsync();
+            var svcGen = await CreateServiceGenesisBlockAsync();
             await SendBlockToConsensusAsync(svcGen, ProtocolSettings.Default.StandbyValidators.ToList());
 
             await Task.Delay(1000);
 
-            var tokenGen = GetLyraTokenGenesisBlock(svcGen);
+            var tokenGen = CreateLyraTokenGenesisBlock(svcGen);
             // DEBUG
             //_log.LogInformation("genesis block string:\n" + tokenGen.GetHashInput());
             await SendBlockToConsensusAsync(tokenGen);
 
             await Task.Delay(15000);        // because cons block has a time shift.
 
-            var consGen = GetConsolidationGenesisBlock(svcGen, tokenGen);
+            var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen);
             await SendBlockToConsensusAsync(consGen);
 
             await Task.Delay(1000);
@@ -622,7 +633,7 @@ namespace Lyra
             return _seed0Client;
         }
 
-        public ConsolidationBlock GetConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
+        public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
         {
             var consBlock = new ConsolidationBlock
             {
@@ -648,7 +659,7 @@ namespace Lyra
             return consBlock;
         }
 
-        public LyraTokenGenesisBlock GetLyraTokenGenesisBlock(ServiceBlock svcGen)
+        public LyraTokenGenesisBlock CreateLyraTokenGenesisBlock(ServiceBlock svcGen)
         {
             var openTokenGenesisBlock = new LyraTokenGenesisBlock
             {
@@ -675,7 +686,7 @@ namespace Lyra
             return openTokenGenesisBlock;
         }
 
-        public async Task<ServiceBlock> GetServiceGenesisBlockAsync()
+        public async Task<ServiceBlock> CreateServiceGenesisBlockAsync()
         {
             var svcGenesis = new ServiceBlock
             {
@@ -1029,6 +1040,13 @@ namespace Lyra
                 var fn = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}syncState.json";
                 var str = JsonConvert.SerializeObject(state);
                 File.WriteAllText(fn, str);
+            }
+
+            internal static void Remove()
+            {
+                var fn = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}syncState.json";
+                if (File.Exists(fn))
+                    File.Delete(fn);
             }
         }
     }
