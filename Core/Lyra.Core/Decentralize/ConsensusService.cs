@@ -431,6 +431,11 @@ namespace Lyra.Core.Decentralize
                 await OnNodeActive(node.AccountID, node.AuthorizerSignature);
                 // add network/ip verifycation here
                 
+                // if current leader is up, must resend up
+                if(_board.CurrentLeader == node.AccountID)
+                {
+                    await DeclareConsensusNodeAsync();
+                }
 
                 //if (!IsViewChanging)
                 //{
