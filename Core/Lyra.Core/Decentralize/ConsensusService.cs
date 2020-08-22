@@ -423,8 +423,9 @@ namespace Lyra.Core.Decentralize
                     throw new Exception("No public IP specified.");
 
                 var lastSvcBlock = await _sys.Storage.GetLastServiceBlockAsync();
+                var signAgainst = lastSvcBlock == null ? ProtocolSettings.Default.StandbyValidators.First() : lastSvcBlock.Hash;
 
-                if (!Signatures.VerifyAccountSignature(lastSvcBlock.Hash, node.AccountID, node.AuthorizerSignature))
+                if (!Signatures.VerifyAccountSignature(signAgainst, node.AccountID, node.AuthorizerSignature))
                     throw new Exception("Signature verification failed.");
 
                 await OnNodeActive(node.AccountID, node.AuthorizerSignature);
