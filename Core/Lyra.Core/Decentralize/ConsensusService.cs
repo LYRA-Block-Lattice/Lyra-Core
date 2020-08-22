@@ -365,7 +365,7 @@ namespace Lyra.Core.Decentralize
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
 
-            if (Signatures.VerifyAccountSignature(signAgainst, _sys.PosWallet.AccountId, authorizerSignature))
+            if (Signatures.VerifyAccountSignature(signAgainst, accountId, authorizerSignature))
             {
                 if (_board.ActiveNodes.Any(a => a.AccountID == accountId))
                 {
