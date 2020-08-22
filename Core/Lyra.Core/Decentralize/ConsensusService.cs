@@ -90,6 +90,7 @@ namespace Lyra.Core.Decentralize
             _board = new BillBoard();
             _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
             _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
+            _board.AllVoters.AddRange(_board.PrimaryAuthorizers);                           // default to all seed nodes
 
             _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes, voters) => {
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");

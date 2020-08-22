@@ -404,7 +404,7 @@ namespace Lyra
             var svcGen = await CreateServiceGenesisBlockAsync();
             await SendBlockToConsensusAsync(svcGen, ProtocolSettings.Default.StandbyValidators.ToList());
 
-            await Task.Delay(1000);
+            await Task.Delay(10000);
 
             var tokenGen = CreateLyraTokenGenesisBlock(svcGen);
             // DEBUG
