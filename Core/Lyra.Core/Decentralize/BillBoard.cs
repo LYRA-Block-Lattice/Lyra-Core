@@ -20,7 +20,7 @@ namespace Lyra.Core.Decentralize
     // if the node is dead for a long time (> 45 seconds), it will be put into freezing pool
     public class BillBoard
     {
-        public Dictionary<string, IPAddress> NodeAddresses { get; }
+        public Dictionary<string, string> NodeAddresses { get; }
 
         // with heartbeat, we know who is alive.
         public List<ActiveNode> ActiveNodes { get; }
@@ -33,7 +33,7 @@ namespace Lyra.Core.Decentralize
 
         public BillBoard()
         {
-            NodeAddresses = new Dictionary<string, IPAddress>();
+            NodeAddresses = new Dictionary<string, string>();
             ActiveNodes = new List<ActiveNode>();
             AllVoters = new List<string>();
         }

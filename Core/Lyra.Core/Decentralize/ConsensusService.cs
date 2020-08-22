@@ -434,6 +434,11 @@ namespace Lyra.Core.Decentralize
 
                 await OnNodeActive(node.AccountID, node.AuthorizerSignature);
                 // add network/ip verifycation here
+                // if(verifyIP)
+                if (_board.NodeAddresses.ContainsKey(node.AccountID))
+                    _board.NodeAddresses[node.AccountID] = node.IPAddress;
+                else
+                    _board.NodeAddresses.Add(node.AccountID, node.IPAddress);
                 
                 // if current leader is up, must resend up
                 if(_board.CurrentLeader == node.AccountID)
