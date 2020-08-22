@@ -108,6 +108,9 @@ namespace Neo.Network.P2P
                 case ChatMessageType.AuthorizerCommit:
                     return data.AsSerializable<AuthorizerCommitMsg>();
 
+                case ChatMessageType.HeartBeat:
+                    return data.AsSerializable<HeartBeatMessage>();
+
                 case ChatMessageType.ViewChangeRequest:
                     return data.AsSerializable<ViewChangeRequestMessage>();
                 case ChatMessageType.ViewChangeReply:
