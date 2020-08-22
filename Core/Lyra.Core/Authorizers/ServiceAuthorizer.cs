@@ -70,7 +70,7 @@ namespace Lyra.Core.Authorizers
             foreach(var kvp in block.Authorizers)
             {
                 var signAgainst = prevBlock == null ? ProtocolSettings.Default.StandbyValidators[0] : prevBlock.Hash;
-                if (Signatures.VerifyAccountSignature(signAgainst, kvp.Key, kvp.Value))
+                if (!Signatures.VerifyAccountSignature(signAgainst, kvp.Key, kvp.Value))
                 {
                     return APIResultCodes.InvalidAuthorizerInServiceBlock;
                 }
