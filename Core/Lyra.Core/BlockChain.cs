@@ -712,6 +712,9 @@ namespace Lyra
                 var board = _sys.Consensus.Ask<BillBoard>(new AskForBillboard()).Result;
                 foreach (var pn in ProtocolSettings.Default.StandbyValidators)
                 {
+                    if (!board.ActiveNodes.Any(a => a.AccountID == pn))
+                        break;
+
                     svcGenesis.Authorizers.Add(pn, board.ActiveNodes.First(a => a.AccountID == pn).AuthorizerSignature);
                 }
                 if (svcGenesis.Authorizers.Count >= LyraGlobal.MINIMUM_AUTHORIZERS)
