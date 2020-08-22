@@ -245,6 +245,17 @@ namespace Lyra
                     var IsSeed0 = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0());
                     if (await FindLatestBlockAsync() == null && IsSeed0.IsSeed0)
                     {
+                        // check if other seeds is ready
+                        BillBoard board;
+                        do
+                        {
+                            _log.LogInformation("Check if other node is in genesis mode.");
+                            await Task.Delay(3000);
+                            board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                        } while (board.ActiveNodes
+                            .Where(a => board.PrimaryAuthorizers.Contains(a.AccountID))
+                            .Where(a => a.State == BlockChainState.Genesis)
+                            .Count() < 4);
                         await GenesisAsync();
                     }
                     else

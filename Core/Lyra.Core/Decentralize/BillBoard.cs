@@ -44,7 +44,8 @@ namespace Lyra.Core.Decentralize
         public string AccountID { get; set; }
         public DateTime LastActive { get; set; }
         public string AuthorizerSignature { get; set; }
-        public decimal Votes { get; internal set; }
+        public decimal Votes { get; set; }
+        public BlockChainState State { get; set; }
     }
 
     public class PosNode

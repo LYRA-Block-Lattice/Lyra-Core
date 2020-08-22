@@ -357,14 +357,14 @@ namespace Lyra.Core.Decentralize
             Send2P2pNetwork(msg);
 
             // add self to active nodes list
-            await OnNodeActive(me.AccountID, me.AuthorizerSignature);
+            await OnNodeActive(me.AccountID, me.AuthorizerSignature, BlockChainState.Startup);
         }
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
-            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature);
+            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State);
         }
-        private async Task OnNodeActive(string accountId, string authorizerSignature)
+        private async Task OnNodeActive(string accountId, string authorizerSignature, BlockChainState state)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
@@ -376,10 +376,16 @@ namespace Lyra.Core.Decentralize
                     var node = _board.ActiveNodes.First(a => a.AccountID == accountId);
                     node.LastActive = DateTime.Now;
                     node.AuthorizerSignature = authorizerSignature;
+                    node.State = state;
                 }
                 else
                 {
-                    var node = new ActiveNode { AccountID = accountId, AuthorizerSignature = authorizerSignature, LastActive = DateTime.Now };
+                    var node = new ActiveNode { 
+                        AccountID = accountId, 
+                        AuthorizerSignature = authorizerSignature, 
+                        State = state,
+                        LastActive = DateTime.Now 
+                    };
                     _board.ActiveNodes.Add(node);
                 }
             }
@@ -405,6 +411,7 @@ namespace Lyra.Core.Decentralize
             {
                 From = _sys.PosWallet.AccountId,
                 Text = "I'm live",
+                State = _currentBlockchainState,
                 AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 
@@ -432,7 +439,7 @@ namespace Lyra.Core.Decentralize
                 if (!Signatures.VerifyAccountSignature(signAgainst, node.AccountID, node.AuthorizerSignature))
                     throw new Exception("Signature verification failed.");
 
-                await OnNodeActive(node.AccountID, node.AuthorizerSignature);
+                await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.Startup);
                 // add network/ip verifycation here
                 // if(verifyIP)
                 if (_board.NodeAddresses.ContainsKey(node.AccountID))
