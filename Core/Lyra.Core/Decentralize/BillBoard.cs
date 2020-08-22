@@ -35,6 +35,7 @@ namespace Lyra.Core.Decentralize
         {
             NodeAddresses = new Dictionary<string, IPAddress>();
             ActiveNodes = new List<ActiveNode>();
+            AllVoters = new List<string>();
         }
     }
 
