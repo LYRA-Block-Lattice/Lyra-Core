@@ -101,11 +101,11 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        Dictionary<long, View> _views;
+        ConcurrentDictionary<long, View> _views;
 
         public ViewChangeHandler(ConsensusService context, LeaderSelectedHandler leaderSelected) : base(context)
         {
-            _views = new Dictionary<long, View>();
+            _views = new ConcurrentDictionary<long, View>();
 
             _leaderSelected = leaderSelected;
             _minValidViewId = 2;
@@ -153,7 +153,7 @@ namespace Lyra.Core.Decentralize
             else
             {
                 var view = new View(_context, viewId);
-                _views.Add(viewId, view);
+                _views.TryAdd(viewId, view);
                 return view;
             }
         }
