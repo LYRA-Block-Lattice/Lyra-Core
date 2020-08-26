@@ -89,15 +89,15 @@ namespace Lyra.Core.Decentralize
             public void Reset()
             {
                 //_viewId = 0;  // no change of view id
-                _dtStarted = DateTime.MinValue;
+                _dtStarted = DateTime.Now;
                 _selectedSuccess = false;
 
                 _reqMsgs.Clear();
                 _replyMsgs.Clear();
                 _commitMsgs.Clear();
 
-                _qualifiedVoters.Clear();
-                _qualifiedVoters = null;
+                //_qualifiedVoters.Clear();
+                //_qualifiedVoters = null;
             }
         }
 
@@ -121,9 +121,11 @@ namespace Lyra.Core.Decentralize
                 if(v.CheckTimeout())
                 {
                     _log.LogInformation($"View Change with Id {v._viewId} timeout.");
-                    v.Reset();
+                    v.Reset();                    
 
                     Task.Run(async () => {
+                        await LookforVotersAsync(v);
+                        await Task.Delay(2000);
                         await BeginChangeViewAsync();
                     });
                 }
