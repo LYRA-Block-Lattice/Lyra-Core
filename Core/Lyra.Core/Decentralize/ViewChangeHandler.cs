@@ -16,6 +16,7 @@ namespace Lyra.Core.Decentralize
     
     public class ViewChangeHandler : ConsensusHandlerBase
     {
+        private long _minValidViewId;
         private LeaderSelectedHandler _leaderSelected;
 
         private class View
@@ -23,7 +24,7 @@ namespace Lyra.Core.Decentralize
             public ConsensusService _context;
             public DateTime _dtStarted;
 
-            public long _viewId = 0;
+            public long _viewId;
             public bool _selectedSuccess = false;
 
             public List<string> _qualifiedVoters;
@@ -96,6 +97,7 @@ namespace Lyra.Core.Decentralize
             _views = new Dictionary<long, View>();
 
             _leaderSelected = leaderSelected;
+            _minValidViewId = 2;
 
             _dtStart = DateTime.MinValue;
         }
@@ -122,7 +124,7 @@ namespace Lyra.Core.Decentralize
             return true;
         }
 
-        private async Task<View> GetViewAsync(long viewId)
+        private View GetView(long viewId)
         {
             if (_views.ContainsKey(viewId))
             {
@@ -130,10 +132,6 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
-                if (viewId != lastSb.Height + 1)
-                    return null;
-
                 var view = new View(_context, viewId);
                 _views.Add(viewId, view);
                 return view;
@@ -142,7 +140,10 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
-            View view = await GetViewAsync(vcm.ViewID);
+            if (vcm.ViewID < _minValidViewId)
+                return;
+
+            View view = GetView(vcm.ViewID);
             if (view == null)
                 return;
 
@@ -228,6 +229,7 @@ namespace Lyra.Core.Decentralize
             if (candidate?.Count >= LyraGlobal.GetMajority(view._qualifiedVoters.Count))
             {
                 view._selectedSuccess = true;
+                _minValidViewId = view._viewId + 1;
                 _leaderSelected(this, candidate.Candidate, candidate.Count, view._qualifiedVoters);
             }
         }
@@ -299,7 +301,7 @@ namespace Lyra.Core.Decentralize
 
             var lastCons = await _context.GetDagSystem().Storage.GetLastConsolidationBlockAsync();
 
-            var view = await GetViewAsync(lastSb.Height + 1);
+            var view = GetView(lastSb.Height + 1);
 
             await LookforVotersAsync(view);
 
