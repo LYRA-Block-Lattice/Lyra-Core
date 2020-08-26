@@ -516,8 +516,14 @@ namespace Lyra
                           _log.LogInformation($"Adding {board.AllVoters.Count()} voters...");
 
                           svcBlock.Authorizers = new Dictionary<string, string>();
+                          // me as the first one
+                          var meNode = board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId);
+                          svcBlock.Authorizers.Add(meNode.AccountID, meNode.AuthorizerSignature);
                           foreach (var voter in board.AllVoters)
                           {
+                              if (voter == _sys.PosWallet.AccountId)
+                                  continue;
+
                               if (board.ActiveNodes.Any(a => a.AccountID == voter))
                               {
                                   var node = board.ActiveNodes.First(a => a.AccountID == voter);
