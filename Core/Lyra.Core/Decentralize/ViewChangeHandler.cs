@@ -251,7 +251,6 @@ namespace Lyra.Core.Decentralize
             if (candidate?.Count >= LyraGlobal.GetMajority(view._qualifiedVoters.Count))
             {
                 view._selectedSuccess = true;
-                _minValidViewId = view._viewId + 1;
                 _leaderSelected(this, view._viewId, candidate.Candidate, candidate.Count, view._qualifiedVoters);
             }
         }
