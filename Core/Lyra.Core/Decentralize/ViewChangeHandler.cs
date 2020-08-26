@@ -140,7 +140,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
-            log.LogInformation($"ProcessMessage type: {vcm.MsgType} from: {vcm.From.Shorten()}");
+            _log.LogInformation($"ProcessMessage type: {vcm.MsgType} from: {vcm.From.Shorten()}");
             if (vcm.ViewID < _minValidViewId)
             {
                 _log.LogInformation($"ProcessMessage: view ID smaller {vcm.ViewID} than {_minValidViewId}");
