@@ -103,7 +103,7 @@ namespace Lyra.Core.Decentralize
                     _blockchain.Tell(new BlockChain.NewLeaderCreateView());
                 }
 
-                //_viewChangeHandler.Reset(); 
+                //_viewChangeHandler.Reset(); // wait for svc block generated
             });
             IsViewChanging = false;
 

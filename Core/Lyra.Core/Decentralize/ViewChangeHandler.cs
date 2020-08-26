@@ -82,6 +82,9 @@ namespace Lyra.Core.Decentralize
             _reqMsgs.Clear();
             _replyMsgs.Clear();
             _commitMsgs.Clear();
+
+            _qualifiedVoters.Clear();
+            _qualifiedVoters = null;
         }
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
@@ -102,6 +105,8 @@ namespace Lyra.Core.Decentralize
                 _dtStart = DateTime.Now;
             }
 
+            if(_qualifiedVoters == null)
+                await LookforVotersAsync();
             //_log.LogInformation($"ViewChangeHandler ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID} My ViewID {_viewId} ");
 
             if (_viewId == vcm.ViewID && _qualifiedVoters.Contains(vcm.From))      // not the next one
@@ -255,6 +260,25 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
+            await LookforVotersAsync();
+
+            var req = new ViewChangeRequestMessage
+            {
+                From = _context.GetDagSystem().PosWallet.AccountId,
+                ViewID = lastSb.Height + 1,
+                prevViewID = lastSb.Height,
+                requestSignature = Signatures.GetSignature(_context.GetDagSystem().PosWallet.PrivateKey,
+                    $"{lastSb.Hash}|{lastCons.Hash}", _context.GetDagSystem().PosWallet.AccountId),
+            };
+
+            _context.Send2P2pNetwork(req);
+            await CheckRequestAsync(req);
+        }
+
+        private async Task LookforVotersAsync()
+        {
+            var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
+
             // setup the voters list
             _context.RefreshAllNodesVotes();
             _qualifiedVoters = _context.Board.ActiveNodes
@@ -269,7 +293,7 @@ namespace Lyra.Core.Decentralize
             // 2, viewid mod [voters count], index of _qualifiedVoters.
             // 
             var leaderIndex = (int)(_viewId % _qualifiedVoters.Count);
-            while(_qualifiedVoters[leaderIndex] == lastSb.Leader)
+            while (_qualifiedVoters[leaderIndex] == lastSb.Leader)
             {
                 leaderIndex++;
                 if (leaderIndex >= _qualifiedVoters.Count)
@@ -277,18 +301,6 @@ namespace Lyra.Core.Decentralize
             }
             _nextLeader = _qualifiedVoters[leaderIndex];
             _log.LogInformation($"BeginChangeViewAsync, next leader will be {_nextLeader}");
-
-            var req = new ViewChangeRequestMessage
-            {
-                From = _context.GetDagSystem().PosWallet.AccountId,
-                ViewID = lastSb.Height + 1,
-                prevViewID = lastSb.Height,
-                requestSignature = Signatures.GetSignature(_context.GetDagSystem().PosWallet.PrivateKey,
-                    $"{lastSb.Hash}|{lastCons.Hash}", _context.GetDagSystem().PosWallet.AccountId),
-            };
-
-            _context.Send2P2pNetwork(req);
-            await CheckRequestAsync(req);
         }
     }
 
