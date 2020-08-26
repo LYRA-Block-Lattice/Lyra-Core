@@ -232,7 +232,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task BeginChangeViewAsync()
         {
-            _log.LogInformation($"BeginChangeViewAsync, need {LyraGlobal.GetMajority(QualifiedNodeCount)} vote of {_qualifiedVoters.Count}");
+            _log.LogInformation($"BeginChangeViewAsync");
 
             var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
 
