@@ -346,7 +346,10 @@ namespace Lyra
                 {
                     localState.lastVerifiedConsHeight = latestHeight;
                     if (string.IsNullOrWhiteSpace(localState.svcGenHash))
-                        localState.svcGenHash = svcGen.Hash;
+                    {
+                        var seedSvcGen = await client.GetServiceGenesisBlock();
+                        localState.svcGenHash = seedSvcGen.GetBlock().Hash;
+                    }                        
                 }                    
                 else
                     break;
