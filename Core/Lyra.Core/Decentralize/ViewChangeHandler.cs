@@ -120,7 +120,12 @@ namespace Lyra.Core.Decentralize
             {
                 if(v.CheckTimeout())
                 {
+                    _log.LogInformation($"View Change with Id {v._viewId} timeout.");
                     v.Reset();
+
+                    Task.Run(async () => {
+                        await BeginChangeViewAsync();
+                    });
                 }
             }
             return false;
