@@ -178,27 +178,27 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        //public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks()
-        //{
-        //    try
-        //    {
-        //        if (_client == null)
-        //            _client = await FindValidSeedForSyncAsync(_sys);
+        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        {
+            try
+            {
+                if (_client == null)
+                    _client = await FindValidSeedForSyncAsync(_sys);
 
-        //        return await _client.GetUnConsolidatedBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync());
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (ex.Message == "Web Api Failed.")
-        //        {
-        //            // retry
-        //            _client = await FindValidSeedForSyncAsync(_sys);
-        //            return await GetUnConsolidatedBlocks();
-        //        }
-        //        else
-        //            throw ex;
-        //    }
-        //}
+                return await _client.GetServiceGenesisBlock();
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == "Web Api Failed.")
+                {
+                    // retry
+                    _client = await FindValidSeedForSyncAsync(_sys);
+                    return await GetServiceGenesisBlock();
+                }
+                else
+                    throw ex;
+            }
+        }
 
         public static async Task<LyraRestClient> FindValidSeedForSyncAsync(DagSystem sys)
         {
