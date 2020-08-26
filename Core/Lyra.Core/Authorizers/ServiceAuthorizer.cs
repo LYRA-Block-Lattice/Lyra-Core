@@ -67,7 +67,8 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidAuthorizerCount;
             }
 
-            foreach(var kvp in block.Authorizers)
+            var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+            foreach (var kvp in block.Authorizers)
             {
                 var signAgainst = prevBlock == null ? ProtocolSettings.Default.StandbyValidators[0] : prevBlock.Hash;
                 if (!Signatures.VerifyAccountSignature(signAgainst, kvp.Key, kvp.Value))
@@ -76,6 +77,8 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // verify vote etc.
+                if (!board.AllVoters.Contains(kvp.Key))
+                    return APIResultCodes.InvalidAuthorizerInServiceBlock;
             }
 
             //if(block.Height > 1)        // no genesis block

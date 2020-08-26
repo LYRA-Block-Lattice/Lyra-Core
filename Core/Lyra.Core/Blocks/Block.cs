@@ -13,9 +13,6 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
-        // used by consolidation only. not part of hash calculation.
-        public bool Consolidated { get; set; }
-
         // block data
         public long Height { get; set; }
 

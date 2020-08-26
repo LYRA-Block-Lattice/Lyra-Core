@@ -19,6 +19,9 @@ namespace Lyra.Core.Decentralize
         private bool _selectedSuccess = false;
         private LeaderSelectedHandler _leaderSelected;
 
+        private List<string> _qualifiedVoters;
+        private string _nextLeader;
+
         public ConcurrentBag<ViewChangeRequestMessage> _reqMsgs { get; set; }
         public ConcurrentDictionary<string, ViewChangeReplyMessage> _replyMsgs { get; set; }
         public ConcurrentDictionary<string, ViewChangeCommitMessage> _commitMsgs { get; set; }
@@ -29,9 +32,9 @@ namespace Lyra.Core.Decentralize
             {
                 var allNodes = _context.Board.ActiveNodes.ToList();
                 var count = allNodes.Count(a => a?.Votes >= LyraGlobal.MinimalAuthorizerBalance);
-                if (count > LyraGlobal.MAXIMUM_AUTHORIZERS)
+                if (count > LyraGlobal.MAXIMUM_VOTER_NODES)
                 {
-                    return LyraGlobal.MAXIMUM_AUTHORIZERS;
+                    return LyraGlobal.MAXIMUM_VOTER_NODES;
                 }
                 else if(count < LyraGlobal.MINIMUM_AUTHORIZERS)
                 {
@@ -101,7 +104,7 @@ namespace Lyra.Core.Decentralize
 
             //_log.LogInformation($"ViewChangeHandler ProcessMessage From {vcm.From.Shorten()} with ViewID {vcm.ViewID} My ViewID {_viewId} ");
 
-            if (_viewId == vcm.ViewID && GetIsMessageLegal(vcm))      // not the next one
+            if (_viewId == vcm.ViewID && _qualifiedVoters.Contains(vcm.From))      // not the next one
             {
                 switch (vcm)
                 {
@@ -121,31 +124,18 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private bool GetIsMessageLegal(ViewChangeMessage vcm)
-        {
-            if (_context.Board.ActiveNodes.OrderByDescending(a => a.Votes).Take(QualifiedNodeCount).Any(x => x.AccountID == vcm.From))
-            {
-                return true;
-            }
-            else
-            {
-                _log.LogInformation($"ViewChangeMessage Not Legal from {vcm.From.Shorten()}");
-                return false;
-            }
-        }
-
         private void CheckAllStats()
         {
-            _log.LogInformation($"CheckAllStats Req: {_reqMsgs.Count} Reply {_replyMsgs.Count} Commit {_commitMsgs.Count} Votes {_commitMsgs.Count}/{QualifiedNodeCount} ");
+            _log.LogInformation($"CheckAllStats Req: {_reqMsgs.Count} Reply {_replyMsgs.Count} Commit {_commitMsgs.Count} Votes {_commitMsgs.Count}/{_qualifiedVoters.Count} ");
             // request
-            if (_reqMsgs.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
+            if (_reqMsgs.Count >= LyraGlobal.GetMajority(_qualifiedVoters.Count))
             {
                 var reply = new ViewChangeReplyMessage
                 {
                     From = _context.GetDagSystem().PosWallet.AccountId,
                     ViewID = _viewId,
                     Result = Blocks.APIResultCodes.Success,
-                    Candidate = _reqMsgs.OrderBy(a => a.requestSignature).First().From
+                    Candidate = _nextLeader
                 };
 
                 _context.Send2P2pNetwork(reply);
@@ -161,7 +151,7 @@ namespace Lyra.Core.Decentralize
 
             var candidateQR = qr.FirstOrDefault();
 
-            if (candidateQR?.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
+            if (candidateQR?.Count >= LyraGlobal.GetMajority(_qualifiedVoters.Count))
             {
                 var commit = new ViewChangeCommitMessage
                 {
@@ -181,17 +171,15 @@ namespace Lyra.Core.Decentralize
                     select new { Candidate = g.Key, Count = g.Count() };
 
             var candidate = q.FirstOrDefault();
-            if (candidate?.Count >= LyraGlobal.GetMajority(QualifiedNodeCount))
+            if (candidate?.Count >= LyraGlobal.GetMajority(_qualifiedVoters.Count))
             {
-                _leaderSelected(this, candidate.Candidate, candidate.Count, 
-                    _replyMsgs.Keys.ToList()
-                    );
+                _leaderSelected(this, candidate.Candidate, candidate.Count, _qualifiedVoters);
             }
         }
 
         private void CheckCommit(ViewChangeCommitMessage vcm)
         {
-            _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {_commitMsgs.Count}/{QualifiedNodeCount}");
+            _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {_commitMsgs.Count}/{_qualifiedVoters.Count}");
 
             if(!_commitMsgs.ContainsKey(vcm.From))
             {
@@ -203,7 +191,7 @@ namespace Lyra.Core.Decentralize
 
         private void CheckReply(ViewChangeReplyMessage reply)
         {
-            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {_replyMsgs.Count}/{QualifiedNodeCount}");
+            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {_replyMsgs.Count}/{_qualifiedVoters.Count}");
 
             if(reply.Result == Blocks.APIResultCodes.Success)
             {
@@ -244,7 +232,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task BeginChangeViewAsync()
         {
-            _log.LogInformation($"BeginChangeViewAsync, need {LyraGlobal.GetMajority(QualifiedNodeCount)} vote of {QualifiedNodeCount}");
+            _log.LogInformation($"BeginChangeViewAsync, need {LyraGlobal.GetMajority(QualifiedNodeCount)} vote of {_qualifiedVoters.Count}");
 
             var lastSb = await _context.GetDagSystem().Storage.GetLastServiceBlockAsync();
 
@@ -266,6 +254,29 @@ namespace Lyra.Core.Decentralize
                 _log.LogError($"BeginChangeViewAsync with different viewID!!!");
                 return;
             }
+
+            // setup the voters list
+            _context.RefreshAllNodesVotes();
+            _qualifiedVoters = _context.Board.ActiveNodes
+                .OrderByDescending(a => a.Votes)
+                .Take(QualifiedNodeCount)
+                .Select(a => a.AccountID)
+                .ToList();
+            _qualifiedVoters.Sort();
+
+            // the new leader:
+            // 1, not the previous one;
+            // 2, viewid mod [voters count], index of _qualifiedVoters.
+            // 
+            var leaderIndex = (int)(_viewId % _qualifiedVoters.Count);
+            while(_qualifiedVoters[leaderIndex] == lastSb.Leader)
+            {
+                leaderIndex++;
+                if (leaderIndex >= _qualifiedVoters.Count)
+                    leaderIndex = 0;
+            }
+            _nextLeader = _qualifiedVoters[leaderIndex];
+            _log.LogInformation($"BeginChangeViewAsync, next leader will be {_nextLeader}");
 
             var req = new ViewChangeRequestMessage
             {

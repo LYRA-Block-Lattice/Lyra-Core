@@ -499,7 +499,6 @@ namespace Lyra
                       {
                           var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
 
-                          var allVoters = _sys.Storage.FindVotes(board.ActiveNodes.Select(a => a.AccountID));
                           var prevSvcBlock = await GetLastServiceBlockAsync();
 
                           var svcBlock = new ServiceBlock
@@ -514,14 +513,14 @@ namespace Lyra
                               TradeFee = 0.1m
                           };
 
-                          _log.LogInformation($"Adding {allVoters.Count()} voters...");
+                          _log.LogInformation($"Adding {board.AllVoters.Count()} voters...");
 
                           svcBlock.Authorizers = new Dictionary<string, string>();
-                          foreach (var voter in allVoters)
+                          foreach (var voter in board.AllVoters)
                           {
-                              if (board.ActiveNodes.Any(a => a.AccountID == voter.AccountId))
+                              if (board.ActiveNodes.Any(a => a.AccountID == voter))
                               {
-                                  var node = board.ActiveNodes.First(a => a.AccountID == voter.AccountId);
+                                  var node = board.ActiveNodes.First(a => a.AccountID == voter);
                                   svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
                               }
                               else

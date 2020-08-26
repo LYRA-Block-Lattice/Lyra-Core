@@ -15,6 +15,7 @@ namespace Lyra.Core.API
         public const char ADDRESSPREFIX = 'L';
         public const string WALLETFILEEXT = ".lyrawallet";
 
+        public const int MAXIMUM_VOTER_NODES = 27;
         public const int MAXIMUM_AUTHORIZERS = 21;
         public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
 

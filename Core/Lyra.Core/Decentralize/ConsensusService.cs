@@ -257,9 +257,7 @@ namespace Lyra.Core.Decentralize
 
                             if (result.HasValue && result.Value == ConsensusResult.Uncertain)
                             {
-                                var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-
-                                if (blockchainStatus.state == BlockChainState.Almighty && !IsViewChanging)
+                                if (_currentBlockchainState == BlockChainState.Almighty && !IsViewChanging)
                                 {
                                     // change view
                                     IsViewChanging = true;
@@ -805,18 +803,27 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void RefreshAllNodesVotes()
+        Mutex _voteUpdatr = new Mutex();
+        public void RefreshAllNodesVotes()
         {
-            var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID);
-            _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
-
-            foreach (var node in _board.ActiveNodes.ToArray())
+            _voteUpdatr.WaitOne();
+            try
             {
-                var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
-                if (vote == null)
-                    node.Votes = 0;
-                else
-                    node.Votes = vote.Amount;
+                var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID);
+                _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
+
+                foreach (var node in _board.ActiveNodes.ToArray())
+                {
+                    var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
+                    if (vote == null)
+                        node.Votes = 0;
+                    else
+                        node.Votes = vote.Amount;
+                }
+            }
+            finally
+            {
+                _voteUpdatr.ReleaseMutex();
             }
         }
 
