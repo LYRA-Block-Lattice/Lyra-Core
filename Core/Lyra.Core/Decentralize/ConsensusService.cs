@@ -767,7 +767,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (item is ViewChangeMessage vcm)
                     {
-                        //await _viewChangeHandler.ProcessMessage(vcm);
+                        await _viewChangeHandler.ProcessMessage(vcm);
                         return;
                     }
                 }
