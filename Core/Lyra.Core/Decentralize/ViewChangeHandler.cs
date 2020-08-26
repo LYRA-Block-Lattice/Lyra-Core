@@ -89,6 +89,9 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
+            if (_selectedSuccess)
+                return;
+
             // I didn't see u I don't trust your vote
             if (!_context.Board.ActiveNodes.Any(a => a.AccountID == vcm.From) ||
                 DateTime.Now - _context.Board.ActiveNodes.First(a => a.AccountID == vcm.From).LastActive > TimeSpan.FromMinutes(3))
@@ -178,17 +181,18 @@ namespace Lyra.Core.Decentralize
             var candidate = q.FirstOrDefault();
             if (candidate?.Count >= LyraGlobal.GetMajority(_qualifiedVoters.Count))
             {
+                _selectedSuccess = true;
                 _leaderSelected(this, candidate.Candidate, candidate.Count, _qualifiedVoters);
             }
         }
 
         private void CheckCommit(ViewChangeCommitMessage vcm)
         {
-            _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {_commitMsgs.Count}/{_qualifiedVoters.Count}");
-
             if(!_commitMsgs.ContainsKey(vcm.From))
             {
                 _commitMsgs.AddOrUpdate(vcm.From, vcm, (key, oldValue) => vcm);
+
+                _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {_commitMsgs.Count}/{_qualifiedVoters.Count}");
 
                 CheckAllStats();
             }
