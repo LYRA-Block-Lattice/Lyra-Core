@@ -279,6 +279,8 @@ namespace Lyra.Core.Decentralize
                                     // change view
                                     IsViewChanging = true;
 
+                                    _log.LogInformation($"Consensus failed. start view change.");
+
                                     await _viewChangeHandler.BeginChangeViewAsync();
                                 }
                             }

@@ -271,7 +271,7 @@ namespace Lyra.Core.Decentralize
 
         private void CheckReply(View view, ViewChangeReplyMessage reply)
         {
-            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {view._replyMsgs.Count}/{view._qualifiedVoters.Count}");
+            //_log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {view._replyMsgs.Count}/{view._qualifiedVoters.Count}");
 
             if(reply.Result == Blocks.APIResultCodes.Success)
             {
