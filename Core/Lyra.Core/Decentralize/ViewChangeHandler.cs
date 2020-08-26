@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public delegate void LeaderSelectedHandler(ViewChangeHandler sender, string NewLeader, int Votes, List<string> Voters);
+    public delegate void LeaderSelectedHandler(ViewChangeHandler sender, long viewId, string NewLeader, int Votes, List<string> Voters);
     
     public class ViewChangeHandler : ConsensusHandlerBase
     {
@@ -34,6 +34,8 @@ namespace Lyra.Core.Decentralize
             public ConcurrentDictionary<string, ViewChangeReplyMessage> _replyMsgs { get; set; }
             public ConcurrentDictionary<string, ViewChangeCommitMessage> _commitMsgs { get; set; }
 
+            private List<string> _excludes;
+
             public View(ConsensusService context, long viewId)
             {
                 _context = context;
@@ -43,6 +45,8 @@ namespace Lyra.Core.Decentralize
                 _reqMsgs = new ConcurrentBag<ViewChangeRequestMessage>();
                 _replyMsgs = new ConcurrentDictionary<string, ViewChangeReplyMessage>();
                 _commitMsgs = new ConcurrentDictionary<string, ViewChangeCommitMessage>();
+
+                Excludes = new List<string>();
             }
             public int QualifiedNodeCount
             {
@@ -63,6 +67,13 @@ namespace Lyra.Core.Decentralize
                         return count;
                     }
                 }
+            }
+
+            public List<string> Excludes { get => _excludes; set => _excludes = value; }
+
+            public void AddExcludes(string accoundId)
+            {
+                Excludes.Add(accoundId);
             }
 
             public bool CheckTimeout()
@@ -115,9 +126,11 @@ namespace Lyra.Core.Decentralize
             return false;
         }
 
-        public void Reset()
+        public void Reset(long viewId, List<string> excludes)
         {
-
+            var view = GetView(viewId);
+            foreach (var id in excludes)
+                view.AddExcludes(id);
         }
         protected override bool IsStateCreated()
         {
@@ -234,7 +247,7 @@ namespace Lyra.Core.Decentralize
             {
                 view._selectedSuccess = true;
                 _minValidViewId = view._viewId + 1;
-                _leaderSelected(this, candidate.Candidate, candidate.Count, view._qualifiedVoters);
+                _leaderSelected(this, view._viewId, candidate.Candidate, candidate.Count, view._qualifiedVoters);
             }
         }
 
@@ -340,7 +353,7 @@ namespace Lyra.Core.Decentralize
             // 2, viewid mod [voters count], index of _qualifiedVoters.
             // 
             var leaderIndex = (int)(view._viewId % view._qualifiedVoters.Count);
-            while (view._qualifiedVoters[leaderIndex] == lastSb.Leader)
+            while (view.Excludes.Contains(view._qualifiedVoters[leaderIndex]))
             {
                 leaderIndex++;
                 if (leaderIndex >= view._qualifiedVoters.Count)

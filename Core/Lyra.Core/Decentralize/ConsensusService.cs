@@ -92,18 +92,35 @@ namespace Lyra.Core.Decentralize
             _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
             _board.AllVoters.AddRange(_board.PrimaryAuthorizers);                           // default to all seed nodes
 
-            _viewChangeHandler = new ViewChangeHandler(this, (sender, leader, votes, voters) => {
+            _viewChangeHandler = new ViewChangeHandler(this, (sender, viewId, leader, votes, voters) => {
+                IsViewChanging = false;
+
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");
                 _board.CurrentLeader = leader;
                 _board.CurrentLeadersVotes = votes;
                 _board.AllVoters = voters;
+
                 if(leader == _sys.PosWallet.AccountId)
                 {
                     // its me!
                     _blockchain.Tell(new BlockChain.NewLeaderCreateView());
                 }
 
-                //_viewChangeHandler.Reset(); // wait for svc block generated
+                Task.Run(async () =>
+                {
+                    await Task.Delay(5000);
+                    var sb = await _sys.Storage.GetLastServiceBlockAsync();
+                    if(sb.Height < viewId)
+                    {
+                        _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. redo election.");
+                        // the new leader failed.
+                        sender.Reset(viewId, leader.Split('|').ToList());
+
+                        IsViewChanging = true;
+                        await _viewChangeHandler.BeginChangeViewAsync();
+                    }
+                });
+                    //_viewChangeHandler.Reset(); // wait for svc block generated
             });
             IsViewChanging = false;
 
