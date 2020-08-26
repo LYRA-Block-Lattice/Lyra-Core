@@ -236,10 +236,10 @@ namespace Lyra.Core.Decentralize
                 {
                     if (_viewChangeHandler.CheckTimeout())
                     {
-                        IsViewChanging = false;
-                        _viewChangeHandler.Reset();
+                        //IsViewChanging = false;
+                        //_viewChangeHandler.Reset();
 
-                        _log.LogWarning($"View Change Timeout. reset.");
+                        //_log.LogWarning($"View Change Timeout. reset.");
                     }
                     foreach (var worker in _activeConsensus.Values.ToArray())
                     {
