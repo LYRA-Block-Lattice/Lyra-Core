@@ -49,7 +49,7 @@ namespace Lyra.Core.Decentralize
         {
             if(_currentView != null)
             {               
-                if(!_context.Board.AllVoters.Contains(msg.From))
+                if(!_currentView.Authorizers.ContainsKey(msg.From))
                 {
                     return;     // msg not from the view
                 }
