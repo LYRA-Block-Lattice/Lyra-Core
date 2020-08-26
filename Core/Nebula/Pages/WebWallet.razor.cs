@@ -59,5 +59,10 @@ namespace Nebula.Pages
 		{
 			Dispatcher.Dispatch(new WebWalletCancelSendAction ());
 		}
+
+		private void Settings(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletSettingsAction { });
+		}
 	}
 }

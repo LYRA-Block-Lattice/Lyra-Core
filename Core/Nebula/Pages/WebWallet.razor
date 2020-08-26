@@ -13,7 +13,10 @@
         <button class="btn btn-primary" @onclick="Send">
         Send
     </button>
-        <button class="btn btn-primary" @onclick="CloseWallet">
+    <button class="btn btn-primary" @onclick="Settings">
+        Settings
+    </button>
+    <button class="btn btn-primary" @onclick="CloseWallet">
         Close Wallet
     </button>
     </div>
@@ -22,6 +25,16 @@
         <p>Your Wallet's Private Key is: @walletState.Value.wallet.PrivateKey</p>
         <p>Your Wallet Address is: <a href="/showblock/@walletState.Value.wallet.AccountId">@walletState.Value.wallet.AccountId</a></p>
         <p>Your Balance is: @walletState.Value.wallet.GetDisplayBalances()</p>
+    </div>
+}
+else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Settings)
+{
+        <div>
+        <p>Vote For Address:</p>
+        <input size="100" type="text" @bind="@dstAddr" />
+        <hr />
+        <button class="btn btn-primary" @onclick="SendToken">Save</button>
+        <button class="btn btn-primary" @onclick="CancelSend">Cancel</button>
     </div>
 }
 else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Send)

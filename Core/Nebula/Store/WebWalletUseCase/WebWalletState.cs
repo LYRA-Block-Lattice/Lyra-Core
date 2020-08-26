@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Nebula.Store.WebWalletUseCase
 {
-	public enum UIStage { Entry, Main, Send };
+	public enum UIStage { Entry, Main, Send, Settings };
 
 	public class WebWalletState
 	{

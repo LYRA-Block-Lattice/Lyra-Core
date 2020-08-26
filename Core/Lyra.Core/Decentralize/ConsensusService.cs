@@ -118,8 +118,6 @@ namespace Lyra.Core.Decentralize
                         _board.CurrentLeader = lastSvcBlk.Leader;
                     _board.AllVoters = _board.PrimaryAuthorizers.ToList();
                 }
-
-                await DeclareConsensusNodeAsync();
             });
 
             Receive<AskIfSeed0>((_) => Sender.Tell(new AskIfSeed0 { IsSeed0 = IsThisNodeLeader }));
@@ -191,6 +189,11 @@ namespace Lyra.Core.Decentralize
             ReceiveAsync<BlockChainStatuChanged>(async (state) =>
             {
                 _currentBlockchainState = state.CurrentState;
+
+                if (_currentBlockchainState == BlockChainState.Almighty)
+                {
+                    await DeclareConsensusNodeAsync();
+                }
             });
 
             ReceiveAsync<AuthState>(async state =>
@@ -296,6 +299,9 @@ namespace Lyra.Core.Decentralize
                         {
                             count = 0;
                         }
+
+                        // debug only
+                        RefreshAllNodesVotes();
                     }
                     catch(Exception ex)
                     {
@@ -357,6 +363,12 @@ namespace Lyra.Core.Decentralize
             Send2P2pNetwork(msg);
 
             // add self to active nodes list
+            if(_board.NodeAddresses.ContainsKey(me.AccountID))
+            {
+                _board.NodeAddresses[me.AccountID] = me.IPAddress.ToString();
+            }
+            else
+                _board.NodeAddresses.Add(me.AccountID, me.IPAddress.ToString());
             await OnNodeActive(me.AccountID, me.AuthorizerSignature, _currentBlockchainState);
         }
 
@@ -452,7 +464,7 @@ namespace Lyra.Core.Decentralize
                     _board.NodeAddresses.Add(node.AccountID, node.IPAddress);
                 
                 // if current leader is up, must resend up
-                if(_board.CurrentLeader == node.AccountID)
+                if(_board.CurrentLeader == node.AccountID && _currentBlockchainState == BlockChainState.Almighty)
                 {
                     await DeclareConsensusNodeAsync();
                 }
@@ -640,25 +652,25 @@ namespace Lyra.Core.Decentralize
             state.SetView(await _sys.Storage.GetLastServiceBlockAsync());
             state.InputMsg = msg;
 
-            _ = Task.Run(async () =>
-            {
-                _log.LogInformation($"Waiting for ConsolidateBlock authorizing...");
+            //_ = Task.Run(async () =>
+            //{
+            //    _log.LogInformation($"Waiting for ConsolidateBlock authorizing...");
 
-                await state.Done.AsTask();
-                state.Done.Close();
-                state.Done = null;
+            //    await state.Done.AsTask();
+            //    state.Done.Close();
+            //    state.Done = null;
 
-                if (state.CommitConsensus == ConsensusResult.Yea)
-                {
-                    _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
+            //    if (state.CommitConsensus == ConsensusResult.Yea)
+            //    {
+            //        _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
 
-                    RefreshAllNodesVotes();
-                }
-                else
-                {
-                    _log.LogInformation($"ConsolidateBlock is Failed. vote stats not updated.");
-                }
-            });
+            //        RefreshAllNodesVotes();
+            //    }
+            //    else
+            //    {
+            //        _log.LogInformation($"ConsolidateBlock is Failed. vote stats not updated.");
+            //    }
+            //});
 
             await SubmitToConsensusAsync(state);
 

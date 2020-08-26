@@ -25,5 +25,9 @@ namespace Nebula.Store.WebWalletUseCase
 
     public class WebWalletCancelSendAction { }
 
+    public class WebWalletSettngsAction { }
+
     public class WebWalletCreateTokenAction { }
+
+    public class WebWalletSettingsAction { }
 }
