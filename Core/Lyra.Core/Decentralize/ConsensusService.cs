@@ -286,24 +286,26 @@ namespace Lyra.Core.Decentralize
                     try
                     {
                         //_log.LogWarning("starting maintaince loop... ");
-                        if(_currentBlockchainState == BlockChainState.Almighty)
+                        if (_currentBlockchainState == BlockChainState.Almighty)
+                        {
                             await CreateConsolidationBlock();
 
-                        await Task.Delay(15000).ConfigureAwait(false);
+                            await HeartBeatAsync();
 
-                        await HeartBeatAsync();
+                            count++;
 
-                        count++;
+                            if (count > 4 * 5)     // 5 minutes
+                            {
+                                count = 0;
+                            }
 
-                        if (count > 4 * 5)     // 5 minutes
-                        {
-                            count = 0;
+                            // debug only
+                            RefreshAllNodesVotes();
                         }
 
-                        // debug only
-                        RefreshAllNodesVotes();
+                        await Task.Delay(15000).ConfigureAwait(false);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         _log.LogWarning("In maintaince loop: " + ex.ToString());
                     }
