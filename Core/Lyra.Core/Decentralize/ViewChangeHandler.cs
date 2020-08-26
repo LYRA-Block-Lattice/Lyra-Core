@@ -73,7 +73,7 @@ namespace Lyra.Core.Decentralize
 
             public void AddExcludes(string accoundId)
             {
-                Excludes.Add(accoundId);
+                //Excludes.Add(accoundId);
             }
 
             public bool CheckTimeout()
