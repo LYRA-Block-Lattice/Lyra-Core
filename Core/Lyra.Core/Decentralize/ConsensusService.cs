@@ -610,7 +610,7 @@ namespace Lyra.Core.Decentralize
                 _board.ActiveNodes.RemoveAll(a => a.AccountID == accountId);
             }
 
-            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-40));
+            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
         }
 
         private async Task HeartBeatAsync()
@@ -619,7 +619,8 @@ namespace Lyra.Core.Decentralize
             if (me == null)
                 me = await DeclareConsensusNodeAsync();
 
-            if(me == null)
+            me = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == _sys.PosWallet.AccountId);
+            if (me == null)
             {
                 _log.LogError("No me in billboard!!!");
             }
