@@ -251,6 +251,7 @@ namespace Lyra.Core.Decentralize
         protected virtual async Task AuthorizeAsync(AuthorizingMsg msg)
         {
             var localAuthResult = await LocalAuthorizingAsync(msg);
+            State.LocalResult = localAuthResult;
             _log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
             if(_state.AddAuthResult(localAuthResult))
             {
@@ -394,8 +395,7 @@ namespace Lyra.Core.Decentralize
             if (block is ConsolidationBlock cons)
             {
                 // get my authorize result
-                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == _context.GetDagSystem().PosWallet.AccountId);
-                if (myResult != null && myResult.Result == APIResultCodes.Success)
+                if (State.LocalResult != null && State.LocalResult.Result == APIResultCodes.Success)
                 {
                     _context.ConsolidationSucceed(cons);
                     return;

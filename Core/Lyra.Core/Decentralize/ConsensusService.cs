@@ -256,15 +256,18 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     if (CurrentState == BlockChainState.ViewChanging)
-                        return;
-
-                    if (_viewChangeHandler.CheckTimeout())
                     {
-                        //IsViewChanging = false;
-                        //_viewChangeHandler.Reset();
+                        if (_viewChangeHandler.CheckTimeout())
+                        {
+                            //IsViewChanging = false;
+                            //_viewChangeHandler.Reset();
 
-                        //_log.LogWarning($"View Change Timeout. reset.");
+                            //_log.LogWarning($"View Change Timeout. reset.");
+                        }
+
+                        return;
                     }
+
                     foreach (var worker in _activeConsensus.Values.ToArray())
                     {
                         if (worker.CheckTimeout())
@@ -332,6 +335,12 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             });
+        }
+
+        internal void ViewChangeIsTimeout(long viewId)
+        {
+            _log.LogInformation($"View change for {viewId} is timeout. Reset consensus.");
+            _stateMachine.Fire(BlockChainTrigger.LocalNodeOutOfSync);
         }
 
         internal async Task GotViewChangeRequestAsync(long viewId)
@@ -497,6 +506,7 @@ namespace Lyra.Core.Decentralize
                     _activeConsensus.Clear();
                 })
                 .PermitReentry(BlockChainTrigger.ViewChanging)
+                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup)
                 .Permit(BlockChainTrigger.ViewChanged, BlockChainState.Almighty);
 
             _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));

@@ -94,7 +94,7 @@ namespace Lyra.Core.Decentralize
 
             public bool CheckTimeout()
             {
-                if (dtStarted != DateTime.MinValue && DateTime.Now - dtStarted > TimeSpan.FromSeconds(10))
+                if (dtStarted != DateTime.MinValue && DateTime.Now - dtStarted > TimeSpan.FromSeconds(20))
                 {
                     return true;
                 }
@@ -104,16 +104,12 @@ namespace Lyra.Core.Decentralize
 
             public void Reset()
             {
-                //_viewId = 0;  // no change of view id
                 dtStarted = DateTime.Now;
                 selectedSuccess = false;
 
                 reqMsgs.Clear();
                 replyMsgs.Clear();
                 commitMsgs.Clear();
-
-                //_qualifiedVoters.Clear();
-                //_qualifiedVoters = null;
             }
         }
 
@@ -133,20 +129,19 @@ namespace Lyra.Core.Decentralize
         // debug only. should remove after
         public override bool CheckTimeout()
         {
-            //foreach(var v in _views.Values.ToList())
-            //{
-            //    if(v.CheckTimeout())
-            //    {
-            //        _log.LogInformation($"View Change with Id {v.viewId} timeout.");
-            //        v.Reset();                    
+            foreach (var v in _views.Values.ToList())
+            {
+                if (v.CheckTimeout())
+                {
+                    _log.LogInformation($"View Change with Id {v.viewId} timeout.");
+                    v.Reset();
 
-            //        Task.Run(async () => {
-            //            await LookforVotersAsync(v);
-            //            await Task.Delay(2000);
-            //            await BeginChangeViewAsync();
-            //        });
-            //    }
-            //}
+                    if(v.viewId == _ValidViewId)
+                    {
+                        _context.ViewChangeIsTimeout(v.viewId);
+                    }
+                }
+            }
             return false;
         }
 
