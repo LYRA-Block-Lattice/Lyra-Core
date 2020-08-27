@@ -45,7 +45,6 @@ namespace Lyra.Core.Decentralize
         public class AskForStats { }
         public class AskForDbStats { }
         public class AskForMaxActiveUID { }
-        public class AskIfSeed0 { public bool IsSeed0 { get; set; } }
         public class ReplyForMaxActiveUID { public long? uid { get; set; } }
         public class BlockChainStatuChanged { public BlockChainState CurrentState {get; set;} }
         public class NodeInquiry { }
@@ -143,8 +142,6 @@ namespace Lyra.Core.Decentralize
 
                 _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup);
             });
-
-            Receive<AskIfSeed0>((_) => Sender.Tell(new AskIfSeed0 { IsSeed0 = IsThisNodeLeader }));
 
             ReceiveAsync<QueryBlockchainStatus>(async _ =>
             {
@@ -370,9 +367,8 @@ namespace Lyra.Core.Decentralize
                             await Task.Delay(10000);
 
                             _log.LogInformation($"Querying Billboard... ");
-                            var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                             var q = from ns in _nodeStatus
-                                    where board.PrimaryAuthorizers != null && board.PrimaryAuthorizers.Contains(ns.accountId)
+                                    where _board.PrimaryAuthorizers != null && _board.PrimaryAuthorizers.Contains(ns.accountId)
                                     group ns by ns.totalBlockCount into heights
                                     orderby heights.Count() descending
                                     select new
@@ -427,10 +423,8 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    
-
-                    var IsSeed0 = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0());
-                    if (await _sys.Storage.FindLatestBlockAsync() == null && IsSeed0.IsSeed0)
+                    var IsSeed0 = _sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
+                    if (await _sys.Storage.FindLatestBlockAsync() == null && IsSeed0)
                     {
                         // check if other seeds is ready
                         BillBoard board;
@@ -438,9 +432,8 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogInformation("Check if other node is in genesis mode.");
                             await Task.Delay(3000);
-                            board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                        } while (board.ActiveNodes
-                            .Where(a => board.PrimaryAuthorizers.Contains(a.AccountID))
+                        } while (_board.ActiveNodes
+                            .Where(a => _board.PrimaryAuthorizers.Contains(a.AccountID))
                             .Where(a => a.State == BlockChainState.Genesis)
                             .Count() < 4);
                         await GenesisAsync();
@@ -666,7 +659,7 @@ namespace Lyra.Core.Decentralize
 
                 //        if (blockchainStatus.state == BlockChainState.Almighty)
                 //        {
-                //            // change view
+                //            // change view\
                 //            IsViewChanging = true;
 
                 //            await _viewChangeHandler.BeginChangeViewAsync();

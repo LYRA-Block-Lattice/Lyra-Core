@@ -34,8 +34,6 @@ namespace Lyra
         public class PersistCompleted { }
         public class Import { }
         public class ImportCompleted { }
-        public class FillMemoryPool { public IEnumerable<Transaction> Transactions; }
-        public class FillCompleted { }
         public class BlockAdded
         {
             public Block NewBlock { get; set; }
