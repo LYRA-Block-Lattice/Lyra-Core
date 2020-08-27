@@ -176,12 +176,12 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
-            if(_context.CurrentState != BlockChainState.ViewChanging)
-            {
-                // only accept req when non vc
-                if (vcm.MsgType != ChatMessageType.ViewChangeRequest)
-                    return;
-            }
+            //if(_context.CurrentState != BlockChainState.ViewChanging)
+            //{
+            //    // only accept req when non vc
+            //    if (vcm.MsgType != ChatMessageType.ViewChangeRequest)
+            //        return;
+            //}
 
             _log.LogInformation($"ProcessMessage type: {vcm.MsgType} from: {vcm.From.Shorten()}");
             if (_ValidViewId != 0 && vcm.ViewID != _ValidViewId)
@@ -283,7 +283,7 @@ namespace Lyra.Core.Decentralize
             }
             else if(view.reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                if (_context.CurrentState != BlockChainState.ViewChanging)
+                if (_context.CurrentState == BlockChainState.Almighty)
                 {
                     // too many view change request. force into view change mode
                     await _context.GotViewChangeRequestAsync(view.viewId);
