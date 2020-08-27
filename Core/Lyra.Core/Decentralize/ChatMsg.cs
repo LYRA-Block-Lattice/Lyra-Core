@@ -171,13 +171,14 @@ namespace Lyra.Core.Decentralize
 
 	public class ConsensusMessage : SourceSignedMessage
     {
-    }
+	}
 
 	public class BlockConsensusMessage: ConsensusMessage
 	{
+		public bool IsServiceBlock { get; set; }
 		public string BlockHash { get; set; }
 
-		public override int Size => base.Size + BlockHash.Length;
+		public override int Size => base.Size + BlockHash.Length + 1;
 
         public override void Serialize(BinaryWriter writer)
         {
@@ -186,18 +187,21 @@ namespace Lyra.Core.Decentralize
             if (string.IsNullOrEmpty(BlockHash))
                 throw new InvalidOperationException("BlockHash Should not be null");
 
-            writer.Write(BlockHash);
+			writer.Write(IsServiceBlock ? (byte)1 : (byte)0);
+			writer.Write(BlockHash);
 		}
 
         public override void Deserialize(BinaryReader reader)
         {
             base.Deserialize(reader);
+			var b0 = reader.ReadByte();
+			IsServiceBlock = b0 == 1;
 			BlockHash = reader.ReadString();
 		}
 
         public override string GetHashInput()
         {
-            return BlockHash + "|" + base.GetHashInput();
+            return IsServiceBlock.ToString() + "|" + BlockHash + "|" + base.GetHashInput();
         }
     }
 

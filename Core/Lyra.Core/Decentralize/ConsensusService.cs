@@ -93,7 +93,7 @@ namespace Lyra.Core.Decentralize
 
             _board = new BillBoard();
             _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
-            _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
+            _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators.ToList();        // default to seeds
             _board.AllVoters.AddRange(_board.PrimaryAuthorizers);                           // default to all seed nodes
 
             _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) => {
@@ -133,7 +133,7 @@ namespace Lyra.Core.Decentralize
                 var lastSvcBlk = await _sys.Storage.GetLastServiceBlockAsync();
                 if (lastSvcBlk != null)
                 {
-                    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Keys.ToArray();
+                    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Keys.ToList();
                     if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
                         _board.CurrentLeader = lastSvcBlk.Leader;
                     _board.AllVoters = _board.PrimaryAuthorizers.ToList();
@@ -231,6 +231,11 @@ namespace Lyra.Core.Decentralize
                         _log.LogCritical($"Double spent detected for {acctId}, index {state.InputMsg.Block.Height}");
                         return;
                     }
+                    state.SetView(Board.PrimaryAuthorizers);
+                }
+                else if(state.InputMsg.Block is ServiceBlock)
+                {
+                    state.SetView(Board.AllVoters);
                 }
 
                 await SubmitToConsensusAsync(state);
@@ -479,9 +484,15 @@ namespace Lyra.Core.Decentralize
                 .OnEntry(() => {
                     
                 })
+                .PermitReentry(BlockChainTrigger.ViewChanged)
                 .Permit(BlockChainTrigger.ViewChanged, BlockChainState.Almighty);
 
             _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
+        }
+
+        internal void UpdateBillBoard(ServiceBlock sb)
+        {
+            Board.PrimaryAuthorizers = sb.Authorizers.Keys.ToList();
         }
 
         internal void ConsolidationFailed(string hash)
@@ -819,6 +830,7 @@ namespace Lyra.Core.Decentralize
 
             AuthorizingMsg msg = new AuthorizingMsg
             {
+                IsServiceBlock = false,
                 From = _sys.PosWallet.AccountId,
                 BlockHash = consBlock.Hash,
                 Block = consBlock,
@@ -826,7 +838,7 @@ namespace Lyra.Core.Decentralize
             };
 
             var state = new AuthState(true);
-            state.SetView(await _sys.Storage.GetLastServiceBlockAsync());
+            state.SetView(Board.PrimaryAuthorizers);
             state.InputMsg = msg;
 
             //_ = Task.Run(async () =>

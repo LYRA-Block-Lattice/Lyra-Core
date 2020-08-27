@@ -24,9 +24,12 @@ namespace Lyra.Core.Decentralize
 
         // with heartbeat, we know who is alive.
         public List<ActiveNode> ActiveNodes { get; }
+
+        // for service block, validate from all voters
         public List<string> AllVoters { get; set; }
 
-        public string[] PrimaryAuthorizers { get; set; }
+        // for other block, validate from primary authorizers.
+        public List<string> PrimaryAuthorizers { get; set; }
 
         public string CurrentLeader { get; set; }
         public int CurrentLeadersVotes { get; set; }

@@ -536,12 +536,15 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation($"AllVoters: {voters.Count}");
                 state = new ServiceBlockAuthState(voters, true);
+                msg.IsServiceBlock = true;
+                state.SetView(Board.AllVoters);                
             }
             else
             {
                 state = new AuthState(true);
+                msg.IsServiceBlock = false;
+                state.SetView(Board.PrimaryAuthorizers);
             }
-            state.SetView(await _sys.Storage.GetLastServiceBlockAsync());
             state.InputMsg = msg;
 
             await SubmitToConsensusAsync(state);

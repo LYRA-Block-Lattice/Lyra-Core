@@ -63,14 +63,14 @@ namespace Lyra.Core.Decentralize
 
             AuthorizingMsg msg = new AuthorizingMsg
             {
+                IsServiceBlock = false,
                 From = NodeService.Dag.PosWallet.AccountId,
                 Block = block,
                 BlockHash = block.Hash,
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState(true);
-            state.SetView(await NodeService.Dag.Storage.GetLastServiceBlockAsync());
+            var state = new AuthState(true);            
             state.InputMsg = msg;
 
             NodeService.Dag.Consensus.Tell(state);

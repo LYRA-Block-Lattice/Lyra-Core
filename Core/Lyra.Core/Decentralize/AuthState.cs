@@ -47,11 +47,11 @@ namespace Lyra.Core.Decentralize
         {
             get
             {
-                if(_serviceBlock == null)
+                if(_validNodes == null)
                 {
                     return ProtocolSettings.Default.StandbyValidators.Length;
                 }
-                var minCount = LyraGlobal.GetMajority(_serviceBlock.Authorizers.Count());
+                var minCount = LyraGlobal.GetMajority(_validNodes.Count());
                 if (minCount < ProtocolSettings.Default.StandbyValidators.Length)
                     return ProtocolSettings.Default.StandbyValidators.Length;
                 else
@@ -62,7 +62,7 @@ namespace Lyra.Core.Decentralize
 
         ILogger _log;
 
-        private ServiceBlock _serviceBlock;
+        private IList<string> _validNodes;
 
         public AuthState(bool haveWaiter = false)
         {
@@ -78,14 +78,14 @@ namespace Lyra.Core.Decentralize
                 Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 
-        public void SetView(ServiceBlock serviceBlock)
+        public void SetView(IList<string> validNodes)
         {
-            _serviceBlock = serviceBlock;
+            _validNodes = validNodes;
         }
 
         public virtual bool CheckSenderValid(string from)
         {
-            if (_serviceBlock != null && !_serviceBlock.Authorizers.Any(a => a.Key == from))
+            if (_validNodes != null && !_validNodes.Any(a => a == from))
                 return false;
             else
                 return true;

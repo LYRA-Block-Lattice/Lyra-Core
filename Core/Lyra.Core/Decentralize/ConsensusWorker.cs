@@ -23,7 +23,6 @@ namespace Lyra.Core.Decentralize
         private AuthorizersFactory _authorizers;
 
         AuthState _state;
-        ServiceBlock _currentView;
 
         public string Hash { get; }
         public AuthState State { get => _state as AuthState; set => _state = value; }
@@ -47,17 +46,28 @@ namespace Lyra.Core.Decentralize
         }
         protected override async Task InternalProcessMessage(ConsensusMessage msg)
         {
-            if(_currentView != null)
-            {               
-                if(!_currentView.Authorizers.ContainsKey(msg.From))
+            if(msg is BlockConsensusMessage bmsg)
+            {
+                if(bmsg.IsServiceBlock)
                 {
-                    return;     // msg not from the view
+                    if(!_context.Board.AllVoters.Contains(bmsg.From))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    if(!_context.Board.PrimaryAuthorizers.Contains(bmsg.From))
+                    {
+                        return;
+                    }
                 }
             }
+
             switch (msg)
             {
                 case AuthorizingMsg msg1:
-                    await OnPrePrepareAsync(msg1);
+                    OnPrePrepare(msg1);
                     break;
                 case AuthorizedMsg msg2:
                     await OnPrepareAsync(msg2);
@@ -70,7 +80,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task OnPrePrepareAsync(AuthorizingMsg msg)
+        private void OnPrePrepare(AuthorizingMsg msg)
         {
             _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash}");
             //_context.OnNodeActive(_context.GetDagSystem().PosWallet.AccountId);     // update billboard
@@ -84,8 +94,7 @@ namespace Lyra.Core.Decentralize
             if (_state == null)
                 _state = CreateAuthringState(msg);
 
-            _currentView = await _context.GetDagSystem().Storage.FindBlockByHashAsync(_state.InputMsg.Block.ServiceHash) as ServiceBlock;
-            _state.SetView(_currentView);
+            _state.SetView(msg.IsServiceBlock ? _context.Board.AllVoters : _context.Board.PrimaryAuthorizers);
 
             //_context.Send2P2pNetwork(msg);
             _ = Task.Run(async () =>
@@ -180,6 +189,7 @@ namespace Lyra.Core.Decentralize
             {
                 var result0 = new AuthorizedMsg
                 {
+                    IsServiceBlock = State.InputMsg.IsServiceBlock,
                     From = _context.GetDagSystem().PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
@@ -197,6 +207,7 @@ namespace Lyra.Core.Decentralize
                 var localAuthResult = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
                 result = new AuthorizedMsg
                 {
+                    IsServiceBlock = State.InputMsg.IsServiceBlock,
                     From = _context.GetDagSystem().PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
@@ -212,6 +223,7 @@ namespace Lyra.Core.Decentralize
 
                 result = new AuthorizedMsg
                 {
+                    IsServiceBlock = State.InputMsg.IsServiceBlock,
                     From = _context.GetDagSystem().PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
@@ -305,6 +317,7 @@ namespace Lyra.Core.Decentralize
 
                     var msg = new AuthorizerCommitMsg
                     {
+                        IsServiceBlock = State.InputMsg.IsServiceBlock,
                         From = _context.GetDagSystem().PosWallet.AccountId,
                         MsgType = ChatMessageType.AuthorizerCommit,
                         BlockHash = _state.InputMsg.Block.Hash,
@@ -355,6 +368,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var msg = new AuthorizerCommitMsg
                     {
+                        IsServiceBlock = State.InputMsg.IsServiceBlock,
                         From = _context.GetDagSystem().PosWallet.AccountId,
                         MsgType = ChatMessageType.AuthorizerCommit,
                         BlockHash = _state.InputMsg.Block.Hash,
@@ -385,8 +399,11 @@ namespace Lyra.Core.Decentralize
                     return;
 
                 _context.ConsolidationFailed(block.Hash);
-                // crap! this node is out of sync.
-                //_context.GetDagSystem().TheBlockchain.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
+            }
+            else if(block is ServiceBlock sb)
+            {
+                // need update billboard
+                _context.UpdateBillBoard(sb);
             }
         }
 
