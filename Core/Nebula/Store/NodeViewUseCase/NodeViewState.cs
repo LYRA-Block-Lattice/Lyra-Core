@@ -31,11 +31,13 @@ namespace Nebula.Store.NodeViewUseCase
                 {
 					if(bb.ActiveNodes.Any(a => a.AccountID == id))		// bug in billboard. or error-proof
                     {
+						var x = bb.ActiveNodes.FirstOrDefault(a => a.AccountID == id);
+						decimal vts = x == null ? 0 : x.Votes;
 						list.Add(new NodeInfoSet
 						{
 							ID = id,
 							IsPrimary = true,
-							Votes = bb.ActiveNodes.First(a => a.AccountID == id).Votes,
+							Votes = vts,
 							Status = nodeStatus[id]
 						});
 					}
