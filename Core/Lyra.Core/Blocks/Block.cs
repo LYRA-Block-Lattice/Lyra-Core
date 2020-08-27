@@ -318,6 +318,8 @@ namespace Lyra.Core.Blocks
         InvalidNetworkId = 67,
         CannotSendToSelf = 68,
 
+        InvalidPreviousBlock,
+
         // service blocks related
         InvalidConsolidationMerkleTreeHash = 80,
         InvalidConsolidationTotalFees,
@@ -331,6 +333,8 @@ namespace Lyra.Core.Blocks
         InvalidConsolidationBlockContinuty,
         InvalidConsolidationBlockCount,
         InvalidConsolidationBlockHashes,
+        
+
 
         DuplicateReceiveBlock = 100,
 

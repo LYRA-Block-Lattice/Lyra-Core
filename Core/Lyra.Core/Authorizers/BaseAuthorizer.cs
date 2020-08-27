@@ -47,7 +47,7 @@ namespace Lyra.Core.Authorizers
         protected async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
         {
             if (previousBlock != null && !block.IsBlockValid(previousBlock))
-                return APIResultCodes.BlockValidationFailed;
+                return APIResultCodes.InvalidPreviousBlock;
 
             //if (!Signatures.VerifySignature(block.Hash, block.AccountID, block.Signature))
             //    return APIResultCodes.BlockSignatureValidationFailed;

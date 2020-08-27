@@ -180,7 +180,12 @@ namespace Lyra.Core.Decentralize
 
 		public override int Size => base.Size + BlockHash.Length + 1;
 
-        public override void Serialize(BinaryWriter writer)
+		public BlockConsensusMessage()
+        {
+			IsServiceBlock = false;
+        }
+
+		public override void Serialize(BinaryWriter writer)
         {
             base.Serialize(writer);
 
