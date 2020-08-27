@@ -502,6 +502,56 @@ namespace Lyra.Core.Decentralize
             _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
         }
 
+        public int QualifiedNodeCount
+        {
+            get
+            {
+                var allNodes = Board.ActiveNodes.ToList();
+                var count = allNodes.Count(a => a?.Votes >= LyraGlobal.MinimalAuthorizerBalance);
+                if (count > LyraGlobal.MAXIMUM_VOTER_NODES)
+                {
+                    return LyraGlobal.MAXIMUM_VOTER_NODES;
+                }
+                else if (count < LyraGlobal.MINIMUM_AUTHORIZERS)
+                {
+                    return LyraGlobal.MINIMUM_AUTHORIZERS;
+                }
+                else
+                {
+                    return count;
+                }
+            }
+        }
+
+        public List<string> LookforVoters()
+        {
+            var list = Board.ActiveNodes
+                .OrderByDescending(a => a.Votes)
+                .Take(QualifiedNodeCount)
+                .Select(a => a.AccountID)
+                .ToList();
+            list.Sort();
+            return list;
+        }
+
+        internal void ConsolidationSucceed(ConsolidationBlock cons)
+        {
+            _ = Task.Run(async () => {
+                _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
+                var oldList = LookforVoters();
+                RefreshAllNodesVotes();
+                var newList = LookforVoters();
+
+                if (Enumerable.SequenceEqual(oldList, newList))
+                    return;
+
+                _log.LogInformation($"We have new player(s). Change view...");
+                // should change view for new member
+                _stateMachine.Fire(BlockChainTrigger.ViewChanging);
+                await _viewChangeHandler.BeginChangeViewAsync();
+            });
+        }
+
         internal void UpdateBillBoard(ServiceBlock sb)
         {
             Board.PrimaryAuthorizers = sb.Authorizers.Keys.ToList();

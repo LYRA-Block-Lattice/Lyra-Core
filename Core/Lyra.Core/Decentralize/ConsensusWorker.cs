@@ -391,12 +391,15 @@ namespace Lyra.Core.Decentralize
             _state.Done?.Set();
             _context.FinishBlock(block.Hash);
 
-            if (block is ConsolidationBlock)
+            if (block is ConsolidationBlock cons)
             {
                 // get my authorize result
                 var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == _context.GetDagSystem().PosWallet.AccountId);
                 if (myResult != null && myResult.Result == APIResultCodes.Success)
+                {
+                    _context.ConsolidationSucceed(cons);
                     return;
+                }                    
 
                 _context.ConsolidationFailed(block.Hash);
             }

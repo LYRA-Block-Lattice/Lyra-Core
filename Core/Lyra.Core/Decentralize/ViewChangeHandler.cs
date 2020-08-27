@@ -245,7 +245,7 @@ namespace Lyra.Core.Decentralize
                 view.commitMsgs.TryRemove(req, out _);
 
             if (_context.Board.AllVoters.Count == 0)
-                await LookforVotersAsync(view);
+                LookforVoters(view);
 
             // request
             if (view.reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
@@ -283,7 +283,7 @@ namespace Lyra.Core.Decentralize
             }
             else if (view.reqMsgs.Count == _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                await LookforVotersAsync(view);
+                LookforVoters(view);
                 // also do clean of req msgs queue
                 var unqualifiedReqs = view.reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
                 foreach (var unq in unqualifiedReqs)
@@ -417,7 +417,7 @@ namespace Lyra.Core.Decentralize
 
             var view = GetView(_ValidViewId);
 
-            await LookforVotersAsync(view);
+            LookforVoters(view);
 
             var req = new ViewChangeRequestMessage
             {
@@ -432,10 +432,8 @@ namespace Lyra.Core.Decentralize
             await CheckRequestAsync(view, req);
         }
 
-        private async Task LookforVotersAsync(View view)
+        private void LookforVoters(View view)
         {
-            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-
             // setup the voters list
             _context.RefreshAllNodesVotes();
             _context.Board.AllVoters = _context.Board.ActiveNodes
