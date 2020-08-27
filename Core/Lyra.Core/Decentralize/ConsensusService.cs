@@ -453,8 +453,6 @@ namespace Lyra.Core.Decentralize
                         // wait for genesis to finished.
                         await Task.Delay(360000);
                     }
-
-                    _stateMachine.Fire(BlockChainTrigger.GenesisDone);
                 }))
                 .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Startup);
 

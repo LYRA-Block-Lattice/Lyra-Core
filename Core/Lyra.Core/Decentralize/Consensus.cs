@@ -306,7 +306,7 @@ namespace Lyra.Core.Decentralize
 
             _log.LogInformation("svc genesis is done.");
 
-            await Task.Delay(3000);
+            await Task.Delay(30000);
 
             // distribute staking coin to pre-defined authorizers
             var memStore = new AccountInMemoryStorage();
