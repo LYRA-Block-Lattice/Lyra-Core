@@ -542,6 +542,8 @@ namespace Lyra.Core.Decentralize
                 RefreshAllNodesVotes();
                 var newList = LookforVoters();
 
+
+
                 if (Enumerable.SequenceEqual(oldList, newList))
                     return;
 
@@ -1073,7 +1075,10 @@ namespace Lyra.Core.Decentralize
                 {
                     var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
                     if (vote == null)
+                    {
+                        _log.LogInformation($"No (zero) vote found for {node.AccountID}");
                         node.Votes = 0;
+                    }                        
                     else
                         node.Votes = vote.Amount;
                 }
