@@ -400,6 +400,7 @@ namespace Lyra.Core.Decentralize
                                 {
                                     //_stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                                     _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                                    break;
                                 }
                                 else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
                                 {
@@ -411,12 +412,12 @@ namespace Lyra.Core.Decentralize
                                         await Task.Delay(60000);
                                     }
                                     _stateMachine.Fire(_engageTriggerStart, majorHeight.Height);
+                                    break;
                                 }
                                 else
                                 {
                                     continue;
                                 }
-                                break;
                             }
                             else
                             {
