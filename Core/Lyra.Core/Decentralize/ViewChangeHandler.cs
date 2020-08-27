@@ -420,6 +420,7 @@ namespace Lyra.Core.Decentralize
             }
 
             var view = GetView(_ValidViewId);
+            view.dtStarted = DateTime.Now;
 
             var req = new ViewChangeRequestMessage
             {
