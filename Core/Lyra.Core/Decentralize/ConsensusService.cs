@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using static Neo.Network.P2P.LocalNode;
 using Settings = Neo.Settings;
+using Stateless;
 
 namespace Lyra.Core.Decentralize
 {
@@ -36,11 +37,11 @@ namespace Lyra.Core.Decentralize
     /// <summary>
     /// about seed generation: the seed0 seed will generate UIndex whild sending authorization message.
     /// </summary>
-    public class ConsensusService : ReceiveActor
+    public partial class ConsensusService : ReceiveActor
     {
         public class Startup { }
-        public class Consolidate { }
         public class AskForBillboard { }
+        public class AskForState { }
         public class AskForStats { }
         public class AskForDbStats { }
         public class AskForMaxActiveUID { }
@@ -48,22 +49,27 @@ namespace Lyra.Core.Decentralize
         public class ReplyForMaxActiveUID { public long? uid { get; set; } }
         public class BlockChainStatuChanged { public BlockChainState CurrentState {get; set;} }
         public class NodeInquiry { }
+        public class QueryBlockchainStatus { }
 
-        public class ConsolidateFailed { public string consolidationBlockHash { get; set; } }
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
         private readonly IActorRef _blockchain;
-        private BlockChainState _currentBlockchainState { get; set; }
+
+        private readonly StateMachine<BlockChainState, BlockChainTrigger> _stateMachine;
+        private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStart;
+        private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<string> _engageTriggerConsolidateFailed;
+        public BlockChainState CurrentState => _stateMachine.State;
 
         ILogger _log;
 
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         List<Vote> _lastVotes;
         private BillBoard _board;
-        public bool IsViewChanging { get; private set; }
         private List<TransStats> _stats;
 
-        public async Task<BlockChainState> GetBlockChainState() => await _blockchain.Ask<BlockChainState>(new BlockChain.QueryState());
+        // status inquiry
+        private List<NodeStatus> _nodeStatus;
+
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsMessageFromLeader(SourceSignedMessage msg)
         {
@@ -93,7 +99,7 @@ namespace Lyra.Core.Decentralize
             _board.AllVoters.AddRange(_board.PrimaryAuthorizers);                           // default to all seed nodes
 
             _viewChangeHandler = new ViewChangeHandler(this, (sender, viewId, leader, votes, voters) => {
-                IsViewChanging = false;
+                _stateMachine.Fire(BlockChainTrigger.ViewChanged);
 
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");
                 _board.CurrentLeader = leader;
@@ -103,7 +109,7 @@ namespace Lyra.Core.Decentralize
                 if(leader == _sys.PosWallet.AccountId)
                 {
                     // its me!
-                    _blockchain.Tell(new BlockChain.NewLeaderCreateView());
+                    CreateNewViewAsNewLeader();
                 }
 
                 Task.Run(async () =>
@@ -116,13 +122,12 @@ namespace Lyra.Core.Decentralize
                         // the new leader failed.
                         sender.Reset(viewId, leader.Split('|').ToList());
 
-                        IsViewChanging = true;
+                        _stateMachine.Fire(BlockChainTrigger.ViewChanging);
                         await _viewChangeHandler.BeginChangeViewAsync();
                     }
                 });
                     //_viewChangeHandler.Reset(); // wait for svc block generated
             });
-            IsViewChanging = false;
 
             ReceiveAsync<Startup>(async state =>
             {
@@ -135,9 +140,28 @@ namespace Lyra.Core.Decentralize
                         _board.CurrentLeader = lastSvcBlk.Leader;
                     _board.AllVoters = _board.PrimaryAuthorizers.ToList();
                 }
+
+                _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup);
             });
 
             Receive<AskIfSeed0>((_) => Sender.Tell(new AskIfSeed0 { IsSeed0 = IsThisNodeLeader }));
+
+            ReceiveAsync<QueryBlockchainStatus>(async _ =>
+            {
+                var status = await GetNodeStatusAsync();
+                Sender.Tell(status);
+            });
+
+            Receive<NodeStatus>(nodeStatus =>
+            {
+                // only accept status from seeds.
+                //_log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
+                if (_nodeStatus != null)
+                {
+                    if (!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
+                        _nodeStatus.Add(nodeStatus);
+                }
+            });
 
             Receive<BlockChain.BlockAdded>(nb =>
             {
@@ -153,16 +177,6 @@ namespace Lyra.Core.Decentralize
                 //}
             });
 
-            Receive<Consolidate>((_) =>
-            {
-                _log.LogInformation("Doing Consolidate");
-
-                Task.Run(async () =>
-                {
-                    await CreateConsolidationBlock();
-                });
-            });
-
             Receive<BillBoard>((bb) =>
             {
                 //_board = bb;
@@ -173,6 +187,7 @@ namespace Lyra.Core.Decentralize
                 //    }                    
             });
 
+            Receive<AskForState>((_) => Sender.Tell(_stateMachine.State));
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
@@ -203,19 +218,9 @@ namespace Lyra.Core.Decentralize
                     _log.LogWarning("Protocol Version Mismatch. Do nothing.");
             });
 
-            ReceiveAsync<BlockChainStatuChanged>(async (state) =>
-            {
-                _currentBlockchainState = state.CurrentState;
-
-                if (_currentBlockchainState == BlockChainState.Almighty)
-                {
-                    await DeclareConsensusNodeAsync();
-                }
-            });
-
             ReceiveAsync<AuthState>(async state =>
             {
-                if (_currentBlockchainState != BlockChainState.Almighty && _currentBlockchainState != BlockChainState.Genesis)
+                if (_stateMachine.State != BlockChainState.Almighty && _stateMachine.State != BlockChainState.Genesis)
                 {
                     state.Done?.Set();
                     return;
@@ -274,15 +279,12 @@ namespace Lyra.Core.Decentralize
 
                             if (result.HasValue && result.Value == ConsensusResult.Uncertain)
                             {
-                                if (_currentBlockchainState == BlockChainState.Almighty && !IsViewChanging)
-                                {
-                                    // change view
-                                    IsViewChanging = true;
+                                // change view
+                                _stateMachine.Fire(BlockChainTrigger.ViewChanging);
 
-                                    _log.LogInformation($"Consensus failed. start view change.");
+                                _log.LogInformation($"Consensus failed. start view change.");
 
-                                    await _viewChangeHandler.BeginChangeViewAsync();
-                                }
+                                await _viewChangeHandler.BeginChangeViewAsync();
                             }
                         }
                     }
@@ -303,7 +305,7 @@ namespace Lyra.Core.Decentralize
                     try
                     {
                         //_log.LogWarning("starting maintaince loop... ");
-                        if (_currentBlockchainState == BlockChainState.Almighty)
+                        if (_stateMachine.State == BlockChainState.Almighty)
                         {
                             await CreateConsolidationBlock();
 
@@ -328,6 +330,173 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             });
+
+            _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
+            _engageTriggerStart = _stateMachine.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesInitSynced);
+            _engageTriggerConsolidateFailed = _stateMachine.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
+            CreateStateMachine();
+        }
+
+        private void CreateStateMachine()
+        {
+            _stateMachine.Configure(BlockChainState.Initializing)
+                .OnEntry(() =>
+                {
+                    
+
+                    _log.LogInformation($"Blockchain Startup... ");
+
+                })
+                .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
+
+            _stateMachine.Configure(BlockChainState.Startup)
+                .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
+                .OnEntry(() => Task.Run(async () =>
+                {
+                    
+                    while (true)
+                    {
+                        try
+                        {
+                            _log.LogInformation($"Querying Lyra Network Status... ");
+
+                            _sys.Consensus.Tell(new ConsensusService.Startup());
+
+                            await Task.Delay(10000);
+
+                            _nodeStatus = new List<NodeStatus>();
+                            _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
+
+                            await Task.Delay(10000);
+
+                            _log.LogInformation($"Querying Billboard... ");
+                            var board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                            var q = from ns in _nodeStatus
+                                    where board.PrimaryAuthorizers != null && board.PrimaryAuthorizers.Contains(ns.accountId)
+                                    group ns by ns.totalBlockCount into heights
+                                    orderby heights.Count() descending
+                                    select new
+                                    {
+                                        Height = heights.Key,
+                                        Count = heights.Count()
+                                    };
+
+                            if (q.Any())
+                            {
+                                var majorHeight = q.First();
+
+                                _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
+
+                                var myStatus = await GetNodeStatusAsync();
+                                if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 3)
+                                {
+                                    //_stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                                    _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                                }
+                                else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
+                                {
+                                    // verify local database
+                                    while (!await SyncDatabase())
+                                    {
+                                        //fatal error. should not run program
+                                        _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
+                                        await Task.Delay(60000);
+                                    }
+                                    _stateMachine.Fire(_engageTriggerStart, majorHeight.Height);
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                                break;
+                            }
+                            else
+                            {
+                                _log.LogInformation($"Unable to get Lyra network status.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _log.LogCritical("In BlockChainState.Startup: " + ex.ToString());
+                        }
+                    }
+                }))
+                .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Genesis)
+                .Permit(BlockChainTrigger.ConsensusNodesInitSynced, BlockChainState.Engaging);
+
+            _stateMachine.Configure(BlockChainState.Genesis)
+                .OnEntry(() => Task.Run(async () =>
+                {
+                    
+
+                    var IsSeed0 = await _sys.Consensus.Ask<ConsensusService.AskIfSeed0>(new ConsensusService.AskIfSeed0());
+                    if (await _sys.Storage.FindLatestBlockAsync() == null && IsSeed0.IsSeed0)
+                    {
+                        // check if other seeds is ready
+                        BillBoard board;
+                        do
+                        {
+                            _log.LogInformation("Check if other node is in genesis mode.");
+                            await Task.Delay(3000);
+                            board = await _sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                        } while (board.ActiveNodes
+                            .Where(a => board.PrimaryAuthorizers.Contains(a.AccountID))
+                            .Where(a => a.State == BlockChainState.Genesis)
+                            .Count() < 4);
+                        await GenesisAsync();
+                    }
+                    else
+                    {
+                        // wait for genesis to finished.
+                        await Task.Delay(360000);
+                    }
+
+                    _stateMachine.Fire(BlockChainTrigger.GenesisDone);
+                }))
+                .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Startup);
+
+            _stateMachine.Configure(BlockChainState.Engaging)
+                .OnEntryFrom(_engageTriggerStart, (blockCount) => Task.Run(async () =>
+                {
+                    
+
+                    try
+                    {
+                        if (blockCount > 2)
+                        {
+                            // sync cons and uncons
+                            await EngagingSyncAsync();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _log.LogError($"In Engaging: {e}");
+                    }
+
+                    _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
+                }))
+                .Permit(BlockChainTrigger.LocalNodeFullySynced, BlockChainState.Almighty);
+
+            _stateMachine.Configure(BlockChainState.Almighty)
+                .OnEntry(() => Task.Run(async () =>
+                {
+                    await DeclareConsensusNodeAsync();                    
+                }))
+                .Permit(BlockChainTrigger.ViewChanging, BlockChainState.ViewChanging)
+                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup);
+
+            _stateMachine.Configure(BlockChainState.ViewChanging)
+                .OnEntry(() => {
+                    
+                })
+                .Permit(BlockChainTrigger.ViewChanged, BlockChainState.Almighty);
+
+            _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
+        }
+
+        internal void ConsolidationFailed(string hash)
+        {
+            _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
         }
 
         private string PrintProfileInfo()
@@ -388,7 +557,7 @@ namespace Lyra.Core.Decentralize
             }
             else
                 _board.NodeAddresses.Add(me.AccountID, me.IPAddress.ToString());
-            await OnNodeActive(me.AccountID, me.AuthorizerSignature, _currentBlockchainState);
+            await OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State);
         }
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
@@ -442,14 +611,14 @@ namespace Lyra.Core.Decentralize
             {
                 From = _sys.PosWallet.AccountId,
                 Text = "I'm live",
-                State = _currentBlockchainState,
+                State = _stateMachine.State,
                 AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 
             Send2P2pNetwork(msg);
 
             var me = _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId);
-            me.State = _currentBlockchainState;
+            me.State = _stateMachine.State;
             me.LastActive = DateTime.Now;
         }
 
@@ -483,7 +652,7 @@ namespace Lyra.Core.Decentralize
                     _board.NodeAddresses.Add(node.AccountID, node.IPAddress);
                 
                 // if current leader is up, must resend up
-                if(_board.CurrentLeader == node.AccountID && _currentBlockchainState == BlockChainState.Almighty)
+                if(_board.CurrentLeader == node.AccountID && _stateMachine.State == BlockChainState.Almighty)
                 {
                     await DeclareConsensusNodeAsync();
                 }
@@ -522,7 +691,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CreateConsolidationBlock()
         {
-            if (_currentBlockchainState != BlockChainState.Almighty)
+            if (_stateMachine.State != BlockChainState.Almighty)
                 return;
 
             if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State?.InputMsg.Block is ConsolidationBlock))
@@ -533,9 +702,8 @@ namespace Lyra.Core.Decentralize
                 return;         // wait for genesis
 
             try
-            {
-                var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-                if (IsThisNodeLeader && blockchainStatus.state == BlockChainState.Almighty)
+            {                
+                if (IsThisNodeLeader && _stateMachine.State == BlockChainState.Almighty)
                 {
                     //// test code
                     //var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
@@ -747,9 +915,9 @@ namespace Lyra.Core.Decentralize
             else
             {
                 ConsensusWorker worker;
-                if (checkState && _currentBlockchainState == BlockChainState.Almighty)
+                if (checkState && _stateMachine.State == BlockChainState.Almighty)
                     worker = new ConsensusWorker(this, hash);
-                else if (checkState && _currentBlockchainState == BlockChainState.Engaging)
+                else if (checkState && _stateMachine.State == BlockChainState.Engaging)
                     worker = new ConsensusEngagingWorker(this, hash);
                 else
                     worker = new ConsensusWorker(this, hash);
@@ -770,9 +938,14 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if (_currentBlockchainState == BlockChainState.Genesis ||
-                _currentBlockchainState == BlockChainState.Engaging ||
-                _currentBlockchainState == BlockChainState.Almighty)
+            if (item is ViewChangeMessage vcm)
+            {
+                await _viewChangeHandler.ProcessMessage(vcm);
+                return;
+            }
+            else if (_stateMachine.State == BlockChainState.Genesis ||
+                _stateMachine.State == BlockChainState.Engaging ||
+                _stateMachine.State == BlockChainState.Almighty)
             {
                 if (item is BlockConsensusMessage cm)
                 {
@@ -780,15 +953,6 @@ namespace Lyra.Core.Decentralize
                     if (worker != null)
                         await worker.ProcessMessage(cm);
                     return;
-                }
-
-                if (_currentBlockchainState == BlockChainState.Almighty)
-                {
-                    if (item is ViewChangeMessage vcm)
-                    {
-                        await _viewChangeHandler.ProcessMessage(vcm);
-                        return;
-                    }
                 }
             }
         }
@@ -810,7 +974,7 @@ namespace Lyra.Core.Decentralize
                 //    await OnBlockConsolicationAsync(chat);
                 //    break;
                 case ChatMessageType.NodeStatusInquiry:
-                    var status = await _sys.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
+                    var status = await GetNodeStatusAsync();
                     var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);
                     resp.From = _sys.PosWallet.AccountId;
                     Send2P2pNetwork(resp);

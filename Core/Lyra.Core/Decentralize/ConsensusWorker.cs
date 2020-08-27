@@ -384,8 +384,9 @@ namespace Lyra.Core.Decentralize
                 if (myResult != null && myResult.Result == APIResultCodes.Success)
                     return;
 
+                _context.ConsolidationFailed(block.Hash);
                 // crap! this node is out of sync.
-                _context.GetDagSystem().TheBlockchain.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
+                //_context.GetDagSystem().TheBlockchain.Tell(new ConsensusService.ConsolidateFailed { consolidationBlockHash = block.Hash });
             }
         }
 

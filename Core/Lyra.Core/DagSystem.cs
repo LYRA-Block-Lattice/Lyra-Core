@@ -84,9 +84,9 @@ namespace Lyra
                 }
                 _log.LogWarning($"p2p network connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
 
-                StartConsensus();
-
                 TheBlockchain.Tell(new BlockChain.Startup());
+
+                StartConsensus();
 
                 //if (DagSystem.Singleton.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
                 //{
@@ -101,7 +101,7 @@ namespace Lyra
         public void StartConsensus()
         {
             Consensus = ActorSystem.ActorOf(ConsensusService.Props(this, this.LocalNode, TheBlockchain));
-            //Consensus.Tell(new ConsensusService.Start { IgnoreRecoveryLogs = ignoreRecoveryLogs }, Blockchain);
+            Consensus.Tell(new ConsensusService.Startup {  }, TheBlockchain);
         }
 
         public void StartNode(ChannelsConfig config)

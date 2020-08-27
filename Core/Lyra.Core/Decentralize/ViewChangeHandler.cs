@@ -209,6 +209,20 @@ namespace Lyra.Core.Decentralize
             // request
             if (view._reqMsgs.Count >= LyraGlobal.GetMajority(view._qualifiedVoters.Count))
             {
+                // the new leader:
+                // 1, not the previous one;
+                // 2, viewid mod [voters count], index of _qualifiedVoters.
+                // 
+                var leaderIndex = (int)(view._viewId % view._qualifiedVoters.Count);
+                while (view.Excludes.Contains(view._qualifiedVoters[leaderIndex]))
+                {
+                    leaderIndex++;
+                    if (leaderIndex >= view._qualifiedVoters.Count)
+                        leaderIndex = 0;
+                }
+                view._nextLeader = view._qualifiedVoters[leaderIndex];
+                _log.LogInformation($"LookforVotersAsync, next leader will be {view._nextLeader}");
+
                 var reply = new ViewChangeReplyMessage
                 {
                     From = _context.GetDagSystem().PosWallet.AccountId,
@@ -353,20 +367,6 @@ namespace Lyra.Core.Decentralize
                 .Select(a => a.AccountID)
                 .ToList();
             view._qualifiedVoters.Sort();
-
-            // the new leader:
-            // 1, not the previous one;
-            // 2, viewid mod [voters count], index of _qualifiedVoters.
-            // 
-            var leaderIndex = (int)(view._viewId % view._qualifiedVoters.Count);
-            while (view.Excludes.Contains(view._qualifiedVoters[leaderIndex]))
-            {
-                leaderIndex++;
-                if (leaderIndex >= view._qualifiedVoters.Count)
-                    leaderIndex = 0;
-            }
-            view._nextLeader = view._qualifiedVoters[leaderIndex];
-            _log.LogInformation($"LookforVotersAsync, next leader will be {view._nextLeader}");
         }
     }
 

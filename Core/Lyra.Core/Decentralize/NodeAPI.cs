@@ -59,7 +59,7 @@ namespace Lyra.Core.Decentralize
             }
 
             var consBlock = await NodeService.Dag.Storage.GetLastConsolidationBlockAsync();
-            var chainStatus = await NodeService.Dag.TheBlockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
+            var chainStatus = await NodeService.Dag.Consensus.Ask<NodeStatus>(new ConsensusService.QueryBlockchainStatus());
             var result = new GetSyncStateAPIResult
             {
                 ResultCode = APIResultCodes.Success,
