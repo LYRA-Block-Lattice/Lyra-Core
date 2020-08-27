@@ -57,6 +57,9 @@ namespace Lyra.Core.Decentralize
 
             public string nextLeader;
 
+            public bool replySent = false;
+            public bool commitSent = false;
+
             public ConcurrentDictionary<string, VCReqWithTime> reqMsgs { get; set; }
             public ConcurrentDictionary<string, VCReplyWithTime> replyMsgs { get; set; }
             public ConcurrentDictionary<string, VCCommitWithTime> commitMsgs { get; set; }
@@ -106,6 +109,9 @@ namespace Lyra.Core.Decentralize
             {
                 dtStarted = DateTime.Now;
                 selectedSuccess = false;
+
+                replySent = false;
+                commitSent = false;
 
                 reqMsgs.Clear();
                 replyMsgs.Clear();
@@ -218,8 +224,6 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync(View view)
         {
-            _log.LogInformation($"CheckAllStats Req: {view.reqMsgs.Count} Reply {view.replyMsgs.Count} Commit {view.commitMsgs.Count} Votes {view.commitMsgs.Count}/{_context.Board.AllVoters.Count} ");
-
             // remove outdated msgs
             var q1 = view.reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
                 .Select(b => b.Key)
@@ -239,8 +243,10 @@ namespace Lyra.Core.Decentralize
             foreach (var req in q3)
                 view.commitMsgs.TryRemove(req, out _);
 
+            _log.LogInformation($"CheckAllStats Req: {view.reqMsgs.Count} Reply {view.replyMsgs.Count} Commit {view.commitMsgs.Count} Votes {view.commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} ");
+
             // request
-            if (view.reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            if (!view.replySent && view.reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
                 // the new leader:
                 // 1, not the previous one;
@@ -271,47 +277,51 @@ namespace Lyra.Core.Decentralize
                 };
 
                 _context.Send2P2pNetwork(reply);
+
+                view.replySent = true;
                 await CheckReplyAsync(view, reply);
-            }
-            else if (view.reqMsgs.Count == _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
-            {
-                // also do clean of req msgs queue
-                var unqualifiedReqs = view.reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
-                foreach (var unq in unqualifiedReqs)
-                    view.reqMsgs.Remove(unq, out _);
             }
             else if(view.reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                if(_context.CurrentState != BlockChainState.ViewChanging)
+                if (_context.CurrentState != BlockChainState.ViewChanging)
                 {
                     // too many view change request. force into view change mode
                     await _context.GotViewChangeRequestAsync(view.viewId);
+
+                    // also do clean of req msgs queue
+                    var unqualifiedReqs = view.reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
+                    foreach (var unq in unqualifiedReqs)
+                        view.reqMsgs.Remove(unq, out _);
                 }
             }
 
-            // reply
-            // only if we have enough reply
-            var qr = from rep in view.replyMsgs.Values
-                     where rep.msg.Result == Blocks.APIResultCodes.Success
-                     group rep by rep.msg.Candidate into g
-                     select new { Candidate = g.Key, Count = g.Count() };
-
-            var candidateQR = qr.FirstOrDefault();
-
-            if (candidateQR?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            if(!view.commitSent)
             {
-                _log.LogInformation($"CheckAllStats, By ReplyMsgs, commit next leader {view.nextLeader}");
+                // reply
+                // only if we have enough reply
+                var qr = from rep in view.replyMsgs.Values
+                         where rep.msg.Result == Blocks.APIResultCodes.Success
+                         group rep by rep.msg.Candidate into g
+                         select new { Candidate = g.Key, Count = g.Count() };
 
-                var commit = new ViewChangeCommitMessage
+                var candidateQR = qr.FirstOrDefault();
+
+                if (candidateQR?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
-                    From = _sys.PosWallet.AccountId,
-                    ViewID = view.viewId,
-                    Candidate = candidateQR.Candidate,
-                    Consensus = ConsensusResult.Yea
-                };
+                    _log.LogInformation($"CheckAllStats, By ReplyMsgs, commit next leader {view.nextLeader}");
 
-                _context.Send2P2pNetwork(commit);
-                await CheckCommitAsync(view, commit);
+                    var commit = new ViewChangeCommitMessage
+                    {
+                        From = _sys.PosWallet.AccountId,
+                        ViewID = view.viewId,
+                        Candidate = candidateQR.Candidate,
+                        Consensus = ConsensusResult.Yea
+                    };
+
+                    _context.Send2P2pNetwork(commit);
+                    view.commitSent = true;
+                    await CheckCommitAsync(view, commit);
+                }
             }
 
             // commit
