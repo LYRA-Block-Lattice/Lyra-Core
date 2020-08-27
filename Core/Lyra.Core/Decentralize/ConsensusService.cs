@@ -47,7 +47,6 @@ namespace Lyra.Core.Decentralize
         public class AskForMaxActiveUID { }
         public class ReplyForMaxActiveUID { public long? uid { get; set; } }
         public class BlockChainStatuChanged { public BlockChainState CurrentState {get; set;} }
-        public class NodeInquiry { }
         public class QueryBlockchainStatus { }
 
         public class Authorized { public bool IsSuccess { get; set; } }
@@ -237,13 +236,6 @@ namespace Lyra.Core.Decentralize
                 await SubmitToConsensusAsync(state);
             });
 
-            Receive<NodeInquiry>((_) => {
-                var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
-                inq.From = _sys.PosWallet.AccountId;
-                Send2P2pNetwork(inq);
-                //_log.LogInformation("Inquiry for node status.");
-            });
-
             Receive<Idle>(o => { });
 
             ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
@@ -355,7 +347,9 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation($"Querying Lyra Network Status... ");
 
                             _nodeStatus = new List<NodeStatus>();
-                            _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
+                            var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
+                            inq.From = _sys.PosWallet.AccountId;
+                            Send2P2pNetwork(inq);
 
                             await Task.Delay(10000);
 
@@ -953,12 +947,6 @@ namespace Lyra.Core.Decentralize
                 case ChatMessageType.NodeUp:
                     await Task.Run(async () => { await OnNodeUpAsync(chat); });                    
                     break;
-                //case ChatMessageType.BillBoardBroadcast:
-                //    OnBillBoardBroadcast(chat);
-                //    break;
-                //case ChatMessageType.BlockConsolidation:
-                //    await OnBlockConsolicationAsync(chat);
-                //    break;
                 case ChatMessageType.NodeStatusInquiry:
                     var status = await GetNodeStatusAsync();
                     var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);
