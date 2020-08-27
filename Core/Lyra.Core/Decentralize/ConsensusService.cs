@@ -558,6 +558,9 @@ namespace Lyra.Core.Decentralize
                 if (!firstNotSecond.Any() && !secondNotFirst.Any())
                     return;
 
+                // update billboard
+                Board.AllVoters = list2;
+
                 _log.LogInformation($"We have new player(s). Change view...");
                 // should change view for new member
                 _stateMachine.Fire(BlockChainTrigger.ViewChanging);

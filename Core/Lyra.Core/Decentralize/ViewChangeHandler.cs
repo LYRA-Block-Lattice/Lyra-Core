@@ -239,9 +239,6 @@ namespace Lyra.Core.Decentralize
             foreach (var req in q3)
                 view.commitMsgs.TryRemove(req, out _);
 
-            if (_context.Board.AllVoters.Count == 0)
-                LookforVoters(view);
-
             // request
             if (view.reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
@@ -278,7 +275,6 @@ namespace Lyra.Core.Decentralize
             }
             else if (view.reqMsgs.Count == _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                LookforVoters(view);
                 // also do clean of req msgs queue
                 var unqualifiedReqs = view.reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
                 foreach (var unq in unqualifiedReqs)
@@ -412,8 +408,6 @@ namespace Lyra.Core.Decentralize
 
             var view = GetView(_ValidViewId);
 
-            LookforVoters(view);
-
             var req = new ViewChangeRequestMessage
             {
                 From = _sys.PosWallet.AccountId,
@@ -425,18 +419,6 @@ namespace Lyra.Core.Decentralize
 
             _context.Send2P2pNetwork(req);
             await CheckRequestAsync(view, req);
-        }
-
-        private void LookforVoters(View view)
-        {
-            // setup the voters list
-            _context.RefreshAllNodesVotes();
-            _context.Board.AllVoters = _context.Board.ActiveNodes
-                .OrderByDescending(a => a.Votes)
-                .Take(view.QualifiedNodeCount)
-                .Select(a => a.AccountID)
-                .ToList();
-            _context.Board.AllVoters.Sort();
         }
 
         internal void ShiftView(long v)
