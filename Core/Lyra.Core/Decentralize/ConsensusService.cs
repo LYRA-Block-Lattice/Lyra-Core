@@ -248,6 +248,11 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
 
+            _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
+            _engageTriggerStart = _stateMachine.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesInitSynced);
+            _engageTriggerConsolidateFailed = _stateMachine.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
+            CreateStateMachine();
+
             var timr = new System.Timers.Timer(200);
             timr.Elapsed += async (s, o) =>
             {
@@ -327,11 +332,6 @@ namespace Lyra.Core.Decentralize
                     }
                 }
             });
-
-            _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
-            _engageTriggerStart = _stateMachine.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesInitSynced);
-            _engageTriggerConsolidateFailed = _stateMachine.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
-            CreateStateMachine();
         }
 
         private void CreateStateMachine()
