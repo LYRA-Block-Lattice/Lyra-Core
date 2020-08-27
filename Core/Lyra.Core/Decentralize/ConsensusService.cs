@@ -539,7 +539,7 @@ namespace Lyra.Core.Decentralize
             _localNode.Tell(item);
         }
 
-        private async Task DeclareConsensusNodeAsync()
+        private async Task<ActiveNode> DeclareConsensusNodeAsync()
         {
             // declare to the network
             PosNode me = new PosNode(_sys.PosWallet.AccountId);
@@ -563,6 +563,8 @@ namespace Lyra.Core.Decentralize
             else
                 _board.NodeAddresses.Add(me.AccountID, me.IPAddress.ToString());
             await OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State);
+
+            return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
@@ -605,7 +607,21 @@ namespace Lyra.Core.Decentralize
 
         private async Task HeartBeatAsync()
         {
-            if(_board.ActiveNodes.ToArray().Any(a => a.AccountID == _sys.PosWallet.AccountId))
+            var me = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == _sys.PosWallet.AccountId);
+            if (me == null)
+                me = await DeclareConsensusNodeAsync();
+
+            if(me == null)
+            {
+                _log.LogError("No me in billboard!!!");
+            }
+            else
+            {
+                me.State = _stateMachine.State;
+                me.LastActive = DateTime.Now;
+            }
+
+            if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == _sys.PosWallet.AccountId))
                 _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId).LastActive = DateTime.Now;
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
@@ -621,10 +637,6 @@ namespace Lyra.Core.Decentralize
             };
 
             Send2P2pNetwork(msg);
-
-            var me = _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId);
-            me.State = _stateMachine.State;
-            me.LastActive = DateTime.Now;
         }
 
         private async Task OnNodeUpAsync(ChatMsg chat)
