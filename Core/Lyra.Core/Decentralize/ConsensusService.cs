@@ -955,7 +955,7 @@ namespace Lyra.Core.Decentralize
                     break;
                 case ChatMessageType.NodeStatusReply:
                     var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
-                    _blockchain.Tell(statusReply);
+                    _nodeStatus.Add(statusReply);
                     break;
             }
         }
