@@ -484,7 +484,7 @@ namespace Lyra.Core.Decentralize
                 .OnEntry(() => {
                     
                 })
-                .PermitReentry(BlockChainTrigger.ViewChanged)
+                .PermitReentry(BlockChainTrigger.ViewChanging)
                 .Permit(BlockChainTrigger.ViewChanged, BlockChainState.Almighty);
 
             _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
