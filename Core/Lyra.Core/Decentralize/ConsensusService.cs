@@ -338,11 +338,8 @@ namespace Lyra.Core.Decentralize
         {
             _stateMachine.Configure(BlockChainState.Initializing)
                 .OnEntry(() =>
-                {
-                    
-
-                    _log.LogInformation($"Blockchain Startup... ");
-
+                {                 
+                    _log.LogInformation($"Consensus Service Startup... ");
                 })
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
 
@@ -356,10 +353,6 @@ namespace Lyra.Core.Decentralize
                         try
                         {
                             _log.LogInformation($"Querying Lyra Network Status... ");
-
-                            _sys.Consensus.Tell(new ConsensusService.Startup());
-
-                            await Task.Delay(10000);
 
                             _nodeStatus = new List<NodeStatus>();
                             _sys.Consensus.Tell(new ConsensusService.NodeInquiry());
