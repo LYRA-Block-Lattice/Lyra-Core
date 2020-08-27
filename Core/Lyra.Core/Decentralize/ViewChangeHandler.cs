@@ -396,6 +396,9 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
+            // refresh billboard all voters
+            _context.UpdateVoters();
+
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
             _ValidViewId = lastSb.Height + 1;

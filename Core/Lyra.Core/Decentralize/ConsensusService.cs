@@ -544,6 +544,12 @@ namespace Lyra.Core.Decentralize
             return list;
         }
 
+        public void UpdateVoters()
+        {
+            RefreshAllNodesVotes();
+            Board.AllVoters = LookforVoters();
+        }
+
         internal void ConsolidationSucceed(ConsolidationBlock cons)
         {
             _ = Task.Run(async () => {
