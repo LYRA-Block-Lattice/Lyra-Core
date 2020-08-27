@@ -686,7 +686,7 @@ namespace Lyra.Core.Accounts
         {
             if (await FindBlockByHashAsync(block.Hash) != null)
             {
-                _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+                //_log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
                 return false;
             }
 

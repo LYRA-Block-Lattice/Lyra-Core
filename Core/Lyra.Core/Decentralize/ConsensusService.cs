@@ -69,10 +69,7 @@ namespace Lyra.Core.Decentralize
         private List<NodeStatus> _nodeStatus;
 
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
-        public bool IsMessageFromLeader(SourceSignedMessage msg)
-        {
-            return msg.From == Board.CurrentLeader;
-        }
+
         public BillBoard Board { get => _board; }
         public List<TransStats> Stats { get => _stats; }
 
@@ -577,6 +574,7 @@ namespace Lyra.Core.Decentralize
         internal void ServiceBlockCreated(ServiceBlock sb)
         {
             Board.PrimaryAuthorizers = sb.Authorizers.Keys.ToList();
+            Board.CurrentLeader = sb.Leader;
             _viewChangeHandler.ShiftView(sb.Height + 1);
         }
 
