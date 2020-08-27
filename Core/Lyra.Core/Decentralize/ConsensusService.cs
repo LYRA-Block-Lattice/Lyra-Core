@@ -309,7 +309,7 @@ namespace Lyra.Core.Decentralize
                         if (_stateMachine.State == BlockChainState.Almighty)
                         {
                             // tmp. disable for debugging.
-                            //await CreateConsolidationBlock();
+                            await CreateConsolidationBlock();
 
                             await HeartBeatAsync();
 

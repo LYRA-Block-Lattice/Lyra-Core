@@ -45,11 +45,13 @@ namespace Nebula.Store.NodeViewUseCase
 				var nonPrimaryNodes = nodeStatus.Where(a => !bb.PrimaryAuthorizers.Contains(a.Key));
 				foreach(var node in nonPrimaryNodes)
                 {
+					var x = bb.ActiveNodes.FirstOrDefault(a => a.AccountID == node.Key);
+					decimal vts = x == null ? 0 : x.Votes; 
 					list2.Add(new NodeInfoSet
 					{
 						ID = node.Key,
 						IsPrimary = false,
-						Votes = bb.ActiveNodes.First(a => a.AccountID == node.Key).Votes,
+						Votes = vts,
 						Status = node.Value
 					});
 				}
