@@ -143,20 +143,20 @@ namespace Lyra.Core.Decentralize
         // debug only. should remove after
         public override bool CheckTimeout()
         {
-            foreach(var v in _views.Values.ToList())
-            {
-                if(v.CheckTimeout())
-                {
-                    _log.LogInformation($"View Change with Id {v.viewId} timeout.");
-                    v.Reset();                    
+            //foreach(var v in _views.Values.ToList())
+            //{
+            //    if(v.CheckTimeout())
+            //    {
+            //        _log.LogInformation($"View Change with Id {v.viewId} timeout.");
+            //        v.Reset();                    
 
-                    Task.Run(async () => {
-                        await LookforVotersAsync(v);
-                        await Task.Delay(2000);
-                        await BeginChangeViewAsync();
-                    });
-                }
-            }
+            //        Task.Run(async () => {
+            //            await LookforVotersAsync(v);
+            //            await Task.Delay(2000);
+            //            await BeginChangeViewAsync();
+            //        });
+            //    }
+            //}
             return false;
         }
 
@@ -259,6 +259,9 @@ namespace Lyra.Core.Decentralize
                 .ToList();
             foreach (var req in q3)
                 view.commitMsgs.TryRemove(req, out _);
+
+            if (view.qualifiedVoters.Count == 0)
+                await LookforVotersAsync(view);
 
             // request
             if (view.reqMsgs.Count >= LyraGlobal.GetMajority(view.qualifiedVoters.Count))

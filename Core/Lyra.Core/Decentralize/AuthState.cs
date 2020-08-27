@@ -17,12 +17,10 @@ namespace Lyra.Core.Decentralize
     public enum ConsensusResult { Uncertain, Yea, Nay }
     public class ConsensusState
     {
-
+        public DateTime Created { get; set; } = DateTime.Now;
     }
     public class AuthState : ConsensusState
     {
-        public DateTime Created { get; private set; }
-
         // for debug profiling only
         public DateTime T1 { get; set; }
         public DateTime T2 { get; set; }

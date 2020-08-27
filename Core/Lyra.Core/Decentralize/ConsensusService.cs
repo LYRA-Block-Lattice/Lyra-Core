@@ -335,6 +335,7 @@ namespace Lyra.Core.Decentralize
         {
             if (CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging)
             {
+                _log.LogWarning($"GotViewChangeRequest from other nodes for {viewId}");
                 _stateMachine.Fire(BlockChainTrigger.ViewChanging);
                 await _viewChangeHandler.BeginChangeViewAsync();
             }                
