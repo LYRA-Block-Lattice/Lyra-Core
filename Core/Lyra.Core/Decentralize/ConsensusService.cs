@@ -538,13 +538,14 @@ namespace Lyra.Core.Decentralize
         {
             _ = Task.Run(async () => {
                 _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
-                var oldList = LookforVoters();
+                var list1 = LookforVoters();
                 RefreshAllNodesVotes();
-                var newList = LookforVoters();
+                var list2 = LookforVoters();
 
+                var firstNotSecond = list1.Except(list2).ToList();
+                var secondNotFirst = list2.Except(list1).ToList();
 
-
-                if (Enumerable.SequenceEqual(oldList, newList))
+                if (!firstNotSecond.Any() && !secondNotFirst.Any())
                     return;
 
                 _log.LogInformation($"We have new player(s). Change view...");
