@@ -438,6 +438,11 @@ namespace Lyra.Core.Decentralize
                 .ToList();
             _context.Board.AllVoters.Sort();
         }
+
+        internal void ShiftView(long v)
+        {
+            _ValidViewId = v;
+        }
     }
 
 

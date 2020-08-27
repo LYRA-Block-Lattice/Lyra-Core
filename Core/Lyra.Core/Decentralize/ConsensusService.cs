@@ -565,9 +565,10 @@ namespace Lyra.Core.Decentralize
             });
         }
 
-        internal void UpdateBillBoard(ServiceBlock sb)
+        internal void ServiceBlockCreated(ServiceBlock sb)
         {
             Board.PrimaryAuthorizers = sb.Authorizers.Keys.ToList();
+            _viewChangeHandler.ShiftView(sb.Height + 1);
         }
 
         internal void ConsolidationFailed(string hash)
@@ -996,7 +997,7 @@ namespace Lyra.Core.Decentralize
             var aBlock = await _sys.Storage.FindBlockByHashAsync(hash);
             if (aBlock != null)
             {
-                _log.LogWarning($"GetWorker: already in database! hash: {hash.Shorten()}");
+                //_log.LogWarning($"GetWorker: already in database! hash: {hash.Shorten()}");
                 return null;
             }
 

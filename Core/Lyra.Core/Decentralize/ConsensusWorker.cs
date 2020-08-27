@@ -406,7 +406,7 @@ namespace Lyra.Core.Decentralize
             else if(block is ServiceBlock sb)
             {
                 // need update billboard
-                _context.UpdateBillBoard(sb);
+                _context.ServiceBlockCreated(sb);
             }
         }
 
