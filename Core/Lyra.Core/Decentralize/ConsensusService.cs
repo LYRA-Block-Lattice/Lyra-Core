@@ -96,7 +96,7 @@ namespace Lyra.Core.Decentralize
             _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators;        // default to seeds
             _board.AllVoters.AddRange(_board.PrimaryAuthorizers);                           // default to all seed nodes
 
-            _viewChangeHandler = new ViewChangeHandler(this, (sender, viewId, leader, votes, voters) => {
+            _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) => {
                 _stateMachine.Fire(BlockChainTrigger.ViewChanged);
 
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");
@@ -112,7 +112,7 @@ namespace Lyra.Core.Decentralize
 
                 Task.Run(async () =>
                 {
-                    await Task.Delay(5000);
+                    await Task.Delay(10000);
                     var sb = await _sys.Storage.GetLastServiceBlockAsync();
                     if(sb.Height < viewId)
                     {
@@ -250,6 +250,9 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
+                    if (CurrentState == BlockChainState.ViewChanging)
+                        return;
+
                     if (_viewChangeHandler.CheckTimeout())
                     {
                         //IsViewChanging = false;
@@ -273,11 +276,8 @@ namespace Lyra.Core.Decentralize
 
                             if (result.HasValue && result.Value == ConsensusResult.Uncertain)
                             {
-                                // change view
-                                _stateMachine.Fire(BlockChainTrigger.ViewChanging);
-
                                 _log.LogInformation($"Consensus failed. start view change.");
-
+                                _stateMachine.Fire(BlockChainTrigger.ViewChanging);
                                 await _viewChangeHandler.BeginChangeViewAsync();
                             }
                         }
@@ -326,6 +326,17 @@ namespace Lyra.Core.Decentralize
             });
         }
 
+        internal async Task GotViewChangeRequestAsync(long viewId)
+        {
+            if (CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging)
+            {
+                _stateMachine.Fire(BlockChainTrigger.ViewChanging);
+                await _viewChangeHandler.BeginChangeViewAsync();
+            }                
+            else
+                _log.LogWarning($"GotViewChangeRequest for CurrentState: {CurrentState}");
+        }
+
         private void CreateStateMachine()
         {
             _stateMachine.Configure(BlockChainState.Initializing)
@@ -338,8 +349,7 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Startup)
                 .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
                 .OnEntry(() => Task.Run(async () =>
-                {
-                    
+                {                    
                     while (true)
                     {
                         try
@@ -414,7 +424,6 @@ namespace Lyra.Core.Decentralize
                     if (await _sys.Storage.FindLatestBlockAsync() == null && IsSeed0)
                     {
                         // check if other seeds is ready
-                        BillBoard board;
                         do
                         {
                             _log.LogInformation("Check if other node is in genesis mode.");
@@ -455,6 +464,7 @@ namespace Lyra.Core.Decentralize
 
                     _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
                 }))
+                .Permit(BlockChainTrigger.ViewChanging, BlockChainState.ViewChanging)
                 .Permit(BlockChainTrigger.LocalNodeFullySynced, BlockChainState.Almighty);
 
             _stateMachine.Configure(BlockChainState.Almighty)
@@ -575,7 +585,7 @@ namespace Lyra.Core.Decentralize
                 _board.ActiveNodes.RemoveAll(a => a.AccountID == accountId);
             }
 
-            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddMinutes(-5));
+            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-40));
         }
 
         private async Task HeartBeatAsync()
@@ -966,6 +976,9 @@ namespace Lyra.Core.Decentralize
             _voteUpdatr.WaitOne();
             try
             {
+                // remove stalled nodes
+                _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-40)); // 2 heartbeat + 10 s
+
                 var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID);
                 _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
 
@@ -977,6 +990,10 @@ namespace Lyra.Core.Decentralize
                     else
                         node.Votes = vote.Amount;
                 }
+            }
+            catch(Exception ex)
+            {
+                _log.LogError($"In RefreshAllNodesVotes: {ex}");
             }
             finally
             {
