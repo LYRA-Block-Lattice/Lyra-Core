@@ -306,7 +306,8 @@ namespace Lyra.Core.Decentralize
                     try
                     {
                         //_log.LogWarning("starting maintaince loop... ");
-                        if (_stateMachine.State == BlockChainState.Almighty)
+                        if (_stateMachine.State == BlockChainState.Almighty || 
+                                _stateMachine.State == BlockChainState.Genesis)
                         {
                             // tmp. disable for debugging.
                             await CreateConsolidationBlock();
