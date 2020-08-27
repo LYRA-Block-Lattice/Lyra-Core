@@ -87,6 +87,7 @@ namespace Lyra.Core.Decentralize
 
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
+            _nodeStatus = new List<NodeStatus>();
 
             _board = new BillBoard();
             _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
@@ -368,7 +369,7 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogInformation($"Querying Lyra Network Status... ");
 
-                            _nodeStatus = new List<NodeStatus>();
+                            _nodeStatus.Clear();
                             var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
                             inq.From = _sys.PosWallet.AccountId;
                             Send2P2pNetwork(inq);
