@@ -97,7 +97,7 @@ namespace Lyra.Core.Decentralize
 
             public bool CheckTimeout()
             {
-                if (dtStarted != DateTime.MinValue && DateTime.Now - dtStarted > TimeSpan.FromSeconds(30))
+                if (dtStarted != DateTime.MinValue && DateTime.Now - dtStarted > TimeSpan.FromSeconds(15))
                 {
                     return true;
                 }
