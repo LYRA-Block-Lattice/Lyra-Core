@@ -456,8 +456,6 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStart, (blockCount) => Task.Run(async () =>
                 {
-                    
-
                     try
                     {
                         if (blockCount > 2)
@@ -486,7 +484,17 @@ namespace Lyra.Core.Decentralize
 
             _stateMachine.Configure(BlockChainState.ViewChanging)
                 .OnEntry(() => {
-                    
+                    foreach(var worker in _activeConsensus.Values.ToList())
+                    {
+                        if (worker.State != null)
+                        {
+                            worker.State.Done?.Set();
+                            worker.State.Close();
+                        }
+
+                        _activeConsensus.TryRemove(worker.Hash, out _);
+                    }
+                    _activeConsensus.Clear();
                 })
                 .PermitReentry(BlockChainTrigger.ViewChanging)
                 .Permit(BlockChainTrigger.ViewChanged, BlockChainState.Almighty);
