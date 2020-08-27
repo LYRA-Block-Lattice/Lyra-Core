@@ -301,12 +301,15 @@ namespace Lyra.Core.Decentralize
                 int count = 0;
                 while (true)
                 {
+                    await Task.Delay(30000).ConfigureAwait(false);
+
                     try
                     {
                         //_log.LogWarning("starting maintaince loop... ");
                         if (_stateMachine.State == BlockChainState.Almighty)
                         {
-                            await CreateConsolidationBlock();
+                            // tmp. disable for debugging.
+                            //await CreateConsolidationBlock();
 
                             await HeartBeatAsync();
 
