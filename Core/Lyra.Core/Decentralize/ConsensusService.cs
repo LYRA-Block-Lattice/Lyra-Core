@@ -551,8 +551,11 @@ namespace Lyra.Core.Decentralize
             _ = Task.Run(async () => {
                 _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
                 var list1 = LookforVoters();
-                RefreshAllNodesVotes();
+                UpdateVoters();
                 var list2 = LookforVoters();
+
+                if (CurrentState == BlockChainState.Genesis)
+                    _stateMachine.Fire(BlockChainTrigger.GenesisDone);
 
                 var firstNotSecond = list1.Except(list2).ToList();
                 var secondNotFirst = list2.Except(list1).ToList();
