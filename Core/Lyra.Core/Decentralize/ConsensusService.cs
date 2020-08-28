@@ -748,11 +748,11 @@ namespace Lyra.Core.Decentralize
                 else
                     _board.NodeAddresses.Add(node.AccountID, node.IPAddress);
                 
-                // if current leader is up, must resend up
-                if(_board.CurrentLeader == node.AccountID && _stateMachine.State == BlockChainState.Almighty)
-                {
-                    await DeclareConsensusNodeAsync();
-                }
+                //// if current leader is up, must resend up
+                //if(_board.CurrentLeader == node.AccountID && _stateMachine.State == BlockChainState.Almighty)
+                //{
+                //    await DeclareConsensusNodeAsync();
+                //}
 
                 //if (!IsViewChanging)
                 //{
