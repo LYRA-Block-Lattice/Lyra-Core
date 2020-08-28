@@ -821,7 +821,7 @@ namespace Lyra.Core.Decentralize
                         var timeStamp = DateTime.UtcNow.AddSeconds(-10);
                         var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
 
-                        if (unConsList.Count() > 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
+                        if (unConsList.Count() >= 10 || (unConsList.Count() >= 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                         {
                             try
                             {
