@@ -592,8 +592,9 @@ namespace Lyra.Core.Decentralize
 
     public enum BlockChainState
     {
+        NULL,
         Initializing,
-        Startup,    // the default mode. app started. wait for p2p stack up.
+        BasicSync,    // the default mode. app started. wait for p2p stack up.
         Engaging,   // storing new commit while syncing blocks
         Almighty,   // fullly synced and working
         ViewChanging, // 
@@ -604,6 +605,9 @@ namespace Lyra.Core.Decentralize
     {
         // initializing
         LocalNodeStartup,
+
+        // basic sync
+        DatabaseSync,
 
         // startup
         QueryingConsensusNode,

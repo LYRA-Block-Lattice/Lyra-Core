@@ -90,9 +90,6 @@ namespace Lyra.Core.Decentralize
             _nodeStatus = new List<NodeStatus>();
 
             _board = new BillBoard();
-            _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
-            _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators.ToList();        // default to seeds
-            _board.AllVoters.AddRange(_board.PrimaryAuthorizers);                           // default to all seed nodes
 
             _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) => {
                 _stateMachine.Fire(BlockChainTrigger.ViewChanged);
@@ -126,18 +123,8 @@ namespace Lyra.Core.Decentralize
                     //_viewChangeHandler.Reset(); // wait for svc block generated
             });
 
-            ReceiveAsync<Startup>(async state =>
+            Receive<Startup>(state =>
             {
-                // generate billboard from last service block
-                var lastSvcBlk = await _sys.Storage.GetLastServiceBlockAsync();
-                if (lastSvcBlk != null)
-                {
-                    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Keys.ToList();
-                    if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
-                        _board.CurrentLeader = lastSvcBlk.Leader;
-                    _board.AllVoters = _board.PrimaryAuthorizers.ToList();
-                }
-
                 _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup);
             });
 
@@ -245,7 +232,7 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
 
-            _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.Initializing);
+            _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.NULL);
             _engageTriggerStart = _stateMachine.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesInitSynced);
             _engageTriggerConsolidateFailed = _stateMachine.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
             CreateStateMachine();
@@ -364,14 +351,34 @@ namespace Lyra.Core.Decentralize
 
         private void CreateStateMachine()
         {
+            _stateMachine.Configure(BlockChainState.NULL)
+                .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Initializing);
+
             _stateMachine.Configure(BlockChainState.Initializing)
-                .OnEntry(() =>
+                .OnEntry(async () =>
                 {                 
                     _log.LogInformation($"Consensus Service Startup... ");
-                })
-                .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
 
-            _stateMachine.Configure(BlockChainState.Startup)
+                    var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+                    if(lsb == null)
+                    {
+                        _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
+                        _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators.ToList();        // default to seeds
+                        _board.AllVoters = _board.PrimaryAuthorizers;                           // default to all seed nodes
+                    }
+                    else
+                    {
+                        _board.CurrentLeader = lsb.Leader;
+                        _board.PrimaryAuthorizers = lsb.Authorizers.Keys.ToList();
+                        _board.AllVoters = _board.PrimaryAuthorizers;
+                    }
+
+                    // swith mode
+                    _stateMachine.Fire(BlockChainTrigger.DatabaseSync);
+                })
+                .Permit(BlockChainTrigger.DatabaseSync, BlockChainState.BasicSync);
+
+            _stateMachine.Configure(BlockChainState.BasicSync)
                 .OnEntry(() => Task.Run(async () =>
                 {                    
                     while (true)
@@ -466,7 +473,7 @@ namespace Lyra.Core.Decentralize
                         await Task.Delay(360000);
                     }
                 }))
-                .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Startup);
+                .Permit(BlockChainTrigger.GenesisDone, BlockChainState.BasicSync);
 
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStart, (blockCount) => Task.Run(async () =>
@@ -494,7 +501,7 @@ namespace Lyra.Core.Decentralize
                     await DeclareConsensusNodeAsync();                    
                 }))
                 .Permit(BlockChainTrigger.ViewChanging, BlockChainState.ViewChanging)
-                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup);
+                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.BasicSync);
 
             _stateMachine.Configure(BlockChainState.ViewChanging)
                 .OnEntry(() => {
@@ -511,7 +518,7 @@ namespace Lyra.Core.Decentralize
                     _activeConsensus.Clear();
                 })
                 .PermitReentry(BlockChainTrigger.ViewChanging)
-                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Startup)
+                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.BasicSync)
                 .Permit(BlockChainTrigger.ViewChanged, BlockChainState.Almighty);
 
             _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
@@ -761,7 +768,7 @@ namespace Lyra.Core.Decentralize
                 if (!Signatures.VerifyAccountSignature(signAgainst, node.AccountID, node.AuthorizerSignature))
                     throw new Exception("Signature verification failed.");
 
-                await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.Startup);
+                await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.BasicSync);
                 // add network/ip verifycation here
                 // if(verifyIP)
                 if (_board.NodeAddresses.ContainsKey(node.AccountID))
