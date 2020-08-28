@@ -118,6 +118,7 @@ namespace Lyra.Core.Decentralize
                         // the new leader failed.
                         sender.Reset(viewId, leader.Split('|').ToList());
 
+                        // redo view change
                         _stateMachine.Fire(BlockChainTrigger.ViewChanging);
                         await _viewChangeHandler.BeginChangeViewAsync();
                     }
@@ -152,7 +153,8 @@ namespace Lyra.Core.Decentralize
                 //_log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
                 if (_nodeStatus != null)
                 {
-                    if (!_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
+                    if (ProtocolSettings.Default.StandbyValidators.Contains(nodeStatus.accountId) 
+                        && !_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
                         _nodeStatus.Add(nodeStatus);
                 }
             });
@@ -283,8 +285,11 @@ namespace Lyra.Core.Decentralize
                             if (result.HasValue && result.Value == ConsensusResult.Uncertain)
                             {
                                 _log.LogInformation($"Consensus failed. start view change.");
-                                _stateMachine.Fire(BlockChainTrigger.ViewChanging);
-                                await _viewChangeHandler.BeginChangeViewAsync();
+                                if(CurrentState == BlockChainState.Almighty)
+                                {
+                                    _stateMachine.Fire(BlockChainTrigger.ViewChanging);
+                                    await _viewChangeHandler.BeginChangeViewAsync();
+                                }
                             }
                         }
                     }
@@ -340,7 +345,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task GotViewChangeRequestAsync(long viewId)
         {
-            if (CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging)
+            if (CurrentState == BlockChainState.Almighty)
             {
                 _log.LogWarning($"GotViewChangeRequest from other nodes for {viewId}");
                 _stateMachine.Fire(BlockChainTrigger.ViewChanging);
@@ -360,7 +365,6 @@ namespace Lyra.Core.Decentralize
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Startup);
 
             _stateMachine.Configure(BlockChainState.Startup)
-                .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
                 .OnEntry(() => Task.Run(async () =>
                 {                    
                     while (true)
@@ -428,6 +432,7 @@ namespace Lyra.Core.Decentralize
                         }
                     }
                 }))
+                .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
                 .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Genesis)
                 .Permit(BlockChainTrigger.ConsensusNodesInitSynced, BlockChainState.Engaging);
 
@@ -474,7 +479,6 @@ namespace Lyra.Core.Decentralize
 
                     _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
                 }))
-                .Permit(BlockChainTrigger.ViewChanging, BlockChainState.ViewChanging)
                 .Permit(BlockChainTrigger.LocalNodeFullySynced, BlockChainState.Almighty);
 
             _stateMachine.Configure(BlockChainState.Almighty)
@@ -564,10 +568,13 @@ namespace Lyra.Core.Decentralize
                 // update billboard
                 Board.AllVoters = list2;
 
-                _log.LogInformation($"We have new player(s). Change view...");
-                // should change view for new member
-                _stateMachine.Fire(BlockChainTrigger.ViewChanging);
-                await _viewChangeHandler.BeginChangeViewAsync();
+                if(CurrentState == BlockChainState.Almighty)
+                {
+                    _log.LogInformation($"We have new player(s). Change view...");
+                    // should change view for new member
+                    _stateMachine.Fire(BlockChainTrigger.ViewChanging);
+                    await _viewChangeHandler.BeginChangeViewAsync();
+                }
             });
         }
 
