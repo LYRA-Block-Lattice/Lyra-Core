@@ -1,6 +1,6 @@
 {
   "ProtocolConfiguration": {
-    "Magic": 20200729,
+    "Magic": 20200829,
     "ConsensusTimeout": 4,
     "ConsensusNumber": 6,
     "StandbyValidators": [
