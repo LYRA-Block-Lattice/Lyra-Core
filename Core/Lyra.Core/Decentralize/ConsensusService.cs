@@ -570,7 +570,10 @@ namespace Lyra.Core.Decentralize
                 var secondNotFirst = list2.Except(list1).ToList();
 
                 if (!firstNotSecond.Any() && !secondNotFirst.Any())
+                {
+                    _log.LogInformation($"voter list is same as previous one.");
                     return;
+                }                    
 
                 // update billboard
                 Board.AllVoters = list2;
@@ -581,6 +584,10 @@ namespace Lyra.Core.Decentralize
                     // should change view for new member
                     _stateMachine.Fire(BlockChainTrigger.ViewChanging);
                     await _viewChangeHandler.BeginChangeViewAsync();
+                }
+                else
+                {
+                    _log.LogInformation($"Current state {CurrentState} not allow to change view.");
                 }
             });
         }
