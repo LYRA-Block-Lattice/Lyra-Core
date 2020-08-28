@@ -280,7 +280,7 @@ namespace Lyra.Core.Decentralize
                 sb.AppendLine($"* Transaction From Node {acctId} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
                 foreach (var msg in _state.OutputMsgs.ToList())
                 {
-                    var seed0 = msg.From == ProtocolSettings.Default.StandbyValidators[0] ? "[seed0]" : "";
+                    var seed0 = msg.From == _context.Board.CurrentLeader ? "[Leader]" : "";
                     string me = "";
                     if (msg.From == _context.GetDagSystem().PosWallet.AccountId)
                         me = "[me]";
