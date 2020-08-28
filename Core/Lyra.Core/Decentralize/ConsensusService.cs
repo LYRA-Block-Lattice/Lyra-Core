@@ -305,33 +305,40 @@ namespace Lyra.Core.Decentralize
             Task.Run(async () =>
             {
                 int count = 0;
+
+                // give other routine time to work/start/init
+                await Task.Delay(30000).ConfigureAwait(false);
+
                 while (true)
                 {
-                    await Task.Delay(30000).ConfigureAwait(false);
-
                     try
                     {
-                        //_log.LogWarning("starting maintaince loop... ");
-                        if (_stateMachine.State == BlockChainState.Almighty || 
-                                _stateMachine.State == BlockChainState.Genesis)
+                        if (_stateMachine.State == BlockChainState.Almighty 
+                                || _stateMachine.State == BlockChainState.Genesis
+                                || _stateMachine.State == BlockChainState.ViewChanging)
                         {
-                            await CreateConsolidationBlock();
-
                             await HeartBeatAsync();
-
-                            count++;
-
-                            if (count > 4 * 5)     // 5 minutes
-                            {
-                                count = 0;
-                            }
                         }
 
-                        await Task.Delay(15000).ConfigureAwait(false);
+                        if (_stateMachine.State == BlockChainState.Almighty)
+                        {
+                            await CreateConsolidationBlock();
+                        }
+
+                        count++;
+
+                        if (count > 4 * 5)     // 5 minutes
+                        {
+                            count = 0;
+                        }                        
                     }
                     catch (Exception ex)
                     {
                         _log.LogWarning("In maintaince loop: " + ex.ToString());
+                    }
+                    finally
+                    {
+                        await Task.Delay(15000).ConfigureAwait(false);
                     }
                 }
             });
