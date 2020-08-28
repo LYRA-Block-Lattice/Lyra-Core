@@ -5,6 +5,7 @@ using Lyra.Core.Utils;
 using Lyra.Shared;
 using Neo;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -20,7 +21,7 @@ namespace Lyra.Core.Decentralize
     // if the node is dead for a long time (> 45 seconds), it will be put into freezing pool
     public class BillBoard
     {
-        public Dictionary<string, string> NodeAddresses { get; }
+        public ConcurrentDictionary<string, string> NodeAddresses { get; }
 
         // with heartbeat, we know who is alive.
         public List<ActiveNode> ActiveNodes { get; }
@@ -36,7 +37,7 @@ namespace Lyra.Core.Decentralize
 
         public BillBoard()
         {
-            NodeAddresses = new Dictionary<string, string>();
+            NodeAddresses = new ConcurrentDictionary<string, string>();
             ActiveNodes = new List<ActiveNode>();
             AllVoters = new List<string>();
         }

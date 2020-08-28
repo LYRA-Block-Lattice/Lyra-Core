@@ -142,27 +142,31 @@ namespace Lyra.Core.Decentralize
 		// so if current service block changed an outsynced node should never valid its heartbeat.
 		public string AuthorizerSignature { get; set; }
 		public BlockChainState State { get; set; }
+		public string PublicIP { get; set; }
 		public HeartBeatMessage()
         {
 			MsgType = ChatMessageType.HeartBeat;
         }
-		public override int Size => base.Size + AuthorizerSignature.Length + 1;
+		public override int Size => base.Size + AuthorizerSignature.Length + 1 + PublicIP.Length;
         public override void Serialize(BinaryWriter writer)
         {
             base.Serialize(writer);
 			writer.Write(AuthorizerSignature);
 			writer.Write((byte)State);
+			writer.Write(PublicIP);
         }
         public override void Deserialize(BinaryReader reader)
         {
             base.Deserialize(reader);
 			AuthorizerSignature = reader.ReadString();
 			State = (BlockChainState)reader.ReadByte();
+			PublicIP = reader.ReadString();
 		}
 
         public override string GetHashInput()
         {
 			return base.GetHashInput() +
+				$"!{PublicIP}" +
 				$"|{State}" +
 				$"|{AuthorizerSignature}";
 				

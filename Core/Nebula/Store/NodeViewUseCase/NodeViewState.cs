@@ -29,7 +29,7 @@ namespace Nebula.Store.NodeViewUseCase
 				var list = new List<NodeInfoSet>();
 				foreach(var id in bb.PrimaryAuthorizers)
                 {
-					if(bb.ActiveNodes.Any(a => a.AccountID == id))		// bug in billboard. or error-proof
+					if(bb.ActiveNodes.Any(a => a.AccountID == id) && nodeStatus.ContainsKey(id))		// bug in billboard. or error-proof
                     {
 						var x = bb.ActiveNodes.FirstOrDefault(a => a.AccountID == id);
 						decimal vts = x == null ? 0 : x.Votes;

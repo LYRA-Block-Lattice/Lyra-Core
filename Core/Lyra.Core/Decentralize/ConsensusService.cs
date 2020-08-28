@@ -24,6 +24,8 @@ using System.Threading.Tasks;
 using static Neo.Network.P2P.LocalNode;
 using Settings = Neo.Settings;
 using Stateless;
+using Org.BouncyCastle.Utilities.Net;
+using System.Net;
 
 namespace Lyra.Core.Decentralize
 {
@@ -64,6 +66,7 @@ namespace Lyra.Core.Decentralize
         List<Vote> _lastVotes;
         private BillBoard _board;
         private List<TransStats> _stats;
+        private System.Net.IPAddress _myIpAddress;
 
         // status inquiry
         private List<NodeStatus> _nodeStatus;
@@ -650,7 +653,8 @@ namespace Lyra.Core.Decentralize
         {
             // declare to the network
             PosNode me = new PosNode(_sys.PosWallet.AccountId);
-            me.IPAddress = $"{await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId)}";
+            _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId);
+            me.IPAddress = $"{_myIpAddress}";
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
@@ -668,7 +672,7 @@ namespace Lyra.Core.Decentralize
                 _board.NodeAddresses[me.AccountID] = me.IPAddress.ToString();
             }
             else
-                _board.NodeAddresses.Add(me.AccountID, me.IPAddress.ToString());
+                _board.NodeAddresses.TryAdd(me.AccountID, me.IPAddress.ToString());
             await OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State);
 
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
@@ -676,9 +680,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
-            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State);
+            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP);
         }
-        private async Task OnNodeActive(string accountId, string authorizerSignature, BlockChainState state)
+        private async Task OnNodeActive(string accountId, string authorizerSignature, BlockChainState state, string ip = null)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
@@ -701,6 +705,15 @@ namespace Lyra.Core.Decentralize
                         LastActive = DateTime.Now 
                     };
                     _board.ActiveNodes.Add(node);
+                }
+
+                if(!string.IsNullOrWhiteSpace(ip))
+                {
+                    System.Net.IPAddress addr;
+                    if(System.Net.IPAddress.TryParse(ip, out addr))
+                    {
+                        _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
+                    }
                 }
             }
             else
@@ -746,6 +759,7 @@ namespace Lyra.Core.Decentralize
                 From = _sys.PosWallet.AccountId,
                 Text = "I'm live",
                 State = _stateMachine.State,
+                PublicIP = _myIpAddress == null ? "" : _myIpAddress.ToString(),
                 AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 
@@ -779,7 +793,7 @@ namespace Lyra.Core.Decentralize
                 if (_board.NodeAddresses.ContainsKey(node.AccountID))
                     _board.NodeAddresses[node.AccountID] = node.IPAddress;
                 else
-                    _board.NodeAddresses.Add(node.AccountID, node.IPAddress);
+                    _board.NodeAddresses.TryAdd(node.AccountID, node.IPAddress);
                 
                 //// if current leader is up, must resend up
                 //if(_board.CurrentLeader == node.AccountID && _stateMachine.State == BlockChainState.Almighty)
