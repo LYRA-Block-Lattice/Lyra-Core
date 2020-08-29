@@ -304,7 +304,7 @@ namespace Lyra.Core.Decentralize
                          group rep by rep.msg.Candidate into g
                          select new { Candidate = g.Key, Count = g.Count() };
 
-                var candidateQR = qr.FirstOrDefault();
+                var candidateQR = qr.OrderByDescending(x => x.Count).FirstOrDefault();
 
                 if (candidateQR?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
