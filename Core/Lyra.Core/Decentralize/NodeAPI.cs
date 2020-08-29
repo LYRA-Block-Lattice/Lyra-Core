@@ -66,7 +66,6 @@ namespace Lyra.Core.Decentralize
                 NetworkID = LyraNodeConfig.GetNetworkId(),
                 SyncState = chainStatus.state == BlockChainState.Almighty ? ConsensusWorkingMode.Normal : ConsensusWorkingMode.OutofSyncWaiting,
                 LastConsolidationHash = consBlock == null ? null : consBlock.Hash,
-                //NewestBlockUIndex = await NodeService.Dag.Storage.GetNewestBlockUIndexAsync(),
                 Status = chainStatus
             };
             return result;

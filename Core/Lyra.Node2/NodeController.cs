@@ -33,7 +33,7 @@ namespace LyraLexWeb2
         }
         private async Task CheckSyncStateAsync()
         {
-            while(DateTime.Now - _dtStarted < TimeSpan.FromSeconds(30))
+            while(DateTime.Now - _dtStarted < TimeSpan.FromSeconds(5))
             {
                 await Task.Delay(1000);
             }
