@@ -355,6 +355,7 @@ namespace Lyra.Core.Decentralize
 		public long totalBlockCount { get; set; }
 		public string lastConsolidationHash { get; set; }
 		public string lastUnSolidationHash { get; set; }
+		public int activePeers { get; set; }
 		public int connectedPeers { get; set; }
 
 		public override bool Equals(object obj)

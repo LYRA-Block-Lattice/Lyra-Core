@@ -29,6 +29,7 @@ namespace Lyra.Core.Decentralize
                 totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount + unCons.Count(),
                 lastConsolidationHash = lastCons?.Hash,
                 lastUnSolidationHash = GetUnConsolidatedHash(unCons),
+                activePeers = Board.ActiveNodes.Count,
                 connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
             };
             return status;

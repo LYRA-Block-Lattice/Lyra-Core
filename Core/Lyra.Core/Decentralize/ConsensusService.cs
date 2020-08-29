@@ -26,6 +26,7 @@ using Settings = Neo.Settings;
 using Stateless;
 using Org.BouncyCastle.Utilities.Net;
 using System.Net;
+using Loyc.Collections;
 
 namespace Lyra.Core.Decentralize
 {
@@ -62,6 +63,8 @@ namespace Lyra.Core.Decentralize
 
         ILogger _log;
 
+        ConcurrentDictionary<string, DateTime> _heartBeatCache;
+
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         List<Vote> _lastVotes;
         private BillBoard _board;
@@ -72,6 +75,7 @@ namespace Lyra.Core.Decentralize
         private List<NodeStatus> _nodeStatus;
 
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
+        public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
 
         public BillBoard Board { get => _board; }
         public List<TransStats> Stats { get => _stats; }
@@ -88,6 +92,7 @@ namespace Lyra.Core.Decentralize
             _blockchain = blockchain;
             _log = new SimpleLogger("ConsensusService").Logger;
 
+            _heartBeatCache = new ConcurrentDictionary<string, DateTime>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
             _nodeStatus = new List<NodeStatus>();
@@ -298,6 +303,12 @@ namespace Lyra.Core.Decentralize
                                 || _stateMachine.State == BlockChainState.Genesis
                                 || _stateMachine.State == BlockChainState.ViewChanging)
                         {
+                            var oldList = _heartBeatCache.Where(a => a.Value < DateTime.Now.AddSeconds(-20))
+                                    .Select(b => b.Key)
+                                    .ToList();
+
+                            oldList.ForEach(hb => _heartBeatCache.TryRemove(hb, out _));
+
                             await HeartBeatAsync();
                         }
 
@@ -673,7 +684,22 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
-            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP);
+            // seed node relay heartbeat, only once
+            if (_heartBeatCache.ContainsKey(heartBeat.Signature))
+            {
+                // no need
+            }
+            else
+            {
+                _heartBeatCache.TryAdd(heartBeat.Signature, DateTime.Now);
+
+                if (IsThisNodeSeed)
+                {
+                    Send2P2pNetwork(heartBeat);
+                }
+
+                await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP);
+            }
         }
         private async Task OnNodeActive(string accountId, string authorizerSignature, BlockChainState state, string ip = null)
         {
