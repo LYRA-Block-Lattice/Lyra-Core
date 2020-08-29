@@ -218,7 +218,7 @@ namespace Lyra.Core.Decentralize
                         int randomvalue = BitConverter.ToInt32(rno, 0);
 
                         ndx = randomvalue % ProtocolSettings.Default.SeedList.Length;
-                    } while (ndx >= 0 && sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
+                    } while (ndx < 0 || sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
                 }
 
                 var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
