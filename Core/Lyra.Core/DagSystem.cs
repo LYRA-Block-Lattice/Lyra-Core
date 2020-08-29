@@ -33,6 +33,7 @@ namespace Lyra
         internal IActorRef TaskManager { get; }
         public IActorRef Consensus { get; private set; }
 
+        public bool FullStarted { get; private set; }
         public Wallet PosWallet { get; private set; }
 
         private ChannelsConfig start_message = null;
@@ -47,10 +48,11 @@ namespace Lyra
         public DagSystem(IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {
             _log = new SimpleLogger("DagSystem").Logger;
+            FullStarted = false;
 
             Storage = store;
             PosWallet = posWallet;
-            
+
             LocalNode = localNode;
             this.LocalNode.Tell(this);
 
@@ -60,7 +62,7 @@ namespace Lyra
             TradeEngine = new TradeMatchEngine(Storage);
         }
 
-        public void Start()
+        public async Task StartAsync()
         {
             StartNode(new ChannelsConfig
             {
@@ -71,37 +73,36 @@ namespace Lyra
                 MaxConnectionsPerAddress = Settings.Default.P2P.MaxConnectionsPerAddress
             });
 
-            Task.Run(async () =>
+            int waitCount = 60;
+            while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
             {
-                int waitCount = 60;
-                while(Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
-                {
-                    _log.LogWarning($"{waitCount} Wait for p2p network startup. connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
-                    await Task.Delay(1000);
-                    waitCount--;
-                    if (waitCount <= 0)
-                        break;
-                }
-                _log.LogWarning($"p2p network connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
+                _log.LogWarning($"{waitCount} Wait for p2p network startup. connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
+                await Task.Delay(1000);
+                waitCount--;
+                if (waitCount <= 0)
+                    break;
+            }
+            _log.LogWarning($"p2p network connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
 
-                TheBlockchain.Tell(new BlockChain.Startup());
+            TheBlockchain.Tell(new BlockChain.Startup());
 
-                StartConsensus();
+            StartConsensus();
 
-                //if (DagSystem.Singleton.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
-                //{
-                //    ActorSystem.Scheduler
-                //       .ScheduleTellRepeatedly(TimeSpan.FromSeconds(20),
-                //                 TimeSpan.FromSeconds(600),
-                //                 Consensus, new ConsensusService.Consolidate(), ActorRefs.NoSender); //or ActorRefs.Nobody or something else
-                //}
-            });
+            //if (DagSystem.Singleton.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0])
+            //{
+            //    ActorSystem.Scheduler
+            //       .ScheduleTellRepeatedly(TimeSpan.FromSeconds(20),
+            //                 TimeSpan.FromSeconds(600),
+            //                 Consensus, new ConsensusService.Consolidate(), ActorRefs.NoSender); //or ActorRefs.Nobody or something else
+            //}
+
+            FullStarted = true;
         }
 
         public void StartConsensus()
         {
             Consensus = ActorSystem.ActorOf(ConsensusService.Props(this, this.LocalNode, TheBlockchain));
-            Consensus.Tell(new ConsensusService.Startup {  }, TheBlockchain);
+            Consensus.Tell(new ConsensusService.Startup { }, TheBlockchain);
         }
 
         public void StartNode(ChannelsConfig config)

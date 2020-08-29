@@ -50,7 +50,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
-            if(NodeService.Dag == null || NodeService.Dag.Storage == null)
+            if(NodeService.Dag == null || NodeService.Dag.Storage == null || !NodeService.Dag.FullStarted)
             {
                 return new GetSyncStateAPIResult
                 {
