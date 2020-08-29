@@ -5,6 +5,7 @@ using Neo;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace Lyra.Core.Decentralize
             }
             catch(Exception ex)
             {
-                if (ex is TaskCanceledException || ex.Message == "Web Api Failed.")
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
                     _client = await FindValidSeedForSyncAsync(_sys);
@@ -57,7 +58,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException || ex.Message == "Web Api Failed.")
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
                     _client = await FindValidSeedForSyncAsync(_sys);
@@ -80,7 +81,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException || ex.Message == "Web Api Failed.")
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
                     _client = await FindValidSeedForSyncAsync(_sys);
@@ -103,7 +104,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException || ex.Message == "Web Api Failed.")
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
                     _client = await FindValidSeedForSyncAsync(_sys);
@@ -125,7 +126,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException || ex.Message == "Web Api Failed.")
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
                     _client = await FindValidSeedForSyncAsync(_sys);
@@ -147,7 +148,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException || ex.Message == "Web Api Failed.")
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
                     _client = await FindValidSeedForSyncAsync(_sys);
@@ -169,7 +170,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException || ex.Message == "Web Api Failed.")
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
                     _client = await FindValidSeedForSyncAsync(_sys);
@@ -191,7 +192,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                if (ex is TaskCanceledException || ex.Message == "Web Api Failed.")
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
                     _client = await FindValidSeedForSyncAsync(_sys);
