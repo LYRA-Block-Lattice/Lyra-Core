@@ -59,7 +59,7 @@ namespace Lyra.Core.Decentralize
 
         ILogger _log;
 
-        ConcurrentDictionary<string, DateTime> _heartBeatCache;
+        ConcurrentDictionary<string, DateTime> _criticalMsgCache;
 
         ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         List<Vote> _lastVotes;
@@ -88,7 +88,7 @@ namespace Lyra.Core.Decentralize
             _blockchain = blockchain;
             _log = new SimpleLogger("ConsensusService").Logger;
 
-            _heartBeatCache = new ConcurrentDictionary<string, DateTime>();
+            _criticalMsgCache = new ConcurrentDictionary<string, DateTime>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
             _nodeStatus = new List<NodeStatus>();
@@ -267,13 +267,13 @@ namespace Lyra.Core.Decentralize
                                 || _stateMachine.State == BlockChainState.Genesis
                                 || _stateMachine.State == BlockChainState.ViewChanging)
                         {
-                            var oldList = _heartBeatCache.Where(a => a.Value < DateTime.Now.AddSeconds(-20))
+                            var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-20))
                                     .Select(b => b.Key)
                                     .ToList();
 
                             foreach(var hb in oldList)
                             {
-                                _heartBeatCache.TryRemove(hb, out _);
+                                _criticalMsgCache.TryRemove(hb, out _);
                             }                                
 
                             await HeartBeatAsync();
@@ -654,13 +654,13 @@ namespace Lyra.Core.Decentralize
             // seed node relay heartbeat, only once
             // this keep the whole network one consist view of active nodes.
             // this is important to make election.
-            if (_heartBeatCache.ContainsKey(heartBeat.Signature))
+            if (_criticalMsgCache.ContainsKey(heartBeat.Signature))
             {
                 // no need
             }
             else
             {
-                _heartBeatCache.TryAdd(heartBeat.Signature, DateTime.Now);
+                _criticalMsgCache.TryAdd(heartBeat.Signature, DateTime.Now);
 
                 if (IsThisNodeSeed)
                 {
@@ -1077,7 +1077,24 @@ namespace Lyra.Core.Decentralize
                 if(CurrentState == BlockChainState.Almighty
                     || CurrentState == BlockChainState.ViewChanging)
                 {
-                    await _viewChangeHandler.ProcessMessage(vcm);
+                    // seed node relay heartbeat, only once
+                    // this keep the whole network one consist view of active nodes.
+                    // this is important to make election.
+                    if (_criticalMsgCache.ContainsKey(vcm.Signature))
+                    {
+                        // no need
+                    }
+                    else
+                    {
+                        _criticalMsgCache.TryAdd(vcm.Signature, DateTime.Now);
+
+                        if (IsThisNodeSeed)
+                        {
+                            _localNode.Tell(vcm);     // no sign again!!!
+                        }
+
+                        await _viewChangeHandler.ProcessMessage(vcm);
+                    }
                 }
                 else
                 {
