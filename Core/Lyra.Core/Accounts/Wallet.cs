@@ -583,14 +583,15 @@ namespace Lyra.Core.Accounts
                 return result;
             }
 
-            while(true)
+            var currentSvcBlock = await _rpcClient.GetLastServiceBlock();
+
+            while (true)
             {
                 result = await SendOnce(Amount, DestinationAccountId, ticker, ToExchange);
                 if (result.ResultCode == APIResultCodes.ConsensusTimeout)
-                {
-                    var currentSvcBlock = await _rpcClient.GetLastServiceBlock();
+                {                    
                     bool viewChanged = false;
-                    for (int i = 0; i < 300; i++)       // wait 30 seconds for consensus network to recovery
+                    for (int i = 0; i < 30; i++)       // wait 30 seconds for consensus network to recovery
                     {
                         var nextSvcBlock = await _rpcClient.GetLastServiceBlock();
                         if (currentSvcBlock.ResultCode == APIResultCodes.Success &&
@@ -601,7 +602,7 @@ namespace Lyra.Core.Accounts
                             break;
                         }
 
-                        await Task.Delay(100);
+                        await Task.Delay(1000);
                     }
                     if (viewChanged)
                         continue;

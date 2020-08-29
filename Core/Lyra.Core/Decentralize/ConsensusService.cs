@@ -137,18 +137,6 @@ namespace Lyra.Core.Decentralize
                 Sender.Tell(status);
             });
 
-            Receive<NodeStatus>(nodeStatus =>
-            {
-                // only accept status from seeds.
-                //_log.LogInformation($"NodeStatus from {nodeStatus.accountId.Shorten()}");
-                if (_nodeStatus != null)
-                {
-                    if (ProtocolSettings.Default.StandbyValidators.Contains(nodeStatus.accountId) 
-                        && !_nodeStatus.Any(a => a.accountId == nodeStatus.accountId))
-                        _nodeStatus.Add(nodeStatus);
-                }
-            });
-
             Receive<BlockChain.BlockAdded>(nb =>
             {
                 //if (nb.NewBlock is ServiceBlock lastSvcBlk)
@@ -1121,7 +1109,12 @@ namespace Lyra.Core.Decentralize
                     break;
                 case ChatMessageType.NodeStatusReply:
                     var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
-                    _nodeStatus.Add(statusReply);
+                    if (_nodeStatus != null)
+                    {
+                        if (ProtocolSettings.Default.StandbyValidators.Contains(statusReply.accountId)
+                            && !_nodeStatus.Any(a => a.accountId == statusReply.accountId))
+                            _nodeStatus.Add(statusReply);
+                    }
                     break;
             }
         }
