@@ -1084,6 +1084,10 @@ namespace Lyra.Core.Decentralize
                 {
                     await _viewChangeHandler.ProcessMessage(vcm);
                 }
+                else
+                {
+                    _log.LogInformation($"No View Change for state {CurrentState}");
+                }
                 return;
             }
             else if (_stateMachine.State == BlockChainState.Genesis ||
