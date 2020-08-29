@@ -243,7 +243,7 @@ namespace Lyra.Core.Decentralize
             foreach (var req in q3)
                 view.commitMsgs.TryRemove(req, out _);
 
-            _log.LogInformation($"CheckAllStats Req: {view.reqMsgs.Count} Reply {view.replyMsgs.Count} Commit {view.commitMsgs.Count} Votes {view.commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} ");
+            _log.LogInformation($"CheckAllStats VID: {view.viewId} Req: {view.reqMsgs.Count} Reply: {view.replyMsgs.Count} Commit: {view.commitMsgs.Count} Votes {view.commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {view.replySent} Commited: {view.commitSent}");
 
             // request
             if (!view.replySent && view.reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
@@ -321,6 +321,10 @@ namespace Lyra.Core.Decentralize
                     _context.Send2P2pNetwork(commit);
                     view.commitSent = true;
                     await CheckCommitAsync(view, commit);
+                }
+                else
+                {
+                    _log.LogInformation($"CheckAllStats, By ReplyMsgs, not commit: top candidate {candidateQR?.Candidate.Shorten()} has {candidateQR?.Count} votes");
                 }
             }
 
