@@ -55,7 +55,7 @@ namespace Lyra.Core.Decentralize
                         return;
                     }
                 }
-                else
+                else if (!(bmsg is AuthorizingMsg))     // allow authorizingmsg from anywhere
                 {
                     if(!_context.Board.PrimaryAuthorizers.Contains(bmsg.From))
                     {
