@@ -33,6 +33,9 @@ namespace LyraLexWeb2
         }
         private bool CheckSyncStateAsync()
         {
+            if (NodeService.Dag == null)
+                return false;
+
             return NodeService.Dag.FullStarted;
             //while(DateTime.Now - _dtStarted < TimeSpan.FromSeconds(5))
             //{
