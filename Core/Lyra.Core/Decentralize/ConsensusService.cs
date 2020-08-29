@@ -101,7 +101,6 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");
                 _board.CurrentLeader = leader;
                 _board.CurrentLeadersVotes = votes;
-                _board.AllVoters = voters;
 
                 if(leader == _sys.PosWallet.AccountId)
                 {
@@ -541,6 +540,7 @@ namespace Lyra.Core.Decentralize
         {
             var list = Board.ActiveNodes
                 .OrderByDescending(a => a.Votes)
+                .ThenBy(a => a.AccountID)
                 .Take(QualifiedNodeCount)
                 .Select(a => a.AccountID)
                 .ToList();
