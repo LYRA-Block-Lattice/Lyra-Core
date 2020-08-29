@@ -4,6 +4,7 @@ using Lyra.Core.Cryptography;
 using Neo;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -221,6 +222,8 @@ namespace Lyra.Core.Decentralize
                         if (ndx < 0)
                             continue;
 
+                        Trace.Assert(ndx >= 0 && ndx < ProtocolSettings.Default.SeedList.Length);
+
                     } while (sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
                 }
 
@@ -229,7 +232,7 @@ namespace Lyra.Core.Decentralize
                 //_log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                 var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
                 var mode = await client.GetSyncState();
-                if (mode.ResultCode == APIResultCodes.Success)
+                if (mode.ResultCode == APIResultCodes.Success && mode.Status.state == BlockChainState.Almighty)
                 {
                     return client;
                 }
