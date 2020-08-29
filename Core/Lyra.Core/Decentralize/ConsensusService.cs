@@ -558,7 +558,8 @@ namespace Lyra.Core.Decentralize
         {
             _ = Task.Run(async () => {
                 _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
-                var list1 = LookforVoters();
+                var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+                var list1 = lsb.Authorizers.Keys.ToList();
                 UpdateVoters();
                 var list2 = LookforVoters();
 
