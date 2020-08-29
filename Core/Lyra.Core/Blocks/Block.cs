@@ -317,6 +317,7 @@ namespace Lyra.Core.Blocks
 
         InvalidNetworkId = 67,
         CannotSendToSelf = 68,
+        InvalidAmountToSend = 69,
 
         InvalidPreviousBlock,
 

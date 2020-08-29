@@ -568,7 +568,21 @@ namespace Lyra.Core.Accounts
 
         public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
         {
+            // verify input
             AuthorizationAPIResult result;
+
+            if(Amount <= 0)
+            {
+                result = new AuthorizationAPIResult { ResultCode = APIResultCodes.InvalidAmountToSend };
+                return result;
+            }
+
+            if(!Signatures.ValidateAccountId(DestinationAccountId) || DestinationAccountId == AccountId)
+            {
+                result = new AuthorizationAPIResult { ResultCode = APIResultCodes.InvalidAccountId };
+                return result;
+            }
+
             while(true)
             {
                 result = await SendOnce(Amount, DestinationAccountId, ticker, ToExchange);
