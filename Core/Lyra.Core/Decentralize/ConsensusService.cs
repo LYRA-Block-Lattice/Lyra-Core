@@ -368,7 +368,6 @@ namespace Lyra.Core.Decentralize
 
                             _log.LogInformation($"Querying Billboard... ");
                             var q = from ns in _nodeStatus
-                                    where _board.PrimaryAuthorizers != null && _board.PrimaryAuthorizers.Contains(ns.accountId)
                                     group ns by ns.totalBlockCount into heights
                                     orderby heights.Count() descending
                                     select new
