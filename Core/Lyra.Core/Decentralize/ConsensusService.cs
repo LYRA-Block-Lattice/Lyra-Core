@@ -119,9 +119,12 @@ namespace Lyra.Core.Decentralize
                         // the new leader failed.
                         sender.Reset(viewId, leader.Split('|').ToList());
 
-                        // redo view change
-                        _stateMachine.Fire(BlockChainTrigger.ViewChanging);
-                        await _viewChangeHandler.BeginChangeViewAsync();
+                        if(CurrentState == BlockChainState.Almighty)
+                        {
+                            // redo view change
+                            _stateMachine.Fire(BlockChainTrigger.ViewChanging);
+                            await _viewChangeHandler.BeginChangeViewAsync();
+                        }
                     }
                 });
                     //_viewChangeHandler.Reset(); // wait for svc block generated
