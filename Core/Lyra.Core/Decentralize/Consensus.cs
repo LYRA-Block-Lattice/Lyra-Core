@@ -594,7 +594,7 @@ namespace Lyra.Core.Decentralize
     {
         NULL,
         Initializing,
-        BasicSync,    // the default mode. app started. wait for p2p stack up.
+        StaticSync,    // the default mode. app started. wait for p2p stack up.
         Engaging,   // storing new commit while syncing blocks
         Almighty,   // fullly synced and working
         ViewChanging, // 
