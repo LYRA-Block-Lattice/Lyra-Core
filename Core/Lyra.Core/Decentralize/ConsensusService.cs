@@ -144,42 +144,10 @@ namespace Lyra.Core.Decentralize
                 Sender.Tell(status);
             });
 
-            Receive<BlockChain.BlockAdded>(nb =>
-            {
-                //if (nb.NewBlock is ServiceBlock lastSvcBlk)
-                //{
-                //    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Select(a => a.AccountID).ToArray();
-                //    if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
-                //        _board.CurrentLeader = lastSvcBlk.Leader;
-                //    _board.AllVoters = _board.PrimaryAuthorizers.ToList();
-
-                //    IsViewChanging = false;
-                //    _viewChangeHandler.Reset();
-                //}
-            });
-
-            Receive<BillBoard>((bb) =>
-            {
-                //_board = bb;
-                //foreach (var node in _board.AllNodes.Values)
-                //    {
-                //        if(node.AccountID != _sys.PosWallet.AccountId)
-                //            _pBFTNet.AddPosNode(node);
-                //    }                    
-            });
-
             Receive<AskForState>((_) => Sender.Tell(_stateMachine.State));
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
-            Receive<AskForMaxActiveUID>((_) => {
-                var reply = new ReplyForMaxActiveUID();
-                //if(_activeConsensus.Any())
-                //{
-                //    reply.uid = _activeConsensus.Values.Max(a => a.State?.InputMsg.Block.)
-                //}
-                reply.uid = 0;
-                Sender.Tell(reply); });
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
@@ -686,6 +654,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
+            _log.LogInformation("OnHeartBeatAsync");
             // seed node relay heartbeat, only once
             if (_heartBeatCache.ContainsKey(heartBeat.Signature))
             {
@@ -697,7 +666,7 @@ namespace Lyra.Core.Decentralize
 
                 if (IsThisNodeSeed)
                 {
-                    Send2P2pNetwork(heartBeat);
+                    _localNode.Tell(heartBeat);     // no sign again!!!
                 }
 
                 await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP);

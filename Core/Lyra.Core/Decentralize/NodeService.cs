@@ -81,7 +81,8 @@ namespace Lyra.Core.Decentralize
                 var store = new MongoAccountCollection();
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
                 Dag = new DagSystem(store, PosWallet, localNode);
-                await Dag.StartAsync();
+                _ = Task.Run(async () => await Dag.StartAsync());
+                await Task.Delay(30000);
 
                 if (_db == null)
                 {

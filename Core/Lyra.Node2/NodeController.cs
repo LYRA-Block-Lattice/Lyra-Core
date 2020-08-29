@@ -31,22 +31,18 @@ namespace LyraLexWeb2
             _dex = NodeService.Dealer;
             _dtStarted = DateTime.Now;
         }
-        private bool CheckSyncStateAsync()
+        private bool CheckServiceStatus()
         {
             if (NodeService.Dag == null)
                 return false;
 
             return NodeService.Dag.FullStarted;
-            //while(DateTime.Now - _dtStarted < TimeSpan.FromSeconds(5))
-            //{
-            //    await Task.Delay(1000);
-            //}
         }
         // GET: api/Node
         [HttpGet]
         public async Task<AccountHeightAPIResult> GetAsync()
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetSyncHeight();
         }
 
@@ -54,7 +50,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BillBoard> GetBillboard()
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.GetBillBoardAsync();
         }
 
@@ -62,7 +58,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<List<TransStats>> GetTransStats()
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.GetTransStatsAsync();
         }
 
@@ -70,7 +66,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<string> GetDbStats()
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.GetDbStats();
         }
 
@@ -78,7 +74,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetVersion(apiVersion, appName, appVersion);
         }
 
@@ -86,14 +82,14 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetSyncState();
         }
 
         [Route("GetSyncHeight")]
         [HttpGet]
         public async Task<AccountHeightAPIResult> GetSyncHeightAsync() {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetSyncHeight();
         }
 
@@ -101,7 +97,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetTokenNames(AccountId, Signature, keyword);
         }
 
@@ -109,7 +105,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetAccountHeight(AccountId);
         }
 
@@ -117,7 +113,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetLastBlock(string AccountId)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetLastBlock(AccountId);
         }
 
@@ -125,7 +121,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetBlockByIndex(AccountId, Index);
         }
 
@@ -133,7 +129,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, int Index)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetServiceBlockByIndex(blockType, Index);
         }
 
@@ -141,7 +137,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetBlockByHash(AccountId, Hash, Signature);
         }
 
@@ -149,7 +145,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetBlock(string Hash)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetBlock(Hash);
         }
 
@@ -157,7 +153,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetNonFungibleTokens(AccountId, Signature);
         }
 
@@ -165,7 +161,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetTokenGenesisBlock(AccountId, TokenTicker, Signature);
         }
 
@@ -173,7 +169,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetLastServiceBlock()
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetLastServiceBlock();
         }
 
@@ -181,7 +177,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetServiceGenesisBlock()
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetServiceGenesisBlock();
         }
 
@@ -189,7 +185,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetLyraTokenGenesisBlock();
         }
 
@@ -197,7 +193,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetLastConsolidationBlock()
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetLastConsolidationBlock();
         }
 
@@ -205,7 +201,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetBlocksByConsolidation(AccountId, Signature, consolidationHash);
         }
 
@@ -214,7 +210,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetBlockHashesByTimeRange(startTime, endTime);
         }
 
@@ -222,7 +218,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetConsolidationBlocks(AccountId, Signature, startHeight);
         }
 
@@ -238,7 +234,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.LookForNewTransfer(AccountId, Signature);
         }
 
@@ -246,7 +242,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.LookForNewFees(AccountId, Signature);
         }
 
@@ -256,7 +252,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, Signature);
         }
 
@@ -264,7 +260,7 @@ namespace LyraLexWeb2
         [HttpGet] 
         public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, Signature);
         }
 
@@ -276,7 +272,7 @@ namespace LyraLexWeb2
         [HttpPost] 
         public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.TradeOrder(block);
         }
 
@@ -284,7 +280,7 @@ namespace LyraLexWeb2
         [HttpPost] 
         public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.Trade(block);
         }
 
@@ -292,7 +288,7 @@ namespace LyraLexWeb2
         [HttpPost] 
         public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.ExecuteTradeOrder(block);
         }
 
@@ -300,7 +296,7 @@ namespace LyraLexWeb2
         [HttpPost] 
         public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.CancelTradeOrder(block);
         }
 
@@ -312,7 +308,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.OpenAccountWithGenesis(block);
         }
 
@@ -320,7 +316,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.ReceiveTransferAndOpenAccount(openReceiveBlock);
         }
 
@@ -328,7 +324,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.OpenAccountWithImport(block);
         }
 
@@ -336,7 +332,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.SendTransfer(sendBlock);
         }
 
@@ -344,7 +340,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock sendBlock)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.SendExchangeTransfer(sendBlock);
         }
 
@@ -352,7 +348,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.ReceiveTransfer(receiveBlock);
         }
 
@@ -360,7 +356,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock receiveBlock)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.ReceiveFee(receiveBlock);
         }
 
@@ -368,7 +364,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.ImportAccount(block);
         }
 
@@ -376,7 +372,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _trans.CreateToken(tokenBlock);
         }
 
@@ -384,7 +380,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             var acct = await _dex.AddExchangeAccount(AccountId);
             return new ExchangeAccountAPIResult
             {
@@ -397,7 +393,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             var acct = await _dex.GetExchangeAccount(AccountId, true);
             if(acct == null)
             {
@@ -416,7 +412,7 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<CancelKey> SubmitExchangeOrder(string AccountId, TokenTradeOrder order)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             var acct = await _dex.GetExchangeAccount(AccountId);
             return await _dex.AddOrderAsync(acct, order);
         }
@@ -425,7 +421,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             await _dex.RemoveOrderAsync(cancelKey);
             return new APIResult { ResultCode = APIResultCodes.Success };
         }
@@ -434,7 +430,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<APIResult> RequestMarket(string TokenName)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             await _dex.SendMarket(TokenName);
             return new APIResult { ResultCode = APIResultCodes.Success };
         }
@@ -443,7 +439,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
-            if(!CheckSyncStateAsync()) throw new Exception("System Not Ready.");
+            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _dex.GetOrdersForAccount(AccountId);
         }
 
