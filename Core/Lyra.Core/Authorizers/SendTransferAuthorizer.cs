@@ -92,14 +92,12 @@ namespace Lyra.Core.Authorizers
 
         protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
         {
-            APIResultCodes result;
+            APIResultCodes result = APIResultCodes.Success;
             if (block.FeeType != AuthorizationFeeTypes.Regular)
                 result = APIResultCodes.InvalidFeeAmount;
 
             if (block.Fee != (await sys.Storage.GetLastServiceBlockAsync()).TransferFee)
                 result = APIResultCodes.InvalidFeeAmount;
-
-            result = APIResultCodes.Success;
 
             return result;
         }
