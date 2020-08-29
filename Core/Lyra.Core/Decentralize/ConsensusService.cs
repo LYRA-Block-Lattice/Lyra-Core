@@ -46,9 +46,6 @@ namespace Lyra.Core.Decentralize
         public class AskForState { }
         public class AskForStats { }
         public class AskForDbStats { }
-        public class AskForMaxActiveUID { }
-        public class ReplyForMaxActiveUID { public long? uid { get; set; } }
-        public class BlockChainStatuChanged { public BlockChainState CurrentState {get; set;} }
         public class QueryBlockchainStatus { }
 
         public class Authorized { public bool IsSuccess { get; set; } }
@@ -654,8 +651,10 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
-            _log.LogInformation("OnHeartBeatAsync");
+            //_log.LogInformation("OnHeartBeatAsync");
             // seed node relay heartbeat, only once
+            // this keep the whole network one consist view of active nodes.
+            // this is important to make election.
             if (_heartBeatCache.ContainsKey(heartBeat.Signature))
             {
                 // no need
