@@ -216,10 +216,11 @@ namespace Lyra.Core.Decentralize
                         rg.GetBytes(rno);
                         int randomvalue = BitConverter.ToInt32(rno, 0);
 
-                        if (randomvalue < 0)
+                        ndx = randomvalue % ProtocolSettings.Default.SeedList.Length;
+
+                        if (ndx < 0)
                             continue;
 
-                        ndx = randomvalue % ProtocolSettings.Default.SeedList.Length;
                     } while (sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
                 }
 
