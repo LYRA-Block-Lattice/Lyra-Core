@@ -26,7 +26,6 @@ using Settings = Neo.Settings;
 using Stateless;
 using Org.BouncyCastle.Utilities.Net;
 using System.Net;
-using Loyc.Collections;
 
 namespace Lyra.Core.Decentralize
 {
@@ -307,7 +306,10 @@ namespace Lyra.Core.Decentralize
                                     .Select(b => b.Key)
                                     .ToList();
 
-                            oldList.ForEach(hb => _heartBeatCache.TryRemove(hb, out _));
+                            foreach(var hb in oldList)
+                            {
+                                _heartBeatCache.TryRemove(hb, out _);
+                            }                                
 
                             await HeartBeatAsync();
                         }
