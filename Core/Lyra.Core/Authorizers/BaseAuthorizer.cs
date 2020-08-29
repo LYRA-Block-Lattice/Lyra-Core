@@ -64,7 +64,7 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidLeaderInServiceBlock;
                 }
 
-                var result = block.VerifySignature(board.CurrentLeader);
+                var result = block.VerifySignature(board.LeaderCandidate);
                 if (!result)
                 {
                     _log.LogWarning($"VerifySignature failed for ServiceBlock Index: {block.Height} with Leader {board.CurrentLeader}");
