@@ -4,6 +4,7 @@ using Lyra.Core.Cryptography;
 using Neo;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -206,10 +207,18 @@ namespace Lyra.Core.Decentralize
             {
                 var rand = new Random();
                 int ndx;
-                do
+
+                using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider())
                 {
-                    ndx = rand.Next(0, ProtocolSettings.Default.SeedList.Length);
-                } while (sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
+                    do
+                    {
+                        byte[] rno = new byte[5];
+                        rg.GetBytes(rno);
+                        int randomvalue = BitConverter.ToInt32(rno, 0);
+
+                        ndx = randomvalue % ProtocolSettings.Default.SeedList.Length;
+                    } while (sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
+                }
 
                 var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
                 var apiUrl = $"http://{addr}:4505/api/Node/";
