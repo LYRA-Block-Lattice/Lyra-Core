@@ -68,7 +68,7 @@ namespace Lyra.Core.Decentralize
                 this._sys = sys;
                 this.context = context;
                 this.viewId = viewId;
-                dtStarted = DateTime.Now;
+                dtStarted = DateTime.MinValue;
 
                 reqMsgs = new ConcurrentDictionary<string, VCReqWithTime>();
                 replyMsgs = new ConcurrentDictionary<string, VCReplyWithTime>();
@@ -107,7 +107,7 @@ namespace Lyra.Core.Decentralize
 
             public void Reset()
             {
-                dtStarted = DateTime.Now;
+                dtStarted = DateTime.MinValue;
                 selectedSuccess = false;
 
                 replySent = false;
@@ -285,6 +285,8 @@ namespace Lyra.Core.Decentralize
             {
                 if (_context.CurrentState == BlockChainState.Almighty)
                 {
+                    _log.LogInformation("too many view change request. force into view change mode");
+                    view.dtStarted = DateTime.Now;
                     // too many view change request. force into view change mode
                     await _context.GotViewChangeRequestAsync(view.viewId);
 
