@@ -100,8 +100,8 @@ namespace Lyra.Core.Decentralize
                     _stateMachine.Fire(BlockChainTrigger.ViewChanged);
 
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");
-                _board.CurrentLeader = leader;
-                _board.CurrentLeadersVotes = votes;
+                _board.LeaderCandidate = leader;
+                _board.LeaderCandidateVotes = votes;
 
                 if(leader == _sys.PosWallet.AccountId)
                 {

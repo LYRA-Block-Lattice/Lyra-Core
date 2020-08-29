@@ -33,7 +33,10 @@ namespace Lyra.Core.Decentralize
         public List<string> PrimaryAuthorizers { get; set; }
 
         public string CurrentLeader { get; set; }
-        public int CurrentLeadersVotes { get; set; }
+
+        public string LeaderCandidate { get; set; }
+        public int LeaderCandidateVotes { get; set; }
+
 
         public BillBoard()
         {

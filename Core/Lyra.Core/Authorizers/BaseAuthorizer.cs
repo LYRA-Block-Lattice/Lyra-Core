@@ -12,6 +12,7 @@ using System.Linq;
 using Neo;
 using Akka.Actor;
 using static Lyra.Core.Decentralize.ConsensusService;
+using Lyra.Shared;
 
 namespace Lyra.Core.Authorizers
 {
@@ -57,8 +58,11 @@ namespace Lyra.Core.Authorizers
             if (block is ServiceBlock bsb)
             {
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                if (board.CurrentLeader != bsb.Leader)
+                if (board.LeaderCandidate != bsb.Leader)
+                {
+                    _log.LogWarning($"Invalid leader. was {bsb.Leader.Shorten()} should be {board.CurrentLeader.Shorten()}");
                     return APIResultCodes.InvalidLeaderInServiceBlock;
+                }
 
                 var result = block.VerifySignature(board.CurrentLeader);
                 if (!result)
@@ -119,7 +123,10 @@ namespace Lyra.Core.Authorizers
 
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                 if (board.CurrentLeader != cons.createdBy)
+                {
+                    _log.LogWarning($"Invalid leader. was {cons.createdBy.Shorten()} should be {board.CurrentLeader.Shorten()}");
                     return APIResultCodes.InvalidLeaderInConsolidationBlock;
+                }                    
 
                 var result = block.VerifySignature(board.CurrentLeader);
                 if (!result)
