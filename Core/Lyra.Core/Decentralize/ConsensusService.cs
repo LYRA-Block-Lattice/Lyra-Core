@@ -95,7 +95,8 @@ namespace Lyra.Core.Decentralize
             _board = new BillBoard();
 
             _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) => {
-                _stateMachine.Fire(BlockChainTrigger.ViewChanged);
+                if(CurrentState == BlockChainState.ViewChanging)
+                    _stateMachine.Fire(BlockChainTrigger.ViewChanged);
 
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");
                 _board.CurrentLeader = leader;
