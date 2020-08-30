@@ -117,8 +117,7 @@ namespace Lyra.Core.Decentralize
                     {
                         _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. redo election.");
                         // the new leader failed.
-                        sender.Reset(viewId, leader.Split('|').ToList());
-
+                       
                         if(CurrentState == BlockChainState.Almighty)
                         {
                             // redo view change

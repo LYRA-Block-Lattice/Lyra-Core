@@ -104,19 +104,6 @@ namespace Lyra.Core.Decentralize
                 else
                     return false;
             }
-
-            public void Reset()
-            {
-                dtStarted = DateTime.Now;
-                selectedSuccess = false;
-
-                replySent = false;
-                commitSent = false;
-
-                reqMsgs.Clear();
-                replyMsgs.Clear();
-                commitMsgs.Clear();
-            }
         }
 
         ConcurrentDictionary<long, View> _views;
@@ -140,21 +127,22 @@ namespace Lyra.Core.Decentralize
                 if (v.CheckTimeout())
                 {
                     _log.LogInformation($"View Change with Id {v.viewId} timeout.");
-                    v.Reset();
 
                     if(v.viewId == _ValidViewId)
                     {
                         _context.ViewChangeIsTimeout(v.viewId);
+                        v.replySent = false;
+                        v.commitSent = false;
+                        v.dtStarted = DateTime.MaxValue;
+                        v.reqMsgs.Clear();
+                        v.replyMsgs.Clear();
+                        v.commitMsgs.Clear();
                     }
                 }
             }
             return false;
         }
 
-        public void Reset(long viewId, List<string> excludes)
-        {
-
-        }
         protected override bool IsStateCreated()
         {
             return true;
@@ -402,6 +390,11 @@ namespace Lyra.Core.Decentralize
             }            
         }
 
+        /// <summary>
+        /// two ways to begin view changing: either one third of all voters requested, or local requested.
+        /// 
+        /// </summary>
+        /// <returns></returns>
         internal async Task BeginChangeViewAsync()
         {
             _log.LogInformation($"Begin Change View.");
@@ -429,7 +422,8 @@ namespace Lyra.Core.Decentralize
             }
 
             var view = GetView(_ValidViewId);
-            view.Reset();
+            view.selectedSuccess = false;
+            view.dtStarted = DateTime.Now;
 
             var req = new ViewChangeRequestMessage
             {
