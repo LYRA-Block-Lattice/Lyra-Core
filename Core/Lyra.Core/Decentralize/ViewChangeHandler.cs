@@ -97,7 +97,7 @@ namespace Lyra.Core.Decentralize
 
             public bool CheckTimeout()
             {
-                if (dtStarted != DateTime.MinValue && DateTime.Now - dtStarted > TimeSpan.FromSeconds(30))
+                if (!selectedSuccess && DateTime.Now - dtStarted > TimeSpan.FromSeconds(30))
                 {
                     return true;
                 }
@@ -107,7 +107,7 @@ namespace Lyra.Core.Decentralize
 
             public void Reset()
             {
-                dtStarted = DateTime.MinValue;
+                dtStarted = DateTime.Now;
                 selectedSuccess = false;
 
                 replySent = false;
@@ -129,7 +129,7 @@ namespace Lyra.Core.Decentralize
 
             _leaderSelected = leaderSelected;
 
-            _dtStart = DateTime.MinValue;
+            _dtStart = DateTime.Now;
         }
 
         // debug only. should remove after
@@ -183,19 +183,19 @@ namespace Lyra.Core.Decentralize
             //        return;
             //}
 
-            _log.LogInformation($"ProcessMessage type: {vcm.MsgType} from: {vcm.From.Shorten()}");
-            if (_ValidViewId != 0 && vcm.ViewID != _ValidViewId)
-            {
-                _log.LogInformation($"ProcessMessage: view ID {vcm.ViewID} not valid with {_ValidViewId}");
-                return;
-            }
-
             View view = GetView(vcm.ViewID);
             if (view == null)
                 return;
 
             if (view.selectedSuccess)
                 return;
+
+            _log.LogInformation($"ProcessMessage type: {vcm.MsgType} from: {vcm.From.Shorten()}");
+            if (_ValidViewId != 0 && vcm.ViewID != _ValidViewId)
+            {
+                _log.LogInformation($"ProcessMessage: view ID {vcm.ViewID} not valid with {_ValidViewId}");
+                return;
+            }
 
             if(vcm is ViewChangeRequestMessage req)
             {
@@ -224,6 +224,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync(View view)
         {
+            if (view.selectedSuccess)
+                return;
+
             // remove outdated msgs
             var q1 = view.reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
                 .Select(b => b.Key)
@@ -426,7 +429,7 @@ namespace Lyra.Core.Decentralize
             }
 
             var view = GetView(_ValidViewId);
-            view.dtStarted = DateTime.Now;
+            view.Reset();
 
             var req = new ViewChangeRequestMessage
             {

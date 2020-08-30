@@ -28,7 +28,7 @@ namespace Lyra.Core.Decentralize
 
         public virtual bool CheckTimeout()
         {
-            if (DateTime.Now - _dtStart > TimeSpan.FromSeconds(ProtocolSettings.Default.ConsensusTimeout))
+            if (DateTime.Now - _dtStart > TimeSpan.FromSeconds(20))
             {
                 return true;
             }
