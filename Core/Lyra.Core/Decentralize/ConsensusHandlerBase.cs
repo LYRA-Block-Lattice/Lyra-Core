@@ -28,8 +28,9 @@ namespace Lyra.Core.Decentralize
 
         public virtual bool CheckTimeout()
         {
-            if (DateTime.Now - _dtStart > TimeSpan.FromSeconds(20))
+            if (DateTime.Now - _dtStart > TimeSpan.FromSeconds(5))
             {
+                _log.LogInformation($"Consensus begin {_dtStart} Ends: {DateTime.Now} used: {DateTime.Now - _dtStart}");
                 return true;
             }
             else

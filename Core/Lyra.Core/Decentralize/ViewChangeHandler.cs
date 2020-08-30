@@ -97,7 +97,7 @@ namespace Lyra.Core.Decentralize
 
             public bool CheckTimeout()
             {
-                if (!selectedSuccess && DateTime.Now - dtStarted > TimeSpan.FromSeconds(30))
+                if (!selectedSuccess && DateTime.Now - dtStarted > TimeSpan.FromSeconds(10))
                 {
                     return true;
                 }
@@ -126,7 +126,7 @@ namespace Lyra.Core.Decentralize
             {
                 if (v.CheckTimeout())
                 {
-                    _log.LogInformation($"View Change with Id {v.viewId} timeout.");
+                    _log.LogInformation($"View Change with Id {v.viewId} begin {v.dtStarted} Ends: {DateTime.Now} used: {DateTime.Now - v.dtStarted}");
 
                     if(v.viewId == _ValidViewId)
                     {
@@ -424,6 +424,7 @@ namespace Lyra.Core.Decentralize
             var view = GetView(_ValidViewId);
             view.selectedSuccess = false;
             view.dtStarted = DateTime.Now;
+            _log.LogInformation($"View change begin at {view.dtStarted}");
 
             var req = new ViewChangeRequestMessage
             {
