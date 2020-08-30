@@ -111,7 +111,7 @@ namespace Lyra.Core.Decentralize
 
                 Task.Run(async () =>
                 {
-                    await Task.Delay(10000);
+                    await Task.Delay(30000);
                     var sb = await _sys.Storage.GetLastServiceBlockAsync();
                     if(sb.Height < viewId)
                     {
@@ -234,7 +234,7 @@ namespace Lyra.Core.Decentralize
 
                             if (result.HasValue && result.Value == ConsensusResult.Uncertain)
                             {
-                                _log.LogInformation($"Consensus failed. start view change.");
+                                _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
                                 if(CurrentState == BlockChainState.Almighty)
                                 {
                                     _stateMachine.Fire(BlockChainTrigger.ViewChanging);
