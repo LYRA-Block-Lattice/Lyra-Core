@@ -650,26 +650,11 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
-            //_log.LogInformation("OnHeartBeatAsync");
-            // seed node relay heartbeat, only once
-            // this keep the whole network one consist view of active nodes.
-            // this is important to make election.
-            if (_criticalMsgCache.ContainsKey(heartBeat.Signature))
-            {
-                // no need
-            }
-            else
-            {
-                _criticalMsgCache.TryAdd(heartBeat.Signature, DateTime.Now);
-
-                if (IsThisNodeSeed)
-                {
-                    _localNode.Tell(heartBeat);     // no sign again!!!
-                }
-
-                await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP);
-            }
+            await CriticalRelayAsync(heartBeat, async (hbt) => {
+                await OnNodeActive(hbt.From, hbt.AuthorizerSignature, hbt.State, hbt.PublicIP);
+            });
         }
+
         private async Task OnNodeActive(string accountId, string authorizerSignature, BlockChainState state, string ip = null)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
@@ -1063,6 +1048,31 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
+            where T : SourceSignedMessage, new()
+        {
+            // seed node relay heartbeat, only once
+            // this keep the whole network one consist view of active nodes.
+            // this is important to make election.
+            if (_criticalMsgCache.ContainsKey(message.Signature))
+            {
+                // no need
+                return false;
+            }
+            else
+            {
+                _criticalMsgCache.TryAdd(message.Signature, DateTime.Now);
+
+                if (IsThisNodeSeed)
+                {
+                    _localNode.Tell(message);     // no sign again!!!
+                }
+
+                await localAction(message);
+                return true;
+            }
+        }
+
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
             //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
@@ -1077,24 +1087,9 @@ namespace Lyra.Core.Decentralize
                 if(CurrentState == BlockChainState.Almighty
                     || CurrentState == BlockChainState.ViewChanging)
                 {
-                    // seed node relay heartbeat, only once
-                    // this keep the whole network one consist view of active nodes.
-                    // this is important to make election.
-                    if (_criticalMsgCache.ContainsKey(vcm.Signature))
-                    {
-                        // no need
-                    }
-                    else
-                    {
-                        _criticalMsgCache.TryAdd(vcm.Signature, DateTime.Now);
-
-                        if (IsThisNodeSeed)
-                        {
-                            _localNode.Tell(vcm);     // no sign again!!!
-                        }
-
-                        await _viewChangeHandler.ProcessMessage(vcm);
-                    }
+                    await CriticalRelayAsync(vcm, async (msg) => {
+                        await _viewChangeHandler.ProcessMessage(msg);
+                    });
                 }
                 else
                 {
@@ -1110,7 +1105,18 @@ namespace Lyra.Core.Decentralize
                 {
                     var worker = await GetWorkerAsync(cm.BlockHash, true);
                     if (worker != null)
-                        await worker.ProcessMessage(cm);
+                    {
+                        if(item is AuthorizingMsg authorizingMsg)
+                        {
+                            await CriticalRelayAsync(authorizingMsg, async (msg) => {
+                                await worker.ProcessMessage(cm);
+                            });
+                        }
+                        else
+                        {
+                            await worker.ProcessMessage(cm);
+                        }                        
+                    }                        
                     return;
                 }
             }
