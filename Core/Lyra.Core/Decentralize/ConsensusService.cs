@@ -191,6 +191,20 @@ namespace Lyra.Core.Decentralize
                 await SubmitToConsensusAsync(state);
             });
 
+            Receive<BlockChain.BlockAdded>(nb =>
+            {
+                //if (nb.NewBlock is ServiceBlock lastSvcBlk)
+                //{
+                //    _board.PrimaryAuthorizers = lastSvcBlk.Authorizers.Select(a => a.AccountID).ToArray();
+                //    if (!string.IsNullOrEmpty(lastSvcBlk.Leader))
+                //        _board.CurrentLeader = lastSvcBlk.Leader;
+                //    _board.AllVoters = _board.PrimaryAuthorizers.ToList();
+
+                //    IsViewChanging = false;
+                //    _viewChangeHandler.Reset();
+                //}
+            });
+
             Receive<Idle>(o => { });
 
             ReceiveAny((o) => { _log.LogWarning($"consensus svc receive unknown msg: {o.GetType().Name}"); });
