@@ -632,7 +632,7 @@ namespace Lyra.Core.Decentralize
         {
             // dq any lower version
             var ver = new Version(heartBeat.NodeVersion);
-            if(LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) >= 0)
+            if(LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) > 0)
             {
                 _log.LogInformation($"Node {heartBeat.From.Shorten()} ver {heartBeat.NodeVersion} is too old. Need at least {LyraGlobal.MINIMAL_COMPATIBLE_VERSION}");
                 return;
