@@ -362,6 +362,7 @@ namespace Lyra.Core.Decentralize
 
         internal void ShiftView(long v)
         {
+            Reset();
             ViewId = v;
             TimeStarted = DateTime.MinValue;
         }
