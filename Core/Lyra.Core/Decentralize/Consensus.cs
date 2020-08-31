@@ -397,9 +397,8 @@ namespace Lyra.Core.Decentralize
 
                         svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey, _sys.PosWallet.AccountId);
 
-                        await SendBlockToConsensusAsync(svcBlock, _board.AllVoters);
-
                         _log.LogInformation($"New View was created. send to network...");
+                        await SendBlockToConsensusAsync(svcBlock, _board.AllVoters);
                     }
                     catch (Exception e)
                     {

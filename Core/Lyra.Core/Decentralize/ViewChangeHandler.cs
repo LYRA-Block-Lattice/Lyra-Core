@@ -137,6 +137,8 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync()
         {
+            _log.LogInformation($"CheckAllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+
             if (selectedSuccess)
                 return;
 
@@ -147,13 +149,13 @@ namespace Lyra.Core.Decentralize
             foreach (var req in q1)
                 reqMsgs.TryRemove(req, out _);
 
-            var q2 = reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
+            var q2 = replyMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
                 .Select(b => b.Key)
                 .ToList();
             foreach (var req in q2)
                 replyMsgs.TryRemove(req, out _);
 
-            var q3 = reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
+            var q3 = commitMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
                 .Select(b => b.Key)
                 .ToList();
             foreach (var req in q3)
