@@ -679,16 +679,31 @@ namespace Lyra.Core.Decentralize
 
             /// check if leader is online. otherwise call view-change.
             /// the uniq tick: seed0's heartbeat.
-            if(CurrentState == BlockChainState.Almighty && accountId == ProtocolSettings.Default.StandbyValidators[0])
+            /// if seed0 not active, then seed2,seed3, etc.
+            /// if all seeds are offline, what the...
+            string tickSeedId = null;
+            for(int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
             {
-                if(_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb.Leader))
+                if (Board.ActiveNodes.Any(a => a.AccountID == ProtocolSettings.Default.StandbyValidators[i]))
                 {
-                    // leader is offline. we need chose one new
-                    UpdateVoters();
+                    tickSeedId = ProtocolSettings.Default.StandbyValidators[i];
+                    break;
+                }
+            }
 
-                    _log.LogInformation($"We have no leader online. Change view...");
-                    // should change view for new member
-                    await _viewChangeHandler.BeginChangeViewAsync();
+            if(tickSeedId != null)
+            {
+                if (CurrentState == BlockChainState.Almighty && accountId == tickSeedId)
+                {
+                    if (_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb.Leader))
+                    {
+                        // leader is offline. we need chose one new
+                        UpdateVoters();
+
+                        _log.LogInformation($"We have no leader online. Change view...");
+                        // should change view for new member
+                        await _viewChangeHandler.BeginChangeViewAsync();
+                    }
                 }
             }
         }
