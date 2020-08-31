@@ -157,8 +157,14 @@ namespace Lyra.Core.Decentralize
                 if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash &&
                     remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash)
                     break;
+                else
+                {
+                    // we need to know why
+                    _log.LogWarning($"Engaging sync local vs remote: lastcons {localState.lastConsolidationHash.Shorten()} {remoteState.Status.lastConsolidationHash.Shorten()}, last uncons: {localState.lastUnSolidationHash.Shorten()} {remoteState.Status.lastUnSolidationHash.Shorten()}");
+                }
 
                 _log.LogInformation("Engaging Sync partial success. continue...");
+                await Task.Delay(1000);
             }
         }
 
