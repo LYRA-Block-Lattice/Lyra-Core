@@ -88,7 +88,7 @@ namespace Lyra.Core.Decentralize
         {
             replySent = false;
             commitSent = false;
-            TimeStarted = DateTime.MaxValue;
+            TimeStarted = DateTime.MinValue;
             reqMsgs.Clear();
             replyMsgs.Clear();
             commitMsgs.Clear();
@@ -347,15 +347,15 @@ namespace Lyra.Core.Decentralize
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
             _ValidViewId = lastSb.Height + 1;
-
-            selectedSuccess = false;
             TimeStarted = DateTime.Now;
+            selectedSuccess = false;
+            
             _log.LogInformation($"View change begin at {TimeStarted}");
 
             var req = new ViewChangeRequestMessage
             {
                 From = _sys.PosWallet.AccountId,
-                ViewID = lastSb.Height + 1,
+                ViewID = _ValidViewId,
                 prevViewID = lastSb.Height,
                 requestSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
                     $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
