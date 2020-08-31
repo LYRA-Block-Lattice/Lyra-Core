@@ -630,6 +630,14 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnHeartBeatAsync(HeartBeatMessage heartBeat)
         {
+            // dq any lower version
+            var ver = new Version(heartBeat.NodeVersion);
+            if(LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) >= 0)
+            {
+                _log.LogInformation($"Node {heartBeat.From.Shorten()} ver {heartBeat.NodeVersion} is too old. Need at least {LyraGlobal.MINIMAL_COMPATIBLE_VERSION}");
+                return;
+            }
+
             await CriticalRelayAsync(heartBeat, async (hbt) => {
                 await OnNodeActive(hbt.From, hbt.AuthorizerSignature, hbt.State, hbt.PublicIP);
             });
@@ -740,6 +748,7 @@ namespace Lyra.Core.Decentralize
             var msg = new HeartBeatMessage
             {
                 From = _sys.PosWallet.AccountId,
+                NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
                 Text = "I'm live",
                 State = _stateMachine.State,
                 PublicIP = _myIpAddress == null ? "" : _myIpAddress.ToString(),
