@@ -603,6 +603,7 @@ namespace Lyra.Core.Decentralize
         {
             // declare to the network
             PosNode me = new PosNode(_sys.PosWallet.AccountId);
+            me.NodeVersion = LyraGlobal.NODE_VERSION.ToString();
             _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId);
             me.IPAddress = $"{_myIpAddress}";
 
@@ -632,7 +633,7 @@ namespace Lyra.Core.Decentralize
         {
             // dq any lower version
             var ver = new Version(heartBeat.NodeVersion);
-            if(LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) > 0)
+            if(string.IsNullOrWhiteSpace(heartBeat.NodeVersion) || LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) > 0)
             {
                 _log.LogInformation($"Node {heartBeat.From.Shorten()} ver {heartBeat.NodeVersion} is too old. Need at least {LyraGlobal.MINIMAL_COMPATIBLE_VERSION}");
                 return;
@@ -768,6 +769,14 @@ namespace Lyra.Core.Decentralize
                     throw new Exception("_board is null");
 
                 var node = chat.Text.UnJson<PosNode>();
+
+                // dq any lower version
+                var ver = new Version(node.NodeVersion);
+                if (string.IsNullOrWhiteSpace(node.NodeVersion) || LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) > 0)
+                {
+                    _log.LogInformation($"Node {chat.From.Shorten()} ver {node.NodeVersion} is too old. Need at least {LyraGlobal.MINIMAL_COMPATIBLE_VERSION}");
+                    return;
+                }
 
                 // verify signature
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
