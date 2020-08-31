@@ -29,8 +29,8 @@ namespace Lyra.Core.Decentralize
 
         public ConsensusWorker(ConsensusService context, string hash) : base (context)
         {
-            _authorizers = new AuthorizersFactory();            
-
+            _authorizers = new AuthorizersFactory();
+            TimeStarted = DateTime.Now;
             Hash = hash;
         }
 
