@@ -96,9 +96,6 @@ namespace Lyra.Core.Decentralize
             _board = new BillBoard();
 
             _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) => {
-                if(CurrentState == BlockChainState.ViewChanging)
-                    _stateMachine.Fire(BlockChainTrigger.ViewChanged);
-
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");
                 _board.LeaderCandidate = leader;
                 _board.LeaderCandidateVotes = votes;
@@ -111,7 +108,7 @@ namespace Lyra.Core.Decentralize
 
                 Task.Run(async () =>
                 {
-                    await Task.Delay(30000);
+                    await Task.Delay(10000);
                     var sb = await _sys.Storage.GetLastServiceBlockAsync();
                     if(sb.Height < viewId)
                     {
@@ -121,7 +118,6 @@ namespace Lyra.Core.Decentralize
                         if(CurrentState == BlockChainState.Almighty)
                         {
                             // redo view change
-                            _stateMachine.Fire(BlockChainTrigger.ViewChanging);
                             await _viewChangeHandler.BeginChangeViewAsync();
                         }
                     }
@@ -218,17 +214,9 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
-                    if (CurrentState == BlockChainState.ViewChanging)
+                    if (_viewChangeHandler.CheckTimeout())
                     {
-                        if (_viewChangeHandler.CheckTimeout())
-                        {
-                            //IsViewChanging = false;
-                            //_viewChangeHandler.Reset();
-
-                            //_log.LogWarning($"View Change Timeout. reset.");
-                        }
-
-                        return;
+                        _log.LogInformation($"View Change with Id {_viewChangeHandler.viewId} begin {_viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - _viewChangeHandler.TimeStarted}");
                     }
 
                     foreach (var worker in _activeConsensus.Values.ToArray())
@@ -250,7 +238,6 @@ namespace Lyra.Core.Decentralize
                                 _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
                                 if(CurrentState == BlockChainState.Almighty)
                                 {
-                                    _stateMachine.Fire(BlockChainTrigger.ViewChanging);
                                     await _viewChangeHandler.BeginChangeViewAsync();
                                 }
                             }
@@ -277,8 +264,7 @@ namespace Lyra.Core.Decentralize
                     try
                     {
                         if (_stateMachine.State == BlockChainState.Almighty 
-                                || _stateMachine.State == BlockChainState.Genesis
-                                || _stateMachine.State == BlockChainState.ViewChanging)
+                                || _stateMachine.State == BlockChainState.Genesis)
                         {
                             var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-20))
                                     .Select(b => b.Key)
@@ -316,18 +302,11 @@ namespace Lyra.Core.Decentralize
             });
         }
 
-        internal void ViewChangeIsTimeout(long viewId)
-        {
-            _log.LogInformation($"View change for {viewId} is timeout. Reset consensus.");
-            _stateMachine.Fire(BlockChainTrigger.LocalNodeOutOfSync);
-        }
-
         internal async Task GotViewChangeRequestAsync(long viewId)
         {
             if (CurrentState == BlockChainState.Almighty)
             {
                 _log.LogWarning($"GotViewChangeRequest from other nodes for {viewId}");
-                _stateMachine.Fire(BlockChainTrigger.ViewChanging);
                 await _viewChangeHandler.BeginChangeViewAsync();
             }                
             else
@@ -484,26 +463,7 @@ namespace Lyra.Core.Decentralize
                 {
                     await DeclareConsensusNodeAsync();                    
                 }))
-                .Permit(BlockChainTrigger.ViewChanging, BlockChainState.ViewChanging)
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.StaticSync);
-
-            _stateMachine.Configure(BlockChainState.ViewChanging)
-                .OnEntry(() => {
-                    foreach(var worker in _activeConsensus.Values.ToList())
-                    {
-                        if (worker.State != null)
-                        {
-                            worker.State.Done?.Set();
-                            worker.State.Close();
-                        }
-
-                        _activeConsensus.TryRemove(worker.Hash, out _);
-                    }
-                    _activeConsensus.Clear();
-                })
-                .PermitReentry(BlockChainTrigger.ViewChanging)
-                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.StaticSync)
-                .Permit(BlockChainTrigger.ViewChanged, BlockChainState.Almighty);
 
             _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
         }
@@ -575,7 +535,6 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation($"We have new player(s). Change view...");
                     // should change view for new member
-                    _stateMachine.Fire(BlockChainTrigger.ViewChanging);
                     await _viewChangeHandler.BeginChangeViewAsync();
                 }
                 else
@@ -1097,8 +1056,7 @@ namespace Lyra.Core.Decentralize
 
             if (item is ViewChangeMessage vcm)
             {
-                if(CurrentState == BlockChainState.Almighty
-                    || CurrentState == BlockChainState.ViewChanging)
+                if(CurrentState == BlockChainState.Almighty)
                 {
                     await CriticalRelayAsync(vcm, async (msg) => {
                         await _viewChangeHandler.ProcessMessage(msg);

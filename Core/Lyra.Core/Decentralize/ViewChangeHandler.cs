@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Lyra.Core.Decentralize
 {
     public delegate void LeaderSelectedHandler(ViewChangeHandler sender, long viewId, string NewLeader, int Votes, List<string> Voters);
-    
+
     public class ViewChangeHandler : ConsensusHandlerBase
     {
         private long _ValidViewId;
@@ -46,120 +46,57 @@ namespace Lyra.Core.Decentralize
                 msg = Message;
             }
         }
-        private class View
-        {
-            DagSystem _sys;
-            public ConsensusService context;
-            public DateTime dtStarted;
 
-            public long viewId;
-            public bool selectedSuccess = false;
+        public long viewId;
+        public bool selectedSuccess = false;
 
-            public string nextLeader;
+        public string nextLeader;
 
-            public bool replySent = false;
-            public bool commitSent = false;
+        public bool replySent = false;
+        public bool commitSent = false;
 
-            public ConcurrentDictionary<string, VCReqWithTime> reqMsgs { get; set; }
-            public ConcurrentDictionary<string, VCReplyWithTime> replyMsgs { get; set; }
-            public ConcurrentDictionary<string, VCCommitWithTime> commitMsgs { get; set; }
-            public View(DagSystem sys, ConsensusService context, long viewId)
-            {
-                this._sys = sys;
-                this.context = context;
-                this.viewId = viewId;
-                dtStarted = DateTime.MinValue;
-
-                reqMsgs = new ConcurrentDictionary<string, VCReqWithTime>();
-                replyMsgs = new ConcurrentDictionary<string, VCReplyWithTime>();
-                commitMsgs = new ConcurrentDictionary<string, VCCommitWithTime>();
-            }
-            public int QualifiedNodeCount
-            {
-                get
-                {
-                    var allNodes = context.Board.ActiveNodes.ToList();
-                    var count = allNodes.Count(a => a?.Votes >= LyraGlobal.MinimalAuthorizerBalance);
-                    if (count > LyraGlobal.MAXIMUM_VOTER_NODES)
-                    {
-                        return LyraGlobal.MAXIMUM_VOTER_NODES;
-                    }
-                    else if (count < LyraGlobal.MINIMUM_AUTHORIZERS)
-                    {
-                        return LyraGlobal.MINIMUM_AUTHORIZERS;
-                    }
-                    else
-                    {
-                        return count;
-                    }
-                }
-            }
-
-            public bool CheckTimeout()
-            {
-                if (!selectedSuccess && DateTime.Now - dtStarted > TimeSpan.FromSeconds(10))
-                {
-                    return true;
-                }
-                else
-                    return false;
-            }
-        }
-
-        ConcurrentDictionary<long, View> _views;
+        private ConcurrentDictionary<string, VCReqWithTime> reqMsgs { get; set; }
+        private ConcurrentDictionary<string, VCReplyWithTime> replyMsgs { get; set; }
+        private ConcurrentDictionary<string, VCCommitWithTime> commitMsgs { get; set; }
 
         DagSystem _sys;
         public ViewChangeHandler(DagSystem sys, ConsensusService context, LeaderSelectedHandler leaderSelected) : base(context)
         {
             _sys = sys;
-            _views = new ConcurrentDictionary<long, View>();
 
             _leaderSelected = leaderSelected;
 
-            _dtStart = DateTime.Now;
+            TimeStarted = DateTime.Now;
+
+            reqMsgs = new ConcurrentDictionary<string, VCReqWithTime>();
+            replyMsgs = new ConcurrentDictionary<string, VCReplyWithTime>();
+            commitMsgs = new ConcurrentDictionary<string, VCCommitWithTime>();
         }
 
         // debug only. should remove after
         public override bool CheckTimeout()
         {
-            foreach (var v in _views.Values.ToList())
+            if (!selectedSuccess && DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT))
             {
-                if (v.CheckTimeout())
-                {
-                    _log.LogInformation($"View Change with Id {v.viewId} begin {v.dtStarted} Ends: {DateTime.Now} used: {DateTime.Now - v.dtStarted}");
-
-                    if(v.viewId == _ValidViewId)
-                    {
-                        _context.ViewChangeIsTimeout(v.viewId);
-                        v.replySent = false;
-                        v.commitSent = false;
-                        v.dtStarted = DateTime.MaxValue;
-                        v.reqMsgs.Clear();
-                        v.replyMsgs.Clear();
-                        v.commitMsgs.Clear();
-                    }
-                }
+                return true;
             }
-            return false;
+            else
+                return false;
+        }
+
+        public void Reset()
+        {
+            replySent = false;
+            commitSent = false;
+            TimeStarted = DateTime.MaxValue;
+            reqMsgs.Clear();
+            replyMsgs.Clear();
+            commitMsgs.Clear();
         }
 
         protected override bool IsStateCreated()
         {
             return true;
-        }
-
-        private View GetView(long viewId)
-        {
-            if (_views.ContainsKey(viewId))
-            {
-                return _views[viewId];
-            }
-            else
-            {
-                var view = new View(_sys, _context, viewId);
-                _views.TryAdd(viewId, view);
-                return view;
-            }
         }
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
@@ -171,11 +108,7 @@ namespace Lyra.Core.Decentralize
             //        return;
             //}
 
-            View view = GetView(vcm.ViewID);
-            if (view == null)
-                return;
-
-            if (view.selectedSuccess)
+            if (selectedSuccess)
                 return;
 
             _log.LogInformation($"ProcessMessage type: {vcm.MsgType} from: {vcm.From.Shorten()}");
@@ -185,9 +118,9 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if(vcm is ViewChangeRequestMessage req)
+            if (vcm is ViewChangeRequestMessage req)
             {
-                await CheckRequestAsync(view, req);
+                await CheckRequestAsync(req);
                 return;
             }
 
@@ -198,10 +131,10 @@ namespace Lyra.Core.Decentralize
                 switch (vcm)
                 {
                     case ViewChangeReplyMessage reply:
-                        await CheckReplyAsync(view, reply);
+                        await CheckReplyAsync(reply);
                         break;
                     case ViewChangeCommitMessage commit:
-                        await CheckCommitAsync(view, commit);
+                        await CheckCommitAsync(commit);
                         break;
                     default:
                         _log.LogWarning("Should not happen.");
@@ -210,45 +143,45 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task CheckAllStatsAsync(View view)
+        private async Task CheckAllStatsAsync()
         {
-            if (view.selectedSuccess)
+            if (selectedSuccess)
                 return;
 
             // remove outdated msgs
-            var q1 = view.reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
+            var q1 = reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
                 .Select(b => b.Key)
                 .ToList();
             foreach (var req in q1)
-                view.reqMsgs.TryRemove(req, out _);
+                reqMsgs.TryRemove(req, out _);
 
-            var q2 = view.reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
+            var q2 = reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
                 .Select(b => b.Key)
                 .ToList();
             foreach (var req in q2)
-                view.replyMsgs.TryRemove(req, out _);
+                replyMsgs.TryRemove(req, out _);
 
-            var q3 = view.reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
+            var q3 = reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
                 .Select(b => b.Key)
                 .ToList();
             foreach (var req in q3)
-                view.commitMsgs.TryRemove(req, out _);
+                commitMsgs.TryRemove(req, out _);
 
-            _log.LogInformation($"CheckAllStats VID: {view.viewId} Req: {view.reqMsgs.Count} Reply: {view.replyMsgs.Count} Commit: {view.commitMsgs.Count} Votes {view.commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {view.replySent} Commited: {view.commitSent}");
+            _log.LogInformation($"CheckAllStats VID: {viewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             // request
-            if (!view.replySent && view.reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
                 // the new leader:
                 // 1, not the previous one;
                 // 2, viewid mod [voters count], index of _qualifiedVoters.
                 // 
-                var leaderIndex = (int)(view.viewId % _context.Board.AllVoters.Count);
+                var leaderIndex = (int)(viewId % _context.Board.AllVoters.Count);
 
                 do
                 {
                     var leader = _context.Board.AllVoters[leaderIndex];
-                    if (!view.reqMsgs.Values.Any(a => a.msg.From == leader))     // it is offline
+                    if (!reqMsgs.Values.Any(a => a.msg.From == leader))     // it is offline
                     {
                         leaderIndex = (leaderIndex + 1) % _context.Board.AllVoters.Count;
                     }
@@ -256,43 +189,43 @@ namespace Lyra.Core.Decentralize
                         break;
                 } while (true);
 
-                view.nextLeader = _context.Board.AllVoters[leaderIndex];
-                _log.LogInformation($"CheckAllStats, By ReqMsgs, next leader will be {view.nextLeader}");
+                nextLeader = _context.Board.AllVoters[leaderIndex];
+                _log.LogInformation($"CheckAllStats, By ReqMsgs, next leader will be {nextLeader}");
 
                 var reply = new ViewChangeReplyMessage
                 {
                     From = _sys.PosWallet.AccountId,
-                    ViewID = view.viewId,
+                    ViewID = viewId,
                     Result = Blocks.APIResultCodes.Success,
-                    Candidate = view.nextLeader
+                    Candidate = nextLeader
                 };
 
                 _context.Send2P2pNetwork(reply);
 
-                view.replySent = true;
-                await CheckReplyAsync(view, reply);
+                replySent = true;
+                await CheckReplyAsync(reply);
             }
-            else if(view.reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            else if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
                 if (_context.CurrentState == BlockChainState.Almighty)
                 {
                     _log.LogInformation("too many view change request. force into view change mode");
-                    view.dtStarted = DateTime.Now;
+                    TimeStarted = DateTime.Now;
                     // too many view change request. force into view change mode
-                    await _context.GotViewChangeRequestAsync(view.viewId);
+                    await _context.GotViewChangeRequestAsync(viewId);
 
                     // also do clean of req msgs queue
-                    var unqualifiedReqs = view.reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
+                    var unqualifiedReqs = reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
                     foreach (var unq in unqualifiedReqs)
-                        view.reqMsgs.Remove(unq, out _);
+                        reqMsgs.Remove(unq, out _);
                 }
             }
 
-            if(!view.commitSent)
+            if (!commitSent)
             {
                 // reply
                 // only if we have enough reply
-                var qr = from rep in view.replyMsgs.Values
+                var qr = from rep in replyMsgs.Values
                          where rep.msg.Result == Blocks.APIResultCodes.Success
                          group rep by rep.msg.Candidate into g
                          select new { Candidate = g.Key, Count = g.Count() };
@@ -301,19 +234,19 @@ namespace Lyra.Core.Decentralize
 
                 if (candidateQR?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
-                    _log.LogInformation($"CheckAllStats, By ReplyMsgs, commit next leader {view.nextLeader}");
+                    _log.LogInformation($"CheckAllStats, By ReplyMsgs, commit next leader {nextLeader}");
 
                     var commit = new ViewChangeCommitMessage
                     {
                         From = _sys.PosWallet.AccountId,
-                        ViewID = view.viewId,
+                        ViewID = viewId,
                         Candidate = candidateQR.Candidate,
                         Consensus = ConsensusResult.Yea
                     };
 
                     _context.Send2P2pNetwork(commit);
-                    view.commitSent = true;
-                    await CheckCommitAsync(view, commit);
+                    commitSent = true;
+                    await CheckCommitAsync(commit);
                 }
                 else
                 {
@@ -322,7 +255,7 @@ namespace Lyra.Core.Decentralize
             }
 
             // commit
-            var q = from rep in view.commitMsgs.Values
+            var q = from rep in commitMsgs.Values
                     group rep by rep.msg.Candidate into g
                     select new { Candidate = g.Key, Count = g.Count() };
 
@@ -331,63 +264,63 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation($"CheckAllStats, By CommitMsgs, leader selected {candidate.Candidate} with {candidate.Count} votes.");
 
-                view.selectedSuccess = true;
-                _leaderSelected(this, view.viewId, candidate.Candidate, candidate.Count, _context.Board.AllVoters);
+                selectedSuccess = true;
+                _leaderSelected(this, viewId, candidate.Candidate, candidate.Count, _context.Board.AllVoters);
             }
         }
 
-        private async Task CheckCommitAsync(View view, ViewChangeCommitMessage vcm)
+        private async Task CheckCommitAsync(ViewChangeCommitMessage vcm)
         {
-            if(!view.commitMsgs.ContainsKey(vcm.From))
+            if (!commitMsgs.ContainsKey(vcm.From))
             {
                 var cmt = new VCCommitWithTime(vcm);
-                view.commitMsgs.AddOrUpdate(vcm.From, cmt, (key, oldValue) => cmt);
+                commitMsgs.AddOrUpdate(vcm.From, cmt, (key, oldValue) => cmt);
 
-                _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {view.commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count}");
+                _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count}");
 
-                await CheckAllStatsAsync(view);
+                await CheckAllStatsAsync();
             }
         }
 
-        private async Task CheckReplyAsync(View view, ViewChangeReplyMessage reply)
+        private async Task CheckReplyAsync(ViewChangeReplyMessage reply)
         {
-            //_log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {view._replyMsgs.Count}/{view._qualifiedVoters.Count}");
+            //_log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {_replyMsgs.Count}/{_qualifiedVoters.Count}");
 
-            if(reply.Result == Blocks.APIResultCodes.Success)
+            if (reply.Result == Blocks.APIResultCodes.Success)
             {
-                if (view.replyMsgs.ContainsKey(reply.From))
+                if (replyMsgs.ContainsKey(reply.From))
                 {
-                    if (view.replyMsgs[reply.From].msg.Candidate != reply.Candidate)
+                    if (replyMsgs[reply.From].msg.Candidate != reply.Candidate)
                     {
-                        view.replyMsgs[reply.From] = new VCReplyWithTime(reply);
-                        await CheckAllStatsAsync(view);
+                        replyMsgs[reply.From] = new VCReplyWithTime(reply);
+                        await CheckAllStatsAsync();
                     }
                 }
                 else
                 {
-                    view.replyMsgs.TryAdd(reply.From, new VCReplyWithTime(reply));
-                    await CheckAllStatsAsync(view);
+                    replyMsgs.TryAdd(reply.From, new VCReplyWithTime(reply));
+                    await CheckAllStatsAsync();
                 }
-            }     
+            }
         }
 
-        private async Task CheckRequestAsync(View view, ViewChangeRequestMessage req)
+        private async Task CheckRequestAsync(ViewChangeRequestMessage req)
         {
             //_log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
 
-            if (!view.reqMsgs.Values.Any(a => a.msg.From == req.From))
+            if (!reqMsgs.Values.Any(a => a.msg.From == req.From))
             {
                 var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
                 var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
                 if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
                 {
-                    view.reqMsgs.TryAdd(req.From, new VCReqWithTime(req));
-                    await CheckAllStatsAsync(view);
-                }                    
+                    reqMsgs.TryAdd(req.From, new VCReqWithTime(req));
+                    await CheckAllStatsAsync();
+                }
                 else
                     _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
-            }            
+            }
         }
 
         /// <summary>
@@ -397,11 +330,11 @@ namespace Lyra.Core.Decentralize
         /// <returns></returns>
         internal async Task BeginChangeViewAsync()
         {
-            _log.LogInformation($"Begin Change View.");
+            _log.LogInformation($"Begin Change ");
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
 
-            if(lastSb == null)
+            if (lastSb == null)
             {
                 // genesis?
                 _log.LogCritical($"BeginChangeViewAsync has null service block. should not happend. error.");
@@ -415,16 +348,9 @@ namespace Lyra.Core.Decentralize
 
             _ValidViewId = lastSb.Height + 1;
 
-            foreach(var v in _views.ToList())
-            {
-                if (v.Key != _ValidViewId)
-                    _views.TryRemove(v.Key, out _);
-            }
-
-            var view = GetView(_ValidViewId);
-            view.selectedSuccess = false;
-            view.dtStarted = DateTime.Now;
-            _log.LogInformation($"View change begin at {view.dtStarted}");
+            selectedSuccess = false;
+            TimeStarted = DateTime.Now;
+            _log.LogInformation($"View change begin at {TimeStarted}");
 
             var req = new ViewChangeRequestMessage
             {
@@ -436,7 +362,7 @@ namespace Lyra.Core.Decentralize
             };
 
             _context.Send2P2pNetwork(req);
-            await CheckRequestAsync(view, req);
+            await CheckRequestAsync(req);
         }
 
         internal void ShiftView(long v)

@@ -15,6 +15,8 @@ namespace Lyra.Core.API
         public const char ADDRESSPREFIX = 'L';
         public const string WALLETFILEEXT = ".lyrawallet";
 
+        public const int CONSENSUS_TIMEOUT = 6;  // seconds
+        public const int VIEWCHANGE_TIMEOUT = 10;    // seconds
         public const int MAXIMUM_VOTER_NODES = 27;
         public const int MAXIMUM_AUTHORIZERS = 21;
         public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
@@ -37,8 +39,6 @@ namespace Lyra.Core.API
 #endif
 
         public const int TOKENSTORAGERITO = 100000000;
-
-        public const int CONSENSUSTIMEOUT = 4000;       // 4 seconds
 
         public static int GetMajority(int totalCount)
         {

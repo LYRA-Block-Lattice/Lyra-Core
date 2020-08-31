@@ -598,7 +598,6 @@ namespace Lyra.Core.Decentralize
         StaticSync,    // the default mode. app started. wait for p2p stack up.
         Engaging,   // storing new commit while syncing blocks
         Almighty,   // fullly synced and working
-        ViewChanging, // 
         Genesis
     }
 
@@ -620,10 +619,6 @@ namespace Lyra.Core.Decentralize
 
         // almighty
         LocalNodeOutOfSync,
-
-        // view change
-        ViewChanging,
-        ViewChanged,
 
         // genesis
         GenesisDone

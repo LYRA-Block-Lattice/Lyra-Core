@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Utils;
+﻿using Lyra.Core.API;
+using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Neo;
 using System;
@@ -14,7 +15,7 @@ namespace Lyra.Core.Decentralize
         protected ConsensusService _context;
         protected ILogger _log;
 
-        protected DateTime _dtStart = DateTime.Now;
+        public DateTime TimeStarted { get; set; }
 
         protected ConcurrentQueue<ConsensusMessage> _outOfOrderedMessages;
 
@@ -28,9 +29,9 @@ namespace Lyra.Core.Decentralize
 
         public virtual bool CheckTimeout()
         {
-            if (DateTime.Now - _dtStart > TimeSpan.FromSeconds(5))
+            if (DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT))
             {
-                _log.LogInformation($"Consensus begin {_dtStart} Ends: {DateTime.Now} used: {DateTime.Now - _dtStart}");
+                _log.LogInformation($"Consensus begin {TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - TimeStarted}");
                 return true;
             }
             else
