@@ -66,7 +66,7 @@ namespace Lyra.Core.Decentralize
 
             _leaderSelected = leaderSelected;
 
-            TimeStarted = DateTime.Now;
+            TimeStarted = DateTime.MinValue;
 
             reqMsgs = new ConcurrentDictionary<string, VCReqWithTime>();
             replyMsgs = new ConcurrentDictionary<string, VCReplyWithTime>();
