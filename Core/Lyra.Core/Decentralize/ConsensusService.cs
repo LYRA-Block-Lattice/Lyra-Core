@@ -676,6 +676,21 @@ namespace Lyra.Core.Decentralize
             }
 
             _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
+
+            /// check if leader is online. otherwise call view-change.
+            /// the uniq tick: seed0's heartbeat.
+            if(CurrentState == BlockChainState.Almighty && accountId == ProtocolSettings.Default.StandbyValidators[0])
+            {
+                if(_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb.Leader))
+                {
+                    // leader is offline. we need chose one new
+                    UpdateVoters();
+
+                    _log.LogInformation($"We have no leader online. Change view...");
+                    // should change view for new member
+                    await _viewChangeHandler.BeginChangeViewAsync();
+                }
+            }
         }
 
         private async Task HeartBeatAsync()
