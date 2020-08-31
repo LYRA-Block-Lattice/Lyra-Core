@@ -199,7 +199,7 @@ namespace Lyra.Core.Decentralize
             }
             else if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                if (_context.CurrentState == BlockChainState.Almighty)
+                if (TimeStarted == DateTime.MinValue)
                 {
                     _log.LogInformation("too many view change request. force into view change mode");
                     TimeStarted = DateTime.Now;
