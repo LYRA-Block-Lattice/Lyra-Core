@@ -76,7 +76,7 @@ namespace Lyra.Core.Decentralize
         // debug only. should remove after
         public override bool CheckTimeout()
         {
-            if (!selectedSuccess && DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT))
+            if (TimeStarted != DateTime.MinValue && DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT))
             {
                 return true;
             }
@@ -368,6 +368,7 @@ namespace Lyra.Core.Decentralize
         internal void ShiftView(long v)
         {
             _ValidViewId = v;
+            TimeStarted = DateTime.MinValue;
         }
     }
 
