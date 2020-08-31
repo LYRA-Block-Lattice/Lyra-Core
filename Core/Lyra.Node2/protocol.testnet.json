@@ -7,14 +7,13 @@
       "LQdN8nrDSuqCr1S4YTmnPieX3heB93aXwmFuidN4Yiurkvm9NFqHbpvR8pcU89WQJofdJiYYvhoVJQQwAUj9oBXpLFAgh2",
       "LK8vWAFcrsK8Re44Q54ESKT7yfW5WuWaZPgSmKgpFbBQjp5jAADa85jizRyTzjN6RxQowoKXsbiWENy1Bs6cH6xcMdJtaL",
       "LDwYs2QzUqDFT9os9EVk71Yq1P4XmwCwMuDQTNSmbxoYvgsCo4qvq45ujEhp6Sawxu9scLNQjNWEPwqh6CF5idHh4y5MZK",
-      "LHneTZ8QwdXTKCaod7yFpHLJTDGApEnBBvgc3UX7DMpRyXweAiDQE3vXJZJ7S2hAqfwY6DJBQLtZGSEv9YBJdZq4Wgv5s1"
+      "LH3zYaMTh61kpufRdese6euGgaoL2UpkCHNFmrsoXgdBnU9ZtwP7t88sCmvqi2damMVJveLNnc1F8wveiNu3d7VDocf6mS"
     ],
     "SeedList": [
       "seed.testnet.lyra.live:4503",
       "seed2.testnet.lyra.live:4503",
       "seed3.testnet.lyra.live:4503",
-      "seed4.testnet.lyra.live:4503",
-      "seed5.testnet.lyra.live:4503"
+      "seed4.testnet.lyra.live:4503"
     ],
     "StartupValidators": [
       "LKsoWmTgfBXFKk7SDiCZskPdEc6ZpjMS2BbucK9xchfe9Nr7ymwr3XD3p83nSKP7ejJNZBkoj2ybBh1WRe3ZbinXmZii7V",
