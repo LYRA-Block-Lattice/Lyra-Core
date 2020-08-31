@@ -1085,16 +1085,16 @@ namespace Lyra.Core.Decentralize
                     var worker = await GetWorkerAsync(cm.BlockHash, true);
                     if (worker != null)
                     {
-                        if(item is AuthorizingMsg authorizingMsg)
-                        {
-                            await CriticalRelayAsync(authorizingMsg, async (msg) => {
-                                await worker.ProcessMessage(cm);
+                        //if(item is AuthorizingMsg authorizingMsg)
+                        //{
+                            await CriticalRelayAsync(cm, async (msg) => {
+                                await worker.ProcessMessage(msg);
                             });
-                        }
-                        else
-                        {
-                            await worker.ProcessMessage(cm);
-                        }                        
+                        //}
+                        //else
+                        //{
+                        //    await worker.ProcessMessage(cm);
+                        //}                        
                     }                        
                     return;
                 }
