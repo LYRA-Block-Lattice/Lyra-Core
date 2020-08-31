@@ -12,11 +12,10 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public delegate void LeaderSelectedHandler(ViewChangeHandler sender, long viewId, string NewLeader, int Votes, List<string> Voters);
+    public delegate void LeaderSelectedHandler(ViewChangeHandler sender, long _ViewId, string NewLeader, int Votes, List<string> Voters);
 
     public class ViewChangeHandler : ConsensusHandlerBase
     {
-        private long _ValidViewId;
         private LeaderSelectedHandler _leaderSelected;
 
         private class VCReqWithTime
@@ -47,7 +46,6 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public long viewId;
         public bool selectedSuccess = false;
 
         public string nextLeader;
@@ -58,6 +56,7 @@ namespace Lyra.Core.Decentralize
         private ConcurrentDictionary<string, VCReqWithTime> reqMsgs { get; set; }
         private ConcurrentDictionary<string, VCReplyWithTime> replyMsgs { get; set; }
         private ConcurrentDictionary<string, VCCommitWithTime> commitMsgs { get; set; }
+        public long ViewId { get; set; }
 
         DagSystem _sys;
         public ViewChangeHandler(DagSystem sys, ConsensusService context, LeaderSelectedHandler leaderSelected) : base(context)
@@ -101,20 +100,13 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
-            //if(_context.CurrentState != BlockChainState.ViewChanging)
-            //{
-            //    // only accept req when non vc
-            //    if (vcm.MsgType != ChatMessageType.ViewChangeRequest)
-            //        return;
-            //}
-
             if (selectedSuccess)
                 return;
 
             _log.LogInformation($"ProcessMessage type: {vcm.MsgType} from: {vcm.From.Shorten()}");
-            if (_ValidViewId != 0 && vcm.ViewID != _ValidViewId)
+            if (ViewId != 0 && vcm.ViewID != ViewId)
             {
-                _log.LogInformation($"ProcessMessage: view ID {vcm.ViewID} not valid with {_ValidViewId}");
+                _log.LogInformation($"ProcessMessage: view ID {vcm.ViewID} not valid with {ViewId}");
                 return;
             }
 
@@ -167,7 +159,7 @@ namespace Lyra.Core.Decentralize
             foreach (var req in q3)
                 commitMsgs.TryRemove(req, out _);
 
-            _log.LogInformation($"CheckAllStats VID: {viewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+            _log.LogInformation($"CheckAllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             // request
             if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
@@ -176,7 +168,7 @@ namespace Lyra.Core.Decentralize
                 // 1, not the previous one;
                 // 2, viewid mod [voters count], index of _qualifiedVoters.
                 // 
-                var leaderIndex = (int)(viewId % _context.Board.AllVoters.Count);
+                var leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
 
                 do
                 {
@@ -195,7 +187,7 @@ namespace Lyra.Core.Decentralize
                 var reply = new ViewChangeReplyMessage
                 {
                     From = _sys.PosWallet.AccountId,
-                    ViewID = viewId,
+                    ViewID = ViewId,
                     Result = Blocks.APIResultCodes.Success,
                     Candidate = nextLeader
                 };
@@ -212,7 +204,7 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation("too many view change request. force into view change mode");
                     TimeStarted = DateTime.Now;
                     // too many view change request. force into view change mode
-                    await _context.GotViewChangeRequestAsync(viewId);
+                    await _context.GotViewChangeRequestAsync(ViewId);
 
                     // also do clean of req msgs queue
                     var unqualifiedReqs = reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
@@ -239,7 +231,7 @@ namespace Lyra.Core.Decentralize
                     var commit = new ViewChangeCommitMessage
                     {
                         From = _sys.PosWallet.AccountId,
-                        ViewID = viewId,
+                        ViewID = ViewId,
                         Candidate = candidateQR.Candidate,
                         Consensus = ConsensusResult.Yea
                     };
@@ -265,7 +257,7 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"CheckAllStats, By CommitMsgs, leader selected {candidate.Candidate} with {candidate.Count} votes.");
 
                 selectedSuccess = true;
-                _leaderSelected(this, viewId, candidate.Candidate, candidate.Count, _context.Board.AllVoters);
+                _leaderSelected(this, ViewId, candidate.Candidate, candidate.Count, _context.Board.AllVoters);
             }
         }
 
@@ -346,7 +338,7 @@ namespace Lyra.Core.Decentralize
 
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
-            _ValidViewId = lastSb.Height + 1;
+            ViewId = lastSb.Height + 1;
             TimeStarted = DateTime.Now;
             selectedSuccess = false;
             
@@ -355,7 +347,7 @@ namespace Lyra.Core.Decentralize
             var req = new ViewChangeRequestMessage
             {
                 From = _sys.PosWallet.AccountId,
-                ViewID = _ValidViewId,
+                ViewID = ViewId,
                 prevViewID = lastSb.Height,
                 requestSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
                     $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
@@ -367,7 +359,7 @@ namespace Lyra.Core.Decentralize
 
         internal void ShiftView(long v)
         {
-            _ValidViewId = v;
+            ViewId = v;
             TimeStarted = DateTime.MinValue;
         }
     }

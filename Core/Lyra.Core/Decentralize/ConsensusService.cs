@@ -216,7 +216,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (_viewChangeHandler.CheckTimeout())
                     {
-                        _log.LogInformation($"View Change with Id {_viewChangeHandler.viewId} begin {_viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - _viewChangeHandler.TimeStarted}");
+                        _log.LogInformation($"View Change with Id {_viewChangeHandler.ViewId} begin {_viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - _viewChangeHandler.TimeStarted}");
                         _viewChangeHandler.Reset();
                     }
 
