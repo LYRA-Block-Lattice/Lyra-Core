@@ -165,7 +165,14 @@ namespace Lyra.Core.Decentralize
                 {
                     state.Done?.Set();
                     return;
-                }                    
+                }
+
+                if(_viewChangeHandler.TimeStarted != DateTime.MinValue)
+                {
+                    // view changing in progress. no block accepted
+                    state.Done?.Set();
+                    return;
+                }
 
                 //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
                 if (state.InputMsg.Block is TransactionBlock)
