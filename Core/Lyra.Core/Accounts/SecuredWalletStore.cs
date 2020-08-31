@@ -1,7 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using NeoSmart.SecureStore;
-using Org.Apache.Http.Cookies;
+//using Org.Apache.Http.Cookies;
 using System;
 using System.Collections.Generic;
 using System.IO;
