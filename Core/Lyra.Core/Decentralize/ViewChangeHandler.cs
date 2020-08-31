@@ -85,6 +85,7 @@ namespace Lyra.Core.Decentralize
 
         public void Reset()
         {
+            selectedSuccess = false;
             replySent = false;
             commitSent = false;
             TimeStarted = DateTime.MinValue;
@@ -100,13 +101,16 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
+            _log.LogInformation($"VC Msgs type: {vcm.MsgType} from: {vcm.From.Shorten()}");
             if (selectedSuccess)
+            {
+                _log.LogInformation($"VC Msgs return already selected. type: {vcm.MsgType} from: {vcm.From.Shorten()}");
                 return;
+            }
 
-            _log.LogInformation($"ProcessMessage type: {vcm.MsgType} from: {vcm.From.Shorten()}");
             if (ViewId != 0 && vcm.ViewID != ViewId)
             {
-                _log.LogInformation($"ProcessMessage: view ID {vcm.ViewID} not valid with {ViewId}");
+                _log.LogInformation($"VC Msgs: view ID {vcm.ViewID} not valid with {ViewId}");
                 return;
             }
 
