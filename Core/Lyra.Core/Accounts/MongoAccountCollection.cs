@@ -894,7 +894,7 @@ namespace Lyra.Core.Accounts
                 .Where(x => !string.IsNullOrEmpty(x.VoteFor));
   
             var votefors = latestAccounts
-                .Where(a => posAccountIds.Contains(a.AccountId))
+                .Where(a => posAccountIds.Contains(a.VoteFor))
                 .Select(v => new
                 {
                     v.AccountId,
