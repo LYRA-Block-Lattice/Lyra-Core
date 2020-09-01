@@ -93,7 +93,11 @@ namespace Lyra.Core.Authorizers
             if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer)
             {
                 if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
-                    return APIResultCodes.InvalidDestinationAccountId;
+                {
+                    // first check if the transfer was aimed to imported account
+                    if (!await sys.Storage.WasAccountImportedAsync((sourceBlock as SendTransferBlock).DestinationAccountId, block.AccountID))
+                        return APIResultCodes.InvalidDestinationAccountId;
+                }
 
                 TransactionBlock prevToSendBlock = await sys.Storage.FindBlockByHashAsync(sourceBlock.PreviousHash) as TransactionBlock;
                 if (prevToSendBlock == null)

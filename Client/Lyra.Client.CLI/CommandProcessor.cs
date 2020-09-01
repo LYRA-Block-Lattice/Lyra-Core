@@ -171,10 +171,10 @@ namespace Lyra.Client.CLI
                         ProcessRedeemRewardsTradeOrder();
                         break;
                     case COMMAND_IMPORT_ACCOUNT:
-                        Console.WriteLine("Please enter private key: ");
+                        Console.WriteLine("Please enter private key of the account to import: ");
                         string imported_private_key = Console.ReadLine();
                         var import_result = await _wallet.ImportAccount(imported_private_key);
-                        Console.WriteLine("Import Result: " + import_result.ToString());
+                        Console.WriteLine("Import Result: " + import_result.ResultCode.ToString());
                         break;
                     case COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST:
                         //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
