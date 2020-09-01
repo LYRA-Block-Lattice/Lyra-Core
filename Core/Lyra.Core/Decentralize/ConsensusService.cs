@@ -721,8 +721,16 @@ namespace Lyra.Core.Decentralize
         {
             // this keep the node up pace
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-            _board.CurrentLeader = lsb.Leader;
-            _board.PrimaryAuthorizers = lsb.Authorizers.Keys.ToList();
+            if(lsb == null)
+            {
+                _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];
+                _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators.ToList();
+            }
+            else
+            {
+                _board.CurrentLeader = lsb.Leader;
+                _board.PrimaryAuthorizers = lsb.Authorizers.Keys.ToList();
+            }
 
             var me = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == _sys.PosWallet.AccountId);
             if (me == null)
