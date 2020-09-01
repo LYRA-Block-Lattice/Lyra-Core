@@ -879,7 +879,7 @@ namespace Lyra.Core.Accounts
                 .Aggregate()
                 .Match(txFilter)
                 .SortByDescending(x => x.Height)
-                .OfType<TransactionBlock>()
+                .As<TransactionBlock>()
                 .Group(
                     a => a.AccountID,
                     g => new
@@ -898,7 +898,7 @@ namespace Lyra.Core.Accounts
                 .Select(v => new
                 {
                     v.AccountId,
-                    Balance = v.Balances.ContainsKey("LYR") ? v.Balances["LYR"] / LyraGlobal.TOKENSTORAGERITO : 0,
+                    Balance = v.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? v.Balances[LyraGlobal.OFFICIALTICKERCODE] / LyraGlobal.TOKENSTORAGERITO : 0,
                     v.VoteFor
                 })
                 .GroupBy(k => k.VoteFor)
