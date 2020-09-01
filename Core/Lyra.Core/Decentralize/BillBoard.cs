@@ -62,6 +62,7 @@ namespace Lyra.Core.Decentralize
         public decimal Votes { get; set; }
         public DateTime LastStaking { get; set; }
         public string AuthorizerSignature { get; set; }
+        public string NodeVersion { get; set; }
 
         public PosNode(string accountId)
         {
