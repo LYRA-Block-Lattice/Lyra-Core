@@ -35,9 +35,9 @@ https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 Install the ASP.NET Core runtime
 
-4. download releases from https://github.com/LYRA-Block-Lattice/Lyra-Core/releases to a folder, e.g. ~/lyra.permissionless-1.6.1.tar.gz
+4. download **the latest** release from https://github.com/LYRA-Block-Lattice/Lyra-Core/releases to a folder, for example, ~/lyra.permissionless-1.7.6.15tar.gz
 
-`tar -xjvf lyra.permissionless-1.6.1.tar.gz`
+`tar -xjvf lyra.permissionless-1.7.6.15.tar.gz`
 
 5. create mongodb user
 
