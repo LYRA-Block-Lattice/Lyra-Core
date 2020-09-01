@@ -724,7 +724,8 @@ namespace Lyra.Core.Decentralize
             if(lsb == null)
             {
                 _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];
-                _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators.ToList();
+                _board.LeaderCandidate = ProtocolSettings.Default.StandbyValidators[0];
+                _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators.ToList();                
             }
             else
             {
