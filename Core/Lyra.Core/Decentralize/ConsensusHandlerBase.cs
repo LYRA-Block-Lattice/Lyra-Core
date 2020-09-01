@@ -44,7 +44,11 @@ namespace Lyra.Core.Decentralize
             if(msg is AuthorizingMsg || msg is ViewChangeRequestMessage)
             {
                 await InternalProcessMessage(msg);
-                await ProcessQueueAsync();
+
+                if(IsStateCreated())
+                {
+                    await ProcessQueueAsync();
+                }
             }
             else if(!IsStateCreated())
             {

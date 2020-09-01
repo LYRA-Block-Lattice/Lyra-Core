@@ -469,7 +469,9 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    await DeclareConsensusNodeAsync();                    
+                    await DeclareConsensusNodeAsync();
+                    //await Task.Delay(35000);    // wait for enough heartbeat
+                    //RefreshAllNodesVotes();
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.StaticSync);
 
