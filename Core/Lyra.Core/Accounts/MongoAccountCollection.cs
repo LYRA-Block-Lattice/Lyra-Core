@@ -870,64 +870,44 @@ namespace Lyra.Core.Accounts
         //    return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
         //}
 
-         public List<Vote> FindVotes(IEnumerable<string> posAccountIds)
+        public List<Vote> FindVotes(IEnumerable<string> posAccountIds)
         {
-            //var q1 = from b in _blocks.AsQueryable<Block>().OfType<TransactionBlock>()
-            //         where posAccountIds.Contains(b.VoteFor)
-            //         orderby b.Height descending
-            //         group b by b.AccountID into g
-            //         select new { g.Key, g.First().VoteFor, Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] };
+            // first, select all transaction blocks
+            var txFilter = Builders<Block>.Filter.Where(a => a is TransactionBlock);
 
-            //var a = q1.ToList();
-
-            //var q2 = from t in q1
-            //         group t by t.VoteFor into g
-            //         select new Vote { AccountId = g.Key, Amount = g.Sum(a => a.Balance) };
-
-            //return q2.ToList();
-
-            var filter = Builders<Block>.Filter.AnyIn("VoteFor", posAccountIds);
-
-            var result01 = _blocks.Aggregate()
-                .Match(filter);
-
-            //var r1 = result01.ToList();
-
-            var result1 = result01
-                //.OfType<TransactionBlock>()
-                .Sort(Builders<Block>.Sort.Descending("Height"));
-
-            //var a = result1.ToList();
-
-            var result2 = result1
+            var latestAccounts = _blocks
+                .Aggregate()
+                .Match(txFilter)
+                .SortByDescending(x => x.Height)
+                .OfType<TransactionBlock>()
                 .Group(
-                    x => ((TransactionBlock)x).AccountID,
+                    a => a.AccountID,
                     g => new
                     {
-                        VoteFor = g.Select(a => ((TransactionBlock)a).VoteFor).First(),
-                        Result = g.Select(a => ((TransactionBlock)a).Balances).First()
+                        AccountId = g.Key,
+                        Height = g.First().Height,
+                        Balances = g.First().Balances,
+                        VoteFor = g.First().VoteFor
                     }
-                );
+                )
+                .ToList()
+                .Where(x => !string.IsNullOrEmpty(x.VoteFor));
+  
+            var votefors = latestAccounts
+                .Where(a => posAccountIds.Contains(a.AccountId))
+                .Select(v => new
+                {
+                    v.AccountId,
+                    Balance = v.Balances.ContainsKey("LYR") ? v.Balances["LYR"] / LyraGlobal.TOKENSTORAGERITO : 0,
+                    v.VoteFor
+                })
+                .GroupBy(k => k.VoteFor)
+                .Select(g => new Vote {
+                    AccountId = g.Key,
+                    Amount = g.Sum(x => x.Balance)
+                });
 
-            //var xx = result2.ToList();
-
-            var result21 = result2.Group(
-                    x => x.VoteFor,
-                    g => new
-                    {
-                        voteFor = g.Key,
-                        total = g.Sum(t => t.Result[LyraGlobal.OFFICIALTICKERCODE])
-                    }
-                );
-
-            //var b = result21.ToList();
-
-            var result3 = result21
-                .Project(x => new Vote { AccountId = x.voteFor, Amount = x.total / LyraGlobal.TOKENSTORAGERITO });
-
-            var result4 = result3.ToList();
-
-            return result4;
+            return votefors.ToList();
         }
 
         async Task<ServiceBlock> IAccountCollectionAsync.GetServiceGenesisBlock()
