@@ -779,8 +779,11 @@ namespace Lyra.Core.Decentralize
                 var node = chat.Text.UnJson<PosNode>();
 
                 // dq any lower version
+                if (string.IsNullOrWhiteSpace(node.NodeVersion))
+                    throw new Exception("Node version too small");
+
                 var ver = new Version(node.NodeVersion);
-                if (string.IsNullOrWhiteSpace(node.NodeVersion) || LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) > 0)
+                if (LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) > 0)
                 {
                     _log.LogInformation($"Node {chat.From.Shorten()} ver {node.NodeVersion} is too old. Need at least {LyraGlobal.MINIMAL_COMPATIBLE_VERSION}");
                     return;
