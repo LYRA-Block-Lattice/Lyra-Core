@@ -39,15 +39,18 @@ namespace Lyra.Core.Authorizers
             //    return APIResultCodes.AccountDoesNotExist;
             //var stopwatch = Stopwatch.StartNew();
 
-                //TransactionBlock lastBlock = null;
-                //int count = 50;
-                //while(count-- > 0)
-                //{
-                //    lastBlock = await sys.Storage.FindBlockByHashAsync(block.PreviousHash);
-                //    if (lastBlock != null)
-                //        break;
-                //    Task.Delay(100).Wait();
-                //}
+            //TransactionBlock lastBlock = null;
+            //int count = 50;
+            //while(count-- > 0)
+            //{
+            //    lastBlock = await sys.Storage.FindBlockByHashAsync(block.PreviousHash);
+            //    if (lastBlock != null)
+            //        break;
+            //    Task.Delay(100).Wait();
+            //}
+
+            if (await sys.Storage.WasAccountImportedAsync(block.AccountID))
+                return APIResultCodes.CannotModifyImportedAccount;
 
             TransactionBlock lastBlock = await sys.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
 

@@ -29,6 +29,8 @@ namespace Lyra.Core.Accounts
         Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index);
         Task<Block> FindServiceBlockByIndexAsync(string blockType, Int64 index);
         Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId);
+        Task<SendTransferBlock> FindUnsettledSendBlockByDestinationAccountIdAsync(string AccountId);
+        Task<List<Block>> GetImportedAccountBlocksAsync(string AccountId);
         Task<IEnumerable<ServiceBlock>> FindUnsettledFeeBlockAsync(string AuthorizerAccountId);
 
         // for service blocks
@@ -76,6 +78,15 @@ namespace Lyra.Core.Accounts
 
         List<Vote> FindVotes(IEnumerable<string> posAccountIds);
         Task<IEnumerable<string>> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime);
+        /// <summary>
+        /// Check if this account was ever imported to ANY other account
+        /// </summary>
+        Task<bool> WasAccountImportedAsync(string ImportedAccountId);
+
+        /// <summary>
+        /// Check if the account was  imported to specific account
+        /// </summary>
+        Task<bool> WasAccountImportedAsync(string ImportedAccountId, string AccountId);
 
         /// <summary>
         /// Cleans up or deletes blocks collection.

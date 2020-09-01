@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
-using System;
+using Lyra.Core.Cryptography;
+
 namespace Lyra.Core.Blocks
 {
     [BsonIgnoreExtraElements]
@@ -8,11 +9,16 @@ namespace Lyra.Core.Blocks
         public string ImportedAccountId { get; set; }
         public string ImportedAccountSignature { get; set; }
 
+        // the has hof the last block of the imported account; 
+        // all the balances from this block are transferred into THIS account.
+        // can't use Source for this purposed because Source must be unique, but last block can be a send to THIS account so receive will raise duplicate Source
+        public string ImportedLastBlockHash { get; set; }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData = extraData + ImportedAccountId + "|";
-            extraData = extraData + ImportedAccountSignature + "|";
+            extraData = extraData + ImportedLastBlockHash + "|";
             return extraData;
         }
 
@@ -26,7 +32,16 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"ImportedAccountId: {ImportedAccountId}\n";
             result += $"ImportedAccountSignature: {ImportedAccountSignature}\n";
+            result += $"ImportedLastBlockHash: {ImportedLastBlockHash}\n";
             return result;
+        }
+
+        public override bool VerifySignature(string PublicKey)
+        {
+            if (!base.VerifySignature(PublicKey))
+                return false;
+
+           return Signatures.VerifyAccountSignature(Hash, ImportedAccountId, ImportedAccountSignature);
         }
     }
 

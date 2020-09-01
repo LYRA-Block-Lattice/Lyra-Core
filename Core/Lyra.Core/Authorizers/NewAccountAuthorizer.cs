@@ -32,6 +32,9 @@ namespace Lyra.Core.Authorizers
             if (await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists;
 
+            if (await sys.Storage.WasAccountImportedAsync(block.AccountID))
+                return APIResultCodes.AccountAlreadyExists;
+
             // This is redundant but just in case
             if (await sys.Storage.FindLatestBlockAsync(block.AccountID) != null)
                 return APIResultCodes.AccountBlockAlreadyExists;

@@ -38,6 +38,7 @@ namespace Lyra.Client.CLI
         public const string COMMAND_REDEEM_REWARDS = "redeem";
         public const string COMMAND_VOTEFOR = "votefor";
         public const string COMMAND_SYNCFEE = "syncfee";
+        public const string COMMAND_IMPORT_ACCOUNT = "import";
 
         // set wallet's private key
         public const string COMMAND_RESTORE = "restore";
@@ -77,6 +78,7 @@ namespace Lyra.Client.CLI
                         //Console.WriteLine(string.Format(@"{0,10}: Place a trade order", COMMAND_TRADE_ORDER));
                         //Console.WriteLine(string.Format(@"{0,10}: Cancel trade order", COMMAND_CANCEL_TRADE_ORDER));
                         Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
+                        Console.WriteLine(string.Format(@"{0,10}: Import account into wallet account", COMMAND_IMPORT_ACCOUNT));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new custom digital asset (token)", COMMAND_TOKEN));
                         Console.WriteLine(string.Format(@"{0,10}: Print last transaction block", COMMAND_PRINT_LAST_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Print transaction block", COMMAND_PRINT_BLOCK));
@@ -167,6 +169,12 @@ namespace Lyra.Client.CLI
                    //     break;
                     case COMMAND_REDEEM_REWARDS:
                         ProcessRedeemRewardsTradeOrder();
+                        break;
+                    case COMMAND_IMPORT_ACCOUNT:
+                        Console.WriteLine("Please enter private key: ");
+                        string imported_private_key = Console.ReadLine();
+                        var import_result = await _wallet.ImportAccount(imported_private_key);
+                        Console.WriteLine("Import Result: " + import_result.ToString());
                         break;
                     case COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST:
                         //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);

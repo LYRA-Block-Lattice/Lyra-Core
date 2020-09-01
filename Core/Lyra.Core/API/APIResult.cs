@@ -203,6 +203,12 @@ namespace Lyra.Core.API
                 case BlockTypes.ExchangingTransfer:
                     block = JsonConvert.DeserializeObject<ExchangingBlock>(BlockData);
                     break;
+                case BlockTypes.ImportAccount:
+                    block = JsonConvert.DeserializeObject<ImportAccountBlock>(BlockData);
+                    break;
+                case BlockTypes.OpenAccountWithImport:
+                    block = JsonConvert.DeserializeObject<OpenAccountWithImportBlock>(BlockData);
+                    break;
                 case BlockTypes.NullTransaction:
                     block = JsonConvert.DeserializeObject<NullTransactionBlock>(BlockData);
                     break;

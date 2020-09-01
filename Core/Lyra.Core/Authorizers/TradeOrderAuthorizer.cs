@@ -34,6 +34,9 @@ namespace Lyra.Core.Authorizers
             if (!await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
+            if (await sys.Storage.WasAccountImportedAsync(block.AccountID))
+                return APIResultCodes.CannotModifyImportedAccount;
+
             var lastBlock = await sys.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
             
             if (lastBlock == null)
