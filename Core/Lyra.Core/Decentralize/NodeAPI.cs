@@ -620,6 +620,12 @@ namespace Lyra.Core.Decentralize
             }
             try
             {
+                if (await NodeService.Dag.Storage.WasAccountImportedAsync(AccountId))
+                {
+                    transfer_info.ResultCode = APIResultCodes.AccountAlreadyImported;
+                    return transfer_info;
+                }
+
                 SendTransferBlock sendBlock = await NodeService.Dag.Storage.FindUnsettledSendBlockAsync(AccountId);
 
                 if (sendBlock != null)

@@ -7,51 +7,51 @@ using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {
-    public class NewAccountWithImportAuthorizer : ReceiveTransferAuthorizer
+    public class NewAccountWithImportAuthorizer : ImportAccountAuthorizer
     {
         public NewAccountWithImportAuthorizer()
         {
         }
-
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            var result = await AuthorizeImplAsync(sys, tblock);
-            if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(sys, tblock));
-            else
-                return (result, (AuthorizationSignature)null);
-        }
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
-        {
-            if (!(tblock is OpenWithReceiveTransferBlock))
+            if (!(tblock is OpenAccountWithImportBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as OpenWithReceiveTransferBlock;
+            var import_block = tblock as OpenAccountWithImportBlock;
 
-            // 1. check if the account already exists
-            if (await sys.Storage.AccountExistsAsync(block.AccountID))
+            // check if the account already exists
+            if (await sys.Storage.AccountExistsAsync(import_block.AccountID))
                 return APIResultCodes.AccountAlreadyExists;
 
-            // This is redundant but just in case
-            if (await sys.Storage.FindLatestBlockAsync(block.AccountID) != null)
-                return APIResultCodes.AccountBlockAlreadyExists;
+            TransactionBlock last_imported_block = await sys.Storage.FindLatestBlockAsync(import_block.AccountID) as TransactionBlock;
 
-            var result = await VerifyBlockAsync(sys, block, null);
-            if (result != APIResultCodes.Success)
-                return result;
+            return await ValidateImportedAccountAsync(sys, import_block, null, last_imported_block);
+        }
 
-            result = await VerifyTransactionBlockAsync(sys, block);
-            if (result != APIResultCodes.Success)
-                return result;
+        protected override APIResultCodes ValidateImportedBalances(DagSystem sys, ImportAccountBlock import_block, TransactionBlock previous_block, TransactionBlock last_imported_block)
+        {
+            bool imported_account_exists = last_imported_block != null;
+            if (!imported_account_exists)
+            {
+                // if imported account is empty, there should be no balances!
+                if (import_block.Balances.Count != 0)
+                    return APIResultCodes.ImportTransactionValidationFailed;
+            }
+            else
+            {
+                if (import_block.ImportedLastBlockHash != last_imported_block.Hash)
+                    return APIResultCodes.ImportTransactionValidationFailed;
 
-            result = await ValidateReceiveTransAmountAsync(sys, block as ReceiveTransferBlock, block.GetTransaction(null));
-            if (result != APIResultCodes.Success)
-                return result;
+                // only imported account already has a balances, so let's validate that the import block contains the same balances
+                foreach (var balance in import_block.Balances)
+                {
+                    if (!last_imported_block.Balances.ContainsKey(balance.Key))
+                        return APIResultCodes.ImportTransactionValidationFailed;
 
-            result = await ValidateNonFungibleAsync(sys, block, null);
-            if (result != APIResultCodes.Success)
-                return result;
-
+                    if (last_imported_block.Balances[balance.Key] != balance.Value)
+                        return APIResultCodes.ImportTransactionValidationFailed;
+                }
+            }
             return APIResultCodes.Success;
         }
     }

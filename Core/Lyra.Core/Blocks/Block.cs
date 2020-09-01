@@ -321,6 +321,13 @@ namespace Lyra.Core.Blocks
 
         InvalidPreviousBlock,
 
+        CannotModifyImportedAccount,
+        AccountAlreadyImported,
+        CannotImportEmptyAccount,
+        CannotImportAccountWithOtherImports,
+        ImportTransactionValidationFailed,
+        CannotImportAccountToItself,
+
         // service blocks related
         InvalidConsolidationMerkleTreeHash = 80,
         InvalidConsolidationTotalFees,

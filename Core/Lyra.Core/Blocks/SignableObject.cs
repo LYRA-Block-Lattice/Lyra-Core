@@ -55,7 +55,7 @@ namespace Lyra.Core.Blocks
             return true;
         }
 
-        public bool VerifySignature(string PublicKey)
+        public virtual bool VerifySignature(string PublicKey)
         {
             if (!VerifyHash())
                 return false;

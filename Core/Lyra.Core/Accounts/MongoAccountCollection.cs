@@ -73,6 +73,8 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<ServiceBlock>();
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
             BsonClassMap.RegisterClassMap<NullTransactionBlock>();
+            BsonClassMap.RegisterClassMap<ImportAccountBlock>();
+            BsonClassMap.RegisterClassMap<OpenAccountWithImportBlock>();
 
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
 
@@ -129,7 +131,8 @@ namespace Lyra.Core.Accounts
             CreateIndexes("SellTokenCode", false).Wait();
             CreateIndexes("BuyTokenCode", false).Wait();
             CreateIndexes("TradeOrderId", false).Wait();
-            
+
+            CreateIndexes("ImportedAccountId", false).Wait();
         }
 
         /// <summary>
@@ -317,6 +320,36 @@ namespace Lyra.Core.Accounts
             return await result.FirstOrDefaultAsync() as NullTransactionBlock;
         }
 
+        public async Task<bool> WasAccountImportedAsync(string ImportedAccountId)
+        {
+            var p1 = new BsonArray();
+            p1.Add(BlockTypes.ImportAccount);
+            p1.Add(BlockTypes.OpenAccountWithImport);
+
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("ImportedAccountId", ImportedAccountId)));
+
+            var result = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
+
+            return result != null;
+        }
+
+        public async Task<bool> WasAccountImportedAsync(string ImportedAccountId, string AccountId)
+        {
+            var p1 = new BsonArray();
+            p1.Add(BlockTypes.ImportAccount);
+            p1.Add(BlockTypes.OpenAccountWithImport);
+
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("ImportedAccountId", ImportedAccountId)));
+
+            var result = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
+            if (result == null)
+                return false;
+
+            return (result as ImportAccountBlock).AccountID == AccountId;
+        }
+
         public async Task<Block> FindBlockByHashAsync(string hash)
         {
             if (string.IsNullOrEmpty(hash))
@@ -347,7 +380,7 @@ namespace Lyra.Core.Accounts
             var p1 = new BsonArray();
             p1.Add(BlockTypes.ReceiveTransfer);
             p1.Add(BlockTypes.OpenAccountWithReceiveTransfer);
-            p1.Add(BlockTypes.OpenAccountWithImport);
+            //p1.Add(BlockTypes.OpenAccountWithImport);
 
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("AccountID", AccountId), builder.Ne("NonFungibleToken", BsonNull.Value)));
@@ -443,51 +476,128 @@ namespace Lyra.Core.Accounts
 
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId)
         {
-            long fromIndex = 0;
+            //if (await WasAccountImportedAsync(AccountId))
+            //    return null;
 
+            // First  let's check the "main" account
+            var send_block = await FindUnsettledSendBlockByDestinationAccountIdAsync(AccountId);
+            if (send_block != null)
+                return send_block;
+
+            // Now let's check if there is anything sent to the imported accounts linked to this account
+            var import_blocks = await GetImportedAccountBlocksAsync(AccountId);
+            //if (import_blocks == null || import_blocks.Count == 0)
+            //    return null;
+
+            foreach (ImportAccountBlock importBlock in import_blocks)
+            {
+                send_block = await FindUnsettledSendBlockForImportedAccountAsync(importBlock.ImportedAccountId, AccountId);
+                if (send_block != null)
+                    return send_block;
+            }
+
+            return null;
+        }
+
+        // look up by destination account
+        public async Task<SendTransferBlock> FindUnsettledSendBlockByDestinationAccountIdAsync(string AccountId)
+        {
+
+            /* send and receive blocks ar from different account chains so their indexes are not related! 
             // get last settled receive block
+            long fromIndex = 0;
             var lastRecvBlock = await FindLastRecvBlock(AccountId);
-            if(lastRecvBlock != null)
+            if (lastRecvBlock != null)
             {
                 var lastSendToThisAccountBlock = await FindBlockByHashAsync(lastRecvBlock.SourceHash);
 
                 if (lastSendToThisAccountBlock != null)
                     fromIndex = lastSendToThisAccountBlock.Height;
-            }    
+            }
+            */
 
             // First, let find all send blocks:
             // (It can be optimzed as it's going to be growing, so it can be called with munimum Service Chain Height parameter to look only for recent blocks) 
             var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("Height", fromIndex);
+            //var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("Height", fromIndex);
+            var filterDefinition = builder.Eq("DestinationAccountId", AccountId);
 
             var allSendBlocks = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
 
             foreach (SendTransferBlock sendBlock in allSendBlocks)
             {
                 //// Now, let's try to fetch the corresponding receive block:
-                var p1 = new BsonArray();
-                p1.Add((int)BlockTypes.ReceiveTransfer);
-                p1.Add((int)BlockTypes.OpenAccountWithReceiveTransfer);
-                p1.Add((int)BlockTypes.OpenAccountWithImport);
-                p1.Add((int)BlockTypes.ImportAccount);
+                //var p1 = new BsonArray();
+                //p1.Add((int)BlockTypes.ReceiveTransfer);
+                //p1.Add((int)BlockTypes.OpenAccountWithReceiveTransfer);
+                
+                //var builder1 = Builders<Block>.Filter;
+                //var filterDefinition1 = builder1.And(builder1.In("BlockType", p1), builder1.And(builder1.Eq("AccountID", AccountId), builder1.Eq("SourceHash", sendBlock.Hash)));
 
-                var builder1 = Builders<Block>.Filter;
-                var filterDefinition1 = builder1.And(builder1.In("BlockType", p1), builder1.And(builder1.Eq("AccountID", AccountId), builder1.Eq("SourceHash", sendBlock.Hash)));
+                //var result = await (await _blocks.FindAsync(filterDefinition1)).FirstOrDefaultAsync();
 
-                var result = await (await _blocks.FindAsync(filterDefinition1)).FirstOrDefaultAsync();
+                var result = await FindReceiveBlockAsync(AccountId, sendBlock.Hash);
 
                 if (result == null)
                     return sendBlock;
-
-                //var any_receive_block_withBlockTypehis_source = FindBlockBySourceHash(sendBlock.Hash);
-                //if (any_receive_block_withBlockTypehis_source == null)
-
             }
             return null;
         }
 
+        // look up by receive blocks that were sent to imported account
+        private async Task<SendTransferBlock> FindUnsettledSendBlockForImportedAccountAsync(string ImportedAccountId, string AccountId)
+        {
+
+            // First, let find all send blocks:
+            // (It can be optimzed as it's going to be growing, so it can be called with munimum Service Chain Height parameter to look only for recent blocks) 
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.Eq("DestinationAccountId", ImportedAccountId);
+            var allSendBlocks = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
+
+            foreach (SendTransferBlock sendBlock in allSendBlocks)
+            {
+                //// Now, let's try to fetch the corresponding receive block:
+                var result = await FindReceiveBlockAsync(AccountId, sendBlock.Hash);
+                if (result == null)
+                {
+                    // let's make sure this transfer was not received BEFORE the account was imported!
+                    result = await FindReceiveBlockAsync(ImportedAccountId, sendBlock.Hash);
+                    if (result == null)
+                        return sendBlock;
+                }
+            }
+            return null;
+        }
+
+        private async Task<ReceiveTransferBlock> FindReceiveBlockAsync(string AccountId, string SourceHash)
+        {
+            var p1 = new BsonArray();
+            p1.Add((int)BlockTypes.ReceiveTransfer);
+            p1.Add((int)BlockTypes.OpenAccountWithReceiveTransfer);
+
+            var builder1 = Builders<Block>.Filter;
+            var filterDefinition1 = builder1.And(builder1.In("BlockType", p1), builder1.And(builder1.Eq("AccountID", AccountId), builder1.Eq("SourceHash", SourceHash)));
+
+            return await (await _blocks.FindAsync(filterDefinition1)).FirstOrDefaultAsync() as ReceiveTransferBlock;
+        }
+
+        // Check if the account has any imported accounts and return the list of them if they exist
+        public async Task<List<Block>> GetImportedAccountBlocksAsync(string AccountId)
+        {
+            var p1 = new BsonArray();
+            p1.Add((int)BlockTypes.ImportAccount);
+            p1.Add((int)BlockTypes.OpenAccountWithImport);
+
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.Eq("AccountID", AccountId) & builder.In("BlockType", p1);
+
+            var import_blocks = await(await _blocks.FindAsync(filterDefinition)).ToListAsync();
+            return import_blocks;
+        }
+
         public async Task<IEnumerable<ServiceBlock>> FindUnsettledFeeBlockAsync(string AuthorizerAccountId)
         {
+            // !!! TO DO - take care of fees for imported accounts!!!!
             // get the latest feeblock
             // get all new service since the latest feeblock
             var options = new FindOptions<Block, Block>

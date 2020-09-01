@@ -40,6 +40,7 @@ namespace Lyra.Core.Accounts
         public decimal TransferFee = 0; // in atomic units
         public decimal TokenGenerationFee = 0; // in atomic units
         public decimal TradeFee = 0; // in atomic units
+        public bool AccountAlreadyImported = false;
 
         private TransactionBlock _lastTransactionBlock;
 
@@ -207,6 +208,13 @@ namespace Lyra.Core.Accounts
                 // the fact that do one sent us any money does not mean this call failed...
                 if (lookup_result.ResultCode == APIResultCodes.NoNewTransferFound)
                     return APIResultCodes.Success;
+
+                if (lookup_result.ResultCode == APIResultCodes.AccountAlreadyImported)
+                {
+                    Console.WriteLine($"This account was imported (merged) to another account.");
+                    AccountAlreadyImported = true;
+                    return lookup_result.ResultCode;
+                }
 
                 return lookup_result.ResultCode;
             }
@@ -1056,6 +1064,137 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
+        private async Task<AuthorizationAPIResult> OpenStandardAccountWithImport(string ImportPrivateKey, TransactionBlock last_imported_block, string imported_account_id)
+        {
+            var open_import_block = new OpenAccountWithImportBlock
+            {
+                AccountType = AccountTypes.Standard,
+                AccountID = AccountId,
+                ImportedAccountId = imported_account_id,
+                ServiceHash = await getLastServiceBlockHashAsync(),
+                SourceHash = null,
+                Balances = new Dictionary<string, long>(),
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee,
+                NonFungibleToken = null,
+                VoteFor = VoteFor
+            };
+
+
+            if (last_imported_block != null)
+            {
+                open_import_block.ImportedLastBlockHash = last_imported_block.Hash;
+                // transfer all token balances from the imported block
+                foreach (var balance in last_imported_block.Balances)
+                    open_import_block.Balances.Add(balance.Key, balance.Value);
+            }
+
+            open_import_block.InitializeBlock(null, PrivateKey, AccountId);
+
+            open_import_block.ImportedAccountSignature = Signatures.GetSignature(ImportPrivateKey, open_import_block.Hash, imported_account_id);
+
+            var result = await _rpcClient.OpenAccountWithImport(open_import_block);
+
+            ProcessResult(result, "Import Account", open_import_block);
+
+            return result;
+        }
+
+        private void ProcessResult(AuthorizationAPIResult result, string OperationName, TransactionBlock block)
+        {
+            if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
+            {
+                Console.WriteLine($"BlockSignatureValidationFailed");
+                Console.WriteLine("Error Message: ");
+                Console.WriteLine(result.ResultMessage);
+                Console.WriteLine("Local Block: ");
+                Console.WriteLine(block.Print());
+            }
+            else
+            if (result.ResultCode != APIResultCodes.Success)
+            {
+                Console.WriteLine(OperationName + $": Operation failed with result: {result.ResultCode}");
+                Console.WriteLine("Error Message: " + result.ResultMessage);
+            }
+            else
+            {
+                Console.WriteLine(OperationName + $": Operation success");
+                _lastTransactionBlock = block;
+                Console.WriteLine("Balance: " + GetDisplayBalances());
+            }
+            Console.Write(string.Format("{0}> ", AccountName));
+            
+        }
+
+        public async Task<AuthorizationAPIResult> ImportAccount(string ImportPrivateKey)
+        {
+            string imported_account_id = Signatures.GetAccountIdFromPrivateKey(ImportPrivateKey);
+            var imported_account_height_result = await _rpcClient.GetAccountHeight(imported_account_id);
+            TransactionBlock last_imported_block = null;
+            if (imported_account_height_result.Successful())
+            {
+                long imported_account_height = imported_account_height_result.Height;
+
+                var last_imported_block_result = await _rpcClient.GetBlockByIndex(imported_account_id, imported_account_height);
+                if (!last_imported_block_result.Successful())
+                    throw new Exception("Unable to get latest imported account block.");
+
+                last_imported_block = last_imported_block_result.GetBlock() as TransactionBlock;
+                if (last_imported_block == null)
+                    throw new Exception("Unable to get latest imported account block.");
+            }
+
+            if (GetLocalAccountHeight() == 0) // if this is new account with no blocks
+                return await OpenStandardAccountWithImport(ImportPrivateKey, last_imported_block, imported_account_id);
+
+            TransactionBlock previousBlock = GetLatestBlock();
+            if (previousBlock == null)
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
+
+            var import_block = new ImportAccountBlock
+            {
+                AccountID = AccountId,
+                ImportedAccountId = imported_account_id,
+                ServiceHash = await getLastServiceBlockHashAsync(),
+                SourceHash = null,
+                Balances = new Dictionary<string, long>(),
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee,
+                NonFungibleToken = null,
+                VoteFor = VoteFor
+            };
+
+            if (last_imported_block != null)
+            {
+                import_block.ImportedLastBlockHash = last_imported_block.Hash;
+
+                // transfer all token balances from the imported block
+                foreach (var balance in last_imported_block.Balances)
+                    import_block.Balances.Add(balance.Key, balance.Value);
+            }
+            
+            // Now add all existing balances as the import block becomes the new block that contains balances of both accounts
+            foreach (var balance in previousBlock.Balances)
+                if (!(import_block.Balances.ContainsKey(balance.Key)))
+                    import_block.Balances.Add(balance.Key, balance.Value);
+                else
+                    import_block.Balances[balance.Key] += balance.Value;
+
+            if (last_imported_block != null) // only validate if imported account is not empty
+                if (!import_block.ValidateTransaction(previousBlock))
+                    throw new ApplicationException("ValidateTransaction failed");
+
+            import_block.InitializeBlock(previousBlock, PrivateKey, AccountId);
+
+            import_block.ImportedAccountSignature = Signatures.GetSignature(ImportPrivateKey, import_block.Hash, imported_account_id);
+
+            var result = await _rpcClient.ImportAccount(import_block);
+
+            ProcessResult(result, "Import Account", import_block);
+
+            return result;
+        }
+
         private async Task<AuthorizationAPIResult> ReceiveTransfer(NewTransferAPIResult new_transfer_info)
         {
 
@@ -1107,28 +1246,8 @@ namespace Lyra.Core.Accounts
 
             var result = await _rpcClient.ReceiveTransfer(receiveBlock);
 
-            if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
-            {
-                Console.WriteLine($"BlockSignatureValidationFailed");
-                Console.WriteLine("Error Message: ");
-                Console.WriteLine(result.ResultMessage);
-                Console.WriteLine("Local Block: ");
-                Console.WriteLine(receiveBlock.Print());
-            }
-            else
-            if (result.ResultCode != APIResultCodes.Success)
-            {
-                Console.WriteLine($"Failed to authorize receive transfer block with error code: {result.ResultCode}");
-                Console.WriteLine("Error Message: " + result.ResultMessage);
+            ProcessResult(result, "Receive Transfer", receiveBlock);
 
-            }
-            else
-            {
-                _lastTransactionBlock = receiveBlock;
-                Console.WriteLine($"Receive transfer block has been authorized successfully");
-                Console.WriteLine("Balance: " + GetDisplayBalances());
-            }
-            Console.Write(string.Format("{0}> ", AccountName));
             return result;
         }
 
