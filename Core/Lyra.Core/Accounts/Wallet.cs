@@ -69,7 +69,7 @@ namespace Lyra.Core.Accounts
             Create(store, name, password, networkId, privateKey);
         }
 
-        public static void Create(IAccountDatabase store, string name, string password, string networkId, string privateKey)
+        public static Wallet Create(IAccountDatabase store, string name, string password, string networkId, string privateKey)
         {
             if (!Signatures.ValidatePrivateKey(privateKey))
             {
@@ -79,6 +79,7 @@ namespace Lyra.Core.Accounts
             var accountId = Signatures.GetAccountIdFromPrivateKey(privateKey);
             if (!store.Create(name, password, networkId, privateKey, accountId, ""))
                 throw new Exception("Can't create wallet in storage.");
+            return wallet;
         }
         // one-time "manual" sync up with the node 
         public async Task<APIResultCodes> Sync(LyraRestClient RPCClient)

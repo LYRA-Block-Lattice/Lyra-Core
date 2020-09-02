@@ -361,6 +361,8 @@ namespace Lyra.Core.Blocks
         NotListedAsQualifiedAuthorizer = 306,
         ConsensusTimeout = 307,
         SystemNotReadyToServe,
-        InvalidBlockTimeStamp
+        InvalidBlockTimeStamp,
+
+        FailedToSyncAccount
     }
 }
