@@ -114,6 +114,7 @@ namespace Lyra.Core.Accounts
                 }
             }
 
+            CreateIndexes("_t", false).Wait();
             CreateIndexes("Hash", true).Wait();
             CreateIndexes("TimeStamp", false).Wait();
             CreateIndexes("TimeStamp.Ticks", false).Wait();

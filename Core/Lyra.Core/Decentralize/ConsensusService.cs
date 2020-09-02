@@ -1126,16 +1126,16 @@ namespace Lyra.Core.Decentralize
 
             if (item is ViewChangeMessage vcm)
             {
-                if(CurrentState == BlockChainState.Almighty)
+                if(CurrentState == BlockChainState.Almighty && Board.ActiveNodes.Any(a => a.AccountID == vcm.From))
                 {
                     await CriticalRelayAsync(vcm, async (msg) => {
                         await _viewChangeHandler.ProcessMessage(msg);
                     });
                 }
-                else
-                {
-                    _log.LogInformation($"No View Change for state {CurrentState}");
-                }
+                //else
+                //{
+                //    _log.LogInformation($"No View Change for state {CurrentState}");
+                //}
                 return;
             }
             else if (_stateMachine.State == BlockChainState.Genesis ||
