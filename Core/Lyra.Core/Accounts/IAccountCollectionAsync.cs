@@ -76,7 +76,8 @@ namespace Lyra.Core.Accounts
         //Task<Vote> GetVotesForAccountAsync(string accountId);
         //Task UpdateVotesForAccountAsync(Vote vote);
 
-        List<Vote> FindVotes(IEnumerable<string> posAccountIds);
+        Task<List<Vote>> FindVotesAsync(List<string> posAccountIds, DateTime endTime);
+
         Task<IEnumerable<string>> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime);
         /// <summary>
         /// Check if this account was ever imported to ANY other account

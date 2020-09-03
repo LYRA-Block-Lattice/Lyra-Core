@@ -8,6 +8,5 @@ namespace Core.Authorizers
     {
         public string AccountId { get; set; }
         public Decimal Amount { get; set; }    // all vote round to int to avoid float calculation 
-        public long ConsHeight { get; set; }
     }
 }

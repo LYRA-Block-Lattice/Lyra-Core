@@ -511,9 +511,9 @@ namespace Lyra.Core.Decentralize
             return list;
         }
 
-        public void UpdateVoters()
+        public async Task UpdateVotersAsync()
         {
-            RefreshAllNodesVotes();
+            await RefreshAllNodesVotesAsync();
             Board.AllVoters = LookforVoters();
         }
 
@@ -523,7 +523,7 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
                 var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                 var list1 = lsb.Authorizers.Keys.ToList();
-                UpdateVoters();
+                await UpdateVotersAsync();
                 var list2 = LookforVoters();
 
                 if (CurrentState == BlockChainState.Genesis)
@@ -709,7 +709,7 @@ namespace Lyra.Core.Decentralize
                     if (_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb.Leader))
                     {
                         // leader is offline. we need chose one new
-                        UpdateVoters();
+                        await UpdateVotersAsync();
 
                         _log.LogInformation($"We have no leader online. Change view...");
                         // should change view for new member
@@ -1192,7 +1192,7 @@ namespace Lyra.Core.Decentralize
         }
 
         Mutex _voteUpdatr = new Mutex();
-        public void RefreshAllNodesVotes()
+        public async Task RefreshAllNodesVotesAsync()
         {
             _voteUpdatr.WaitOne();
             try
@@ -1200,8 +1200,8 @@ namespace Lyra.Core.Decentralize
                 // remove stalled nodes
                 _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-40)); // 2 heartbeat + 10 s
 
-                var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID);
-                _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
+                var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID).ToList();
+                _lastVotes = await _sys.Storage.FindVotesAsync(livingPosNodeIds, DateTime.UtcNow);
 
                 foreach (var node in _board.ActiveNodes.ToArray())
                 {
