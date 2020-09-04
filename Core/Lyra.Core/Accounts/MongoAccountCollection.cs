@@ -959,7 +959,7 @@ namespace Lyra.Core.Accounts
                     g.First().VoteFor
                 })
                 .GroupBy(a => a.VoteFor)        // this time aggregate the total votes
-                .Select(g => new Vote { AccountId = g.Key, Amount = g.Sum(a => a.Balance) });
+                .Select(g => new Vote { AccountId = g.Key, Amount = g.Sum(a => a.Balance) / LyraGlobal.TOKENSTORAGERITO });
 
             var voteForSb = perAtrVotes
                 .Where(a => posAccountIds.Contains(a.AccountId))
