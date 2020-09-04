@@ -933,14 +933,14 @@ namespace Lyra.Core.Accounts
             public string VoteFor { get; set; }
         }
 
-        public async Task<List<Vote>> FindVotesAsync(List<string> posAccountIds, DateTime endTime)
+        public List<Vote> FindVotesAsync(List<string> posAccountIds, DateTime endTime)
         {
             var builder = Builders<TransactionBlock>.Filter;
             var projection = Builders<TransactionBlock>.Projection;
 
             var txFilter = builder.And(builder.Lt("TimeStamp", endTime));
 
-            var atrVotes = await _blocks.OfType<TransactionBlock>()
+            var atrVotes = _blocks.OfType<TransactionBlock>()
                 .Aggregate()
                 .Match(txFilter)
                 .Project(projection.Include(a => a.Balances)
@@ -948,7 +948,7 @@ namespace Lyra.Core.Accounts
                     .Include(a => a.VoteFor)
                     .Include(a => a.Height)
                     .Exclude("_id"))
-                .ToListAsync();
+                .ToList();
 
             var perAtrVotes = atrVotes
                 .Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
