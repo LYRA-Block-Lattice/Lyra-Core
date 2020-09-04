@@ -40,7 +40,7 @@ namespace Lyra.Core.Decentralize
 
         public async virtual Task ProcessMessage(ConsensusMessage msg)
         {
-            _log.LogInformation($"ProcessMessage {msg.MsgType} _state is null? {!IsStateCreated()}");
+            //_log.LogInformation($"ProcessMessage {msg.MsgType} _state is null? {!IsStateCreated()}");
             if(msg is AuthorizingMsg || msg is ViewChangeRequestMessage)
             {
                 await InternalProcessMessage(msg);
