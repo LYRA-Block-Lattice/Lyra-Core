@@ -24,6 +24,7 @@ namespace Neo.Network.P2P
         public class Relay { public IInventory Inventory; }
         internal class RelayDirectly { public IInventory Inventory; }
         internal class SendDirectly { public IInventory Inventory; }
+        public class ConnectMorePeers { }
 
         public const uint ProtocolVersion = 0;
         private const int MaxCountFromSeedList = 5;
@@ -208,6 +209,9 @@ namespace Neo.Network.P2P
                     break;
                 case DagSystem sys:
                     Sys = sys;
+                    break;
+                case ConnectMorePeers _:
+                    NeedMorePeers(2);
                     break;
                 //case RelayResultReason _:
                 //    break;
