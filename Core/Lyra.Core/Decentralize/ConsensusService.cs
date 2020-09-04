@@ -778,13 +778,13 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_board == null)
-                    throw new Exception("_board is null");
+                    return;
 
                 var node = chat.Text.UnJson<PosNode>();
 
                 // dq any lower version
                 if (string.IsNullOrWhiteSpace(node.NodeVersion))
-                    throw new Exception("Node version too small");
+                    return;
 
                 var ver = new Version(node.NodeVersion);
                 if (LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) > 0)
@@ -795,44 +795,26 @@ namespace Lyra.Core.Decentralize
 
                 // verify signature
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
-                    throw new Exception("No public IP specified.");
+                    return;
 
                 var lastSvcBlock = await _sys.Storage.GetLastServiceBlockAsync();
                 var signAgainst = lastSvcBlock == null ? ProtocolSettings.Default.StandbyValidators.First() : lastSvcBlock.Hash;
 
                 if (!Signatures.VerifyAccountSignature(signAgainst, node.AccountID, node.AuthorizerSignature))
-                    throw new Exception("Signature verification failed.");
+                {
+                    return;
+                }
 
                 await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync);
+
                 // add network/ip verifycation here
                 // if(verifyIP)
+                // {}
+
                 if (_board.NodeAddresses.ContainsKey(node.AccountID))
                     _board.NodeAddresses[node.AccountID] = node.IPAddress;
                 else
                     _board.NodeAddresses.TryAdd(node.AccountID, node.IPAddress);
-                
-                //// if current leader is up, must resend up
-                //if(_board.CurrentLeader == node.AccountID && _stateMachine.State == BlockChainState.Almighty)
-                //{
-                //    await DeclareConsensusNodeAsync();
-                //}
-
-                //if (!IsViewChanging)
-                //{
-                //    var qualifiedCount = Board.AllNodes.Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance).Count();
-                //    if (qualifiedCount > Board.PrimaryAuthorizers.Length && qualifiedCount <= LyraGlobal.MAXIMUM_AUTHORIZERS)
-                //    {
-                //        var blockchainStatus = await _blockchain.Ask<NodeStatus>(new BlockChain.QueryBlockchainStatus());
-
-                //        if (blockchainStatus.state == BlockChainState.Almighty)
-                //        {
-                //            // change view\
-                //            IsViewChanging = true;
-
-                //            await _viewChangeHandler.BeginChangeViewAsync();
-                //        }
-                //    }
-                //}
             }
             catch (Exception ex)
             {
