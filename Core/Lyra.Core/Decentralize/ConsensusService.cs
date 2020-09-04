@@ -404,6 +404,7 @@ namespace Lyra.Core.Decentralize
                                 }
                                 else
                                 {
+                                    _localNode.Tell(new ConnectMorePeers());
                                     continue;
                                 }
                             }
