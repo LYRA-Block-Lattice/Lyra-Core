@@ -933,7 +933,7 @@ namespace Lyra.Core.Accounts
             public string VoteFor { get; set; }
         }
 
-        public List<Vote> FindVotesAsync(List<string> posAccountIds, DateTime endTime)
+        public List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime)
         {
             var builder = Builders<TransactionBlock>.Filter;
             var projection = Builders<TransactionBlock>.Projection;

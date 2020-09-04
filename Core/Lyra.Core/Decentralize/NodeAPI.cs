@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using Lyra.Core.Authorizers;
 using Clifton.Blockchain;
 using Akka.Actor;
+using Core.Authorizers;
 
 namespace Lyra.Core.Decentralize
 {
@@ -675,6 +676,11 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        public List<Vote> FindVotes(VoteQueryModel model)
+        {
+            return NodeService.Dag.Storage.FindVotes(model.posAccountIds, model.endTime);
+        }
+
         // util 
         private T FromJson<T>(string json)
         {
@@ -753,5 +759,11 @@ namespace Lyra.Core.Decentralize
             return result;
         }
         #endregion
+    }
+
+    public class VoteQueryModel
+    {
+        public List<string> posAccountIds { get; set; }
+        public DateTime endTime { get; set; }
     }
 }

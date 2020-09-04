@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Core.Authorizers;
+using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Exchange;
 using System;
@@ -56,6 +57,10 @@ namespace Lyra.Core.API
 
         Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature);
         #endregion Account maintenance methods
+
+        #region voting
+        List<Vote> FindVotes(VoteQueryModel model);
+        #endregion
 
         #region Reward trade methods
 

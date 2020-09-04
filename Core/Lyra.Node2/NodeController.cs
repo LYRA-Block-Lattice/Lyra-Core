@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Core.Authorizers;
 using Lyra;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
@@ -441,6 +442,14 @@ namespace LyraLexWeb2
         {
             if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _dex.GetOrdersForAccount(AccountId);
+        }
+
+        [Route("FindVotes")]
+        [HttpPost]
+        public List<Vote> FindVotes(VoteQueryModel model)
+        {
+            if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
+            return _node.FindVotes(model);
         }
 
         //[HttpPost]

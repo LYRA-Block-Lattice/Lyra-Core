@@ -1184,7 +1184,7 @@ namespace Lyra.Core.Decentralize
                 _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-40)); // 2 heartbeat + 10 s
 
                 var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID).ToList();
-                _lastVotes = _sys.Storage.FindVotesAsync(livingPosNodeIds, DateTime.UtcNow);
+                _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds, DateTime.UtcNow);
 
                 foreach (var node in _board.ActiveNodes.ToArray())
                 {

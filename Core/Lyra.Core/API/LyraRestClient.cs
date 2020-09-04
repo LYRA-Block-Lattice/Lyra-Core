@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Core.Authorizers;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Exchange;
@@ -564,6 +565,25 @@ namespace Lyra.Core.API
             }
             else
                 throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<List<Vote>> FindVotes(VoteQueryModel model)
+        {
+            HttpResponseMessage response = await _client.PostAsJsonAsync(
+                    "FindVotes", model).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<List<Vote>>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        List<Vote> INodeAPI.FindVotes(VoteQueryModel model)
+        {
+            throw new NotImplementedException();
         }
     }
 }

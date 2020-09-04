@@ -76,7 +76,7 @@ namespace Lyra.Core.Accounts
         //Task<Vote> GetVotesForAccountAsync(string accountId);
         //Task UpdateVotesForAccountAsync(Vote vote);
 
-        List<Vote> FindVotesAsync(List<string> posAccountIds, DateTime endTime);
+        List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime);
 
         Task<IEnumerable<string>> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime);
         /// <summary>
