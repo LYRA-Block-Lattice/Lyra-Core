@@ -26,6 +26,7 @@ using Settings = Neo.Settings;
 using Stateless;
 using Org.BouncyCastle.Utilities.Net;
 using System.Net;
+using Shared;
 
 namespace Lyra.Core.Decentralize
 {
@@ -511,9 +512,9 @@ namespace Lyra.Core.Decentralize
             return list;
         }
 
-        public async Task UpdateVotersAsync()
+        public void UpdateVotersAsync()
         {
-            await RefreshAllNodesVotesAsync();
+            RefreshAllNodesVotesAsync();
             Board.AllVoters = LookforVoters();
         }
 
@@ -523,7 +524,7 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
                 var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                 var list1 = lsb.Authorizers.Keys.ToList();
-                await UpdateVotersAsync();
+                UpdateVotersAsync();
                 var list2 = LookforVoters();
 
                 if (CurrentState == BlockChainState.Genesis)
@@ -709,7 +710,7 @@ namespace Lyra.Core.Decentralize
                     if (_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb.Leader))
                     {
                         // leader is offline. we need chose one new
-                        await UpdateVotersAsync();
+                        UpdateVotersAsync();
 
                         _log.LogInformation($"We have no leader online. Change view...");
                         // should change view for new member
@@ -1191,17 +1192,17 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        Mutex _voteUpdatr = new Mutex();
-        public async Task RefreshAllNodesVotesAsync()
+        private readonly Mutex _locker = new Mutex(false);
+        public void RefreshAllNodesVotesAsync()
         {
-            _voteUpdatr.WaitOne();
             try
             {
+                _locker.WaitOne();
                 // remove stalled nodes
                 _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-40)); // 2 heartbeat + 10 s
 
                 var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID).ToList();
-                _lastVotes = await _sys.Storage.FindVotesAsync(livingPosNodeIds, DateTime.UtcNow);
+                _lastVotes = _sys.Storage.FindVotesAsync(livingPosNodeIds, DateTime.UtcNow);
 
                 foreach (var node in _board.ActiveNodes.ToArray())
                 {
@@ -1210,26 +1211,20 @@ namespace Lyra.Core.Decentralize
                     {
                         _log.LogInformation($"No (zero) vote found for {node.AccountID}");
                         node.Votes = 0;
-                    }                        
+                    }
                     else
                         node.Votes = vote.Amount;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _log.LogError($"In RefreshAllNodesVotes: {ex}");
             }
             finally
             {
-                _voteUpdatr.ReleaseMutex();
+                _locker.ReleaseMutex();
             }
         }
-
-        //public void OnNodeActive(string nodeAccountId)
-        //{
-        //    if (_board != null)
-        //        _board.Refresh(nodeAccountId);
-        //}
     }
 
     internal class ConsensusServiceMailbox : PriorityMailbox

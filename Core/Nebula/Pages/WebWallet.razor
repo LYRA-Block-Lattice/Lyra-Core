@@ -26,6 +26,9 @@
         <p>Your Wallet Address is: <a href="/showblock/@walletState.Value.wallet.AccountId">@walletState.Value.wallet.AccountId</a></p>
         <p>Your Balance is: @walletState.Value.wallet.GetDisplayBalances()</p>
     </div>
+    <div>
+        <p style="color: red">Please save private key properly if you want to open this wallet again.</p>
+    </div>
 }
 else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Settings)
 {
