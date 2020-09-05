@@ -988,7 +988,7 @@ namespace Lyra.Core.Accounts
                     .SortBy(x => x.Height)
                     .ToList();
 
-            var totalFeeConfirmed = sbs.Sum(a => a.FeesGenerated) / LyraGlobal.TOKENSTORAGERITO;
+            decimal totalFeeConfirmed = sbs.Sum(a => a.FeesGenerated) / LyraGlobal.TOKENSTORAGERITO;
 
             var builder = Builders<TransactionBlock>.Filter;
             var projection = Builders<TransactionBlock>.Projection;
@@ -1000,22 +1000,22 @@ namespace Lyra.Core.Accounts
                 .Match(txFilter)
                 .ToList();
 
-            var totalFeeUnConfirmed = unTxs.Sum(a => a.Fee);
+            decimal totalFeeUnConfirmed = unTxs.Sum(a => a.Fee);
 
             // confirmed earns
             IEnumerable<RevnuItem> GetRevnuFromSb(decimal fees, ServiceBlock sb)
             {
-                return sb.Authorizers.Keys.Select(a => new RevnuItem { accId = a, revenue = fees / sb.Authorizers.Count });
+                return sb.Authorizers.Keys.Select(a => new RevnuItem { accId = a, revenue = Math.Round(fees / sb.Authorizers.Count, 8) });
             };
             IEnumerable<RevnuItem> Merge(IEnumerable<RevnuItem> List1, IEnumerable<RevnuItem> List2)
             {
                 var list3 = List1.Concat(List2)
                              .GroupBy(x => x.accId)
-                             .Select(grouping =>
+                             .Select( g =>
                                  new RevnuItem
                                  {
-                                     accId = grouping.Key,
-                                     revenue = grouping.Sum(x => x.revenue)
+                                     accId = g.Key,
+                                     revenue = Math.Round(g.Sum(x => x.revenue), 8)
                                  });
                 return list3;
             };
@@ -1026,7 +1026,7 @@ namespace Lyra.Core.Accounts
             }
 
             // unconfirmed
-            var unconfirm = sbs.Last().Authorizers.Keys.Select(a => new RevnuItem { accId = a, revenue = totalFeeUnConfirmed / sbs.Last().Authorizers.Count });
+            var unconfirm = sbs.Last().Authorizers.Keys.Select(a => new RevnuItem { accId = a, revenue = Math.Round(totalFeeUnConfirmed / sbs.Last().Authorizers.Count, 8) });
 
             return new FeeStats { TotalFeeConfirmed = totalFeeConfirmed,
                 TotalFeeUnConfirmed = totalFeeUnConfirmed,
