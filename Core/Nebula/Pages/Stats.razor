@@ -1,0 +1,20 @@
+﻿@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+@page "/stats"
+
+<h3>@LyraGlobal.PRODUCTNAME transaction performance statistics</h3>
+
+<hr />
+
+@if (statsState.Value.IsLoading)
+{
+    <p><em>Fetching stats... This may take a while.</em></p>
+}
+@if (statsState.Value.transStats != null)
+{
+    <div>Sample Count: @statsState.Value.transStats.Count</div>
+    <div>Fastest block: @statsState.Value.Fastest.trans @statsState.Value.Fastest.ms ms</div>
+    <div>Slowest block: @statsState.Value.Slowest.trans @statsState.Value.Slowest.ms ms</div>
+    <div>Average send time: @statsState.Value.AvgSendTime ms</div>
+    <div>Average receive time: @statsState.Value.AvgRecvTime ms</div>
+    <div>Average overroll time: @statsState.Value.AvgTime ms</div>
+}
