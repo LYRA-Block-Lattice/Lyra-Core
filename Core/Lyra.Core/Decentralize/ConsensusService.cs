@@ -645,9 +645,7 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            await CriticalRelayAsync(heartBeat, async (hbt) => {
-                await OnNodeActive(hbt.From, hbt.AuthorizerSignature, hbt.State, hbt.PublicIP);
-            });
+            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP);
         }
 
         private async Task OnNodeActive(string accountId, string authorizerSignature, BlockChainState state, string ip = null)
@@ -1091,10 +1089,12 @@ namespace Lyra.Core.Decentralize
             {
                 _criticalMsgCache.TryAdd(message.Signature, DateTime.Now);
 
-                if (IsThisNodeSeed)
-                {
+                // try ever node forward.
+                // monitor network traffic closely.
+                //if (IsThisNodeSeed)
+                //{
                     _localNode.Tell(message);     // no sign again!!!
-                }
+                //}
 
                 await localAction(message);
                 return true;
