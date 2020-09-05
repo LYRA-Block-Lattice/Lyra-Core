@@ -95,9 +95,16 @@ namespace Nebula.Store.WebWalletUseCase
 							str += $"Send to {sb.DestinationAccountId}";
 						else if(block is ReceiveTransferBlock rb)
                         {
-							var srcBlockResult = await client.GetBlock(rb.SourceHash);
-							var srcBlock = srcBlockResult.GetBlock() as TransactionBlock;
-							str += $"Receive from {srcBlock.AccountID}";
+							if(rb.SourceHash == null)
+                            {
+								str += $"Genesis";
+                            }
+							else
+                            {
+								var srcBlockResult = await client.GetBlock(rb.SourceHash);
+								var srcBlock = srcBlockResult.GetBlock() as TransactionBlock;
+								str += $"Receive from {srcBlock.AccountID}";
+							}
 						}
 						str += $" Balance: {string.Join(", ", block.Balances.Select(m => $"{m.Key}: {m.Value / LyraGlobal.TOKENSTORAGERITO}"))}";
 							
