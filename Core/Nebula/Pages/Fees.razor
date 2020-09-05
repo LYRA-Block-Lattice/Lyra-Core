@@ -8,14 +8,33 @@
 }
 @if (feeState.Value.Stats != null)
 {
-    <p>Total fee generated: @feeState.Value.Stats.TotalFeeGenerated</p>
+    <h3>Total fee generated: <em>@feeState.Value.Stats.TotalFeeGenerated</em> LYR</h3>
 
 <p>
-    <div>Earning List</div>
-    <ol>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Authorizer</th>
+                <th>Total DPoS Amount</th>
+                <th>Voters Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var authr in feeState.Value.View.Authorizers.Keys)
+            {
+            <tr>
+                <td>@authr</td>
+                <td>@feeState.Value.Voters.Where(a => a.VoteFor == authr).Sum(a => a.Balance)</td>
+                <td>@feeState.Value.Voters.Count(a => a.VoteFor == authr)</td>
+            </tr>
+            }
+
+        </tbody>
+    </table>
+@*    <ol>
         <li>aaa</li>
         <li>bbbbbb</li>
-    </ol>
+    </ol>*@
 </p>
 }
 

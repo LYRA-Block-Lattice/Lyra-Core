@@ -12,8 +12,6 @@ namespace Nebula.Pages
     {
 		[Parameter]
 		public string addr { get; set; }
-		[Parameter]
-		public long height { get; set; }
 
 		[Inject]
 		private IState<FeesState> feeState { get; set; }
