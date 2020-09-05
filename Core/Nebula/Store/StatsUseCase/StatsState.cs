@@ -24,6 +24,10 @@ namespace Nebula.Store.StatsUseCase
 
 		public TransStats Fastest => transStats.OrderBy(a => a.ms).FirstOrDefault();
 		public TransStats Slowest => transStats.OrderBy(a => a.ms).LastOrDefault();
+		public TransStats FastestSend => transStats.Where(a => a.trans == BlockTypes.SendTransfer).OrderBy(b => b.ms).FirstOrDefault();
+		public TransStats SlowestSend => transStats.Where(a => a.trans == BlockTypes.SendTransfer).OrderBy(b => b.ms).LastOrDefault();
+		public TransStats FastestReceive => transStats.Where(a => a.trans == BlockTypes.ReceiveTransfer).OrderBy(b => b.ms).FirstOrDefault();
+		public TransStats SlowestReceive => transStats.Where(a => a.trans == BlockTypes.ReceiveTransfer).OrderBy(b => b.ms).LastOrDefault();
 		public double AvgTime => Math.Round(transStats.Average(a => a.ms), 2);
 		public double AvgSendTime => Math.Round(transStats.Where(a => a.trans == BlockTypes.SendTransfer).Average(b => b.ms), 2);
 		public double AvgRecvTime => Math.Round(transStats.Where(a => a.trans == BlockTypes.ReceiveTransfer).Average(b => b.ms), 2);
