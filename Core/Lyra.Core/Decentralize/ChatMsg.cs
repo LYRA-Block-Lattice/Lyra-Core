@@ -124,7 +124,7 @@ namespace Lyra.Core.Decentralize
 			nonce = BitConverter.ToInt64(data, 0);
 		}
 
-		public override int Size => base.Size + Text.Length + 8;
+		public override int Size => base.Size + Text.Length + 16;
 
 		public override void Serialize(BinaryWriter writer)
 		{
