@@ -31,6 +31,14 @@ namespace Lyra.Core.Decentralize
 		ViewChangeCommit = 107
 	};
 
+	public class ProtocolException : Exception
+    {
+		public ProtocolException(string message) : base(message)
+        {
+
+        }
+	}
+
 	public class SourceSignedMessage : SignableObject, Neo.IO.ISerializable
 	{
 		/// <summary>
@@ -54,21 +62,23 @@ namespace Lyra.Core.Decentralize
 
 		public virtual void Deserialize(BinaryReader reader)
 		{
+			Version = reader.ReadInt32();
+			if (Version != LyraGlobal.ProtocolVersion)
+				throw new ProtocolException($"Protocol mismatch. Local ver {LyraGlobal.ProtocolVersion}, remote ver {Version}");
 			Hash = reader.ReadString();
 			Signature = reader.ReadString();
 			From = reader.ReadString();
 			MsgType = (ChatMessageType)reader.ReadInt32();
-			Version = reader.ReadInt32();
 			//Created = DateTime.FromBinary(reader.ReadInt64());
 		}
 
 		public virtual void Serialize(BinaryWriter writer)
 		{
+			writer.Write(Version);
 			writer.Write(Hash);
 			writer.Write(Signature);
 			writer.Write(From);
 			writer.Write((int)MsgType);
-			writer.Write(Version);
 			//writer.Write(Created.ToBinary());
 		}
 
