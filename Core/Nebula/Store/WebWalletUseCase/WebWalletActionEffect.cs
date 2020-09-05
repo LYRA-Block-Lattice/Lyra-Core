@@ -57,7 +57,6 @@ namespace Nebula.Store.WebWalletUseCase
 			Wallet.Create(store, name, "", config["network"], action.privateKey);
 
 			var wallet = Wallet.Open(store, name, "");
-			wallet.VoteFor = wallet.AccountId;
 			await wallet.Sync(client);
 
 			dispatcher.Dispatch(new WebWalletResultAction(wallet, true, UIStage.Main));

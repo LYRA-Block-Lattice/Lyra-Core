@@ -25,6 +25,8 @@ namespace Nebula.Pages
 		public string tokenName { get; set; }
 		public decimal amount { get; set; }
 
+		// for settings
+		public string voteAddr { get; set; }
 		private void CloseWallet(MouseEventArgs e)
 		{
 			Dispatcher.Dispatch(new WebWalletCloseAction());
@@ -63,6 +65,16 @@ namespace Nebula.Pages
 		private void Settings(MouseEventArgs e)
 		{
 			Dispatcher.Dispatch(new WebWalletSettingsAction { });
+		}
+
+		private void SaveSettings(MouseEventArgs e)
+        {
+			Dispatcher.Dispatch(new WebWalletSaveSettingsAction { VoteFor = voteAddr });
+        }
+
+		private void CancelSave(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletCancelSaveSettingsAction { });
 		}
 	}
 }

@@ -30,4 +30,11 @@ namespace Nebula.Store.WebWalletUseCase
     public class WebWalletCreateTokenAction { }
 
     public class WebWalletSettingsAction { }
+
+    public class WebWalletSaveSettingsAction
+    {
+        public string VoteFor { get; set; }
+    }
+
+    public class WebWalletCancelSaveSettingsAction { }
 }

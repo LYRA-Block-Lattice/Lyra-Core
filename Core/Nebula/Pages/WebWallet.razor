@@ -3,7 +3,7 @@
 @using Nebula.Store.WebWalletUseCase
 
 <h1>Web Wallet for Lyra</h1>
-
+<hr />
 @if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Main)
 {
    <div>
@@ -22,9 +22,10 @@
     </div>
     <hr />
     <div>
-        <p>Your Wallet's Private Key is: @walletState.Value.wallet.PrivateKey</p>
-        <p>Your Wallet Address is: <a href="/showblock/@walletState.Value.wallet.AccountId">@walletState.Value.wallet.AccountId</a></p>
-        <p>Your Balance is: @walletState.Value.wallet.GetDisplayBalances()</p>
+        <p>Your wallet's private key is: @walletState.Value.wallet.PrivateKey</p>
+        <p>Your wallet's address is: <a href="/showblock/@walletState.Value.wallet.AccountId">@walletState.Value.wallet.AccountId</a></p>
+        <p>Your wallet's balance is: @walletState.Value.wallet.GetDisplayBalances()</p>
+        <p>Your are now voting for: @walletState.Value.wallet.VoteFor</p>
     </div>
     <div>
         <p style="color: red">Please save private key properly if you want to open this wallet again.</p>
@@ -32,23 +33,26 @@
 }
 else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Settings)
 {
+    <h3>Settings</h3>
         <div>
         <p>Vote For Address:</p>
-        <input size="100" type="text" @bind="@dstAddr" />
+        <input size="100" type="text" @bind="@voteAddr" />
         <hr />
-        <button class="btn btn-primary" @onclick="SendToken">Save</button>
-        <button class="btn btn-primary" @onclick="CancelSend">Cancel</button>
+        <button class="btn btn-primary" @onclick="SaveSettings">Save</button>
+        <button class="btn btn-primary" @onclick="CancelSave">Cancel</button>
     </div>
 }
 else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Send)
 {
+    <h3>Sending token</h3>
     <div>
-        <p>Destination Wallet Address:</p>
-        <input size="100" type="text" @bind="@dstAddr" />
-        <p>Token:</p>
-        <input size="20" type="text" @bind="@tokenName" />
-        <p>Amount:</p>
-        <input size="20" type="text" @bind="@amount" />        <hr />
+        <p>Destination Wallet Address:<br />
+        <input size="100" type="text" @bind="@dstAddr" /></p>
+        <p>Token Name:<br />
+        <input size="20" type="text" @bind="@tokenName" /></p>
+        <p>Amount:<br />
+        <input size="20" type="text" @bind="@amount" /></p>
+        <hr />
         <button class="btn btn-primary" @onclick="SendToken">Send Token</button>
         <button class="btn btn-primary" @onclick="CancelSend">Cancel</button>
     </div>
