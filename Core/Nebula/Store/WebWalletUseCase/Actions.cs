@@ -37,4 +37,13 @@ namespace Nebula.Store.WebWalletUseCase
     }
 
     public class WebWalletCancelSaveSettingsAction { }
+
+    public class WebWalletTransactionsAction {
+        public Wallet wallet { get; set; }
+    }
+    public class WebWalletTransactionsResultAction 
+    {
+        public Wallet wallet { get; set; }
+        public List<string> transactions { get; set; } 
+    }
 }

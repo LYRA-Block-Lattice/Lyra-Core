@@ -69,5 +69,13 @@ namespace Nebula.Store.WebWalletUseCase
 				wallet: state.wallet,
 				Stage: UIStage.Main);
 		}
-	}
+
+        [ReducerMethod]
+        public static WebWalletState ReduceTransactionsAction(WebWalletState state, WebWalletTransactionsResultAction action) =>
+            new WebWalletState(
+                IsOpeing: state.IsOpening,
+                wallet: state.wallet,
+                Stage: UIStage.Transactions,
+				transactions: action.transactions);
+    }
 }

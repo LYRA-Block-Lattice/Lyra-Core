@@ -76,5 +76,15 @@ namespace Nebula.Pages
 		{
 			Dispatcher.Dispatch(new WebWalletCancelSaveSettingsAction { });
 		}
+
+		private void Transactions(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletTransactionsAction { wallet = walletState.Value.wallet });
+		}
+
+		private void Return(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletCancelSaveSettingsAction { });
+		}
 	}
 }

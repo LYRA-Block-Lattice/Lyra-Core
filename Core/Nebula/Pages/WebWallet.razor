@@ -16,6 +16,9 @@
     <button class="btn btn-primary" @onclick="Settings">
         Settings
     </button>
+    <button class="btn btn-primary" @onclick="Transactions">
+        Transactions
+    </button>
     <button class="btn btn-primary" @onclick="CloseWallet">
         Close Wallet
     </button>
@@ -57,6 +60,26 @@ else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Send)
         <button class="btn btn-primary" @onclick="CancelSend">Cancel</button>
     </div>
 
+}
+else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Transactions)
+{
+    <h3>Transactions</h3>
+    <div>
+        <button class="btn btn-primary" @onclick="Return">Return</button>
+    </div>
+    @if(walletState.Value.txs != null)
+    {
+        <pre>
+        @foreach(var tx in walletState.Value.txs)
+        {
+            @tx <br />
+
+        }
+        </pre>
+    <div>
+        <button class="btn btn-primary" @onclick="Return">Return</button>
+    </div>
+    }
 }
 else if (walletState.Value.stage == UIStage.Entry)
 {
