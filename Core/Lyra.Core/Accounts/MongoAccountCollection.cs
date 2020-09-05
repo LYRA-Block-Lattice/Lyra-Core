@@ -963,7 +963,7 @@ namespace Lyra.Core.Accounts
                 });
                 
             var votersForSb = perAtrVotes
-                .Where(a => posAccountIds.Contains(a.AccountId))
+                .Where(a => !string.IsNullOrEmpty(a.VoteFor) && posAccountIds.Contains(a.VoteFor))
                 .ToList();
 
             return votersForSb;
