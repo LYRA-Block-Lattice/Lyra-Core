@@ -19,20 +19,9 @@
         <div class="pagination">
             <a href="/showblock/@searchState.Value.Key/1">&larrb;</a>
             <a href="/showblock/@searchState.Value.Key/@searchState.Value.prevHeight">&laquo;</a>
-            @for (int i = 1; i <= searchState.Value.MaxHeight; i++)
+            @foreach(var str in @searchState.Value.Paging())
             {
-                @if (i == searchState.Value.block.Height)
-                {
-                    <a class="active" href="/showblock/@searchState.Value.Key/@i">@i</a>
-                }
-                else if (i < 3 || (i > searchState.Value.block.Height - 3 && i < searchState.Value.block.Height) || (i > searchState.Value.block.Height && i < searchState.Value.block.Height + 3) || i > searchState.Value.MaxHeight - 3)
-                {
-                    <a href="/showblock/@searchState.Value.Key/@i">@i</a>
-                }
-                else
-                {
-                    <span>.</span>
-                }
+                @((MarkupString)@str)
             }
             <a href="/showblock/@searchState.Value.Key/@searchState.Value.nextHeight">&raquo;</a>
             <a href="/showblock/@searchState.Value.Key/@searchState.Value.MaxHeight">&rarrb;</a>

@@ -21,6 +21,7 @@ namespace Nebula.Pages
 		[Inject]
 		private IDispatcher Dispatcher { get; set; }
 
+		private int dot { get; set; }
 		protected override void OnInitialized()
 		{
 			base.OnInitialized();

@@ -28,6 +28,38 @@ namespace Nebula.Store.BlockSearchUseCase
 			MaxHeight = maxHeight;
 		}
 
+		public List<string> Paging()
+        {
+			List<string> strs = new List<string>();
+			int dot = 0;
+			for(int i = 1; i <= MaxHeight; i++)
+            {
+				if(i == block.Height)
+				{
+					if(dot > 0)
+                    {
+						strs.Add("<span>...</span>");
+                    }
+					strs.Add($"<a class=\"active\" href=\"/showblock/{Key}/{i}\">{i}</a>");
+					dot = 0;
+				}
+                else if (i < 3 || (i > block.Height - 3 && i < block.Height) || (i > block.Height && i < block.Height + 3) || i > MaxHeight - 2)
+				{
+					if (dot > 0)
+					{
+						strs.Add("<span>...</span>");
+					}
+					strs.Add($"<a href=\"/showblock/{Key}/{i}\">{i}</a>");
+					dot = 0;
+				}
+                else
+                {
+					dot++;
+                }
+            }
+			return strs;
+        }
+
 		public string FancyShow()
         {
 			var r = new Regex(@"BlockType: \w+");
