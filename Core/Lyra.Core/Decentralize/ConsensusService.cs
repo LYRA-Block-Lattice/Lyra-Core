@@ -162,6 +162,7 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<AuthState>(async state =>
             {
+                _log.LogInformation($"State told.");
                 if (_stateMachine.State != BlockChainState.Almighty && _stateMachine.State != BlockChainState.Genesis)
                 {
                     state.Done?.Set();
@@ -404,7 +405,6 @@ namespace Lyra.Core.Decentralize
                                 }
                                 else
                                 {
-                                    _localNode.Tell(new ConnectMorePeers());
                                     continue;
                                 }
                             }
