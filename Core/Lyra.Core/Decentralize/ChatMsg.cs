@@ -109,9 +109,9 @@ namespace Lyra.Core.Decentralize
 			MsgType = ChatMessageType.General;
 			timeStamp = DateTime.UtcNow;
 
-			var data = new byte[4];
+			var data = new byte[8];
 			random.GetNonZeroBytes(data);
-			nonce = Convert.ToInt64(data);
+			nonce = BitConverter.ToInt64(data, 0);
 		}
 		public ChatMsg(string msg, ChatMessageType msgType)
 		{
@@ -119,9 +119,9 @@ namespace Lyra.Core.Decentralize
 			Text = msg;
 			timeStamp = DateTime.UtcNow;
 
-			var data = new byte[4];
+			var data = new byte[8];
 			random.GetNonZeroBytes(data);
-			nonce = Convert.ToInt64(data);
+			nonce = BitConverter.ToInt64(data, 0);
 		}
 
 		public override int Size => base.Size + Text.Length + 8;
