@@ -1104,9 +1104,9 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
             if (item is ChatMsg chatMsg)
             {
-                await CriticalRelayAsync(chatMsg, async (msg) => {
-                    await OnRecvChatMsg(msg);
-                });
+                //await CriticalRelayAsync(chatMsg, async (msg) => {
+                    await OnRecvChatMsg(chatMsg);
+                //});
 
                 return;
             }
