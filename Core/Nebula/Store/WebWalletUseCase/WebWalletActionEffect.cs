@@ -82,7 +82,8 @@ namespace Nebula.Store.WebWalletUseCase
 			if (result == Lyra.Core.Blocks.APIResultCodes.Success)
 			{
 				var accHeight = await client.GetAccountHeight(action.wallet.AccountId);
-				for(long i = accHeight.Height; i > 0; i--)
+				Dictionary<string, long> oldBalance = null;
+				for(long i = 1; i <= accHeight.Height; i++)
                 {
 					var blockResult = await client.GetBlockByIndex(action.wallet.AccountId, i);
 					var block = blockResult.GetBlock() as TransactionBlock;
@@ -106,13 +107,29 @@ namespace Nebula.Store.WebWalletUseCase
 								str += $"Receive from {srcBlock.AccountID}";
 							}
 						}
+						str += BalanceDifference(oldBalance, block.Balances);
 						str += $" Balance: {string.Join(", ", block.Balances.Select(m => $"{m.Key}: {m.Value / LyraGlobal.TOKENSTORAGERITO}"))}";
 							
 						txs.Add(str);
+
+						oldBalance = block.Balances;
 					}					
                 }
 			}
+			txs.Reverse();
 			dispatcher.Dispatch(new WebWalletTransactionsResultAction { wallet = action.wallet, transactions = txs });
 		}
+
+		private string BalanceDifference(Dictionary<string, long> oldBalance, Dictionary<string, long> newBalance)
+        {
+			if(oldBalance == null)
+            {
+				return " Amount: " + string.Join(", ", newBalance.Select(m => $"{m.Key} {m.Value / LyraGlobal.TOKENSTORAGERITO}"));
+			}
+			else
+            {
+				return " Amount: " + string.Join(", ", newBalance.Select(m => $"{m.Key} {(m.Value - (oldBalance.ContainsKey(m.Key) ? oldBalance[m.Key] : 0)) / LyraGlobal.TOKENSTORAGERITO}"));               
+            }
+        }
 	}
 }
