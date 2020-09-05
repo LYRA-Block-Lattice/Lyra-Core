@@ -15,6 +15,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Core.Authorizers;
 using Lyra.Core.API;
+using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
 {
@@ -982,18 +983,71 @@ namespace Lyra.Core.Accounts
 
         public FeeStats GetFeeStats()
         {
-            var test = _blocks.OfType<ServiceBlock>()
+            var sbs = _blocks.OfType<ServiceBlock>()
                     .Aggregate()
                     .SortBy(x => x.Height)
                     .ToList();
 
-            var totalFee = test.Sum(a => a.FeesGenerated) / LyraGlobal.TOKENSTORAGERITO;
-            return new FeeStats { TotalFeeGenerated = totalFee };
+            var totalFeeConfirmed = sbs.Sum(a => a.FeesGenerated) / LyraGlobal.TOKENSTORAGERITO;
+
+            var builder = Builders<TransactionBlock>.Filter;
+            var projection = Builders<TransactionBlock>.Projection;
+
+            var txFilter = builder.And(builder.Gt("TimeStamp", sbs.Last().TimeStamp));
+
+            var unTxs = _blocks.OfType<TransactionBlock>()
+                .Aggregate()
+                .Match(txFilter)
+                .ToList();
+
+            var totalFeeUnConfirmed = unTxs.Sum(a => a.Fee);
+
+            // confirmed earns
+            IEnumerable<RevnuItem> GetRevnuFromSb(decimal fees, ServiceBlock sb)
+            {
+                return sb.Authorizers.Keys.Select(a => new RevnuItem { accId = a, revenue = fees / sb.Authorizers.Count });
+            };
+            IEnumerable<RevnuItem> Merge(IEnumerable<RevnuItem> List1, IEnumerable<RevnuItem> List2)
+            {
+                var list3 = List1.Concat(List2)
+                             .GroupBy(x => x.accId)
+                             .Select(grouping =>
+                                 new RevnuItem
+                                 {
+                                     accId = grouping.Key,
+                                     revenue = grouping.Sum(x => x.revenue)
+                                 });
+                return list3;
+            };
+            var confimed = Enumerable.Empty<RevnuItem>();
+            for(int i = sbs.Count - 1; i > 0; i--)
+            {
+                confimed = Merge(confimed, GetRevnuFromSb(sbs[i].FeesGenerated / LyraGlobal.TOKENSTORAGERITO, sbs[i - 1]));
+            }
+
+            // unconfirmed
+            var unconfirm = sbs.Last().Authorizers.Keys.Select(a => new RevnuItem { accId = a, revenue = totalFeeUnConfirmed / sbs.Last().Authorizers.Count });
+
+            return new FeeStats { TotalFeeConfirmed = totalFeeConfirmed,
+                TotalFeeUnConfirmed = totalFeeUnConfirmed,
+                ConfirmedEarns = confimed.OrderByDescending(a => a.revenue).ToList(),
+                UnConfirmedEarns = unconfirm.OrderByDescending(a => a.revenue).ToList()
+            };
         }
     }
 
     public class FeeStats
     {
-        public decimal TotalFeeGenerated { get; set; }
+        public decimal TotalFeeConfirmed { get; set; }
+        public decimal TotalFeeUnConfirmed { get; set; }
+
+        public List<RevnuItem> ConfirmedEarns { get; set; }
+        public List<RevnuItem> UnConfirmedEarns { get; set; }
+    }
+
+    public class RevnuItem
+    {
+        public string accId { get; set; }
+        public decimal revenue { get; set; }
     }
 }

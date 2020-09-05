@@ -8,33 +8,49 @@
 }
 @if (feeState.Value.Stats != null)
 {
-    <h3>Total fee generated: <em>@feeState.Value.Stats.TotalFeeGenerated</em> LYR</h3>
+    <p>Total fee confirmed: <em>@feeState.Value.Stats.TotalFeeConfirmed</em> LYR, unconfirmed: <em>@feeState.Value.Stats.TotalFeeUnConfirmed</em> LYR</p>
 
-<p>
+    <br />
+<h3>Confirmed Revenus</h3>
     <table class="table">
         <thead>
             <tr>
-                <th>Authorizer</th>
-                <th>Total DPoS Amount</th>
-                <th>Voters Count</th>
+                <th>Authorizer Account ID</th>
+                <th>Fee Earned</th>
             </tr>
         </thead>
         <tbody>
-            @foreach(var authr in feeState.Value.View.Authorizers.Keys)
+            @foreach(var item in feeState.Value.Stats.ConfirmedEarns)
             {
             <tr>
-                <td>@authr</td>
-                <td>@feeState.Value.Voters.Where(a => a.VoteFor == authr).Sum(a => a.Balance)</td>
-                <td>@feeState.Value.Voters.Count(a => a.VoteFor == authr)</td>
+                <td>@item.accId</td>
+                <td>@item.revenue</td>
             </tr>
             }
 
         </tbody>
     </table>
-@*    <ol>
-        <li>aaa</li>
-        <li>bbbbbb</li>
-    </ol>*@
-</p>
+
+        <br />
+<h3>Unconfirmed Revenus</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Authorizer Account ID</th>
+                <th>Fee Earned</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in feeState.Value.Stats.UnConfirmedEarns)
+            {
+            <tr>
+                <td>@item.accId</td>
+                <td>@item.revenue</td>
+            </tr>
+            }
+
+        </tbody>
+    </table>
+
 }
 

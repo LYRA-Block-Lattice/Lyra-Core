@@ -24,5 +24,21 @@ namespace Nebula.Store.FeesUserCase
 			View = view;
 			Voters = voters;
 		}
+
+		public List<RevItem> ConfirmedRevs()
+        {
+			return null;
+        }
+
+		public List<RevItem> UnConfirmedRevs()
+        {
+			return null;
+        }
+
+		public class RevItem
+		{
+			public string accId { get; set; }
+			public decimal revenue { get; set; }
+		}
 	}
 }
