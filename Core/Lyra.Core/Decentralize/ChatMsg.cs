@@ -3,6 +3,7 @@ using Lyra.Core.Blocks;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Security.Cryptography;
 
 namespace Lyra.Core.Decentralize
 {
@@ -97,35 +98,55 @@ namespace Lyra.Core.Decentralize
 
 	public class ChatMsg : SourceSignedMessage
 	{
+		private static readonly RNGCryptoServiceProvider random =
+			new RNGCryptoServiceProvider();
 		public string Text { get; set; }
+		public long nonce { get; set; } 
+		public DateTime timeStamp { get; set; }
 
 		public ChatMsg()
 		{
 			MsgType = ChatMessageType.General;
+			timeStamp = DateTime.UtcNow;
+
+			var data = new byte[4];
+			random.GetNonZeroBytes(data);
+			nonce = Convert.ToInt64(data);
 		}
 		public ChatMsg(string msg, ChatMessageType msgType)
 		{
 			MsgType = msgType;
 			Text = msg;
+			timeStamp = DateTime.UtcNow;
+
+			var data = new byte[4];
+			random.GetNonZeroBytes(data);
+			nonce = Convert.ToInt64(data);
 		}
 
-		public override int Size => base.Size + Text.Length;
+		public override int Size => base.Size + Text.Length + 8;
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
-			writer.Write(Text);			
+			writer.Write(Text);
+			writer.Write(nonce);
+			writer.Write(timeStamp.Ticks);
 		}
 
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
 			Text = reader.ReadString();
+			nonce = reader.ReadInt64();
+			timeStamp = new DateTime(reader.ReadInt64(), DateTimeKind.Utc);
 		}
 
 		public override string GetHashInput()
 		{
 			return base.GetHashInput() + "|" +
+				$"{nonce}|" + 
+				$"{timeStamp.Ticks}|" +
 				this.Text;
 		}
 

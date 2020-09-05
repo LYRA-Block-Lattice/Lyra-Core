@@ -150,7 +150,9 @@ namespace Lyra.Core.Decentralize
                 if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
                     try
                     {
-                        await OnNextConsensusMessageAsync(relayMsg.signedMessage);
+                        await CriticalRelayAsync(relayMsg.signedMessage, async (msg) => {
+                            await OnNextConsensusMessageAsync(msg);
+                        });
                     }
                     catch(Exception ex)
                     {
@@ -1104,10 +1106,7 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
             if (item is ChatMsg chatMsg)
             {
-                //await CriticalRelayAsync(chatMsg, async (msg) => {
-                    await OnRecvChatMsg(chatMsg);
-                //});
-
+                await OnRecvChatMsg(chatMsg);
                 return;
             }
 
@@ -1115,14 +1114,8 @@ namespace Lyra.Core.Decentralize
             {
                 if(CurrentState == BlockChainState.Almighty && Board.ActiveNodes.Any(a => a.AccountID == vcm.From))
                 {
-                    await CriticalRelayAsync(vcm, async (msg) => {
-                        await _viewChangeHandler.ProcessMessage(msg);
-                    });
+                    await _viewChangeHandler.ProcessMessage(vcm);
                 }
-                //else
-                //{
-                //    _log.LogInformation($"No View Change for state {CurrentState}");
-                //}
                 return;
             }
             else if (_stateMachine.State == BlockChainState.Genesis ||
@@ -1134,16 +1127,7 @@ namespace Lyra.Core.Decentralize
                     var worker = await GetWorkerAsync(cm.BlockHash, true);
                     if (worker != null)
                     {
-                        //if(item is AuthorizingMsg authorizingMsg)
-                        //{
-                            await CriticalRelayAsync(cm, async (msg) => {
-                                await worker.ProcessMessage(msg);
-                            });
-                        //}
-                        //else
-                        //{
-                        //    await worker.ProcessMessage(cm);
-                        //}                        
+                       await worker.ProcessMessage(cm);           
                     }                        
                     return;
                 }
