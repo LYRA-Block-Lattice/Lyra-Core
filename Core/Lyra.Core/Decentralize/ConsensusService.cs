@@ -612,7 +612,7 @@ namespace Lyra.Core.Decentralize
             me.IPAddress = $"{_myIpAddress}";
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-            var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
+            var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
 
             me.AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
                     signAgainst, _sys.PosWallet.AccountId);
@@ -651,7 +651,7 @@ namespace Lyra.Core.Decentralize
         private async Task OnNodeActive(string accountId, string authorizerSignature, BlockChainState state, string ip = null)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-            var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
+            var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
 
             if (Signatures.VerifyAccountSignature(signAgainst, accountId, authorizerSignature))
             {
@@ -756,7 +756,7 @@ namespace Lyra.Core.Decentralize
                 _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId).LastActive = DateTime.Now;
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-            var signAgainst = lastSb == null ? ProtocolSettings.Default.StandbyValidators[0] : lastSb.Hash;
+            var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
 
             // declare to the network
             var msg = new HeartBeatMessage
@@ -765,7 +765,7 @@ namespace Lyra.Core.Decentralize
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
                 Text = "I'm live",
                 State = _stateMachine.State,
-                PublicIP = _myIpAddress == null ? "" : _myIpAddress.ToString(),
+                PublicIP = _myIpAddress?.ToString() ?? "",
                 AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 

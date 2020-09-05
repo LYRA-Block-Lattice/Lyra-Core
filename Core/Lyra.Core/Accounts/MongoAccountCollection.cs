@@ -933,7 +933,7 @@ namespace Lyra.Core.Accounts
             public string VoteFor { get; set; }
         }
 
-        public List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime)
+        public List<Voter> GetVoters(List<string> posAccountIds, DateTime endTime)
         {
             var builder = Builders<TransactionBlock>.Filter;
             var projection = Builders<TransactionBlock>.Projection;
@@ -954,18 +954,46 @@ namespace Lyra.Core.Accounts
                 .Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
                 .OrderByDescending(a => a.Height)
                 .GroupBy(a => a.AccountID)      // this time select the latest block of account
-                .Select(g => new {
+                .Select(g => new Voter
+                {
+                    AccountId = g.Key,
                     Balance = g.First().Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] : 0,
-                    g.First().VoteFor
-                })
-                .GroupBy(a => a.VoteFor)        // this time aggregate the total votes
-                .Select(g => new Vote { AccountId = g.Key, Amount = g.Sum(a => a.Balance) / LyraGlobal.TOKENSTORAGERITO });
-
-            var voteForSb = perAtrVotes
+                    VoteFor = g.First().VoteFor
+                });
+                
+            var votersForSb = perAtrVotes
                 .Where(a => posAccountIds.Contains(a.AccountId))
                 .ToList();
 
-            return voteForSb;
+            return votersForSb;
         }
+
+        public List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime)
+        {
+            var voters = GetVoters(posAccountIds, endTime);
+
+            var votes = voters
+                .GroupBy(a => a.VoteFor)        // this time aggregate the total votes
+                .Select(g => new Vote { AccountId = g.Key, Amount = g.Sum(a => a.Balance) / LyraGlobal.TOKENSTORAGERITO })
+                .ToList();
+
+            return votes;
+        }
+
+        public FeeStats GetFeeStats()
+        {
+            var test = _blocks.OfType<ServiceBlock>()
+                    .Aggregate()
+                    .SortBy(x => x.Height)
+                    .ToList();
+
+            var totalFee = test.Sum(a => a.FeesGenerated) / LyraGlobal.TOKENSTORAGERITO;
+            return new FeeStats { TotalFeeGenerated = totalFee };
+        }
+    }
+
+    public class FeeStats
+    {
+        public decimal TotalFeeGenerated { get; set; }
     }
 }

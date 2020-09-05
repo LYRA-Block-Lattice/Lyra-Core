@@ -1,4 +1,5 @@
 ﻿using Core.Authorizers;
+using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Exchange;
@@ -59,7 +60,9 @@ namespace Lyra.Core.API
         #endregion Account maintenance methods
 
         #region voting
+        List<Voter> GetVoters(VoteQueryModel model);
         List<Vote> FindVotes(VoteQueryModel model);
+        FeeStats GetFeeStats();
         #endregion
 
         #region Reward trade methods

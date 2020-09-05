@@ -69,14 +69,11 @@ namespace Lyra.Core.Accounts
         Task<bool> AddBlockAsync(Block block);
         Task RemoveBlockAsync(string hash);
 
-        //Task<bool> ConsolidateBlock(string hash);
         Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync();
-        //Task<IEnumerable<string>> GetAllUnConsolidatedBlockHashesAsync();
 
-        //Task<Vote> GetVotesForAccountAsync(string accountId);
-        //Task UpdateVotesForAccountAsync(Vote vote);
-
+        List<Voter> GetVoters(List<string> posAccountIds, DateTime endTime);
         List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime);
+        FeeStats GetFeeStats();
 
         Task<IEnumerable<string>> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime);
         /// <summary>

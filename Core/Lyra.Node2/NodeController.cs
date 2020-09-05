@@ -444,12 +444,28 @@ namespace LyraLexWeb2
             return await _dex.GetOrdersForAccount(AccountId);
         }
 
+        [Route("GetVoters")]
+        [HttpPost]
+        public List<Voter> GetVoters(VoteQueryModel model)
+        {
+            if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
+            return _node.GetVoters(model);
+        }
+
         [Route("FindVotes")]
         [HttpPost]
         public List<Vote> FindVotes(VoteQueryModel model)
         {
             if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return _node.FindVotes(model);
+        }
+
+        [Route("GetFeeStats")]
+        [HttpGet]
+        public FeeStats GetFeeStats()
+        {
+            if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
+            return _node.GetFeeStats();
         }
 
         //[HttpPost]

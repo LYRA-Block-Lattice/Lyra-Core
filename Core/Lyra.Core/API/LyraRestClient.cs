@@ -1,4 +1,5 @@
 ﻿using Core.Authorizers;
+using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
@@ -567,7 +568,21 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task<List<Vote>> FindVotes(VoteQueryModel model)
+        public async Task<List<Voter>> GetVotersAsync(VoteQueryModel model)
+        {
+            HttpResponseMessage response = await _client.PostAsJsonAsync(
+                    "GetVoters", model).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<List<Voter>>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
+        public async Task<List<Vote>> FindVotesAsync(VoteQueryModel model)
         {
             HttpResponseMessage response = await _client.PostAsJsonAsync(
                     "FindVotes", model).ConfigureAwait(false);
@@ -581,7 +596,22 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
+        public async Task<FeeStats> GetFeeStatsAsync()
+        {
+            return await Get<FeeStats>("GetFeeStats", null);
+        }
+
+        List<Voter> INodeAPI.GetVoters(VoteQueryModel model)
+        {
+            throw new NotImplementedException();
+        }
+
         List<Vote> INodeAPI.FindVotes(VoteQueryModel model)
+        {
+            throw new NotImplementedException();
+        }
+
+        FeeStats INodeAPI.GetFeeStats()
         {
             throw new NotImplementedException();
         }

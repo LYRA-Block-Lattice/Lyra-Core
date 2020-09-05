@@ -676,9 +676,20 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+
+        public List<Voter> GetVoters(VoteQueryModel model)
+        {
+            return NodeService.Dag.Storage.GetVoters(model.posAccountIds, model.endTime);
+        }
+
         public List<Vote> FindVotes(VoteQueryModel model)
         {
             return NodeService.Dag.Storage.FindVotes(model.posAccountIds, model.endTime);
+        }
+
+        public FeeStats GetFeeStats()
+        {
+            return NodeService.Dag.Storage.GetFeeStats();
         }
 
         // util 
@@ -758,6 +769,7 @@ namespace Lyra.Core.Decentralize
             }
             return result;
         }
+
         #endregion
     }
 
