@@ -1,4 +1,5 @@
-﻿using Fluxor;
+﻿using Converto;
+using Fluxor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,101 +9,74 @@ namespace Nebula.Store.WebWalletUseCase
 {
 	public static class Reducers
 	{
-		[ReducerMethod]
-		public static WebWalletState ReduceFetchDataAction(WebWalletState state, WebWalletCreateAction action) =>
-			new WebWalletState(
-				IsOpeing: false,
-				wallet: null,
-				Stage: UIStage.Entry);
-
         [ReducerMethod]
-		public static WebWalletState CloseAction(WebWalletState state, WebWalletCloseAction action) =>
-			new WebWalletState(
-				IsOpeing: false,
-				wallet: null,
-				Stage: UIStage.Entry);
+		public static WebWalletState CloseAction(WebWalletState state, WebWalletCloseAction action) => new WebWalletState();
 
 		[ReducerMethod]
-		public static WebWalletState SendAction(WebWalletState state, WebWalletSendAction action) =>
-	new WebWalletState(
-		IsOpeing: state.IsOpening,
-		wallet: state.wallet,
-		Stage: UIStage.Send);
+		public static WebWalletState SendAction(WebWalletState state, WebWalletSendAction action) => state.With(new { stage = UIStage.Send });
 
 		[ReducerMethod]
-		public static WebWalletState CancelSendAction(WebWalletState state, WebWalletCancelSendAction action) =>
-			new WebWalletState(
-			IsOpeing: state.IsOpening,
-			wallet: state.wallet,
-			Stage: UIStage.Main);
+		public static WebWalletState CancelSendAction(WebWalletState state, WebWalletCancelSendAction action) => state.With(new { stage = UIStage.Main });
 
 		[ReducerMethod]
-		public static WebWalletState ReduceFetchDataResultAction(WebWalletState state, WebWalletResultAction action) =>
-			new WebWalletState(
-				IsOpeing: action.IsOpening,
-				wallet: action.wallet,
-				Stage: UIStage.Main);
+		public static WebWalletState ReduceFetchDataResultAction(WebWalletState state, WebWalletResultAction action) => state.With(new { 
+			stage = action.stage,
+			IsOpening = action.IsOpening,
+			wallet = action.wallet
+		});
 
 		[ReducerMethod]
-		public static WebWalletState ReduceOpenSettingsAction(WebWalletState state, WebWalletSettingsAction action) =>
-			new WebWalletState(
-				IsOpeing: state.IsOpening,
-				wallet: state.wallet,
-				Stage: UIStage.Settings);
+		public static WebWalletState ReduceOpenSettingsAction(WebWalletState state, WebWalletSettingsAction action) => state.With(new { stage = UIStage.Settings });
 
 		[ReducerMethod]
 		public static WebWalletState ReduceSaveSettingsAction(WebWalletState state, WebWalletSaveSettingsAction action)
-        {
-			state.wallet.VoteFor = action.VoteFor;
-
-			return new WebWalletState(
-				IsOpeing: state.IsOpening,
-				wallet: state.wallet,
-				Stage: UIStage.Main);
-		}
+		{
+            var state2 = state.With(new
+            {
+                stage = UIStage.Main,
+            });
+			state2.wallet.VoteFor = action.VoteFor;
+			return state2;
+        }
 
 		[ReducerMethod]
-		public static WebWalletState ReduceCancelSaveSettingsAction(WebWalletState state, WebWalletCancelSaveSettingsAction action)
-		{
-			return new WebWalletState(
-				IsOpeing: state.IsOpening,
-				wallet: state.wallet,
-				Stage: UIStage.Main);
-		}
+		public static WebWalletState ReduceCancelSaveSettingsAction(WebWalletState state, WebWalletCancelSaveSettingsAction action) => state.With(new { stage = UIStage.Main });
 
-        [ReducerMethod]
-        public static WebWalletState ReduceTransactionsAction(WebWalletState state, WebWalletTransactionsResultAction action) =>
-            new WebWalletState(
-                IsOpeing: state.IsOpening,
-                wallet: state.wallet,
-                Stage: UIStage.Transactions,
-				transactions: action.transactions);
+		[ReducerMethod]
+		public static WebWalletState ReduceTransactionsAction(WebWalletState state, WebWalletTransactionsResultAction action) =>
+			state.With(new {
+				stage = UIStage.Transactions,
+				txs = action.transactions
+			});
 
-        [ReducerMethod]
-        public static WebWalletState ReduceFreeTokenAction(WebWalletState state, WebWalletFreeTokenResultAction action) =>
-            new WebWalletState(
-                IsOpeing: state.IsOpening,
-                wallet: state.wallet,
-                Stage: UIStage.FreeToken,
-				faucetBalance: action.faucetBalance);
+		[ReducerMethod]
+		public static WebWalletState ReduceFreeTokenAction(WebWalletState state, WebWalletFreeTokenResultAction action) =>
+			state.With(new { 
+				stage = UIStage.FreeToken,
+				faucetBalance = action.faucetBalance,
+				ValidReCAPTCHA = false,
+				ServerVerificatiing = false
+			});
 
 		[ReducerMethod]
 		public static WebWalletState ReduceSendMeFreeTokenAction(WebWalletState state, WebWalletSendMeFreeTokenResultAction action)
         {
-			if(action.Success)
-            {
-				return new WebWalletState(
-					IsOpeing: state.IsOpening,
-					wallet: state.wallet,
-					Stage: UIStage.Main);
+			var stt = state.With(new { 
+				stage = UIStage.Main
+			});
+
+			if (action.Success)
+			{
+				stt.freeTokenSent = true;
+				stt.freeTokenTimes++;
 			}
-			else
-            {
-				return new WebWalletState(
-					IsOpeing: state.IsOpening,
-					wallet: state.wallet,
-					Stage: UIStage.FreeToken);
-			}
+			return stt;
 		}
+
+		[ReducerMethod]
+		public static WebWalletState ReduceRCValidAction(WebWalletState state, WebWalletReCAPTCHAValidAction action) => state.With(new { ValidReCAPTCHA = action.ValidReCAPTCHA });
+
+		[ReducerMethod]
+		public static WebWalletState ReduceRCServerAction(WebWalletState state, WebWalletReCAPTCHAServerAction action) => state.With(new { ServerVerificatiing = action.ServerVerificatiing });
 	}
 }

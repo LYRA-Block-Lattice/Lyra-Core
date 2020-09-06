@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Blazored.LocalStorage;
 using Fluxor;
 using Lyra.Core.API;
 using Microsoft.AspNetCore.Builder;
@@ -30,6 +31,8 @@ namespace Nebula
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddBlazoredLocalStorage();
+
             services.Configure<reCAPTCHAVerificationOptions>(Configuration.GetSection("reCAPTCHA"));
             services.AddTransient<SampleAPI>();
 

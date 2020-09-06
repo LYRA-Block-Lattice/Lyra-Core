@@ -68,4 +68,14 @@ namespace Nebula.Store.WebWalletUseCase
         public bool Success { get; set; }
         public decimal FreeAmount { get; set; }
     }
+
+    public class WebWalletReCAPTCHAValidAction
+    {
+        public bool ValidReCAPTCHA { get; set; }
+    }
+
+    public class WebWalletReCAPTCHAServerAction
+    {
+        public bool ServerVerificatiing { get; set; }
+    }
 }

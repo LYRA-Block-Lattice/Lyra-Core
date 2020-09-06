@@ -27,6 +27,7 @@ namespace Nebula.Pages
 
 		// for settings
 		public string voteAddr { get; set; }
+
 		private void CloseWallet(MouseEventArgs e)
 		{
 			Dispatcher.Dispatch(new WebWalletCloseAction());

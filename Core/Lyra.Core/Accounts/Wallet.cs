@@ -44,6 +44,17 @@ namespace Lyra.Core.Accounts
 
         private TransactionBlock _lastTransactionBlock;
 
+        public decimal MainBalance
+        {
+            get
+            {
+                if (_lastTransactionBlock != null && _lastTransactionBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                    return _lastTransactionBlock.Balances[LyraGlobal.OFFICIALTICKERCODE];
+                else
+                    return 0m;                    
+            }
+        }
+
         private Wallet(IAccountDatabase storage, string name, LyraRestClient rpcClient = null)
         {
             _store = storage;

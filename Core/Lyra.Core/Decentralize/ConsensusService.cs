@@ -526,9 +526,9 @@ namespace Lyra.Core.Decentralize
             _ = Task.Run(async () => {
                 _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
                 var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-                var list1 = lsb.Authorizers.Keys.ToList();
+                var list1 = lsb.Authorizers.Keys.ToList().Take(LyraGlobal.MAXIMUM_AUTHORIZERS);
                 UpdateVotersAsync();
-                var list2 = LookforVoters();
+                var list2 = LookforVoters().Take(LyraGlobal.MAXIMUM_AUTHORIZERS);
 
                 if (CurrentState == BlockChainState.Genesis)
                     _stateMachine.Fire(BlockChainTrigger.GenesisDone);
@@ -541,9 +541,6 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"voter list is same as previous one.");
                     return;
                 }                    
-
-                // update billboard
-                Board.AllVoters = list2;
 
                 if(CurrentState == BlockChainState.Almighty)
                 {

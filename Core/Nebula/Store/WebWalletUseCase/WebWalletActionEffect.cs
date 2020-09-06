@@ -158,7 +158,7 @@ namespace Nebula.Store.WebWalletUseCase
 			var randAmount = random.Next(300, 30000);
 
 			var result = await faucetWallet.Send(randAmount, action.wallet.AccountId);
-			if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
+			if (result.ResultCode == APIResultCodes.Success)
 			{
 				dispatcher.Dispatch(new WebWalletSendMeFreeTokenResultAction { Success = true, FreeAmount = randAmount });
 			}

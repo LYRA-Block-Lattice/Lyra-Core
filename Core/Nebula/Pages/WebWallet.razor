@@ -3,10 +3,12 @@
 @using Nebula.Store.WebWalletUseCase
 @using Nebula.Data
 @using Microsoft.Extensions.Configuration
+@using Blazored.LocalStorage;
 @inject IConfiguration Configuration
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 @inject SampleAPI SampleAPI
+@inject Blazored.LocalStorage.ILocalStorageService localStore
 
 <h1>Web Wallet for @LyraGlobal.PRODUCTNAME</h1>
 <hr />
@@ -29,9 +31,12 @@
         Close Wallet
     </button>
     &nbsp;&nbsp;
+    @if(walletState.Value.wallet.MainBalance == 0m && walletState.Value.freeTokenTimes < 3 && !walletState.Value.freeTokenSent)
+    {
     <button class="btn btn-extra" @onclick="FreeToken">
         Get Free Token
     </button>
+    }
     </div>
     <hr />
     <div>
@@ -95,16 +100,20 @@ else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.FreeT
 {
     <h3>Verify and get free LYR</h3>
 
-    <p>Current balance of faucet account: <em>@walletState.Value.faucetBalance</em> LYR</p>
+    <div>
+            <p>Current balance of faucet account: <em>@walletState.Value.faucetBalance</em> LYR</p>
+    </div>
 
     <div class="section">
         <ReCAPTCHA @ref="reCAPTCHAComponent" SiteKey="6Lftd8gZAAAAAK5G9aHUFY7wtV1yocfAf2Vj-EmI" OnSuccess="OnSuccess" OnExpired="OnExpired" />
     </div>
 
     <div class="section">
-        <button class="btn btn-extra" @onclick="OnClickPost" disabled="@DisablePostButton">
+        <button class="btn btn-extra" @onclick="OnClickPost" disabled="@walletState.Value.DisablePostButton">
             Send me Token!
         </button>
+        &nbsp;&nbsp;
+        <button class="btn btn-primary" @onclick="Return">Return</button>
     </div>
 }
 else if (walletState.Value.stage == UIStage.Entry)
@@ -130,31 +139,25 @@ else if (walletState.Value.stage == UIStage.Entry)
 
     private ReCAPTCHA reCAPTCHAComponent;
 
-    private bool ValidReCAPTCHA = false;
-
-    private bool ServerVerificatiing = false;
-
-    private bool DisablePostButton => !ValidReCAPTCHA || ServerVerificatiing;
-
     private void OnSuccess()
     {
-        ValidReCAPTCHA = true;
+        Dispatcher.Dispatch(new WebWalletReCAPTCHAValidAction{ValidReCAPTCHA = true});
     }
 
     private void OnExpired()
     {
-        ValidReCAPTCHA = false;
+        Dispatcher.Dispatch(new WebWalletReCAPTCHAValidAction{ValidReCAPTCHA = false});
     }
 
     private async Task OnClickPost()
     {
-        if (ValidReCAPTCHA)
+        if (walletState.Value.ValidReCAPTCHA)
         {
             var response = await reCAPTCHAComponent.GetResponseAsync();
             try
             {
-                ServerVerificatiing = true;
-                StateHasChanged();
+                Dispatcher.Dispatch(new WebWalletReCAPTCHAServerAction{ServerVerificatiing = true});
+
                 var result = await SampleAPI.Post(response);
                 if (result.Success)
                 {
@@ -167,15 +170,43 @@ else if (walletState.Value.stage == UIStage.Entry)
                 else
                 {
                     await JS.InvokeAsync<object>("alert", string.Join(", ", result.ErrorCodes));
-                    ServerVerificatiing = false;
-                    StateHasChanged();
+                    
+                    Dispatcher.Dispatch(new WebWalletReCAPTCHAServerAction{ServerVerificatiing = false});
                 }
             }
             catch (HttpRequestException e)
             {
                 await JS.InvokeAsync<object>("alert", e.Message);
-                ServerVerificatiing = false;
-                StateHasChanged();
+
+                Dispatcher.Dispatch(new WebWalletReCAPTCHAServerAction{ServerVerificatiing = false});
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var key = "freelyr";
+        if(walletState.Value.freeTokenTimes.HasValue)
+        {
+            // if it need save
+            var oldValue = await localStore.GetItemAsync<string>(key);
+            int oldCount;
+            if(oldValue == null || (int.TryParse(oldValue, out oldCount) && oldCount < walletState.Value.freeTokenTimes))
+            {
+                await localStore.SetItemAsync(key, walletState.Value.freeTokenTimes.ToString());
+            }
+        }
+        else
+        {
+            var oldValue = await localStore.GetItemAsync<string>(key);
+            int oldCount;
+            if(oldValue != null && int.TryParse(oldValue, out oldCount))
+            {
+                walletState.Value.freeTokenTimes = oldCount;
+            }
+            else
+            {
+                walletState.Value.freeTokenTimes = 0;
             }
         }
     }

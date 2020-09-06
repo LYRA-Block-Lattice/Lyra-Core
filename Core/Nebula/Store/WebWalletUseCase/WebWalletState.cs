@@ -12,19 +12,21 @@ namespace Nebula.Store.WebWalletUseCase
 
 	public class WebWalletState
 	{
-		public UIStage stage { get; }
-		public bool IsOpening { get; }
-		public Wallet wallet { get; }
-		public List<string> txs { get; }
-		public decimal faucetBalance { get; }
+		private const string faucetKey = "freeLyraToken";
+		// for faucet
+		public int? freeTokenTimes { get; set; }
 
-		public WebWalletState(bool IsOpeing, Wallet wallet, UIStage Stage, List<string> transactions = null, decimal faucetBalance = 0)
-		{
-			this.IsOpening = IsOpeing;
-			this.wallet = wallet ?? null;
-			this.stage = Stage;
-			this.txs = transactions;
-			this.faucetBalance = faucetBalance;
-		}
+		public UIStage stage { get; set; } = UIStage.Entry;
+		public bool IsOpening { get; set; } = false;
+		public Wallet wallet { get; set; } = null;
+		public List<string> txs { get; set; } = null;
+		public decimal faucetBalance { get; set; } = 0m;
+		public bool freeTokenSent { get; set; } = false;
+
+		public bool ValidReCAPTCHA { get; set; } = false;
+
+		public bool ServerVerificatiing { get; set; } = false;
+
+		public bool DisablePostButton => !ValidReCAPTCHA || ServerVerificatiing;
 	}
 }
