@@ -14,6 +14,12 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
+.btn-extra {
+    color: #fff;
+    background-color: #6ec21b;
+    border-color: #61ac18;
+}
+
 app {
     position: relative;
     display: flex;
@@ -211,3 +217,16 @@ pre {
         background-color: #ddd;
     }
 
+.section {
+    margin: 16px;
+}
+
+.rebutton {
+    color: #fff;
+    border: none;
+    padding: 10px 40px;
+    background-color: darkblue;
+    border-radius: 4px;
+    height: 40px;
+    transition: all linear 0.2s;
+}

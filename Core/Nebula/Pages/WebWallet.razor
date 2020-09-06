@@ -1,6 +1,12 @@
 ﻿@inherits Fluxor.Blazor.Web.Components.FluxorComponent
 @page "/webwallet"
 @using Nebula.Store.WebWalletUseCase
+@using Nebula.Data
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@inject SampleAPI SampleAPI
 
 <h1>Web Wallet for @LyraGlobal.PRODUCTNAME</h1>
 <hr />
@@ -21,6 +27,10 @@
     </button>
     <button class="btn btn-primary" @onclick="CloseWallet">
         Close Wallet
+    </button>
+    &nbsp;&nbsp;
+    <button class="btn btn-extra" @onclick="FreeToken">
+        Get Free Token
     </button>
     </div>
     <hr />
@@ -81,6 +91,22 @@ else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Trans
     </div>
     }
 }
+else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.FreeToken)
+{
+    <h3>Verify and get free LYR</h3>
+
+    <p>Current balance of faucet account: <em>@walletState.Value.faucetBalance</em> LYR</p>
+
+    <div class="section">
+        <ReCAPTCHA @ref="reCAPTCHAComponent" SiteKey="6Lftd8gZAAAAAK5G9aHUFY7wtV1yocfAf2Vj-EmI" OnSuccess="OnSuccess" OnExpired="OnExpired" />
+    </div>
+
+    <div class="section">
+        <button class="btn btn-extra" @onclick="OnClickPost" disabled="@DisablePostButton">
+            Send me Token!
+        </button>
+    </div>
+}
 else if (walletState.Value.stage == UIStage.Entry)
 {
     <div>
@@ -98,4 +124,59 @@ else if (walletState.Value.stage == UIStage.Entry)
         </button>
     </div>
 
+}
+
+@code {
+
+    private ReCAPTCHA reCAPTCHAComponent;
+
+    private bool ValidReCAPTCHA = false;
+
+    private bool ServerVerificatiing = false;
+
+    private bool DisablePostButton => !ValidReCAPTCHA || ServerVerificatiing;
+
+    private void OnSuccess()
+    {
+        ValidReCAPTCHA = true;
+    }
+
+    private void OnExpired()
+    {
+        ValidReCAPTCHA = false;
+    }
+
+    private async Task OnClickPost()
+    {
+        if (ValidReCAPTCHA)
+        {
+            var response = await reCAPTCHAComponent.GetResponseAsync();
+            try
+            {
+                ServerVerificatiing = true;
+                StateHasChanged();
+                var result = await SampleAPI.Post(response);
+                if (result.Success)
+                {
+                    Dispatcher.Dispatch(new WebWalletSendMeFreeTokenAction { 
+                        wallet = walletState.Value.wallet,
+                        faucetPvk = Configuration["faucetPvk"]
+                    });
+                    //Navigation.NavigateTo("/valid");
+                }
+                else
+                {
+                    await JS.InvokeAsync<object>("alert", string.Join(", ", result.ErrorCodes));
+                    ServerVerificatiing = false;
+                    StateHasChanged();
+                }
+            }
+            catch (HttpRequestException e)
+            {
+                await JS.InvokeAsync<object>("alert", e.Message);
+                ServerVerificatiing = false;
+                StateHasChanged();
+            }
+        }
+    }
 }

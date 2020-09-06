@@ -16,7 +16,8 @@ namespace Nebula.Store.WebWalletUseCase
 
     public class WebWalletSendAction { }
 
-    public class WebWalletSendTokenAction {
+    public class WebWalletSendTokenAction
+    {
         public Wallet wallet { get; set; }
         public string DstAddr { get; set; }
         public string TokenName { get; set; }
@@ -38,12 +39,33 @@ namespace Nebula.Store.WebWalletUseCase
 
     public class WebWalletCancelSaveSettingsAction { }
 
-    public class WebWalletTransactionsAction {
-        public Wallet wallet { get; set; }
-    }
-    public class WebWalletTransactionsResultAction 
+    public class WebWalletTransactionsAction
     {
         public Wallet wallet { get; set; }
-        public List<string> transactions { get; set; } 
+    }
+    public class WebWalletTransactionsResultAction
+    {
+        public Wallet wallet { get; set; }
+        public List<string> transactions { get; set; }
+    }
+
+    public class WebWalletFreeTokenAction
+    {
+        public string faucetPvk { get; set; }
+    }
+    public class WebWalletFreeTokenResultAction
+    {
+        public decimal faucetBalance { get; set; }
+    }
+    public class WebWalletSendMeFreeTokenAction
+    {
+        public Wallet wallet { get; set; }
+        public string faucetPvk { get; set; }
+    }
+
+    public class WebWalletSendMeFreeTokenResultAction
+    {
+        public bool Success { get; set; }
+        public decimal FreeAmount { get; set; }
     }
 }

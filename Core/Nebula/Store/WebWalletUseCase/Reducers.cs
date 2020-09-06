@@ -77,5 +77,32 @@ namespace Nebula.Store.WebWalletUseCase
                 wallet: state.wallet,
                 Stage: UIStage.Transactions,
 				transactions: action.transactions);
-    }
+
+        [ReducerMethod]
+        public static WebWalletState ReduceFreeTokenAction(WebWalletState state, WebWalletFreeTokenResultAction action) =>
+            new WebWalletState(
+                IsOpeing: state.IsOpening,
+                wallet: state.wallet,
+                Stage: UIStage.FreeToken,
+				faucetBalance: action.faucetBalance);
+
+		[ReducerMethod]
+		public static WebWalletState ReduceSendMeFreeTokenAction(WebWalletState state, WebWalletSendMeFreeTokenResultAction action)
+        {
+			if(action.Success)
+            {
+				return new WebWalletState(
+					IsOpeing: state.IsOpening,
+					wallet: state.wallet,
+					Stage: UIStage.Main);
+			}
+			else
+            {
+				return new WebWalletState(
+					IsOpeing: state.IsOpening,
+					wallet: state.wallet,
+					Stage: UIStage.FreeToken);
+			}
+		}
+	}
 }

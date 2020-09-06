@@ -86,5 +86,10 @@ namespace Nebula.Pages
 		{
 			Dispatcher.Dispatch(new WebWalletCancelSaveSettingsAction { });
 		}
+
+		private void FreeToken(MouseEventArgs e)
+		{
+			Dispatcher.Dispatch(new WebWalletFreeTokenAction { faucetPvk = Configuration["faucetPvk"] });
+		}
 	}
 }

@@ -131,5 +131,41 @@ namespace Nebula.Store.WebWalletUseCase
 				return " Amount: " + string.Join(", ", newBalance.Select(m => $"{m.Key} {(m.Value - (oldBalance.ContainsKey(m.Key) ? oldBalance[m.Key] : 0)) / LyraGlobal.TOKENSTORAGERITO}"));               
             }
         }
+
+		[EffectMethod]
+		protected async Task HandleFreeToken(WebWalletFreeTokenAction action, IDispatcher dispatcher)
+		{
+			var store = new AccountInMemoryStorage();
+			var name = Guid.NewGuid().ToString();
+			Wallet.Create(store, name, "", config["network"], action.faucetPvk);
+			var wallet = Wallet.Open(store, name, "");
+			await wallet.Sync(client);
+
+			dispatcher.Dispatch(new WebWalletFreeTokenResultAction { faucetBalance = wallet.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE] });
+		}
+
+		[EffectMethod]
+		protected async Task HandleFreeTokenSend(WebWalletSendMeFreeTokenAction action, IDispatcher dispatcher)
+		{
+			var store = new AccountInMemoryStorage();
+			var name = Guid.NewGuid().ToString();
+			Wallet.Create(store, name, "", config["network"], action.faucetPvk);
+			var faucetWallet = Wallet.Open(store, name, "");
+			await faucetWallet.Sync(client);
+
+			// random amount
+			var random = new Random();
+			var randAmount = random.Next(300, 30000);
+
+			var result = await faucetWallet.Send(randAmount, action.wallet.AccountId);
+			if (result.ResultCode == Lyra.Core.Blocks.APIResultCodes.Success)
+			{
+				dispatcher.Dispatch(new WebWalletSendMeFreeTokenResultAction { Success = true, FreeAmount = randAmount });
+			}
+			else
+            {
+				dispatcher.Dispatch(new WebWalletSendMeFreeTokenResultAction { Success = false });
+			}
+		}
 	}
 }
