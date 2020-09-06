@@ -141,7 +141,7 @@ namespace Nebula.Store.WebWalletUseCase
 			var wallet = Wallet.Open(store, name, "");
 			await wallet.Sync(client);
 
-			dispatcher.Dispatch(new WebWalletFreeTokenResultAction { faucetBalance = wallet.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE] });
+			dispatcher.Dispatch(new WebWalletFreeTokenResultAction { faucetBalance = wallet.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE] / LyraGlobal.TOKENSTORAGERITO });
 		}
 
 		[EffectMethod]
