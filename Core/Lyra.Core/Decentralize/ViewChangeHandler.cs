@@ -167,6 +167,9 @@ namespace Lyra.Core.Decentralize
             foreach (var req in q3)
                 commitMsgs.TryRemove(req, out _);
 
+            if (_context.Board.AllVoters.Count < 4)
+                return;
+
             _log.LogInformation($"CheckAllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             // request
