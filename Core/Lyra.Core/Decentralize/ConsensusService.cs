@@ -164,6 +164,11 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<AuthState>(async state =>
             {
+                // not accepting new transaction from API
+                // service block generate as usual.
+                if (_viewChangeHandler.IsViewChanging)
+                    return;
+
                 _log.LogInformation($"State told.");
                 if (_stateMachine.State != BlockChainState.Almighty && _stateMachine.State != BlockChainState.Genesis)
                 {
