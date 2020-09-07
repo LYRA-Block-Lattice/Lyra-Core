@@ -692,6 +692,9 @@ namespace Lyra.Core.Decentralize
 
             _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
 
+            if (_viewChangeHandler.IsViewChanging)
+                return;
+
             /// check if leader is online. otherwise call view-change.
             /// the uniq tick: seed0's heartbeat.
             /// if seed0 not active, then seed2,seed3, etc.
@@ -776,6 +779,8 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnNodeUpAsync(ChatMsg chat)
         {
+            // must throttle on this msg
+
             _log.LogInformation($"OnNodeUpAsync: Node is up: {chat.From.Shorten()}");
 
             try
@@ -799,14 +804,6 @@ namespace Lyra.Core.Decentralize
                 // verify signature
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     return;
-
-                var lastSvcBlock = await _sys.Storage.GetLastServiceBlockAsync();
-                var signAgainst = lastSvcBlock == null ? ProtocolSettings.Default.StandbyValidators.First() : lastSvcBlock.Hash;
-
-                if (!Signatures.VerifyAccountSignature(signAgainst, node.AccountID, node.AuthorizerSignature))
-                {
-                    return;
-                }
 
                 await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync);
 
@@ -1082,25 +1079,20 @@ namespace Lyra.Core.Decentralize
             // seed node relay heartbeat, only once
             // this keep the whole network one consist view of active nodes.
             // this is important to make election.
-            if (_criticalMsgCache.ContainsKey(message.Signature))
+            if (_criticalMsgCache.TryAdd(message.Signature, DateTime.Now))
             {
-                // no need
-                return false;
-            }
-            else
-            {
-                _criticalMsgCache.TryAdd(message.Signature, DateTime.Now);
-
                 // try ever node forward.
                 // monitor network traffic closely.
                 //if (IsThisNodeSeed)
                 //{
-                    _localNode.Tell(message);     // no sign again!!!
+                _localNode.Tell(message);     // no sign again!!!
                 //}
 
                 await localAction(message);
                 return true;
             }
+            else
+                return false;
         }
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)

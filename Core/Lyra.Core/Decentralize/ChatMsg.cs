@@ -47,13 +47,11 @@ namespace Lyra.Core.Decentralize
 		public string From { get; set; }
 		public ChatMessageType MsgType { get; set; }
 		public int Version { get; set; } = LyraGlobal.ProtocolVersion;
-		//public DateTime Created { get; set; } = DateTime.Now;
 
 		public virtual int Size => From.Length
 			+ Hash.Length + Signature.Length
 			+ sizeof(ChatMessageType)
 			+ sizeof(int);
-			//+ TimeSize;
 
 		public SourceSignedMessage()
         {
@@ -69,7 +67,6 @@ namespace Lyra.Core.Decentralize
 			Signature = reader.ReadString();
 			From = reader.ReadString();
 			MsgType = (ChatMessageType)reader.ReadInt32();
-			//Created = DateTime.FromBinary(reader.ReadInt64());
 		}
 
 		public virtual void Serialize(BinaryWriter writer)
@@ -79,7 +76,6 @@ namespace Lyra.Core.Decentralize
 			writer.Write(Signature);
 			writer.Write(From);
 			writer.Write((int)MsgType);
-			//writer.Write(Created.ToBinary());
 		}
 
 		public override string GetHashInput()
