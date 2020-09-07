@@ -144,25 +144,20 @@ namespace Lyra.Core.Decentralize
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
-                if (relayMsg == null || relayMsg.signedMessage == null)
-                    return;
-
-                if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
-                    try
+                try
+                {
+                    await CriticalRelayAsync(relayMsg.signedMessage, async (msg) =>
                     {
-                        if(relayMsg.signedMessage.VerifySignature(relayMsg.signedMessage.From))
+                        if (relayMsg.signedMessage.VerifySignature(relayMsg.signedMessage.From))
                         {
-                            await CriticalRelayAsync(relayMsg.signedMessage, async (msg) => {
-                                await OnNextConsensusMessageAsync(msg);
-                            });
-                        }
-                    }
-                    catch(Exception ex)
-                    {
-                        _log.LogCritical("OnNextConsensusMessageAsync!!! " + ex.ToString());
-                    }
-                else
-                    _log.LogWarning("Protocol Version Mismatch. Do nothing.");
+                            await OnNextConsensusMessageAsync(msg);
+                        }                        
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _log.LogCritical("OnNextConsensusMessageAsync!!! " + ex.ToString());
+                }
             });
 
             ReceiveAsync<AuthState>(async state =>

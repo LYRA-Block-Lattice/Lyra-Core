@@ -1,5 +1,6 @@
 using Akka.Actor;
 using Lyra;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
@@ -192,7 +193,10 @@ namespace Neo.Network.P2P
                     break;
                 case SignedMessageRelay signedMessageRelay:
                     if(_sys.Consensus != null && signedMessageRelay != null)
-                        _sys.Consensus.Tell(signedMessageRelay);
+                    {
+                        if(signedMessageRelay.signedMessage.Version == LyraGlobal.ProtocolVersion)
+                            _sys.Consensus.Tell(signedMessageRelay);
+                    }                        
                     break;
                 case Message msg:
                     BroadcastMessage(msg);
