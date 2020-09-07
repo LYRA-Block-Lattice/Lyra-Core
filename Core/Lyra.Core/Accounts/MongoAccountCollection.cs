@@ -15,7 +15,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Core.Authorizers;
 using Lyra.Core.API;
-using Javax.Security.Auth;
+//using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
 {
