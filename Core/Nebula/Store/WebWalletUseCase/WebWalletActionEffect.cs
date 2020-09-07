@@ -160,6 +160,7 @@ namespace Nebula.Store.WebWalletUseCase
 			var result = await faucetWallet.Send(randAmount, action.wallet.AccountId);
 			if (result.ResultCode == APIResultCodes.Success)
 			{
+				await action.wallet.Sync(client);
 				dispatcher.Dispatch(new WebWalletSendMeFreeTokenResultAction { Success = true, FreeAmount = randAmount });
 			}
 			else
