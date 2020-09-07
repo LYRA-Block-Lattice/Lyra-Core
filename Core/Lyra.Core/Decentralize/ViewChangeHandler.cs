@@ -370,8 +370,11 @@ namespace Lyra.Core.Decentralize
                     $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
             };
 
-            _context.Send2P2pNetwork(req);
-            await CheckRequestAsync(req);
+            _ = Task.Run(async () => {
+                await Task.Delay(1000);         // wait for the gate to open
+                _context.Send2P2pNetwork(req);
+                await CheckRequestAsync(req);
+            });
         }
 
         internal void ShiftView(long v)

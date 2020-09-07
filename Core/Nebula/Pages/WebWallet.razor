@@ -14,28 +14,29 @@
 <hr />
 @if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Main)
 {
-   <div>
-        <button class="btn btn-primary" @onclick="Refresh">
-        Refresh Balance
-    </button>
-        <button class="btn btn-primary" @onclick="Send">
+   <div><span>
+    <button class="btn btn-primary" @onclick="Send">
         Send
     </button>
-    <button class="btn btn-primary" @onclick="Settings">
-        Settings
+    <button class="btn btn-primary" @onclick="Refresh">
+        Receive
     </button>
     <button class="btn btn-primary" @onclick="Transactions">
         Transactions
     </button>
-    <button class="btn btn-primary" @onclick="CloseWallet">
-        Close Wallet
+    <button class="btn btn-primary" @onclick="Settings">
+        Settings
     </button>
-    &nbsp;&nbsp;
+    &nbsp;
+    <button class="btn btn-primary" @onclick="CloseWallet">
+        Close
+    </button></span>
+    &nbsp;&nbsp;&nbsp;
     @if(walletState.Value.wallet.MainBalance == 0m && walletState.Value.freeTokenTimes < 3 && !walletState.Value.freeTokenSent)
     {
-    <button class="btn btn-extra" @onclick="FreeToken">
+    <span><button style="float: right;" class="btn btn-extra" @onclick="FreeToken">
         Get Free Token
-    </button>
+    </button></span>
     }
     </div>
     <hr />
@@ -52,9 +53,10 @@
 else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Settings)
 {
     <h3>Settings</h3>
+    <hr />
         <div>
-        <p>Vote For Address:</p>
-        <input size="100" type="text" @bind="@voteAddr" />
+        <p>Vote For Address:
+        <input size="100" type="text" @bind="@voteAddr" /></p>
         <hr />
         <button class="btn btn-primary" @onclick="SaveSettings">Save</button>
         <button class="btn btn-primary" @onclick="CancelSave">Cancel</button>
@@ -63,6 +65,7 @@ else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Setti
 else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Send)
 {
     <h3>Sending token</h3>
+    <hr />
     <div>
         <p>Destination Wallet Address:<br />
         <input size="100" type="text" @bind="@dstAddr" /></p>
@@ -79,6 +82,7 @@ else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Send)
 else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Transactions)
 {
     <h3>Transactions</h3>
+    <hr />
     <div>
         <button class="btn btn-primary" @onclick="Return">Return</button>
     </div>
@@ -99,7 +103,7 @@ else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.Trans
 else if (walletState.Value.IsOpening && walletState.Value.stage == UIStage.FreeToken)
 {
     <h3>Verify and get free LYR</h3>
-
+    <hr />
     <div>
             <p>Current balance of faucet account: <em>@walletState.Value.faucetBalance</em> LYR</p>
     </div>
@@ -126,11 +130,10 @@ else if (walletState.Value.stage == UIStage.Entry)
     <hr />
     <div>
         <p>Private Key:</p>
-        <input size="100" type="text" @bind="@prvKey" />
-        <hr />
-        <button class="btn btn-primary" @onclick="RestoreWallet">
+        <p><input size="100" type="text" @bind="@prvKey" /></p>
+        <p><button class="btn btn-primary" @onclick="RestoreWallet">
             Restore Wallet
-        </button>
+        </button></p>
     </div>
 
 }
@@ -185,7 +188,7 @@ else if (walletState.Value.stage == UIStage.Entry)
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var key = "freelyr";
+        var key = Configuration["network"] + "freelyr";
         if(walletState.Value.freeTokenTimes.HasValue)
         {
             // if it need save
