@@ -155,7 +155,7 @@ namespace Nebula.Store.WebWalletUseCase
 
 			// random amount
 			var random = new Random();
-			var randAmount = random.Next(300, 30000);
+			var randAmount = random.Next(300, 3000);
 
 			var result = await faucetWallet.Send(randAmount, action.wallet.AccountId);
 			if (result.ResultCode == APIResultCodes.Success)

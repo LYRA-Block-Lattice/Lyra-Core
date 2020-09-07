@@ -58,6 +58,8 @@ namespace Lyra.Core.Decentralize
         private ConcurrentDictionary<string, VCCommitWithTime> commitMsgs { get; set; }
         public long ViewId { get; set; }
 
+        private bool IsViewChanging => TimeStarted != DateTime.MinValue && DateTime.Now - TimeStarted < TimeSpan.FromSeconds(20); 
+
         DagSystem _sys;
         public ViewChangeHandler(DagSystem sys, ConsensusService context, LeaderSelectedHandler leaderSelected) : base(context)
         {
@@ -323,6 +325,9 @@ namespace Lyra.Core.Decentralize
         /// <returns></returns>
         internal async Task BeginChangeViewAsync()
         {
+            if (IsViewChanging)
+                return;
+
             _log.LogInformation($"Begin Change View");
 
             if(_context.QualifiedNodeCount < 4)
