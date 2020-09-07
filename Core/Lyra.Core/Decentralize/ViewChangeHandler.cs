@@ -176,16 +176,11 @@ namespace Lyra.Core.Decentralize
                 // 
                 var leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
 
-                do
+                var leader = _context.Board.AllVoters[leaderIndex];
+                if (!reqMsgs.Values.Any(a => a.msg.From == leader))     // it is offline
                 {
-                    var leader = _context.Board.AllVoters[leaderIndex];
-                    if (!reqMsgs.Values.Any(a => a.msg.From == leader))     // it is offline
-                    {
-                        leaderIndex = (leaderIndex + 1) % _context.Board.AllVoters.Count;
-                    }
-                    else
-                        break;
-                } while (true);
+                    leaderIndex = (leaderIndex + 1) % _context.Board.AllVoters.Count;
+                }
 
                 nextLeader = _context.Board.AllVoters[leaderIndex];
                 _log.LogInformation($"CheckAllStats, By ReqMsgs, next leader will be {nextLeader}");
