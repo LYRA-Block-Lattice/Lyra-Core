@@ -150,9 +150,12 @@ namespace Lyra.Core.Decentralize
                 if (relayMsg.signedMessage.Version == LyraGlobal.ProtocolVersion)
                     try
                     {
-                        await CriticalRelayAsync(relayMsg.signedMessage, async (msg) => {
-                            await OnNextConsensusMessageAsync(msg);
-                        });
+                        if(relayMsg.signedMessage.VerifySignature(relayMsg.signedMessage.From))
+                        {
+                            await CriticalRelayAsync(relayMsg.signedMessage, async (msg) => {
+                                await OnNextConsensusMessageAsync(msg);
+                            });
+                        }
                     }
                     catch(Exception ex)
                     {
