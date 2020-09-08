@@ -32,11 +32,11 @@ namespace LyraWallet
             {
                 var netfn = App.Container.DataStoragePath + "/network.txt";
                 App.Container.CurrentNetwork = File.ReadAllText(netfn);
-                MainPage = new MainPage();
+                MainPage = new AppShell();//new MainPage();
             }
             else
             {
-                MainPage = new NavigationPage(new NetworkSelectionPage());
+                MainPage = new AppShell();//new NavigationPage(new NetworkSelectionPage());
             }    
         }
 

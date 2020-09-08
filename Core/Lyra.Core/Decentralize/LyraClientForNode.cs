@@ -100,7 +100,7 @@ namespace Lyra.Core.Decentralize
                 if (_client == null)
                     _client = await FindValidSeedForSyncAsync(_sys);
 
-                return await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight);
+                return await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight, 30);
             }
             catch (Exception ex)
             {

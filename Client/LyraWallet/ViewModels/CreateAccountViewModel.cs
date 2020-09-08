@@ -41,7 +41,7 @@ namespace LyraWallet.ViewModels
                     App.Container.CreateNew(NetworkId);
                     await App.Container.CloseWallet();
 
-                    var nextPage = new MainPage();
+                    var nextPage = new BalancePage();
                     Application.Current.MainPage = nextPage;
                 }
                 catch(Exception ex)
@@ -60,7 +60,7 @@ namespace LyraWallet.ViewModels
                     App.Container.CreateByPrivateKey(NetworkId, PrivateKey);
                     await App.Container.CloseWallet();
 
-                    var nextPage = new MainPage();
+                    var nextPage = new BalancePage();
                     Application.Current.MainPage = nextPage;
                 }
                 catch(Exception ex)
