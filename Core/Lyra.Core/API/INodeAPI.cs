@@ -31,7 +31,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature);
 
         Task<BlockAPIResult> GetLastConsolidationBlock();
-        Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight);
+        Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count);
         Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash);
         //Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature);
         Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime);

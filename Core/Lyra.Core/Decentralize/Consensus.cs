@@ -52,7 +52,7 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
-        private async Task<bool> SyncDatabase()
+        private async Task<bool> SyncDatabase(long height)
         {
             var client = new LyraClientForNode(_sys);
 
@@ -130,7 +130,7 @@ namespace Lyra.Core.Decentralize
                 var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                 if (myLastCons == null || myLastCons.Height < lastConsOfSeed.GetBlock().Height)
                 {
-                    if (!await SyncDatabase())
+                    if (!await SyncDatabase(lastConsOfSeed.GetBlock().Height))
                     {
                         _log.LogError($"Error sync database. wait 5 minutes and retry...");
                         await Task.Delay(5 * 60 * 1000);

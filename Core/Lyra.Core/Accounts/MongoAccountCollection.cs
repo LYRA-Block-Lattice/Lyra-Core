@@ -218,19 +218,21 @@ namespace Lyra.Core.Accounts
             return result as ConsolidationBlock;
         }
 
-        public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startHeight)
+        // max 30
+        public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startHeight, int count)
         {
-            var options = new FindOptions<Block, Block>
+            var options = new FindOptions<ConsolidationBlock, ConsolidationBlock>
             {
-                //Limit = 100,
-                Sort = Builders<Block>.Sort.Ascending(o => o.Height)
+                Limit = count > 30 ? 30 : count,
+                Sort = Builders<ConsolidationBlock>.Sort.Ascending(o => o.Height)
             };
-            var builder = Builders<Block>.Filter;
+            var builder = Builders<ConsolidationBlock>.Filter;
             var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.Consolidation),
                 builder.Gte("Height", startHeight));
 
-            var result = await _blocks.FindAsync(filterDefinition, options);
-            return result.ToList().Cast<ConsolidationBlock>().ToList();
+            var result = await _blocks.OfType<ConsolidationBlock>()
+                .FindAsync(filterDefinition, options);
+            return result.ToList();
         }
 
         public async Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(string belongToSvcHash)

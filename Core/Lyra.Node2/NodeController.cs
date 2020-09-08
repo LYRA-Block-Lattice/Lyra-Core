@@ -217,10 +217,10 @@ namespace LyraLexWeb2
 
         [Route("GetConsolidationBlocks")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight)
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
         {
             if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
-            return await _node.GetConsolidationBlocks(AccountId, Signature, startHeight);
+            return await _node.GetConsolidationBlocks(AccountId, Signature, startHeight, count);
         }
 
         //[Route("GetUnConsolidatedBlocks")]

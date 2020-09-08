@@ -401,7 +401,7 @@ namespace Lyra.Core.Decentralize
                                 else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
                                 {
                                     // verify local database
-                                    while (!await SyncDatabase())
+                                    while (!await SyncDatabase(majorHeight.Height))
                                     {
                                         //fatal error. should not run program
                                         _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");

@@ -553,7 +553,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight)
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
         {
             var result = new MultiBlockAPIResult();
             if (!await VerifyClientAsync(AccountId, Signature))
@@ -564,7 +564,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var blocks = await NodeService.Dag.Storage.GetConsolidationBlocksAsync(startHeight);
+                var blocks = await NodeService.Dag.Storage.GetConsolidationBlocksAsync(startHeight, count);
                 if (blocks != null)
                 {
                     result.SetBlocks(blocks.ToArray());
