@@ -487,37 +487,35 @@ namespace Lyra.Core.Decentralize
             _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
         }
 
-        public int QualifiedNodeCount
+        public int GetQualifiedNodeCount(List<ActiveNode> allNodes)
         {
-            get
+            var count = allNodes.Count();
+            if (count > LyraGlobal.MAXIMUM_VOTER_NODES)
             {
-                var allNodes = Board.ActiveNodes.ToList();
-                var count = allNodes.Count(a => a?.Votes >= LyraGlobal.MinimalAuthorizerBalance);
-                if (count > LyraGlobal.MAXIMUM_VOTER_NODES)
-                {
-                    return LyraGlobal.MAXIMUM_VOTER_NODES;
-                }
-                else if (count < LyraGlobal.MINIMUM_AUTHORIZERS)
-                {
-                    return LyraGlobal.MINIMUM_AUTHORIZERS;
-                }
-                else
-                {
-                    return count;
-                }
+                return LyraGlobal.MAXIMUM_VOTER_NODES;
+            }
+            else if (count < LyraGlobal.MINIMUM_AUTHORIZERS)
+            {
+                return LyraGlobal.MINIMUM_AUTHORIZERS;
+            }
+            else
+            {
+                return count;
             }
         }
 
         public List<string> LookforVoters()
         {
-            var list = Board.ActiveNodes
+            var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
+                .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
                 .OrderByDescending(a => a.Votes)
                 .ThenBy(a => a.AccountID)
-                .Take(QualifiedNodeCount)
+                .ToList();
+
+            var list2 = list.Take(GetQualifiedNodeCount(list))
                 .Select(a => a.AccountID)
                 .ToList();
-            list.Sort();
-            return list;
+            return list2;
         }
 
         public void UpdateVotersAsync()
@@ -531,9 +529,9 @@ namespace Lyra.Core.Decentralize
             _ = Task.Run(async () => {
                 _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
                 var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-                var list1 = lsb.Authorizers.Keys.ToList().Take(LyraGlobal.MAXIMUM_AUTHORIZERS);
+                var list1 = lsb.Authorizers.Keys.ToList();
                 UpdateVotersAsync();
-                var list2 = LookforVoters().Take(LyraGlobal.MAXIMUM_AUTHORIZERS);
+                var list2 = Board.AllVoters;
 
                 if (CurrentState == BlockChainState.Genesis)
                     _stateMachine.Fire(BlockChainTrigger.GenesisDone);

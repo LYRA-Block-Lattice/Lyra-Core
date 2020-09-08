@@ -333,12 +333,6 @@ namespace Lyra.Core.Decentralize
 
             _log.LogInformation($"Begin Change View");
 
-            if(_context.QualifiedNodeCount < 4)
-            {
-                _log.LogInformation($"End Change View. Not enough qualified nodes.");
-                return;
-            }
-
             _log.LogInformation($"AllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
