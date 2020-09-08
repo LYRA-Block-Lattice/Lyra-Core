@@ -80,6 +80,7 @@
     </None>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <InterfaceDefinition Include="SplashScreen.storyboard" />
+    <BundleResource Include="Resources\materialdesignicons-webfont.ttf" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Reflection.Emit">
