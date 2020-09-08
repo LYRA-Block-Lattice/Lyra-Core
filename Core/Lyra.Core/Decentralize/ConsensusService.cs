@@ -146,13 +146,15 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
-                    await CriticalRelayAsync(relayMsg.signedMessage, async (msg) =>
+                    var signedMsg = relayMsg.signedMessage;
+                    if (DateTime.UtcNow - signedMsg.timeStamp < TimeSpan.FromSeconds(5) &&
+                        signedMsg.VerifySignature(signedMsg.From))
                     {
-                        if (relayMsg.signedMessage.VerifySignature(relayMsg.signedMessage.From))
+                        await CriticalRelayAsync(signedMsg, async (msg) =>
                         {
                             await OnNextConsensusMessageAsync(msg);
-                        }                        
-                    });
+                        });
+                    }
                 }
                 catch (Exception ex)
                 {

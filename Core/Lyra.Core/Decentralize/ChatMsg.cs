@@ -47,16 +47,18 @@ namespace Lyra.Core.Decentralize
 		public string From { get; set; }
 		public ChatMessageType MsgType { get; set; }
 		public int Version { get; set; } = LyraGlobal.ProtocolVersion;
+		public DateTime timeStamp { get; set; }
 
 		public virtual int Size => From.Length
 			+ Hash.Length + Signature.Length
 			+ sizeof(ChatMessageType)
-			+ sizeof(int);
+			+ sizeof(int)
+			+ sizeof(long);
 
 		public SourceSignedMessage()
         {
-
-        }
+			timeStamp = DateTime.UtcNow;
+		}
 
 		public virtual void Deserialize(BinaryReader reader)
 		{
@@ -67,6 +69,7 @@ namespace Lyra.Core.Decentralize
 			Signature = reader.ReadString();
 			From = reader.ReadString();
 			MsgType = (ChatMessageType)reader.ReadInt32();
+			timeStamp = new DateTime(reader.ReadInt64(), DateTimeKind.Utc);
 		}
 
 		public virtual void Serialize(BinaryWriter writer)
@@ -76,11 +79,13 @@ namespace Lyra.Core.Decentralize
 			writer.Write(Signature);
 			writer.Write(From);
 			writer.Write((int)MsgType);
+			writer.Write(timeStamp.Ticks);
 		}
 
 		public override string GetHashInput()
 		{
-			return $"{From}|{MsgType}|{Version}";
+			return $"{From}|{MsgType}|{Version}" +
+					$"{timeStamp.Ticks}|";
 		}
 
 		protected override string GetExtraData()
@@ -108,7 +113,6 @@ namespace Lyra.Core.Decentralize
 			new RNGCryptoServiceProvider();
 		public string Text { get; set; }
 		public long nonce { get; set; } 
-		public DateTime timeStamp { get; set; }
 
 		public ChatMsg()
 		{
@@ -123,21 +127,19 @@ namespace Lyra.Core.Decentralize
 		{
 			MsgType = msgType;
 			Text = msg;
-			timeStamp = DateTime.UtcNow;
 
 			var data = new byte[8];
 			random.GetNonZeroBytes(data);
 			nonce = BitConverter.ToInt64(data, 0);
 		}
 
-		public override int Size => base.Size + Text.Length + 16;
+		public override int Size => base.Size + Text.Length + 8;
 
 		public override void Serialize(BinaryWriter writer)
 		{
 			base.Serialize(writer);
 			writer.Write(Text);
 			writer.Write(nonce);
-			writer.Write(timeStamp.Ticks);
 		}
 
 		public override void Deserialize(BinaryReader reader)
@@ -145,14 +147,12 @@ namespace Lyra.Core.Decentralize
 			base.Deserialize(reader);
 			Text = reader.ReadString();
 			nonce = reader.ReadInt64();
-			timeStamp = new DateTime(reader.ReadInt64(), DateTimeKind.Utc);
 		}
 
 		public override string GetHashInput()
 		{
 			return base.GetHashInput() + "|" +
 				$"{nonce}|" + 
-				$"{timeStamp.Ticks}|" +
 				this.Text;
 		}
 

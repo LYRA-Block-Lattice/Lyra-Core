@@ -21,7 +21,7 @@ namespace Lyra.Core.API
         public const int MAXIMUM_AUTHORIZERS = 21;
         public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
 
-        public const int ProtocolVersion = 3;
+        public const int ProtocolVersion = 4;
         public const int DatabaseVersion = 2;
 
         public readonly static Version MINIMAL_COMPATIBLE_VERSION = new Version("1.7.6.18");
