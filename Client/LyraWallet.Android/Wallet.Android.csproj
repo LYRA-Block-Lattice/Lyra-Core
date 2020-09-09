@@ -163,6 +163,12 @@
   <ItemGroup>
     <AndroidResource Include="Resources\drawable\LyraVector.png" />
   </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="Assets\tab_about.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidAsset Include="Assets\tab_feed.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>

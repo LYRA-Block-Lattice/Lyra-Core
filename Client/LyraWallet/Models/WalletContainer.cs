@@ -30,7 +30,7 @@ namespace LyraWallet.Models
         private string privateKey;
         private string voteFor;
 
-        private Wallet wallet;
+        private Lyra.Core.Accounts.Wallet wallet;
         private Dictionary<string, Decimal> balances;
         private List<string> tokenList;
 
@@ -76,7 +76,7 @@ namespace LyraWallet.Models
             _nodeApiClient = LyraRestClient.Create(CurrentNetwork, platform, AppInfo.Name, AppInfo.VersionString);
 
             var securedStore = new SecuredWalletStore(App.Container.DataStoragePath);
-            wallet = Wallet.Open(securedStore, "My Account", "");
+            wallet = Lyra.Core.Accounts.Wallet.Open(securedStore, "My Account", "");
 
             AccountID = wallet.AccountId;
             PrivateKey = wallet.PrivateKey;
@@ -123,7 +123,7 @@ namespace LyraWallet.Models
             var secureStore = new SecuredWalletStore(path);
             (var privateKey, var publicKey) = Signatures.GenerateWallet();
 
-            Wallet.Create(secureStore, "My Account", "", network_id, privateKey);
+            wallet = Wallet.Create(secureStore, "My Account", "", network_id, privateKey);
         }
 
         public void CreateByPrivateKey(string network_id, string privatekey)
@@ -131,7 +131,7 @@ namespace LyraWallet.Models
             if (wallet != null)
                 throw new Exception("Wallet opening");
 
-            if (!wallet.ValidatePrivateKey(privatekey))
+            if (!Signatures.ValidatePrivateKey(privatekey))
             {
                 wallet = null;
                 throw new InvalidDataException("Invalid Private Key");
@@ -140,7 +140,7 @@ namespace LyraWallet.Models
             var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
             File.WriteAllText(path + "/network.txt", network_id);
             var secureStore = new SecuredWalletStore(path);
-            Wallet.Create(secureStore, "My Account", "", network_id, privatekey);
+            wallet = Wallet.Create(secureStore, "My Account", "", network_id, privatekey);
         }
 
         public void GetBalance()
