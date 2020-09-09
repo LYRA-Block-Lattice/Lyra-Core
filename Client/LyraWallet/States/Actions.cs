@@ -16,7 +16,9 @@ namespace LyraWallet.States
     }
 
     public class WalletOpenAction {
-        public string FileName { get; set; }
+        public string path { get; set; }
+        public string name { get; set; }
+        public string password { get; set; }
     }
     public class WalletCreateAction { 
         public string path { get; set; }

@@ -50,7 +50,7 @@ namespace LyraWallet.ViewModels
                     {
                         // TODO
                         network = App.Store.State.Network,
-                        name = "default.lyrawallet",
+                        name = "default",
                         password = "",
                         path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
                     });

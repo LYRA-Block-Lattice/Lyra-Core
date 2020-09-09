@@ -71,7 +71,11 @@ namespace LyraWallet.Views
                 var fn = $"{path}/default.lyrawallet";
                 if (File.Exists(fn))
                 {
-                    App.Store.Dispatch(new WalletOpenAction { FileName = fn });
+                    App.Store.Dispatch(new WalletOpenAction { 
+                        path = path,
+                        name = "default",
+                        password = ""
+                    });
                 }
                 else
                 {

@@ -19,8 +19,11 @@ namespace LyraWallet.States
                         ),
 
                     On<WalletOpenResultAction, RootState>(
-                        (state, action) => {                            
-                            return state.With(new { wallet = action.wallet });
+                        (state, action) => {
+                            return state.With(new {
+                                wallet = action.wallet,
+                                IsOpening = true
+                            });
                         }
                     ),
                     On<WalletRestoreAction, RootState>(
@@ -34,10 +37,6 @@ namespace LyraWallet.States
                             return null;
                         }
                     ),
-                    On<WalletOpenAction, RootState>(
-                        state => state.With(new {
-                        })
-                    )
                 };
 
             //var walletReducers = Holding.Reducers.CreateReducers();

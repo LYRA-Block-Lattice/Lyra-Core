@@ -44,5 +44,37 @@ namespace LyraWallet.States
                     }),
                 true
             );
+
+        public static Effect<RootState> OpenWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
+            (
+                () => App.Store.ObserveAction<WalletOpenAction>()
+                    .Select(action =>
+                    {
+                        return Observable.FromAsync(async () => {
+                            var store = new SecuredWalletStore(action.path);
+                            var wallet = Wallet.Open(store, action.name, action.password);
+                            var client = LyraRestClient.Create(wallet.NetworkId, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
+                            await wallet.Sync(client);
+
+                            return wallet;
+                        });
+                    })
+                    .Switch()
+                    .Select(result =>
+                    {
+                        return new WalletOpenResultAction
+                        {
+                            wallet = result
+                        };
+                    })
+                    .Catch<object, Exception>(e =>
+                    {
+                        return Observable.Return(new WalletErrorAction
+                        {
+                            Error = e
+                        });
+                    }),
+                true
+            );
     }
 }

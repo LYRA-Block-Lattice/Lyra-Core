@@ -26,12 +26,12 @@ namespace LyraWallet
 
             InitializeComponent();
 
-            MainPage = new AppShell();
-        }
+            Store.RegisterEffects(
+                LyraWallet.States.Effects.CreateWalletEffect,
+                LyraWallet.States.Effects.OpenWalletEffect
+                );
 
-        protected override void OnStart()
-        {
-            Store.RegisterEffects(LyraWallet.States.Effects.CreateWalletEffect);
+            MainPage = new AppShell();
         }
 
         protected override void OnSleep()
