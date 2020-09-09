@@ -15,6 +15,7 @@ namespace LyraWallet.States
 
         public string ErrorMessage { get; set; }
 
+        public Dictionary<string, decimal> Balances { get; set; }
         public HoldingState walletState {get; set;}
 
         //public ShopState shopState { get; set; }

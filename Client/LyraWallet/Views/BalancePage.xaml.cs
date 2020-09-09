@@ -1,4 +1,5 @@
-﻿using LyraWallet.Services;
+﻿using Lyra.Core.API;
+using LyraWallet.Services;
 using LyraWallet.States;
 using LyraWallet.ViewModels;
 using System;
@@ -19,7 +20,8 @@ namespace LyraWallet.Views
 		public BalancePage ()
 		{
 			InitializeComponent ();
-            BindingContext = new BalanceViewModel(this);
+            var vm = new BalanceViewModel(this);
+            BindingContext = vm;
 
             if (DeviceInfo.Platform == DevicePlatform.UWP)
                 btnRefresh.IsVisible = true;
@@ -29,10 +31,11 @@ namespace LyraWallet.Views
             lvBalance.ItemTapped += LvBalance_ItemTapped;
 
             // redux
-            App.Store.Select(state => state.wallet)
+            App.Store.Select(state => state.Balances)
                 .Subscribe(w =>
                 {
-
+                    vm.Balances = w;
+                    vm.IsRefreshing = false;
                 });
 
             App.Store.Select(state => state.ErrorMessage)

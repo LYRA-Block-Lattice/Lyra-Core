@@ -170,5 +170,34 @@ namespace LyraWallet.States
                     }),
                 true
             );
+
+        public static Effect<RootState> RefreshWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
+            (
+                () => App.Store.ObserveAction<WalletRefreshBalanceAction>()
+                    .Select(action =>
+                    {
+                        return Observable.FromAsync(async () =>
+                        {
+                            await action.wallet.Sync(null);
+                            return action.wallet;
+                        });
+                    })
+                    .Switch()
+                    .Select(result =>
+                    {
+                        return new WalletOpenResultAction
+                        {
+                            wallet = result
+                        };
+                    })
+                    .Catch<object, Exception>(e =>
+                    {
+                        return Observable.Return(new WalletErrorAction
+                        {
+                            Error = e
+                        });
+                    }),
+                true
+            );
     }
 }

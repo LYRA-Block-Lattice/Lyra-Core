@@ -13,7 +13,7 @@
                       SeparatorColor="White"
                       IsPullToRefreshEnabled="True"
                       RefreshCommand="{Binding RefreshCommand}"
-                      IsRefreshing="{Binding IsRefreshing}"
+                      IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}"
                       RowHeight="80">
                 <ListView.ItemTemplate>
                     <DataTemplate>

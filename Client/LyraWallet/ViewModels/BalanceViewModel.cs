@@ -12,6 +12,7 @@ using System.Linq;
 using System.IO;
 using ZXing.Net.Mobile.Forms;
 using Lyra.Core.API;
+using LyraWallet.States;
 
 namespace LyraWallet.ViewModels
 {
@@ -19,21 +20,14 @@ namespace LyraWallet.ViewModels
     {
         private Page _thePage;
 
-        //private Dictionary<string, Decimal> _balances;
+        private Dictionary<string, Decimal> _balances;
         public Dictionary<string, Decimal> Balances
         {
-            get => App.Container.Balances;
-            //get => _balances;
-            //set {
-            //    SetProperty(ref _balances, value);
-            //    Device.BeginInvokeOnMainThread(() =>
-            //    {
-            //        if (_balances == null)
-            //            _thePage.Title = "Wallet has no Token";
-            //        else
-            //            _thePage.Title = "Balance";
-            //    });
-            //}
+            get => _balances;
+            set
+            {
+                SetProperty(ref _balances, value);
+            }
         }
 
         private bool _getLex;
@@ -81,9 +75,12 @@ namespace LyraWallet.ViewModels
             //Title = "Balance";
             //GetLEX = false;
             
-            RefreshCommand = new Command(async () =>
+            RefreshCommand = new Command(() =>
             {
-                await Refresh();
+                App.Store.Dispatch(new WalletRefreshBalanceAction
+                {
+                    wallet = App.Store.State.wallet
+                });
             });
 
             ScanCommand = new Command(async () => {
@@ -182,32 +179,32 @@ namespace LyraWallet.ViewModels
 
         }
 
-        private async Task Refresh()
-        {
-            try
-            {
-                IsRefreshing = true;
-                await App.Container.RefreshBalance();
-                if (App.Container.Balances == null || App.Container.Balances.Count == 0)
-                {
-                    GetLEX = true;
-                }
-                else
-                {
-                    GetLEX = false;
-                }
-                IsRefreshing = false;
-                MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
-            }
-            catch (Exception ex)
-            {
-                IsRefreshing = false;
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    _thePage.DisplayAlert("Error Opening Wallet", $"Network: {App.Container.CurrentNetwork}\nError Message: {ex.Message}", "OK");
-                });
-            }
-        }
+        //private async Task Refresh()
+        //{
+        //    try
+        //    {
+        //        IsRefreshing = true;
+        //        await App.Container.RefreshBalance();
+        //        if (App.Container.Balances == null || App.Container.Balances.Count == 0)
+        //        {
+        //            GetLEX = true;
+        //        }
+        //        else
+        //        {
+        //            GetLEX = false;
+        //        }
+        //        IsRefreshing = false;
+        //        MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        IsRefreshing = false;
+        //        Device.BeginInvokeOnMainThread(() =>
+        //        {
+        //            _thePage.DisplayAlert("Error Opening Wallet", $"Network: {App.Container.CurrentNetwork}\nError Message: {ex.Message}", "OK");
+        //        });
+        //    }
+        //}
 
         public ICommand RefreshCommand { get; }
         public ICommand TokenSelected { get; }

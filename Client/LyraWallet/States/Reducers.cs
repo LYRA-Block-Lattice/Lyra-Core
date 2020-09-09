@@ -1,4 +1,5 @@
 ﻿using Converto;
+using Lyra.Core.API;
 using ReduxSimple;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace LyraWallet.States
                         (state, action) => {
                             return state.With(new {
                                 wallet = action.wallet,
+                                Balances = action.wallet?.GetLatestBlock()?.Balances?.ToDictionary(k => k.Key, k => (decimal)(k.Value / LyraGlobal.TOKENSTORAGERITO)),
                                 IsOpening = true
                             });
                         }
