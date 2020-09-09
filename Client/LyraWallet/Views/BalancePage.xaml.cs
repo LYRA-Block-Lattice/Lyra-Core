@@ -1,6 +1,9 @@
-﻿using LyraWallet.ViewModels;
+﻿using LyraWallet.Services;
+using LyraWallet.States;
+using LyraWallet.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,7 +43,28 @@ namespace LyraWallet.Views
         {
             base.OnAppearing();
 
-            await (BindingContext as BalanceViewModel).Open();
+            // check init load or re-open
+            // if init load, goto create/restore
+            // if re-open, refresh balance
+
+            if(App.Store.State.IsOpening)
+            {
+                // refresh balance
+            }
+            else
+            {
+                // check default wallet exists. 
+                var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
+                var fn = $"{path}/default.lyrawallet";
+                if (File.Exists(fn))
+                {
+                    App.Store.Dispatch(new WalletOpenAction { FileName = fn });
+                }
+                else
+                {
+                    await Shell.Current.GoToAsync("//LoginPage");
+                }
+            }
         }
     }
 }

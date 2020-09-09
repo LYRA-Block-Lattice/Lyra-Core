@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Lyra.Core.Accounts;
+using Lyra.Core.API;
 using ReduxSimple;
 using System;
 using System.Collections.Generic;
@@ -10,27 +11,33 @@ namespace LyraWallet.States
 {
     public static class Effects
     {
-        public static Effect<RootState> GetApiCompatibleInfo = ReduxSimple.Effects.CreateEffect<RootState>
+        public static Effect<RootState> CreateWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
             (
-                () => App.Store.ObserveAction<GetApiVersionAction>()
-                    .Select(vers => 
+                () => App.Store.ObserveAction<WalletCreateAction>()
+                    .Select(action => 
                     {
-                        return Observable.FromAsync(async () => await Task.FromResult(new GetVersionAPIResult()));
-                        //_dagClient = new LyraRestClient(vers.Platform, vers.AppName, vers.AppVersion, LyraGlobal.SelectNode(vers.Network).restUrl);
-                        //return Observable.FromAsync(async () => await _apiClient.GetVersion(LyraGlobal.APIVERSION, vers.AppName, vers.AppVersion));
+                        return Observable.FromAsync(async () => { 
+                            var store = new SecuredWalletStore(action.path);
+                            Wallet.Create(store, action.name, action.path, action.network);
+
+                            var wallet = Wallet.Open(store, action.name, "");
+                            var client = LyraRestClient.Create(action.network, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
+                            await wallet.Sync(client);
+
+                            return wallet;
+                        });
                     })
                     .Switch()
                     .Select(result =>
                     {
-                        return new GetApiVersionSuccessAction
+                        return new WalletOpenResultAction
                         {
-                            UpgradeNeeded = result.UpgradeNeeded,
-                            MustUpgradeToConnect = result.MustUpgradeToConnect
+                            wallet = result
                         };
                     })
                     .Catch<object, Exception>(e =>
                     {
-                        return Observable.Return(new GetApiVersionFailedAction
+                        return Observable.Return(new WalletErrorAction
                         {
                             Error = e
                         });

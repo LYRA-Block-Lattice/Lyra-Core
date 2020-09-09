@@ -75,11 +75,11 @@ namespace LyraWallet.ViewModels
         public BalanceViewModel(Page page)
         {
             _thePage = page;
-            App.Container.PropertyChanged += (o, e) => OnPropertyChanged(e.PropertyName);
-            App.Container.OnBalanceChanged += async (act, cat, info) => await Refresh();
+            //App.Container.PropertyChanged += (o, e) => OnPropertyChanged(e.PropertyName);
+            //App.Container.OnBalanceChanged += async (act, cat, info) => await Refresh();
 
-            Title = "Balance";
-            GetLEX = false;
+            //Title = "Balance";
+            //GetLEX = false;
             
             RefreshCommand = new Command(async () =>
             {
@@ -149,36 +149,36 @@ namespace LyraWallet.ViewModels
 
         public async Task Open()
         {
-            if (App.Container.Balances != null)     // don't reopen
-                return;
+            //if (App.Container.Balances != null)     // don't reopen
+            //    return;
 
-            int times = 0;
-            //while(times < 30)
-            //{
-                try
-                {
-                    // check orleans ready state
+            //int times = 0;
+            ////while(times < 30)
+            ////{
+            //    try
+            //    {
+            //        // check orleans ready state
 
-                    Title = "Opening Wallet...";
-                    await App.Container.CloseWallet();
-                    await App.Container.OpenWalletFileAsync();
-                    App.Container.GetBalance();
-                    if (App.Container.Balances == null || App.Container.Balances.Count == 0)
-                    {
-                        GetLEX = true;
-                    }
+            //        Title = "Opening Wallet...";
+            //        await App.Container.CloseWallet();
+            //        await App.Container.OpenWalletFileAsync();
+            //        App.Container.GetBalance();
+            //        if (App.Container.Balances == null || App.Container.Balances.Count == 0)
+            //        {
+            //            GetLEX = true;
+            //        }
 
-                    MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
-                    await Refresh();
-                    //break;
-                }
-                catch (Exception ex)
-                {
-                    times++;
-                    await Task.Delay(2000 * times);
-                    Title = $"Retry #{times} Opening Wallet...";
-                }
-            //}
+            //        MessagingCenter.Send(this, MessengerKeys.BalanceRefreshed);
+            //        await Refresh();
+            //        //break;
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        times++;
+            //        await Task.Delay(2000 * times);
+            //        Title = $"Retry #{times} Opening Wallet...";
+            //    }
+            ////}
 
         }
 

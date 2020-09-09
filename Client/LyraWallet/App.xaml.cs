@@ -26,23 +26,12 @@ namespace LyraWallet
 
             InitializeComponent();
 
-            App.Container.DataStoragePath = DependencyService.Get<IPlatformSvc>().GetStoragePath();
-            App.Container.WalletFn = $"{App.Container.DataStoragePath}/My Account.lyrawallet";
-            if(File.Exists(App.Container.WalletFn))
-            {
-                var netfn = App.Container.DataStoragePath + "/network.txt";
-                App.Container.CurrentNetwork = File.ReadAllText(netfn);
-                MainPage = new AppShell();//new MainPage();
-            }
-            else
-            {
-                MainPage = new AppShell();//new NavigationPage(new NetworkSelectionPage());
-            }    
+            MainPage = new AppShell();
         }
 
         protected override void OnStart()
         {
-            
+            Store.RegisterEffects(LyraWallet.States.Effects.CreateWalletEffect);
         }
 
         protected override void OnSleep()
