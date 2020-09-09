@@ -40,6 +40,12 @@ namespace LyraWallet.States
         public string name { get; set; }
     }
 
+    public class WalletChangeVoteAction
+    {
+        public Wallet wallet { get; set; }
+        public string VoteFor { get; set; }
+    }
+
     public class WalletRefreshBalanceAction { public Wallet wallet { get; set; } }
 
     public class WalletSendAction { }

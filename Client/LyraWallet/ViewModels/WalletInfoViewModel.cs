@@ -47,9 +47,17 @@ namespace LyraWallet.ViewModels
 
             ChangeVoteCommand = new Command(async () => {
                 if (string.IsNullOrWhiteSpace(VoteFor))
-                    App.Container.VoteFor = "";
+                    App.Store.Dispatch(new WalletChangeVoteAction
+                    {
+                        wallet = App.Store.State.wallet,
+                        VoteFor = null
+                    });
                 else if (Signatures.ValidateAccountId(VoteFor))
-                    App.Container.VoteFor = VoteFor;
+                    App.Store.Dispatch(new WalletChangeVoteAction
+                    {
+                        wallet = App.Store.State.wallet,
+                        VoteFor = this.VoteFor
+                    });
                 else
                     await _thePage.DisplayAlert("Alert", "Not a valid Account ID. If unvote, leave it blank.", "OK");
             });

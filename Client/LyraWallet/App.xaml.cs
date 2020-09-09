@@ -29,7 +29,9 @@ namespace LyraWallet
             Store.RegisterEffects(
                 LyraWallet.States.Effects.CreateWalletEffect,
                 LyraWallet.States.Effects.OpenWalletEffect,
-                LyraWallet.States.Effects.RestoreWalletEffect
+                LyraWallet.States.Effects.RestoreWalletEffect,
+                LyraWallet.States.Effects.RemoveWalletEffect,
+                LyraWallet.States.Effects.ChangeVoteWalletEffect
                 );
 
             MainPage = new AppShell();

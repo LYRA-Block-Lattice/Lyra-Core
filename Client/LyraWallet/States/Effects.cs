@@ -140,5 +140,35 @@ namespace LyraWallet.States
                     }),
                 true
             );
+
+
+        public static Effect<RootState> ChangeVoteWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
+            (
+                () => App.Store.ObserveAction<WalletChangeVoteAction>()
+                    .Select(action =>
+                    {
+                        return Observable.FromAsync(async () =>
+                        {
+                            action.wallet.VoteFor = action.VoteFor;
+                            return action.wallet;
+                        });
+                    })
+                    .Switch()
+                    .Select(result =>
+                    {
+                        return new WalletOpenResultAction
+                        {
+                            wallet = result
+                        };
+                    })
+                    .Catch<object, Exception>(e =>
+                    {
+                        return Observable.Return(new WalletErrorAction
+                        {
+                            Error = e
+                        });
+                    }),
+                true
+            );
     }
 }
