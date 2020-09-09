@@ -29,15 +29,10 @@ namespace LyraWallet.Views
             lvBalance.ItemTapped += LvBalance_ItemTapped;
 
             // redux
-            App.Store.Select(state => state.Network)
-                .Subscribe(netid =>
-               {
-                   lblNet.Text = netid;
-               });
-
             App.Store.Select(state => state.wallet)
                 .Subscribe(w =>
                 {
+                    lblNet.Text = w?.NetworkId;
                     lblAddr.Text = w?.AccountId;
                 });
         }

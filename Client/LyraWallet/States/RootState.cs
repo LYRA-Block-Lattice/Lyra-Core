@@ -9,14 +9,9 @@ namespace LyraWallet.States
 {
     public class RootState
     {
-        public string Network { get; set; }
-
-        public string apiUrl { get; set; }
-
         public bool IsOpening { get; set; }
         public Wallet wallet { get; set; }
         public List<string> txs { get; set; }
-
 
         public HoldingState walletState {get; set;}
 

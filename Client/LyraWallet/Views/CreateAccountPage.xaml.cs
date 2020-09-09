@@ -11,14 +11,22 @@ using Xamarin.Forms.Xaml;
 namespace LyraWallet.Views
 {
 	[XamlCompilation(XamlCompilationOptions.Compile)]
-	public partial class CreateAccountPage : ContentPage
+    [QueryProperty("Network", "network")]
+    public partial class CreateAccountPage : ContentPage
 	{
-		public CreateAccountPage ()
+        public string Network
+        {
+            set
+            {
+                (BindingContext as CreateAccountViewModel).NetworkId = Uri.UnescapeDataString(value);
+            }
+        }
+
+        public CreateAccountPage ()
 		{
             InitializeComponent ();
 
             var viewModel = new CreateAccountViewModel(this);
-            viewModel.NetworkId = App.Store.State.Network;
             BindingContext = viewModel;
         }
     }

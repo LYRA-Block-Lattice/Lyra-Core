@@ -151,31 +151,31 @@ namespace LyraWallet.Models
         }
         public async Task RefreshBalance(string webApiUrl = null)
         {
-            APIResultCodes result = APIResultCodes.UndefinedError;
-            int retryCount = 0;
-            while(retryCount < 5)
-            {
-                try
-                {
-                    result = await wallet.Sync(_nodeApiClient);
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    retryCount++;
-                }
-            }
+            //APIResultCodes result = APIResultCodes.UndefinedError;
+            //int retryCount = 0;
+            //while(retryCount < 5)
+            //{
+            //    try
+            //    {
+            //        result = await wallet.Sync(_nodeApiClient);
+            //        break;
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        retryCount++;
+            //    }
+            //}
 
-            if (result == APIResultCodes.Success)
-            {
-                var lastBlock = wallet.GetLatestBlock();
-                App.Container.Balances = lastBlock?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
-                App.Container.TokenList = App.Container.Balances?.Keys.ToList();
-            }
-            else
-            {
-                throw new Exception(result.ToString());
-            }
+            //if (result == APIResultCodes.Success)
+            //{
+            //    var lastBlock = wallet.GetLatestBlock();
+            //    App.Container.Balances = lastBlock?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
+            //    App.Container.TokenList = App.Container.Balances?.Keys.ToList();
+            //}
+            //else
+            //{
+            //    throw new Exception(result.ToString());
+            //}
         }
 
         public async Task Transfer(string tokenName, string targetAccount, decimal amount, bool ToExchange = false)

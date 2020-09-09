@@ -49,7 +49,7 @@ namespace LyraWallet.ViewModels
                     App.Store.Dispatch(new WalletCreateAction
                     {
                         // TODO
-                        network = App.Store.State.Network,
+                        network = NetworkId,
                         name = "default",
                         password = "",
                         path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
