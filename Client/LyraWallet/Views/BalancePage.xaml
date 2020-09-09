@@ -7,8 +7,6 @@
              x:Class="LyraWallet.Views.BalancePage">
     <ContentPage.Content>
         <StackLayout x:Name="haveBalance" Padding="5" BackgroundColor="White">
-            <Label x:Name="lblNet" Text="show network here" />
-            <Label x:Name="lblAddr" Text="show wallet address here" />
             <ListView x:Name="lvBalance" ItemsSource="{Binding Balances}" 
                       BackgroundColor="White"
                       SeparatorVisibility="None"

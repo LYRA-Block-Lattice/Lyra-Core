@@ -40,15 +40,8 @@ namespace LyraWallet.ViewModels
             {
                 try
                 {
-                    //App.Container.CreateNew(NetworkId);
-                    //await App.Container.CloseWallet();
-
-                    //var nextPage = new BalancePage();
-                    //Application.Current.MainPage = nextPage;
-
                     App.Store.Dispatch(new WalletCreateAction
                     {
-                        // TODO
                         network = NetworkId,
                         name = "default",
                         password = "",
@@ -70,11 +63,16 @@ namespace LyraWallet.ViewModels
             {
                 try
                 {
-                    App.Container.CreateByPrivateKey(NetworkId, PrivateKey);
-                    await App.Container.CloseWallet();
+                    App.Store.Dispatch(new WalletRestoreAction
+                    {
+                        privateKey = PrivateKey,
+                        network = NetworkId,
+                        name = "default",
+                        password = "",
+                        path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
+                    });
 
-                    var nextPage = new BalancePage();
-                    Application.Current.MainPage = nextPage;
+                    await Shell.Current.GoToAsync("//BalancePage");
                 }
                 catch(Exception ex)
                 {

@@ -13,6 +13,8 @@ namespace LyraWallet.States
         public Wallet wallet { get; set; }
         public List<string> txs { get; set; }
 
+        public string ErrorMessage { get; set; }
+
         public HoldingState walletState {get; set;}
 
         //public ShopState shopState { get; set; }

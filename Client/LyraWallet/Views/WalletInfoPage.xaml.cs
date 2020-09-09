@@ -17,14 +17,15 @@ namespace LyraWallet.Views
 		public WalletInfoPage ()
 		{
 			InitializeComponent ();
-            BindingContext = new WalletInfoViewModel(this);
+            var vm = new WalletInfoViewModel(this);
+            BindingContext = vm;
 
             // Your label tap event
             var showPrivateKey = new TapGestureRecognizer();
             showPrivateKey.Tapped += (s, e) =>
             {
                 if (txtPrivateKey.Text.StartsWith("*"))
-                    txtPrivateKey.Text = App.Container.PrivateKey;
+                    txtPrivateKey.Text = vm.PrivateKey;
                 else
                     txtPrivateKey.Text = "********************************";
             };

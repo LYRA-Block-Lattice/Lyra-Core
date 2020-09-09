@@ -10,11 +10,6 @@ namespace LyraWallet.States
         public Exception Error { get; set; }
     }
 
-    public class WalletNetworkSelectedAction
-    {
-        public string network { get; set; }
-    }
-
     public class WalletOpenAction {
         public string path { get; set; }
         public string name { get; set; }
@@ -27,14 +22,23 @@ namespace LyraWallet.States
         public string password { get; set; }
     }
 
+    public class WalletRestoreAction { 
+        public string privateKey { get; set; }
+        public string path { get; set; }
+        public string network { get; set; }
+        public string name { get; set; }
+        public string password { get; set; }
+    }
+
     public class WalletOpenResultAction
     {
         public Wallet wallet { get; set; }
     }
-
-    public class WalletRestoreAction { public string privateKey { get; set; } }
-
-    public class WalletCloseAction { }
+    
+    public class WalletRemoveAction {
+        public string path { get; set; }
+        public string name { get; set; }
+    }
 
     public class WalletRefreshBalanceAction { public Wallet wallet { get; set; } }
 

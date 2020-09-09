@@ -30,8 +30,7 @@ namespace LyraWallet.ViewModels
         {
             get => new Command(async () =>
             {
-                App.Store.Dispatch(new WalletNetworkSelectedAction { network = SelectedNetwork });
-                await Shell.Current.GoToAsync("CreateAccountPage");
+                await Shell.Current.GoToAsync($"CreateAccountPage?network={SelectedNetwork}");
             });
         }
     }

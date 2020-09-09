@@ -14,10 +14,6 @@ namespace LyraWallet.States
         {
             return new List<On<RootState>>
                 {
-                    On<WalletNetworkSelectedAction, RootState>(
-                        (state, action) => state.With(new {Network = action.network })
-                        ),
-
                     On<WalletOpenResultAction, RootState>(
                         (state, action) => {
                             return state.With(new {
@@ -26,15 +22,10 @@ namespace LyraWallet.States
                             });
                         }
                     ),
-                    On<WalletRestoreAction, RootState>(
-                        state => 
+                    On<WalletErrorAction, RootState>(
+                        (state, action) => 
                         {
-                            //var newPages = state.Pages.RemoveAt(state.Pages.Length - 1);
-                            //return state.With(new {
-                            //    CurrentPage = newPages.LastOrDefault(),
-                            //    Pages = newPages
-                            //});
-                            return null;
+                            return state.With(new { ErrorMessage = action.Error.Message });
                         }
                     ),
                 };

@@ -81,8 +81,8 @@
     -->
     <FlyoutItem FlyoutDisplayOptions="AsMultipleItems">
         <ShellContent Title="Balance" Icon="tab_about.png" Route="BalancePage" ContentTemplate="{DataTemplate local:BalancePage}" />
-        <!--<ShellContent Title="POS" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:PosViewPage}" />
-        <ShellContent Title="Settings" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:WalletInfoPage}" />-->
+        <!--<ShellContent Title="POS" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:PosViewPage}" />-->
+        <ShellContent Title="Settings" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:WalletInfoPage}" />
     </FlyoutItem>
 
     <!-- When the Flyout is visible this will be a menu item you can tie a click behavior to  -->

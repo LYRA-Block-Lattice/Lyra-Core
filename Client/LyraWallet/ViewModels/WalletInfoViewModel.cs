@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Cryptography;
 using LyraWallet.Services;
+using LyraWallet.States;
 using LyraWallet.Views;
 using System;
 using System.Collections.Generic;
@@ -15,17 +16,11 @@ namespace LyraWallet.ViewModels
 	public class WalletInfoViewModel : BaseViewModel
     {
         private Page _thePage;
-        public string AccountID
-        {
-            get => App.Container.AccountID;
-        }
 
-        public string CurrentNetwork
-        {
-            get => App.Container.CurrentNetwork;
-        }
-
-        private string _voteFor;
+        public string PrivateKey { get; set; }
+        public string AccountID { get; set; }
+        public string CurrentNetwork { get; set; }
+        public string VoteFor { get; set; }
 
         public ICommand ChangeVoteCommand { get; }
         public ICommand BarcodeGenCommand { get; }
@@ -34,24 +29,21 @@ namespace LyraWallet.ViewModels
         public ICommand ShowBlocksCommand { get; }
         public ICommand RemoveAccountCommand { get; }
         public ICommand VisitCommunityCommand { get;  }
-        public string VoteFor
-        {
-            get => App.Container.VoteFor; 
-            set
-            {
-                var vf = value;
-                if (string.IsNullOrWhiteSpace(vf))
-                    App.Container.VoteFor = "";
-                else if (Signatures.ValidateAccountId(vf))
-                    App.Container.VoteFor = vf;
-            }
-        }
+        
 
         public WalletInfoViewModel (Page page)
 		{
             _thePage = page;
 
-            App.Container.PropertyChanged += (o, e) => OnPropertyChanged(e.PropertyName);
+            // redux
+            App.Store.Select(state => state.wallet)
+                .Subscribe(w =>
+                {
+                    this.PrivateKey = w?.PrivateKey;
+                    this.AccountID = w?.AccountId;
+                    this.CurrentNetwork = w?.NetworkId;
+                    this.VoteFor = w?.VoteFor;
+                });
 
             ChangeVoteCommand = new Command(async () => {
                 if (string.IsNullOrWhiteSpace(VoteFor))
@@ -94,8 +86,13 @@ namespace LyraWallet.ViewModels
                 bool answer = await _thePage.DisplayAlert("Are you sure?", "If you not backup private key properly, all Tokens will be lost after account removing. Confirm removing the account?", "Yes", "No");
                 if(answer)
                 {
-                    await App.Container.Remove();
-                    App.Current.MainPage = new NavigationPage(new NetworkSelectionPage());
+                    App.Store.Dispatch(new WalletRemoveAction
+                    {
+                        path = DependencyService.Get<IPlatformSvc>().GetStoragePath(),
+                        name = "default"
+                    });
+
+                    await Shell.Current.GoToAsync("//LoginPage");
                 }
                 else
                 {

@@ -32,8 +32,13 @@ namespace LyraWallet.Views
             App.Store.Select(state => state.wallet)
                 .Subscribe(w =>
                 {
-                    lblNet.Text = w?.NetworkId;
-                    lblAddr.Text = w?.AccountId;
+
+                });
+
+            App.Store.Select(state => state.ErrorMessage)
+                .Subscribe(w =>
+                {
+                    // display error message here
                 });
         }
 
