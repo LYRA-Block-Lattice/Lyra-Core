@@ -48,18 +48,18 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-            <Frame VerticalOptions="EndAndExpand" Padding="25" IsVisible="{Binding GetLEX}" CornerRadius="30">
+            <!--<Frame VerticalOptions="EndAndExpand" Padding="25" IsVisible="{Binding GetLEX}" CornerRadius="30">
                 <StackLayout>
                     <Label x:Name="getLex" FontSize="Small"
                             Text="You need LYR coin to creat everything here. Goto &quot;Settings&quot; -> &quot;Visit Online Community&quot; to get free coin to play with." LineBreakMode="WordWrap" />
                     <Label FontSize="Small"
                             Text="After you got LYR coin, pull-down to refresh to see the balance." LineBreakMode="WordWrap" />
                 </StackLayout>
-            </Frame>
-            <Button BackgroundColor="LightGreen" IsVisible="{Binding NotGetLEX}" 
+            </Frame>-->
+            <Button BackgroundColor="LightGreen" IsVisible="{Binding CanPay}" 
                             Text="Scan to Pay" Command="{Binding ScanCommand}" />
-            <Button x:Name="btnRefresh" Margin="0,10,0,0" Text="Refresh" Command="{Binding RefreshCommand}">
-            </Button>
+            <!--<Button x:Name="btnRefresh" Margin="0,10,0,0" Text="Refresh" Command="{Binding RefreshCommand}">
+            </Button>-->
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

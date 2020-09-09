@@ -23,10 +23,10 @@ namespace LyraWallet.Views
             var vm = new BalanceViewModel(this);
             BindingContext = vm;
 
-            if (DeviceInfo.Platform == DevicePlatform.UWP)
-                btnRefresh.IsVisible = true;
-            else
-                btnRefresh.IsVisible = false;
+            //if (DeviceInfo.Platform == DevicePlatform.UWP)
+            //    btnRefresh.IsVisible = true;
+            //else
+            //    btnRefresh.IsVisible = false;
 
             lvBalance.ItemTapped += LvBalance_ItemTapped;
 
@@ -36,6 +36,11 @@ namespace LyraWallet.Views
                 {
                     vm.Balances = w;
                     vm.IsRefreshing = false;
+
+                    if (w != null && w.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                        vm.CanPay = true;
+                    else
+                        vm.CanPay = false;
                 });
 
             App.Store.Select(state => state.ErrorMessage)

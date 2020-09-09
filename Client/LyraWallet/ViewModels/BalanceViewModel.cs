@@ -30,19 +30,8 @@ namespace LyraWallet.ViewModels
             }
         }
 
-        private bool _getLex;
-        public bool GetLEX
-        {
-            get => _getLex;
-            set 
-            {
-                SetProperty(ref _getLex, value);
-                NotGetLEX = !_getLex;
-            }
-        }
-
         private bool _notGetLex;
-        public bool NotGetLEX
+        public bool CanPay
         {
             get => _notGetLex;
             set => SetProperty(ref _notGetLex, value);

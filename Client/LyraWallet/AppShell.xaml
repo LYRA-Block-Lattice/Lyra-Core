@@ -80,13 +80,12 @@
         https://docs.microsoft.com/dotnet/api/xamarin.forms.shellgroupitem.flyoutdisplayoptions?view=xamarin-forms
     -->
     <FlyoutItem FlyoutDisplayOptions="AsMultipleItems">
-        <ShellContent Title="Balance" Icon="tab_about.png" Route="BalancePage" ContentTemplate="{DataTemplate local:BalancePage}" />
-        <!--<ShellContent Title="POS" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:PosViewPage}" />-->
-        <ShellContent Title="Settings" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:WalletInfoPage}" />
+        <ShellContent Title="Balance" Route="BalancePage" ContentTemplate="{DataTemplate local:BalancePage}" />
+        <ShellContent Title="POS" Route="POSPage" ContentTemplate="{DataTemplate local:PosViewPage}" />
     </FlyoutItem>
 
     <!-- When the Flyout is visible this will be a menu item you can tie a click behavior to  -->
-    <MenuItem Text="Logout" StyleClass="MenuItemLayoutStyle" Clicked="OnMenuItemClicked">
+    <MenuItem Text="Visit Lyra Online" StyleClass="MenuItemLayoutStyle" Clicked="OnMenuItemClicked">
     </MenuItem>
 
     <!--
@@ -95,7 +94,8 @@
         If you would like to navigate to this content you can do so by calling
         await Shell.Current.GoToAsync("//LoginPage");
     -->
-    <ShellContent Route="LoginPage" Shell.FlyoutBehavior="Disabled" ContentTemplate="{DataTemplate local:NetworkSelectionPage}" />
+    <!--<ShellContent Route="LoginPage" Shell.FlyoutBehavior="Disabled" ContentTemplate="{DataTemplate local:NetworkSelectionPage}" />-->
+    <ShellContent Title="Settings" ContentTemplate="{DataTemplate local:WalletInfoPage}" />
 
     <!-- Optional Templates 
     // These may be provided inline as below or as separate classes.

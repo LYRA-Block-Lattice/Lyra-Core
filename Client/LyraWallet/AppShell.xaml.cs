@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Lyra.Core.API;
 using LyraWallet.ViewModels;
 using LyraWallet.Views;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace LyraWallet
@@ -17,7 +19,8 @@ namespace LyraWallet
 
         private async void OnMenuItemClicked(object sender, EventArgs e)
         {
-            await Shell.Current.GoToAsync("//LoginPage");
+            await Browser.OpenAsync(LyraGlobal.PRODUCTWEBLINK, BrowserLaunchMode.SystemPreferred);
+            //await Shell.Current.GoToAsync("//LoginPage");
         }
     }
 }
