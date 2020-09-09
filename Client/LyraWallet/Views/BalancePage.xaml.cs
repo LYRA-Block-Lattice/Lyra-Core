@@ -27,6 +27,19 @@ namespace LyraWallet.Views
                 btnRefresh.IsVisible = false;
 
             lvBalance.ItemTapped += LvBalance_ItemTapped;
+
+            // redux
+            App.Store.Select(state => state.Network)
+                .Subscribe(netid =>
+               {
+                   lblNet.Text = netid;
+               });
+
+            App.Store.Select(state => state.wallet)
+                .Subscribe(w =>
+                {
+                    lblAddr.Text = w?.AccountId;
+                });
         }
 
         private void LvBalance_ItemTapped(object sender, ItemTappedEventArgs e)

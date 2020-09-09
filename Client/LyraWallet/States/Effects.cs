@@ -18,9 +18,9 @@ namespace LyraWallet.States
                     {
                         return Observable.FromAsync(async () => { 
                             var store = new SecuredWalletStore(action.path);
-                            Wallet.Create(store, action.name, action.path, action.network);
+                            Wallet.Create(store, action.name, action.password, action.network);
 
-                            var wallet = Wallet.Open(store, action.name, "");
+                            var wallet = Wallet.Open(store, action.name, action.password);
                             var client = LyraRestClient.Create(action.network, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
                             await wallet.Sync(client);
 

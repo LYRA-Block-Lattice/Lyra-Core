@@ -14,8 +14,14 @@ namespace LyraWallet.States
         {
             return new List<On<RootState>>
                 {
+                    On<WalletNetworkSelectedAction, RootState>(
+                        (state, action) => state.With(new {Network = action.network })
+                        ),
+
                     On<WalletOpenResultAction, RootState>(
-                        (state, action) => state.With(new { wallet = action.wallet })
+                        (state, action) => {                            
+                            return state.With(new { wallet = action.wallet });
+                        }
                     ),
                     On<WalletRestoreAction, RootState>(
                         state => 

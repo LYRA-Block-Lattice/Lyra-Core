@@ -13,12 +13,12 @@ namespace LyraWallet.Views
 	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class CreateAccountPage : ContentPage
 	{
-		public CreateAccountPage (string networkid)
+		public CreateAccountPage ()
 		{
             InitializeComponent ();
 
             var viewModel = new CreateAccountViewModel(this);
-            viewModel.NetworkId = networkid;
+            viewModel.NetworkId = App.Store.State.Network;
             BindingContext = viewModel;
         }
     }

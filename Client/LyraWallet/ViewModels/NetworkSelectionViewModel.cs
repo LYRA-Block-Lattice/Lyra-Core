@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using LyraWallet.States;
 using LyraWallet.Views;
 using System;
 using System.Collections.Generic;
@@ -29,10 +30,8 @@ namespace LyraWallet.ViewModels
         {
             get => new Command(async () =>
             {
-                App.Container.CurrentNetwork = SelectedNetwork;
-                await App.Container.CloseWallet();
-                var nextPage = new CreateAccountPage(SelectedNetwork);
-                await Application.Current.MainPage.Navigation.PushAsync(nextPage);
+                App.Store.Dispatch(new WalletNetworkSelectedAction { network = SelectedNetwork });
+                await Shell.Current.GoToAsync("CreateAccountPage");
             });
         }
     }

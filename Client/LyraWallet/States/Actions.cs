@@ -9,6 +9,12 @@ namespace LyraWallet.States
     {
         public Exception Error { get; set; }
     }
+
+    public class WalletNetworkSelectedAction
+    {
+        public string network { get; set; }
+    }
+
     public class WalletOpenAction {
         public string FileName { get; set; }
     }

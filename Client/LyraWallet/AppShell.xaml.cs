@@ -11,8 +11,8 @@ namespace LyraWallet
         public AppShell()
         {
             InitializeComponent();
-            Routing.RegisterRoute(nameof(BalancePage), typeof(BalancePage));
             Routing.RegisterRoute(nameof(CreateTokenPage), typeof(CreateTokenPage));
+            Routing.RegisterRoute(nameof(CreateAccountPage), typeof(CreateAccountPage));
         }
 
         private async void OnMenuItemClicked(object sender, EventArgs e)
