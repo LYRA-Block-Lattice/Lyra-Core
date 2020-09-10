@@ -71,7 +71,7 @@ namespace Lyra.Core.Decentralize
 
                     _log.LogInformation($"GetOptimizedSyncClientAsync major height {majorHeight.Height} count {majorHeight.Count} ");
 
-                    if (majorHeight.Height >= 2 && majorHeight.Count >= 4)
+                    if (majorHeight.Height >= 2 && majorHeight.Count >= 3)
                     {
                         var validNodeList = _nodeStatus
                             .Where(a => a.totalBlockCount == majorHeight.Height)

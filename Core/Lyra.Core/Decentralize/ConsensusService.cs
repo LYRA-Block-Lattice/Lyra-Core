@@ -388,7 +388,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 var majorHeight = q.First();
 
-                                var majority = 4;// LyraGlobal.GetMajority(_board.ActiveNodes.Count);
+                                var majority = 3;// LyraGlobal.GetMajority(_board.ActiveNodes.Count);
                                 _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count} majority {majority}");
 
                                 var myStatus = await GetNodeStatusAsync();
