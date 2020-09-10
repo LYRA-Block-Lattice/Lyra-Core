@@ -65,17 +65,17 @@ namespace Lyra.Core.Decentralize
                 }
                 else
                 {
-                    // create wallet and update balance
-                    var memStor = new AccountInMemoryStorage();
-                    Wallet.Create(memStor, "tmpAcct", "", networkId, tmpWallet.PrivateKey);
-                    var acctWallet = Wallet.Open(memStor, "tmpAcct", "");
-                    acctWallet.VoteFor = tmpWallet.VoteFor;
+                    //// create wallet and update balance
+                    //var memStor = new AccountInMemoryStorage();
+                    //Wallet.Create(memStor, "tmpAcct", "", networkId, tmpWallet.PrivateKey);
+                    //var acctWallet = Wallet.Open(memStor, "tmpAcct", "");
+                    //acctWallet.VoteFor = tmpWallet.VoteFor;
 
-                    Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-                    var rpcClient = LyraRestClient.Create(networkId, Environment.OSVersion.Platform.ToString(), $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
-                    await acctWallet.Sync(rpcClient);
+                    //Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
+                    //var rpcClient = LyraRestClient.Create(networkId, Environment.OSVersion.Platform.ToString(), $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
+                    //await acctWallet.Sync(rpcClient);
 
-                    PosWallet = acctWallet;
+                    //PosWallet = acctWallet;
                 }
 
                 var store = new MongoAccountCollection();

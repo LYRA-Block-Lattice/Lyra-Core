@@ -23,8 +23,8 @@ namespace Neo.Network.P2P
     {
         public class SignedMessageRelay { public SourceSignedMessage signedMessage; }
         public class Relay { public IInventory Inventory; }
-        internal class RelayDirectly { public IInventory Inventory; }
-        internal class SendDirectly { public IInventory Inventory; }
+        internal class RelayDirectly { public IInventory Inventory = null; }
+        internal class SendDirectly { public IInventory Inventory = null; }
 
         public const uint ProtocolVersion = 0;
         private const int MaxCountFromSeedList = 5;

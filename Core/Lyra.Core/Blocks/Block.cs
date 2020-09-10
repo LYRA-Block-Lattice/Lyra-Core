@@ -151,9 +151,9 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
-            result += $"BlockType: {BlockType.ToString()}\n";
+            result += $"BlockType: {BlockType}\n";
             result += $"Version: {Version}\n";
-            result += $"Height: {Height.ToString()}\n";
+            result += $"Height: {Height}\n";
             result += $"TimeStamp: {DateTimeToString(TimeStamp)}\n"; 
             result += $"PreviousHash: {PreviousHash}\n";
             result += $"ServiceHash: {ServiceHash}\n";

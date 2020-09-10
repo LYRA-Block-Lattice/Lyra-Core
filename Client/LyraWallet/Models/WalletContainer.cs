@@ -149,7 +149,7 @@ namespace LyraWallet.Models
             App.Container.Balances = latestBlock?.Balances.ToDictionary(p => p.Key, p => p.Value.ToBalanceDecimal());
             App.Container.TokenList = App.Container.Balances?.Keys.ToList();
         }
-        public async Task RefreshBalance(string webApiUrl = null)
+        public void RefreshBalance(string webApiUrl = null)
         {
             //APIResultCodes result = APIResultCodes.UndefinedError;
             //int retryCount = 0;
@@ -181,7 +181,7 @@ namespace LyraWallet.Models
         public async Task Transfer(string tokenName, string targetAccount, decimal amount, bool ToExchange = false)
         {
             // refresh balance before send. other wise Null Ex
-            await RefreshBalance();
+            RefreshBalance();
             if(App.Container.Balances[tokenName] < amount)
             {
                 throw new Exception("Not enough funds for " + tokenName);

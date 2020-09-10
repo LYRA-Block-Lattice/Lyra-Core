@@ -16,10 +16,10 @@ namespace Neo.Network.P2P
     {
         public class Register { public VersionPayload Version; }
         public class Update { public uint LastBlockIndex; }
-        public class NewTasks { public InvPayload Payload; }
-        public class TaskCompleted { public UInt256 Hash; }
+        public class NewTasks { public InvPayload Payload = null; }
+        public class TaskCompleted { public UInt256 Hash = null; }
         public class HeaderTaskCompleted { }
-        public class RestartTasks { public InvPayload Payload; }
+        public class RestartTasks { public InvPayload Payload = null; }
         private class Timer { }
 
         private static readonly TimeSpan TimerInterval = TimeSpan.FromSeconds(30);

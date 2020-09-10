@@ -47,7 +47,7 @@ namespace Lyra.Core.Decentralize
 		public string From { get; set; }
 		public ChatMessageType MsgType { get; set; }
 		public int Version { get; set; } = LyraGlobal.ProtocolVersion;
-		public DateTime timeStamp { get; set; }
+		public DateTime TimeStamp { get; set; }
 
 		public virtual int Size => From.Length
 			+ Hash.Length + Signature.Length
@@ -57,7 +57,7 @@ namespace Lyra.Core.Decentralize
 
 		public SourceSignedMessage()
         {
-			timeStamp = DateTime.UtcNow;
+			TimeStamp = DateTime.UtcNow;
 		}
 
 		public virtual void Deserialize(BinaryReader reader)
@@ -69,7 +69,7 @@ namespace Lyra.Core.Decentralize
 			Signature = reader.ReadString();
 			From = reader.ReadString();
 			MsgType = (ChatMessageType)reader.ReadInt32();
-			timeStamp = new DateTime(reader.ReadInt64(), DateTimeKind.Utc);
+			TimeStamp = new DateTime(reader.ReadInt64(), DateTimeKind.Utc);
 		}
 
 		public virtual void Serialize(BinaryWriter writer)
@@ -79,13 +79,13 @@ namespace Lyra.Core.Decentralize
 			writer.Write(Signature);
 			writer.Write(From);
 			writer.Write((int)MsgType);
-			writer.Write(timeStamp.Ticks);
+			writer.Write(TimeStamp.Ticks);
 		}
 
 		public override string GetHashInput()
 		{
 			return $"{From}|{MsgType}|{Version}" +
-					$"{timeStamp.Ticks}|";
+					$"{TimeStamp.Ticks}|";
 		}
 
 		protected override string GetExtraData()
@@ -112,16 +112,16 @@ namespace Lyra.Core.Decentralize
 		private static readonly RNGCryptoServiceProvider random =
 			new RNGCryptoServiceProvider();
 		public string Text { get; set; }
-		public long nonce { get; set; } 
+		public long Nonce { get; set; } 
 
 		public ChatMsg()
 		{
 			MsgType = ChatMessageType.General;
-			timeStamp = DateTime.UtcNow;
+			TimeStamp = DateTime.UtcNow;
 
 			var data = new byte[8];
 			random.GetNonZeroBytes(data);
-			nonce = BitConverter.ToInt64(data, 0);
+			Nonce = BitConverter.ToInt64(data, 0);
 		}
 		public ChatMsg(string msg, ChatMessageType msgType)
 		{
@@ -130,7 +130,7 @@ namespace Lyra.Core.Decentralize
 
 			var data = new byte[8];
 			random.GetNonZeroBytes(data);
-			nonce = BitConverter.ToInt64(data, 0);
+			Nonce = BitConverter.ToInt64(data, 0);
 		}
 
 		public override int Size => base.Size + Text.Length + 8;
@@ -139,20 +139,20 @@ namespace Lyra.Core.Decentralize
 		{
 			base.Serialize(writer);
 			writer.Write(Text);
-			writer.Write(nonce);
+			writer.Write(Nonce);
 		}
 
 		public override void Deserialize(BinaryReader reader)
 		{
 			base.Deserialize(reader);
 			Text = reader.ReadString();
-			nonce = reader.ReadInt64();
+			Nonce = reader.ReadInt64();
 		}
 
 		public override string GetHashInput()
 		{
 			return base.GetHashInput() + "|" +
-				$"{nonce}|" + 
+				$"{Nonce}|" + 
 				this.Text;
 		}
 
@@ -389,17 +389,17 @@ namespace Lyra.Core.Decentralize
 		public int activePeers { get; set; }
 		public int connectedPeers { get; set; }
 
-		public override bool Equals(object obj)
-		{
-			if(obj is NodeStatus)
-			{
-				var ns = obj as NodeStatus;
-				return version == ns.version
-					&& totalBlockCount == ns.totalBlockCount
-					&& lastConsolidationHash == ns.lastConsolidationHash
-					&& lastUnSolidationHash == ns.lastUnSolidationHash;				
-			}
-			return base.Equals(obj);
-		}
+		//public override bool Equals(object obj)
+		//{
+		//	if(obj is NodeStatus)
+		//	{
+		//		var ns = obj as NodeStatus;
+		//		return version == ns.version
+		//			&& totalBlockCount == ns.totalBlockCount
+		//			&& lastConsolidationHash == ns.lastConsolidationHash
+		//			&& lastUnSolidationHash == ns.lastUnSolidationHash;				
+		//	}
+		//	return base.Equals(obj);
+		//}
 	}
 }

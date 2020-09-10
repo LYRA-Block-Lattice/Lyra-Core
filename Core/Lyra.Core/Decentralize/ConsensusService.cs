@@ -58,7 +58,7 @@ namespace Lyra.Core.Decentralize
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<string> _engageTriggerConsolidateFailed;
         public BlockChainState CurrentState => _stateMachine.State;
 
-        ILogger _log;
+        readonly ILogger _log;
 
         ConcurrentDictionary<string, DateTime> _criticalMsgCache;
 
@@ -147,7 +147,7 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     var signedMsg = relayMsg.signedMessage;
-                    if (DateTime.UtcNow - signedMsg.timeStamp < TimeSpan.FromSeconds(10) &&
+                    if (DateTime.UtcNow - signedMsg.TimeStamp < TimeSpan.FromSeconds(10) &&
                         signedMsg.VerifySignature(signedMsg.From))
                     {
                         await CriticalRelayAsync(signedMsg, async (msg) =>
@@ -507,6 +507,7 @@ namespace Lyra.Core.Decentralize
 
         public List<string> LookforVoters()
         {
+            // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
                 .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
                 .OrderByDescending(a => a.Votes)

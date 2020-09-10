@@ -307,7 +307,7 @@ namespace Lyra.Core.Exchange
             var fromAcct = await fromResult.FirstOrDefaultAsync();
             if (fromAcct != null)
             {
-                var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
+                var fromWallet = GetExchangeAccountWallet(fromAcct.PrivateKey);
 
                 {
                     var transb = fromWallet.GetLatestBlock();
@@ -344,7 +344,7 @@ namespace Lyra.Core.Exchange
             var toResult = await _exchangeAccounts.FindAsync(a => a.Id == toId);
             var toAcct = await toResult.FirstOrDefaultAsync();
 
-            var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
+            var fromWallet = GetExchangeAccountWallet(fromAcct.PrivateKey);
 
             var transb = fromWallet.GetLatestBlock();
             if (transb != null && transb.Balances[tokenName].ToBalanceDecimal() >= amount)
@@ -364,7 +364,7 @@ namespace Lyra.Core.Exchange
             var fromResult = await _exchangeAccounts.FindAsync(a => a.Id == fromId);
             var fromAcct = await fromResult.FirstOrDefaultAsync();
 
-            var fromWallet = await GetExchangeAccountWallet(fromAcct.PrivateKey);
+            var fromWallet = GetExchangeAccountWallet(fromAcct.PrivateKey);
             var transb = fromWallet.GetLatestBlock();
             if (transb != null && transb.Balances[tokenName].ToBalanceDecimal() >= amount)
             {
@@ -378,7 +378,7 @@ namespace Lyra.Core.Exchange
             }
         }
 
-        private async Task<Wallet> GetExchangeAccountWallet(string privateKey)
+        private Wallet GetExchangeAccountWallet(string privateKey)
         {
             throw new NotImplementedException();
             //// create wallet and update balance

@@ -24,19 +24,18 @@ namespace Lyra.Core.Accounts
     public class MongoAccountCollection : IAccountCollectionAsync
     {
         //private const string COLLECTION_DATABASE_NAME = "account_collection";
-        private LyraConfig _config;
+        private readonly LyraConfig _config;
 
         private MongoClient _Client;
 
-        private IMongoCollection<Block> _blocks;
+        private readonly IMongoCollection<Block> _blocks;
 
         readonly string _blocksCollectionName;
 
         IMongoDatabase _db;
 
         readonly string _DatabaseName;
-
-        ILogger _log;
+        readonly ILogger _log;
 
         public string Cluster { get; set; }
 
@@ -91,7 +90,7 @@ namespace Lyra.Core.Accounts
                     var indexModel = new CreateIndexModel<Block>(indexDefinition, options);
                     await _blocks.Indexes.CreateOneAsync(indexModel);
                 }
-                catch(Exception ex)
+                catch(Exception)
                 {
                     await _blocks.Indexes.DropOneAsync(columnName + "_1");
                     await CreateIndexes(columnName, uniq);
@@ -108,7 +107,7 @@ namespace Lyra.Core.Accounts
                     await _blocks.Indexes.CreateOneAsync(codeIndexModel);
 
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     await _blocks.Indexes.DropOneAsync(colName + "_1");
                     await CreateIndexes(colName, uniq);
@@ -326,9 +325,11 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> WasAccountImportedAsync(string ImportedAccountId)
         {
-            var p1 = new BsonArray();
-            p1.Add(BlockTypes.ImportAccount);
-            p1.Add(BlockTypes.OpenAccountWithImport);
+            var p1 = new BsonArray
+            {
+                BlockTypes.ImportAccount,
+                BlockTypes.OpenAccountWithImport
+            };
 
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("ImportedAccountId", ImportedAccountId)));
@@ -340,9 +341,11 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> WasAccountImportedAsync(string ImportedAccountId, string AccountId)
         {
-            var p1 = new BsonArray();
-            p1.Add(BlockTypes.ImportAccount);
-            p1.Add(BlockTypes.OpenAccountWithImport);
+            var p1 = new BsonArray
+            {
+                BlockTypes.ImportAccount,
+                BlockTypes.OpenAccountWithImport
+            };
 
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("ImportedAccountId", ImportedAccountId)));
@@ -365,7 +368,7 @@ namespace Lyra.Core.Accounts
             };
             var filter = Builders<Block>.Filter.Eq("Hash", hash);
 
-            var block = await (await _blocks.FindAsync(filter)).FirstOrDefaultAsync();
+            var block = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
             return block;
         }
 
@@ -380,10 +383,11 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId)
         {
-
-            var p1 = new BsonArray();
-            p1.Add(BlockTypes.ReceiveTransfer);
-            p1.Add(BlockTypes.OpenAccountWithReceiveTransfer);
+            var p1 = new BsonArray
+            {
+                BlockTypes.ReceiveTransfer,
+                BlockTypes.OpenAccountWithReceiveTransfer
+            };
             //p1.Add(BlockTypes.OpenAccountWithImport);
 
             var builder = Builders<Block>.Filter;
@@ -449,8 +453,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<Block> FindServiceBlockByIndexAsync(string blockType, Int64 index)
         {
-            BlockTypes types;
-            if (Enum.TryParse<BlockTypes>(blockType, out types))
+            if (Enum.TryParse<BlockTypes>(blockType, out BlockTypes types))
             {
                 var builder = new FilterDefinitionBuilder<Block>();
                 var filterDefinition = builder.And(builder.Eq("BlockType", types),
@@ -575,9 +578,11 @@ namespace Lyra.Core.Accounts
 
         private async Task<ReceiveTransferBlock> FindReceiveBlockAsync(string AccountId, string SourceHash)
         {
-            var p1 = new BsonArray();
-            p1.Add((int)BlockTypes.ReceiveTransfer);
-            p1.Add((int)BlockTypes.OpenAccountWithReceiveTransfer);
+            var p1 = new BsonArray
+            {
+                (int)BlockTypes.ReceiveTransfer,
+                (int)BlockTypes.OpenAccountWithReceiveTransfer
+            };
 
             var builder1 = Builders<Block>.Filter;
             var filterDefinition1 = builder1.And(builder1.In("BlockType", p1), builder1.And(builder1.Eq("AccountID", AccountId), builder1.Eq("SourceHash", SourceHash)));
@@ -588,9 +593,11 @@ namespace Lyra.Core.Accounts
         // Check if the account has any imported accounts and return the list of them if they exist
         public async Task<List<Block>> GetImportedAccountBlocksAsync(string AccountId)
         {
-            var p1 = new BsonArray();
-            p1.Add((int)BlockTypes.ImportAccount);
-            p1.Add((int)BlockTypes.OpenAccountWithImport);
+            var p1 = new BsonArray
+            {
+                (int)BlockTypes.ImportAccount,
+                (int)BlockTypes.OpenAccountWithImport
+            };
 
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.Eq("AccountID", AccountId) & builder.In("BlockType", p1);
@@ -1007,17 +1014,18 @@ namespace Lyra.Core.Accounts
             // confirmed earns
             IEnumerable<RevnuItem> GetRevnuFromSb(decimal fees, ServiceBlock sb)
             {
-                return sb.Authorizers.Keys.Select(a => new RevnuItem { accId = a, revenue = Math.Round(fees / sb.Authorizers.Count, 8) });
+                return sb.Authorizers.Keys.Select(a => new RevnuItem { AccId = a, Revenue = Math.Round(fees / sb.Authorizers.Count, 8) });
             };
-            IEnumerable<RevnuItem> Merge(IEnumerable<RevnuItem> List1, IEnumerable<RevnuItem> List2)
+
+            static IEnumerable<RevnuItem> Merge(IEnumerable<RevnuItem> List1, IEnumerable<RevnuItem> List2)
             {
                 var list3 = List1.Concat(List2)
-                             .GroupBy(x => x.accId)
+                             .GroupBy(x => x.AccId)
                              .Select( g =>
                                  new RevnuItem
                                  {
-                                     accId = g.Key,
-                                     revenue = Math.Round(g.Sum(x => x.revenue), 8)
+                                     AccId = g.Key,
+                                     Revenue = Math.Round(g.Sum(x => x.Revenue), 8)
                                  });
                 return list3;
             };
@@ -1028,12 +1036,12 @@ namespace Lyra.Core.Accounts
             }
 
             // unconfirmed
-            var unconfirm = sbs.Last().Authorizers.Keys.Select(a => new RevnuItem { accId = a, revenue = Math.Round(totalFeeUnConfirmed / sbs.Last().Authorizers.Count, 8) });
+            var unconfirm = sbs.Last().Authorizers.Keys.Select(a => new RevnuItem { AccId = a, Revenue = Math.Round(totalFeeUnConfirmed / sbs.Last().Authorizers.Count, 8) });
 
             return new FeeStats { TotalFeeConfirmed = totalFeeConfirmed,
                 TotalFeeUnConfirmed = totalFeeUnConfirmed,
-                ConfirmedEarns = confimed.OrderByDescending(a => a.revenue).ToList(),
-                UnConfirmedEarns = unconfirm.OrderByDescending(a => a.revenue).ToList()
+                ConfirmedEarns = confimed.OrderByDescending(a => a.Revenue).ToList(),
+                UnConfirmedEarns = unconfirm.OrderByDescending(a => a.Revenue).ToList()
             };
         }
     }
@@ -1049,7 +1057,7 @@ namespace Lyra.Core.Accounts
 
     public class RevnuItem
     {
-        public string accId { get; set; }
-        public decimal revenue { get; set; }
+        public string AccId { get; set; }
+        public decimal Revenue { get; set; }
     }
 }
