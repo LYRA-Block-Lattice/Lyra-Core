@@ -68,6 +68,9 @@ namespace Lyra.Core.Decentralize
                 if (q.Any())
                 {
                     var majorHeight = q.First();
+
+                    _log.LogInformation($"GetOptimizedSyncClientAsync major height {majorHeight.Height} count {majorHeight.Count} ");
+
                     if (majorHeight.Height >= 2 && majorHeight.Count >= 4)
                     {
                         var validNodeList = _nodeStatus
@@ -80,7 +83,7 @@ namespace Lyra.Core.Decentralize
                     }
                 }
 
-                _log.LogInformation($"Querying Lyra Network Status... ");
+                _log.LogInformation($"GetOptimizedSyncClientAsync Querying Lyra Network Status... ");
 
                 _nodeStatus.Clear();
                 var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
