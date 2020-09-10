@@ -375,7 +375,6 @@ namespace Lyra.Core.Decentralize
 
                             await Task.Delay(10000);
 
-                            _log.LogInformation($"Querying Billboard... ");
                             var q = from ns in _nodeStatus
                                     group ns by ns.totalBlockCount into heights
                                     orderby heights.Count() descending
