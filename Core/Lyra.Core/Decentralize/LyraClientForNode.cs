@@ -18,10 +18,17 @@ namespace Lyra.Core.Decentralize
     {
         DagSystem _sys;
         private LyraRestClient _client;
+        private List<KeyValuePair<string, string>> _validNodes;
 
         public LyraClientForNode(DagSystem sys)
         {
             _sys = sys;
+        }
+
+        public LyraClientForNode(DagSystem sys, List<KeyValuePair<string, string>> validNodes)
+        {
+            _sys = sys;
+            _validNodes = validNodes;
         }
 
         public async Task<string> SignAPICallAsync()
@@ -100,7 +107,7 @@ namespace Lyra.Core.Decentralize
                 if (_client == null)
                     _client = await FindValidSeedForSyncAsync(_sys);
 
-                return await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight, 30);
+                return await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight, 10);
             }
             catch (Exception ex)
             {
@@ -203,36 +210,47 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public static async Task<LyraRestClient> FindValidSeedForSyncAsync(DagSystem sys)
+        public async Task<LyraRestClient> FindValidSeedForSyncAsync(DagSystem sys)
         {
-            do
+            if (_validNodes == null)
+            {
+                do
+                {
+                    var rand = new Random();
+                    int ndx;
+
+                    using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider())
+                    {
+                        do
+                        {
+                            byte[] rno = new byte[5];
+                            rg.GetBytes(rno);
+                            int randomvalue = BitConverter.ToInt32(rno, 0);
+
+                            ndx = randomvalue % ProtocolSettings.Default.SeedList.Length;
+                        } while (ndx < 0 || sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
+                    }
+
+                    var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
+                    var apiUrl = $"http://{addr}:4505/api/Node/";
+                    //_log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
+                    var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
+                    var mode = await client.GetSyncState();
+                    if (mode.ResultCode == APIResultCodes.Success)
+                    {
+                        return client;
+                    }
+                    await Task.Delay(10000);    // incase of hammer
+                } while (true);
+            }
+            else
             {
                 var rand = new Random();
-                int ndx;
-
-                using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider())
-                {
-                    do
-                    {
-                        byte[] rno = new byte[5];
-                        rg.GetBytes(rno);
-                        int randomvalue = BitConverter.ToInt32(rno, 0);
-
-                        ndx = randomvalue % ProtocolSettings.Default.SeedList.Length;
-                    } while (ndx < 0 || sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
-                }
-
-                var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
+                var addr = _validNodes[rand.Next(0, _validNodes.Count - 1)].Value;
                 var apiUrl = $"http://{addr}:4505/api/Node/";
-                //_log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                 var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
-                var mode = await client.GetSyncState();
-                if (mode.ResultCode == APIResultCodes.Success)
-                {
-                    return client;
-                }
-                await Task.Delay(10000);    // incase of hammer
-            } while (true);
+                return client;
+            }
         }
     }
 }

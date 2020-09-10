@@ -546,7 +546,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in GetBlocksByTimeRange: " + e.Message);
+                Console.WriteLine("Exception in GetBlockHashesByTimeRange: " + e.Message);
                 result.ResultCode = APIResultCodes.UnknownError;
             }
 

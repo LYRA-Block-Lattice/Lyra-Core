@@ -147,7 +147,7 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     var signedMsg = relayMsg.signedMessage;
-                    if (DateTime.UtcNow - signedMsg.timeStamp < TimeSpan.FromSeconds(5) &&
+                    if (DateTime.UtcNow - signedMsg.timeStamp < TimeSpan.FromSeconds(10) &&
                         signedMsg.VerifySignature(signedMsg.From))
                     {
                         await CriticalRelayAsync(signedMsg, async (msg) =>
@@ -290,10 +290,10 @@ namespace Lyra.Core.Decentralize
                             foreach(var hb in oldList)
                             {
                                 _criticalMsgCache.TryRemove(hb, out _);
-                            }                                
-
-                            await HeartBeatAsync();
+                            }
                         }
+
+                        await HeartBeatAsync();
 
                         if (_stateMachine.State == BlockChainState.Almighty)
                         {
@@ -392,13 +392,14 @@ namespace Lyra.Core.Decentralize
                                 _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
 
                                 var myStatus = await GetNodeStatusAsync();
-                                if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= 3)
+                                var majority = LyraGlobal.GetMajority(_board.ActiveNodes.Count);
+                                if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= majority)
                                 {
                                     //_stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                                     _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                                     break;
                                 }
-                                else if (majorHeight.Height >= 2 && majorHeight.Count >= 2)
+                                else if (majorHeight.Height >= 2 && majorHeight.Count >= majority)
                                 {
                                     // verify local database
                                     while (!await SyncDatabase(majorHeight.Height))
@@ -463,7 +464,7 @@ namespace Lyra.Core.Decentralize
                         if (blockCount > 2)
                         {
                             // sync cons and uncons
-                            await EngagingSyncAsync();
+                            await EngagingSyncAsync(blockCount);
                         }
                     }
                     catch (Exception e)
@@ -630,7 +631,7 @@ namespace Lyra.Core.Decentralize
             }
             else
                 _board.NodeAddresses.TryAdd(me.AccountID, me.IPAddress.ToString());
-            await OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State);
+            await OnNodeActive(me.AccountID, _stateMachine.State);
 
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
@@ -645,47 +646,38 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP);
+            await OnNodeActive(heartBeat.From, heartBeat.State, heartBeat.PublicIP);
         }
 
-        private async Task OnNodeActive(string accountId, string authorizerSignature, BlockChainState state, string ip = null)
+        private async Task OnNodeActive(string accountId, BlockChainState state, string ip = null)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
 
-            if (Signatures.VerifyAccountSignature(signAgainst, accountId, authorizerSignature))
+            if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == accountId))
             {
-                if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == accountId))
-                {
-                    var node = _board.ActiveNodes.First(a => a.AccountID == accountId);
-                    node.LastActive = DateTime.Now;
-                    node.AuthorizerSignature = authorizerSignature;
-                    node.State = state;
-                }
-                else
-                {
-                    var node = new ActiveNode { 
-                        AccountID = accountId, 
-                        AuthorizerSignature = authorizerSignature, 
-                        State = state,
-                        LastActive = DateTime.Now 
-                    };
-                    _board.ActiveNodes.Add(node);
-                }
-
-                if(!string.IsNullOrWhiteSpace(ip))
-                {
-                    System.Net.IPAddress addr;
-                    if(System.Net.IPAddress.TryParse(ip, out addr))
-                    {
-                        _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
-                    }
-                }
+                var node = _board.ActiveNodes.First(a => a.AccountID == accountId);
+                node.LastActive = DateTime.Now;
+                node.State = state;
             }
             else
             {
-                // make sure ActiveNodes is clean and secured.
-                _board.ActiveNodes.RemoveAll(a => a.AccountID == accountId);
+                var node = new ActiveNode
+                {
+                    AccountID = accountId,
+                    State = state,
+                    LastActive = DateTime.Now
+                };
+                _board.ActiveNodes.Add(node);
+            }
+
+            if (!string.IsNullOrWhiteSpace(ip))
+            {
+                System.Net.IPAddress addr;
+                if (System.Net.IPAddress.TryParse(ip, out addr))
+                {
+                    _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
+                }
             }
 
             _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
@@ -758,9 +750,6 @@ namespace Lyra.Core.Decentralize
             if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == _sys.PosWallet.AccountId))
                 _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId).LastActive = DateTime.Now;
 
-            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-            var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
-
             // declare to the network
             var msg = new HeartBeatMessage
             {
@@ -769,7 +758,7 @@ namespace Lyra.Core.Decentralize
                 Text = "I'm live",
                 State = _stateMachine.State,
                 PublicIP = _myIpAddress?.ToString() ?? "",
-                AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
+                AuthorizerSignature = ""
             };
 
             Send2P2pNetwork(msg);
@@ -803,7 +792,7 @@ namespace Lyra.Core.Decentralize
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     return;
 
-                await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync);
+                await OnNodeActive(node.AccountID, BlockChainState.StaticSync);
 
                 // add network/ip verifycation here
                 // if(verifyIP)
@@ -1144,10 +1133,10 @@ namespace Lyra.Core.Decentralize
                     break;
                 case ChatMessageType.NodeStatusReply:
                     var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
-                    if (_nodeStatus != null)
+                    if (statusReply != null)
                     {
-                        if (ProtocolSettings.Default.StandbyValidators.Contains(statusReply.accountId)
-                            && !_nodeStatus.Any(a => a.accountId == statusReply.accountId))
+                        // Board.AllVoters.Contains(statusReply.accountId) &&
+                        if (!_nodeStatus.Any(a => a.accountId == statusReply.accountId))
                             _nodeStatus.Add(statusReply);
                     }
                     break;

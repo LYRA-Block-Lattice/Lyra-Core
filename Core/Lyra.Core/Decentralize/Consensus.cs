@@ -52,76 +52,84 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
-        private async Task<bool> SyncDatabase(long height)
+        private async Task<bool> SyncDatabase(long height = 0)
         {
-            var client = new LyraClientForNode(_sys);
+            var seedClient = new LyraClientForNode(_sys);
 
-            var svcGen = await _sys.Storage.GetServiceGenesisBlock();
+            LyraClientForNode client = seedClient;
+            if (height > 0)
+            {
+                var validNodeList = _nodeStatus
+                    .Where(a => a.totalBlockCount == height)
+                    .Select(a => a.accountId);
+
+                var validNodeIps = Board.NodeAddresses.Where(a => validNodeList.Contains(a.Key))
+                    .ToList();
+                client = new LyraClientForNode(_sys, validNodeIps);
+            }
+
+            var seedSvcGen = await client.GetServiceGenesisBlock();
             var localDbState = await GetNodeStatusAsync();
             if (localDbState.totalBlockCount == 0)
+            {
                 LocalDbSyncState.Remove();
+            }                
             else
             {
                 var oldState = LocalDbSyncState.Load();
 
-                if (oldState.svcGenHash != svcGen.Hash)
+                if (oldState.svcGenHash != seedSvcGen.GetBlock().Hash)
                     LocalDbSyncState.Remove();
             }
 
             var localState = LocalDbSyncState.Load();
+            if(localState.svcGenHash == null)
+            {
+                localState.svcGenHash = seedSvcGen.GetBlock().Hash;
+            }
 
             bool IsSuccess = true;
             while (true)
             {
-                var seedCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
+                var seedCons = (await client.GetConsolidationBlocks(localState.lastVerifiedConsHeight + 1)).GetBlocks();
 
-                _log.LogInformation($"SyncDatabase: Latest consolidation block height is {seedCons.Height}. My local height is {localState.lastVerifiedConsHeight}.");
-
-                if (localState.lastVerifiedConsHeight == seedCons.Height)
-                    break;
-
-                var latestHeight = seedCons.Height;
-                while (localState.lastVerifiedConsHeight < seedCons.Height)
+                if(seedCons.Any())
                 {
-                    if (await SyncAndVerifyConsolidationBlock(client, seedCons))
+                    foreach (var block in seedCons)
                     {
-                        _log.LogInformation($"Consolidation block {seedCons.Height} is OK.");
-                    }
-                    else
-                    {
-                        _log.LogError($"Consolidation block {seedCons.Height} is failure.");
-                        IsSuccess = false;
-                        break;
-                    }
+                        var consTarget = block as ConsolidationBlock;
+                        _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget.Height} of total {height}.");
+                        if (await SyncAndVerifyConsolidationBlock(client, consTarget))
+                        {
+                            _log.LogInformation($"Consolidation block {consTarget.Height} is OK.");
 
-                    if (seedCons.Height == 1)
-                        break;
-
-                    seedCons = (await client.GetBlockByHash(seedCons.blockHashes.First())).GetBlock() as ConsolidationBlock;
-                }
-                if (IsSuccess)
-                {
-                    localState.lastVerifiedConsHeight = latestHeight;
-                    if (string.IsNullOrWhiteSpace(localState.svcGenHash))
-                    {
-                        var seedSvcGen = await client.GetServiceGenesisBlock();
-                        localState.svcGenHash = seedSvcGen.GetBlock().Hash;
+                            localState.lastVerifiedConsHeight = consTarget.Height;
+                            LocalDbSyncState.Save(localState);
+                        }
+                        else
+                        {
+                            _log.LogError($"Consolidation block {consTarget.Height} is failure.");
+                            IsSuccess = false;
+                            break;
+                        }
                     }
                 }
                 else
+                {
+                    break;
+                }
+
+                if (!IsSuccess)
                     break;
             }
-
-            LocalDbSyncState.Save(localState);
 
             return IsSuccess;
         }
 
-        private async Task EngagingSyncAsync()
+        private async Task EngagingSyncAsync(long height)
         {
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
-
             var client = new LyraClientForNode(_sys);
             while (true)
             {
@@ -130,7 +138,7 @@ namespace Lyra.Core.Decentralize
                 var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                 if (myLastCons == null || myLastCons.Height < lastConsOfSeed.GetBlock().Height)
                 {
-                    if (!await SyncDatabase(lastConsOfSeed.GetBlock().Height))
+                    if (!await SyncDatabase())
                     {
                         _log.LogError($"Error sync database. wait 5 minutes and retry...");
                         await Task.Delay(5 * 60 * 1000);
@@ -321,7 +329,7 @@ namespace Lyra.Core.Decentralize
             var gensWallet = Wallet.Open(memStore, "tmp", "");
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                var client = await LyraClientForNode.FindValidSeedForSyncAsync(_sys);
+                var client = await new LyraClientForNode(_sys).FindValidSeedForSyncAsync(_sys);
                 await gensWallet.Sync(client);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.Send(amount, accId);
