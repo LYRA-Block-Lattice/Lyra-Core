@@ -236,7 +236,7 @@ namespace Lyra.Core.Decentralize
                     //_log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                     var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
                     var mode = await client.GetSyncState();
-                    if (mode.ResultCode == APIResultCodes.Success)
+                    if (mode.ResultCode == APIResultCodes.Success && mode.Status.state == BlockChainState.Almighty)
                     {
                         return client;
                     }
@@ -246,10 +246,18 @@ namespace Lyra.Core.Decentralize
             else
             {
                 var rand = new Random();
-                var addr = _validNodes[rand.Next(0, _validNodes.Count - 1)].Value;
-                var apiUrl = $"http://{addr}:4505/api/Node/";
-                var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
-                return client;
+                while(true)
+                {
+                    var addr = _validNodes[rand.Next(0, _validNodes.Count - 1)].Value;
+                    var apiUrl = $"http://{addr}:4505/api/Node/";
+                    var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
+                    var mode = await client.GetSyncState();
+                    if (mode.ResultCode == APIResultCodes.Success && mode.Status.state == BlockChainState.Almighty)
+                    {
+                        return client;
+                    }
+                    await Task.Delay(10000);    // incase of hammer
+                }
             }
         }
     }

@@ -88,6 +88,7 @@ namespace Lyra.Core.Decentralize
                 localState.svcGenHash = seedSvcGen.GetBlock().Hash;
             }
 
+            var lastCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
             bool IsSuccess = true;
             while (true)
             {
@@ -98,7 +99,7 @@ namespace Lyra.Core.Decentralize
                     foreach (var block in seedCons)
                     {
                         var consTarget = block as ConsolidationBlock;
-                        _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget.Height} of total {height}.");
+                        _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget.Height} of total {lastCons.Height}.");
                         if (await SyncAndVerifyConsolidationBlock(client, consTarget))
                         {
                             _log.LogInformation($"Consolidation block {consTarget.Height} is OK.");
