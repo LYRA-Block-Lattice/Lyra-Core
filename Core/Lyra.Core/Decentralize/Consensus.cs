@@ -95,19 +95,9 @@ namespace Lyra.Core.Decentralize
         {
             var seedClient = new LyraClientForNode(_sys);
 
-            LyraClientForNode client = seedClient;
-            if (height > 0)
-            {
-                var validNodeList = _nodeStatus
-                    .Where(a => a.totalBlockCount == height)
-                    .Select(a => a.accountId);
-
-                var validNodeIps = Board.NodeAddresses.Where(a => validNodeList.Contains(a.Key))
-                    .ToList();
-                client = new LyraClientForNode(_sys, validNodeIps);
-            }
-
-            var seedSvcGen = await client.GetServiceGenesisBlock();
+            LyraClientForNode client = await GetOptimizedSyncClientAsync();
+ 
+            var seedSvcGen = await seedClient.GetServiceGenesisBlock();
             var localDbState = await GetNodeStatusAsync();
             if (localDbState.totalBlockCount == 0)
             {
@@ -170,7 +160,7 @@ namespace Lyra.Core.Decentralize
         {
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
-            var client = new LyraClientForNode(_sys);
+            LyraClientForNode client = await GetOptimizedSyncClientAsync();
             while (true)
             {
                 _log.LogInformation("Engaging Sync...");

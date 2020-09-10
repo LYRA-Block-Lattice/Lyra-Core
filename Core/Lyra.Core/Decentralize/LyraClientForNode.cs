@@ -236,7 +236,7 @@ namespace Lyra.Core.Decentralize
                     //_log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                     var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
                     var mode = await client.GetSyncState();
-                    if (mode.ResultCode == APIResultCodes.Success && mode.Status.state == BlockChainState.Almighty)
+                    if (mode.ResultCode == APIResultCodes.Success)
                     {
                         return client;
                     }
@@ -252,7 +252,7 @@ namespace Lyra.Core.Decentralize
                     var apiUrl = $"http://{addr}:4505/api/Node/";
                     var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
                     var mode = await client.GetSyncState();
-                    if (mode.ResultCode == APIResultCodes.Success && mode.Status.state == BlockChainState.Almighty)
+                    if (mode.ResultCode == APIResultCodes.Success)
                     {
                         return client;
                     }
