@@ -664,6 +664,7 @@ namespace Lyra.Core.Decentralize
                 var node = _board.ActiveNodes.First(a => a.AccountID == accountId);
                 node.LastActive = DateTime.Now;
                 node.State = state;
+                node.AuthorizerSignature = authSign;
             }
             else
             {
@@ -671,7 +672,8 @@ namespace Lyra.Core.Decentralize
                 {
                     AccountID = accountId,
                     State = state,
-                    LastActive = DateTime.Now
+                    LastActive = DateTime.Now,
+                    AuthorizerSignature = authSign
                 };
                 _board.ActiveNodes.Add(node);
             }
