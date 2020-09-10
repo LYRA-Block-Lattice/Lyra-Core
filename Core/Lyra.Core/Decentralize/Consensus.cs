@@ -2,6 +2,7 @@
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.Cryptography;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
@@ -425,7 +426,11 @@ namespace Lyra.Core.Decentralize
                             if (_board.ActiveNodes.Any(a => a.AccountID == voter))
                             {
                                 var node = _board.ActiveNodes.First(a => a.AccountID == voter);
-                                svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
+
+                                if (Signatures.VerifyAccountSignature(prevSvcBlock.Hash, node.AccountID, node.AuthorizerSignature))
+                                {
+                                    svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
+                                }                                
                             }
                             else
                             {

@@ -654,11 +654,6 @@ namespace Lyra.Core.Decentralize
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
 
-            if (!Signatures.VerifyAccountSignature(signAgainst, accountId, authSign))
-            {
-                return;
-            }
-
             if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == accountId))
             {
                 var node = _board.ActiveNodes.First(a => a.AccountID == accountId);
@@ -1144,8 +1139,7 @@ namespace Lyra.Core.Decentralize
                     var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
                     if (statusReply != null)
                     {
-                        // Board.AllVoters.Contains(statusReply.accountId) &&
-                        if (!_nodeStatus.Any(a => a.accountId == statusReply.accountId))
+                        if (Board.ActiveNodes.Any(a => a.AccountID == statusReply.accountId) && !_nodeStatus.Any(a => a.accountId == statusReply.accountId))
                             _nodeStatus.Add(statusReply);
                     }
                     break;
