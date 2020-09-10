@@ -401,7 +401,7 @@ namespace Lyra.Core.Decentralize
                     return;
                 }                    
 
-                _context.ConsolidationFailed(block.Hash);
+                _context.LocalConsolidationFailed(block.Hash);
             }
             else if(block is ServiceBlock sb)
             {
