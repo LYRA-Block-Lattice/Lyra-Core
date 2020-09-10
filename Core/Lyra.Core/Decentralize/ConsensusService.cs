@@ -631,7 +631,7 @@ namespace Lyra.Core.Decentralize
             }
             else
                 _board.NodeAddresses.TryAdd(me.AccountID, me.IPAddress.ToString());
-            await OnNodeActive(me.AccountID, _stateMachine.State);
+            await OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State);
 
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
@@ -646,13 +646,18 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            await OnNodeActive(heartBeat.From, heartBeat.State, heartBeat.PublicIP);
+            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP);
         }
 
-        private async Task OnNodeActive(string accountId, BlockChainState state, string ip = null)
+        private async Task OnNodeActive(string accountId, string authSign, BlockChainState state, string ip = null)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
+
+            if (!Signatures.VerifyAccountSignature(signAgainst, accountId, authSign))
+            {
+                return;
+            }
 
             if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == accountId))
             {
@@ -751,6 +756,8 @@ namespace Lyra.Core.Decentralize
                 _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId).LastActive = DateTime.Now;
 
             // declare to the network
+            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+            var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
             var msg = new HeartBeatMessage
             {
                 From = _sys.PosWallet.AccountId,
@@ -758,7 +765,7 @@ namespace Lyra.Core.Decentralize
                 Text = "I'm live",
                 State = _stateMachine.State,
                 PublicIP = _myIpAddress?.ToString() ?? "",
-                AuthorizerSignature = ""
+                AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 
             Send2P2pNetwork(msg);
@@ -792,7 +799,7 @@ namespace Lyra.Core.Decentralize
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     return;
 
-                await OnNodeActive(node.AccountID, BlockChainState.StaticSync);
+                await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync);
 
                 // add network/ip verifycation here
                 // if(verifyIP)
