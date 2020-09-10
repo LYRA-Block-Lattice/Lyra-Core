@@ -52,6 +52,45 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
+        private async Task<LyraClientForNode> GetOptimizedSyncClientAsync()
+        {
+            while (true)
+            {
+                var q = from ns in _nodeStatus
+                        group ns by ns.totalBlockCount into heights
+                        orderby heights.Count() descending
+                        select new
+                        {
+                            Height = heights.Key,
+                            Count = heights.Count()
+                        };
+
+                if (q.Any())
+                {
+                    var majorHeight = q.First();
+                    if (majorHeight.Height >= 2 && majorHeight.Count >= 4)
+                    {
+                        var validNodeList = _nodeStatus
+                            .Where(a => a.totalBlockCount == majorHeight.Height)
+                            .Select(a => a.accountId);
+
+                        var validNodeIps = Board.NodeAddresses.Where(a => validNodeList.Contains(a.Key))
+                            .ToList();
+                        return new LyraClientForNode(_sys, validNodeIps);
+                    }
+                }
+
+                _log.LogInformation($"Querying Lyra Network Status... ");
+
+                _nodeStatus.Clear();
+                var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
+                inq.From = _sys.PosWallet.AccountId;
+                Send2P2pNetwork(inq);
+
+                await Task.Delay(10000);
+            }
+        }
+
         private async Task<bool> SyncDatabase(long height = 0)
         {
             var seedClient = new LyraClientForNode(_sys);
