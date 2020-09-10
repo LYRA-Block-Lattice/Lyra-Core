@@ -388,10 +388,11 @@ namespace Lyra.Core.Decentralize
                             {
                                 var majorHeight = q.First();
 
-                                _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count}");
+                                var majority = 4;// LyraGlobal.GetMajority(_board.ActiveNodes.Count);
+                                _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count} majority {majority}");
 
                                 var myStatus = await GetNodeStatusAsync();
-                                var majority = LyraGlobal.GetMajority(_board.ActiveNodes.Count);
+                                
                                 if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= majority)
                                 {
                                     //_stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
