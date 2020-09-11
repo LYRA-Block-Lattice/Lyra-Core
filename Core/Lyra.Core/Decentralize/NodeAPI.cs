@@ -530,6 +530,29 @@ namespace Lyra.Core.Decentralize
             }            
         }
 
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        {
+            var result = new MultiBlockAPIResult();
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetBlocksByTimeRange(startTime, endTime);
+                if (blocks != null)
+                {
+                    result.SetBlocks(blocks.ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetBlocksByTimeRange: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
+        }
+
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
         {
             var result = new GetListStringAPIResult();

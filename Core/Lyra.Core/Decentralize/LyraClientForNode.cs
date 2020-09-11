@@ -166,6 +166,28 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        public async Task<MultiBlockAPIResult> GetBlockByTimeRange(DateTime startTime, DateTime endTime)
+        {
+            try
+            {
+                if (_client == null)
+                    _client = await FindValidSeedForSyncAsync(_sys);
+
+                return await _client.GetBlockByTimeRange(startTime, endTime);
+            }
+            catch (Exception ex)
+            {
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
+                {
+                    // retry
+                    _client = await FindValidSeedForSyncAsync(_sys);
+                    return await GetBlockByTimeRange(startTime, endTime);
+                }
+                else
+                    throw ex;
+            }
+        }
+
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
         {
             try

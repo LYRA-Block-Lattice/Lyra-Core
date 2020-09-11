@@ -207,6 +207,15 @@ namespace LyraLexWeb2
         }
 
         // this api generate too much data so add some limit later
+        [Route("GetBlocksByTimeRange")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        {
+            if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
+            return await _node.GetBlocksByTimeRange(startTime, endTime);
+        }
+
+        // this api generate too much data so add some limit later
         [Route("GetBlockHashesByTimeRange")]
         [HttpGet]
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)

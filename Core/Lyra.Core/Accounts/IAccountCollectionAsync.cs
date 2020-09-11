@@ -75,6 +75,7 @@ namespace Lyra.Core.Accounts
         List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime);
         FeeStats GetFeeStats();
 
+        Task<List<Block>> GetBlocksByTimeRange(DateTime startTime, DateTime endTime);
         Task<IEnumerable<string>> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime);
         /// <summary>
         /// Check if this account was ever imported to ANY other account

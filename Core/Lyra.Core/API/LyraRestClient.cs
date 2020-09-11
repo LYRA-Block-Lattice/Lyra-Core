@@ -346,6 +346,18 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
+        public async Task<MultiBlockAPIResult> GetBlockByTimeRange(DateTime startTime, DateTime endTime)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockByTimeRange/?startTime={startTime}&endTime={endTime}");
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
         {
             HttpResponseMessage response = await _client.GetAsync($"GetBlockHashesByTimeRange/?startTime={startTime}&endTime={endTime}");
@@ -614,6 +626,16 @@ namespace Lyra.Core.API
         FeeStats INodeAPI.GetFeeStats()
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        {
+            var args = new Dictionary<string, string>();
+
+            args.Add("startTime", startTime.ToLongTimeString());
+            args.Add("endTime", endTime.ToLongTimeString());
+
+            return await Get<MultiBlockAPIResult>("GetBlocksByTimeRange", args);
         }
     }
 }
