@@ -100,7 +100,7 @@ namespace LyraWallet.ViewModels
                         name = "default"
                     });
 
-                    await Shell.Current.GoToAsync("//LoginPage");
+                    await Shell.Current.GoToAsync("NetworkSelectionPage");
                 }
                 else
                 {

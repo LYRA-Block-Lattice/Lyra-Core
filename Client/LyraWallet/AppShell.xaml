@@ -80,12 +80,44 @@
         https://docs.microsoft.com/dotnet/api/xamarin.forms.shellgroupitem.flyoutdisplayoptions?view=xamarin-forms
     -->
     <FlyoutItem FlyoutDisplayOptions="AsMultipleItems">
-        <ShellContent Title="Balance" Route="BalancePage" ContentTemplate="{DataTemplate local:BalancePage}" />
-        <ShellContent Title="POS" Route="POSPage" ContentTemplate="{DataTemplate local:PosViewPage}" />
+        <ShellContent Title="Balance" Route="BalancePage" ContentTemplate="{DataTemplate local:BalancePage}">
+            <ShellContent.FlyoutIcon>
+                <FontImageSource
+                    Glyph="{StaticResource IconWallet}"
+                    Color="Black"
+                    FontFamily="{StaticResource MaterialFontFamily}" />
+            </ShellContent.FlyoutIcon>
+            <ShellContent.Icon>
+                <FontImageSource
+                    Glyph="{StaticResource IconWallet}"
+                    Color="Black"
+                    FontFamily="{StaticResource MaterialFontFamily}" />
+            </ShellContent.Icon>
+        </ShellContent>
+        <ShellContent Title="POS" Route="POSPage" ContentTemplate="{DataTemplate local:PosViewPage}">
+            <ShellContent.FlyoutIcon>
+                <FontImageSource
+                    Glyph="{StaticResource IconPOS}"
+                    Color="Black"
+                    FontFamily="{StaticResource MaterialFontFamily}" />
+            </ShellContent.FlyoutIcon>
+            <ShellContent.Icon>
+                <FontImageSource
+                    Glyph="{StaticResource IconPOS}"                    
+                    Color="Black"
+                    FontFamily="{StaticResource MaterialFontFamily}" />
+            </ShellContent.Icon>
+        </ShellContent>
     </FlyoutItem>
 
     <!-- When the Flyout is visible this will be a menu item you can tie a click behavior to  -->
     <MenuItem Text="Visit Lyra Online" StyleClass="MenuItemLayoutStyle" Clicked="OnMenuItemClicked">
+        <MenuItem.IconImageSource>
+            <FontImageSource
+                Glyph="{StaticResource IconWeb}"
+                Color="Black"
+                FontFamily="{StaticResource MaterialFontFamily}" />
+        </MenuItem.IconImageSource>
     </MenuItem>
 
     <!--
@@ -94,20 +126,46 @@
         If you would like to navigate to this content you can do so by calling
         await Shell.Current.GoToAsync("//LoginPage");
     -->
-    <!--<ShellContent Route="LoginPage" Shell.FlyoutBehavior="Disabled" ContentTemplate="{DataTemplate local:NetworkSelectionPage}" />-->
-    <ShellContent Title="Settings" ContentTemplate="{DataTemplate local:WalletInfoPage}" />
+    <!--<ShellContent Title="Create New" Route="LoginPage" IsVisible="False" Shell.FlyoutBehavior="Disabled" ContentTemplate="{DataTemplate local:NetworkSelectionPage}" />-->
+    <ShellContent Title="Settings" ContentTemplate="{DataTemplate local:WalletInfoPage}">
+        <ShellContent.FlyoutIcon>
+            <FontImageSource
+                    Glyph="{StaticResource IconSettings}"
+                    Color="Black"
+                    FontFamily="{StaticResource MaterialFontFamily}" />
+        </ShellContent.FlyoutIcon>
+        <ShellContent.Icon>
+            <FontImageSource
+                    Glyph="{StaticResource IconSettings}"
+                    Color="Black"
+                    FontFamily="{StaticResource MaterialFontFamily}" />
+        </ShellContent.Icon>
+    </ShellContent>
 
-    <!-- Optional Templates 
-    // These may be provided inline as below or as separate classes.
+
+    <!--// These may be provided inline as below or as separate classes.
 
     // This header appears at the top of the Flyout.
-    // https://docs.microsoft.com/xamarin/xamarin-forms/app-fundamentals/shell/flyout#flyout-header
+    // https://docs.microsoft.com/xamarin/xamarin-forms/app-fundamentals/shell/flyout#flyout-header-->
     <Shell.FlyoutHeaderTemplate>
         <DataTemplate>
-            <Grid>ContentHere</Grid>
+            <Grid BackgroundColor="White"
+              HeightRequest="200">
+                <Image Aspect="AspectFill"
+                   Source="lyralogo.png"
+                   Opacity="0.6" />
+                <Label Text="Wallet for LYRA Block Lattice"
+                   TextColor="{StaticResource Primary}"
+                   FontAttributes="Italic"
+                   FontSize="Micro"
+                   Padding="10"
+                   HorizontalTextAlignment="Start"
+                   VerticalTextAlignment="Start" />
+            </Grid>
         </DataTemplate>
     </Shell.FlyoutHeaderTemplate>
 
+    <!-- Optional Templates 
     // ItemTemplate is for ShellItems as displayed in a Flyout
     // https://docs.microsoft.com/xamarin/xamarin-forms/app-fundamentals/shell/flyout#define-flyoutitem-appearance
     <Shell.ItemTemplate>

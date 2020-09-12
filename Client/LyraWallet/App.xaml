@@ -25,6 +25,16 @@
                 </Setter>
             </Style>
 
+            <x:String x:Key="IconWallet">&#xf0584;</x:String>
+            <x:String x:Key="IconPOS">&#xf0cf4;</x:String>
+            <x:String x:Key="IconSettings">&#xf08bb;</x:String>
+            <x:String x:Key="IconWeb">&#xf059f;</x:String>
+            <x:String x:Key="IconEdit">&#xf0dc9;</x:String>
+            <x:String x:Key="IconPlus">&#xf0419;</x:String>
+            <x:String x:Key="IconQRCodeScan">&#xf0433;</x:String>
+            <x:String x:Key="IconImport">&#xf02fa;</x:String>
+            <x:String x:Key="IconRedeem">&#xf142b;</x:String>
+            
             <OnPlatform x:Key="MaterialFontFamily" x:TypeArguments="x:String">
                 <On Platform="iOS" Value="Material Design Icons" />
                 <On Platform="Android" Value="materialdesignicons-webfont.ttf#Material Design Icons" />

@@ -16,7 +16,14 @@
     </ContentPage.BindingContext>
 
     <ContentPage.ToolbarItems>
-        <ToolbarItem x:Name="tbEdit" Text="+" Clicked="EditProduct_Clicked" />
+        <ToolbarItem x:Name="tbEdit" Clicked="EditProduct_Clicked">
+            <ToolbarItem.IconImageSource>
+                <FontImageSource
+                    Glyph="{StaticResource IconEdit}"
+                    Color="Black"
+                    FontFamily="{StaticResource MaterialFontFamily}" />
+            </ToolbarItem.IconImageSource>
+        </ToolbarItem>
     </ContentPage.ToolbarItems>
 
     <ContentPage.Content>

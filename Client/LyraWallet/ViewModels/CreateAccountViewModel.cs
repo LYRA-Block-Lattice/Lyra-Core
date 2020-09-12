@@ -63,6 +63,11 @@ namespace LyraWallet.ViewModels
             {
                 try
                 {
+                    if(string.IsNullOrWhiteSpace(PrivateKey))
+                    {
+                        await _thePage.DisplayAlert("Error", "No private key specified.", "OK");
+                        return;
+                    }
                     App.Store.Dispatch(new WalletRestoreAction
                     {
                         privateKey = PrivateKey,

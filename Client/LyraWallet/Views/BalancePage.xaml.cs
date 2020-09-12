@@ -87,7 +87,7 @@ namespace LyraWallet.Views
                 }
                 else
                 {
-                    await Shell.Current.GoToAsync("//LoginPage");
+                    await Shell.Current.GoToAsync("NetworkSelectionPage");
                 }
             }
         }

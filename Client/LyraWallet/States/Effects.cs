@@ -116,12 +116,9 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletRemoveAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(() =>
-                        {
-                            var store = new SecuredWalletStore(action.path);
-                            store.Delete(action.name);
-                            return null;
-                        });
+                        var store = new SecuredWalletStore(action.path);
+                        store.Delete(action.name);
+                        return Observable.Empty<Wallet>();
                      })
                     .Switch()
                     .Select(result =>
