@@ -18,12 +18,8 @@ namespace LyraWallet
         public static readonly ReduxStore<RootState> Store =
             new ReduxStore<RootState>(States.Reducers.CreateReducers(), RootState.InitialState, true);
 
-        public static WalletContainer Container;
-
         public App()
         {
-            Container = new WalletContainer();
-
             InitializeComponent();
 
             Store.RegisterEffects(

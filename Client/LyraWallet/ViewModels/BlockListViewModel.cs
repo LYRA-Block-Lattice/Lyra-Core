@@ -1,4 +1,5 @@
-﻿using LyraWallet.Models;
+﻿using Lyra.Core.API;
+using LyraWallet.Models;
 using LyraWallet.Services;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,7 @@ namespace LyraWallet.ViewModels
 
             try
             {
-                List<BlockInfo> blockInfos = await App.Container.GetBlocks();
+                List<BlockInfo> blockInfos = await GetBlocks();
 
                 Items.Clear();
                 foreach (var item in blockInfos)
@@ -42,6 +43,28 @@ namespace LyraWallet.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        private async Task<List<BlockInfo>> GetBlocks()
+        {
+            var blocks = new List<BlockInfo>();
+            var height = App.Store.State.wallet.GetLocalAccountHeight();
+            for (var i = height; i > 0; i--)
+            {
+                var block = await App.Store.State.wallet.GetBlockByIndex(i);
+                blocks.Add(new BlockInfo()
+                {
+                    index = block.Height,
+                    timeStamp = block.TimeStamp,
+                    hash = block.Hash,
+                    type = block.BlockType.ToString(),
+                    balance = block.Balances.Aggregate(new StringBuilder(),
+                          (sb, kvp) => sb.AppendFormat("{0}{1} = {2}",
+                                       sb.Length > 0 ? ", " : "", kvp.Key, kvp.Value.ToBalanceDecimal()),
+                          sb => sb.ToString())
+                });
+            }
+            return blocks;
         }
 
         public ICommand RefreshCommand { get; }

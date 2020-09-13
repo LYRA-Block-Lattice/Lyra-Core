@@ -48,7 +48,10 @@ namespace LyraWallet.States
 
     public class WalletRefreshBalanceAction { public Wallet wallet { get; set; } }
 
-    public class WalletSendAction { }
+    public class WalletTransactionResultAction
+    {
+        public Wallet wallet { get; set; }
+    }
 
     public class WalletSendTokenAction
     {
@@ -56,6 +59,18 @@ namespace LyraWallet.States
         public string DstAddr { get; set; }
         public string TokenName { get; set; }
         public decimal Amount { get; set; }
+    }
+
+    public class WalletCreateTokenAction
+    {
+        public Wallet wallet { get; set; }
+        public string tokenName { get; set; }
+        public string tokenDomain { get; set; }
+        public string description { get; set; }
+        public decimal totalSupply { get; set; }
+        public int precision { get; set; }
+        public string ownerName { get; set; }
+        public string ownerAddress { get; set; }
     }
 
     public class GetApiVersionAction

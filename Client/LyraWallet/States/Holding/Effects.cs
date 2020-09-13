@@ -10,7 +10,6 @@ namespace LyraWallet.States.Holding
     public static class Effects
     {
         private static LyraRestClient _apiClient;
-        private readonly static LyraRestNotify _apiNotify;
 
         public static Effect<RootState> GetApiCompatibleInfo = ReduxSimple.Effects.CreateEffect<RootState>
             (

@@ -24,6 +24,15 @@ namespace LyraWallet.States
                             });
                         }
                     ),
+                    On<WalletTransactionResultAction, RootState>(
+                        (state, action) => {
+                            return state.With(new {
+                                wallet = action.wallet,
+                                Balances = action.wallet?.GetLatestBlock()?.Balances?.ToDictionary(k => k.Key, k => (decimal)(k.Value / LyraGlobal.TOKENSTORAGERITO)),
+                                IsOpening = true
+                            });
+                        }
+                    ),
                     On<WalletErrorAction, RootState>(
                         (state, action) => 
                         {

@@ -1,4 +1,5 @@
 ﻿using LyraWallet.Services;
+using LyraWallet.States;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -66,10 +67,19 @@ namespace LyraWallet.ViewModels
                 {
                     var total = decimal.Parse(TotalSupply);
 
-                    await App.Container.CreateToken(TokenName, DomainName,
-                            Description, Decimal.Parse(TotalSupply), int.Parse(Precision), OwnerName, OwnerAddress);
+                    App.Store.Dispatch(new WalletCreateTokenAction
+                    {
+                        wallet = App.Store.State.wallet,
+                        tokenDomain = DomainName,
+                        tokenName = TokenName,
+                        description = Description,
+                        totalSupply = Decimal.Parse(TotalSupply),
+                        precision = int.Parse(Precision),
+                        ownerName = OwnerName,
+                        ownerAddress = OwnerAddress
+                    });
 
-                    await _thePage.DisplayAlert("Success", "Your token is created and ready to use. Goto balance and refresh to see.", "OK");
+                    //await _thePage.DisplayAlert("Success", "Your token is created and ready to use. Goto balance and refresh to see.", "OK");
                 }
                 catch (Exception x)
                 {

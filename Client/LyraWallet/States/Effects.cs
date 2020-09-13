@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using ReduxSimple;
 using System;
 using System.Collections.Generic;
@@ -144,11 +145,8 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletChangeVoteAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(async () =>
-                        {
-                            action.wallet.VoteFor = action.VoteFor;
-                            return action.wallet;
-                        });
+                        action.wallet.VoteFor = action.VoteFor;
+                        return Observable.Return(action.wallet);
                     })
                     .Switch()
                     .Select(result =>
@@ -182,7 +180,72 @@ namespace LyraWallet.States
                     .Switch()
                     .Select(result =>
                     {
-                        return new WalletOpenResultAction
+                        return new WalletTransactionResultAction
+                        {
+                            wallet = result
+                        };
+                    })
+                    .Catch<object, Exception>(e =>
+                    {
+                        return Observable.Return(new WalletErrorAction
+                        {
+                            Error = e
+                        });
+                    }),
+                true
+            );
+
+        public static Effect<RootState> SendTokenWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
+            (
+                () => App.Store.ObserveAction<WalletSendTokenAction>()
+                    .Select(action =>
+                    {
+                        return Observable.FromAsync(async () =>
+                        {
+                            await action.wallet.Sync(null);
+
+                            await action.wallet.Send(action.Amount, action.DstAddr, action.TokenName);
+
+                            return action.wallet;
+                        });
+                    })
+                    .Switch()
+                    .Select(result =>
+                    {
+                        return new WalletTransactionResultAction
+                        {
+                            wallet = result
+                        };
+                    })
+                    .Catch<object, Exception>(e =>
+                    {
+                        return Observable.Return(new WalletErrorAction
+                        {
+                            Error = e
+                        });
+                    }),
+                true
+            );
+
+        public static Effect<RootState> CreateTokenWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
+            (
+                () => App.Store.ObserveAction<WalletCreateTokenAction>()
+                    .Select(action =>
+                    {
+                        return Observable.FromAsync(async () =>
+                        {
+                            await action.wallet.Sync(null);
+
+                            await action.wallet.CreateToken(action.tokenName, action.tokenDomain ?? "", action.description ?? "", Convert.ToSByte(action.precision), action.totalSupply,
+                                        true, action.ownerName ?? "", action.ownerAddress ?? "", null, ContractTypes.Default, null);
+
+                            return action.wallet;
+                        });
+                    })
+                    .Switch()
+                    .Select(result =>
+                    {
+                        return new WalletTransactionResultAction
                         {
                             wallet = result
                         };

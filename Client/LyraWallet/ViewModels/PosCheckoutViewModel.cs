@@ -34,7 +34,7 @@ namespace LyraWallet.ViewModels
         {
             get
             {
-                return $"lyra://localhost/cart/checkout?AccountID={App.Container.AccountID}&&Shop=[shop name]&&Token={PaymentToken}&&Total={TotalPayment}";
+                return $"lyra://localhost/cart/checkout?AccountID={App.Store.State.wallet.AccountId}&&Shop=[shop name]&&Token={PaymentToken}&&Total={TotalPayment}";
             }
         }
     }

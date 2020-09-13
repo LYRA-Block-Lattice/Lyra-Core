@@ -122,7 +122,7 @@ namespace LyraWallet.ViewModels
             MessagingCenter.Subscribe<BalanceViewModel>(
                 this, MessengerKeys.BalanceRefreshed, (sender) =>
                 {
-                    TokenNames = App.Container.TokenList;
+                    TokenNames = App.Store.State.wallet.GetLatestBlock().Balances?.Keys.ToList();
                     if (TokenNames != null)
                     {
                         for(int i = 0; i < TokenNames.Count; i++)

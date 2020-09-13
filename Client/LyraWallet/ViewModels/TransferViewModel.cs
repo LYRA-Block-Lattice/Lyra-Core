@@ -1,8 +1,10 @@
 ﻿using LyraWallet.Models;
 using LyraWallet.Services;
+using LyraWallet.States;
 using LyraWallet.Views;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -53,12 +55,12 @@ namespace LyraWallet.ViewModels
         {
             _thePage = (TransferPage) page;
             IsWorking = false;
-            TokenNames = App.Container.TokenList;
+            TokenNames = App.Store.State.wallet.GetLatestBlock().Balances?.Keys.ToList();
 
             MessagingCenter.Subscribe<BalanceViewModel>(
                 this, MessengerKeys.BalanceRefreshed, (sender) =>
                 {
-                    TokenNames = App.Container.TokenList;
+                    TokenNames = App.Store.State.wallet.GetLatestBlock().Balances?.Keys.ToList();
                 });
 
             TransferCommand = new Command(async () =>
@@ -68,7 +70,14 @@ namespace LyraWallet.ViewModels
                 {
                     var amount = decimal.Parse(Amount);
 
-                    await App.Container.Transfer(SelectedTokenName, TargetAccount, amount);
+                    var sta = new WalletSendTokenAction
+                    {
+                        DstAddr = TargetAccount,
+                        Amount = amount,
+                        TokenName = SelectedTokenName,
+                        wallet = App.Store.State.wallet
+                    };
+                    App.Store.Dispatch(sta);
 
                     IsWorking = false;
                     await _thePage.DisplayAlert("Success", "Your transaction has been successfully completed.", "OK");

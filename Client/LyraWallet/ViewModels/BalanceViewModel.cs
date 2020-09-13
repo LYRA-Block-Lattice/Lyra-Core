@@ -106,8 +106,16 @@ namespace LyraWallet.ViewModels
                                 var isOK = await _thePage.DisplayAlert("Alert", msg, "Confirm", "Canel");
                                 if (isOK)
                                 {
-                                    await App.Container.Transfer(lyraUri.Token, lyraUri.AccountID, total);
-                                    await _thePage.DisplayAlert("Info", "Success!", "OK");
+                                    var sta = new WalletSendTokenAction
+                                    {
+                                        DstAddr = lyraUri.AccountID,
+                                        Amount = total,
+                                        TokenName = lyraUri.Token,
+                                        wallet = App.Store.State.wallet
+                                    };
+                                    App.Store.Dispatch(sta);
+                                    
+                                    //await _thePage.DisplayAlert("Info", "Success!", "OK");
                                 }
                                 return;
                             }

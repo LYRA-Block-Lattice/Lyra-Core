@@ -47,7 +47,7 @@ namespace LyraWallet.ViewModels
                 if(_selectedToken != value)
                 {
                     SetProperty(ref _selectedToken, value);
-                    Task.Run(() => SwitchMarket(value));
+                    //Task.Run(() => SwitchMarket(value));
                 }
             }
         }
@@ -79,7 +79,7 @@ namespace LyraWallet.ViewModels
         {
             Title = "Lyra Exchange";
 
-            App.Container.OnExchangeOrderChanged += async (act, catalog, extInfo) => {
+            /*App.Container.OnExchangeOrderChanged += async (act, catalog, extInfo) => {
                 if (catalog != SelectedToken)  // only show current token's order
                     return;
 
@@ -133,7 +133,7 @@ namespace LyraWallet.ViewModels
                     default:
                         break;
                 }
-            };
+            }; */
 
             //MessagingCenter.Subscribe<BalanceViewModel>(
             //    this, MessengerKeys.BalanceRefreshed, async (sender) =>
@@ -142,7 +142,7 @@ namespace LyraWallet.ViewModels
             //            TokenList = await App.Container.GetTokens(FilterKeyword);
             //        await UpdateHoldings();
             //    });
-
+            /*
             BuyCommand = new Command(async () =>
             {
                 await SubmitOrder(true);
@@ -152,7 +152,7 @@ namespace LyraWallet.ViewModels
             {
                 await SubmitOrder(false);
             });
-
+            
             CancelOrderCommand = new Command<string>(async (key) =>
             {
                 var oldTitle = Title;
@@ -170,14 +170,14 @@ namespace LyraWallet.ViewModels
                 {
                     Title = oldTitle;
                 }
-            });
+            }); */
         }
-
+        /*
         private async Task SwitchMarket(string token)
         {
             await UpdateHoldings();
             await GetMyOrders();
-            await App.Container.RequestMarket(token);
+            //await App.Container.RequestMarket(token);
         }
 
         private async Task GetMyOrders()
@@ -314,6 +314,6 @@ namespace LyraWallet.ViewModels
                     }
                 }
             }
-        }
+        } */
     }
 }
