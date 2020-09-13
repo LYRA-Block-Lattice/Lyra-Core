@@ -16,12 +16,18 @@ namespace LyraWallet
             Routing.RegisterRoute(nameof(CreateTokenPage), typeof(CreateTokenPage));
             Routing.RegisterRoute(nameof(CreateAccountPage), typeof(CreateAccountPage));
             Routing.RegisterRoute(nameof(NetworkSelectionPage), typeof(NetworkSelectionPage));
+            Routing.RegisterRoute(nameof(RedeemPage), typeof(RedeemPage));
+            Routing.RegisterRoute(nameof(AboutPage), typeof(AboutPage));
         }
 
-        private async void OnMenuItemClicked(object sender, EventArgs e)
+        private async void OnVisisOnlineClicked(object sender, EventArgs e)
         {
             await Browser.OpenAsync(LyraGlobal.PRODUCTWEBLINK, BrowserLaunchMode.SystemPreferred);
-            //await Shell.Current.GoToAsync("//LoginPage");
+        }
+
+        private async void OnAboutClicked(object sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("AboutPage");
         }
     }
 }

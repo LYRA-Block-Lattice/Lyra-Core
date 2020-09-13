@@ -123,8 +123,8 @@
             <Frame IsVisible="{Binding ProductEditMode}" HeightRequest="110" BackgroundColor="#D2FFF9">
                 <Grid VerticalOptions="FillAndExpand" HeightRequest="40">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="50" />
-                        <RowDefinition Height="50" />
+                        <RowDefinition Height="100" />
+                        <RowDefinition Height="100" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition />

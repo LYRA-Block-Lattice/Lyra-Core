@@ -34,6 +34,7 @@
             <x:String x:Key="IconQRCodeScan">&#xf0433;</x:String>
             <x:String x:Key="IconImport">&#xf02fa;</x:String>
             <x:String x:Key="IconRedeem">&#xf142b;</x:String>
+            <x:String x:Key="IconAbout">&#xf02fd;</x:String>
             
             <OnPlatform x:Key="MaterialFontFamily" x:TypeArguments="x:String">
                 <On Platform="iOS" Value="Material Design Icons" />

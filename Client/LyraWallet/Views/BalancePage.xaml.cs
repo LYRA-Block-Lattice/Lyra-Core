@@ -91,5 +91,23 @@ namespace LyraWallet.Views
                 }
             }
         }
+
+        private async void Import_ClickedAsync(object sender, EventArgs e)
+        {
+            string result = await DisplayPromptAsync("Import Account", "What's your private key to import?");
+            if(!string.IsNullOrWhiteSpace(result))
+            {
+                App.Store.Dispatch(new WalletImportAction
+                {
+                    wallet = App.Store.State.wallet,
+                    targetPrivateKey = result
+                });
+            }
+        }
+
+        private async void Redeem_Clicked(object sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("RedeemPage");
+        }
     }
 }

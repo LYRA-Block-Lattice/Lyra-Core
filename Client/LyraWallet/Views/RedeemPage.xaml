@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="LyraWallet.Views.RedeemPage">
+    <ContentPage.Content>
+        <StackLayout>
+            <Label Text="Which Token do you want to redeem?" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" />
+            <Picker Title="Select a token" 
+                    TextColor="Blue"
+                    ItemsSource="{Binding LyraNetworks}" 
+                    ItemDisplayBinding="{Binding .}"
+                    SelectedItem="{Binding SelectedNetwork}" />
+            <Label Text="How many tokens you want to redeem?" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center" />
+            <Editor x:Name="txtRedeemCount"
+                        IsReadOnly="True"  FontSize="Small" AutoSize="TextChanges"/>
+            <BoxView HeightRequest="5" HorizontalOptions="FillAndExpand" />
+            <BoxView HeightRequest="1" BackgroundColor="Black" HorizontalOptions="FillAndExpand" />
+            <BoxView HeightRequest="5" HorizontalOptions="FillAndExpand" />
+            <Button Margin="0,10,0,0" Text="Redeem" Command="{Binding NextCommand}" />
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

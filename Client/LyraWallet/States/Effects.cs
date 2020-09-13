@@ -259,5 +259,37 @@ namespace LyraWallet.States
                     }),
                 true
             );
+
+        public static Effect<RootState> ImportWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
+            (
+                () => App.Store.ObserveAction<WalletImportAction>()
+                    .Select(action =>
+                    {
+                        return Observable.FromAsync(async () =>
+                        {
+                            await action.wallet.Sync(null);
+
+                            await action.wallet.ImportAccount(action.targetPrivateKey);
+
+                            return action.wallet;
+                        });
+                    })
+                    .Switch()
+                    .Select(result =>
+                    {
+                        return new WalletTransactionResultAction
+                        {
+                            wallet = result
+                        };
+                    })
+                    .Catch<object, Exception>(e =>
+                    {
+                        return Observable.Return(new WalletErrorAction
+                        {
+                            Error = e
+                        });
+                    }),
+                true
+            );
     }
 }

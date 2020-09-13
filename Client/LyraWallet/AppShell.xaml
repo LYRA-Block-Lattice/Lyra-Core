@@ -110,16 +110,6 @@
         </ShellContent>
     </FlyoutItem>
 
-    <!-- When the Flyout is visible this will be a menu item you can tie a click behavior to  -->
-    <MenuItem Text="Visit Lyra Online" StyleClass="MenuItemLayoutStyle" Clicked="OnMenuItemClicked">
-        <MenuItem.IconImageSource>
-            <FontImageSource
-                Glyph="{StaticResource IconWeb}"
-                Color="Black"
-                FontFamily="{StaticResource MaterialFontFamily}" />
-        </MenuItem.IconImageSource>
-    </MenuItem>
-
     <!--
         This defines content that won't show up in a flyout menu. When this content is active the flyout menu won't be available.
         This is useful for creating areas of the application where you don't want users to be able to navigate away from.
@@ -142,6 +132,25 @@
         </ShellContent.Icon>
     </ShellContent>
 
+    <!-- When the Flyout is visible this will be a menu item you can tie a click behavior to  -->
+    <MenuItem Text="Visit Lyra Online" StyleClass="MenuItemLayoutStyle" Clicked="OnVisisOnlineClicked">
+        <MenuItem.IconImageSource>
+            <FontImageSource
+                Glyph="{StaticResource IconWeb}"
+                Color="Black"
+                FontFamily="{StaticResource MaterialFontFamily}" />
+        </MenuItem.IconImageSource>
+    </MenuItem>
+
+    <MenuItem Text="About" StyleClass="MenuItemLayoutStyle" Clicked="OnAboutClicked">
+        <MenuItem.IconImageSource>
+            <FontImageSource
+                Glyph="{StaticResource IconAbout}"
+                Color="Black"
+                FontFamily="{StaticResource MaterialFontFamily}" />
+        </MenuItem.IconImageSource>
+    </MenuItem>
+
 
     <!--// These may be provided inline as below or as separate classes.
 
@@ -154,7 +163,7 @@
                 <Image Aspect="AspectFill"
                    Source="lyralogo.png"
                    Opacity="0.6" />
-                <Label Text="Wallet for LYRA Block Lattice"
+                <Label Text="Wallet for LYRA Block Lattice (Beta)"
                    TextColor="{StaticResource Primary}"
                    FontAttributes="Italic"
                    FontSize="Micro"

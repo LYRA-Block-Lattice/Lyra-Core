@@ -73,6 +73,12 @@ namespace LyraWallet.States
         public string ownerAddress { get; set; }
     }
 
+    public class WalletImportAction
+    {
+        public Wallet wallet { get; set; }
+        public string targetPrivateKey { get; set; }
+    }
+
     public class GetApiVersionAction
     {
         public string Platform { get; set; }
