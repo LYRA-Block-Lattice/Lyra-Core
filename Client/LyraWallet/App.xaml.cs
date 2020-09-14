@@ -28,7 +28,12 @@ namespace LyraWallet
                 LyraWallet.States.Effects.RestoreWalletEffect,
                 LyraWallet.States.Effects.RemoveWalletEffect,
                 LyraWallet.States.Effects.ChangeVoteWalletEffect,
-                LyraWallet.States.Effects.RefreshWalletEffect
+                LyraWallet.States.Effects.RefreshWalletEffect,
+                LyraWallet.States.Effects.SendTokenWalletEffect,
+                LyraWallet.States.Effects.CreateTokenWalletEffect,
+                LyraWallet.States.Effects.ImportWalletEffect,
+                LyraWallet.States.Effects.RedeemWalletEffect,
+                LyraWallet.States.Effects.NonFungibleTokenWalletEffect
                 );
 
             MainPage = new AppShell();

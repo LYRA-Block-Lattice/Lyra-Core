@@ -1,22 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LyraWallet.ViewModels"
              x:Class="LyraWallet.Views.RedeemPage">
+    <ContentPage.BindingContext>
+        <vm:RedeemViewModel />
+    </ContentPage.BindingContext>
     <ContentPage.Content>
         <StackLayout>
-            <Label Text="Which Token do you want to redeem?" 
-                   FontAttributes="Bold" 
-                   HorizontalOptions="Center" />
-            <Picker Title="Select a token" 
+            <Label Text="Which reward token do you want to redeem?" 
+                   FontAttributes="None" 
+                   HorizontalOptions="Start" />
+            <Picker Title="Select a reward token" 
                     TextColor="Blue"
-                    ItemsSource="{Binding LyraNetworks}" 
+                    ItemsSource="{Binding TokensToRedeem}" 
                     ItemDisplayBinding="{Binding .}"
-                    SelectedItem="{Binding SelectedNetwork}" />
-            <Label Text="How many tokens you want to redeem?" 
-                   FontAttributes="Bold" 
-                   HorizontalOptions="Center" />
-            <Editor x:Name="txtRedeemCount"
-                        IsReadOnly="True"  FontSize="Small" AutoSize="TextChanges"/>
+                    SelectedItem="{Binding SelectedToken}" />
+            <Label Text="Desired discount $$ amount?" 
+                   FontAttributes="None" 
+                   HorizontalOptions="Start" />
+            <Editor x:Name="txtRedeemCount" Text="{Binding TokenCount}"
+                        IsReadOnly="False"  FontSize="Small" AutoSize="TextChanges"/>
             <BoxView HeightRequest="5" HorizontalOptions="FillAndExpand" />
             <BoxView HeightRequest="1" BackgroundColor="Black" HorizontalOptions="FillAndExpand" />
             <BoxView HeightRequest="5" HorizontalOptions="FillAndExpand" />

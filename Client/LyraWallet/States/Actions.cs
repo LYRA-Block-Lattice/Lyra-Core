@@ -1,4 +1,6 @@
 ﻿using Lyra.Core.Accounts;
+using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -51,6 +53,8 @@ namespace LyraWallet.States
     public class WalletTransactionResultAction
     {
         public Wallet wallet { get; set; }
+        public string txName { get; set; }
+        public APIResult txResult { get; set; }
     }
 
     public class WalletSendTokenAction
@@ -77,6 +81,27 @@ namespace LyraWallet.States
     {
         public Wallet wallet { get; set; }
         public string targetPrivateKey { get; set; }
+    }
+
+    public class WalletRedeemAction
+    {
+        public Wallet wallet { get; set; }
+        public string tokenToRedeem { get; set; }
+        public int countToRedeem { get; set; }
+    }
+
+    public class WalletNonFungibleTokenAction
+    {
+        public Wallet wallet { get; set; }
+        public NonFungibleToken nfToken { get; set; }
+    }
+
+    public class WalletNonFungibleTokenResultAction
+    {
+        public Wallet wallet { get; set; }
+        public string name { get; set; }
+        public decimal denomination { get; set; }
+        public string redemptionCode { get; set; }
     }
 
     public class GetApiVersionAction

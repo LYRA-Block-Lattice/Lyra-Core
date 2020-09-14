@@ -306,7 +306,7 @@ namespace Lyra.Core.Accounts
                         _lastTransactionBlock = receiveBlock;
 
                         Console.WriteLine($"Receive fee block has been authorized successfully");
-                        Console.WriteLine("Balance: " + GetDisplayBalances());
+                        Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
                     }
                     Console.Write(string.Format("{0}> ", AccountName));
                     return result.ResultCode;
@@ -502,7 +502,7 @@ namespace Lyra.Core.Accounts
         //    //     null, 500, 5000);
         //}
 
-        public string GetDisplayBalances()
+        public async Task<string> GetDisplayBalancesAsync()
         {
             string res = "0";
             TransactionBlock lastBlock = GetLatestBlock();
@@ -518,7 +518,7 @@ namespace Lyra.Core.Accounts
                 }
                 if (lastBlock.NonFungibleToken != null)
                 {
-                    var discount_token_genesis = _rpcClient.GetTokenGenesisBlock(AccountId, lastBlock.NonFungibleToken.TokenCode, SignAPICallAsync()).Result;
+                    var discount_token_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, lastBlock.NonFungibleToken.TokenCode, SignAPICallAsync());
                     if (discount_token_genesis != null)
                     {
                         var issuer_account_id = (discount_token_genesis.GetBlock() as TokenGenesisBlock).AccountID;
@@ -530,6 +530,23 @@ namespace Lyra.Core.Accounts
                 }
             }
             return res;
+        }
+
+        public async Task<(string name, decimal Denomination, string Redemption)> NonFungToStringAsync(NonFungibleToken nftoken)
+        {
+            var discount_token_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, nftoken.TokenCode, SignAPICallAsync());
+            if (discount_token_genesis?.ResultCode == APIResultCodes.Success)
+            {
+                var tgb = discount_token_genesis.GetBlock() as TokenGenesisBlock;
+                var issuer_account_id = tgb.AccountID;
+                var decryptor = new ECC_DHA_AES_Encryptor();
+                string decrypted_redemption_code = decryptor.Decrypt(PrivateKey, issuer_account_id, nftoken.SerialNumber, nftoken.RedemptionCode);
+
+                return (tgb.Owner, nftoken.Denomination, decrypted_redemption_code);
+                //res += $"Shopify Discount: {nftoken.Denomination.ToString("C")} Redemption Code: {decrypted_redemption_code}  \n";
+            }
+            else
+                return (null, 0, null);
         }
 
         public int GetNumberOfNonZeroBalances()
@@ -1070,7 +1087,7 @@ namespace Lyra.Core.Accounts
             {
                 _lastTransactionBlock = openReceiveBlock;
                 Console.WriteLine($"Receive transfer block has been authorized successfully");
-                Console.WriteLine("Balance: " + GetDisplayBalances());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             Console.Write(string.Format("{0}> ", AccountName));
             return result;
@@ -1107,12 +1124,12 @@ namespace Lyra.Core.Accounts
 
             var result = await _rpcClient.OpenAccountWithImport(open_import_block);
 
-            ProcessResult(result, "Import Account", open_import_block);
+            await ProcessResultAsync(result, "Import Account", open_import_block);
 
             return result;
         }
 
-        private void ProcessResult(AuthorizationAPIResult result, string OperationName, TransactionBlock block)
+        private async Task ProcessResultAsync(AuthorizationAPIResult result, string OperationName, TransactionBlock block)
         {
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
@@ -1132,7 +1149,7 @@ namespace Lyra.Core.Accounts
             {
                 Console.WriteLine(OperationName + $": Operation success");
                 _lastTransactionBlock = block;
-                Console.WriteLine("Balance: " + GetDisplayBalances());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             Console.Write(string.Format("{0}> ", AccountName));
             
@@ -1202,7 +1219,7 @@ namespace Lyra.Core.Accounts
 
             var result = await _rpcClient.ImportAccount(import_block);
 
-            ProcessResult(result, "Import Account", import_block);
+            await ProcessResultAsync(result, "Import Account", import_block);
 
             return result;
         }
@@ -1258,7 +1275,7 @@ namespace Lyra.Core.Accounts
 
             var result = await _rpcClient.ReceiveTransfer(receiveBlock);
 
-            ProcessResult(result, "Receive Transfer", receiveBlock);
+            await ProcessResultAsync(result, "Receive Transfer", receiveBlock);
 
             return result;
         }
@@ -1335,7 +1352,7 @@ namespace Lyra.Core.Accounts
             {
                 _lastTransactionBlock = openTokenGenesisBlock;
                 Console.WriteLine($"Genesis block has been authorized successfully");
-                Console.WriteLine("Balance: " + GetDisplayBalances());
+                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
             }
             //Console.Write(string.Format("{0}> ", AccountName));
             return result.ResultCode;

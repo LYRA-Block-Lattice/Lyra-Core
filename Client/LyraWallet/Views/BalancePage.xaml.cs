@@ -43,10 +43,28 @@ namespace LyraWallet.Views
                         vm.CanPay = false;
                 });
 
+            App.Store.Select(state => state.NonFungible)
+                .Subscribe(nf =>
+                {
+                    if (nf != null)
+                    {
+                        App.Store.Dispatch(new WalletNonFungibleTokenAction
+                        {
+                            wallet = App.Store.State.wallet,
+                            nfToken = nf
+                        });
+                    }
+                });
+
             App.Store.Select(state => state.ErrorMessage)
                 .Subscribe(w =>
                 {
                     // display error message here
+                    if(!string.IsNullOrWhiteSpace(w))
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        await DisplayAlert("Alert", w, "OK");
+                    });
                 });
         }
 

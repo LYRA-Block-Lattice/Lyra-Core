@@ -173,8 +173,8 @@ namespace LyraWallet.States
                     {
                         return Observable.FromAsync(async () =>
                         {
-                            await action.wallet.Sync(null);
-                            return action.wallet;
+                            var ret = await action.wallet.Sync(null);
+                            return (action.wallet, new APIResult { ResultCode = ret });
                         });
                     })
                     .Switch()
@@ -182,7 +182,9 @@ namespace LyraWallet.States
                     {
                         return new WalletTransactionResultAction
                         {
-                            wallet = result
+                            wallet = result.wallet,
+                            txName = "Refresh Balance",
+                            txResult = result.Item2
                         };
                     })
                     .Catch<object, Exception>(e =>
@@ -204,9 +206,9 @@ namespace LyraWallet.States
                         {
                             await action.wallet.Sync(null);
 
-                            await action.wallet.Send(action.Amount, action.DstAddr, action.TokenName);
+                            var result = await action.wallet.Send(action.Amount, action.DstAddr, action.TokenName);
 
-                            return action.wallet;
+                            return (action.wallet, result);
                         });
                     })
                     .Switch()
@@ -214,7 +216,9 @@ namespace LyraWallet.States
                     {
                         return new WalletTransactionResultAction
                         {
-                            wallet = result
+                            wallet = result.wallet,
+                            txName = "Send",
+                            txResult = result.result
                         };
                     })
                     .Catch<object, Exception>(e =>
@@ -236,10 +240,10 @@ namespace LyraWallet.States
                         {
                             await action.wallet.Sync(null);
 
-                            await action.wallet.CreateToken(action.tokenName, action.tokenDomain ?? "", action.description ?? "", Convert.ToSByte(action.precision), action.totalSupply,
+                            var result = await action.wallet.CreateToken(action.tokenName, action.tokenDomain ?? "", action.description ?? "", Convert.ToSByte(action.precision), action.totalSupply,
                                         true, action.ownerName ?? "", action.ownerAddress ?? "", null, ContractTypes.Default, null);
 
-                            return action.wallet;
+                            return (action.wallet, result);
                         });
                     })
                     .Switch()
@@ -247,7 +251,9 @@ namespace LyraWallet.States
                     {
                         return new WalletTransactionResultAction
                         {
-                            wallet = result
+                            wallet = result.wallet,
+                            txName = "Create Token",
+                            txResult = result.result
                         };
                     })
                     .Catch<object, Exception>(e =>
@@ -269,9 +275,9 @@ namespace LyraWallet.States
                         {
                             await action.wallet.Sync(null);
 
-                            await action.wallet.ImportAccount(action.targetPrivateKey);
+                            var result = await action.wallet.ImportAccount(action.targetPrivateKey);
 
-                            return action.wallet;
+                            return (action.wallet, result);
                         });
                     })
                     .Switch()
@@ -279,7 +285,77 @@ namespace LyraWallet.States
                     {
                         return new WalletTransactionResultAction
                         {
-                            wallet = result
+                            wallet = result.wallet,
+                            txName = "Import",
+                            txResult = result.result
+                        };
+                    })
+                    .Catch<object, Exception>(e =>
+                    {
+                        return Observable.Return(new WalletErrorAction
+                        {
+                            Error = e
+                        });
+                    }),
+                true
+            );
+
+
+        public static Effect<RootState> RedeemWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
+            (
+                () => App.Store.ObserveAction<WalletRedeemAction>()
+                    .Select(action =>
+                    {
+                        return Observable.FromAsync(async () =>
+                        {
+                            await action.wallet.Sync(null);
+
+                            var result = await action.wallet.RedeemRewards(action.tokenToRedeem, action.countToRedeem);
+
+                            return (action.wallet, result);
+                        });
+                    })
+                    .Switch()
+                    .Select(result =>
+                    {
+                        return new WalletTransactionResultAction
+                        {
+                            wallet = result.wallet,
+                            txName = "Redeem",
+                            txResult = result.result
+                        };
+                    })
+                    .Catch<object, Exception>(e =>
+                    {
+                        return Observable.Return(new WalletErrorAction
+                        {
+                            Error = e
+                        });
+                    }),
+                true
+            );
+
+        public static Effect<RootState> NonFungibleTokenWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
+            (
+                () => App.Store.ObserveAction<WalletNonFungibleTokenAction>()
+                    .Select(action =>
+                    {
+                        return Observable.FromAsync(async () =>
+                        {
+                            var result = await action.wallet.NonFungToStringAsync(action.nfToken);
+
+                            return (action.wallet, result);
+                        });
+                    })
+                    .Switch()
+                    .Select(result =>
+                    {
+                        return new WalletNonFungibleTokenResultAction
+                        {
+                            wallet = result.wallet,
+                            name = result.result.name,
+                            denomination = result.result.Denomination,
+                            redemptionCode = result.result.Redemption
                         };
                     })
                     .Catch<object, Exception>(e =>

@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Accounts;
+using Lyra.Core.Blocks;
 using LyraWallet.States.Holding;
 using LyraWallet.States.Shop;
 using System;
@@ -13,8 +14,10 @@ namespace LyraWallet.States
         public Wallet wallet { get; set; }
         public List<string> txs { get; set; }
 
+        public string LastTransactionName { get; set; }
         public string ErrorMessage { get; set; }
 
+        public NonFungibleToken NonFungible { get; set; }
         public Dictionary<string, decimal> Balances { get; set; }
         public HoldingState walletState {get; set;}
 

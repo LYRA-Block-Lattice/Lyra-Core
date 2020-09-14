@@ -17,19 +17,34 @@ namespace LyraWallet.States
                 {
                     On<WalletOpenResultAction, RootState>(
                         (state, action) => {
+                            var lb = action.wallet?.GetLatestBlock();
                             return state.With(new {
                                 wallet = action.wallet,
-                                Balances = action.wallet?.GetLatestBlock()?.Balances?.ToDictionary(k => k.Key, k => (decimal)(k.Value / LyraGlobal.TOKENSTORAGERITO)),
+                                NonFungible = lb?.NonFungibleToken,
+                                Balances = lb?.Balances?.ToDictionary(k => k.Key, k => (decimal)(k.Value / LyraGlobal.TOKENSTORAGERITO)),
                                 IsOpening = true
                             });
                         }
                     ),
                     On<WalletTransactionResultAction, RootState>(
                         (state, action) => {
+                            var lb = action.wallet?.GetLatestBlock();
                             return state.With(new {
                                 wallet = action.wallet,
-                                Balances = action.wallet?.GetLatestBlock()?.Balances?.ToDictionary(k => k.Key, k => (decimal)(k.Value / LyraGlobal.TOKENSTORAGERITO)),
-                                IsOpening = true
+                                NonFungible = lb?.NonFungibleToken,
+                                Balances = lb?.Balances?.ToDictionary(k => k.Key, k => (decimal)(k.Value / LyraGlobal.TOKENSTORAGERITO)),
+                                IsOpening = true,
+                                LastTransactionName = action.txName,
+                                ErrorMessage = action.txResult.ResultCode.ToString()
+                            });
+                        }
+                    ),
+                    On<WalletNonFungibleTokenResultAction, RootState>(
+                        (state, action) => {
+                            var lb = action.wallet?.GetLatestBlock();
+                            return state.With(new {
+                                LastTransactionName = "Redemption Code",
+                                ErrorMessage = $"{action.name} Discount: {action.denomination.ToString("C")} Redemption Code: {action.redemptionCode}"
                             });
                         }
                     ),

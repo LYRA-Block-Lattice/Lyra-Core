@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LyraWallet.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,13 @@ namespace LyraWallet.Views
         public RedeemPage()
         {
             InitializeComponent();
+
+            App.Store.Select(state => state.Balances)
+                .Subscribe(w =>
+                {
+                    var vm = BindingContext as RedeemViewModel;
+                    vm.TokensToRedeem = w.Keys.ToList();
+                });
         }
     }
 }
