@@ -15,8 +15,6 @@ namespace LyraWallet.ViewModels
 {
 	public class WalletInfoViewModel : BaseViewModel
     {
-        private Page _thePage;
-
         public string PrivateKey { get; set; }
         public string AccountID { get; set; }
         public string CurrentNetwork { get; set; }
@@ -31,10 +29,8 @@ namespace LyraWallet.ViewModels
         public ICommand VisitCommunityCommand { get;  }
         
 
-        public WalletInfoViewModel (Page page)
+        public WalletInfoViewModel ()
 		{
-            _thePage = page;
-
             // redux
             App.Store.Select(state => state.wallet)
                 .Subscribe(w =>
@@ -58,14 +54,14 @@ namespace LyraWallet.ViewModels
                         wallet = App.Store.State.wallet,
                         VoteFor = this.VoteFor
                     });
-                else
-                    await _thePage.DisplayAlert("Alert", "Not a valid Account ID. If unvote, leave it blank.", "OK");
+                //else
+                //    await _thePage.DisplayAlert("Alert", "Not a valid Account ID. If unvote, leave it blank.", "OK");
             });
 
             BarcodeGenCommand = new Command(async () =>
             {
                 var nextPage = new BarcodeGenPage($"lyra://localhost/payme?AccountID={AccountID}", AccountID);
-                await _thePage.Navigation.PushAsync(nextPage);
+                //await _thePage.Navigation.PushAsync(nextPage);
             });
 
             VisitCommunityCommand = new Command(async () =>
@@ -78,7 +74,7 @@ namespace LyraWallet.ViewModels
             CreateTokenCommand = new Command(async () =>
             {
                 var nextPage = new CreateTokenPage();
-                await _thePage.Navigation.PushAsync(nextPage);
+                //await _thePage.Navigation.PushAsync(nextPage);
             });
             RedeemCodeCommand = new Command(() =>
             {
@@ -87,26 +83,26 @@ namespace LyraWallet.ViewModels
             ShowBlocksCommand = new Command(async () =>
             {
                 var nextPage = new BlockListPage();
-                await _thePage.Navigation.PushAsync(nextPage);
+                //await _thePage.Navigation.PushAsync(nextPage);
             });
-            RemoveAccountCommand = new Command(async () =>
-            {
-                bool answer = await _thePage.DisplayAlert("Are you sure?", "If you not backup private key properly, all Tokens will be lost after account removing. Confirm removing the account?", "Yes", "No");
-                if(answer)
-                {
-                    App.Store.Dispatch(new WalletRemoveAction
-                    {
-                        path = DependencyService.Get<IPlatformSvc>().GetStoragePath(),
-                        name = "default"
-                    });
+            //RemoveAccountCommand = new Command(async () =>
+            //{
+            //    bool answer = await _thePage.DisplayAlert("Are you sure?", "If you not backup private key properly, all Tokens will be lost after account removing. Confirm removing the account?", "Yes", "No");
+            //    if(answer)
+            //    {
+            //        App.Store.Dispatch(new WalletRemoveAction
+            //        {
+            //            path = DependencyService.Get<IPlatformSvc>().GetStoragePath(),
+            //            name = "default"
+            //        });
 
-                    await Shell.Current.GoToAsync("NetworkSelectionPage");
-                }
-                else
-                {
+            //        await Shell.Current.GoToAsync("NetworkSelectionPage");
+            //    }
+            //    else
+            //    {
 
-                }
-            });
+            //    }
+            //});
         }
     }
 }

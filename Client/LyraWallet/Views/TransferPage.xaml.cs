@@ -20,7 +20,7 @@ namespace LyraWallet.Views
 			InitializeComponent ();
 
             //lblTokenName.Text = tokenName;
-            var trans = new TransferViewModel(this);
+            var trans = new TransferViewModel();
             trans.SelectedTokenName = tokenName;
             trans.TargetAccount = accountID;
             trans.Amount = amount.ToString();

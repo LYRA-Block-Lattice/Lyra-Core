@@ -57,10 +57,8 @@ namespace LyraWallet.ViewModels
 
         public ICommand CreateTokenCommand { get; }
 
-        private Page _thePage;
-        public CreateTokenViewModel(Page page)
+        public CreateTokenViewModel()
         {
-            _thePage = page;
             CreateTokenCommand = new Command(async () =>
             {
                 try
@@ -83,7 +81,7 @@ namespace LyraWallet.ViewModels
                 }
                 catch (Exception x)
                 {
-                    await _thePage.DisplayAlert("Error", x.Message, "OK");
+                    //await _thePage.DisplayAlert("Error", x.Message, "OK");
                 }
             });
         }

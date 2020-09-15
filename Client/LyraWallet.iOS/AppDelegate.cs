@@ -28,7 +28,7 @@ namespace LyraWallet.iOS
             global::Xamarin.Forms.Forms.Init();
             global::Xamarin.Forms.FormsMaterial.Init();
 
-            Startup.Init(ConfigureServices);
+            //Startup.Init(ConfigureServices);
 
             LoadApplication(new App());
 

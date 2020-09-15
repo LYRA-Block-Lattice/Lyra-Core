@@ -37,7 +37,7 @@ namespace LyraWallet.ViewModels
             }
             catch (Exception ex)
             {
-                await _thePage.DisplayAlert("Error", ex.Message, "OK");
+                //await _thePage.DisplayAlert("Error", ex.Message, "OK");
             }
             finally
             {
@@ -69,10 +69,8 @@ namespace LyraWallet.ViewModels
 
         public ICommand RefreshCommand { get; }
 
-        private Page _thePage;
-        public BlockListViewModel(Page page)
+        public BlockListViewModel()
         {
-            _thePage = page;
             Title = "Browse";
             Items = new ObservableCollection<BlockInfo>();
             LoadItemsCommand = new Command(async () => await ExecuteLoadItemsCommand());

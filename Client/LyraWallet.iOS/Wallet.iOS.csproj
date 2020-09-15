@@ -216,4 +216,13 @@
   <ItemGroup>
     <BundleResource Include="Resources\cart.png" />
   </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\LyraVector.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\lyralogosmall.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="Resources\lyraiconround.png" />
+  </ItemGroup>
 </Project>

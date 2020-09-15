@@ -13,11 +13,9 @@ namespace LyraWallet.ViewModels
 {
 	public class CreateAccountViewModel : BaseViewModel
     {
-        private Page _thePage;
-		public CreateAccountViewModel (Page page)
+		public CreateAccountViewModel ()
 		{
             PrivateKey = "";
-            _thePage = page;
 		}
 
         private string privateKey;
@@ -52,7 +50,7 @@ namespace LyraWallet.ViewModels
                 }
                 catch(Exception ex)
                 {
-                    await _thePage.DisplayAlert("Error", ex.Message, "OK");
+                    //await _thePage.DisplayAlert("Error", ex.Message, "OK");
                 }
             });
         }
@@ -65,7 +63,7 @@ namespace LyraWallet.ViewModels
                 {
                     if(string.IsNullOrWhiteSpace(PrivateKey))
                     {
-                        await _thePage.DisplayAlert("Error", "No private key specified.", "OK");
+                        //await _thePage.DisplayAlert("Error", "No private key specified.", "OK");
                         return;
                     }
                     App.Store.Dispatch(new WalletRestoreAction
@@ -81,7 +79,7 @@ namespace LyraWallet.ViewModels
                 }
                 catch(Exception ex)
                 {
-                    await _thePage.DisplayAlert("Error", ex.Message, "OK");
+                    //await _thePage.DisplayAlert("Error", ex.Message, "OK");
                 }
             });
         }

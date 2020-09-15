@@ -26,7 +26,7 @@ namespace LyraWallet.Views
 		{
             InitializeComponent ();
 
-            var viewModel = new CreateAccountViewModel(this);
+            var viewModel = new CreateAccountViewModel();
             BindingContext = viewModel;
         }
     }

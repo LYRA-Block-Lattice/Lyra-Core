@@ -17,7 +17,7 @@ namespace LyraWallet.Views
 		public WalletInfoPage ()
 		{
 			InitializeComponent ();
-            var vm = new WalletInfoViewModel(this);
+            var vm = new WalletInfoViewModel();
             BindingContext = vm;
 
             // Your label tap event

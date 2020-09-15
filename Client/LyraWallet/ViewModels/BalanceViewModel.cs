@@ -18,8 +18,6 @@ namespace LyraWallet.ViewModels
 {
     public class BalanceViewModel : BaseViewModel
     {
-        private Page _thePage;
-
         private Dictionary<string, Decimal> _balances;
         public Dictionary<string, Decimal> Balances
         {
@@ -55,9 +53,8 @@ namespace LyraWallet.ViewModels
             }
         }
 
-        public BalanceViewModel(Page page)
+        public BalanceViewModel()
         {
-            _thePage = page;
             //App.Container.PropertyChanged += (o, e) => OnPropertyChanged(e.PropertyName);
             //App.Container.OnBalanceChanged += async (act, cat, info) => await Refresh();
 
@@ -72,73 +69,7 @@ namespace LyraWallet.ViewModels
                 });
             });
 
-            ScanCommand = new Command(async () => {
-                ZXingScannerPage scanPage = new ZXingScannerPage();
-                scanPage.OnScanResult += (result) =>
-                {
-                    scanPage.IsScanning = false;
-                    ZXing.BarcodeFormat barcodeFormat = result.BarcodeFormat;
-                    string type = barcodeFormat.ToString();
-                    Device.BeginInvokeOnMainThread(async () =>
-                    {
-                        await _thePage.Navigation.PopAsync();
-                        // pay to result.Text
-                        try
-                        {
-                            if (string.IsNullOrWhiteSpace(result.Text))
-                                throw new Exception("Scan QR Code failed.");
 
-                            var lyraUri = new LyraUri(result.Text);
-
-                            var msg = "";
-                            if (lyraUri.Method.Equals("/cart/checkout"))
-                            {
-                                Decimal total = 0;
-                                // check parameters is exists
-                                if (string.IsNullOrWhiteSpace(lyraUri.Token)
-                                    || string.IsNullOrWhiteSpace(lyraUri.AccountID)
-                                    || string.IsNullOrWhiteSpace(lyraUri.Total)
-                                    || !Decimal.TryParse(lyraUri.Total, out total))
-                                    throw new Exception("Unknown QR Code: " + result.Text);
-
-                                msg = $"Store {lyraUri.Shop} Checkout, Total to Pay:\n";
-                                msg += $"{total} {lyraUri.Token}";
-                                var isOK = await _thePage.DisplayAlert("Alert", msg, "Confirm", "Canel");
-                                if (isOK)
-                                {
-                                    var sta = new WalletSendTokenAction
-                                    {
-                                        DstAddr = lyraUri.AccountID,
-                                        Amount = total,
-                                        TokenName = lyraUri.Token,
-                                        wallet = App.Store.State.wallet
-                                    };
-                                    App.Store.Dispatch(sta);
-                                    
-                                    //await _thePage.DisplayAlert("Info", "Success!", "OK");
-                                }
-                                return;
-                            }
-                            else if (lyraUri.PathAndQuery.StartsWith("/payme"))
-                            {
-                                var transPage = new TransferPage(LyraGlobal.OFFICIALTICKERCODE,
-                                    lyraUri.AccountID);
-                                await _thePage.Navigation.PushAsync(transPage);
-                                return;
-                            }
-                            else
-                            {
-                                await _thePage.DisplayAlert("Alert", "Unknown QR Code", "OK");
-                            }
-                        }
-                        catch(Exception ex)
-                        {
-                            await _thePage.DisplayAlert("Alert", $"Unable to pay: {ex.Message}\n\nQR Code:\n{result.Text}", "OK");
-                        }
-                    });
-                };
-                await _thePage.Navigation.PushAsync(scanPage);
-            });
         }
 
         public async Task Open()

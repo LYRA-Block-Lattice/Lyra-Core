@@ -5,7 +5,9 @@
              Title="{Binding Title}"
              Visual="Material"
              x:Class="LyraWallet.Views.BalancePage">
-
+    <ContentPage.BindingContext>
+        <vm:BalanceViewModel />
+    </ContentPage.BindingContext>
     <ContentPage.ToolbarItems>
         <!--<ToolbarItem Text="Import ssss" Order="Primary" x:Name="tbEdit" Clicked="EditProduct_Clicked">
             <ToolbarItem.IconImageSource>
@@ -15,7 +17,7 @@
                     FontFamily="{StaticResource MaterialFontFamily}" />
             </ToolbarItem.IconImageSource>
         </ToolbarItem>-->
-        <ToolbarItem Text="Scan to Pay" Order="Secondary" Priority="0" Command="{Binding ScanCommand}">
+        <ToolbarItem Text="Scan to Pay" Order="Secondary" Priority="0" Clicked="ScanToPay_Clicked">
             <ToolbarItem.IconImageSource>
                 <FontImageSource
                     Glyph="{StaticResource IconQRCodeScan}"

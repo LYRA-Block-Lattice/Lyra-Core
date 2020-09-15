@@ -16,7 +16,7 @@ namespace LyraWallet.Views
 		public CreateTokenPage ()
 		{
 			InitializeComponent ();
-            BindingContext = new CreateTokenViewModel(this);
+            BindingContext = new CreateTokenViewModel();
 		}
 	}
 }

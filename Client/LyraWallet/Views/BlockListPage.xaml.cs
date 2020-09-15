@@ -16,7 +16,7 @@ namespace LyraWallet.Views
 		public BlockListPage ()
 		{
 			InitializeComponent ();
-            BindingContext = new BlockListViewModel(this);
+            BindingContext = new BlockListViewModel();
 		}
 	}
 }

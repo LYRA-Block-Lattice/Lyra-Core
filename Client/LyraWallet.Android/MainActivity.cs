@@ -26,7 +26,7 @@ namespace LyraWallet.Droid
 
             ZXing.Net.Mobile.Forms.Android.Platform.Init();
 
-            Startup.Init(ConfigureServices);
+            //Startup.Init(ConfigureServices);
 
             LoadApplication(new App());
         }
