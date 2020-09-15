@@ -17,7 +17,6 @@ namespace LyraWallet.Views
 		{
 			InitializeComponent ();
 
-            BindingContext = new BarcodeGenViewModel(txtToGen);
             txtAddress.Text = txtToShow;
             BarcodeImageView.BarcodeValue = txtToGen;
             BarcodeImageView.IsVisible = false;
