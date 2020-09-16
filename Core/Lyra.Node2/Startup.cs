@@ -15,6 +15,7 @@ using System.IO;
 using Lyra.Node2.Services;
 using Lyra.Shared;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Lyra.Node2
 {
@@ -73,6 +74,12 @@ namespace Lyra.Node2
             loggerFactory.AddFile(logPath + "noded-{Date}.txt");
 
             SimpleLogger.Factory = loggerFactory;
+
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto
+            });
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();

@@ -11,7 +11,9 @@ using Lyra.Core.Decentralize;
 using Lyra.Core.Exchange;
 using Lyra.Exchange;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace LyraLexWeb2
 {
@@ -23,10 +25,15 @@ namespace LyraLexWeb2
         INodeAPI _node;
         INodeTransactionAPI _trans;
         DealEngine _dex;
-        public NodeController(INodeAPI node,
+
+        ILogger _log;
+        public NodeController(
+            ILogger<NodeController> logger,
+            INodeAPI node,
             INodeTransactionAPI trans
             )
         {
+            _log = logger;
             _node = node;
             _trans = trans;
             _dex = NodeService.Dealer;
@@ -34,6 +41,9 @@ namespace LyraLexWeb2
         }
         private bool CheckServiceStatus()
         {
+            var clientIp = Request.HttpContext.Connection.RemoteIpAddress;
+            _log.LogInformation($"WebAPI {DateTime.UtcNow} {clientIp} {Request.Method} {Request.GetDisplayUrl()} {Request.ContentLength}");
+
             if (NodeService.Dag == null)
                 return false;
 
