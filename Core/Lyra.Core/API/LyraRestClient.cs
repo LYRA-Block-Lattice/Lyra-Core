@@ -348,7 +348,17 @@ namespace Lyra.Core.API
 
         public async Task<MultiBlockAPIResult> GetBlockByTimeRange(DateTime startTime, DateTime endTime)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByTimeRange/?startTime={startTime}&endTime={endTime}");
+            return await GetBlocksByTimeRange(startTime.Ticks, endTime.Ticks);
+        }
+
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        {
+            return await GetBlockHashesByTimeRange(startTime.Ticks, endTime.Ticks);
+        }
+
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockByTimeRange/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
@@ -358,9 +368,9 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockHashesByTimeRange/?startTime={startTime}&endTime={endTime}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockHashesByTimeRange/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
