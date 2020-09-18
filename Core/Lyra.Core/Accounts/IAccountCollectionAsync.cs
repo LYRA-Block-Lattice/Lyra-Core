@@ -31,7 +31,7 @@ namespace Lyra.Core.Accounts
         Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId);
         Task<SendTransferBlock> FindUnsettledSendBlockByDestinationAccountIdAsync(string AccountId);
         Task<List<Block>> GetImportedAccountBlocksAsync(string AccountId);
-        Task<IEnumerable<ServiceBlock>> FindUnsettledFeeBlockAsync(string AuthorizerAccountId);
+        Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId);
 
         // for service blocks
         Task<ServiceBlock> GetServiceGenesisBlock();

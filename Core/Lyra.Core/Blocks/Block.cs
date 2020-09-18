@@ -6,6 +6,7 @@ using Lyra.Core.Cryptography;
 using Lyra.Core.Decentralize;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Options;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
@@ -32,6 +33,8 @@ namespace Lyra.Core.Blocks
         /// Custom metadata in key/value format.
         /// </summary>
         // TO DO there should be additional fee for using Tags based on size in bytes.
+        [BsonElement("Dictionary")]
+        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, string> Tags { get; set; }
 
         public virtual BlockTypes GetBlockType() { return BlockTypes.Null; }
@@ -341,6 +344,8 @@ namespace Lyra.Core.Blocks
         InvalidConsolidationBlockContinuty,
         InvalidConsolidationBlockCount,
         InvalidConsolidationBlockHashes,
+
+        InvalidSyncFeeBlock,
         
 
 

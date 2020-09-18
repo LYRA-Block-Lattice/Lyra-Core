@@ -5,6 +5,7 @@ using Lyra.Core.API;
 using Lyra.Core.Decentralize;
 using Lyra.Shared;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Options;
 using Neo;
 using Newtonsoft.Json;
 
@@ -27,8 +28,10 @@ namespace Lyra.Core.Blocks
     {
         public string Leader { get; set; }
         //public Dictionary<string, NodeInfo> Authorizers { get; set; }
-        
+
         // accountID, authorizerSignature (sign against lastServiceblock. if null, seed0's address)
+        [BsonElement("Dictionary")]
+        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, string> Authorizers { get; set; }
         //public List<NodeInfo> Candidates { get; set; }
 

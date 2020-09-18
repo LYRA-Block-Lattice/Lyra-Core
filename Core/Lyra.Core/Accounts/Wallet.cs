@@ -242,75 +242,70 @@ namespace Lyra.Core.Accounts
             while (true)
             {
                 var fbsResult = await _rpcClient.LookForNewFees(AccountId, SignAPICallAsync());
-                if (fbsResult.ResultCode != APIResultCodes.Success || !fbsResult.pendingFeeBlocks.Any())
+                if (fbsResult.ResultCode != APIResultCodes.Success || fbsResult.pendingFees == null)
                     return fbsResult.ResultCode;
 
-                foreach (var sb in fbsResult.pendingFeeBlocks)
+                var feesEndSbResult = await _rpcClient.GetServiceBlockByIndex("ServiceBlock", fbsResult.pendingFees.ServiceBlockEndHeight);
+                if (feesEndSbResult.ResultCode != APIResultCodes.Success)
+                    return feesEndSbResult.ResultCode;
+
+                var feesEndSb = feesEndSbResult.GetBlock() as ServiceBlock;
+
+                TransactionBlock latestBlock = GetLatestBlock();
+                var receiveBlock = new ReceiveAuthorizerFeeBlock
                 {
-                    var receiveBlock = new ReceiveAuthorizerFeeBlock
-                    {
-                        AccountID = AccountId,
-                        VoteFor = VoteFor,
-                        ServiceHash = await getLastServiceBlockHashAsync(),
-                        SourceHash = sb.Hash,
-                        ServiceBlockHeight = sb.Height,
-                        Balances = new Dictionary<string, long>(),
-                        Fee = 0,
-                        FeeType = AuthorizationFeeTypes.NoFee,
-                        NonFungibleToken = null
-                    };
+                    AccountID = AccountId,
+                    VoteFor = VoteFor,
+                    ServiceHash = await getLastServiceBlockHashAsync(),
+                    SourceHash = feesEndSb.Hash,
+                    ServiceBlockStartHeight = fbsResult.pendingFees.ServiceBlockStartHeight,
+                    ServiceBlockEndHeight = fbsResult.pendingFees.ServiceBlockEndHeight,
+                    Balances = latestBlock.Balances,
+                    Fee = 0,
+                    FeeType = AuthorizationFeeTypes.NoFee,
+                    NonFungibleToken = null
+                };
 
-                    TransactionBlock latestBlock = GetLatestBlock();
-                    var prevSb = (await _rpcClient.GetBlockByHash(AccountId, sb.PreviousHash, SignAPICallAsync())).GetBlock() as ServiceBlock;
-                    if (latestBlock != null)
-                    {
-                        if (latestBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                            receiveBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] + sb.FeesGenerated / prevSb.Authorizers.Count;
-                        else
-                            receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, sb.FeesGenerated / sb.Authorizers.Count);
-
-                        // transfer unchanged token balances from the previous block
-                        foreach (var balance in latestBlock.Balances)
-                            if (!(receiveBlock.Balances.ContainsKey(balance.Key)))
-                                receiveBlock.Balances.Add(balance.Key, balance.Value);
-                    }
-                    else
-                    {
-                        receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, sb.FeesGenerated / sb.Authorizers.Count);
-                    }
-
-                    receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
-
-                    if (!receiveBlock.ValidateTransaction(latestBlock))
-                        throw new ApplicationException("ValidateTransaction failed");
-
-                    //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
-
-                    var result = await _rpcClient.ReceiveFee(receiveBlock);
-
-                    if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
-                    {
-                        Console.WriteLine($"BlockSignatureValidationFailed");
-                        Console.WriteLine("Error Message: ");
-                        Console.WriteLine(result.ResultMessage);
-                        Console.WriteLine("Local Block: ");
-                        Console.WriteLine(receiveBlock.Print());
-                    }
-                    else if (result.ResultCode != APIResultCodes.Success)
-                    {
-                        Console.WriteLine($"Failed to authorize receive fee block with error code: {result.ResultCode}");
-                        Console.WriteLine("Error Message: " + result.ResultMessage);
-                    }
-                    else
-                    {
-                        _lastTransactionBlock = receiveBlock;
-
-                        Console.WriteLine($"Receive fee block has been authorized successfully");
-                        Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
-                    }
-                    Console.Write(string.Format("{0}> ", AccountName));
-                    return result.ResultCode;
+                if(receiveBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                {
+                    receiveBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] += fbsResult.pendingFees.TotalFees.ToBalanceLong();
                 }
+                else
+                {
+                    receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fbsResult.pendingFees.TotalFees.ToBalanceLong());
+                }
+
+                receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
+
+                if (!receiveBlock.ValidateTransaction(latestBlock))
+                    throw new ApplicationException("ValidateTransaction failed");
+
+                //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
+
+                var result = await _rpcClient.ReceiveFee(receiveBlock);
+
+                if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
+                {
+                    Console.WriteLine($"BlockSignatureValidationFailed");
+                    Console.WriteLine("Error Message: ");
+                    Console.WriteLine(result.ResultMessage);
+                    Console.WriteLine("Local Block: ");
+                    Console.WriteLine(receiveBlock.Print());
+                }
+                else if (result.ResultCode != APIResultCodes.Success)
+                {
+                    Console.WriteLine($"Failed to authorize receive fee block with error code: {result.ResultCode}");
+                    Console.WriteLine("Error Message: " + result.ResultMessage);
+                }
+                else
+                {
+                    _lastTransactionBlock = receiveBlock;
+
+                    Console.WriteLine($"Receive fee block has been authorized successfully");
+                    Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
+                }
+                Console.Write(string.Format("{0}> ", AccountName));
+                return result.ResultCode;
             }
         }
 

@@ -62,11 +62,39 @@ namespace Lyra.Core.Authorizers
             //if (duplicate_block != null)
             //    return APIResultCodes.DuplicateReceiveBlock;
 
-            // verify double fee
+            /* 
+             *      AccountID = AccountId,
+                    VoteFor = VoteFor,
+                    ServiceHash = await getLastServiceBlockHashAsync(),
+                    SourceHash = feesEndSb.Hash,
+                    ServiceBlockStartHeight = fbsResult.pendingFees.ServiceBlockStartHeight,
+                    ServiceBlockEndHeight = fbsResult.pendingFees.ServiceBlockEndHeight,
+                    Balances = latestBlock.Balances,
+                    Fee = 0,
+                    FeeType = AuthorizationFeeTypes.NoFee,
+             */
+            var unSetFees = await sys.Storage.FindUnsettledFeesAsync(block.AccountID);
+            var lastSb = await sys.Storage.GetLastServiceBlockAsync();
+            var feesEndSb = await sys.Storage.FindServiceBlockByIndexAsync("ServiceBlock", unSetFees.ServiceBlockEndHeight);
 
-            // verify fee amount
-
-            return APIResultCodes.Success;
+            var oldBalance = lastBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ?
+                lastBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] : 0;
+            if (
+                block.ServiceHash == lastSb.Hash &&
+                block.SourceHash == feesEndSb.Hash &&
+                block.ServiceBlockStartHeight == unSetFees.ServiceBlockStartHeight &&
+                block.ServiceBlockEndHeight == unSetFees.ServiceBlockEndHeight &&
+                block.Fee == 0 &&
+                block.FeeType == AuthorizationFeeTypes.NoFee &&
+                block.Balances[LyraGlobal.OFFICIALTICKERCODE] == oldBalance + unSetFees.TotalFees.ToBalanceLong()
+                )
+            {
+                return APIResultCodes.Success;
+            }
+            else
+            {
+                return APIResultCodes.InvalidSyncFeeBlock;
+            }
         }
 
         //protected override Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)

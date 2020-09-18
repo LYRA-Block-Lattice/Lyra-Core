@@ -606,43 +606,85 @@ namespace Lyra.Core.Accounts
             return import_blocks;
         }
 
-        public async Task<IEnumerable<ServiceBlock>> FindUnsettledFeeBlockAsync(string AuthorizerAccountId)
+        public async Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId)
         {
             // !!! TO DO - take care of fees for imported accounts!!!!
             // get the latest feeblock
             // get all new service since the latest feeblock
-            var options = new FindOptions<Block, Block>
+            var options = new FindOptions<ReceiveAuthorizerFeeBlock, ReceiveAuthorizerFeeBlock>
             {
                 Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Height)
+                Sort = Builders<ReceiveAuthorizerFeeBlock>.Sort.Descending(o => o.Height)
             };
-            var builder = new FilterDefinitionBuilder<Block>();
-            var filterDefinition = builder.And(builder.Eq("AccountID", AuthorizerAccountId),
-                    builder.Eq("BlockType", BlockTypes.ReceiveAuthorizerFee));
+            var builder = new FilterDefinitionBuilder<ReceiveAuthorizerFeeBlock>();
+            var filterDefinition = builder.Eq("AccountID", AuthorizerAccountId);
 
             long fromHeight = 1;
-            var latestFb = await(await _blocks.FindAsync(filterDefinition, options)).FirstOrDefaultAsync();
-            if(latestFb != null)
+            var latestFb = await (await _blocks
+                .OfType<ReceiveAuthorizerFeeBlock>()
+                .FindAsync(filterDefinition, options))
+                .FirstOrDefaultAsync();
+            if (latestFb != null)
             {
-                fromHeight = (latestFb as ReceiveAuthorizerFeeBlock).ServiceBlockHeight;
+                fromHeight = latestFb.ServiceBlockEndHeight + 1;
             }
 
-            //var nodeFilter = builder.AnyIn("Authorizers", new[] { AuthorizerAccountId });
-            var nodeFilter = builder.Eq("Authorizers.AccountID", AuthorizerAccountId);
-            var heightFilter = builder.Gt("Height", fromHeight);
-            var feeFilter = builder.Gt("FeesGenerated", 21);    // make sure that every node has a minimal share
+            var endHeight = (await GetLastServiceBlockAsync()).Height;
 
-            var options2 = new FindOptions<Block, Block>
+            return await FindUnsettledFeesAsync(AuthorizerAccountId, fromHeight, endHeight);
+        }
+
+        public async Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId, long fromHeight, long endHeight)
+        {
+            var builder2 = new FilterDefinitionBuilder<ServiceBlock>();
+            //var builder3 = new FilterDefinitionBuilder<KeyValuePair<string, string>>();
+            //var nodeFilter = builder2.ElemMatch("Authorizers", builder3.Eq("k", AuthorizerAccountId));
+            var heightFilter = builder2.Gte("Height", fromHeight);
+            var heightFilter2 = builder2.Lte("Height", endHeight);
+            //            var feeFilter = builder2.Gt("FeesGenerated", LyraGlobal.MAXIMUM_AUTHORIZERS);    // make sure that every node has a minimal share
+
+            var options2 = new FindOptions<ServiceBlock, ServiceBlock>
             {
-                Limit = 100,
-                Sort = Builders<Block>.Sort.Ascending(o => o.Height)
+                Limit = 1024,
+                Sort = Builders<ServiceBlock>.Sort.Ascending(o => o.Height)
             };
 
-            var sbs = await _blocks.FindAsync(builder.And(nodeFilter, heightFilter, feeFilter), options2);
-            //if (sbs.Any())
-            return sbs.ToList().Cast<ServiceBlock>();
-            //else
-            //    return Enumerable.Empty<ServiceBlock>();
+            var sbs = await _blocks
+                .OfType<ServiceBlock>()
+                .FindAsync(builder2.And(heightFilter, heightFilter2), options2);
+
+            var sblist = sbs.ToList();
+
+            long lastSbHeight = fromHeight;
+            decimal totalFees = 0;
+
+            for (int i = 0; i < sblist.Count - 2; i++)
+            {
+                if (sblist[i].Authorizers.ContainsKey(AuthorizerAccountId))
+                {
+                    var fee = sblist[i + 1].FeesGenerated;
+                    if (fee > sblist[i].Authorizers.Count)
+                    {
+                        totalFees += fee / sblist[i].Authorizers.Count;
+                    }
+                    lastSbHeight = sblist[i].Height;
+                }
+            }
+
+            if (totalFees > 0)
+            {
+                return new UnSettledFees
+                {
+                    AccountId = AuthorizerAccountId,
+                    ServiceBlockStartHeight = fromHeight,
+                    ServiceBlockEndHeight = lastSbHeight,
+                    TotalFees = totalFees
+                };
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
@@ -1044,6 +1086,14 @@ namespace Lyra.Core.Accounts
                 UnConfirmedEarns = unconfirm.OrderByDescending(a => a.Revenue).ToList()
             };
         }
+    }
+
+    public class UnSettledFees
+    {
+        public string AccountId { get; set; }
+        public long ServiceBlockStartHeight { get; set; }
+        public long ServiceBlockEndHeight { get; set; }
+        public decimal TotalFees { get; set; }
     }
 
     public class FeeStats

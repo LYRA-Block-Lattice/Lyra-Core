@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
 using Lyra.Core.Decentralize;
@@ -233,7 +234,7 @@ namespace Lyra.Core.API
 
     public class NewFeesAPIResult : APIResult
     {
-        public IEnumerable<ServiceBlock> pendingFeeBlocks { get; set; }
+        public UnSettledFees pendingFees { get; set; }
     }
 
     public class GetListStringAPIResult : APIResult

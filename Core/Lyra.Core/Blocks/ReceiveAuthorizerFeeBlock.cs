@@ -7,16 +7,18 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class ReceiveAuthorizerFeeBlock : ReceiveTransferBlock
     {        
-        public long ServiceBlockHeight { get; set; }
+        public long ServiceBlockStartHeight { get; set; }
+        public long ServiceBlockEndHeight { get; set; }
         public string ToAccountId { get; set; }
-        public long AuthorizerFee { get; set; }
+        public decimal AuthorizerFee { get; set; }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData = extraData + AuthorizerFee + "|";
             extraData += ToAccountId + "|";
-            extraData += $"{ServiceBlockHeight}|";
+            extraData += $"{ServiceBlockStartHeight}|";
+            extraData += $"{ServiceBlockEndHeight}|";
             return extraData;
         }
 
@@ -28,9 +30,10 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
-            result += $"ServiceBlockHeight: {ServiceBlockHeight}";
-            result += $"ToAccountId: {ToAccountId}\n";
-            result += $"AuthorizerFee: {AuthorizerFee}\n";
+            result += $"ServiceBlock Start Height: {ServiceBlockStartHeight}";
+            result += $"ServiceBlock End Height: {ServiceBlockEndHeight}";
+            result += $"To AccountId: {ToAccountId}\n";
+            result += $"Authorizer Fee: {AuthorizerFee}\n";
             return result;
         }
     }

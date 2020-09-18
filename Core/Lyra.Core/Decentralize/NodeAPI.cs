@@ -726,14 +726,13 @@ namespace Lyra.Core.Decentralize
             NewFeesAPIResult fbs = new NewFeesAPIResult();
             if (!await VerifyClientAsync(AccountId, Signature))
             {
-                fbs.pendingFeeBlocks = Enumerable.Empty<ServiceBlock>();
                 fbs.ResultCode = APIResultCodes.APISignatureValidationFailed;
                 return fbs;
             }
 
             try
             {
-                fbs.pendingFeeBlocks = await NodeService.Dag.Storage.FindUnsettledFeeBlockAsync(AccountId);
+                fbs.pendingFees = await NodeService.Dag.Storage.FindUnsettledFeesAsync(AccountId);
                 fbs.ResultCode = APIResultCodes.Success;
                 return fbs;
             }

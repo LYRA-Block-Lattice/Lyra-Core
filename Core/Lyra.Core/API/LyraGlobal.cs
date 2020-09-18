@@ -18,7 +18,7 @@ namespace Lyra.Core.API
         public const int CONSENSUS_TIMEOUT = 10;  // seconds
         public const int VIEWCHANGE_TIMEOUT = 15;    // seconds
         public const int MAXIMUM_VOTER_NODES = 27;
-        public const int MAXIMUM_AUTHORIZERS = 21;
+        public const int MAXIMUM_AUTHORIZERS = 19;
         public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
 
         public const int ProtocolVersion = 4;
