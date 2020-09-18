@@ -297,7 +297,18 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var block = await NodeService.Dag.Storage.FindServiceBlockByIndexAsync(blockType, Index);
+                Block block;
+                if (blockType == "ServiceBlock")
+                    block = await NodeService.Dag.Storage.FindServiceBlockByIndexAsync(Index);
+                else if(blockType == "ConsolidationBlock")
+                {
+                    var cons = await NodeService.Dag.Storage.GetConsolidationBlocksAsync(Index, 1);
+                    block = cons.First();
+                }
+                else
+                {
+                    throw new Exception("Unsupported service block type.");
+                }
 
                 if (block != null)
                 {

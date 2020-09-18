@@ -451,19 +451,20 @@ namespace Lyra.Core.Accounts
             return block as TransactionBlock;
         }
 
-        public async Task<Block> FindServiceBlockByIndexAsync(string blockType, Int64 index)
+        public async Task<ServiceBlock> FindServiceBlockByIndexAsync(Int64 index)
         {
-            if (Enum.TryParse<BlockTypes>(blockType, out BlockTypes types))
+            var options = new FindOptions<ServiceBlock, ServiceBlock>
             {
-                var builder = new FilterDefinitionBuilder<Block>();
-                var filterDefinition = builder.And(builder.Eq("BlockType", types),
-                    builder.Eq("Height", index));
+                Limit = 1,
+            };
+            var builder = new FilterDefinitionBuilder<ServiceBlock>();
+            var filterDefinition = builder.Eq("Height", index);
 
-                var block = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
-                return block;
-            }
-            else
-                return null;
+            var result = await _blocks
+                .OfType<ServiceBlock>()
+                .FindAsync(filterDefinition, options);
+
+            return await result.FirstOrDefaultAsync();
         }
 
         private async Task<ReceiveTransferBlock> FindLastRecvBlock(string AccountId)

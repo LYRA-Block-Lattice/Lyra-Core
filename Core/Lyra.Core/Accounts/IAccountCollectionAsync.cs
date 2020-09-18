@@ -27,7 +27,7 @@ namespace Lyra.Core.Accounts
         Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId);
         Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash);
         Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index);
-        Task<Block> FindServiceBlockByIndexAsync(string blockType, Int64 index);
+        Task<ServiceBlock> FindServiceBlockByIndexAsync(Int64 index);
         Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId);
         Task<SendTransferBlock> FindUnsettledSendBlockByDestinationAccountIdAsync(string AccountId);
         Task<List<Block>> GetImportedAccountBlocksAsync(string AccountId);
