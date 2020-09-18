@@ -663,10 +663,9 @@ namespace Lyra.Core.Accounts
             {
                 if (sblist[i].Authorizers.ContainsKey(AuthorizerAccountId))
                 {
-                    var fee = sblist[i + 1].FeesGenerated;
-                    if (fee > sblist[i].Authorizers.Count)
+                    if (sblist[i + 1].FeesGenerated > sblist[i].Authorizers.Count)
                     {
-                        totalFees += fee / sblist[i].Authorizers.Count;
+                        totalFees += sblist[i + 1].FeesGenerated.ToBalanceDecimal() / sblist[i].Authorizers.Count;
                     }
                     lastSbHeight = sblist[i].Height;
                 }
