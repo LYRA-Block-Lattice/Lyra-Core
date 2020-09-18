@@ -245,7 +245,7 @@ namespace Lyra.Core.Accounts
                 if (fbsResult.ResultCode != APIResultCodes.Success || fbsResult.pendingFees == null)
                     return fbsResult.ResultCode;
 
-                var feesEndSbResult = await _rpcClient.GetServiceBlockByIndex("ServiceBlock", fbsResult.pendingFees.ServiceBlockEndHeight);
+                var feesEndSbResult = await _rpcClient.GetServiceBlockByIndex("Service", fbsResult.pendingFees.ServiceBlockEndHeight);
                 if (feesEndSbResult.ResultCode != APIResultCodes.Success)
                     return feesEndSbResult.ResultCode;
 
