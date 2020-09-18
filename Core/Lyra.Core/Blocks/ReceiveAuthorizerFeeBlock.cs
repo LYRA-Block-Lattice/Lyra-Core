@@ -30,7 +30,6 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"ServiceBlock Start Height: {ServiceBlockStartHeight}";
             result += $"ServiceBlock End Height: {ServiceBlockEndHeight}";
-            result += $"To AccountId: {ToAccountId}\n";
             result += $"Authorizer Fee: {AuthorizerFee}\n";
             return result;
         }
