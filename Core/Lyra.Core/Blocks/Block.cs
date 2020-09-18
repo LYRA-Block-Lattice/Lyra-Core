@@ -32,8 +32,6 @@ namespace Lyra.Core.Blocks
         /// <summary>
         /// Custom metadata in key/value format.
         /// </summary>
-        // TO DO there should be additional fee for using Tags based on size in bytes.
-        [BsonElement("Dictionary")]
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, string> Tags { get; set; }
 

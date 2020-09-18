@@ -32,7 +32,7 @@ namespace Lyra.Core.Accounts
         Task<SendTransferBlock> FindUnsettledSendBlockByDestinationAccountIdAsync(string AccountId);
         Task<List<Block>> GetImportedAccountBlocksAsync(string AccountId);
         Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId);
-
+        Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId, long fromHeight, long endHeight);
         // for service blocks
         Task<ServiceBlock> GetServiceGenesisBlock();
         Task<LyraTokenGenesisBlock> GetLyraTokenGenesisBlock();

@@ -30,7 +30,6 @@ namespace Lyra.Core.Blocks
         //public Dictionary<string, NodeInfo> Authorizers { get; set; }
 
         // accountID, authorizerSignature (sign against lastServiceblock. if null, seed0's address)
-        [BsonElement("Dictionary")]
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, string> Authorizers { get; set; }
         //public List<NodeInfo> Candidates { get; set; }
