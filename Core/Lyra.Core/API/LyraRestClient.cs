@@ -358,7 +358,7 @@ namespace Lyra.Core.API
 
         public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByTimeRange/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
@@ -370,7 +370,7 @@ namespace Lyra.Core.API
 
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockHashesByTimeRange/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockHashesByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
