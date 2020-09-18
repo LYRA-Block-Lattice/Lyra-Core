@@ -298,9 +298,9 @@ namespace Lyra.Core.Decentralize
             try
             {
                 Block block;
-                if (blockType == "ServiceBlock")
+                if (blockType == "Service")
                     block = await NodeService.Dag.Storage.FindServiceBlockByIndexAsync(Index);
-                else if(blockType == "ConsolidationBlock")
+                else if(blockType == "Consolidation")
                 {
                     var cons = await NodeService.Dag.Storage.GetConsolidationBlocksAsync(Index, 1);
                     block = cons.First();
