@@ -260,13 +260,14 @@ namespace Lyra.Core.Accounts
                     SourceHash = feesEndSb.Hash,
                     ServiceBlockStartHeight = fbsResult.pendingFees.ServiceBlockStartHeight,
                     ServiceBlockEndHeight = fbsResult.pendingFees.ServiceBlockEndHeight,
-                    Balances = latestBlock.Balances,
+                    Balances = latestBlock.Balances.ToDictionary(entry => entry.Key,
+                                               entry => entry.Value),
                     Fee = 0,
                     FeeType = AuthorizationFeeTypes.NoFee,
                     NonFungibleToken = null
                 };
 
-                if(receiveBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                if (latestBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 {
                     receiveBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] += fbsResult.pendingFees.TotalFees.ToBalanceLong();
                 }

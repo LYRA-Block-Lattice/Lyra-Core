@@ -71,6 +71,7 @@ namespace Lyra.Core.Blocks
             extraData += BalanceToString() + "|";
             extraData += JsonConvert.SerializeObject(Fee) + "|";//Fee.ToString("0.############");
             extraData += FeeCode + "|";
+            extraData += ServiceHash + "|";
             extraData += FeeType.ToString() + "|";
             extraData += GetHashInputFromNonFungibleToken() + "|";
             extraData += VoteFor + "|";
