@@ -38,8 +38,7 @@ namespace Lyra.Core.Decentralize
             {
                 if(_client == null)
                 {
-                    _client = await FindValidSeedForSyncAsync(_sys);
-                    _syncInfo = await _client.GetSyncHeight();
+                    _client = await FindValidSeedForSyncAsync(_sys);                    
                 }
                     
                 return Signatures.GetSignature(_sys.PosWallet.PrivateKey, _syncInfo.SyncHash, _sys.PosWallet.AccountId);
@@ -263,6 +262,7 @@ namespace Lyra.Core.Decentralize
                     var mode = await client.GetSyncState();
                     if (mode.ResultCode == APIResultCodes.Success)
                     {
+                        _syncInfo = await _client.GetSyncHeight();
                         return client;
                     }
                     await Task.Delay(10000);    // incase of hammer
@@ -279,6 +279,7 @@ namespace Lyra.Core.Decentralize
                     var mode = await client.GetSyncState();
                     if (mode.ResultCode == APIResultCodes.Success)
                     {
+                        _syncInfo = await _client.GetSyncHeight();
                         return client;
                     }
                     await Task.Delay(10000);    // incase of hammer
