@@ -196,8 +196,8 @@ namespace Lyra.Core.Decentralize
 
                 var remoteState = await client.GetSyncState();
                 var localState = await GetNodeStatusAsync();
-                if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash &&
-                    remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash)
+                if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash 
+                    /*&& remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash*/)
                     break;
                 else
                 {

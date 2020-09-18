@@ -43,7 +43,7 @@
     <div>
         <p>Your wallet's private key is: @walletState.Value.wallet.PrivateKey</p>
         <p>Your wallet's address is: <a href="/showblock/@walletState.Value.wallet.AccountId">@walletState.Value.wallet.AccountId</a></p>
-        <p>Your wallet's balance is: @walletState.Value.wallet.GetDisplayBalancesAsync()</p>
+        <p>Your wallet's balance is: @walletState.Value.balanceString</p>
         <p>Your are now voting for: @walletState.Value.wallet.VoteFor</p>
     </div>
     <div>

@@ -19,11 +19,20 @@ namespace Nebula.Store.WebWalletUseCase
 		public static WebWalletState CancelSendAction(WebWalletState state, WebWalletCancelSendAction action) => state.With(new { stage = UIStage.Main });
 
 		[ReducerMethod]
-		public static WebWalletState ReduceFetchDataResultAction(WebWalletState state, WebWalletResultAction action) => state.With(new { 
-			stage = action.stage,
-			IsOpening = action.IsOpening,
-			wallet = action.wallet
-		});
+		public static WebWalletState ReduceFetchDataResultAction(WebWalletState state, WebWalletResultAction action)
+        {
+			var bs = "<empty>";
+			var bst = action.wallet.GetDisplayBalancesAsync().ContinueWith(a => bs = a.Result);
+			bst.Wait();
+
+			return state.With(new
+			{
+				stage = action.stage,
+				IsOpening = action.IsOpening,
+				wallet = action.wallet,
+				balanceString = bs 
+			});
+		}			
 
 		[ReducerMethod]
 		public static WebWalletState ReduceOpenSettingsAction(WebWalletState state, WebWalletSettingsAction action) => state.With(new { stage = UIStage.Settings });
