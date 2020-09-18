@@ -164,10 +164,12 @@ namespace Lyra.Core.Decentralize
         {
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
-            LyraClientForNode client = await GetOptimizedSyncClientAsync();
             while (true)
             {
                 _log.LogInformation("Engaging Sync...");
+
+                LyraClientForNode client = await GetOptimizedSyncClientAsync();
+
                 var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
                 var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                 if (myLastCons == null || myLastCons.Height < lastConsOfSeed.GetBlock().Height)
@@ -197,7 +199,7 @@ namespace Lyra.Core.Decentralize
                 var remoteState = await client.GetSyncState();
                 var localState = await GetNodeStatusAsync();
                 if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash 
-                    /*&& remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash*/)
+                    && remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash)
                     break;
                 else
                 {
@@ -206,7 +208,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 _log.LogInformation("Engaging Sync partial success. continue...");
-                await Task.Delay(1000);
+                await Task.Delay(5000);
             }
         }
 
