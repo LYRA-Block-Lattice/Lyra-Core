@@ -235,18 +235,18 @@ namespace LyraLexWeb2
         }
 
         // this api generate too much data so add some limit later
-        [Route("GetBlocksByTimeRange")]
+        [Route("GetBlocksByTimeRange2")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange2(long startTimeTicks, long endTimeTicks)
         {
             if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetBlocksByTimeRange(startTimeTicks, endTimeTicks);
         }
 
         // this api generate too much data so add some limit later
-        [Route("GetBlockHashesByTimeRange")]
+        [Route("GetBlockHashesByTimeRange2")]
         [HttpGet]
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange2(long startTimeTicks, long endTimeTicks)
         {
             if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return await _node.GetBlockHashesByTimeRange(startTimeTicks, endTimeTicks);
