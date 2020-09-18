@@ -18,6 +18,7 @@ namespace Lyra.Core.Decentralize
     {
         DagSystem _sys;
         private LyraRestClient _client;
+        private AccountHeightAPIResult _syncInfo;
         private List<KeyValuePair<string, string>> _validNodes;
 
         public LyraClientForNode(DagSystem sys)
@@ -36,10 +37,12 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if(_client == null)
+                {
                     _client = await FindValidSeedForSyncAsync(_sys);
-
-                var syncInfo = await _client.GetSyncHeight();
-                return Signatures.GetSignature(_sys.PosWallet.PrivateKey, syncInfo.SyncHash, _sys.PosWallet.AccountId);
+                    _syncInfo = await _client.GetSyncHeight();
+                }
+                    
+                return Signatures.GetSignature(_sys.PosWallet.PrivateKey, _syncInfo.SyncHash, _sys.PosWallet.AccountId);
             }
             catch(Exception ex)
             {
