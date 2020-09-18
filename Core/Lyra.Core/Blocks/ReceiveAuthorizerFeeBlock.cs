@@ -9,14 +9,12 @@ namespace Lyra.Core.Blocks
     {        
         public long ServiceBlockStartHeight { get; set; }
         public long ServiceBlockEndHeight { get; set; }
-        public string ToAccountId { get; set; }
         public decimal AuthorizerFee { get; set; }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData = extraData + AuthorizerFee + "|";
-            extraData += ToAccountId + "|";
+            extraData += AuthorizerFee.ToString("0.########") + "|";
             extraData += $"{ServiceBlockStartHeight}|";
             extraData += $"{ServiceBlockEndHeight}|";
             return extraData;
