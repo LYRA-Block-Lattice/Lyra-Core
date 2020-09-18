@@ -262,7 +262,7 @@ namespace Lyra.Core.Decentralize
                     var mode = await client.GetSyncState();
                     if (mode.ResultCode == APIResultCodes.Success)
                     {
-                        _syncInfo = await _client.GetSyncHeight();
+                        _syncInfo = await client.GetSyncHeight();
                         return client;
                     }
                     await Task.Delay(10000);    // incase of hammer
@@ -279,7 +279,7 @@ namespace Lyra.Core.Decentralize
                     var mode = await client.GetSyncState();
                     if (mode.ResultCode == APIResultCodes.Success)
                     {
-                        _syncInfo = await _client.GetSyncHeight();
+                        _syncInfo = await client.GetSyncHeight();
                         return client;
                     }
                     await Task.Delay(10000);    // incase of hammer
