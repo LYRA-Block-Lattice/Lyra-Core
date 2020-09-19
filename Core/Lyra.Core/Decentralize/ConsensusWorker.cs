@@ -250,14 +250,17 @@ namespace Lyra.Core.Decentralize
 
         protected virtual async Task AuthorizeAsync(AuthorizingMsg msg)
         {
-            var localAuthResult = await LocalAuthorizingAsync(msg);
-            State.LocalResult = localAuthResult;
-            //_log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
-            if(_state.AddAuthResult(localAuthResult))
+            if(State.LocalResult == null)
             {
-                _context.Send2P2pNetwork(localAuthResult);
-                await CheckAuthorizedAllOkAsync();
+                var localAuthResult = await LocalAuthorizingAsync(msg);
+                State.LocalResult = localAuthResult;
+                //_log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
+                if (_state.AddAuthResult(localAuthResult))
+                {
+                    _context.Send2P2pNetwork(localAuthResult);
+                }
             }
+            await CheckAuthorizedAllOkAsync();
         }
 
         private async Task CheckAuthorizedAllOkAsync()

@@ -114,7 +114,15 @@ namespace Lyra.Core.Decentralize
             }
             else if (state1 != null && state1.CommitConsensus == ConsensusResult.Nay)
             {
-                result.ResultCode = APIResultCodes.BlockFailedToBeAuthorized;
+                var mojCode = state1.OutputMsgs.GroupBy(a => a.Result)
+                    .Select(g => new { g.Key, Count = g.Count() })
+                    .OrderByDescending(x => x.Count)
+                    .FirstOrDefault();
+
+                if (mojCode == null)
+                    result.ResultCode = state1.LocalResult.Result;
+                else
+                    result.ResultCode = mojCode.Key;
             }
             else if (state1 != null && state1.CommitConsensus == ConsensusResult.Uncertain)
             {
