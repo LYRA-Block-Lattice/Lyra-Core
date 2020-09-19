@@ -109,16 +109,14 @@ namespace Lyra.Core.Decentralize
                     _log.LogError($"AuthorizedMsg from {msg.From.Shorten()} for block {InputMsg.Block.Hash.Shorten()} verification failed.");
                     return false;
                 }
-
-                // check for valid validators
-                if (!CheckSenderValid(msg.From))
-                    return false;
-
-                OutputMsgs.Add(msg);
-                return true;
             }
 
-            return false;
+            // check for valid validators
+            if (!CheckSenderValid(msg.From))
+                return false;
+
+            OutputMsgs.Add(msg);
+            return true;
         }
 
         public bool AddCommitedResult(AuthorizerCommitMsg msg)
