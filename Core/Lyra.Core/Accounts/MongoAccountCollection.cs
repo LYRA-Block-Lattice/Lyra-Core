@@ -1039,7 +1039,7 @@ namespace Lyra.Core.Accounts
                     .SortBy(x => x.Height)
                     .ToList();
 
-            decimal totalFeeConfirmed = sbs.Sum(a => a.FeesGenerated) / LyraGlobal.TOKENSTORAGERITO;
+            decimal totalFeeConfirmed = sbs.Sum(a => a.FeesGenerated.ToBalanceDecimal());
 
             var builder = Builders<TransactionBlock>.Filter;
             var projection = Builders<TransactionBlock>.Projection;
@@ -1074,7 +1074,7 @@ namespace Lyra.Core.Accounts
             var confimed = Enumerable.Empty<RevnuItem>();
             for(int i = sbs.Count - 1; i > 0; i--)
             {
-                confimed = Merge(confimed, GetRevnuFromSb(sbs[i].FeesGenerated / LyraGlobal.TOKENSTORAGERITO, sbs[i - 1]));
+                confimed = Merge(confimed, GetRevnuFromSb(sbs[i].FeesGenerated.ToBalanceDecimal(), sbs[i - 1]));
             }
 
             // unconfirmed
