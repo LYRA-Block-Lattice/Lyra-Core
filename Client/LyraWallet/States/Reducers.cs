@@ -21,7 +21,7 @@ namespace LyraWallet.States
                             return state.With(new {
                                 wallet = action.wallet,
                                 NonFungible = lb?.NonFungibleToken,
-                                Balances = lb?.Balances?.ToDictionary(k => k.Key, k => (decimal)(k.Value / LyraGlobal.TOKENSTORAGERITO)),
+                                Balances = lb?.Balances?.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal()),
                                 IsOpening = true
                             });
                         }
@@ -32,7 +32,7 @@ namespace LyraWallet.States
                             return state.With(new {
                                 wallet = action.wallet,
                                 NonFungible = lb?.NonFungibleToken,
-                                Balances = lb?.Balances?.ToDictionary(k => k.Key, k => (decimal)(k.Value / LyraGlobal.TOKENSTORAGERITO)),
+                                Balances = lb?.Balances?.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal()),
                                 IsOpening = true,
                                 LastTransactionName = action.txName,
                                 ErrorMessage = action.txResult.ResultCode.ToString()

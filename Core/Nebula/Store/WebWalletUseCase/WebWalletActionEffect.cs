@@ -108,7 +108,7 @@ namespace Nebula.Store.WebWalletUseCase
 							}
 						}
 						str += BalanceDifference(oldBalance, block.Balances);
-						str += $" Balance: {string.Join(", ", block.Balances.Select(m => $"{m.Key}: {m.Value / LyraGlobal.TOKENSTORAGERITO}"))}";
+						str += $" Balance: {string.Join(", ", block.Balances.Select(m => $"{m.Key}: {m.Value.ToBalanceDecimal()}"))}";
 							
 						txs.Add(str);
 
@@ -124,11 +124,11 @@ namespace Nebula.Store.WebWalletUseCase
         {
 			if(oldBalance == null)
             {
-				return " Amount: " + string.Join(", ", newBalance.Select(m => $"{m.Key} {m.Value / LyraGlobal.TOKENSTORAGERITO}"));
+				return " Amount: " + string.Join(", ", newBalance.Select(m => $"{m.Key} {m.Value.ToBalanceDecimal()}"));
 			}
 			else
             {
-				return " Amount: " + string.Join(", ", newBalance.Select(m => $"{m.Key} {(m.Value - (oldBalance.ContainsKey(m.Key) ? oldBalance[m.Key] : 0)) / LyraGlobal.TOKENSTORAGERITO}"));               
+				return " Amount: " + string.Join(", ", newBalance.Select(m => $"{m.Key} {(decimal)(m.Value - (oldBalance.ContainsKey(m.Key) ? oldBalance[m.Key] : 0)) / LyraGlobal.TOKENSTORAGERITO}"));               
             }
         }
 
@@ -141,7 +141,7 @@ namespace Nebula.Store.WebWalletUseCase
 			var wallet = Wallet.Open(store, name, "");
 			await wallet.Sync(client);
 
-			dispatcher.Dispatch(new WebWalletFreeTokenResultAction { faucetBalance = wallet.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE] / LyraGlobal.TOKENSTORAGERITO });
+			dispatcher.Dispatch(new WebWalletFreeTokenResultAction { faucetBalance = (decimal)wallet.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE] / LyraGlobal.TOKENSTORAGERITO });
 		}
 
 		[EffectMethod]
