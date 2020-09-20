@@ -21,7 +21,7 @@ namespace LyraWallet.Views
                 .Subscribe(w =>
                 {
                     var vm = BindingContext as RedeemViewModel;
-                    vm.TokensToRedeem = w.Keys.ToList();
+                    vm.TokensToRedeem = w?.Keys.ToList();
                 });
         }
     }

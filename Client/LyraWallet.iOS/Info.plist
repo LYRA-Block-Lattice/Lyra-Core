@@ -43,7 +43,9 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
-	<key>Fonts provided by application</key>
-	<string>materialdesignicons-webfont.ttf</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>materialdesignicons-webfont.ttf</string>
+	</array>
 </dict>
 </plist>
