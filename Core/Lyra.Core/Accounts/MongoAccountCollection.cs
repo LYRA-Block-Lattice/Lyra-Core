@@ -28,7 +28,7 @@ namespace Lyra.Core.Accounts
 
         private MongoClient _Client;
 
-        private readonly IMongoCollection<Block> _blocks;
+        private IMongoCollection<Block> _blocks;
 
         readonly string _blocksCollectionName;
 
@@ -147,7 +147,14 @@ namespace Lyra.Core.Accounts
             if (GetDatabase() == null)
                 return;
 
-            GetDatabase().DropCollection(_blocksCollectionName);
+            var db = GetDatabase();
+
+            var backupName = _blocksCollectionName + "_backup";
+            if (db.ListCollectionNames().ToList().Contains(backupName))
+                db.DropCollection(backupName);
+
+            db.RenameCollection(_blocksCollectionName, backupName);
+            _blocks = db.GetCollection<Block>(_blocksCollectionName);
         }
 
         private MongoClient GetClient()
