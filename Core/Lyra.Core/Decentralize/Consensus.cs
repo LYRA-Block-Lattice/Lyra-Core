@@ -113,12 +113,21 @@ namespace Lyra.Core.Decentralize
 
                 if (oldState.svcGenHash != seedSvcGen.GetBlock().Hash)
                     LocalDbSyncState.Remove();
+
+                if(oldState.databaseVersion < LyraGlobal.DatabaseVersion)
+                {
+                    // should upgrade database or resync completely
+                    _sys.Storage.Delete();
+                    LocalDbSyncState.Remove();
+                    localDbState = await GetNodeStatusAsync();
+                }
             }
 
             var localState = LocalDbSyncState.Load();
             if(localState.svcGenHash == null)
             {
                 localState.svcGenHash = seedSvcGen.GetBlock().Hash;
+                localState.databaseVersion = LyraGlobal.DatabaseVersion;
             }
 
             var lastCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
@@ -610,6 +619,7 @@ namespace Lyra.Core.Decentralize
 
         private class LocalDbSyncState
         {
+            public int databaseVersion { get; set; }
             public string svcGenHash { get; set; }      // make sure not mix with other dbs
             public long lastVerifiedConsHeight { get; set; }
 
