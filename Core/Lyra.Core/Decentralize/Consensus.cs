@@ -53,10 +53,25 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
-        private async Task<LyraClientForNode> GetOptimizedSyncClientAsync()
+        private async Task<LyraClientForNode> GetOptimizedSyncClientAsync(bool reQuery = false)
         {
+            var reQueryNetwork = reQuery;
             while (true)
             {
+                if(reQueryNetwork)
+                {
+                    reQueryNetwork = true;
+
+                    _log.LogInformation($"GetOptimizedSyncClientAsync Querying Lyra Network Status... ");
+
+                    _nodeStatus.Clear();
+                    var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
+                    inq.From = _sys.PosWallet.AccountId;
+                    Send2P2pNetwork(inq);
+
+                    await Task.Delay(10000);
+                }
+
                 var q = from ns in _nodeStatus
                         group ns by ns.totalBlockCount into heights
                         orderby heights.Count() descending
@@ -83,15 +98,6 @@ namespace Lyra.Core.Decentralize
                         return new LyraClientForNode(_sys, validNodeIps);
                     }
                 }
-
-                _log.LogInformation($"GetOptimizedSyncClientAsync Querying Lyra Network Status... ");
-
-                _nodeStatus.Clear();
-                var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
-                inq.From = _sys.PosWallet.AccountId;
-                Send2P2pNetwork(inq);
-
-                await Task.Delay(10000);
             }
         }
 
@@ -177,7 +183,7 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation("Engaging Sync...");
 
-                LyraClientForNode client = await GetOptimizedSyncClientAsync();
+                LyraClientForNode client = await GetOptimizedSyncClientAsync(true);
 
                 var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
                 var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
@@ -201,7 +207,8 @@ namespace Lyra.Core.Decentralize
                         if (hash == myLastCons.Hash)
                             continue;       // already synced by previous steps
                         var blockResult = await client.GetBlockByHash(hash);
-                        await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
+                        if(blockResult.ResultCode == APIResultCodes.Success)
+                            await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
                     }
                 }
 

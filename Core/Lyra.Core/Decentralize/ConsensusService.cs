@@ -1075,10 +1075,8 @@ namespace Lyra.Core.Decentralize
             {
                 // try ever node forward.
                 // monitor network traffic closely.
-                //if (IsThisNodeSeed)
-                //{
+
                 _localNode.Tell(message);     // no sign again!!!
-                //}
 
                 await localAction(message);
                 return true;
