@@ -31,10 +31,18 @@
         <tbody>
             @foreach (var nodeInfo in NodeState.Value.RankedList)
             {
-                string style = nodeInfo.ID == NodeState.Value.bb.CurrentLeader ? "background-color:lightblue" : null;
+                string style = null;
+                if(nodeInfo.ID == NodeState.Value.bb.CurrentLeader)
+                {
+                    style = "color: gold; background-color:black; font-weight: bold;";
+                }
+                else if(nodeInfo.IsPrimary)
+                {
+                    style = "background-color:lightblue; ";
+                }
 
                 <tr style=@style>
-                <td>@nodeInfo.IsPrimary</td>
+                <td>@(nodeInfo.IsPrimary ? "Yes" : "No")</td>
                 <td><a href="/showblock/@nodeInfo.ID">@nodeInfo.ID.Substring(0, 10)...</a></td>
                 <td>@NodeState.Value.bb.NodeAddresses[nodeInfo.ID]</td>
                 <td>@nodeInfo.Votes</td>
@@ -84,7 +92,7 @@
     <div style="font-family:verdana;font-size:70%;">
         <h5>Note:</h5>
         <ul>
-            <li>The row with color is the current leader node. Leader node is randomly chosen from primary node list.</li>
+            <li>The row with color gold is the current leader node. Leader node is randomly chosen from primary node list.</li>
             <li>If API Status shows "Failed to connect" please check if tcp port 4505 is opened by the firewall.</li>
             <li>The minimal votes to become primary is 1,000,000 LYR. Ask TG channel admin to get the tokens.</li>
             <li>Data disaplyed may be delayed for several minutes or even hours, depends on the activities of Lyra network.</li>

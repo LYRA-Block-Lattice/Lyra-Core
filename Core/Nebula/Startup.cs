@@ -43,7 +43,8 @@ namespace Nebula
             services.AddHttpClient<FetchDataActionEffect>();
 
             var networkid = Configuration["network"];
-            services.AddTransient<LyraRestClient>(a => LyraRestClient.Create(networkid, Environment.OSVersion.ToString(), "Nebula", "1.0"));
+            // use dedicate host to avoid "random" result from api.lyra.live which is dns round-robbined.
+            services.AddTransient<LyraRestClient>(a => LyraRestClient.Create(networkid, Environment.OSVersion.ToString(), "Nebula", "1.0", $"http://nebula.{networkid}.lyra.live:4505/api/Node/"));
 
             var currentAssembly = typeof(Startup).Assembly;
             services.AddFluxor(options => options.ScanAssemblies(currentAssembly));

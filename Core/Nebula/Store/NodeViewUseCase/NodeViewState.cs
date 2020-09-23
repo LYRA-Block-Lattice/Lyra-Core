@@ -58,8 +58,8 @@ namespace Nebula.Store.NodeViewUseCase
 					});
 				}
 
-				list.AddRange(list2.OrderByDescending(a => a.Votes));
-				return list;
+				list.AddRange(list2);
+				return list.OrderByDescending(a => a.Votes).ToList();
 			}
         }
 	}
