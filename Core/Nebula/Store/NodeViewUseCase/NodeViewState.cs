@@ -61,6 +61,7 @@ namespace Nebula.Store.NodeViewUseCase
 
 				list.AddRange(list2);
 				return list.OrderByDescending(a => a.Votes)
+					.ThenBy(b => b.ID)
 					.Zip(Enumerable.Range(1, int.MaxValue - 1),
 									  (o, i) => o.With(new { Index = i }))
 					.ToList();
