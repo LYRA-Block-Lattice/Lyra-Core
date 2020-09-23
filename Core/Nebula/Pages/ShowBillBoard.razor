@@ -13,6 +13,7 @@
     <table class="table">
         <thead>
             <tr>
+                <th>Rank</th>
                 <th>Primary</th>
                 <th>PoS Wallet</th>
                 <th>IP Address</th>
@@ -38,14 +39,15 @@
                 }
                 else if(nodeInfo.IsPrimary)
                 {
-                    style = "background-color:lightblue; ";
+                    style = "background-color:#e0f4ff; ";
                 }
 
                 <tr style=@style>
-                <td>@(nodeInfo.IsPrimary ? "Yes" : "No")</td>
+                <td align="center">@nodeInfo.Index</td>
+                <td align="center">@(nodeInfo.IsPrimary ? "Yes" : "No")</td>
                 <td><a href="/showblock/@nodeInfo.ID">@nodeInfo.ID.Substring(0, 10)...</a></td>
                 <td>@NodeState.Value.bb.NodeAddresses[nodeInfo.ID]</td>
-                <td>@nodeInfo.Votes</td>
+                <td align="center">@nodeInfo.Votes</td>
                 @if(nodeInfo.Status != null)
                     {
                 <td>Connected OK.</td>
@@ -69,8 +71,8 @@
                         {
                             <td>@nodeInfo.Status.Status.lastUnSolidationHash.Substring(0, 10)...</td>
                         }
-                <td>@nodeInfo.Status.Status.activePeers</td>
-                <td>@nodeInfo.Status.Status.connectedPeers</td>
+                <td align="center">@nodeInfo.Status.Status.activePeers</td>
+                <td align="center">@nodeInfo.Status.Status.connectedPeers</td>
                     }
                 else
                 {

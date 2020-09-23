@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Converto;
+using Lyra.Core.API;
 using Lyra.Core.Decentralize;
 using Nebula.Data;
 using System;
@@ -37,7 +38,7 @@ namespace Nebula.Store.NodeViewUseCase
 						{
 							ID = id,
 							IsPrimary = true,
-							Votes = vts,
+							Votes = (long)vts,
 							Status = nodeStatus[id]
 						});
 					}
@@ -53,22 +54,26 @@ namespace Nebula.Store.NodeViewUseCase
 					{
 						ID = node.Key,
 						IsPrimary = false,
-						Votes = vts,
+						Votes = (long)vts,
 						Status = node.Value
 					});
 				}
 
 				list.AddRange(list2);
-				return list.OrderByDescending(a => a.Votes).ToList();
+				return list.OrderByDescending(a => a.Votes)
+					.Zip(Enumerable.Range(1, int.MaxValue - 1),
+									  (o, i) => o.With(new { Index = i }))
+					.ToList();
 			}
         }
 	}
 
 	public class NodeInfoSet
     {
-		public string ID;
-		public bool IsPrimary;
-		public decimal Votes;
-		public GetSyncStateAPIResult Status;
+		public int Index { get; set; }
+		public string ID { get; set; }
+		public bool IsPrimary { get; set; }
+		public long Votes { get; set; }
+		public GetSyncStateAPIResult Status { get; set; }
 	}
 }
