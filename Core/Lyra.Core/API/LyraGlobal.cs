@@ -17,14 +17,14 @@ namespace Lyra.Core.API
 
         public const int CONSENSUS_TIMEOUT = 10;  // seconds
         public const int VIEWCHANGE_TIMEOUT = 15;    // seconds
-        public const int MAXIMUM_VOTER_NODES = MAXIMUM_AUTHORIZERS + 2;
+        public const int MAXIMUM_VOTER_NODES = MAXIMUM_AUTHORIZERS;
         public const int MAXIMUM_AUTHORIZERS = 19;
         public const int MINIMUM_AUTHORIZERS = 4; // initial number required to generate first service block and genesis
 
         public const int ProtocolVersion = 4;
         public const int DatabaseVersion = 2;
 
-        public readonly static Version MINIMAL_COMPATIBLE_VERSION = new Version("1.7.7.0");
+        public readonly static Version MINIMAL_COMPATIBLE_VERSION = new Version("1.7.7.2");
         public readonly static Version NODE_VERSION = typeof(LyraGlobal).Assembly.GetName().Version;
         public readonly static string NodeAppName = PRODUCTNAME + " " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 

@@ -50,7 +50,8 @@ namespace Nebula.Pages
 
 		private void Send(MouseEventArgs e)
 		{
-			Dispatcher.Dispatch(new WebWalletSendAction {   });
+			if(walletState.Value.wallet.MainBalance > 1)
+				Dispatcher.Dispatch(new WebWalletSendAction {   });
 		}
 
 		private void SendToken(MouseEventArgs e)
