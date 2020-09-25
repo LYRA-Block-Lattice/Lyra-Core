@@ -22,9 +22,6 @@
       "Port": 4503,
       "WsPort": 4504,
       "WebAPI": 4505
-      //"Port": 45031,
-      //"WsPort": 45041,
-      //"WebAPI": 45051
     },
     "UnlockWallet": {
       "Path": "",

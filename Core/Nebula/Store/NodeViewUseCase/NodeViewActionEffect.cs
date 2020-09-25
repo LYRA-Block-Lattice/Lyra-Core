@@ -32,7 +32,7 @@ namespace Nebula.Store.NodeViewUseCase
 			var tasks = bb.NodeAddresses
 				.Select(async node =>
 			{
-				var lcx = LyraRestClient.Create(config["network"], Environment.OSVersion.ToString(), "Nebula", "1.4", $"http://{node.Value}:4505/api/Node/");
+				var lcx = LyraRestClient.Create(config["network"], Environment.OSVersion.ToString(), "Nebula", "1.4", $"http://{node.Value}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/");
 				try
                 {
 					var syncState = await lcx.GetSyncState();

@@ -1,6 +1,11 @@
 ﻿using Converto;
+using IP2Country;
+using IP2Country.DbIp;
+using IP2Country.Ludost;
+using IP2Country.MarkusGo;
 using Lyra.Core.API;
 using Lyra.Core.Decentralize;
+using Lyra.Shared;
 using Nebula.Data;
 using System;
 using System.Collections.Concurrent;
@@ -60,11 +65,29 @@ namespace Nebula.Store.NodeViewUseCase
 				}
 
 				list.AddRange(list2);
-				return list.OrderByDescending(a => a.Votes)
+
+				var result = list
+					.Where(a => bb.ActiveNodes.Any(b => b.AccountID == a.ID))
+					.OrderByDescending(a => a.Votes)
 					.ThenBy(b => b.ID)
 					.Zip(Enumerable.Range(1, int.MaxValue - 1),
 									  (o, i) => o.With(new { Index = i }))
 					.ToList();
+
+				// lookup IP geo location
+				var dbPath = Utilities.GetLyraDataDir("res", LyraGlobal.OFFICIALDOMAIN);
+				var resolver = new IP2CountryBatchResolver(new IP2CountryResolver(
+					new MarkusGoCSVFileSource($"{dbPath}{Utilities.PathSeperator}ip2country.zip") // Use ANY datasource you want
+				));
+
+				var iplist = result.Select(a => bb.NodeAddresses[a.ID]);
+				var geoList = resolver.Resolve(iplist);
+				for(int i = 0; i < result.Count; i++)
+                {
+					result[i].Country = geoList[i] == null ? "" : geoList[i].Country;
+                }
+
+				return result;
 			}
         }
 	}
@@ -76,5 +99,6 @@ namespace Nebula.Store.NodeViewUseCase
 		public bool IsPrimary { get; set; }
 		public long Votes { get; set; }
 		public GetSyncStateAPIResult Status { get; set; }
+		public string Country { get; set; }
 	}
 }

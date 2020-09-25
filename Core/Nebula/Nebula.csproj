@@ -8,9 +8,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\Lyra.Node2\config.json" Link="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Lyra.Node2\config.mainnet.json" Link="config.mainnet.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Lyra.Node2\config.testnet.json" Link="config.testnet.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="3.0.0" />
     <PackageReference Include="Converto" Version="2.1.0" />
-    <PackageReference Include="Fluxor.Blazor.Web" Version="3.2.0" />
+    <PackageReference Include="Fluxor.Blazor.Web" Version="3.7.0" />
+    <PackageReference Include="IP-2-Country" Version="2.0.1" />
+    <PackageReference Include="IP-2-Country.DataSources.CSVFile" Version="1.0.8" />
+    <PackageReference Include="IP-2-Country.DbIp" Version="1.0.6" />
+    <PackageReference Include="IP-2-Country.Ludost" Version="1.0.6" />
+    <PackageReference Include="IP-2-Country.MarkusGo" Version="1.0.6" />
+    <PackageReference Include="IP-2-Country.MaxMind" Version="1.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="System.Net.Http.Json" Version="5.0.0-preview.7.20364.11" />
   </ItemGroup>

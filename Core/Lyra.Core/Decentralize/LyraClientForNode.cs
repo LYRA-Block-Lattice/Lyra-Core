@@ -256,7 +256,7 @@ namespace Lyra.Core.Decentralize
                     }
 
                     var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
-                    var apiUrl = $"http://{addr}:4505/api/Node/";
+                    var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
                     //_log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                     var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
                     var mode = await client.GetSyncState();
@@ -274,7 +274,7 @@ namespace Lyra.Core.Decentralize
                 while(true)
                 {
                     var addr = _validNodes[rand.Next(0, _validNodes.Count - 1)].Value;
-                    var apiUrl = $"http://{addr}:4505/api/Node/";
+                    var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
                     var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
                     var mode = await client.GetSyncState();
                     if (mode.ResultCode == APIResultCodes.Success)

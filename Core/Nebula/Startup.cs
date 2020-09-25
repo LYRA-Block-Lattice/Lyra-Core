@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Blazored.LocalStorage;
 using Fluxor;
 using Lyra.Core.API;
+using Lyra.Core.Utils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -43,8 +44,10 @@ namespace Nebula
             services.AddHttpClient<FetchDataActionEffect>();
 
             var networkid = Configuration["network"];
+            LyraNodeConfig.Init(networkid);
+
             // use dedicate host to avoid "random" result from api.lyra.live which is dns round-robbined.
-            services.AddTransient<LyraRestClient>(a => LyraRestClient.Create(networkid, Environment.OSVersion.ToString(), "Nebula", "1.0", $"http://nebula.{networkid}.lyra.live:4505/api/Node/"));
+            services.AddTransient<LyraRestClient>(a => LyraRestClient.Create(networkid, Environment.OSVersion.ToString(), "Nebula", "1.0", $"http://nebula.{networkid}.lyra.live:{Neo.Settings.Default.P2P.WebAPI}/api/Node/"));
 
             var currentAssembly = typeof(Startup).Assembly;
             services.AddFluxor(options => options.ScanAssemblies(currentAssembly));

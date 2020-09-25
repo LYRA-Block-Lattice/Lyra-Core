@@ -158,7 +158,7 @@ namespace Lyra.Client.CLI
                 LyraRestClient rpcClient;
                 if (!string.IsNullOrWhiteSpace(options.Node))
                 {
-                    var apiUrl = $"http://{options.Node}:4505/api/Node/";
+                    var apiUrl = $"http://{options.Node}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
                     rpcClient = LyraRestClient.Create(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a", apiUrl);
                 }
                 else

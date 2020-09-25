@@ -19,8 +19,6 @@ namespace Lyra.Node2
 {
     public class Program
     {
-        const int PORT = 4505;
-
         public static async Task Main(string[] args)
         {
             if(args.Length > 0 && args[0] == "/debug")
@@ -50,7 +48,7 @@ namespace Lyra.Node2
                     .ConfigureKestrel(options =>
                     {
                         options.Limits.MinRequestBodyDataRate = null;
-                        options.Listen(IPAddress.Any, PORT,
+                        options.Listen(IPAddress.Any, Neo.Settings.Default.P2P.WebAPI,
                         listenOptions =>
                         {
                             var httpsConnectionAdapterOptions = new HttpsConnectionAdapterOptions()

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Akka.Actor;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -56,13 +57,13 @@ namespace Lyra.Core.API
                 case "devnet":
                     //return "http://192.168.3.73:4505/api/";
                     //return "http://10.211.55.5:4505/api/";
-                    return "http://api.devnet:4505/api/";       // better set static hosts entry
+                    return $"http://api.devnet:{Neo.Settings.Default.P2P.WebAPI}/api/";       // better set static hosts entry
 
 #endif
                 case "testnet":
-                    return "http://api.testnet.lyra.live:4505/api/";
+                    return $"http://api.testnet.lyra.live:{Neo.Settings.Default.P2P.WebAPI}/api/";
                 case "mainnet":
-                    return "http://api.mainnet.lyra.live:4505/api/";
+                    return $"http://api.mainnet.lyra.live:{Neo.Settings.Default.P2P.WebAPI}/api/";
                 default:
                     throw new Exception("Unsupported network ID: " + networkID);
             }

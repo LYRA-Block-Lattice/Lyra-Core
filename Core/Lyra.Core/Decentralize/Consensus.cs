@@ -489,7 +489,7 @@ namespace Lyra.Core.Decentralize
             if (_seed0Client == null)
             {
                 var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
-                var apiUrl = $"http://{addr}:4505/api/Node/";
+                var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
                 _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
                 _seed0Client = LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
 

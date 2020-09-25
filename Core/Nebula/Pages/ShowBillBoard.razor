@@ -16,6 +16,7 @@
                 <th>Rank</th>
                 <th>Primary</th>
                 <th>PoS Wallet</th>
+                <th></th>
                 <th>IP Address</th>
                 <th>Votes</th>
                 <th>API Status</th>
@@ -41,11 +42,13 @@
                 {
                     style = "background-color:#e0f4ff; ";
                 }
+                var imgSrc = $"/images/country/{nodeInfo.Country.ToLower()}.png";
 
                 <tr style=@style>
                 <td align="center">@nodeInfo.Index</td>
                 <td align="center">@(nodeInfo.IsPrimary ? "Yes" : "No")</td>
                 <td><a href="/showblock/@nodeInfo.ID">@nodeInfo.ID.Substring(0, 10)...</a></td>
+                <td align="center"><img src="@imgSrc" alt="@nodeInfo.Country" /></td>
                 <td>@NodeState.Value.bb.NodeAddresses[nodeInfo.ID]</td>
                 <td align="center">@nodeInfo.Votes</td>
                 @if(nodeInfo.Status != null)
@@ -95,7 +98,7 @@
         <h5>Note:</h5>
         <ul>
             <li>The row with color gold is the current leader node. Leader node is randomly chosen from primary node list.</li>
-            <li>If API Status shows "Failed to connect" please check if tcp port 4505 is opened by the firewall.</li>
+            <li>If API Status shows "Failed to connect" please check if tcp port @Neo.Settings.Default.P2P.WebAPI is opened by the firewall.</li>
             <li>The minimal votes to become primary is 1,000,000 LYR. Ask TG channel admin to get the tokens.</li>
             <li>Data disaplyed may be delayed for several minutes or even hours, depends on the activities of Lyra network.</li>
             <li>If your node is running but not shown in the list, please verify the minimal version required. (>= @Lyra.Core.API.LyraGlobal.MINIMAL_COMPATIBLE_VERSION)</li>

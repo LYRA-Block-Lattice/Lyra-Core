@@ -899,7 +899,7 @@ namespace Lyra.Core.Decentralize
         //        .Select(b => b)
         //        .Select(async node =>
         //        {
-        //            var lcx = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.ToString(), "Seed0", "1.0", $"http://{node.IPAddress}:4505/api/Node/");
+        //            var lcx = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.ToString(), "Seed0", "1.0", $"http://{node.IPAddress}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/");
         //            try
         //            {
         //                var syncState = await lcx.GetSyncState();
