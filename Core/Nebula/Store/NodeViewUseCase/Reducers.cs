@@ -13,13 +13,15 @@ namespace Nebula.Store.NodeViewUseCase
 			new NodeViewState(
 				isLoading: true,
 				billBoard: null,
-				NodeStatus: null);
+				NodeStatus: null,
+				ipdb: null);
 
 		[ReducerMethod]
 		public static NodeViewState ReduceFetchDataResultAction(NodeViewState state, NodeViewResultAction action) =>
 			new NodeViewState(
 				isLoading: false,
 				billBoard: action.billBoardResult,
-				NodeStatus: action.nodeStatusResult);
+				NodeStatus: action.nodeStatusResult,
+				ipdb: action.ipDbFn);
 	}
 }

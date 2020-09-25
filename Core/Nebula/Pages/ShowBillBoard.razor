@@ -48,7 +48,7 @@
                 <td align="center">@nodeInfo.Index</td>
                 <td align="center">@(nodeInfo.IsPrimary ? "Yes" : "No")</td>
                 <td><a href="/showblock/@nodeInfo.ID">@nodeInfo.ID.Substring(0, 10)...</a></td>
-                <td align="center"><img src="@imgSrc" alt="@nodeInfo.Country" /></td>
+                <td align="center"><img src="@imgSrc" alt="@nodeInfo.Country" title="@nodeInfo.Country" /></td>
                 <td>@NodeState.Value.bb.NodeAddresses[nodeInfo.ID]</td>
                 <td align="center">@nodeInfo.Votes</td>
                 @if(nodeInfo.Status != null)

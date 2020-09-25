@@ -20,12 +20,14 @@ namespace Nebula.Store.NodeViewUseCase
 		public bool IsLoading { get; }
 		public BillBoard bb { get; }
 		public ConcurrentDictionary<string, GetSyncStateAPIResult> nodeStatus { get; }
+		public string ipDbFn { get; }
 
-		public NodeViewState(bool isLoading, BillBoard billBoard, ConcurrentDictionary<string, GetSyncStateAPIResult> NodeStatus)
+		public NodeViewState(bool isLoading, BillBoard billBoard, ConcurrentDictionary<string, GetSyncStateAPIResult> NodeStatus, string ipdb)
 		{
 			IsLoading = isLoading;
 			bb = billBoard;
 			nodeStatus = NodeStatus;
+			ipDbFn = ipdb;
 		}
 
 		public List<NodeInfoSet> RankedList
@@ -75,9 +77,8 @@ namespace Nebula.Store.NodeViewUseCase
 					.ToList();
 
 				// lookup IP geo location
-				var dbPath = Utilities.GetLyraDataDir("res", LyraGlobal.OFFICIALDOMAIN);
 				var resolver = new IP2CountryBatchResolver(new IP2CountryResolver(
-					new MarkusGoCSVFileSource($"{dbPath}{Utilities.PathSeperator}ip2country.zip") // Use ANY datasource you want
+					new MarkusGoCSVFileSource(ipDbFn)
 				));
 
 				var iplist = result.Select(a => bb.NodeAddresses[a.ID]);

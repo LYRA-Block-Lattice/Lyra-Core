@@ -13,11 +13,13 @@ namespace Nebula.Store.NodeViewUseCase
 	{
 		public BillBoard billBoardResult { get; }
 		public ConcurrentDictionary<string, GetSyncStateAPIResult> nodeStatusResult { get; }
+		public string ipDbFn { get; }
 
-		public NodeViewResultAction(BillBoard billBoard, ConcurrentDictionary<string, GetSyncStateAPIResult> NodeStatusResult)
+		public NodeViewResultAction(BillBoard billBoard, ConcurrentDictionary<string, GetSyncStateAPIResult> NodeStatusResult, string ipdb)
 		{
 			billBoardResult = billBoard;
 			nodeStatusResult = NodeStatusResult;
+			ipDbFn = ipdb;
 		}
 	}
 }
