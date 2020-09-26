@@ -19,6 +19,7 @@ namespace Lyra.Node2
 {
     public class Program
     {
+        private static int Port = 4505;
         public static async Task Main(string[] args)
         {
             if(args.Length > 0 && args[0] == "/debug")
@@ -30,6 +31,10 @@ namespace Lyra.Node2
                 }
                 Console.WriteLine("Debugger attached");
             }
+
+            var networkId = Environment.GetEnvironmentVariable($"{LyraGlobal.OFFICIALDOMAIN.ToUpper()}_NETWORK");
+            if ("mainnet".Equals(networkId, StringComparison.InvariantCultureIgnoreCase))
+                Port = 5505;
 
             using (var host = CreateHostBuilder(args).Build())
             {
@@ -48,7 +53,7 @@ namespace Lyra.Node2
                     .ConfigureKestrel(options =>
                     {
                         options.Limits.MinRequestBodyDataRate = null;
-                        options.Listen(IPAddress.Any, Neo.Settings.Default.P2P.WebAPI,
+                        options.Listen(IPAddress.Any, Port,
                         listenOptions =>
                         {
                             var httpsConnectionAdapterOptions = new HttpsConnectionAdapterOptions()
