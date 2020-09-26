@@ -147,6 +147,9 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     var signedMsg = relayMsg.signedMessage;
+
+                    _log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
+
                     if (DateTime.UtcNow - signedMsg.TimeStamp < TimeSpan.FromSeconds(10) &&
                         signedMsg.VerifySignature(signedMsg.From))
                     {
@@ -158,7 +161,7 @@ namespace Lyra.Core.Decentralize
                 }
                 catch (Exception ex)
                 {
-                    _log.LogCritical("OnNextConsensusMessageAsync!!! " + ex.ToString());
+                    _log.LogCritical("ReceiveAsync SignedMessageRelay!!! " + ex.ToString());
                 }
             });
 
