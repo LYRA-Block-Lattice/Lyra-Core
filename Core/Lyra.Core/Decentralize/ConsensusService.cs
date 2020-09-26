@@ -612,7 +612,7 @@ namespace Lyra.Core.Decentralize
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
             item.Sign(_sys.PosWallet.PrivateKey, item.From);
-            _log.LogInformation($"Sending message type {item.MsgType} Hash {(item as BlockConsensusMessage)?.BlockHash}");
+            //_log.LogInformation($"Sending message type {item.MsgType} Hash {(item as BlockConsensusMessage)?.BlockHash}");
             _localNode.Tell(item);
         }
 
