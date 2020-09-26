@@ -541,7 +541,7 @@ namespace Lyra.Core.Decentralize
                 ServiceHash = svcGen.Hash,
                 Fee = svcGen.TokenGenerationFee,
                 FeeType = AuthorizationFeeTypes.Regular,
-                RenewalDate = DateTime.Now.AddYears(1000)
+                RenewalDate = DateTime.Now.AddYears(100)
             };
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
             openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
