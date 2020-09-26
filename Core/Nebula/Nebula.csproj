@@ -8,18 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\Lyra.Node2\config.json" Link="config.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Lyra.Node2\config.mainnet.json" Link="config.mainnet.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Lyra.Node2\config.testnet.json" Link="config.testnet.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="3.0.0" />
     <PackageReference Include="Converto" Version="2.1.0" />
     <PackageReference Include="Fluxor.Blazor.Web" Version="3.7.0" />

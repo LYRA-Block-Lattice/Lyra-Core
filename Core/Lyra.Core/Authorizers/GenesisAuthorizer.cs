@@ -33,7 +33,7 @@ namespace Lyra.Core.Authorizers
 
             // Local node validations - before it sends it out to the authorization sample:
             // 1. check if the account already exists
-                if (await sys.Storage.AccountExistsAsync(block.AccountID))
+            if (await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists; // 
 
             // 2. Validate blocks

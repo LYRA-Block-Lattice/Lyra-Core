@@ -70,9 +70,30 @@ namespace Neo
 
         public P2PSettings(IConfigurationSection section)
         {
-            this.Port = ushort.Parse(section.GetSection("Port").Value);
-            this.WsPort = ushort.Parse(section.GetSection("WsPort").Value);
-            this.WebAPI = ushort.Parse(section.GetSection("WebAPI").Value);
+            // TODO: add more init. here just for quick reference of port number.
+            if(section.Value == null)
+            {
+                var netid = LyraNodeConfig.GetNetworkId();
+                if(netid.Equals("mainnet", System.StringComparison.InvariantCultureIgnoreCase))
+                {
+                    this.Port = 5503;
+                    this.WsPort = 5504;
+                    this.WebAPI = 5505;
+                }
+                else
+                {
+                    this.Port = 4503;
+                    this.WsPort = 4504;
+                    this.WebAPI = 4505;
+                }
+            }
+            else
+            {
+                this.Port = ushort.Parse(section.GetSection("Port").Value);
+                this.WsPort = ushort.Parse(section.GetSection("WsPort").Value);
+                this.WebAPI = ushort.Parse(section.GetSection("WebAPI").Value);
+            }
+
             this.MinDesiredConnections = section.GetValue("MinDesiredConnections", Peer.DefaultMinDesiredConnections);
             this.MaxConnections = section.GetValue("MaxConnections", Peer.DefaultMaxConnections);
             this.MaxConnectionsPerAddress = section.GetValue("MaxConnectionsPerAddress", 3);

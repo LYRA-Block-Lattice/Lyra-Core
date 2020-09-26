@@ -854,11 +854,11 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            if (await FindBlockByHashAsync(block.Hash) != null)
-            {
-                //_log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
-                return false;
-            }
+            //if (await FindBlockByHashAsync(block.Hash) != null)
+            //{
+            //    //_log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+            //    return false;
+            //}
 
             if(block is TransactionBlock)
             {
@@ -871,8 +871,16 @@ namespace Lyra.Core.Accounts
             }
 
             //_log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height}");
-            await _blocks.InsertOneAsync(block);
-            return true;
+            try
+            {
+                await _blocks.InsertOneAsync(block);
+                return true;
+            }
+            catch(Exception e)
+            {
+                _log.LogWarning("AccountCollection=>AddBlock: " + e.Message);
+                return false;
+            }            
         }
 
         public async Task RemoveBlockAsync(string hash)

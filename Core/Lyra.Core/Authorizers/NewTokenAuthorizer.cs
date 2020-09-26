@@ -7,11 +7,16 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
+using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Lyra.Core.Authorizers
 {
     public class NewTokenAuthorizer: BaseAuthorizer
     {
+        private readonly List<string> _reservedDomains = new List<string> { 
+            "wizard", "official", "tether"
+        };
         public NewTokenAuthorizer()
         {
         }
@@ -73,6 +78,15 @@ namespace Lyra.Core.Authorizers
 
             if (block.RenewalDate > DateTime.Now.Add(TimeSpan.FromDays(366)) || block.RenewalDate < DateTime.Now)
                 return APIResultCodes.InvalidTokenRenewalDate;
+
+            if (string.IsNullOrWhiteSpace(block.DomainName))
+                return APIResultCodes.EmptyDomainName;
+
+            if (block.DomainName.Length < 6)
+                return APIResultCodes.DomainNameTooShort;
+
+            if (_reservedDomains.Any(a => a.Equals(block.DomainName, StringComparison.InvariantCultureIgnoreCase)))
+                return APIResultCodes.DomainNameReserved;
 
             return APIResultCodes.Success;
         }

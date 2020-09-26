@@ -10,6 +10,7 @@ using System.Net.Http;
 using Lyra.Core.API;
 using Microsoft.Extensions.Hosting;
 using Lyra.Core.Cryptography;
+using Lyra.Core.Utils;
 
 namespace Lyra.Client.CLI
 {
@@ -29,6 +30,8 @@ namespace Lyra.Client.CLI
             Console.WriteLine("");
 
             string network_id = options.NetworkId;
+            LyraNodeConfig.Init(network_id);
+
             bool INMEMORY = options.Database == Options.INMEMORY_DATABASE;
             bool WEB = options.Protocol == Options.WEBAPI_PROTOCOL;
 

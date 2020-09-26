@@ -354,6 +354,9 @@ namespace Lyra.Core.Blocks
         TokenExpired = 201,
 
         NameUnavailable = 202,
+        DomainNameTooShort,
+        EmptyDomainName,
+        DomainNameReserved,
 
         NotAllowedToSign = 300,
         NotAllowedToCommit = 301,
