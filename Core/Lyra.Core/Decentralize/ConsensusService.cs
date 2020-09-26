@@ -1070,6 +1070,8 @@ namespace Lyra.Core.Decentralize
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
             where T : SourceSignedMessage, new()
         {
+            _log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
+
             // seed node relay heartbeat, only once
             // this keep the whole network one consist view of active nodes.
             // this is important to make election.
