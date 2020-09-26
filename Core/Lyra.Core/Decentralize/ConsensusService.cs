@@ -158,6 +158,10 @@ namespace Lyra.Core.Decentralize
                             await OnNextConsensusMessageAsync(msg);
                         });
                     }
+                    else
+                    {
+                        _log.LogWarning($"ReceiveAsync SignedMessageRelay ilegal UTC Now {DateTime.UtcNow} TimeStamp {signedMsg.TimeStamp} Verify: {signedMsg.VerifySignature(signedMsg.From)} ");
+                    }
                 }
                 catch (Exception ex)
                 {
