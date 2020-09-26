@@ -30,7 +30,6 @@ namespace Lyra.Client.CLI
             Console.WriteLine("");
 
             string network_id = options.NetworkId;
-            LyraNodeConfig.Init(network_id);
 
             bool INMEMORY = options.Database == Options.INMEMORY_DATABASE;
             bool WEB = options.Protocol == Options.WEBAPI_PROTOCOL;
@@ -161,7 +160,8 @@ namespace Lyra.Client.CLI
                 LyraRestClient rpcClient;
                 if (!string.IsNullOrWhiteSpace(options.Node))
                 {
-                    var apiUrl = $"http://{options.Node}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
+                    int port = network_id.Equals("mainnet", StringComparison.InvariantCultureIgnoreCase) ? 5505 : 4505;
+                    var apiUrl = $"http://{options.Node}:{port}/api/Node/";
                     rpcClient = LyraRestClient.Create(network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a", apiUrl);
                 }
                 else

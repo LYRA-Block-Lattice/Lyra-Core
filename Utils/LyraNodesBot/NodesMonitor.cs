@@ -32,10 +32,12 @@ namespace LyraNodesBot
 
         private ChatId _groupId = new ChatId(-1001462436848);
         private string _network;
+        int _port;
         private string apiHost = "seed2.testnet.wizdag.com";
         public NodesMonitor(string network)
         {
             _network = network;
+            _port = _network.Equals("mainnet", StringComparison.InvariantCultureIgnoreCase) ? 5505 : 4505;
         }
 
         public async Task StartAsync()
@@ -105,7 +107,7 @@ namespace LyraNodesBot
         private async Task SendHeight(ChatId chatid)
         {
             var wc = new WebClient();
-            var json = wc.DownloadString($"http://{apiHost}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/GetSyncState");
+            var json = wc.DownloadString($"http://{apiHost}:{_port}/api/Node/GetSyncState");
             var bb = JsonConvert.DeserializeObject<GetSyncStateAPIResult>(json);
 
             //await SendGroupMessageAsync(chatid, $"Current Height: *{bb.NewestBlockUIndex}*");
@@ -113,7 +115,7 @@ namespace LyraNodesBot
         private async Task SendNodesInfoToGroupAsync(ChatId chatid)
         {
             var wc = new WebClient();
-            var json = wc.DownloadString($"https://{apiHost}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/GetBillboard");
+            var json = wc.DownloadString($"https://{apiHost}:{_port}/api/Node/GetBillboard");
             var bb = JsonConvert.DeserializeObject<BillBoard>(json);
             var sb = new StringBuilder();
 
@@ -247,7 +249,7 @@ namespace LyraNodesBot
 
         private async Task<string> SendTpsAsync()
         {
-            var url = $"https://seed2.testnet.wizdag.com:{Neo.Settings.Default.P2P.WebAPI}/api/Node/GetTransStats";
+            var url = $"https://seed2.testnet.wizdag.com:{_port}/api/Node/GetTransStats";
             var wc = new HttpClient();
             var json = await wc.GetStringAsync(url);
             return json;

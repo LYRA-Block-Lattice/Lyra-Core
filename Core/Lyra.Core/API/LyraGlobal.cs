@@ -51,19 +51,23 @@ namespace Lyra.Core.API
         // get api for (rpcurl, resturl)
         public static string SelectNode(string networkID)
         {
+            int port = 4505;
+            if ("mainnet".Equals(networkID, StringComparison.InvariantCultureIgnoreCase))
+                port = 5505;
+
             switch (networkID)
             {
 #if DEBUG
                 case "devnet":
                     //return "http://192.168.3.73:4505/api/";
                     //return "http://10.211.55.5:4505/api/";
-                    return $"http://api.devnet:{Neo.Settings.Default.P2P.WebAPI}/api/";       // better set static hosts entry
+                    return $"http://api.devnet:{port}/api/";       // better set static hosts entry
 
 #endif
                 case "testnet":
-                    return $"http://api.testnet.lyra.live:{Neo.Settings.Default.P2P.WebAPI}/api/";
+                    return $"http://api.testnet.lyra.live:{port}/api/";
                 case "mainnet":
-                    return $"http://api.mainnet.lyra.live:{Neo.Settings.Default.P2P.WebAPI}/api/";
+                    return $"http://api.mainnet.lyra.live:{port}/api/";
                 default:
                     throw new Exception("Unsupported network ID: " + networkID);
             }

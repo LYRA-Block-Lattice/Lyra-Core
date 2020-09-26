@@ -26,13 +26,17 @@ namespace Nebula.Store.NodeViewUseCase
 
 		protected override async Task HandleAsync(NodeViewAction action, IDispatcher dispatcher)
 		{
+			int port = 4505;
+			if (config["network"].Equals("mainnet", StringComparison.InvariantCultureIgnoreCase))
+				port = 5505;
+
 			var bb = await client.GetBillBoardAsync();
 
 			var bag = new ConcurrentDictionary<string, GetSyncStateAPIResult>();
 			var tasks = bb.NodeAddresses
 				.Select(async node =>
 			{
-				var lcx = LyraRestClient.Create(config["network"], Environment.OSVersion.ToString(), "Nebula", "1.4", $"http://{node.Value}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/");
+				var lcx = LyraRestClient.Create(config["network"], Environment.OSVersion.ToString(), "Nebula", "1.4", $"http://{node.Value}:{port}/api/Node/");
 				try
                 {
 					var syncState = await lcx.GetSyncState();
