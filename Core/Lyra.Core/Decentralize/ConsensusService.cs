@@ -148,7 +148,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var signedMsg = relayMsg.signedMessage;
 
-                    _log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
+                    //_log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
 
                     if (DateTime.UtcNow - signedMsg.TimeStamp < TimeSpan.FromSeconds(10) &&
                         signedMsg.VerifySignature(signedMsg.From))
@@ -1077,7 +1077,7 @@ namespace Lyra.Core.Decentralize
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
             where T : SourceSignedMessage, new()
         {
-            _log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
+            //_log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
 
             // seed node relay heartbeat, only once
             // this keep the whole network one consist view of active nodes.
@@ -1098,7 +1098,7 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            _log.LogInformation($"OnMessage: {item.MsgType} From: {item.From.Shorten()} Hash: {(item as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
+            //_log.LogInformation($"OnMessage: {item.MsgType} From: {item.From.Shorten()} Hash: {(item as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
             if (item is ChatMsg chatMsg)
             {
                 await OnRecvChatMsg(chatMsg);
