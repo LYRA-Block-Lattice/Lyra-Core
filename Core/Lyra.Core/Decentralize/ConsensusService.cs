@@ -160,12 +160,12 @@ namespace Lyra.Core.Decentralize
                     }
                     else
                     {
-                        _log.LogWarning($"ReceiveAsync SignedMessageRelay ilegal UTC Now {DateTime.UtcNow} TimeStamp {signedMsg.TimeStamp} Verify: {signedMsg.VerifySignature(signedMsg.From)} ");
+                        _log.LogWarning($"Receive Relay illegal Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _log.LogCritical("ReceiveAsync SignedMessageRelay!!! " + ex.ToString());
+                    _log.LogCritical("Receive Relay!!! " + ex.ToString());
                 }
             });
 
