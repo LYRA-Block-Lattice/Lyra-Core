@@ -1314,7 +1314,7 @@ namespace Lyra.Core.Accounts
                 FeeType = AuthorizationFeeTypes.Regular,
                 Icon = "https://i.imgur.com/L3h0J1K.png",
                 Image = "https://i.imgur.com/B8l4ZG5.png",
-                RenewalDate = DateTime.Now.AddYears(100)
+                RenewalDate = DateTime.UtcNow.AddYears(100)
             };
             // TO DO - set service hash
             var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
@@ -1404,7 +1404,7 @@ namespace Lyra.Core.Accounts
                 Address = address,
                 Currency = currency,
                 Tags = tags,
-                RenewalDate = DateTime.Now.Add(TimeSpan.FromDays(3650)),
+                RenewalDate = DateTime.UtcNow.Add(TimeSpan.FromDays(3650)),
                 ContractType = contractType,
                 VoteFor = VoteFor
             };

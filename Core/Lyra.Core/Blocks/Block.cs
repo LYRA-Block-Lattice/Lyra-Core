@@ -39,7 +39,7 @@ namespace Lyra.Core.Blocks
 
         public Block()
         {
-            TimeStamp = DateTime.Now.ToUniversalTime();
+            TimeStamp = DateTime.UtcNow;
         }
 
         public void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)

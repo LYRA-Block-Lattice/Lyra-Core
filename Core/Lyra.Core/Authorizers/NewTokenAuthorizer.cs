@@ -76,7 +76,7 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidNonFungiblePublicKey;
             }
 
-            if (block.RenewalDate > DateTime.Now.Add(TimeSpan.FromDays(3650)) || block.RenewalDate < DateTime.Now)
+            if (block.RenewalDate > DateTime.UtcNow.Add(TimeSpan.FromDays(3650)) || block.RenewalDate < DateTime.UtcNow)
                 return APIResultCodes.InvalidTokenRenewalDate;
 
             if (string.IsNullOrWhiteSpace(block.DomainName))

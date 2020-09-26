@@ -167,7 +167,7 @@ namespace Lyra.Core.Authorizers
 
             var token = await sys.Storage.FindTokenGenesisBlockAsync(null, trs.TokenCode);
             if (token != null)
-                if (token.RenewalDate < DateTime.Now)
+                if (token.RenewalDate < DateTime.UtcNow)
                     return false;
 
             return true;
