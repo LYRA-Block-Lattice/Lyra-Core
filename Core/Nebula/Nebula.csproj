@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Blazored.LocalStorage" Version="3.0.0" />
     <PackageReference Include="Converto" Version="2.1.0" />
-    <PackageReference Include="Fluxor.Blazor.Web" Version="3.7.0" />
+    <PackageReference Include="Fluxor.Blazor.Web" Version="3.2.0" />
     <PackageReference Include="IP-2-Country" Version="2.0.1" />
     <PackageReference Include="IP-2-Country.DataSources.CSVFile" Version="1.0.8" />
     <PackageReference Include="IP-2-Country.DbIp" Version="1.0.6" />
