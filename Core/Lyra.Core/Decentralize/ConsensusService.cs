@@ -605,7 +605,7 @@ namespace Lyra.Core.Decentralize
         public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
             item.Sign(_sys.PosWallet.PrivateKey, item.From);
-            _log.LogInformation("Sending message " + item.MsgType);
+            _log.LogInformation($"Sending message type {item.MsgType} Hash {(item as BlockConsensusMessage)?.BlockHash}");
             _localNode.Tell(item);
         }
 
@@ -1089,7 +1089,7 @@ namespace Lyra.Core.Decentralize
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
-            _log.LogInformation($"OnNextConsensusMessageAsync: {item.MsgType} From: {item.From.Shorten()}");
+            _log.LogInformation($"OnMessage: {item.MsgType} From: {item.From.Shorten()} Hash: {(item as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
             if (item is ChatMsg chatMsg)
             {
                 await OnRecvChatMsg(chatMsg);
