@@ -160,12 +160,12 @@ namespace Lyra.Core.Decentralize
                     }
                     else
                     {
-                        _log.LogWarning($"Receive Relay illegal Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
+                        _log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _log.LogCritical("Receive Relay!!! " + ex.ToString());
+                    _log.LogCritical("Error Receive Relay!!! " + ex.ToString());
                 }
             });
 
