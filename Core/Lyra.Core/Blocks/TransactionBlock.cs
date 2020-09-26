@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Lyra.Core.Utils;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using Newtonsoft.Json;
@@ -71,7 +72,10 @@ namespace Lyra.Core.Blocks
             extraData += BalanceToString() + "|";
             extraData += JsonConvert.SerializeObject(Fee) + "|";//Fee.ToString("0.############");
             extraData += FeeCode + "|";
-            extraData += ServiceHash + "|";
+
+            // TODO remove this once testnet reset
+            if(LyraNodeConfig.GetNetworkId().Equals("testnet", StringComparison.InvariantCultureIgnoreCase))
+                extraData += ServiceHash + "|";
             extraData += FeeType.ToString() + "|";
             extraData += GetHashInputFromNonFungibleToken() + "|";
             extraData += VoteFor + "|";
