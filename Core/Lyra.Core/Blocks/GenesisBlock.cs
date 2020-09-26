@@ -46,6 +46,7 @@ namespace Lyra.Core.Blocks
         /// </summary>
         public ContractTypes ContractType { get; set; }
 
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         public DateTime RenewalDate { get; set; }
 
         // It is incremented when additinal tokens are re-issued, or the display name is changed

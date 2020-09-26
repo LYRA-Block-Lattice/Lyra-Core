@@ -1,4 +1,6 @@
 ﻿using System;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
@@ -64,6 +66,7 @@ namespace Lyra.Core.Blocks
 
         // This is the actual date which is set at time of token generation by the sender
         // according to the value in the genesis block
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
         public DateTime ExpirationDate { get; set; }
 
         public override string GetHashInput()
