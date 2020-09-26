@@ -74,8 +74,8 @@ namespace Lyra.Core.Blocks
             extraData += FeeCode + "|";
 
             // TODO remove this once testnet reset
-            if(LyraNodeConfig.GetNetworkId().Equals("testnet", StringComparison.InvariantCultureIgnoreCase))
-                extraData += ServiceHash + "|";
+            //if(LyraNodeConfig.GetNetworkId().Equals("testnet", StringComparison.InvariantCultureIgnoreCase))
+            //    extraData += ServiceHash + "|";
             extraData += FeeType.ToString() + "|";
             extraData += GetHashInputFromNonFungibleToken() + "|";
             extraData += VoteFor + "|";

@@ -559,7 +559,7 @@ namespace Lyra.Core.Decentralize
                 Height = 1,
                 FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
                 TransferFee = 1,           //zero for genesis. back to normal when genesis done
-                TokenGenerationFee = 100,
+                TokenGenerationFee = 10000,
                 TradeFee = 0.1m,
                 FeesGenerated = 0
             };
