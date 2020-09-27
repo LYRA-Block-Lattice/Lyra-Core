@@ -69,7 +69,7 @@ namespace Lyra.Core.Decentralize
                     inq.From = _sys.PosWallet.AccountId;
                     Send2P2pNetwork(inq);
 
-                    await Task.Delay(12000);
+                    await Task.Delay(5000);
                 }
 
                 var q = from ns in _nodeStatus
@@ -344,7 +344,18 @@ namespace Lyra.Core.Decentralize
 
             var remoteBlock = await client.GetBlockByHash(hash);
             if (remoteBlock.ResultCode == APIResultCodes.Success)
-                return await _sys.Storage.AddBlockAsync(remoteBlock.GetBlock());
+            {
+                var existingBlock = await _sys.Storage.FindBlockByHashAsync(hash);
+                if (existingBlock == null)
+                    return await _sys.Storage.AddBlockAsync(remoteBlock.GetBlock());
+                else if (removeLocal)
+                {
+                    await _sys.Storage.RemoveBlockAsync(hash);
+                    return await _sys.Storage.AddBlockAsync(remoteBlock.GetBlock());
+                }
+                else
+                    return true;
+            }                
             else
                 return false;
         }
