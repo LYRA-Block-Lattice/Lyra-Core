@@ -441,6 +441,8 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Genesis)
                 .OnEntry(() => Task.Run(async () =>
                 {
+                    LocalDbSyncState.Remove();
+
                     var IsSeed0 = _sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
                     if (await _sys.Storage.FindLatestBlockAsync() == null && IsSeed0)
                     {
