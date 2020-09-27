@@ -67,7 +67,7 @@ namespace Lyra.Core.Decentralize
                     _nodeStatus.Clear();
                     var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
                     inq.From = _sys.PosWallet.AccountId;
-                    Send2P2pNetwork(inq);
+                    await Send2P2pNetworkAsync(inq);
 
                     await Task.Delay(5000);
                 }

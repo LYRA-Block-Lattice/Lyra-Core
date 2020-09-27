@@ -378,7 +378,7 @@ namespace Lyra.Core.Decentralize
                             _nodeStatus.Clear();
                             var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
                             inq.From = _sys.PosWallet.AccountId;
-                            Send2P2pNetwork(inq);
+                            await Send2P2pNetworkAsync(inq);
 
                             await Task.Delay(5000);
 
@@ -633,11 +633,12 @@ namespace Lyra.Core.Decentralize
             return info;
         }
 
-        public virtual void Send2P2pNetwork(SourceSignedMessage item)
+        public virtual async Task Send2P2pNetworkAsync(SourceSignedMessage item)
         {
             item.Sign(_sys.PosWallet.PrivateKey, item.From);
             //_log.LogInformation($"Sending message type {item.MsgType} Hash {(item as BlockConsensusMessage)?.BlockHash}");
-            _localNode.Tell(item);
+            //_localNode.Tell(item);
+            await CriticalRelayAsync(item, null);
         }
 
         private async Task<ActiveNode> DeclareConsensusNodeAsync()
@@ -656,7 +657,7 @@ namespace Lyra.Core.Decentralize
 
             var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);
             msg.From = _sys.PosWallet.AccountId;
-            Send2P2pNetwork(msg);
+            await Send2P2pNetworkAsync(msg);
 
             // add self to active nodes list
             if(_board.NodeAddresses.ContainsKey(me.AccountID))
@@ -799,7 +800,7 @@ namespace Lyra.Core.Decentralize
                 AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 
-            Send2P2pNetwork(msg);
+            await Send2P2pNetworkAsync(msg);
         }
 
         private async Task OnNodeUpAsync(ChatMsg chat)
@@ -1066,7 +1067,7 @@ namespace Lyra.Core.Decentralize
             {
                 await worker.ProcessState(state);
             }
-            Send2P2pNetwork(state.InputMsg);
+            await Send2P2pNetworkAsync(state.InputMsg);
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash, bool checkState = false)
@@ -1113,7 +1114,8 @@ namespace Lyra.Core.Decentralize
 
                 _localNode.Tell(message);     // no sign again!!!
 
-                await localAction(message);
+                if(localAction != null)
+                    await localAction(message);
                 return true;
             }
             else
@@ -1167,7 +1169,7 @@ namespace Lyra.Core.Decentralize
                     var status = await GetNodeStatusAsync();
                     var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);
                     resp.From = _sys.PosWallet.AccountId;
-                    Send2P2pNetwork(resp);
+                    await Send2P2pNetworkAsync(resp);
                     break;
                 case ChatMessageType.NodeStatusReply:
                     var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
