@@ -31,9 +31,9 @@ namespace Lyra.Core.Blocks
                 byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(record));
                 string hash = Base58Encoding.Encode(hash_bytes);
 
-                // debug only, temp code
-                if(record.Contains("LyraTokenGenesis"))
-                    Console.WriteLine($"Hash input: {record}\n Hash: {hash}");
+                //// debug only, temp code
+                //if(record.Contains("LyraTokenGenesis"))
+                //    Console.WriteLine($"Hash input: {record}\n Hash: {hash}");
 
                 return hash;
             }
