@@ -290,7 +290,7 @@ namespace Lyra.Core.Decentralize
                         if (_stateMachine.State == BlockChainState.Almighty 
                                 || _stateMachine.State == BlockChainState.Genesis)
                         {
-                            var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-20))
+                            var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
                                     .Select(b => b.Key)
                                     .ToList();
 
