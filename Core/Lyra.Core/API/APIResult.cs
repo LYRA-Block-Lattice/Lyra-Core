@@ -135,7 +135,7 @@ namespace Lyra.Core.API
 
         public IEnumerable<Block> GetBlocks()
         {
-            for(int i = 0; i < BlockDatas.Length; i++)
+            for(int i = 0; i < BlockDatas?.Length; i++)
             {
                 var block = new BlockAPIResult { BlockData = BlockDatas[i], ResultBlockType = ResultBlockTypes[i] };
                 yield return block.GetBlock();
