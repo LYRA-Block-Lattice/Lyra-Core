@@ -463,7 +463,7 @@ namespace Lyra.Core.Decentralize
                         await Task.Delay(360000);
                     }
                 }))
-                .Permit(BlockChainTrigger.GenesisDone, BlockChainState.StaticSync);
+                .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Almighty);
 
             _stateMachine.Configure(BlockChainState.Engaging)
                 .OnEntryFrom(_engageTriggerStart, (blockCount) => Task.Run(async () =>
