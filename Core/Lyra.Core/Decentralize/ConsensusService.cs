@@ -540,12 +540,34 @@ namespace Lyra.Core.Decentralize
             _ = Task.Run(async () => {
                 _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
                 var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+
+                if (CurrentState == BlockChainState.Genesis)
+                {
+                    var localState = LocalDbSyncState.Load();
+                    localState.databaseVersion = LyraGlobal.DatabaseVersion;
+                    localState.svcGenHash = lsb.Hash;
+                    localState.lastVerifiedConsHeight = cons.Height;
+                    LocalDbSyncState.Save(localState);
+
+                    _stateMachine.Fire(BlockChainTrigger.GenesisDone);
+                    return;
+                }
+
+                if (CurrentState == BlockChainState.Almighty)
+                {
+                    var localState = LocalDbSyncState.Load();
+                    if(localState.lastVerifiedConsHeight == 0)
+                    {
+                        localState.databaseVersion = LyraGlobal.DatabaseVersion;
+                        localState.svcGenHash = lsb.Hash;
+                    }
+                    localState.lastVerifiedConsHeight = cons.Height;
+                    LocalDbSyncState.Save(localState);
+                }
+
                 var list1 = lsb.Authorizers.Keys.ToList();
                 UpdateVotersAsync();
                 var list2 = Board.AllVoters;
-
-                if (CurrentState == BlockChainState.Genesis)
-                    _stateMachine.Fire(BlockChainTrigger.GenesisDone);
 
                 var firstNotSecond = list1.Except(list2).ToList();
                 var secondNotFirst = list2.Except(list1).ToList();
@@ -554,9 +576,9 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation($"voter list is same as previous one.");
                     return;
-                }                    
+                }
 
-                if(CurrentState == BlockChainState.Almighty)
+                if (CurrentState == BlockChainState.Almighty)
                 {
                     _log.LogInformation($"We have new player(s). Change view...");
                     // should change view for new member
