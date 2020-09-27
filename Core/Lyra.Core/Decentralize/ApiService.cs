@@ -14,6 +14,7 @@ using System.Threading;
 using Akka.Actor;
 using System.Linq;
 using Lyra.Shared;
+using System.Collections.Concurrent;
 
 namespace Lyra.Core.Decentralize
 {
@@ -21,25 +22,11 @@ namespace Lyra.Core.Decentralize
     {
         private readonly ILogger<ApiService> _log;
 
-        long _useed = -1;
+        public static AuthState LastState { get; private set; }
 
         public ApiService(ILogger<ApiService> logger)
         {
             _log = logger;
-        }
-
-        //public async Task OnActivateAsync()
-        //{
-        //    _log.LogInformation("ApiService: Activated");
-        //    _useed = await NodeService.Dag.Storage.GetBlockCount();
-
-        //    //await Gossip(new ChatMsg($"LyraNode[{_config.Orleans.EndPoint.AdvertisedIPAddress}]", $"Startup. IsSeedNode: {IsSeedNode}"));
-        //}
-
-        public long GenerateUniversalBlockIdAsync()
-        {
-            // if self master, use seeds; if not, ask master node
-            return _useed++;
         }
 
         public async Task<BillBoard> GetBillBoardAsync()
@@ -89,7 +76,11 @@ namespace Lyra.Core.Decentralize
 
             var resultMsg = state.OutputMsgs.Count > 0 ? state.OutputMsgs.First().Result.ToString() : "Unable to authorize block";
             _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.CommitConsensus == ConsensusResult.Yea} with {resultMsg}");
-            
+
+            // keep a snapshot of last success consensus.
+            if (state?.CommitConsensus != ConsensusResult.Uncertain)
+                LastState = state;
+
             return state;
         }
 

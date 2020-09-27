@@ -369,6 +369,7 @@ namespace Lyra.Core.Blocks
         SystemNotReadyToServe,
         InvalidBlockTimeStamp,
 
-        FailedToSyncAccount
+        FailedToSyncAccount,
+        APIRouteFailed
     }
 }
