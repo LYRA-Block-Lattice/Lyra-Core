@@ -15,7 +15,7 @@ namespace Friday
     {
         static string testCoin = "Friday/Coin";
         static string lyraCoin = "LYR";
-        public static string network_id = "testnet";
+        public static string network_id = "devnet";
 
         // args: [number] the tps to simulate
         // 

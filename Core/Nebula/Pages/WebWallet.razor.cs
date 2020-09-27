@@ -19,6 +19,7 @@ namespace Nebula.Pages
 		private IDispatcher Dispatcher { get; set; }
 
 		public string prvKey { get; set; }
+		public bool selfVote { get; set; }
 
 		// for send
 		public string dstAddr { get; set; }
@@ -40,7 +41,7 @@ namespace Nebula.Pages
 
 		private void RestoreWallet(MouseEventArgs e)
 		{
-			Dispatcher.Dispatch(new WebWalletRestoreAction { privateKey = prvKey });
+			Dispatcher.Dispatch(new WebWalletRestoreAction { privateKey = prvKey, selfVote = this.selfVote });
 		}
 
 		private void Refresh(MouseEventArgs e)

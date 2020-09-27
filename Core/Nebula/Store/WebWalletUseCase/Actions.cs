@@ -8,7 +8,10 @@ namespace Nebula.Store.WebWalletUseCase
 {
     public class WebWalletCreateAction { }
 
-    public class WebWalletRestoreAction { public string privateKey { get; set; } }
+    public class WebWalletRestoreAction { 
+        public string privateKey { get; set; } 
+        public bool selfVote { get; set; }
+    }
 
     public class WebWalletCloseAction { }
 

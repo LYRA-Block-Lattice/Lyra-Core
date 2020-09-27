@@ -124,18 +124,16 @@ namespace Friday
 
         private async Task<Wallet> RefreshBalanceAsync(string masterKey)
         {
-            throw new NotImplementedException();
-            //// create wallet and update balance
-            //var memStor = new AccountInMemoryStorage();
-            //var acctWallet = new ExchangeAccountWallet(memStor, Program.network_id);
-            ////acctWallet.AccountName = "tmpAcct";
-            ////acctWallet.RestoreAccount("", masterKey);
-            ////acctWallet.OpenAccount("", acctWallet.AccountName);
+            // create wallet and update balance
+            var store = new AccountInMemoryStorage();
+            var name = Guid.NewGuid().ToString();
+            Wallet.Create(store, name, "", Program.network_id, masterKey);
+            var wallet = Wallet.Open(store, name, "");
 
-            //Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-            //var rpcClient = LyraRestClient.Create(Program.network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
-            //await acctWallet.Sync(rpcClient);
-            //return acctWallet;
+            Console.WriteLine("Sync wallet for " + wallet.AccountId);
+            var rpcClient = LyraRestClient.Create(Program.network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
+            await wallet.Sync(rpcClient);
+            return wallet;
         }
 
         public async Task<List<WalletBalance>> RefreshBalancesAsync(string[] masterKeys)
