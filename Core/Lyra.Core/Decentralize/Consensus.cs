@@ -120,7 +120,7 @@ namespace Lyra.Core.Decentralize
                 if (oldState.svcGenHash != seedSvcGen.GetBlock().Hash)
                     LocalDbSyncState.Remove();
 
-                if(oldState.databaseVersion < LyraGlobal.DatabaseVersion)
+                if(oldState.databaseVersion > 0 && oldState.databaseVersion < LyraGlobal.DatabaseVersion)
                 {
                     // should upgrade database or resync completely
                     _sys.Storage.Delete();
