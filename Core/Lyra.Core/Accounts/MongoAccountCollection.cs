@@ -114,26 +114,29 @@ namespace Lyra.Core.Accounts
                 }
             }
 
-            CreateIndexes("_t", false).Wait();
-            CreateIndexes("Hash", true).Wait();
-            CreateIndexes("TimeStamp", false).Wait();
-            CreateIndexes("TimeStamp.Ticks", false).Wait();
-            CreateIndexes("PreviousHash", false).Wait();
-            CreateIndexes("AccountID", false).Wait();
-            CreateNoneStringIndex("Height", false).Wait();
-            CreateNoneStringIndex("BlockType", false).Wait();
+            if(!_blocks.Indexes.List().ToList().Any())
+            {
+                CreateIndexes("_t", false).Wait();
+                CreateIndexes("Hash", true).Wait();
+                CreateIndexes("TimeStamp", false).Wait();
+                CreateIndexes("TimeStamp.Ticks", false).Wait();
+                CreateIndexes("PreviousHash", false).Wait();
+                CreateIndexes("AccountID", false).Wait();
+                CreateNoneStringIndex("Height", false).Wait();
+                CreateNoneStringIndex("BlockType", false).Wait();
 
-            CreateIndexes("SourceHash", false).Wait();
-            CreateIndexes("DestinationAccountId", false).Wait();
-            CreateIndexes("Ticker", false).Wait();
-            CreateIndexes("VoteFor", false).Wait();
+                CreateIndexes("SourceHash", false).Wait();
+                CreateIndexes("DestinationAccountId", false).Wait();
+                CreateIndexes("Ticker", false).Wait();
+                CreateIndexes("VoteFor", false).Wait();
 
-            CreateNoneStringIndex("OrderType", false).Wait();
-            CreateIndexes("SellTokenCode", false).Wait();
-            CreateIndexes("BuyTokenCode", false).Wait();
-            CreateIndexes("TradeOrderId", false).Wait();
+                CreateNoneStringIndex("OrderType", false).Wait();
+                CreateIndexes("SellTokenCode", false).Wait();
+                CreateIndexes("BuyTokenCode", false).Wait();
+                CreateIndexes("TradeOrderId", false).Wait();
 
-            CreateIndexes("ImportedAccountId", false).Wait();
+                CreateIndexes("ImportedAccountId", false).Wait();
+            }
         }
 
         /// <summary>

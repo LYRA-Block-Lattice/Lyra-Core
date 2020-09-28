@@ -21,6 +21,7 @@ namespace Lyra.Core.API
         private string _appVersion;
         private string _url;
         private HttpClient _client;
+        public string Host { get; private set; }
         public LyraRestClient(string platform, string appName, string appVersion, string url)
         {
             _url = url;
@@ -76,7 +77,9 @@ namespace Lyra.Core.API
         public static LyraRestClient Create(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
         {
             var url = apiUrl == null ? LyraGlobal.SelectNode(networkId) + "Node/" : apiUrl;
+            var uri = new Uri(url);            
             var restClient = new LyraRestClient(platform, appName, appVersion, url);
+            restClient.Host = uri.Host;
             //if (!await restClient.CheckApiVersion().ConfigureAwait(false))
             //    throw new Exception("Unable to use API. Must upgrade your App.");
             //else

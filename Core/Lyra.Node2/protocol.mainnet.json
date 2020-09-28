@@ -1,6 +1,7 @@
 {
   "ProtocolConfiguration": {
     "Magic": 20200930,
+    "ConsensusTimeout": 10,
     "ConsensusNumber": 6,
     "StandbyValidators": [
       "LTyVcFZMuWGvUyihmrVkS3Z8dH87cVqDEa1zZdBRRD9E18SuABKCPZrhzWbgVAFhUGUhG18ZcX67mwJPs2T8VkesEFP3Fw",
@@ -10,7 +11,8 @@
     "SeedList": [
       "seed.mainnet.lyra.live:5503",
       "seed2.mainnet.lyra.live:5503",
-      "seed3.mainnet.lyra.live:5503"
+      "seed3.mainnet.lyra.live:5503",
+      "seed4.mainnet.lyra.live:5503"
     ]
   }
 }

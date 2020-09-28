@@ -257,7 +257,7 @@ namespace Lyra.Core.Decentralize
                 //_log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
                 if (_state.AddAuthResult(localAuthResult))
                 {
-                    _context.Send2P2pNetwork(localAuthResult);
+                    await _context.Send2P2pNetworkAsync(localAuthResult);
                 }
             }
             await CheckAuthorizedAllOkAsync();
@@ -328,7 +328,7 @@ namespace Lyra.Core.Decentralize
                         Consensus = _state.PrepareConsensus
                     };
 
-                    _context.Send2P2pNetwork(msg);
+                    await _context.Send2P2pNetworkAsync(msg);
                     _state.AddCommitedResult(msg);
                 }
             }
@@ -379,7 +379,7 @@ namespace Lyra.Core.Decentralize
                         Consensus = _state.PrepareConsensus
                     };
 
-                    _context.Send2P2pNetwork(msg);
+                    await _context.Send2P2pNetworkAsync(msg);
                 }
             }
             else if (_state.CommitConsensus == ConsensusResult.Nay)

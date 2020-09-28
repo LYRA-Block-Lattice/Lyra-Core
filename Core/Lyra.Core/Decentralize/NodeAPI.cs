@@ -14,26 +14,69 @@ using Lyra.Core.Authorizers;
 using Clifton.Blockchain;
 using Akka.Actor;
 using Core.Authorizers;
+using System.Collections.Concurrent;
+using Akka.Routing;
 
 namespace Lyra.Core.Decentralize
 {
     public class NodeAPI : INodeAPI
     {
         LyraRestClient _seed0Client;
+
+        private ConcurrentDictionary<string, LyraRestClient> _clients;
+        private readonly Random _rnd;
+
         public NodeAPI()
         {
+            _clients = new ConcurrentDictionary<string, LyraRestClient>();
+            _rnd = new Random();
         }
 
-        public LyraRestClient GetClientForSeed0()
+        private bool IsThisNodeOk
         {
-            if (_seed0Client == null)
+            get
             {
-                var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
-                var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
-                _seed0Client = LyraRestClient.Create(LyraNodeConfig.GetNetworkId(), Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+                if (ApiService.LastState == null)
+                    return false;
 
+                if (ApiService.LastState.CommitMsgs.Any(a => a.From == NodeService.Dag.PosWallet.AccountId && a.Consensus == ApiService.LastState.CommitConsensus))
+                    return true;
+
+                return false;
             }
-            return _seed0Client;
+        }
+
+        // smart routing based on last consensus
+        private async IAsyncEnumerable<LyraRestClient> GetRoutesAsync()
+        {
+            if (ApiService.LastState == null)
+                yield break;
+
+            var networkId = LyraNodeConfig.GetNetworkId();
+            int port = networkId.Equals("mainnet") ? 5505 : 4505;
+            int sampleCount = 3;
+            var bb = await NodeService.Dag.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
+            var majority = from commit in ApiService.LastState.CommitMsgs
+                           join ipkvp in bb.NodeAddresses on commit.From equals ipkvp.Key
+                           where commit.Consensus == ApiService.LastState.CommitConsensus
+                           select new
+                           {
+                               commit.From,
+                               IP = ipkvp.Value
+                           };
+
+            var samples = majority.OrderBy(x => _rnd.Next()).Take(sampleCount);
+            foreach (var liveNode in samples)
+            {
+                if (_clients.ContainsKey(liveNode.From) && _clients[liveNode.From].Host == liveNode.IP)
+                    yield return _clients[liveNode.From];
+                else
+                {
+                    var client = LyraRestClient.Create(networkId, Environment.OSVersion.Platform.ToString(),
+                        "API Router", "1.0", $"http://{liveNode.IP}:{port}/api/Node/");
+                    yield return _clients.AddOrUpdate(liveNode.From, client, (k, v) => client);
+                }
+            }
         }
 
         private async Task<bool> VerifyClientAsync(string accountId, string signature)
@@ -72,27 +115,6 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        //public async Task<BlockAPIResult> GetBlockByUIndex(long uindex)
-        //{
-        //    BlockAPIResult result;
-        //    var block = await NodeService.Dag.Storage.GetBlockByUIndexAsync(uindex);
-        //    if(block == null)
-        //    {
-        //        result = new BlockAPIResult { ResultCode = APIResultCodes.BlockNotFound };
-        //    }
-        //    else
-        //    {
-        //        result = new BlockAPIResult
-        //        {
-        //            BlockData = Json(block),
-        //            ResultBlockType = block.BlockType,
-        //            ResultCode = APIResultCodes.Success
-        //        };
-        //    }
-
-        //    return result;
-        //}
-
         public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
             var result = new GetVersionAPIResult()
@@ -106,7 +128,7 @@ namespace Lyra.Core.Decentralize
             return Task.FromResult(result);
         }
 
-        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        private async Task<BlockAPIResult> InternalGetServiceGenesisBlockAsync()
         {
             var result = new BlockAPIResult();
 
@@ -129,6 +151,49 @@ namespace Lyra.Core.Decentralize
             }
 
             return result;
+        }
+
+        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        {
+            if(true)//IsThisNodeOk)
+            {
+                return await InternalGetServiceGenesisBlockAsync();
+            }
+            else
+            {
+                var routes = GetRoutesAsync();
+
+                var reqs = new List<Task<BlockAPIResult>>();
+                await foreach(var rt in routes)
+                {
+                    reqs.Add(rt.GetServiceGenesisBlock());
+                }
+
+                if(reqs.Any())
+                {
+                    //var first = await Task.WhenAny(Task.WhenAll(reqs), Task.Delay(3000));
+                    var okCount = Task.WaitAny(reqs.ToArray(), 3000);
+                    if(okCount > 0)
+                    {
+                        var completedResults =
+                          reqs
+                          .Where(t => t.Status == TaskStatus.RanToCompletion)
+                          .Select(t => t.Result)
+                          .ToList();
+
+                        var result = completedResults.FirstOrDefault(a => a.ResultCode == APIResultCodes.Success);
+                        if (result != null)
+                            return result;
+                    }
+                    var apiResult = new BlockAPIResult();
+                    apiResult.ResultCode = APIResultCodes.APIRouteFailed;
+                    return apiResult;
+                }
+            }
+
+            var badResult = new BlockAPIResult();
+            badResult.ResultCode = APIResultCodes.NodeOutOfSync;
+            return badResult;
         }
         public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
         {
