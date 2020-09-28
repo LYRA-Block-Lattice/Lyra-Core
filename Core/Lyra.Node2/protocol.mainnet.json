@@ -4,12 +4,13 @@
     "ConsensusTimeout": 10,
     "ConsensusNumber": 6,
     "StandbyValidators": [
-      "LTyVcFZMuWGvUyihmrVkS3Z8dH87cVqDEa1zZdBRRD9E18SuABKCPZrhzWbgVAFhUGUhG18ZcX67mwJPs2T8VkesEFP3Fw",
-      "L4uZzmFo7CeR27yw6QxfQ1JCWEsWgV2wDLu5fJena2DzHxF1rgAqKDvmmtic8r3Q6TfFMnwFxXSwZGJTJBxMNKk5LFK5rb",
-      "LNbWSJGvrFR8zTU3hXEtA9JhzFatRERrATVy4SoKTy3oBrmMMDsNr87jAciqpQVvrnSeDFddYazSe6xPj9yeLiy4y7bmPJ"
+      "LWfCKyaYVogFxjDZPa4ZquhNqf38wBtoF5iBXqB56RUWWZT9FabQD1Di2oc6xBtekfUwXu66UbRggVqP89KZczNHZKicHc",
+      "LTLJAT8nCPeLTy5mgSnDGEundckJGyfirc7R1jVNXG8JYqtAPaspBzzi3PCpAtfLbG4XA9pbGPXeiPGq8qM7sHjwB9qNC9",
+      "LSN3mELFvo2QfMp9EiFcLtW62NBwyGMNX4MCnX2myzbDW31yqorc2chUf5YAN7fEVuUn7KjkHCPa2hE2AK5bnpLNtRLTfc",
+      "LSZwMETHGKbkBogSLxLCXcxUJbXwnD9Xsgw9RfWDXJqR1qqWZft6yQKqzNJ5FB9jFjKwmAhZoDqhP6gGi1wTK1Czxcwk5N"
     ],
     "SeedList": [
-      "seed.mainnet.lyra.live:5503",
+      "seed1.mainnet.lyra.live:5503",
       "seed2.mainnet.lyra.live:5503",
       "seed3.mainnet.lyra.live:5503",
       "seed4.mainnet.lyra.live:5503"
