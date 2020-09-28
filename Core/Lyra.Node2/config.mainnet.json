@@ -19,7 +19,7 @@
     },
     "P2P": {
       "Port": 5503,
-      "WsPort": 5504,
+      "WsPort": 0,
       "ApiPort": 5505
     },
     "UnlockWallet": {
