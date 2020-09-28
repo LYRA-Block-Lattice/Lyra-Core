@@ -128,31 +128,36 @@ namespace Lyra.Core.Decentralize
             return Task.FromResult(result);
         }
 
+        private async Task<BlockAPIResult> InternalGetServiceGenesisBlockAsync()
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.GetServiceGenesisBlock();
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.ServiceBlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetServiceGenesisBlock: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
+        }
+
         public async Task<BlockAPIResult> GetServiceGenesisBlock()
         {
-            if(IsThisNodeOk)
+            if(true)//IsThisNodeOk)
             {
-                var result = new BlockAPIResult();
-
-                try
-                {
-                    var block = await NodeService.Dag.Storage.GetServiceGenesisBlock();
-                    if (block != null)
-                    {
-                        result.BlockData = Json(block);
-                        result.ResultBlockType = block.BlockType;
-                        result.ResultCode = APIResultCodes.Success;
-                    }
-                    else
-                        result.ResultCode = APIResultCodes.ServiceBlockNotFound;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Exception in GetServiceGenesisBlock: " + e.Message);
-                    result.ResultCode = APIResultCodes.UnknownError;
-                }
-
-                return result;
+                return await InternalGetServiceGenesisBlockAsync();
             }
             else
             {
@@ -166,23 +171,23 @@ namespace Lyra.Core.Decentralize
 
                 if(reqs.Any())
                 {
-                    var first = await Task.WhenAny(Task.WhenAll(reqs), Task.Delay(3000));
-
-                    var completedResults =
+                    //var first = await Task.WhenAny(Task.WhenAll(reqs), Task.Delay(3000));
+                    var okCount = Task.WaitAny(reqs.ToArray(), 3000);
+                    if(okCount > 0)
+                    {
+                        var completedResults =
                           reqs
                           .Where(t => t.Status == TaskStatus.RanToCompletion)
                           .Select(t => t.Result)
                           .ToList();
 
-                    var result = completedResults.FirstOrDefault(a => a.ResultCode == APIResultCodes.Success);
-                    if (result != null)
-                        return result;
-                    else
-                    {
-                        var apiResult = new BlockAPIResult();
-                        apiResult.ResultCode = APIResultCodes.APIRouteFailed;
-                        return apiResult;
+                        var result = completedResults.FirstOrDefault(a => a.ResultCode == APIResultCodes.Success);
+                        if (result != null)
+                            return result;
                     }
+                    var apiResult = new BlockAPIResult();
+                    apiResult.ResultCode = APIResultCodes.APIRouteFailed;
+                    return apiResult;
                 }
             }
 

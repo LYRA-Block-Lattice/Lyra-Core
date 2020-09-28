@@ -131,7 +131,7 @@ else if (walletState.Value.stage == UIStage.Entry)
     <div>
         <p>Private Key:</p>
         <p><input size="100" type="text" @bind="prvKey" /></p>
-        <p><input type="checkbox" @bind="selfVote" />&nbsp;Self Vote</p>
+        <p><input type="checkbox" @bind="selfVote" id="chkVote" />&nbsp;<label for="chkVote">Self Vote</label></p>
         <p><button class="btn btn-primary" @onclick="RestoreWallet">
             Restore Wallet
         </button></p>
