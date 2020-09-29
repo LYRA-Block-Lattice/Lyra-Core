@@ -445,8 +445,11 @@ namespace Lyra.Core.Decentralize
 
                         svcBlock.Authorizers = new Dictionary<string, string>();
                         // me as the first one
-                        var meNode = _board.ActiveNodes.First(a => a.AccountID == _sys.PosWallet.AccountId);
-                        svcBlock.Authorizers.Add(meNode.AccountID, meNode.AuthorizerSignature);
+                        var signAgainst = prevSvcBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
+                        var myAuthSignr = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
+                                signAgainst, _sys.PosWallet.AccountId);
+
+                        svcBlock.Authorizers.Add(_sys.PosWallet.AccountId, myAuthSignr);
                         foreach (var voter in _board.AllVoters)
                         {
                             if (voter == _sys.PosWallet.AccountId)

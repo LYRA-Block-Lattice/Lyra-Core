@@ -32,7 +32,7 @@
         Close
     </button></span>
     &nbsp;&nbsp;&nbsp;
-    @if(walletState.Value.wallet.MainBalance == 0m && walletState.Value.freeTokenTimes < 3 && !walletState.Value.freeTokenSent)
+    @if(Configuration["network"] != "mainnet" && walletState.Value.wallet.MainBalance == 0m && walletState.Value.freeTokenTimes < 3 && !walletState.Value.freeTokenSent)
     {
     <span><button style="float: right;" class="btn btn-extra" @onclick="FreeToken">
         Get Free Token
