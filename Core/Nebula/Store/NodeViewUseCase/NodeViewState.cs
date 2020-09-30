@@ -81,12 +81,17 @@ namespace Nebula.Store.NodeViewUseCase
 					new MarkusGoCSVFileSource(ipDbFn)
 				));
 
-				var iplist = result.Select(a => bb.NodeAddresses[a.ID]);
-				var geoList = resolver.Resolve(iplist);
-				for(int i = 0; i < result.Count; i++)
+				try
                 {
-					result[i].Country = geoList[i] == null ? "" : geoList[i].Country;
-                }
+					var iplist = result.Select(a => bb.NodeAddresses[a.ID]);
+					var geoList = resolver.Resolve(iplist);
+					for (int i = 0; i < result.Count; i++)
+					{
+						result[i].Country = geoList[i] == null ? "" : geoList[i].Country;
+					}
+				}
+				catch(Exception)
+				{ }
 
 				return result;
 			}
