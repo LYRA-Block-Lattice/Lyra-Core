@@ -172,13 +172,13 @@ namespace Lyra.Core.Decentralize
         {
             var result = new AuthorizationAPIResult();
 
-            // filter the names
-            if (tokenBlock.DomainName.ToLower().StartsWith("lyra")
-                || tokenBlock.Ticker.ToLower().StartsWith("lyra"))
-            {
-                result.ResultCode = APIResultCodes.NameUnavailable;
-                return result;
-            }
+            //// filter the names -- not needed because authorizer control it
+            //if (tokenBlock.DomainName.ToLower().StartsWith("lyra")
+            //    || tokenBlock.Ticker.ToLower().StartsWith("lyra"))
+            //{
+            //    result.ResultCode = APIResultCodes.NameUnavailable;
+            //    return result;
+            //}
 
             return await Pre_PrepareAsync(tokenBlock).ConfigureAwait(false);
         }

@@ -9,6 +9,7 @@ using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using Neo;
 
 namespace Lyra.Core.Authorizers
 {
@@ -82,11 +83,14 @@ namespace Lyra.Core.Authorizers
             if (string.IsNullOrWhiteSpace(block.DomainName))
                 return APIResultCodes.EmptyDomainName;
 
-            if (block.DomainName.Length < 6)
-                return APIResultCodes.DomainNameTooShort;
-
-            if (_reservedDomains.Any(a => a.Equals(block.DomainName, StringComparison.InvariantCultureIgnoreCase)))
-                return APIResultCodes.DomainNameReserved;
+            bool tokenIssuerIsSeed0 = block.AccountID == ProtocolSettings.Default.StandbyValidators[0];
+            if (!tokenIssuerIsSeed0)
+            {
+                if (block.DomainName.Length < 6)
+                    return APIResultCodes.DomainNameTooShort;
+                if (_reservedDomains.Any(a => a.Equals(block.DomainName, StringComparison.InvariantCultureIgnoreCase)))
+                    return APIResultCodes.DomainNameReserved;
+            }
 
             return APIResultCodes.Success;
         }
