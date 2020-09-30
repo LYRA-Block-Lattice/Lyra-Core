@@ -251,7 +251,7 @@ namespace Lyra.Core.Blocks
 
             string TokenName = names[1];
 
-            if (TokenName.Length < 1)
+            if (TokenName.Length < 2)
                 throw new ApplicationException("Token name is too short");
 
             //if (this.DomainName.ToLower() == "l" ||

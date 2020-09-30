@@ -359,16 +359,16 @@ namespace Lyra.Client.CLI
 
         async Task ProcessNewTokenAsync()
         {
-            Console.WriteLine("Please enter token name: ");
+            Console.WriteLine("Please enter token name ( minimum 2 characters ): ");
             string tokenname = Console.ReadLine();
 
-            Console.WriteLine("Please enter domain name: ");
+            Console.WriteLine("Please enter domain name ( minimum 6 characters ): ");
             string domainname = Console.ReadLine();
 
             Console.WriteLine("Please enter description (optional): ");
             string desc = Console.ReadLine();
 
-            Console.WriteLine("Please enter total supply (0 - 900,000,000,000: ");
+            Console.WriteLine("Please enter total supply (0 - 90,000,000,000): ");
             string supply = Console.ReadLine();
 
             Console.WriteLine("Please enter precision (0 - 8): ");
