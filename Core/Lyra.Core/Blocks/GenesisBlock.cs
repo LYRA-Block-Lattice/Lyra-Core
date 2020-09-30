@@ -254,17 +254,17 @@ namespace Lyra.Core.Blocks
             if (TokenName.Length < 1)
                 throw new ApplicationException("Token name is too short");
 
-            if (this.DomainName.ToLower() == "l" ||
-                this.DomainName.ToLower() == "ly" ||
-                this.DomainName.ToLower() == "lyr" ||
-                this.DomainName.ToLower() == "lyra")
-                throw new ApplicationException("Invalid Domain Name");
+            //if (this.DomainName.ToLower() == "l" ||
+            //    this.DomainName.ToLower() == "ly" ||
+            //    this.DomainName.ToLower() == "lyr" ||
+            //    this.DomainName.ToLower() == "lyra")
+            //    throw new ApplicationException("Invalid Domain Name");
 
-            if (DomainName.Length < 4)
-                throw new ApplicationException("Domain Name is too short");
+            //if (DomainName.Length < 4)
+            //    throw new ApplicationException("Domain Name is too short");
 
-            if (DomainName.ToLower() == "graft")
-                throw new ApplicationException("Invalid Domain Name");
+            //if (DomainName.ToLower() == "graft")
+            //    throw new ApplicationException("Invalid Domain Name");
 
             return true;
         }
