@@ -81,7 +81,7 @@
                                         <ImageButton Source="plus.png" IsVisible="{Binding Path=AddCartMode, Source={x:Reference model}}"
                                                      CommandParameter="{Binding product.ID}"
                                                      Command="{Binding Path=AddCartCommand, Source={x:Reference model}}"/>
-                                        <Button WidthRequest="30" Text="-" 
+                                        <Button WidthRequest="40" Text="-" 
                                                 CommandParameter="{Binding product.ID}" 
                                                 IsVisible="{Binding Path=ProductEditMode, Source={x:Reference model}}"
                                                     Clicked="DeleteClicked" />
@@ -120,11 +120,11 @@
                              BadgeTextColor="{Binding BadgeTextColor}" />
                 </Grid>                
             </Frame>
-            <Frame IsVisible="{Binding ProductEditMode}" HeightRequest="110" BackgroundColor="#D2FFF9">
+            <Frame IsVisible="{Binding ProductEditMode}" HeightRequest="140" BackgroundColor="#D2FFF9">
                 <Grid VerticalOptions="FillAndExpand" HeightRequest="40">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="100" />
-                        <RowDefinition Height="100" />
+                        <RowDefinition Height="70" />
+                        <RowDefinition Height="70" />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition />

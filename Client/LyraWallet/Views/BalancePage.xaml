@@ -56,7 +56,7 @@
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
-                            <StackLayout>
+                            <StackLayout BackgroundColor="White">
                                 <Frame
                                CornerRadius="10"
                                Padding="5"

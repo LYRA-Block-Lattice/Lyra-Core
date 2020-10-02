@@ -1,4 +1,5 @@
-﻿using LyraWallet.ViewModels;
+﻿using Lyra.Core.API;
+using LyraWallet.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,22 @@ namespace LyraWallet.Views
         public PosViewPage()
         {
             InitializeComponent();
+
+            App.Store.Select(state => state.Balances)
+                .Subscribe(w =>
+                {
+                    PosViewModel vm = BindingContext as PosViewModel;
+
+                    vm.TokenNames = App.Store.State.wallet.GetLatestBlock().Balances?.Keys.ToList();
+                    if (vm.TokenNames != null)
+                    {
+                        for (int i = 0; i < vm.TokenNames.Count; i++)
+                        {
+                            if (vm.TokenNames[i] == LyraGlobal.OFFICIALTICKERCODE)
+                                vm.SelectedIndex = i;
+                        }
+                    }
+                });
         }
 
         protected override void OnAppearing()

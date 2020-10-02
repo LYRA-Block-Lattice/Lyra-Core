@@ -24,37 +24,38 @@ namespace LyraWallet.Services
             }
         }
 
+        private ILiteCollection<T> Products => _db.GetCollection<T>("Products", BsonAutoId.Int32);
+
         public Task<bool> AddItemAsync(T item)
         {
-            var coll = _db.GetCollection<T>();
-            var maxID = coll.Max(a => a.ID);
-            item.ID = maxID + 1;
-            coll.Insert(item);
+            Products.Insert(item);
+            _db.Commit();
             return Task.FromResult(true);
         }
 
         public Task<int> DeleteItemAsync(int id)
         {
-            throw new NotImplementedException();
-            //var ret = _db.GetCollection<T>().Delete(a => a.ID == id);
-            //return Task.FromResult(ret);
+            var ret = Products.Delete(id);
+            _db.Commit();
+            return Task.FromResult(id);
         }
 
         public Task<T> GetItemAsync(int id)
         {
-            var item = _db.GetCollection<T>().Find(x => x.ID == id).First();
+            var item = Products.Find(x => x.ID == id).First();
             return Task.FromResult(item);
         }
 
         public Task<IEnumerable<T>> GetItemsAsync(bool forceRefresh = false)
         {
-            var items = _db.GetCollection<T>().FindAll();
+            var items = Products.FindAll();
             return Task.FromResult(items);
         }
 
         public Task<bool> UpdateItemAsync(T item)
         {
-            var ret = _db.GetCollection<T>().Update(item);
+            var ret = Products.Update(item);
+            _db.Commit();
             return Task.FromResult(ret);
         }
     }
