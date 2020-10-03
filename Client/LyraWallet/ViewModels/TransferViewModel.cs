@@ -52,12 +52,12 @@ namespace LyraWallet.ViewModels
         public TransferViewModel()
         {
             IsWorking = false;
-            TokenNames = App.Store.State.wallet.GetLatestBlock().Balances?.Keys.ToList();
+            TokenNames = App.Store.State.wallet.GetLatestBlock()?.Balances?.Keys.ToList();
 
             MessagingCenter.Subscribe<BalanceViewModel>(
                 this, MessengerKeys.BalanceRefreshed, (sender) =>
                 {
-                    TokenNames = App.Store.State.wallet.GetLatestBlock().Balances?.Keys.ToList();
+                    TokenNames = App.Store.State.wallet.GetLatestBlock()?.Balances?.Keys.ToList();
                 });
 
             TransferCommand = new Command(async () =>
@@ -84,33 +84,36 @@ namespace LyraWallet.ViewModels
                     IsWorking = false;
                     //await _thePage.DisplayAlert("Error", x.Message, "OK");
                 }
-            });
-            //ScanCommand = new Command(async () => {
-            //    ZXingScannerPage scanPage = new ZXingScannerPage();
-            //    scanPage.OnScanResult += (result) =>
-            //    {
-            //        scanPage.IsScanning = false;
-            //        ZXing.BarcodeFormat barcodeFormat = result.BarcodeFormat;
-            //        string type = barcodeFormat.ToString();
-            //        Device.BeginInvokeOnMainThread(() =>
-            //        {
-            //            _thePage.Navigation.PopAsync();
-            //            try
-            //            {
-            //                var lyraUri = new LyraUri(result.Text);
-            //                if (lyraUri.Method.Equals("/payme"))
-            //                {
-            //                    TargetAccount = lyraUri.AccountID;
-            //                }
-            //            }               
-            //            catch(Exception ex)
-            //            {
 
-            //            }
-            //        });
-            //    };
-            //    await _thePage.Navigation.PushAsync(scanPage);
-            //});
+                await Shell.Current.GoToAsync("..?refresh=yes");
+            });
+            ScanCommand = new Command(async () =>
+            {
+                ZXingScannerPage scanPage = new ZXingScannerPage();
+                scanPage.OnScanResult += (result) =>
+                {
+                    scanPage.IsScanning = false;
+                    ZXing.BarcodeFormat barcodeFormat = result.BarcodeFormat;
+                    string type = barcodeFormat.ToString();
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        await Shell.Current.GoToAsync("..");
+                        try
+                        {
+                            var lyraUri = new LyraUri(result.Text);
+                            if (lyraUri.Method.Equals("/payme"))
+                            {
+                                TargetAccount = lyraUri.AccountID;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
+                    });
+                };
+                await Shell.Current.Navigation.PushAsync(scanPage);
+            });
         }
     }
 }

@@ -83,6 +83,9 @@
     <BundleResource Include="Resources\materialdesignicons-webfont.ttf" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Acr.UserDialogs">
+      <Version>7.1.0.454</Version>
+    </PackageReference>
     <PackageReference Include="System.Reflection.Emit">
       <Version>4.7.0</Version>
       <ExcludeAssets>all</ExcludeAssets>

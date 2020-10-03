@@ -8,26 +8,12 @@ namespace LyraWallet.ViewModels
 {
     public class PosCheckoutViewModel : BaseViewModel
     {
-        private List<CartItem> itemsToCheckout;
+        public Decimal TotalPayment { get; set; }
+        public string PaymentToken { get; set; }
 
-        public Decimal TotalPayment
+        public PosCheckoutViewModel()
         {
-            get
-            {
-                return itemsToCheckout.Sum(a => a.Count * a.product.Price);
-            }
-        }
 
-        public string PaymentToken
-        {
-            get
-            {
-                return itemsToCheckout.First().product.PricingToken;
-            }
-        }
-        public PosCheckoutViewModel(List<CartItem> items)
-        {
-            itemsToCheckout = items;
         }
 
         public String BarcodeString

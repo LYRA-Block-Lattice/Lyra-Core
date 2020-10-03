@@ -4,6 +4,7 @@ using Lyra.Core.Blocks;
 using ReduxSimple;
 using System;
 using System.Collections.Generic;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ namespace LyraWallet.States
                             await wallet.Sync(client);
 
                             return wallet;
-                        });
+                        }).ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -58,7 +59,7 @@ namespace LyraWallet.States
                             await wallet.Sync(client);
 
                             return wallet;
-                        });
+                        }).ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -92,7 +93,7 @@ namespace LyraWallet.States
                             await wallet.Sync(client);
 
                             return wallet;
-                        });
+                        }).ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -175,7 +176,7 @@ namespace LyraWallet.States
                         {
                             var ret = await action.wallet.Sync(null);
                             return (action.wallet, new APIResult { ResultCode = ret });
-                        });
+                        }).ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -209,7 +210,7 @@ namespace LyraWallet.States
                             var result = await action.wallet.Send(action.Amount, action.DstAddr, action.TokenName);
 
                             return (action.wallet, result);
-                        });
+                        }).ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -244,7 +245,7 @@ namespace LyraWallet.States
                                         true, action.ownerName ?? "", action.ownerAddress ?? "", null, ContractTypes.Default, null);
 
                             return (action.wallet, result);
-                        });
+                        }).ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -278,7 +279,7 @@ namespace LyraWallet.States
                             var result = await action.wallet.ImportAccount(action.targetPrivateKey);
 
                             return (action.wallet, result);
-                        });
+                        }).ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -313,7 +314,7 @@ namespace LyraWallet.States
                             var result = await action.wallet.RedeemRewards(action.tokenToRedeem, action.countToRedeem);
 
                             return (action.wallet, result);
-                        });
+                        }).ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>

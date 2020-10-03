@@ -59,7 +59,7 @@
                 <Label Text="Or even (Please backup private key first):" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />
-                <Button Margin="0,0,0,0" TextColor="Red" Text="Remove Account" Command="{Binding RemoveAccountCommand}" />
+                <Button Margin="0,0,0,0" TextColor="Red" Text="Remove Account" Clicked="RemoveAccount_Clicked" />
             </StackLayout>
         </ScrollView>
     </ContentPage.Content>

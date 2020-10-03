@@ -9,6 +9,7 @@ using Android.OS;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using LyraWallet.Services;
+using Acr.UserDialogs;
 
 namespace LyraWallet.Droid
 {
@@ -27,6 +28,8 @@ namespace LyraWallet.Droid
             ZXing.Net.Mobile.Forms.Android.Platform.Init();
 
             //Startup.Init(ConfigureServices);
+
+            UserDialogs.Init(this);
 
             LoadApplication(new App());
         }

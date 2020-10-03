@@ -25,7 +25,6 @@ namespace LyraWallet.ViewModels
         public ICommand CreateTokenCommand { get; }
         public ICommand RedeemCodeCommand { get; }
         public ICommand ShowBlocksCommand { get; }
-        public ICommand RemoveAccountCommand { get; }
         public ICommand VisitCommunityCommand { get;  }
         
 
@@ -60,21 +59,17 @@ namespace LyraWallet.ViewModels
 
             BarcodeGenCommand = new Command(async () =>
             {
-                var nextPage = new BarcodeGenPage($"lyra://localhost/payme?AccountID={AccountID}", AccountID);
-                //await _thePage.Navigation.PushAsync(nextPage);
+                await Shell.Current.GoToAsync($"BarcodeGenPage?account={AccountID}");
             });
 
             VisitCommunityCommand = new Command(async () =>
             {
-                await Browser.OpenAsync(LyraGlobal.PRODUCTWEBLINK, BrowserLaunchMode.SystemPreferred);
-                //var nextPage = new LexCommunityPage();
-                //await _thePage.Navigation.PushAsync(nextPage);
+                await Shell.Current.GoToAsync("LexCommunityPage");
             });
 
             CreateTokenCommand = new Command(async () =>
             {
-                var nextPage = new CreateTokenPage();
-                //await _thePage.Navigation.PushAsync(nextPage);
+                await Shell.Current.GoToAsync("CreateTokenPage");
             });
             RedeemCodeCommand = new Command(() =>
             {
@@ -82,27 +77,8 @@ namespace LyraWallet.ViewModels
             });
             ShowBlocksCommand = new Command(async () =>
             {
-                var nextPage = new BlockListPage();
-                //await _thePage.Navigation.PushAsync(nextPage);
+                await Shell.Current.GoToAsync("BlockListPage");
             });
-            //RemoveAccountCommand = new Command(async () =>
-            //{
-            //    bool answer = await _thePage.DisplayAlert("Are you sure?", "If you not backup private key properly, all Tokens will be lost after account removing. Confirm removing the account?", "Yes", "No");
-            //    if(answer)
-            //    {
-            //        App.Store.Dispatch(new WalletRemoveAction
-            //        {
-            //            path = DependencyService.Get<IPlatformSvc>().GetStoragePath(),
-            //            name = "default"
-            //        });
-
-            //        await Shell.Current.GoToAsync("NetworkSelectionPage");
-            //    }
-            //    else
-            //    {
-
-            //    }
-            //});
         }
     }
 }

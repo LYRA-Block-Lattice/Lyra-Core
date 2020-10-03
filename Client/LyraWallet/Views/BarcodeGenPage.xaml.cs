@@ -10,17 +10,24 @@ using Xamarin.Forms.Xaml;
 
 namespace LyraWallet.Views
 {
+	[QueryProperty("Account", "account")]
 	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class BarcodeGenPage : ContentPage
 	{
-		public BarcodeGenPage (string txtToGen, string txtToShow)
+		public BarcodeGenPage ()
 		{
 			InitializeComponent ();
-
-            txtAddress.Text = txtToShow;
-            BarcodeImageView.BarcodeValue = txtToGen;
-            BarcodeImageView.IsVisible = false;
-            BarcodeImageView.IsVisible = true;
 		}
-	}
+
+        public string Account
+        {
+            set
+            {
+                txtAddress.Text = value;
+                BarcodeImageView.BarcodeValue = $"lyra://localhost/payme?AccountID={value}";
+                BarcodeImageView.IsVisible = false;
+                BarcodeImageView.IsVisible = true;
+            }
+        }
+    }
 }

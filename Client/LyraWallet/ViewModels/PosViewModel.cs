@@ -114,15 +114,16 @@ namespace LyraWallet.ViewModels
             {
                 if(CartTotal > 0)
                 {
-                    var nextPage = new PosCheckoutPage(CartItems.Where(a => a.Count > 0).ToList());
-                    await ThePage.Navigation.PushAsync(nextPage);
+                    var total = CartItems.Where(a => a.Count > 0).ToList().Sum(a => a.product.Price * a.Count);
+                    var token = CartItems.Where(a => a.Count > 0).First().product.PricingToken;
+                    await Shell.Current.GoToAsync($"PosCheckoutPage?total={total}&token={token}");
                 }
             });
 
             MessagingCenter.Subscribe<BalanceViewModel>(
                 this, MessengerKeys.BalanceRefreshed, (sender) =>
                 {
-                    TokenNames = App.Store.State.wallet.GetLatestBlock().Balances?.Keys.ToList();
+                    TokenNames = App.Store.State.wallet.GetLatestBlock()?.Balances?.Keys.ToList();
                     if (TokenNames != null)
                     {
                         for(int i = 0; i < TokenNames.Count; i++)

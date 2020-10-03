@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lyra.Core.API;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,11 +13,10 @@ namespace LyraWallet.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class LexCommunityPage : ContentPage
     {
-        string homeUrl = "http://lex.lyratokens.com/";
         public LexCommunityPage()
         {
             InitializeComponent();
-            webView.Source = homeUrl;
+            webView.Source = LyraGlobal.PRODUCTWEBLINK;
         }
 
         async void OnBackButtonClicked(object sender, EventArgs e)
@@ -41,7 +41,7 @@ namespace LyraWallet.Views
 
         void OnHomeButtonClicked(object sender, EventArgs e)
         {
-            webView.Source = homeUrl;
+            webView.Source = LyraGlobal.PRODUCTWEBLINK;
         }
 
         void OnRefreshButtonClicked(object sender, EventArgs e)

@@ -23,7 +23,7 @@ namespace LyraWallet.Views
                 {
                     PosViewModel vm = BindingContext as PosViewModel;
 
-                    vm.TokenNames = App.Store.State.wallet.GetLatestBlock().Balances?.Keys.ToList();
+                    vm.TokenNames = App.Store.State.wallet?.GetLatestBlock()?.Balances?.Keys.ToList();
                     if (vm.TokenNames != null)
                     {
                         for (int i = 0; i < vm.TokenNames.Count; i++)

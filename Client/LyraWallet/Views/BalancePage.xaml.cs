@@ -1,4 +1,5 @@
-﻿using Lyra.Core.API;
+﻿using Acr.UserDialogs;
+using Lyra.Core.API;
 using LyraWallet.Models;
 using LyraWallet.Services;
 using LyraWallet.States;
@@ -16,9 +17,53 @@ using ZXing.Net.Mobile.Forms;
 
 namespace LyraWallet.Views
 {
+    [QueryProperty("Action", "action")]
+    [QueryProperty("Network", "network")]
+    [QueryProperty("PrivateKey", "key")]
+    [QueryProperty("Refresh", "refresh")]
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class BalancePage : ContentPage
     {
+        private string _action;
+        private string _network;
+        private string _key;
+
+        public string Refresh
+        {
+            set
+            {
+                if (value == "yes")
+                {
+                    App.Store.Dispatch(new WalletRefreshBalanceAction
+                    {
+                        wallet = App.Store.State.wallet
+                    });
+                }
+            }
+        }
+        public string Action
+        {
+            set
+            {
+                _action = value;
+            }
+        }
+
+        public string Network
+        {
+            set
+            {
+                _network = value;
+            }
+        }
+
+        public string PrivateKey
+        {
+            set
+            {
+                _key = value;
+            }
+        }
         public BalancePage()
         {
             InitializeComponent();
@@ -42,6 +87,8 @@ namespace LyraWallet.Views
                         vm.CanPay = true;
                     else
                         vm.CanPay = false;
+
+                    UserDialogs.Instance.HideLoading();
                 });
 
             App.Store.Select(state => state.NonFungible)
@@ -58,24 +105,42 @@ namespace LyraWallet.Views
                 });
 
             App.Store.Select(state => state.ErrorMessage)
-                .Subscribe(w =>
+                .Subscribe(errMsg =>
                 {
+                    if (errMsg == null)
+                        return;
+
                     // display error message here
-                    if (!string.IsNullOrWhiteSpace(w))
-                        Device.BeginInvokeOnMainThread(async () =>
-                        {
-                            await DisplayAlert("Alert", w, "OK");
-                        });
+                    // var icon = await BitmapLoader.Current.LoadFromResource("emoji_cool_small.png", null, null);
+
+                    ToastConfig.DefaultBackgroundColor = System.Drawing.Color.AliceBlue;
+                    ToastConfig.DefaultMessageTextColor = System.Drawing.Color.Red;
+                    ToastConfig.DefaultActionTextColor = System.Drawing.Color.DarkRed;
+                    //var bgColor = FromHex(this.BackgroundColor);
+                    //var msgColor = FromHex(this.MessageTextColor);
+                    //var actionColor = FromHex(this.ActionTextColor);
+
+                    UserDialogs.Instance.Toast(new ToastConfig(errMsg)
+                        //.SetBackgroundColor(bgColor)
+                        //.SetMessageTextColor(msgColor)
+                        .SetDuration(TimeSpan.FromSeconds(5))
+                        .SetPosition(false ? ToastPosition.Top : ToastPosition.Bottom)
+                        //.SetIcon(icon)
+                        .SetAction(x => x
+                            .SetText("Close")
+                            .SetTextColor(Color.Gray)
+                            .SetAction(() => { }/* UserDialogs.Instance.Alert("You clicked the primary toast button")*/)
+                        )
+                    );
                 });
         }
 
-        private void LvBalance_ItemTapped(object sender, ItemTappedEventArgs e)
+        private async void LvBalance_ItemTapped(object sender, ItemTappedEventArgs e)
         {
             if (e.Item != null)
             {
                 var kvp = (KeyValuePair<string, decimal>)e.Item;
-                var nextPage = new TransferPage(kvp.Key);
-                Navigation.PushAsync(nextPage);
+                await Shell.Current.GoToAsync($"TransferPage?token={kvp.Key}");
             }
         }
 
@@ -83,33 +148,74 @@ namespace LyraWallet.Views
         {
             base.OnAppearing();
 
+            string txt = null;
+
             // check init load or re-open
             // if init load, goto create/restore
             // if re-open, refresh balance
 
-            if (App.Store.State.IsOpening)
+            if (_action != null)
             {
-                // refresh balance
-            }
-            else
-            {
-                // check default wallet exists. 
-                var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
-                var fn = $"{path}/default.lyrawallet";
-                if (File.Exists(fn))
+                if(_action == "create")
                 {
-                    App.Store.Dispatch(new WalletOpenAction
+                    App.Store.Dispatch(new WalletCreateAction
                     {
-                        path = path,
+                        network = _network,
                         name = "default",
-                        password = ""
+                        password = "",
+                        path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
                     });
+
+                    txt = "Creating new wallet...";
+                }
+                else if(_action == "restore")
+                {
+                    App.Store.Dispatch(new WalletRestoreAction
+                    {
+                        privateKey = _key,
+                        network = _network,
+                        name = "default",
+                        password = "",
+                        path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
+                    });
+                    txt = "Restoring wallet and syncing...";
                 }
                 else
                 {
-                    await Shell.Current.GoToAsync("NetworkSelectionPage");
+                    // 
                 }
             }
+            else
+            {
+                if (App.Store.State.IsOpening)
+                {
+                    // refresh balance
+                }
+                else
+                {
+                    // check default wallet exists. 
+                    var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
+                    var fn = $"{path}/default.lyrawallet";
+                    if (File.Exists(fn))
+                    {
+                        App.Store.Dispatch(new WalletOpenAction
+                        {
+                            path = path,
+                            name = "default",
+                            password = ""
+                        });
+
+                        txt = "Opening wallet and syncing...";
+                    }
+                    else
+                    {
+                        await Shell.Current.GoToAsync("NetworkSelectionPage");
+                    }
+                }
+            }
+
+            if (txt != null)
+                UserDialogs.Instance.ShowLoading(txt);
         }
 
         private async void Import_ClickedAsync(object sender, EventArgs e)
@@ -173,16 +279,12 @@ namespace LyraWallet.Views
                                     wallet = App.Store.State.wallet
                                 };
                                 App.Store.Dispatch(sta);
-
-                                    //await DisplayAlert("Info", "Success!", "OK");
-                                }
+                            }
                             return;
                         }
                         else if (lyraUri.PathAndQuery.StartsWith("/payme"))
                         {
-                            var transPage = new TransferPage(LyraGlobal.OFFICIALTICKERCODE,
-                                lyraUri.AccountID);
-                            await Navigation.PushAsync(transPage);
+                            await Shell.Current.GoToAsync($"TransferPage?token={LyraGlobal.OFFICIALTICKERCODE}&account={lyraUri.AccountID}");
                             return;
                         }
                         else

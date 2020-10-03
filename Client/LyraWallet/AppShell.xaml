@@ -116,7 +116,7 @@
         If you would like to navigate to this content you can do so by calling
         await Shell.Current.GoToAsync("//LoginPage");
     -->
-    <!--<ShellContent Title="Create New" Route="LoginPage" IsVisible="False" Shell.FlyoutBehavior="Disabled" ContentTemplate="{DataTemplate local:NetworkSelectionPage}" />-->
+    <ShellContent Title="Create New Wallet" Route="NetworkSelectionPage" IsVisible="False" Shell.FlyoutBehavior="Disabled" ContentTemplate="{DataTemplate local:NetworkSelectionPage}" />
     <ShellContent Title="Settings" ContentTemplate="{DataTemplate local:WalletInfoPage}">
         <ShellContent.FlyoutIcon>
             <FontImageSource

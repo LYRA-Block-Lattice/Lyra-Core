@@ -46,7 +46,7 @@ namespace LyraWallet.ViewModels
                         path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
                     });
 
-                    await Shell.Current.GoToAsync("//BalancePage");
+                    await Shell.Current.GoToAsync($"//BalancePage?action=create&network={NetworkId}");
                 }
                 catch(Exception ex)
                 {
@@ -66,16 +66,7 @@ namespace LyraWallet.ViewModels
                         //await _thePage.DisplayAlert("Error", "No private key specified.", "OK");
                         return;
                     }
-                    App.Store.Dispatch(new WalletRestoreAction
-                    {
-                        privateKey = PrivateKey,
-                        network = NetworkId,
-                        name = "default",
-                        password = "",
-                        path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
-                    });
-
-                    await Shell.Current.GoToAsync("//BalancePage");
+                    await Shell.Current.GoToAsync($"//BalancePage?action=restore&network={NetworkId}&key={PrivateKey}");
                 }
                 catch(Exception ex)
                 {

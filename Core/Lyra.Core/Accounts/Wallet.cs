@@ -27,6 +27,8 @@ namespace Lyra.Core.Accounts
 
         public string VoteFor { get => _store.VoteFor; set => _store.VoteFor = value; }
 
+        private bool _noConsole;
+
         // to do 
         // 1) move rpcclient to CLI
         // 2) create interface and reference rpcclient by interface here, use the same interface in server and REST API client (Shopify app)  
@@ -60,6 +62,30 @@ namespace Lyra.Core.Accounts
             _store = storage;
             AccountName = name;
             _rpcClient = rpcClient;
+
+            var platform = Environment.OSVersion.Platform.ToString();
+            if (platform == "Android" || platform == "iOS")
+                _noConsole = true;
+            else
+                _noConsole = false;
+        }
+
+        private void PrintConLine(string s)
+        {
+            if (_noConsole)
+                return;
+
+            Console.WriteLine(s);
+        }
+        private void PrintCon(string s1, string s2 = null)
+        {
+            if (_noConsole)
+                return;
+
+            if (s2 == null)
+                Console.Write(s1);
+            else
+                Console.Write(s1, s2);
         }
 
         public static string GetFullFolderName(string NetworkId, string FolderName)
@@ -182,17 +208,17 @@ namespace Lyra.Core.Accounts
                     TransferFee = lastServiceBlock.TransferFee;
                     TokenGenerationFee = lastServiceBlock.TokenGenerationFee;
                     TradeFee = lastServiceBlock.TradeFee;
-                    Console.WriteLine($"Last Service Block Received {lastServiceBlock.Height}");
-                    Console.WriteLine(string.Format("Transfer Fee: {0} ", lastServiceBlock.TransferFee));
-                    Console.WriteLine(string.Format("Token Generation Fee: {0} ", lastServiceBlock.TokenGenerationFee));
-                    Console.WriteLine(string.Format("Trade Fee: {0} ", lastServiceBlock.TradeFee));
-                    Console.Write(string.Format("{0}> ", AccountName));
+                    PrintConLine($"Last Service Block Received {lastServiceBlock.Height}");
+                    PrintConLine(string.Format("Transfer Fee: {0} ", lastServiceBlock.TransferFee));
+                    PrintConLine(string.Format("Token Generation Fee: {0} ", lastServiceBlock.TokenGenerationFee));
+                    PrintConLine(string.Format("Trade Fee: {0} ", lastServiceBlock.TradeFee));
+                    PrintCon(string.Format("{0}> ", AccountName));
                 }
                 return APIResultCodes.Success;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in SyncServiceChain(): " + e.Message);
+                PrintConLine("Exception in SyncServiceChain(): " + e.Message);
                 return APIResultCodes.UnknownError;
             }
         }
@@ -208,7 +234,7 @@ namespace Lyra.Core.Accounts
                 {
                     max_counter++;
 
-                    Console.WriteLine($"Received new transaction, sending request for settlement...");
+                    PrintConLine($"Received new transaction, sending request for settlement...");
 
                     var receive_result = await ReceiveTransfer(lookup_result);
                     if (!receive_result.Successful())
@@ -223,7 +249,7 @@ namespace Lyra.Core.Accounts
 
                 if (lookup_result.ResultCode == APIResultCodes.AccountAlreadyImported)
                 {
-                    Console.WriteLine($"This account was imported (merged) to another account.");
+                    PrintConLine($"This account was imported (merged) to another account.");
                     AccountAlreadyImported = true;
                     return lookup_result.ResultCode;
                 }
@@ -232,7 +258,7 @@ namespace Lyra.Core.Accounts
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in SyncIncomingTransfers(): " + e.Message);
+                PrintConLine("Exception in SyncIncomingTransfers(): " + e.Message);
                 return APIResultCodes.UnknownError;
             }
         }
@@ -287,25 +313,25 @@ namespace Lyra.Core.Accounts
 
                 if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
                 {
-                    Console.WriteLine($"BlockSignatureValidationFailed");
-                    Console.WriteLine("Error Message: ");
-                    Console.WriteLine(result.ResultMessage);
-                    Console.WriteLine("Local Block: ");
-                    Console.WriteLine(receiveBlock.Print());
+                    PrintConLine($"BlockSignatureValidationFailed");
+                    PrintConLine("Error Message: ");
+                    PrintConLine(result.ResultMessage);
+                    PrintConLine("Local Block: ");
+                    PrintConLine(receiveBlock.Print());
                 }
                 else if (result.ResultCode != APIResultCodes.Success)
                 {
-                    Console.WriteLine($"Failed to authorize receive fee block with error code: {result.ResultCode}");
-                    Console.WriteLine("Error Message: " + result.ResultMessage);
+                    PrintConLine($"Failed to authorize receive fee block with error code: {result.ResultCode}");
+                    PrintConLine("Error Message: " + result.ResultMessage);
                 }
                 else
                 {
                     _lastTransactionBlock = receiveBlock;
 
-                    Console.WriteLine($"Receive fee block has been authorized successfully");
-                    Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
+                    PrintConLine($"Receive fee block has been authorized successfully");
+                    PrintConLine("Balance: " + await GetDisplayBalancesAsync());
                 }
-                Console.Write(string.Format("{0}> ", AccountName));
+                PrintCon(string.Format("{0}> ", AccountName));
                 return result.ResultCode;
             }
         }
@@ -322,7 +348,7 @@ namespace Lyra.Core.Accounts
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in LookForNewTrade(): " + e.Message);
+                PrintConLine("Exception in LookForNewTrade(): " + e.Message);
                 return new TradeAPIResult() { ResultCode = APIResultCodes.UnknownError, ResultMessage = e.Message };
             }
         }
@@ -760,7 +786,7 @@ namespace Lyra.Core.Accounts
                 //var stopwatch = Stopwatch.StartNew();
                 result = await _rpcClient.SendTransfer(sendBlock);
                 //stopwatch.Stop();
-                //Console.WriteLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
+                //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
             }
 
             if (result.ResultCode == APIResultCodes.Success)
@@ -907,11 +933,11 @@ namespace Lyra.Core.Accounts
 
             if (trade_result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
-                Console.WriteLine($"BlockSignatureValidationFailed");
-                Console.WriteLine("Error Message: ");
-                Console.WriteLine(trade_result.ResultMessage);
-                Console.WriteLine("Local Block: ");
-                Console.WriteLine(trade.Print());
+                PrintConLine($"BlockSignatureValidationFailed");
+                PrintConLine("Error Message: ");
+                PrintConLine(trade_result.ResultMessage);
+                PrintConLine("Local Block: ");
+                PrintConLine(trade.Print());
             }
 
             if (trade_result.ResultCode == APIResultCodes.Success)
@@ -969,14 +995,14 @@ namespace Lyra.Core.Accounts
             else
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
-                Console.WriteLine($"BlockSignatureValidationFailed");
-                Console.WriteLine("Error Message: " + result.ResultMessage);
-                Console.WriteLine("Local Block: " + JsonConvert.SerializeObject(cancelBlock));
+                PrintConLine($"BlockSignatureValidationFailed");
+                PrintConLine("Error Message: " + result.ResultMessage);
+                PrintConLine("Local Block: " + JsonConvert.SerializeObject(cancelBlock));
             }
             else
             {
-                Console.WriteLine("Authorization failed" + result.ResultCode.ToString());
-                Console.WriteLine("Error Message: " + result.ResultMessage);
+                PrintConLine("Authorization failed" + result.ResultCode.ToString());
+                PrintConLine("Error Message: " + result.ResultMessage);
             }
             return result;
         }
@@ -1002,7 +1028,7 @@ namespace Lyra.Core.Accounts
         //        if (order.OrderType == TradeOrderTypes.Sell)
         //            result += $"Sell: {order.TradeAmount} {order.SellTokenCode} Price: {order.Price} {order.BuyTokenCode}\n";
 
-        //    Console.WriteLine("Buy Orders:");
+        //    PrintConLine("Buy Orders:");
         //    foreach (var order in orders)
         //        if (order.OrderType == TradeOrderTypes.Buy)
         //            result += $"Buy: {order.TradeAmount} {order.BuyTokenCode} Price: {order.Price} {order.SellTokenCode}\n";
@@ -1025,9 +1051,9 @@ namespace Lyra.Core.Accounts
         //            genesisBlock = result.GetBlock() as TokenGenesisBlock;
         //            SaveTokenInfoBlock(genesisBlock);
 
-        //            //Console.WriteLine($"Found Token Genesis Block for {genesisBlock.Ticker}");
-        //            //Console.WriteLine("Balance: " + GetDisplayBalances());
-        //            //Console.Write(string.Format("{0}> ", AccountName));
+        //            //PrintConLine($"Found Token Genesis Block for {genesisBlock.Ticker}");
+        //            //PrintConLine("Balance: " + GetDisplayBalances());
+        //            //PrintCon(string.Format("{0}> ", AccountName));
         //        }
         //    }
 
@@ -1067,25 +1093,25 @@ namespace Lyra.Core.Accounts
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
-                Console.WriteLine($"BlockSignatureValidationFailed");
-                Console.WriteLine("Error Message: ");
-                Console.WriteLine(result.ResultMessage);
-                Console.WriteLine("Local Block: ");
-                Console.WriteLine(openReceiveBlock.Print());
+                PrintConLine($"BlockSignatureValidationFailed");
+                PrintConLine("Error Message: ");
+                PrintConLine(result.ResultMessage);
+                PrintConLine("Local Block: ");
+                PrintConLine(openReceiveBlock.Print());
             }
             else
             if (result.ResultCode != APIResultCodes.Success)
             {
-                Console.WriteLine($"ReceiveTransferAndOpenAccount: Failed to authorize receive transfer block with error code: {result.ResultCode}");
-                Console.WriteLine("Error Message: " + result.ResultMessage);
+                PrintConLine($"ReceiveTransferAndOpenAccount: Failed to authorize receive transfer block with error code: {result.ResultCode}");
+                PrintConLine("Error Message: " + result.ResultMessage);
             }
             else
             {
                 _lastTransactionBlock = openReceiveBlock;
-                Console.WriteLine($"Receive transfer block has been authorized successfully");
-                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
+                PrintConLine($"Receive transfer block has been authorized successfully");
+                PrintConLine("Balance: " + await GetDisplayBalancesAsync());
             }
-            Console.Write(string.Format("{0}> ", AccountName));
+            PrintCon(string.Format("{0}> ", AccountName));
             return result;
         }
 
@@ -1129,25 +1155,25 @@ namespace Lyra.Core.Accounts
         {
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
-                Console.WriteLine($"BlockSignatureValidationFailed");
-                Console.WriteLine("Error Message: ");
-                Console.WriteLine(result.ResultMessage);
-                Console.WriteLine("Local Block: ");
-                Console.WriteLine(block.Print());
+                PrintConLine($"BlockSignatureValidationFailed");
+                PrintConLine("Error Message: ");
+                PrintConLine(result.ResultMessage);
+                PrintConLine("Local Block: ");
+                PrintConLine(block.Print());
             }
             else
             if (result.ResultCode != APIResultCodes.Success)
             {
-                Console.WriteLine(OperationName + $": Operation failed with result: {result.ResultCode}");
-                Console.WriteLine("Error Message: " + result.ResultMessage);
+                PrintConLine(OperationName + $": Operation failed with result: {result.ResultCode}");
+                PrintConLine("Error Message: " + result.ResultMessage);
             }
             else
             {
-                Console.WriteLine(OperationName + $": Operation success");
+                PrintConLine(OperationName + $": Operation success");
                 _lastTransactionBlock = block;
-                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
+                PrintConLine("Balance: " + await GetDisplayBalancesAsync());
             }
-            Console.Write(string.Format("{0}> ", AccountName));
+            PrintCon(string.Format("{0}> ", AccountName));
             
         }
 
@@ -1330,27 +1356,27 @@ namespace Lyra.Core.Accounts
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
-                Console.WriteLine($"BlockSignatureValidationFailed");
-                Console.WriteLine("Error Message: ");
-                Console.WriteLine(result.ResultMessage);
-                Console.WriteLine("Local Block: ");
-                Console.WriteLine(openTokenGenesisBlock.Print());
+                PrintConLine($"BlockSignatureValidationFailed");
+                PrintConLine("Error Message: ");
+                PrintConLine(result.ResultMessage);
+                PrintConLine("Local Block: ");
+                PrintConLine(openTokenGenesisBlock.Print());
             }
             else
             if (result.ResultCode != APIResultCodes.Success)
             {
-                Console.WriteLine($"Failed to add genesis block with error code: {result.ResultCode}");
-                Console.WriteLine("Error Message: " + result.ResultMessage);
-                Console.WriteLine(openTokenGenesisBlock.Print());
+                PrintConLine($"Failed to add genesis block with error code: {result.ResultCode}");
+                PrintConLine("Error Message: " + result.ResultMessage);
+                PrintConLine(openTokenGenesisBlock.Print());
 
             }
             else
             {
                 _lastTransactionBlock = openTokenGenesisBlock;
-                Console.WriteLine($"Genesis block has been authorized successfully");
-                Console.WriteLine("Balance: " + await GetDisplayBalancesAsync());
+                PrintConLine($"Genesis block has been authorized successfully");
+                PrintConLine("Balance: " + await GetDisplayBalancesAsync());
             }
-            //Console.Write(string.Format("{0}> ", AccountName));
+            //PrintCon(string.Format("{0}> ", AccountName));
             return result.ResultCode;
         }
 
@@ -1429,11 +1455,11 @@ namespace Lyra.Core.Accounts
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
-                Console.WriteLine($"BlockSignatureValidationFailed");
-                Console.WriteLine("Error Message: ");
-                Console.WriteLine(result.ResultMessage);
-                Console.WriteLine("Local Block: ");
-                Console.WriteLine(tokenBlock.Print());
+                PrintConLine($"BlockSignatureValidationFailed");
+                PrintConLine("Error Message: ");
+                PrintConLine(result.ResultMessage);
+                PrintConLine("Local Block: ");
+                PrintConLine(tokenBlock.Print());
             }
             else
             if (result.ResultCode == APIResultCodes.Success)

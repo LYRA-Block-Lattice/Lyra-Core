@@ -11,14 +11,34 @@ using Xamarin.Forms.Xaml;
 
 namespace LyraWallet.Views
 {
+    [QueryProperty("Total", "total")]
+    [QueryProperty("Token", "token")]
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class PosCheckoutPage : ContentPage
     {
-        public PosCheckoutPage(List<CartItem> items)
+        public PosCheckoutPage()
         {
             InitializeComponent();
 
-            BindingContext = new PosCheckoutViewModel(items);
+            BindingContext = new PosCheckoutViewModel();
+        }
+
+        public string Total
+        {
+            set
+            {
+                var bt = BindingContext as PosCheckoutViewModel;
+                bt.TotalPayment = decimal.Parse(value);
+            }
+        }
+
+        public string Token
+        {
+            set
+            {
+                var bt = BindingContext as PosCheckoutViewModel;
+                bt.PaymentToken = value;
+            }
         }
 
         protected override void OnAppearing()

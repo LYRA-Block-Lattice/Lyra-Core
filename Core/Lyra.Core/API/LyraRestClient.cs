@@ -64,14 +64,14 @@ namespace Lyra.Core.API
 
             _client = new HttpClient(httpClientHandler);
             _client.BaseAddress = new Uri(url);
-            _client.DefaultRequestHeaders.Accept.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
-#if DEBUG
-            _client.Timeout = new TimeSpan(0, 0, 30);
-#else
+            //_client.DefaultRequestHeaders.Accept.Clear();
+            //_client.DefaultRequestHeaders.Accept.Add(
+            //    new MediaTypeWithQualityHeaderValue("application/json"));
+//#if DEBUG
+//            _client.Timeout = new TimeSpan(0, 0, 30);
+//#else
             _client.Timeout = new TimeSpan(0, 0, 5);
-#endif
+//#endif
         }
 
         public static LyraRestClient Create(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
