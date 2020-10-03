@@ -46,6 +46,12 @@ namespace LyraWallet.Views
             set
             {
                 _action = value;
+
+                if(!string.IsNullOrWhiteSpace(_action))
+                {
+                    var bt = BindingContext as BalanceViewModel;
+                    bt.Balances = null;
+                }
             }
         }
 
@@ -144,9 +150,20 @@ namespace LyraWallet.Views
             }
         }
 
-        protected override async void OnAppearing()
+        protected async override void OnAppearing()
         {
             base.OnAppearing();
+
+            _ = Task.Run(async () => await DoLoadAsync());
+        }
+
+        private async Task DoLoadAsync()
+        {
+            while (!this.IsVisible)
+            {
+                //Console.WriteLine("Waiting....");
+                await Task.Delay(100);
+            }
 
             string txt = null;
 
