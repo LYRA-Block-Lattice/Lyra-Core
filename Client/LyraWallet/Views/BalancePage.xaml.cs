@@ -150,22 +150,18 @@ namespace LyraWallet.Views
             }
         }
 
-        protected async override void OnAppearing()
+        protected override void OnAppearing()
         {
             base.OnAppearing();
 
-            _ = Task.Run(async () => await DoLoadAsync());
+            Task.Run(async () => await DoLoadAsync());
         }
 
         private async Task DoLoadAsync()
         {
-            while (!this.IsVisible)
-            {
-                //Console.WriteLine("Waiting....");
-                await Task.Delay(100);
-            }
-
+            await Task.Delay(600);
             string txt = null;
+            object oAct = null;
 
             // check init load or re-open
             // if init load, goto create/restore
@@ -175,26 +171,25 @@ namespace LyraWallet.Views
             {
                 if(_action == "create")
                 {
-                    App.Store.Dispatch(new WalletCreateAction
+                    oAct = new WalletCreateAction
                     {
                         network = _network,
                         name = "default",
                         password = "",
                         path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
-                    });
-
+                    };    
                     txt = "Creating new wallet...";
                 }
                 else if(_action == "restore")
                 {
-                    App.Store.Dispatch(new WalletRestoreAction
+                    oAct = new WalletRestoreAction
                     {
                         privateKey = _key,
                         network = _network,
                         name = "default",
                         password = "",
                         path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
-                    });
+                    };
                     txt = "Restoring wallet and syncing...";
                 }
                 else
@@ -215,24 +210,30 @@ namespace LyraWallet.Views
                     var fn = $"{path}/default.lyrawallet";
                     if (File.Exists(fn))
                     {
-                        App.Store.Dispatch(new WalletOpenAction
+                        oAct = new WalletOpenAction
                         {
                             path = path,
                             name = "default",
                             password = ""
-                        });
+                        };
 
                         txt = "Opening wallet and syncing...";
                     }
                     else
                     {
-                        await Shell.Current.GoToAsync("NetworkSelectionPage");
+                        Device.BeginInvokeOnMainThread(async () =>
+                        {
+                            await Shell.Current.GoToAsync("NetworkSelectionPage");
+                        });
                     }
                 }
             }
 
             if (txt != null)
+            {
                 UserDialogs.Instance.ShowLoading(txt);
+                App.Store.Dispatch(oAct);
+            }                
         }
 
         private async void Import_ClickedAsync(object sender, EventArgs e)
