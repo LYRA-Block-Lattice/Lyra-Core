@@ -8,8 +8,21 @@ namespace LyraWallet.ViewModels
 {
     public class PosCheckoutViewModel : BaseViewModel
     {
-        public Decimal TotalPayment { get; set; }
-        public string PaymentToken { get; set; }
+        private Decimal _total;
+        public Decimal TotalPayment 
+        { 
+            get
+            {
+                return _total;
+            }
+            set
+            {
+                SetProperty(ref _total, value);
+            }
+        }
+
+        private string _token;
+        public string PaymentToken { get => _token; set => SetProperty(ref _token, value); }
 
         public PosCheckoutViewModel()
         {

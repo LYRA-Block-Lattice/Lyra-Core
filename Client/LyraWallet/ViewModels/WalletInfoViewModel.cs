@@ -40,12 +40,13 @@ namespace LyraWallet.ViewModels
                     this.VoteFor = w?.VoteFor;
                 });
 
-            ChangeVoteCommand = new Command(async () => {
+            ChangeVoteCommand = new Command(() =>
+            {
                 if (string.IsNullOrWhiteSpace(VoteFor))
                     App.Store.Dispatch(new WalletChangeVoteAction
                     {
                         wallet = App.Store.State.wallet,
-                        VoteFor = null
+                        VoteFor = ""
                     });
                 else if (Signatures.ValidateAccountId(VoteFor))
                     App.Store.Dispatch(new WalletChangeVoteAction
@@ -53,8 +54,6 @@ namespace LyraWallet.ViewModels
                         wallet = App.Store.State.wallet,
                         VoteFor = this.VoteFor
                     });
-                //else
-                //    await _thePage.DisplayAlert("Alert", "Not a valid Account ID. If unvote, leave it blank.", "OK");
             });
 
             BarcodeGenCommand = new Command(async () =>

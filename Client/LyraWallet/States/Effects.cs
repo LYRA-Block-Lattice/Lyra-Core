@@ -152,9 +152,11 @@ namespace LyraWallet.States
                     .Switch()
                     .Select(result =>
                     {
-                        return new WalletOpenResultAction
+                        return new WalletTransactionResultAction
                         {
-                            wallet = result
+                            wallet = result,
+                            txName = "SetVote",
+                            txResult = new APIResult { ResultCode = APIResultCodes.Success }
                         };
                     })
                     .Catch<object, Exception>(e =>
