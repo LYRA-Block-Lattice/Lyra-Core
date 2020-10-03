@@ -246,9 +246,8 @@ namespace LyraWallet.Views
                 string type = barcodeFormat.ToString();
                 Device.BeginInvokeOnMainThread(async () =>
                 {
-                    await Navigation.PopAsync();
-                        // pay to result.Text
-                        try
+                    // pay to result.Text
+                    try
                     {
                         if (string.IsNullOrWhiteSpace(result.Text))
                             throw new Exception("Scan QR Code failed.");
@@ -296,6 +295,7 @@ namespace LyraWallet.Views
                     {
                         await DisplayAlert("Alert", $"Unable to pay: {ex.Message}\n\nQR Code:\n{result.Text}", "OK");
                     }
+                    await Shell.Current.GoToAsync("..?refresh=yes");
                 });
             };
             await Navigation.PushAsync(scanPage);
