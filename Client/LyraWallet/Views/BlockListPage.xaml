@@ -25,7 +25,7 @@
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="24"/>
-                                        <ColumnDefinition />
+                                        <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Label Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Text="{Binding index}"
                                            BackgroundColor="LightGoldenrodYellow" 
@@ -40,10 +40,28 @@
                                         Style="{DynamicResource ListItemDetailTextStyle}"
                                         FontSize="10" />
                                 </Grid>
-                                <Label Text="{Binding hash}" 
-                                LineBreakMode="NoWrap"
-                                Style="{DynamicResource ListItemTextStyle}" 
-                                FontSize="7" />                                
+                                <StackLayout>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="30" />
+                                            <ColumnDefinition Width="70" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Label Grid.Column="0" Text="{Binding action}" 
+                                            LineBreakMode="NoWrap" HorizontalTextAlignment="Start"
+                                            Style="{DynamicResource ListItemTextStyle}" 
+                                            FontSize="7" />
+                                        <Label Grid.Column="1" Text="{Binding diffrence}" 
+                                            LineBreakMode="NoWrap" HorizontalTextAlignment="Start"
+                                            Style="{DynamicResource ListItemTextStyle}" 
+                                            FontSize="7" />
+                                        <Label Grid.Column="2" Text="{Binding account}" 
+                                            LineBreakMode="NoWrap" HorizontalTextAlignment="Start"
+                                            Style="{DynamicResource ListItemTextStyle}" 
+                                            FontSize="7" />
+                                    </Grid>
+                                </StackLayout>
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>

@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using LyraWallet.Models;
 using LyraWallet.Services;
 using System;
@@ -49,22 +50,72 @@ namespace LyraWallet.ViewModels
         {
             var blocks = new List<BlockInfo>();
             var height = App.Store.State.wallet.GetLocalAccountHeight();
-            for (var i = height; i > 0; i--)
+
+            Dictionary<string, long> oldBalance = null;
+            for (long i = 1; i <= height; i++)
             {
-                var block = await App.Store.State.wallet.GetBlockByIndex(i);
-                blocks.Add(new BlockInfo()
+                var blockResult = await App.Store.State.wallet.GetBlockByIndex(i);
+                var block = blockResult;
+                if (block == null)
+                { }
+                else
                 {
-                    index = block.Height,
-                    timeStamp = block.TimeStamp,
-                    hash = block.Hash,
-                    type = block.BlockType.ToString(),
-                    balance = block.Balances.Aggregate(new StringBuilder(),
+                    string action = "", account = "";
+                    if (block is SendTransferBlock sb)
+                    {
+                        action = $"Send";
+                        account = sb.DestinationAccountId;
+                    }                        
+                    else if (block is ReceiveTransferBlock rb)
+                    {
+                        if (rb.SourceHash == null)
+                        {
+                            action = $"Genesis";
+                            account = "";
+                        }
+                        else
+                        {
+                            var srcBlockResult = await App.Store.State.wallet.GetBlockByHash(rb.SourceHash);
+                            var srcBlock = srcBlockResult;
+                            action = $"Receive";
+                            account = srcBlock.AccountID;
+                        }
+                    }
+
+                    blocks.Add(new BlockInfo()
+                    {
+                        index = block.Height,
+                        timeStamp = block.TimeStamp,
+                        hash = block.Hash,
+                        type = block.BlockType.ToString(),
+                        balance = block.Balances.Aggregate(new StringBuilder(),
                           (sb, kvp) => sb.AppendFormat("{0}{1} = {2}",
                                        sb.Length > 0 ? ", " : "", kvp.Key, kvp.Value.ToBalanceDecimal()),
-                          sb => sb.ToString())
-                });
+                          sb => sb.ToString()),
+
+                        action = action,
+                        account = account,
+                        diffrence = BalanceDifference(oldBalance, block.Balances)
+                    });
+
+                    oldBalance = block.Balances;
+                }
             }
+
+            blocks.Reverse();
             return blocks;
+        }
+
+        private string BalanceDifference(Dictionary<string, long> oldBalance, Dictionary<string, long> newBalance)
+        {
+            if (oldBalance == null)
+            {
+                return string.Join(", ", newBalance.Select(m => $"{m.Key} {m.Value.ToBalanceDecimal()}"));
+            }
+            else
+            {
+                return string.Join(", ", newBalance.Select(m => $"{m.Key} {(decimal)(m.Value - (oldBalance.ContainsKey(m.Key) ? oldBalance[m.Key] : 0)) / LyraGlobal.TOKENSTORAGERITO}"));
+            }
         }
 
         public ICommand RefreshCommand { get; }

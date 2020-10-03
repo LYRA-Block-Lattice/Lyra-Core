@@ -295,7 +295,7 @@ namespace LyraWallet.Views
                     {
                         await DisplayAlert("Alert", $"Unable to pay: {ex.Message}\n\nQR Code:\n{result.Text}", "OK");
                     }
-                    await Shell.Current.GoToAsync("..?refresh=yes");
+                    await Shell.Current.GoToAsync("..");
                 });
             };
             await Navigation.PushAsync(scanPage);

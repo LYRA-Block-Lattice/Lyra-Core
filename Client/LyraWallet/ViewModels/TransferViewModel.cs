@@ -85,7 +85,7 @@ namespace LyraWallet.ViewModels
                     //await _thePage.DisplayAlert("Error", x.Message, "OK");
                 }
 
-                await Shell.Current.GoToAsync("..?refresh=yes");
+                await Shell.Current.GoToAsync("..");
             });
             ScanCommand = new Command(async () =>
             {
