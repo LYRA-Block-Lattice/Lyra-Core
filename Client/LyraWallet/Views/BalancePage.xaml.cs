@@ -47,6 +47,14 @@ namespace LyraWallet.Views
             {
                 _action = value;
 
+                if(_action == "deleted")
+                {
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        await Shell.Current.GoToAsync("NetworkSelectionPage");
+                    });
+                }
+
                 if(!string.IsNullOrWhiteSpace(_action))
                 {
                     var bt = BindingContext as BalanceViewModel;
@@ -159,7 +167,7 @@ namespace LyraWallet.Views
 
         private async Task DoLoadAsync()
         {
-            await Task.Delay(600);
+            await Task.Delay(400);
             string txt = null;
             object oAct = null;
 
@@ -192,10 +200,11 @@ namespace LyraWallet.Views
                     };
                     txt = "Restoring wallet and syncing...";
                 }
-                else
+                else if(_action == "deleted")
                 {
-                    // 
+                    
                 }
+                _action = "";       // when refresh
             }
             else
             {
@@ -232,7 +241,7 @@ namespace LyraWallet.Views
             if (txt != null)
             {
                 UserDialogs.Instance.ShowLoading(txt);
-                App.Store.Dispatch(oAct);
+                App.Store.Dispatch(oAct);               
             }                
         }
 

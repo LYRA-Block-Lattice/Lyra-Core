@@ -55,7 +55,7 @@ namespace LyraWallet.Views
                     name = "default"
                 });
 
-                await Shell.Current.GoToAsync("NetworkSelectionPage");
+                await Shell.Current.GoToAsync("//BalancePage?action=deleted");
             }
             else
             {

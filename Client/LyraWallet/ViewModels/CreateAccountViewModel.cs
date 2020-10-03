@@ -38,14 +38,6 @@ namespace LyraWallet.ViewModels
             {
                 try
                 {
-                    App.Store.Dispatch(new WalletCreateAction
-                    {
-                        network = NetworkId,
-                        name = "default",
-                        password = "",
-                        path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
-                    });
-
                     await Shell.Current.GoToAsync($"//BalancePage?action=create&network={NetworkId}");
                 }
                 catch(Exception ex)
