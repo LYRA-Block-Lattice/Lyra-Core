@@ -21,6 +21,8 @@ namespace LyraWallet.Views
             InitializeComponent();
 
             BindingContext = new PosCheckoutViewModel();
+
+            Shell.SetTabBarIsVisible(this, false);
         }
 
         public string Total

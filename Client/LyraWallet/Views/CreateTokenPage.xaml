@@ -7,11 +7,11 @@
     <ContentPage.Content>
         <ScrollView BackgroundColor="White">
             <StackLayout Padding="5">
-                <Label Text="Token Name:" 
+                <Label Text="Token Name (minimum 2 characters):" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />
                 <Editor Text="{Binding TokenName}" />
-                <Label Text="The Domain of the Token (optional):" 
+                <Label Text="The Domain of the Token (minimum 6 characters):" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />
                 <Editor Text="{Binding DomainName}" />
@@ -19,7 +19,7 @@
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />
                 <Editor Text="{Binding Description}" AutoSize="TextChanges" />
-                <Label Text="Total Supply (0 - 100,000,000,000,000):" 
+                <Label Text="Total Supply (maximum 90,000,000,000):" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Start" />
                 <Editor Text="{Binding TotalSupply}" />

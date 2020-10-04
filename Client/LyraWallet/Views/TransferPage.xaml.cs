@@ -22,9 +22,10 @@ namespace LyraWallet.Views
 		{
 			InitializeComponent ();
 
-            //lblTokenName.Text = tokenName;
             var trans = new TransferViewModel();
             BindingContext = trans;
+
+            Shell.SetTabBarIsVisible(this, false);
         }
 
         private async void Paste_Clicked(object sender, EventArgs e)

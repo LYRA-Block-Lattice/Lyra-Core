@@ -28,6 +28,8 @@ namespace LyraWallet.Views
 
             var viewModel = new CreateAccountViewModel();
             BindingContext = viewModel;
+
+            Shell.SetTabBarIsVisible(this, false);
         }
     }
 }

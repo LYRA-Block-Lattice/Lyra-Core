@@ -23,6 +23,8 @@ namespace LyraWallet.Views
                     var vm = BindingContext as RedeemViewModel;
                     vm.TokensToRedeem = w?.Keys.ToList();
                 });
+
+            Shell.SetTabBarIsVisible(this, false);
         }
     }
 }

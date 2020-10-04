@@ -266,6 +266,7 @@ namespace LyraWallet.Views
         private async void ScanToPay_Clicked(object sender, EventArgs e)
         {
             ZXingScannerPage scanPage = new ZXingScannerPage();
+            Shell.SetTabBarIsVisible(scanPage, false);
             scanPage.OnScanResult += (result) =>
             {
                 scanPage.IsScanning = false;

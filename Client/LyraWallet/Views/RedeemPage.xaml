@@ -7,9 +7,9 @@
         <vm:RedeemViewModel />
     </ContentPage.BindingContext>
     <ContentPage.Content>
-        <StackLayout>
+        <StackLayout Padding="5">
             <Label Text="Which reward token do you want to redeem?" 
-                   FontAttributes="None" 
+                   FontAttributes="Bold" 
                    HorizontalOptions="Start" />
             <Picker Title="Select a reward token" 
                     TextColor="Blue"
@@ -17,12 +17,10 @@
                     ItemDisplayBinding="{Binding .}"
                     SelectedItem="{Binding SelectedToken}" />
             <Label Text="Desired discount $$ amount?" 
-                   FontAttributes="None" 
+                   FontAttributes="Bold" 
                    HorizontalOptions="Start" />
             <Editor x:Name="txtRedeemCount" Text="{Binding TokenCount}"
                         IsReadOnly="False"  FontSize="Small" AutoSize="TextChanges"/>
-            <BoxView HeightRequest="5" HorizontalOptions="FillAndExpand" />
-            <BoxView HeightRequest="1" BackgroundColor="Black" HorizontalOptions="FillAndExpand" />
             <BoxView HeightRequest="5" HorizontalOptions="FillAndExpand" />
             <Button Margin="0,10,0,0" Text="Redeem" Command="{Binding NextCommand}" />
         </StackLayout>

@@ -45,6 +45,12 @@
     
     <ContentPage.Content>
         <StackLayout x:Name="haveBalance" Padding="5" BackgroundColor="White">
+            <BoxView Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
+                                               VerticalOptions="Fill"
+                                               HorizontalOptions="Start"
+                                               WidthRequest="1"
+                                                HeightRequest="3"
+                                               Color="White"/>
             <ListView x:Name="lvBalance" ItemsSource="{Binding Balances}" 
                       BackgroundColor="White"
                       SeparatorVisibility="None"
@@ -69,9 +75,10 @@
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*"></RowDefinition>
-                                            <RowDefinition Height="3" />
+                                            <RowDefinition Height="2" />
                                         </Grid.RowDefinitions>
-                                        <Image Grid.Column="0" Grid.Row="0" WidthRequest="40" HeightRequest="40">
+                                        <Image Grid.Column="0" Grid.Row="0"
+                                               WidthRequest="40" HeightRequest="40">
                                             <Image.Source>
                                                 <FileImageSource File="LyraVector.png" />
                                             </Image.Source>

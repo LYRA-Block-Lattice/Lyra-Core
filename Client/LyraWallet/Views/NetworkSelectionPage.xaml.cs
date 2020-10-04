@@ -15,6 +15,8 @@ namespace LyraWallet.Views
 		public NetworkSelectionPage ()
 		{
 			InitializeComponent ();
+
+			Shell.SetTabBarIsVisible(this, false);
 		}
 	}
 }

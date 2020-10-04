@@ -15,6 +15,8 @@ namespace LyraWallet.Views
         public LexWorldPage()
         {
             InitializeComponent();
+
+            Shell.SetTabBarIsVisible(this, false);
         }
     }
 }

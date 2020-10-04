@@ -77,6 +77,7 @@ namespace LyraWallet.ViewModels
                         ownerAddress = OwnerAddress
                     });
 
+                    await Shell.Current.GoToAsync("//BalancePage");
                     //await _thePage.DisplayAlert("Success", "Your token is created and ready to use. Goto balance and refresh to see.", "OK");
                 }
                 catch (Exception x)

@@ -17,6 +17,8 @@ namespace LyraWallet.Views
         {
             InitializeComponent();
             webView.Source = LyraGlobal.PRODUCTWEBLINK;
+
+            Shell.SetTabBarIsVisible(this, false);
         }
 
         async void OnBackButtonClicked(object sender, EventArgs e)

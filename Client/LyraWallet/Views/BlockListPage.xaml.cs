@@ -17,6 +17,8 @@ namespace LyraWallet.Views
 		{
 			InitializeComponent ();
             BindingContext = new BlockListViewModel();
+
+			Shell.SetTabBarIsVisible(this, false);
 		}
 	}
 }

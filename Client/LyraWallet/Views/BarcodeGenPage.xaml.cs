@@ -17,7 +17,9 @@ namespace LyraWallet.Views
 		public BarcodeGenPage ()
 		{
 			InitializeComponent ();
-		}
+
+            Shell.SetTabBarIsVisible(this, false);
+        }
 
         public string Account
         {

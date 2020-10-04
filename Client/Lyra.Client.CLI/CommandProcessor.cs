@@ -368,7 +368,7 @@ namespace Lyra.Client.CLI
             Console.WriteLine("Please enter description (optional): ");
             string desc = Console.ReadLine();
 
-            Console.WriteLine("Please enter total supply (0 - 90,000,000,000): ");
+            Console.WriteLine("Please enter total supply ( maximum 90,000,000,000 ): ");
             string supply = Console.ReadLine();
 
             Console.WriteLine("Please enter precision (0 - 8): ");

@@ -90,6 +90,7 @@ namespace LyraWallet.ViewModels
             ScanCommand = new Command(async () =>
             {
                 ZXingScannerPage scanPage = new ZXingScannerPage();
+                Shell.SetTabBarIsVisible(scanPage, false);
                 scanPage.OnScanResult += (result) =>
                 {
                     scanPage.IsScanning = false;

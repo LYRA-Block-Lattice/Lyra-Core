@@ -17,6 +17,8 @@ namespace LyraWallet.Views
 		{
 			InitializeComponent ();
             BindingContext = new CreateTokenViewModel();
+
+			Shell.SetTabBarIsVisible(this, false);
 		}
 	}
 }
