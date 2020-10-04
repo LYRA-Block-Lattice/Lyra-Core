@@ -158,9 +158,6 @@
     <AndroidResource Include="Resources\drawable\copy.png" />
   </ItemGroup>
   <ItemGroup>
-    <AndroidResource Include="Resources\drawable\lyraiconround.png" />
-  </ItemGroup>
-  <ItemGroup>
     <AndroidResource Include="Resources\drawable\paste.png" />
   </ItemGroup>
   <ItemGroup>
@@ -186,6 +183,12 @@
   </ItemGroup>
   <ItemGroup>
     <AndroidAsset Include="Assets\tab_feed.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="Resources\drawable\lyraiconround.png">
+      <Generator>MSBuild:UpdateGeneratedFiles</Generator>
+      <SubType>Designer</SubType>
+    </AndroidResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <ProjectExtensions>
