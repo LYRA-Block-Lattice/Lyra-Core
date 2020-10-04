@@ -62,30 +62,7 @@ namespace LyraWallet.ViewModels
 
             TransferCommand = new Command(async () =>
             {
-                IsWorking = true;
-                try
-                {
-                    var amount = decimal.Parse(Amount);
-
-                    var sta = new WalletSendTokenAction
-                    {
-                        DstAddr = TargetAccount,
-                        Amount = amount,
-                        TokenName = SelectedTokenName,
-                        wallet = App.Store.State.wallet
-                    };
-                    App.Store.Dispatch(sta);
-
-                    IsWorking = false;
-                    //await _thePage.DisplayAlert("Success", "Your transaction has been successfully completed.", "OK");
-                }
-                catch (Exception x)
-                {
-                    IsWorking = false;
-                    //await _thePage.DisplayAlert("Error", x.Message, "OK");
-                }
-
-                await Shell.Current.GoToAsync("..");
+                await Shell.Current.GoToAsync($"..?action=transfer&token={SelectedTokenName}&account={TargetAccount}&amount={Amount}");
             });
             ScanCommand = new Command(async () =>
             {

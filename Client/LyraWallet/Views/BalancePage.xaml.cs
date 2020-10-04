@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -21,12 +22,21 @@ namespace LyraWallet.Views
     [QueryProperty("Network", "network")]
     [QueryProperty("PrivateKey", "key")]
     [QueryProperty("Refresh", "refresh")]
+    [QueryProperty("Token", "token")]
+    [QueryProperty("Account", "account")]
+    [QueryProperty("Amount", "amount")]
+    [QueryProperty("Shop", "shop")]
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class BalancePage : ContentPage
     {
         private string _action;
         private string _network;
         private string _key;
+
+        private string _shop;
+        private string _token;
+        private string _account;
+        private string _amount;
 
         public string Refresh
         {
@@ -78,6 +88,11 @@ namespace LyraWallet.Views
                 _key = value;
             }
         }
+
+        public string Shop { set => _shop = value == null ? null : HttpUtility.UrlDecode(value); }
+        public string Token { set => _token = value; }
+        public string Account { set => _account = value; }
+        public string Amount { set => _amount = value; }
         public BalancePage()
         {
             InitializeComponent();
@@ -167,7 +182,7 @@ namespace LyraWallet.Views
 
         private async Task DoLoadAsync()
         {
-            await Task.Delay(1000);
+            await Task.Delay(100);
             string txt = null;
             object oAct = null;
 
@@ -199,6 +214,55 @@ namespace LyraWallet.Views
                         path = DependencyService.Get<IPlatformSvc>().GetStoragePath()
                     };
                     txt = "Restoring wallet and syncing...";
+                }
+                else if(_action == "transfer")
+                {
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        var isOK = await DisplayAlert("Alert", $"Do you want to tranfer {_token} {_amount} to {_account}", "Confirm", "Cancel");
+                        if (isOK)
+                        {
+                            var moAct = new WalletSendTokenAction
+                            {
+                                DstAddr = _account,
+                                Amount = decimal.Parse(_amount),
+                                TokenName = _token,
+                                wallet = App.Store.State.wallet
+                            };
+                            var mtxt = "Transfering funds...";
+
+                            UserDialogs.Instance.ShowLoading(mtxt);
+                            App.Store.Dispatch(moAct);
+                        }
+                    });
+                }
+                else if(_action == "checkout")
+                {
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        var isOK = await DisplayAlert("Alert", $"Do you want to checkout for shop '{_shop}', total payment {_token} {_amount} to {_account}", "Confirm", "Cancel");
+                        if (isOK)
+                        {
+                            var moAct = new WalletSendTokenAction
+                            {
+                                DstAddr = _account,
+                                Amount = decimal.Parse(_amount),
+                                TokenName = _token,
+                                wallet = App.Store.State.wallet
+                            };
+                            var mtxt = $"Paying {_token} {_amount} to {_shop}...";
+
+                            UserDialogs.Instance.ShowLoading(mtxt);
+                            App.Store.Dispatch(moAct);
+                        }
+                    });
+                }
+                else if(_action == "payme")
+                {
+                    Device.BeginInvokeOnMainThread(async () =>
+                    {
+                        await Shell.Current.GoToAsync($"TransferPage?token={LyraGlobal.OFFICIALTICKERCODE}&account={_account}");
+                    });
                 }
                 else if(_action == "deleted")
                 {
@@ -274,6 +338,7 @@ namespace LyraWallet.Views
                 string type = barcodeFormat.ToString();
                 Device.BeginInvokeOnMainThread(async () =>
                 {
+                    var query = "?";
                     // pay to result.Text
                     try
                     {
@@ -293,24 +358,29 @@ namespace LyraWallet.Views
                                 || !Decimal.TryParse(lyraUri.Total, out total))
                                 throw new Exception("Unknown QR Code: " + result.Text);
 
-                            msg = $"Store {lyraUri.Shop} Checkout, Total to Pay:\n";
-                            msg += $"{total} {lyraUri.Token}";
-                            var isOK = await DisplayAlert("Alert", msg, "Confirm", "Canel");
-                            if (isOK)
-                            {
-                                var sta = new WalletSendTokenAction
-                                {
-                                    DstAddr = lyraUri.AccountID,
-                                    Amount = total,
-                                    TokenName = lyraUri.Token,
-                                    wallet = App.Store.State.wallet
-                                };
-                                App.Store.Dispatch(sta);
-                            }
+                            query += $"action=checkout&account={lyraUri.AccountID}&amount={lyraUri.Total}&token={lyraUri.Token}&shop={lyraUri.Shop}";
+                            //msg = $"Store {lyraUri.Shop} Checkout, Total to Pay:\n";
+                            //msg += $"{total} {lyraUri.Token}";
+                            //var isOK = await DisplayAlert("Alert", msg, "Confirm", "Cancel");
+                            //if (isOK)
+                            //{
+                            //    var sta = new WalletSendTokenAction
+                            //    {
+                            //        DstAddr = lyraUri.AccountID,
+                            //        Amount = total,
+                            //        TokenName = lyraUri.Token,
+                            //        wallet = App.Store.State.wallet
+                            //    };
+                            //    App.Store.Dispatch(sta);
+
+                            //    return;
+                            //}
                         }
                         else if (lyraUri.PathAndQuery.StartsWith("/payme"))
                         {
-                            await Shell.Current.GoToAsync($"TransferPage?token={LyraGlobal.OFFICIALTICKERCODE}&account={lyraUri.AccountID}");
+                            query += $"action=payme&account={lyraUri.AccountID}";
+                            //await Shell.Current.GoToAsync($"TransferPage?token={LyraGlobal.OFFICIALTICKERCODE}&account={lyraUri.AccountID}");
+                            //return;
                         }
                         else
                         {
@@ -321,7 +391,7 @@ namespace LyraWallet.Views
                     {
                         await DisplayAlert("Alert", $"Unable to pay: {ex.Message}\n\nQR Code:\n{result.Text}", "OK");
                     }
-                    await Shell.Current.GoToAsync("..");
+                    await Shell.Current.GoToAsync(".." + query);
                 });
             };
             await Navigation.PushAsync(scanPage);

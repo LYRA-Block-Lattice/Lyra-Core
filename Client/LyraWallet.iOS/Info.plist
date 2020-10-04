@@ -36,8 +36,6 @@
 	<string>Assets.xcassets/LaunchImages.launchimage</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Please allow the camera to be used for scanning barcodes</string>
-	<key>CFBundleIdentifier</key>
-	<string>live.lyra.LyraWallet.LeX</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -49,5 +47,7 @@
 	</array>
 	<key>CFBundleShortVersionString</key>
 	<string>1.7</string>
+	<key>CFBundleIdentifier</key>
+	<string>live.lyra.LyraWallet</string>
 </dict>
 </plist>
