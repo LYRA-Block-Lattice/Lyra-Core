@@ -10,6 +10,8 @@ using Xamarin.Forms.Xaml;
 using Xamarin.Essentials;
 using LyraWallet.States;
 using LyraWallet.Services;
+using Acr.UserDialogs;
+using Lyra.Core.Cryptography;
 
 namespace LyraWallet.Views
 {
@@ -32,6 +34,13 @@ namespace LyraWallet.Views
                     txtPrivateKey.Text = "********************************";
             };
             lblViewKey.GestureRecognizers.Add(showPrivateKey);
+
+            // redux
+            App.Store.Select(state => state.wallet.VoteFor)
+                .Subscribe(w =>
+                {
+                    UserDialogs.Instance.HideLoading();
+                });
         }
 
         private async void CopyAccountID_Clicked(object sender, EventArgs e)
@@ -60,6 +69,33 @@ namespace LyraWallet.Views
             else
             {
 
+            }
+        }
+
+        private async void ChangeVote_Clicked(object sender, EventArgs e)
+        {
+            var bt = BindingContext as WalletInfoViewModel;
+
+            if(bt.VoteFor != App.Store.State.wallet.VoteFor)
+            {
+                UserDialogs.Instance.ShowLoading("Changing vote for...");
+
+                if (string.IsNullOrWhiteSpace(bt.VoteFor))
+                    App.Store.Dispatch(new WalletChangeVoteAction
+                    {
+                        wallet = App.Store.State.wallet,
+                        VoteFor = ""
+                    });
+                else if (Signatures.ValidateAccountId(bt.VoteFor))
+                    App.Store.Dispatch(new WalletChangeVoteAction
+                    {
+                        wallet = App.Store.State.wallet,
+                        VoteFor = bt.VoteFor
+                    });
+            }
+            else
+            {
+                await DisplayAlert("Info", "Vote for not changed", "OK");
             }
         }
     }

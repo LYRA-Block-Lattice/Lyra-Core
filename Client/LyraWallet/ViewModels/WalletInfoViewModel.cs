@@ -40,22 +40,6 @@ namespace LyraWallet.ViewModels
                     this.VoteFor = w?.VoteFor;
                 });
 
-            ChangeVoteCommand = new Command(() =>
-            {
-                if (string.IsNullOrWhiteSpace(VoteFor))
-                    App.Store.Dispatch(new WalletChangeVoteAction
-                    {
-                        wallet = App.Store.State.wallet,
-                        VoteFor = ""
-                    });
-                else if (Signatures.ValidateAccountId(VoteFor))
-                    App.Store.Dispatch(new WalletChangeVoteAction
-                    {
-                        wallet = App.Store.State.wallet,
-                        VoteFor = this.VoteFor
-                    });
-            });
-
             BarcodeGenCommand = new Command(async () =>
             {
                 await Shell.Current.GoToAsync($"BarcodeGenPage?account={AccountID}");

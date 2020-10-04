@@ -307,12 +307,10 @@ namespace LyraWallet.Views
                                 };
                                 App.Store.Dispatch(sta);
                             }
-                            return;
                         }
                         else if (lyraUri.PathAndQuery.StartsWith("/payme"))
                         {
                             await Shell.Current.GoToAsync($"TransferPage?token={LyraGlobal.OFFICIALTICKERCODE}&account={lyraUri.AccountID}");
-                            return;
                         }
                         else
                         {
