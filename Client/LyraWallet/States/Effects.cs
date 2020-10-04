@@ -18,7 +18,7 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletCreateAction>()
                     .Select(action => 
                     {
-                        return Observable.FromAsync(async () => { 
+                        return Observable.StartAsync(async () => {
                             var store = new SecuredWalletStore(action.path);
                             Wallet.Create(store, action.name, action.password, action.network);
 
@@ -27,7 +27,9 @@ namespace LyraWallet.States
                             await wallet.Sync(client);
 
                             return wallet;
-                        }).ObserveOn(Scheduler.Default);
+                        }, NewThreadScheduler.Default)
+                        .ObserveOn(Scheduler.Default);
+
                     })
                     .Switch()
                     .Select(result =>
@@ -52,14 +54,16 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletOpenAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(async () => {
+                        return Observable.StartAsync(async () =>
+                        {
                             var store = new SecuredWalletStore(action.path);
                             var wallet = Wallet.Open(store, action.name, action.password);
                             var client = LyraRestClient.Create(wallet.NetworkId, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
                             await wallet.Sync(client);
 
                             return wallet;
-                        }).ObserveOn(Scheduler.Default);
+                        }, NewThreadScheduler.Default)
+                        .ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -84,7 +88,7 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletRestoreAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(async () => {
+                        return Observable.StartAsync(async () => {
                             var store = new SecuredWalletStore(action.path);
                             Wallet.Create(store, action.name, action.password, action.network, action.privateKey);
 
@@ -93,7 +97,8 @@ namespace LyraWallet.States
                             await wallet.Sync(client);
 
                             return wallet;
-                        }).ObserveOn(Scheduler.Default);
+                        }, NewThreadScheduler.Default)
+                        .ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -174,11 +179,11 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletRefreshBalanceAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(async () =>
-                        {
+                        return Observable.StartAsync(async () => {
                             var ret = await action.wallet.Sync(null);
                             return (action.wallet, new APIResult { ResultCode = ret });
-                        }).ObserveOn(Scheduler.Default);
+                        }, NewThreadScheduler.Default)
+                        .ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -205,14 +210,15 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletSendTokenAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(async () =>
-                        {
+                        return Observable.StartAsync(async () => {
                             await action.wallet.Sync(null);
 
                             var result = await action.wallet.Send(action.Amount, action.DstAddr, action.TokenName);
 
                             return (action.wallet, result);
-                        }).ObserveOn(Scheduler.Default);
+
+                        }, NewThreadScheduler.Default)
+                        .ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -239,15 +245,15 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletCreateTokenAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(async () =>
-                        {
+                        return Observable.StartAsync(async () => {
                             await action.wallet.Sync(null);
 
                             var result = await action.wallet.CreateToken(action.tokenName, action.tokenDomain ?? "", action.description ?? "", Convert.ToSByte(action.precision), action.totalSupply,
                                         true, action.ownerName ?? "", action.ownerAddress ?? "", null, ContractTypes.Default, null);
 
                             return (action.wallet, result);
-                        }).ObserveOn(Scheduler.Default);
+                        }, NewThreadScheduler.Default)
+                        .ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -274,14 +280,14 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletImportAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(async () =>
-                        {
+                        return Observable.StartAsync(async () => {
                             await action.wallet.Sync(null);
 
                             var result = await action.wallet.ImportAccount(action.targetPrivateKey);
 
                             return (action.wallet, result);
-                        }).ObserveOn(Scheduler.Default);
+                        }, NewThreadScheduler.Default)
+                        .ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -309,14 +315,14 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletRedeemAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(async () =>
-                        {
+                        return Observable.StartAsync(async () => {
                             await action.wallet.Sync(null);
 
                             var result = await action.wallet.RedeemRewards(action.tokenToRedeem, action.countToRedeem);
 
                             return (action.wallet, result);
-                        }).ObserveOn(Scheduler.Default);
+                        }, NewThreadScheduler.Default)
+                        .ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>
@@ -343,12 +349,12 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletNonFungibleTokenAction>()
                     .Select(action =>
                     {
-                        return Observable.FromAsync(async () =>
-                        {
+                        return Observable.StartAsync(async () => {
                             var result = await action.wallet.NonFungToStringAsync(action.nfToken);
 
                             return (action.wallet, result);
-                        });
+                        }, NewThreadScheduler.Default)
+                        .ObserveOn(Scheduler.Default);
                     })
                     .Switch()
                     .Select(result =>

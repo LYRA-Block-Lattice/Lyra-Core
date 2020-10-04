@@ -90,14 +90,14 @@ namespace LyraWallet.Views
             lvBalance.ItemTapped += LvBalance_ItemTapped;
 
             // redux
-            App.Store.Select(state => state.Balances)
+            App.Store.Select(state => state)
                 .Subscribe(w =>
                 {
                     BalanceViewModel vm = BindingContext as BalanceViewModel;
-                    vm.Balances = w;
+                    vm.Balances = w.Balances;
                     vm.IsRefreshing = false;
 
-                    if (w != null && w.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                    if (w.Balances != null && w.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                         vm.CanPay = true;
                     else
                         vm.CanPay = false;
@@ -167,7 +167,7 @@ namespace LyraWallet.Views
 
         private async Task DoLoadAsync()
         {
-            await Task.Delay(400);
+            await Task.Delay(1000);
             string txt = null;
             object oAct = null;
 

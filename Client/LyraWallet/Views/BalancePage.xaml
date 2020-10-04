@@ -59,36 +59,40 @@
                             <StackLayout BackgroundColor="White">
                                 <Frame
                                CornerRadius="10"
-                               Padding="5"
+                               Padding="0"
                                HasShadow="True"
                                BackgroundColor="White">
                                     <Grid VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="80"/>
-                                            <ColumnDefinition />
-                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <Image Grid.Column="0" WidthRequest="40" HeightRequest="40">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"></RowDefinition>
+                                            <RowDefinition Height="3" />
+                                        </Grid.RowDefinitions>
+                                        <Image Grid.Column="0" Grid.Row="0" WidthRequest="40" HeightRequest="40">
                                             <Image.Source>
                                                 <FileImageSource File="LyraVector.png" />
                                             </Image.Source>
                                         </Image>
-                                        <StackLayout Padding="5" Grid.Column="1">
-                                            <Label 
+                                        <StackLayout Padding="5" Grid.Column="1" Grid.Row="0">
+                                            <Label                              
+                                                VerticalTextAlignment="Start"
                                                 Text="{Binding Key}"
                                                 FontAttributes="Bold"
                                                 TextColor="{StaticResource Primary}"
                                                 />
                                             <Label TextColor="Black" Text="{Binding Value}" />
                                         </StackLayout>
+                                        <BoxView Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
+                                               VerticalOptions="Fill"
+                                               HorizontalOptions="Start"
+                                               WidthRequest="1"
+                                                HeightRequest="1"
+                                               Color="White"/> 
                                     </Grid>
                                 </Frame>
-                                <BoxView  
-                                   VerticalOptions="Fill"
-                                   HorizontalOptions="Start"
-                                   WidthRequest="1"
-                                    HeightRequest="1"
-                                   Color="Blue"/>
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>
