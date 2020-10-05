@@ -25,6 +25,7 @@ namespace LyraWallet
             Store.RegisterEffects(
                 LyraWallet.States.Effects.CreateWalletEffect,
                 LyraWallet.States.Effects.OpenWalletEffect,
+                LyraWallet.States.Effects.OpenWalletAndSyncEffect,
                 LyraWallet.States.Effects.RestoreWalletEffect,
                 LyraWallet.States.Effects.RemoveWalletEffect,
                 LyraWallet.States.Effects.ChangeVoteWalletEffect,
@@ -36,7 +37,20 @@ namespace LyraWallet
                 LyraWallet.States.Effects.NonFungibleTokenWalletEffect
                 );
 
-            MainPage = new AppShell();
+            WalletPassword wp;
+            // check default wallet exists. 
+            var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
+            var fn = $"{path}/default.lyrawallet";
+            if (File.Exists(fn))
+            {
+                wp = new WalletPassword(true);
+            }
+            else
+            {
+                wp = new WalletPassword(false);
+            }
+            wp.Path = path;
+            MainPage = new NavigationPage(wp);
         }
 
         protected override void OnSleep()

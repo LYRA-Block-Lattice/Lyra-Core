@@ -19,7 +19,7 @@
                     ItemsSource="{Binding LyraNetworks}" 
                     ItemDisplayBinding="{Binding .}"
                     SelectedItem="{Binding SelectedNetwork}" />
-                <Button Margin="0,10,0,0" Text="Next" Command="{Binding NextCommand}" />
+                <Button Margin="0,10,0,0" Text="Next" Clicked="OnClicked" />
             </StackLayout>
         </ScrollView>
     </ContentPage.Content>

@@ -9,7 +9,7 @@
         <StackLayout BackgroundColor="White">
             <Frame>
                 <StackLayout>
-                    <Button Text="Create New Account" Command="{Binding CreateNewCommand}" TextColor="White"  BackgroundColor="Gray" HorizontalOptions="Fill" />
+                    <Button Text="Create New Account" Clicked="OnCreateNewClicked" TextColor="White"  BackgroundColor="Gray" HorizontalOptions="Fill" />
                 </StackLayout>
             </Frame>
             <BoxView BackgroundColor="Silver" HeightRequest="1"  HorizontalOptions="FillAndExpand"/>
@@ -20,7 +20,7 @@
                     <Editor Text="{Binding PrivateKey}"
                             Placeholder="Paste your private key here"
                             AutoSize="TextChanges" />
-                    <Button Text="Create/Restore by Private Key" Command="{Binding CreateByKeyCommand}" TextColor="White"  BackgroundColor="Gray" HorizontalOptions="Fill" />
+                    <Button Text="Create/Restore by Private Key" Clicked="OnRestoreClicked" TextColor="White"  BackgroundColor="Gray" HorizontalOptions="Fill" />
                 </StackLayout>
             </Frame>    
         </StackLayout>

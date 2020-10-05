@@ -53,6 +53,8 @@ namespace LyraWallet.ViewModels
             }
         }
 
+        public bool InitRefreshed { get; set; }
+
         public BalanceViewModel()
         {
             //App.Container.PropertyChanged += (o, e) => OnPropertyChanged(e.PropertyName);

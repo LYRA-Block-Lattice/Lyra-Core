@@ -4,6 +4,7 @@ using LyraWallet.Models;
 using LyraWallet.Services;
 using LyraWallet.States;
 using LyraWallet.ViewModels;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,6 +27,7 @@ namespace LyraWallet.Views
     [QueryProperty("Account", "account")]
     [QueryProperty("Amount", "amount")]
     [QueryProperty("Shop", "shop")]
+    [QueryProperty("Passenc", "passenc")]
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class BalancePage : ContentPage
     {
@@ -37,6 +39,7 @@ namespace LyraWallet.Views
         private string _token;
         private string _account;
         private string _amount;
+        private string _password;
 
         public string Refresh
         {
@@ -89,6 +92,7 @@ namespace LyraWallet.Views
             }
         }
 
+        public string Passenc { set => _password = Base64UrlEncoder.Decode(value); }
         public string Shop { set => _shop = value == null ? null : HttpUtility.UrlDecode(value); }
         public string Token { set => _token = value; }
         public string Account { set => _account = value; }
@@ -105,14 +109,14 @@ namespace LyraWallet.Views
             lvBalance.ItemTapped += LvBalance_ItemTapped;
 
             // redux
-            App.Store.Select(state => state)
+            App.Store.Select(state => state.IsChanged)
                 .Subscribe(w =>
                 {
                     BalanceViewModel vm = BindingContext as BalanceViewModel;
-                    vm.Balances = w.Balances;
+                    vm.Balances = App.Store.State.Balances;
                     vm.IsRefreshing = false;
 
-                    if (w.Balances != null && w.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                    if (App.Store.State.Balances != null && App.Store.State.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                         vm.CanPay = true;
                     else
                         vm.CanPay = false;
@@ -134,10 +138,14 @@ namespace LyraWallet.Views
                 });
 
             App.Store.Select(state => state.ErrorMessage)
-                .Subscribe(errMsg =>
+                .Subscribe(msg =>
                 {
-                    if (errMsg == null)
+                    if (msg == null)
                         return;
+
+                    string errMsg = msg;
+                    if (errMsg == "")
+                        errMsg = "Last action was successful.";
 
                     // display error message here
                     // var icon = await BitmapLoader.Current.LoadFromResource("emoji_cool_small.png", null, null);
@@ -275,6 +283,15 @@ namespace LyraWallet.Views
                 if (App.Store.State.IsOpening)
                 {
                     // refresh balance
+                    if(!App.Store.State.InitRefresh)
+                    {
+                        oAct = new WalletRefreshBalanceAction
+                        {
+                            wallet = App.Store.State.wallet
+                        };
+
+                        txt = "Refreshing balance...";
+                    }
                 }
                 else
                 {
@@ -283,7 +300,7 @@ namespace LyraWallet.Views
                     var fn = $"{path}/default.lyrawallet";
                     if (File.Exists(fn))
                     {
-                        oAct = new WalletOpenAction
+                        oAct = new WalletOpenAndSyncAction
                         {
                             path = path,
                             name = "default",
@@ -305,7 +322,7 @@ namespace LyraWallet.Views
             if (txt != null)
             {
                 UserDialogs.Instance.ShowLoading(txt);
-                App.Store.Dispatch(oAct);               
+                _ = Task.Run(() => { App.Store.Dispatch(oAct); });                               
             }                
         }
 

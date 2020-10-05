@@ -12,13 +12,17 @@ using LyraWallet.States;
 using LyraWallet.Services;
 using Acr.UserDialogs;
 using Lyra.Core.Cryptography;
+using System.IO;
+using System.Threading;
 
 namespace LyraWallet.Views
 {
 	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class WalletInfoPage : ContentPage
 	{
-		public WalletInfoPage ()
+        private CancellationTokenSource _cancel;
+
+        public WalletInfoPage ()
 		{
 			InitializeComponent ();
             var vm = new WalletInfoViewModel();
@@ -35,12 +39,13 @@ namespace LyraWallet.Views
             };
             lblViewKey.GestureRecognizers.Add(showPrivateKey);
 
+            _cancel = new CancellationTokenSource();
             // redux
             App.Store.Select(state => state.wallet.VoteFor)
                 .Subscribe(w =>
                 {
                     UserDialogs.Instance.HideLoading();
-                });
+                }, _cancel.Token);
         }
 
         private async void CopyAccountID_Clicked(object sender, EventArgs e)
@@ -58,13 +63,30 @@ namespace LyraWallet.Views
             bool answer = await DisplayAlert("Are you sure?", "If you not backup private key properly, all Tokens will be lost after account removing. Confirm removing the account?", "Yes", "No");
             if (answer)
             {
-                App.Store.Dispatch(new WalletRemoveAction
-                {
-                    path = DependencyService.Get<IPlatformSvc>().GetStoragePath(),
-                    name = "default"
+                UserDialogs.Instance.ShowLoading("Removing wallet data...");
+
+                _cancel.Cancel();
+
+                var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
+                _ = Task.Run(() => {
+                    App.Store.Dispatch(new WalletRemoveAction
+                    {
+                        path = path,
+                        name = "default"
+                    });
                 });
 
-                await Shell.Current.GoToAsync("//BalancePage?action=deleted");
+                var fn = $"{path}/default.lyrawallet";
+                while (File.Exists(fn))
+                {
+                    await Task.Delay(100);
+                }
+
+                UserDialogs.Instance.HideLoading();
+
+                var wp = new WalletPassword(false);
+                wp.Path = path;
+                App.Current.MainPage = new NavigationPage(wp);
             }
             else
             {

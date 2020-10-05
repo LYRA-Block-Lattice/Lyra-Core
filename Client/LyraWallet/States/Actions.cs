@@ -7,24 +7,43 @@ using System.Text;
 
 namespace LyraWallet.States
 {
-    public class WalletErrorAction
+    public class WalletActionBase
+    {
+        public string ID { get; set; }
+        public WalletActionBase()
+        {
+            ID = Guid.NewGuid().ToString();
+        }
+    }
+    public class WalletErrorAction : WalletActionBase
     {
         public Exception Error { get; set; }
     }
 
-    public class WalletOpenAction {
+    public class WalletOpenAction : WalletActionBase
+    {
         public string path { get; set; }
         public string name { get; set; }
         public string password { get; set; }
     }
-    public class WalletCreateAction { 
+
+    public class WalletOpenAndSyncAction : WalletActionBase
+    {
+        public string path { get; set; }
+        public string name { get; set; }
+        public string password { get; set; }
+    }
+
+    public class WalletCreateAction : WalletActionBase
+    { 
         public string path { get; set; }
         public string network { get; set; }
         public string name { get; set; }
         public string password { get; set; }
     }
 
-    public class WalletRestoreAction { 
+    public class WalletRestoreAction : WalletActionBase
+    { 
         public string privateKey { get; set; }
         public string path { get; set; }
         public string network { get; set; }
@@ -35,20 +54,27 @@ namespace LyraWallet.States
     public class WalletOpenResultAction
     {
         public Wallet wallet { get; set; }
+        public string errorMessage { get; set; }
+    }
+
+    public class WalletOpenAndSyncResultAction
+    {
+        public Wallet wallet { get; set; }
     }
     
-    public class WalletRemoveAction {
+    public class WalletRemoveAction : WalletActionBase
+    {
         public string path { get; set; }
         public string name { get; set; }
     }
 
-    public class WalletChangeVoteAction
+    public class WalletChangeVoteAction : WalletActionBase
     {
         public Wallet wallet { get; set; }
         public string VoteFor { get; set; }
     }
 
-    public class WalletRefreshBalanceAction { public Wallet wallet { get; set; } }
+    public class WalletRefreshBalanceAction : WalletActionBase { public Wallet wallet { get; set; } }
 
     public class WalletTransactionResultAction
     {
@@ -57,7 +83,7 @@ namespace LyraWallet.States
         public APIResult txResult { get; set; }
     }
 
-    public class WalletSendTokenAction
+    public class WalletSendTokenAction : WalletActionBase
     {
         public Wallet wallet { get; set; }
         public string DstAddr { get; set; }
@@ -65,7 +91,7 @@ namespace LyraWallet.States
         public decimal Amount { get; set; }
     }
 
-    public class WalletCreateTokenAction
+    public class WalletCreateTokenAction : WalletActionBase
     {
         public Wallet wallet { get; set; }
         public string tokenName { get; set; }
@@ -77,20 +103,20 @@ namespace LyraWallet.States
         public string ownerAddress { get; set; }
     }
 
-    public class WalletImportAction
+    public class WalletImportAction : WalletActionBase
     {
         public Wallet wallet { get; set; }
         public string targetPrivateKey { get; set; }
     }
 
-    public class WalletRedeemAction
+    public class WalletRedeemAction : WalletActionBase
     {
         public Wallet wallet { get; set; }
         public string tokenToRedeem { get; set; }
         public int countToRedeem { get; set; }
     }
 
-    public class WalletNonFungibleTokenAction
+    public class WalletNonFungibleTokenAction : WalletActionBase
     {
         public Wallet wallet { get; set; }
         public NonFungibleToken nfToken { get; set; }
@@ -104,7 +130,7 @@ namespace LyraWallet.States
         public string redemptionCode { get; set; }
     }
 
-    public class GetApiVersionAction
+    public class GetApiVersionAction : WalletActionBase
     {
         public string Platform { get; set; }
         public string Network { get; set; }

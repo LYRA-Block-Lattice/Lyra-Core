@@ -20,18 +20,11 @@ namespace LyraWallet.ViewModels
             get => _selectedNetwork;
             set => SetProperty(ref _selectedNetwork, value);
         }
+        public string Passenc { get; set; }
 
         public NetworkSelectionViewModel ()
 		{
             Title = "Network Selection";
 		}
-
-        public ICommand NextCommand
-        {
-            get => new Command(async () =>
-            {
-                await Shell.Current.GoToAsync($"CreateAccountPage?network={SelectedNetwork}");
-            });
-        }
     }
 }

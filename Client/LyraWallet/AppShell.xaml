@@ -110,6 +110,10 @@
         </ShellContent>
     </FlyoutItem>
 
+    <ShellItem Route="login" IsVisible="False">
+        <ShellContent ContentTemplate="{DataTemplate local:WalletPassword}" />
+    </ShellItem>
+
     <!--
         This defines content that won't show up in a flyout menu. When this content is active the flyout menu won't be available.
         This is useful for creating areas of the application where you don't want users to be able to navigate away from.
@@ -160,7 +164,7 @@
         <DataTemplate>
             <Grid BackgroundColor="White"
               HeightRequest="200">
-                <Image Aspect="AspectFill"
+                <Image Aspect="AspectFit"
                    Source="lyralogo.png"
                    Opacity="0.6" />
                 <Label Text="Wallet for LYRA Block Lattice (Beta)"

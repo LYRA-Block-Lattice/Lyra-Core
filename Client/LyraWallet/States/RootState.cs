@@ -10,7 +10,9 @@ namespace LyraWallet.States
 {
     public class RootState
     {
+        public string IsChanged { get; set; }
         public bool IsOpening { get; set; }
+        public bool InitRefresh { get; set; }
         public Wallet wallet { get; set; }
         public List<string> txs { get; set; }
 
@@ -28,9 +30,11 @@ namespace LyraWallet.States
         public static RootState InitialState =>
             new RootState
             {
+                IsChanged = null,
                 IsOpening = false,
                 wallet = null,
                 txs = null,
+                ErrorMessage = null,
 
                 walletState = HoldingState.InitialState,
                 //shopState = ShopState.InitialState,

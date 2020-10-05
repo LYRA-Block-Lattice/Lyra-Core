@@ -1,6 +1,7 @@
 ﻿using LyraWallet.Services;
 using LyraWallet.States;
 using LyraWallet.Views;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +14,7 @@ namespace LyraWallet.ViewModels
 {
 	public class CreateAccountViewModel : BaseViewModel
     {
+        private string _password;
 		public CreateAccountViewModel ()
 		{
             PrivateKey = "";
@@ -66,5 +68,7 @@ namespace LyraWallet.ViewModels
                 }
             });
         }
+        public string Passenc { set { _password = Base64UrlEncoder.Decode(value); } }
+        public string Password => _password;
     }
 }

@@ -25,6 +25,11 @@
                 </Setter>
             </Style>
 
+            <Style TargetType="NavigationPage">
+                <Setter Property="BarBackgroundColor" Value="#2196F3"/>
+                <Setter Property="BarTextColor" Value="White"/>
+            </Style>
+
             <x:String x:Key="IconWallet">&#xf0584;</x:String>
             <x:String x:Key="IconPOS">&#xf0cf4;</x:String>
             <x:String x:Key="IconSettings">&#xf08bb;</x:String>

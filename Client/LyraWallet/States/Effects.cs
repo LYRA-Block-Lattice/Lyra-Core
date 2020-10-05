@@ -23,8 +23,6 @@ namespace LyraWallet.States
                             Wallet.Create(store, action.name, action.password, action.network);
 
                             var wallet = Wallet.Open(store, action.name, action.password);
-                            var client = LyraRestClient.Create(action.network, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
-                            await wallet.Sync(client);
 
                             return wallet;
                         }, NewThreadScheduler.Default)
@@ -54,10 +52,47 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletOpenAction>()
                     .Select(action =>
                     {
+                        try
+                        {
+                            var store = new SecuredWalletStore(action.path);
+                            var wallet = Wallet.Open(store, action.name, action.password);
+
+                            return Observable.Return((wallet, ""));
+                        }
+                        catch(Exception ex)
+                        {
+                            return Observable.Return<(Wallet, string errMsg)>((null, ex.Message));
+                        }
+                    })
+                    .Switch()
+                    .Select(result =>
+                    {
+                        return new WalletOpenResultAction
+                        {
+                            wallet = result.Item1,
+                            errorMessage = result.Item2
+                        };
+                    })
+                    .Catch<object, Exception>(e =>
+                    {
+                        return Observable.Return(new WalletErrorAction
+                        {
+                            Error = e
+                        });
+                    }),
+                true
+            );
+
+        public static Effect<RootState> OpenWalletAndSyncEffect = ReduxSimple.Effects.CreateEffect<RootState>
+            (
+                () => App.Store.ObserveAction<WalletOpenAndSyncAction>()
+                    .Select(action =>
+                    {
                         return Observable.StartAsync(async () =>
                         {
                             var store = new SecuredWalletStore(action.path);
                             var wallet = Wallet.Open(store, action.name, action.password);
+
                             var client = LyraRestClient.Create(wallet.NetworkId, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
                             await wallet.Sync(client);
 
@@ -68,7 +103,7 @@ namespace LyraWallet.States
                     .Switch()
                     .Select(result =>
                     {
-                        return new WalletOpenResultAction
+                        return new WalletOpenAndSyncResultAction
                         {
                             wallet = result
                         };
@@ -103,7 +138,7 @@ namespace LyraWallet.States
                     .Switch()
                     .Select(result =>
                     {
-                        return new WalletOpenResultAction
+                        return new WalletOpenAndSyncResultAction
                         {
                             wallet = result
                         };
@@ -125,7 +160,7 @@ namespace LyraWallet.States
                     {
                         var store = new SecuredWalletStore(action.path);
                         store.Delete(action.name);
-                        return Observable.Empty<Wallet>();
+                        return Observable.Return<Wallet>(null);
                      })
                     .Switch()
                     .Select(result =>
@@ -180,7 +215,8 @@ namespace LyraWallet.States
                     .Select(action =>
                     {
                         return Observable.StartAsync(async () => {
-                            var ret = await action.wallet.Sync(null);
+                            var client = LyraRestClient.Create(action.wallet.NetworkId, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
+                            var ret = await action.wallet.Sync(client);
                             return (action.wallet, new APIResult { ResultCode = ret });
                         }, NewThreadScheduler.Default)
                         .ObserveOn(Scheduler.Default);
