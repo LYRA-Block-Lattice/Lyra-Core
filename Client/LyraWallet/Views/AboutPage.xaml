@@ -4,7 +4,7 @@
              x:Class="LyraWallet.Views.AboutPage">
     <ContentPage.Content>
         <StackLayout>
-            <Label Text="Wallet for LYRA Block Lattice ver 1.7.5b Beta"
+            <Label Text="Wallet for LYRA Block Lattice ver 1.7.6b Beta"
                 VerticalOptions="CenterAndExpand" 
                 HorizontalOptions="CenterAndExpand" />
         </StackLayout>

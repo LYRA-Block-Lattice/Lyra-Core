@@ -63,7 +63,7 @@ namespace LyraWallet.Views
         {
             if(confirmPassword.IsVisible)
             {
-                if(password.Text.Length < 8)
+                if(password.Text == null || password.Text.Length < 8)
                 {
                     await DisplayAlert("Alert", $"Password is too short!", "Confirm");
                     return;
@@ -91,7 +91,7 @@ namespace LyraWallet.Views
                     {
                         path = _path,
                         name = "default",
-                        password = password.Text
+                        password = password.Text ?? ""
                     };
                     App.Store.Dispatch(oAct); 
                 });                             
