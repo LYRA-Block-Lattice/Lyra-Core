@@ -7,6 +7,7 @@ using System.IO;
 using LyraWallet.Models;
 using ReduxSimple;
 using LyraWallet.States;
+using System.Threading;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace LyraWallet
@@ -17,6 +18,8 @@ namespace LyraWallet
 
         public static readonly ReduxStore<RootState> Store =
             new ReduxStore<RootState>(States.Reducers.CreateReducers(), RootState.InitialState, true);
+
+        public static CancellationTokenSource WalletSubscribeCancellation = new CancellationTokenSource();
 
         public App()
         {

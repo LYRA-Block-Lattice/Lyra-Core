@@ -38,7 +38,7 @@ namespace LyraWallet.ViewModels
                     this.AccountID = w?.AccountId;
                     this.CurrentNetwork = w?.NetworkId;
                     this.VoteFor = w?.VoteFor;
-                });
+                }, App.WalletSubscribeCancellation.Token);
 
             BarcodeGenCommand = new Command(async () =>
             {

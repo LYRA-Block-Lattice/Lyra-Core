@@ -57,11 +57,12 @@ namespace LyraWallet.States
         public string errorMessage { get; set; }
     }
 
-    public class WalletOpenAndSyncResultAction
+    public class WalletSyncResultAction
     {
         public Wallet wallet { get; set; }
+        public string errorMessage { get; set; }
     }
-    
+
     public class WalletRemoveAction : WalletActionBase
     {
         public string path { get; set; }

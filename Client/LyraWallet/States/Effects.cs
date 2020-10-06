@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace LyraWallet.States
 {
+    /// <summary>
+    /// Effects can not have exception. if exception it will not fired any more, its a feature of observer model
+    /// </summary>
     public static class Effects
     {
         public static Effect<RootState> CreateWalletEffect = ReduxSimple.Effects.CreateEffect<RootState>
@@ -18,23 +21,27 @@ namespace LyraWallet.States
                 () => App.Store.ObserveAction<WalletCreateAction>()
                     .Select(action => 
                     {
-                        return Observable.StartAsync(async () => {
+                        try
+                        {
                             var store = new SecuredWalletStore(action.path);
                             Wallet.Create(store, action.name, action.password, action.network);
 
                             var wallet = Wallet.Open(store, action.name, action.password);
 
-                            return wallet;
-                        }, NewThreadScheduler.Default)
-                        .ObserveOn(Scheduler.Default);
-
+                            return Observable.Return((wallet, ""));
+                        }
+                        catch (Exception ex)
+                        {
+                            return Observable.Return<(Wallet, string errMsg)>((null, ex.Message));
+                        }
                     })
                     .Switch()
                     .Select(result =>
                     {
                         return new WalletOpenResultAction
                         {
-                            wallet = result
+                            wallet = result.Item1,
+                            errorMessage = result.Item2
                         };
                     })
                     .Catch<object, Exception>(e =>
@@ -90,22 +97,29 @@ namespace LyraWallet.States
                     {
                         return Observable.StartAsync(async () =>
                         {
-                            var store = new SecuredWalletStore(action.path);
-                            var wallet = Wallet.Open(store, action.name, action.password);
+                            try
+                            {
+                                var store = new SecuredWalletStore(action.path);
+                                var wallet = Wallet.Open(store, action.name, action.password);
 
-                            var client = LyraRestClient.Create(wallet.NetworkId, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
-                            await wallet.Sync(client);
+                                var client = LyraRestClient.Create(wallet.NetworkId, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
+                                await wallet.Sync(client);
 
-                            return wallet;
-                        }, NewThreadScheduler.Default)
-                        .ObserveOn(Scheduler.Default);
+                                return (wallet, "");
+                            }
+                            catch (Exception ex)
+                            {
+                                return (null, ex.Message);
+                            }
+                        });
                     })
                     .Switch()
                     .Select(result =>
                     {
-                        return new WalletOpenAndSyncResultAction
+                        return new WalletSyncResultAction
                         {
-                            wallet = result
+                            wallet = result.wallet,
+                            errorMessage = result.Item2
                         };
                     })
                     .Catch<object, Exception>(e =>
@@ -124,23 +138,30 @@ namespace LyraWallet.States
                     .Select(action =>
                     {
                         return Observable.StartAsync(async () => {
-                            var store = new SecuredWalletStore(action.path);
-                            Wallet.Create(store, action.name, action.password, action.network, action.privateKey);
+                            try
+                            {
+                                var store = new SecuredWalletStore(action.path);
+                                Wallet.Create(store, action.name, action.password, action.network, action.privateKey);
 
-                            var wallet = Wallet.Open(store, action.name, action.password);
-                            var client = LyraRestClient.Create(action.network, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
-                            await wallet.Sync(client);
+                                var wallet = Wallet.Open(store, action.name, action.password);
+                                var client = LyraRestClient.Create(action.network, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
+                                await wallet.Sync(client);
 
-                            return wallet;
-                        }, NewThreadScheduler.Default)
-                        .ObserveOn(Scheduler.Default);
+                                return (wallet, "");
+                            }
+                            catch (Exception ex)
+                            {
+                                return (null, ex.Message);
+                            }
+                        });
                     })
                     .Switch()
                     .Select(result =>
                     {
-                        return new WalletOpenAndSyncResultAction
+                        return new WalletSyncResultAction
                         {
-                            wallet = result
+                            wallet = result.wallet,
+                            errorMessage = result.Item2
                         };
                     })
                     .Catch<object, Exception>(e =>
@@ -215,11 +236,17 @@ namespace LyraWallet.States
                     .Select(action =>
                     {
                         return Observable.StartAsync(async () => {
-                            var client = LyraRestClient.Create(action.wallet.NetworkId, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
-                            var ret = await action.wallet.Sync(client);
-                            return (action.wallet, new APIResult { ResultCode = ret });
-                        }, NewThreadScheduler.Default)
-                        .ObserveOn(Scheduler.Default);
+                            try
+                            {
+                                var client = LyraRestClient.Create(action.wallet.NetworkId, Environment.OSVersion.ToString(), "Mobile Wallet", "1.0");
+                                var ret = await action.wallet.Sync(client);
+                                return (action.wallet, new APIResult { ResultCode = ret });
+                            }
+                            catch (Exception ex)
+                            {
+                                return (action.wallet, new APIResult { ResultCode = APIResultCodes.FailedToSyncAccount, ResultMessage = ex.Message });
+                            }
+                        });
                     })
                     .Switch()
                     .Select(result =>
@@ -247,14 +274,19 @@ namespace LyraWallet.States
                     .Select(action =>
                     {
                         return Observable.StartAsync(async () => {
-                            await action.wallet.Sync(null);
+                            try
+                            {
+                                await action.wallet.Sync(null);
 
-                            var result = await action.wallet.Send(action.Amount, action.DstAddr, action.TokenName);
+                                var result = await action.wallet.Send(action.Amount, action.DstAddr, action.TokenName);
 
-                            return (action.wallet, result);
-
-                        }, NewThreadScheduler.Default)
-                        .ObserveOn(Scheduler.Default);
+                                return (action.wallet, result);
+                            }
+                            catch (Exception ex)
+                            {
+                                return (action.wallet, new APIResult { ResultCode = APIResultCodes.ExceptionInSendTransfer, ResultMessage = ex.Message });
+                            }
+                        });
                     })
                     .Switch()
                     .Select(result =>
@@ -262,8 +294,8 @@ namespace LyraWallet.States
                         return new WalletTransactionResultAction
                         {
                             wallet = result.wallet,
-                            txName = "Send",
-                            txResult = result.result
+                            txName = "Send Token",
+                            txResult = result.Item2
                         };
                     })
                     .Catch<object, Exception>(e =>
@@ -282,14 +314,20 @@ namespace LyraWallet.States
                     .Select(action =>
                     {
                         return Observable.StartAsync(async () => {
-                            await action.wallet.Sync(null);
+                            try
+                            {
+                                await action.wallet.Sync(null);
 
-                            var result = await action.wallet.CreateToken(action.tokenName, action.tokenDomain ?? "", action.description ?? "", Convert.ToSByte(action.precision), action.totalSupply,
-                                        true, action.ownerName ?? "", action.ownerAddress ?? "", null, ContractTypes.Default, null);
+                                var result = await action.wallet.CreateToken(action.tokenName, action.tokenDomain ?? "", action.description ?? "", Convert.ToSByte(action.precision), action.totalSupply,
+                                            true, action.ownerName ?? "", action.ownerAddress ?? "", null, ContractTypes.Default, null);
 
-                            return (action.wallet, result);
-                        }, NewThreadScheduler.Default)
-                        .ObserveOn(Scheduler.Default);
+                                return (action.wallet, result);
+                            }
+                            catch (Exception ex)
+                            {
+                                return (action.wallet, new APIResult { ResultCode = APIResultCodes.ExceptionInCreateToken, ResultMessage = ex.Message });
+                            }
+                        });
                     })
                     .Switch()
                     .Select(result =>
@@ -298,7 +336,7 @@ namespace LyraWallet.States
                         {
                             wallet = result.wallet,
                             txName = "Create Token",
-                            txResult = result.result
+                            txResult = result.Item2
                         };
                     })
                     .Catch<object, Exception>(e =>
@@ -317,13 +355,19 @@ namespace LyraWallet.States
                     .Select(action =>
                     {
                         return Observable.StartAsync(async () => {
-                            await action.wallet.Sync(null);
+                            try
+                            {
+                                await action.wallet.Sync(null);
 
-                            var result = await action.wallet.ImportAccount(action.targetPrivateKey);
+                                var result = await action.wallet.ImportAccount(action.targetPrivateKey);
 
-                            return (action.wallet, result);
-                        }, NewThreadScheduler.Default)
-                        .ObserveOn(Scheduler.Default);
+                                return (action.wallet, result);
+                            }
+                            catch (Exception ex)
+                            {
+                                return (action.wallet, new APIResult { ResultCode = APIResultCodes.FailedToSyncAccount, ResultMessage = ex.Message });
+                            }
+                        });
                     })
                     .Switch()
                     .Select(result =>
@@ -332,7 +376,7 @@ namespace LyraWallet.States
                         {
                             wallet = result.wallet,
                             txName = "Import",
-                            txResult = result.result
+                            txResult = result.Item2
                         };
                     })
                     .Catch<object, Exception>(e =>
@@ -352,13 +396,19 @@ namespace LyraWallet.States
                     .Select(action =>
                     {
                         return Observable.StartAsync(async () => {
-                            await action.wallet.Sync(null);
+                            try
+                            {
+                                await action.wallet.Sync(null);
 
-                            var result = await action.wallet.RedeemRewards(action.tokenToRedeem, action.countToRedeem);
+                                var result = await action.wallet.RedeemRewards(action.tokenToRedeem, action.countToRedeem);
 
-                            return (action.wallet, result);
-                        }, NewThreadScheduler.Default)
-                        .ObserveOn(Scheduler.Default);
+                                return (action.wallet, result);
+                            }
+                            catch (Exception ex)
+                            {
+                                return (action.wallet, new APIResult { ResultCode = APIResultCodes.FailedToSyncAccount, ResultMessage = ex.Message });
+                            }
+                        });
                     })
                     .Switch()
                     .Select(result =>
@@ -367,7 +417,7 @@ namespace LyraWallet.States
                         {
                             wallet = result.wallet,
                             txName = "Redeem",
-                            txResult = result.result
+                            txResult = result.Item2
                         };
                     })
                     .Catch<object, Exception>(e =>

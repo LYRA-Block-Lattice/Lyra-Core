@@ -22,7 +22,7 @@ namespace LyraWallet.Views
                 {
                     var vm = BindingContext as RedeemViewModel;
                     vm.TokensToRedeem = w?.Keys.ToList();
-                });
+                }, App.WalletSubscribeCancellation.Token);
 
             Shell.SetTabBarIsVisible(this, false);
         }

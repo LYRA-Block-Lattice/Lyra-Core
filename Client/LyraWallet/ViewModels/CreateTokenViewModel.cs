@@ -65,7 +65,7 @@ namespace LyraWallet.ViewModels
                 {
                     var total = decimal.Parse(TotalSupply);
 
-                    App.Store.Dispatch(new WalletCreateTokenAction
+                    var oAct = new WalletCreateTokenAction
                     {
                         wallet = App.Store.State.wallet,
                         tokenDomain = DomainName,
@@ -75,7 +75,8 @@ namespace LyraWallet.ViewModels
                         precision = int.Parse(Precision),
                         ownerName = OwnerName,
                         ownerAddress = OwnerAddress
-                    });
+                    };
+                    _ = Task.Run(() => { App.Store.Dispatch(oAct); });
 
                     await Shell.Current.GoToAsync("//BalancePage");
                     //await _thePage.DisplayAlert("Success", "Your token is created and ready to use. Goto balance and refresh to see.", "OK");

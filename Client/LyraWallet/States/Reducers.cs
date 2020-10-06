@@ -29,7 +29,7 @@ namespace LyraWallet.States
                             });
                         }
                     ),
-                    On<WalletOpenAndSyncResultAction, RootState>(
+                    On<WalletSyncResultAction, RootState>(
                         (state, action) => {
                             var lb = action.wallet?.GetLatestBlock();
                             return state.With(new {
@@ -37,9 +37,9 @@ namespace LyraWallet.States
                                 wallet = action.wallet,
                                 NonFungible = lb?.NonFungibleToken,
                                 Balances = lb?.Balances?.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal()),
-                                IsOpening = true,
+                                IsOpening = action.wallet == null ? false : true,
                                 InitRefresh = true,
-                                ErrorMessage = ""
+                                ErrorMessage = action.errorMessage
                             });
                         }
                     ),

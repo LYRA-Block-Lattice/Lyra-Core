@@ -65,10 +65,11 @@ namespace LyraWallet.ViewModels
             
             RefreshCommand = new Command(() =>
             {
-                App.Store.Dispatch(new WalletRefreshBalanceAction
+                var oAct = new WalletRefreshBalanceAction
                 {
                     wallet = App.Store.State.wallet
-                });
+                };
+                _ = Task.Run(() => { App.Store.Dispatch(oAct); });
             });
 
 

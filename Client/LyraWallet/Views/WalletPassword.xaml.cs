@@ -24,6 +24,7 @@ namespace LyraWallet.Views
 
             confirmPassword.IsVisible = !OpenWallet;
             btnAction.Text = OpenWallet ? "Open Wallet" : "Create Wallet";
+            Title = OpenWallet ? "Input the password to open wallet" : "Create password for new wallet";
 
             _cancel = new CancellationTokenSource();
             // redux
@@ -45,6 +46,7 @@ namespace LyraWallet.Views
                                 if (App.Store.State.wallet != null)
                                 {
                                     _cancel.Cancel();
+                                    App.WalletSubscribeCancellation = new CancellationTokenSource();
                                     App.Current.MainPage = new AppShell();
                                 }                                    
                                 else
@@ -91,7 +93,7 @@ namespace LyraWallet.Views
                     {
                         path = _path,
                         name = "default",
-                        password = password.Text ?? ""
+                        password = password.Text ?? ""  // android simulator never get null
                     };
                     App.Store.Dispatch(oAct); 
                 });                             

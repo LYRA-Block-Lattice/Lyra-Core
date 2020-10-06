@@ -47,10 +47,11 @@ namespace LyraWallet.Views
             {
                 if (value == "yes")
                 {
-                    App.Store.Dispatch(new WalletRefreshBalanceAction
+                    var oAct = new WalletRefreshBalanceAction
                     {
                         wallet = App.Store.State.wallet
-                    });
+                    };
+                    _ = Task.Run(() => { App.Store.Dispatch(oAct); });
                 }
             }
         }
@@ -108,34 +109,30 @@ namespace LyraWallet.Views
 
             lvBalance.ItemTapped += LvBalance_ItemTapped;
 
+            LoadBalance();
+
             // redux
             App.Store.Select(state => state.IsChanged)
                 .Subscribe(w =>
                 {
-                    BalanceViewModel vm = BindingContext as BalanceViewModel;
-                    vm.Balances = App.Store.State.Balances;
-                    vm.IsRefreshing = false;
-
-                    if (App.Store.State.Balances != null && App.Store.State.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                        vm.CanPay = true;
-                    else
-                        vm.CanPay = false;
+                    LoadBalance();
 
                     UserDialogs.Instance.HideLoading();
-                });
+                }, App.WalletSubscribeCancellation.Token);
 
             App.Store.Select(state => state.NonFungible)
                 .Subscribe(nf =>
                 {
                     if (nf != null)
                     {
-                        App.Store.Dispatch(new WalletNonFungibleTokenAction
+                        var oAct = new WalletNonFungibleTokenAction
                         {
                             wallet = App.Store.State.wallet,
                             nfToken = nf
-                        });
+                        };
+                        _ = Task.Run(() => { App.Store.Dispatch(oAct); });
                     }
-                });
+                }, App.WalletSubscribeCancellation.Token);
 
             App.Store.Select(state => state.ErrorMessage)
                 .Subscribe(msg =>
@@ -146,6 +143,8 @@ namespace LyraWallet.Views
                     string errMsg = msg;
                     if (errMsg == "")
                         errMsg = "Last action was successful.";
+                    else
+                        errMsg = App.Store.State.LastTransactionName + ": " + msg; 
 
                     // display error message here
                     // var icon = await BitmapLoader.Current.LoadFromResource("emoji_cool_small.png", null, null);
@@ -169,7 +168,19 @@ namespace LyraWallet.Views
                             .SetAction(() => { }/* UserDialogs.Instance.Alert("You clicked the primary toast button")*/)
                         )
                     );
-                });
+                }, App.WalletSubscribeCancellation.Token);
+        }
+
+        private void LoadBalance()
+        {
+            BalanceViewModel vm = BindingContext as BalanceViewModel;
+            vm.Balances = App.Store.State.Balances;
+            vm.IsRefreshing = false;
+
+            if (App.Store.State.Balances != null && App.Store.State.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                vm.CanPay = true;
+            else
+                vm.CanPay = false;
         }
 
         private async void LvBalance_ItemTapped(object sender, ItemTappedEventArgs e)
@@ -240,7 +251,7 @@ namespace LyraWallet.Views
                             var mtxt = "Transfering funds...";
 
                             UserDialogs.Instance.ShowLoading(mtxt);
-                            App.Store.Dispatch(moAct);
+                            _ = Task.Run(() => { App.Store.Dispatch(moAct); });
                         }
                     });
                 }
@@ -261,7 +272,7 @@ namespace LyraWallet.Views
                             var mtxt = $"Paying {_token} {_amount} to {_shop}...";
 
                             UserDialogs.Instance.ShowLoading(mtxt);
-                            App.Store.Dispatch(moAct);
+                            _ = Task.Run(() => { App.Store.Dispatch(moAct); });
                         }
                     });
                 }
@@ -283,7 +294,7 @@ namespace LyraWallet.Views
                 if (App.Store.State.IsOpening)
                 {
                     // refresh balance
-                    if(!App.Store.State.InitRefresh)
+                    if (!App.Store.State.InitRefresh)
                     {
                         oAct = new WalletRefreshBalanceAction
                         {
@@ -331,11 +342,12 @@ namespace LyraWallet.Views
             string result = await DisplayPromptAsync("Import Account", "What's your private key to import?");
             if (!string.IsNullOrWhiteSpace(result))
             {
-                App.Store.Dispatch(new WalletImportAction
+                var oAct = new WalletImportAction
                 {
                     wallet = App.Store.State.wallet,
                     targetPrivateKey = result
-                });
+                };
+                _ = Task.Run(() => { App.Store.Dispatch(oAct); });
             }
         }
 

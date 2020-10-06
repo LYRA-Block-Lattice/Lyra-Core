@@ -50,6 +50,7 @@ namespace LyraWallet.Views
                         if(w.IsOpening)
                         {
                             _cancel.Cancel();
+                            App.WalletSubscribeCancellation = new CancellationTokenSource();
                             App.Current.MainPage = new AppShell();
                         }                            
                         else if(w.ErrorMessage != null)

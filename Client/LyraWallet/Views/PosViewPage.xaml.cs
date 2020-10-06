@@ -32,7 +32,7 @@ namespace LyraWallet.Views
                                 vm.SelectedIndex = i;
                         }
                     }
-                });
+                }, App.WalletSubscribeCancellation.Token);
         }
 
         protected override void OnAppearing()

@@ -66,6 +66,7 @@ namespace LyraWallet.Views
                 UserDialogs.Instance.ShowLoading("Removing wallet data...");
 
                 _cancel.Cancel();
+                App.WalletSubscribeCancellation.Cancel();
 
                 var path = DependencyService.Get<IPlatformSvc>().GetStoragePath();
                 _ = Task.Run(() => {
@@ -103,16 +104,22 @@ namespace LyraWallet.Views
                 UserDialogs.Instance.ShowLoading("Changing vote for...");
 
                 if (string.IsNullOrWhiteSpace(bt.VoteFor))
-                    App.Store.Dispatch(new WalletChangeVoteAction
+                    _ = Task.Run(() =>
                     {
-                        wallet = App.Store.State.wallet,
-                        VoteFor = ""
+                        App.Store.Dispatch(new WalletChangeVoteAction
+                        {
+                            wallet = App.Store.State.wallet,
+                            VoteFor = ""
+                        });
                     });
                 else if (Signatures.ValidateAccountId(bt.VoteFor))
-                    App.Store.Dispatch(new WalletChangeVoteAction
+                    _ = Task.Run(() =>
                     {
-                        wallet = App.Store.State.wallet,
-                        VoteFor = bt.VoteFor
+                        App.Store.Dispatch(new WalletChangeVoteAction
+                        {
+                            wallet = App.Store.State.wallet,
+                            VoteFor = bt.VoteFor
+                        });
                     });
             }
             else
