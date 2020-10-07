@@ -101,4 +101,4 @@ use "votefor" command in wallet cli.
 
 # LYRA Client Developer Guide
 
-Please reference LyraCodeExamples.
+Please reference [LyraCodeExamples](https://github.com/LYRA-Block-Lattice/LyraCodeExamples).
