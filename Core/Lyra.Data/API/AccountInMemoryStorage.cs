@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Loyc.Collections;
 
 namespace Lyra.Core.Accounts
 {
@@ -11,11 +10,11 @@ namespace Lyra.Core.Accounts
     {
         //        protected LiteDatabase _db = null;
 
-        private AList<Block> _blocks = new AList<Block>();
+        private List<Block> _blocks = new List<Block>();
 
         //protected LiteCollection<Param> _params = null;
 
-        private AList<TokenGenesisBlock> _tokeninfo = new AList<TokenGenesisBlock>();
+        private List<TokenGenesisBlock> _tokeninfo = new List<TokenGenesisBlock>();
 
         private string _privateKey;
 

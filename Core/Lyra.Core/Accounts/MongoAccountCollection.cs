@@ -857,13 +857,13 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            //if (await FindBlockByHashAsync(block.Hash) != null)
-            //{
-            //    //_log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
-            //    return false;
-            //}
+            if (await FindBlockByHashAsync(block.Hash) != null)
+            {
+                //_log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+                return false;
+            }
 
-            if(block is TransactionBlock)
+            if (block is TransactionBlock)
             {
                 var block1 = block as TransactionBlock;
                 if (await FindBlockByIndexAsync(block1.AccountID, block1.Height) != null)
