@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
 using Lyra.Core.API;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -10,6 +9,7 @@ using Lyra.Core.Accounts;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Neo;
+using Lyra.Data.Crypto;
 
 namespace Lyra.Core.Authorizers
 {

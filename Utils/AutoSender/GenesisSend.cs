@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.Decentralize;
+using Lyra.Data.API;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

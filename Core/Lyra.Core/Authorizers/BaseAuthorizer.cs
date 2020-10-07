@@ -1,5 +1,4 @@
 ﻿using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
 using Lyra.Core.API;
 using System;
 using Lyra.Core.Utils;
@@ -13,6 +12,8 @@ using Neo;
 using Akka.Actor;
 using static Lyra.Core.Decentralize.ConsensusService;
 using Lyra.Shared;
+using Lyra.Data.API;
+using Lyra.Data.Crypto;
 
 namespace Lyra.Core.Authorizers
 {

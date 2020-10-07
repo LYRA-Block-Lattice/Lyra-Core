@@ -2,6 +2,7 @@ using Neo.IO;
 using System;
 using System.IO;
 using System.Linq;
+using Lyra.Data.Utils;
 
 namespace Neo
 {

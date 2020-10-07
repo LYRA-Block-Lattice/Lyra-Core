@@ -1,6 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Neo;
 using System;
 using System.Collections.Generic;

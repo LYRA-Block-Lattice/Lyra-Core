@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Lyra.Core.Blocks;
 using Lyra.Core.Utils;
 using Akka.Actor;
+using Lyra.Data.Utils;
 
 namespace Lyra.Core.Accounts
 {

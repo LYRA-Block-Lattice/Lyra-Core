@@ -1,7 +1,7 @@
 ﻿using Akka.Actor;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Core.Decentralize;
 using Neo;
 using System;
@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Lyra.Core.Decentralize.ConsensusService;
+using Lyra.Data.API;
 
 namespace Lyra.Core.Authorizers
 {

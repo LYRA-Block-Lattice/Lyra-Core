@@ -1,6 +1,6 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Core.LiteDB;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Fees;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -13,8 +12,9 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Core.Authorizers;
 using Lyra.Core.API;
+using Lyra.Data.API;
+using Lyra.Data.Utils;
 //using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
@@ -1104,28 +1104,5 @@ namespace Lyra.Core.Accounts
                 UnConfirmedEarns = unconfirm.OrderByDescending(a => a.Revenue).ToList()
             };
         }
-    }
-
-    public class UnSettledFees
-    {
-        public string AccountId { get; set; }
-        public long ServiceBlockStartHeight { get; set; }
-        public long ServiceBlockEndHeight { get; set; }
-        public decimal TotalFees { get; set; }
-    }
-
-    public class FeeStats
-    {
-        public decimal TotalFeeConfirmed { get; set; }
-        public decimal TotalFeeUnConfirmed { get; set; }
-
-        public List<RevnuItem> ConfirmedEarns { get; set; }
-        public List<RevnuItem> UnConfirmedEarns { get; set; }
-    }
-
-    public class RevnuItem
-    {
-        public string AccId { get; set; }
-        public decimal Revenue { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
+using Lyra.Data.Utils;
 using Microsoft.Extensions.Logging;
 using Neo.IO;
 using Neo.Network.P2P.Payloads;

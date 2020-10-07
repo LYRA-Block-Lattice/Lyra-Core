@@ -3,7 +3,7 @@ using Castle.Core.Logging;
 using Lyra;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,6 +11,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Lyra.Data.Utils;
 
 namespace UnitTests
 {

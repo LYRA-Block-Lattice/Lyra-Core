@@ -1,6 +1,6 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Neo.Wallets;
 using Newtonsoft.Json;
 using System;

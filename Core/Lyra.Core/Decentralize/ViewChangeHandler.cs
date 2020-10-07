@@ -1,5 +1,5 @@
 ﻿using Lyra.Core.API;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;

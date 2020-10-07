@@ -9,7 +9,7 @@ using Lyra.Core.Accounts;
 using System.Net.Http;
 using Lyra.Core.API;
 using Microsoft.Extensions.Hosting;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Core.Utils;
 
 namespace Lyra.Client.CLI

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Core.API;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;

@@ -1,4 +1,5 @@
 using Lyra.Core.Utils;
+using Lyra.Data.Utils;
 using Microsoft.Extensions.Configuration;
 using Neo.Network.P2P;
 using System.Threading;

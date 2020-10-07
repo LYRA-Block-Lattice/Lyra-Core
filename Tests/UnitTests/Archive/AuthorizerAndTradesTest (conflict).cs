@@ -5,7 +5,7 @@
 //using Lyra.Core.Blocks;
 //using Lyra.Core.Blocks.Transactions;
 
-//using Lyra.Core.Cryptography;
+//using Lyra.Data.Crypto;
 //using Lyra.Core.API;
 //using Lyra.Core.Accounts;
 //using Lyra.Node.LiteDB;

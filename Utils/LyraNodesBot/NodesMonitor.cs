@@ -1,6 +1,6 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Microsoft.Extensions.Logging;
@@ -23,6 +23,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Lyra.Shared;
 using Neo;
 using System.Net.Http;
+using Lyra.Data.API;
 
 namespace LyraNodesBot
 {

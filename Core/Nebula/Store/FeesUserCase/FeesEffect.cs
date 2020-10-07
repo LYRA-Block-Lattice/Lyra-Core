@@ -10,6 +10,7 @@ using System.Net.Http.Json;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Akka;
+using Lyra.Data.API;
 
 namespace Nebula.Store.FeesUserCase
 {
@@ -27,7 +28,7 @@ namespace Nebula.Store.FeesUserCase
 			var stats = await client.GetFeeStatsAsync();
 			var sbResult = await client.GetLastServiceBlock();
 			var sb = sbResult.GetBlock() as ServiceBlock;
-			var voters = await client.GetVotersAsync(new Lyra.Core.Decentralize.VoteQueryModel
+			var voters = await client.GetVotersAsync(new VoteQueryModel
 			{
 				posAccountIds = sb.Authorizers.Keys.ToList(),
 				endTime = sb.TimeStamp

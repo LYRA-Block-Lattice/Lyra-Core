@@ -15,6 +15,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
+using Lyra.Data.Utils;
 
 namespace Neo.Network.P2P
 {

@@ -1,7 +1,6 @@
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Blocks.Fees;
 using Lyra.Exchange;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,6 +14,7 @@ using Akka.Actor;
 using System.Linq;
 using Lyra.Shared;
 using System.Collections.Concurrent;
+using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {

@@ -1,5 +1,5 @@
 ﻿//using System;
-//using Lyra.Core.Cryptography;
+//using Lyra.Data.Crypto;
 //using Lyra.Core.Blocks;
 //using System.Threading.Tasks;
 //using Lyra.Shared;

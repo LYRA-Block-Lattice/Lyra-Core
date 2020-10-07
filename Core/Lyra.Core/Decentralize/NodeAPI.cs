@@ -7,15 +7,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
-using Lyra.Core.Cryptography;
 using Neo;
 using System.Collections.Generic;
 using Lyra.Core.Authorizers;
 using Clifton.Blockchain;
 using Akka.Actor;
-using Core.Authorizers;
 using System.Collections.Concurrent;
 using Akka.Routing;
+using Lyra.Data.API;
+using Lyra.Data.Utils;
+using Lyra.Data.Crypto;
 
 namespace Lyra.Core.Decentralize
 {
@@ -917,9 +918,4 @@ namespace Lyra.Core.Decentralize
         #endregion
     }
 
-    public class VoteQueryModel
-    {
-        public List<string> posAccountIds { get; set; }
-        public DateTime endTime { get; set; }
-    }
 }

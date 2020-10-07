@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Core.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

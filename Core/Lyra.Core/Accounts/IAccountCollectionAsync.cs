@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Core.Authorizers;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 
 namespace Lyra.Core.Accounts
 {

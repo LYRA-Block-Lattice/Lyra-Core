@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -376,30 +377,5 @@ namespace Lyra.Core.Decentralize
 			base.Deserialize(reader);
 			Consensus = (ConsensusResult)reader.ReadInt32();
 		}
-	}
-
-	public class NodeStatus
-	{
-		public string accountId { get; set; }
-		public string version { get; set; }
-		public BlockChainState state { get; set; }
-		public long totalBlockCount { get; set; }
-		public string lastConsolidationHash { get; set; }
-		public string lastUnSolidationHash { get; set; }
-		public int activePeers { get; set; }
-		public int connectedPeers { get; set; }
-
-		//public override bool Equals(object obj)
-		//{
-		//	if(obj is NodeStatus)
-		//	{
-		//		var ns = obj as NodeStatus;
-		//		return version == ns.version
-		//			&& totalBlockCount == ns.totalBlockCount
-		//			&& lastConsolidationHash == ns.lastConsolidationHash
-		//			&& lastUnSolidationHash == ns.lastUnSolidationHash;				
-		//	}
-		//	return base.Equals(obj);
-		//}
 	}
 }

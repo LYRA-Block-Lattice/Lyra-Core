@@ -5,7 +5,7 @@ using Lyra.Core.API;
 using System.Threading.Tasks;
 using Lyra.Core.Accounts;
 using Neo.Cryptography.ECC;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using System.Linq;
 using System.Security.Cryptography;
 using Lyra.Shared;

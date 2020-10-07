@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 
 namespace Lyra.Node.Test
 {

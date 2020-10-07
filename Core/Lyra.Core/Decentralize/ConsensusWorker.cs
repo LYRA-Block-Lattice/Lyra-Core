@@ -1,7 +1,7 @@
 ﻿using Akka.Actor;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Lyra.Shared;
@@ -15,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {

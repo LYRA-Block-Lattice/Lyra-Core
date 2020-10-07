@@ -2,7 +2,9 @@
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
+using Lyra.Data;
+using Lyra.Data.API;
+using Lyra.Data.Crypto;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
@@ -673,16 +675,6 @@ namespace Lyra.Core.Decentralize
                     File.Delete(fn);
             }
         }
-    }
-
-    public enum BlockChainState
-    {
-        NULL,
-        Initializing,
-        StaticSync,    // the default mode. app started. wait for p2p stack up.
-        Engaging,   // storing new commit while syncing blocks
-        Almighty,   // fullly synced and working
-        Genesis
     }
 
     public enum BlockChainTrigger

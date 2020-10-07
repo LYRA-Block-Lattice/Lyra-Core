@@ -12,6 +12,8 @@ using Lyra.Core.Accounts;
 using Lyra.Core.Exchange;
 using Neo;
 using System.Linq;
+using Lyra.Data.Utils;
+using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {

@@ -1,7 +1,7 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
+using Lyra.Data.Crypto;
 using Lyra.Exchange;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,6 +13,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
+using Lyra.Data.API;
+using Lyra.Data.Utils;
 //using Java.Util;
 
 namespace Lyra.Core.Exchange

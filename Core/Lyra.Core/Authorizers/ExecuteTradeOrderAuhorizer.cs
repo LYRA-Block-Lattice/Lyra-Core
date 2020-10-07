@@ -1,8 +1,7 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.API;
 using System.Threading.Tasks;
-using Lyra.Core.Cryptography;
-
+using Lyra.Data.Crypto;
 
 namespace Lyra.Core.Authorizers
 {

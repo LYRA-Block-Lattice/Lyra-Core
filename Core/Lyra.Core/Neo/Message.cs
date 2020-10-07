@@ -1,5 +1,6 @@
 using Akka.IO;
 using Lyra.Core.Decentralize;
+using Lyra.Data.Utils;
 using Neo.Cryptography;
 using Neo.IO;
 using Neo.Network.P2P.Payloads;

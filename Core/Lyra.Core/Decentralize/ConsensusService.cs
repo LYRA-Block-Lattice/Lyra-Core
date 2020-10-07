@@ -1,10 +1,8 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
 using Clifton.Blockchain;
-using Core.Authorizers;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
@@ -27,16 +25,11 @@ using Stateless;
 using Org.BouncyCastle.Utilities.Net;
 using System.Net;
 using Shared;
+using Lyra.Data.API;
+using Lyra.Data.Crypto;
 
 namespace Lyra.Core.Decentralize
 {
-    public class TransStats
-    {
-        public long ms { get; set; }
-        public BlockTypes trans { get; set; }
-    }
-    // when out of sync, we adjust useed, continue to save blocks, and told blockchain to do sync.
-    public enum ConsensusWorkingMode { Normal, OutofSyncWaiting }
     /// <summary>
     /// about seed generation: the seed0 seed will generate UIndex whild sending authorization message.
     /// </summary>

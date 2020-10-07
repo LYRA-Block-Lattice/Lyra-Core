@@ -1,6 +1,5 @@
 ﻿using Lyra.Core.Blocks;
 using Microsoft.Extensions.Options;
-using Lyra.Core.Cryptography;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using System.Threading.Tasks;
