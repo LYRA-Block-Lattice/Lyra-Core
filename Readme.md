@@ -98,3 +98,7 @@ use "votefor" command in wallet cli.
 12. configure from environment varabiles (seprated by double underscore)
 
 `export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra`
+
+# LYRA Client Developer Guide
+
+Please reference LyraCodeExamples.

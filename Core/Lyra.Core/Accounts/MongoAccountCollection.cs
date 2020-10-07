@@ -863,9 +863,8 @@ namespace Lyra.Core.Accounts
                 return false;
             }
 
-            if (block is TransactionBlock)
+            if (block is TransactionBlock block1)
             {
-                var block1 = block as TransactionBlock;
                 if (await FindBlockByIndexAsync(block1.AccountID, block1.Height) != null)
                 {
                     _log.LogWarning("AccountCollection=>AddBlock: Block with such Index already exists!");
