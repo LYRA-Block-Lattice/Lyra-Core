@@ -7,10 +7,19 @@
 [LYRA on Bitcointalk](https://bitcointalk.org/index.php?topic=5258803.msg) -
 [LYRA on LinkedIn](https://www.linkedin.com/company/lyra-block-lattice)
 
+Mainnet Live Now! (from Sep. 30, 2020)
+
+[Mainnet Block Explorer](https://nebula.lyra.live/) - 
+
 Testnet Live Now! (From July 29, 2020)
 
 [Testnet Block Explorer](https://blockexplorer.testnet.lyra.live/) - 
 [How to run Lyra CLI wallet on testnet](https://github.com/LYRA-Block-Lattice/LYRA-Docs/blob/master/How%20to%20run%20Lyra%20CLI%20Wallet%20on%20testnet.md)
+
+# LYRA Client Developer Guide
+
+Please reference [LyraCodeExamples](https://github.com/LYRA-Block-Lattice/LyraCodeExamples).
+
 
 # LYRA Permissionless Node Setup
 
@@ -99,6 +108,3 @@ use "votefor" command in wallet cli.
 
 `export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra`
 
-# LYRA Client Developer Guide
-
-Please reference [LyraCodeExamples](https://github.com/LYRA-Block-Lattice/LyraCodeExamples).
