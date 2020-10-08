@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Lyra.Core.API;
 using Lyra.Data.API;
 using Lyra.Data.Utils;
+using System.Text.RegularExpressions;
 //using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
@@ -302,10 +303,14 @@ namespace Lyra.Core.Accounts
                     return result as TokenGenesisBlock;
             }
 
-            var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.And(builder.Or(builder.Eq("BlockType", BlockTypes.TokenGenesis), builder.Eq("BlockType", BlockTypes.LyraTokenGenesis)), builder.Eq("Ticker", Ticker));
-            var blocks = await _blocks.FindAsync(filterDefinition);
-            return await blocks.FirstOrDefaultAsync() as TokenGenesisBlock;
+            var regexFilter = Regex.Escape(Ticker);
+            var filter = Builders<TokenGenesisBlock>.Filter.Regex(u => u.Ticker, new BsonRegularExpression("/^" + regexFilter + "$/i"));
+            var genResults = await _blocks.OfType<TokenGenesisBlock>()
+                .FindAsync(filter);
+
+            var gens = genResults.ToList();
+
+            return gens.FirstOrDefault();
         }
 
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword)
