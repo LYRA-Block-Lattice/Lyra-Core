@@ -345,7 +345,7 @@ namespace Lyra.Core.Decentralize
             }
 
             // refresh billboard all voters
-            _context.UpdateVotersAsync();
+            _context.UpdateVoters();
 
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 

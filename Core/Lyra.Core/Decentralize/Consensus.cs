@@ -416,87 +416,84 @@ namespace Lyra.Core.Decentralize
         }
 
         private bool _creatingSvcBlock;
-        public void CreateNewViewAsNewLeader()
+        public async Task CreateNewViewAsNewLeaderAsync()
         {
             // look for changes. if necessary create a new svc block.
-            _ = Task.Run(async () =>
+            if (!_creatingSvcBlock)
             {
-                if (!_creatingSvcBlock)
+                _creatingSvcBlock = true;
+
+                _log.LogInformation($"Me was elected new leader. Creating New View...");
+
+                try
                 {
-                    _creatingSvcBlock = true;
+                    var prevSvcBlock = await _sys.Storage.GetLastServiceBlockAsync();
 
-                    _log.LogInformation($"Me was elected new leader. Creating New View...");
-
-                    try
+                    var svcBlock = new ServiceBlock
                     {
-                        var prevSvcBlock = await _sys.Storage.GetLastServiceBlockAsync();
+                        NetworkId = prevSvcBlock.NetworkId,
+                        Height = prevSvcBlock.Height + 1,
+                        FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
+                        ServiceHash = prevSvcBlock.Hash,
+                        Leader = _sys.PosWallet.AccountId,
+                        TransferFee = 1,           //zero for genesis. back to normal when genesis done
+                        TokenGenerationFee = 10000,
+                        TradeFee = 0.1m
+                    };
 
-                        var svcBlock = new ServiceBlock
+                    _log.LogInformation($"Adding {_board.AllVoters.Count()} voters...");
+
+                    svcBlock.Authorizers = new Dictionary<string, string>();
+                    // me as the first one
+                    var signAgainst = prevSvcBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
+                    var myAuthSignr = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
+                            signAgainst, _sys.PosWallet.AccountId);
+
+                    svcBlock.Authorizers.Add(_sys.PosWallet.AccountId, myAuthSignr);
+                    foreach (var voter in _board.AllVoters)
+                    {
+                        if (voter == _sys.PosWallet.AccountId)
+                            continue;
+
+                        if (_board.ActiveNodes.Any(a => a.AccountID == voter))
                         {
-                            NetworkId = prevSvcBlock.NetworkId,
-                            Height = prevSvcBlock.Height + 1,
-                            FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
-                            ServiceHash = prevSvcBlock.Hash,
-                            Leader = _sys.PosWallet.AccountId,
-                            TransferFee = 1,           //zero for genesis. back to normal when genesis done
-                            TokenGenerationFee = 10000,
-                            TradeFee = 0.1m
-                        };
+                            var node = _board.ActiveNodes.First(a => a.AccountID == voter);
 
-                        _log.LogInformation($"Adding {_board.AllVoters.Count()} voters...");
-
-                        svcBlock.Authorizers = new Dictionary<string, string>();
-                        // me as the first one
-                        var signAgainst = prevSvcBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
-                        var myAuthSignr = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
-                                signAgainst, _sys.PosWallet.AccountId);
-
-                        svcBlock.Authorizers.Add(_sys.PosWallet.AccountId, myAuthSignr);
-                        foreach (var voter in _board.AllVoters)
+                            if (Signatures.VerifyAccountSignature(prevSvcBlock.Hash, node.AccountID, node.AuthorizerSignature))
+                            {
+                                svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
+                            }
+                        }
+                        else
                         {
-                            if (voter == _sys.PosWallet.AccountId)
-                                continue;
-
-                            if (_board.ActiveNodes.Any(a => a.AccountID == voter))
-                            {
-                                var node = _board.ActiveNodes.First(a => a.AccountID == voter);
-
-                                if (Signatures.VerifyAccountSignature(prevSvcBlock.Hash, node.AccountID, node.AuthorizerSignature))
-                                {
-                                    svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
-                                }                                
-                            }
-                            else
-                            {
-                                // impossible. viewchangehandler has already filterd all none active messages.
-                                // or just bypass it?
-                            }
-
-                            if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
-                                break;
+                            // impossible. viewchangehandler has already filterd all none active messages.
+                            // or just bypass it?
                         }
 
-                        // fees aggregation
-                        _log.LogInformation($"Fee aggregating...");
-                        var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
-                        svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
+                        if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
+                            break;
+                    }
 
-                        svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey, _sys.PosWallet.AccountId);
+                    // fees aggregation
+                    _log.LogInformation($"Fee aggregating...");
+                    var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
+                    svcBlock.FeesGenerated = allConsBlocks.Sum(a => a.totalFees);
 
-                        _log.LogInformation($"New View was created. send to network...");
-                        await SendBlockToConsensusAsync(svcBlock, _board.AllVoters);
-                    }
-                    catch (Exception e)
-                    {
-                        _log.LogCritical($"CreateNewViewAsNewLeader: {e}");
-                    }
-                    finally
-                    {
-                        await Task.Delay(10000);
-                        _creatingSvcBlock = false;
-                    }
+                    svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey, _sys.PosWallet.AccountId);
+
+                    _log.LogInformation($"New View was created. send to network...");
+                    await SendBlockToConsensusAsync(svcBlock, _board.AllVoters);
                 }
-            });
+                catch (Exception e)
+                {
+                    _log.LogCritical($"CreateNewViewAsNewLeader: {e}");
+                }
+                finally
+                {
+                    await Task.Delay(10000);
+                    _creatingSvcBlock = false;
+                }
+            }
         }
 
         private LyraRestClient _seed0Client;

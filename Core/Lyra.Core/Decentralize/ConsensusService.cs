@@ -97,10 +97,14 @@ namespace Lyra.Core.Decentralize
                 if(leader == _sys.PosWallet.AccountId)
                 {
                     // its me!
-                    CreateNewViewAsNewLeader();
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(1000);     // some nodes may not got this in time
+                        await CreateNewViewAsNewLeaderAsync();
+                    });
                 }
 
-                Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     await Task.Delay(10000);
                     var sb = await _sys.Storage.GetLastServiceBlockAsync();
@@ -522,9 +526,9 @@ namespace Lyra.Core.Decentralize
             return list2;
         }
 
-        public void UpdateVotersAsync()
+        public void UpdateVoters()
         {
-            RefreshAllNodesVotesAsync();
+            RefreshAllNodesVotes();
             Board.AllVoters = LookforVoters();
         }
 
@@ -559,7 +563,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 var list1 = lsb.Authorizers.Keys.ToList();
-                UpdateVotersAsync();
+                UpdateVoters();
                 var list2 = Board.AllVoters;
 
                 var firstNotSecond = list1.Except(list2).ToList();
@@ -736,7 +740,7 @@ namespace Lyra.Core.Decentralize
                     if (_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb.Leader))
                     {
                         // leader is offline. we need chose one new
-                        UpdateVotersAsync();
+                        UpdateVoters();
 
                         _log.LogInformation($"We have no leader online. Change view...");
                         // should change view for new member
@@ -1176,7 +1180,7 @@ namespace Lyra.Core.Decentralize
         }
 
         private readonly Mutex _locker = new Mutex(false);
-        public void RefreshAllNodesVotesAsync()
+        public void RefreshAllNodesVotes()
         {
             try
             {
