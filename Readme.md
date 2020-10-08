@@ -9,7 +9,7 @@
 
 Mainnet Live Now! (from Sep. 30, 2020)
 
-[Mainnet Block Explorer](https://nebula.lyra.live/) - 
+[Mainnet Block Explorer](https://nebula.lyra.live/)
 
 Testnet Live Now! (From July 29, 2020)
 
