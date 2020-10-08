@@ -368,6 +368,8 @@ namespace Lyra.Core.Blocks
         InvalidBlockTimeStamp,
 
         FailedToSyncAccount,
-        APIRouteFailed
+        APIRouteFailed,
+        InvalidDomainName,
+        InvalidTickerName
     }
 }

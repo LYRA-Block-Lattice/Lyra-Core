@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Neo;
 using Lyra.Data.Crypto;
+using System.Text.RegularExpressions;
 
 namespace Lyra.Core.Authorizers
 {
@@ -61,6 +62,14 @@ namespace Lyra.Core.Authorizers
             // check LYR balance
             if (lastBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] != block.Balances[LyraGlobal.OFFICIALTICKERCODE] + block.Fee.ToBalanceLong())
                 return APIResultCodes.InvalidNewAccountBalance;
+
+            // check ticker name
+            var r = new Regex(@"[^\w]");
+            if (!block.Ticker.Contains(block.DomainName + "/") || r.IsMatch(block.DomainName))
+                return APIResultCodes.InvalidDomainName;
+
+            if (r.IsMatch(block.Ticker.Replace(block.DomainName + "/", "")))
+                return APIResultCodes.InvalidTickerName;
 
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);
