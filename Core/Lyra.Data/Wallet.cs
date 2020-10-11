@@ -111,6 +111,12 @@ namespace Lyra.Core.Accounts
             {
                 throw new InvalidDataException("Failed to create wallet: invalid private key");
             }
+
+            if(store.Exists(name))
+            {
+                throw new InvalidDataException($"Wallet named {name} is already exist.");
+            }
+
             var wallet = new Wallet(store, name);
             var accountId = Signatures.GetAccountIdFromPrivateKey(privateKey);
             if (!store.Create(name, password, networkId, privateKey, accountId, ""))
@@ -207,11 +213,6 @@ namespace Lyra.Core.Accounts
                     TransferFee = lastServiceBlock.TransferFee;
                     TokenGenerationFee = lastServiceBlock.TokenGenerationFee;
                     TradeFee = lastServiceBlock.TradeFee;
-                    PrintConLine($"Last Service Block Received {lastServiceBlock.Height}");
-                    PrintConLine(string.Format("Transfer Fee: {0} ", lastServiceBlock.TransferFee));
-                    PrintConLine(string.Format("Token Generation Fee: {0} ", lastServiceBlock.TokenGenerationFee));
-                    PrintConLine(string.Format("Trade Fee: {0} ", lastServiceBlock.TradeFee));
-                    PrintCon(string.Format("{0}> ", AccountName));
                 }
                 return APIResultCodes.Success;
             }
@@ -330,7 +331,7 @@ namespace Lyra.Core.Accounts
                     PrintConLine($"Receive fee block has been authorized successfully");
                     PrintConLine("Balance: " + await GetDisplayBalancesAsync());
                 }
-                PrintCon(string.Format("{0}> ", AccountName));
+                //PrintCon(string.Format("{0}> ", AccountName));
                 return result.ResultCode;
             }
         }
@@ -1052,7 +1053,7 @@ namespace Lyra.Core.Accounts
 
         //            //PrintConLine($"Found Token Genesis Block for {genesisBlock.Ticker}");
         //            //PrintConLine("Balance: " + GetDisplayBalances());
-        //            //PrintCon(string.Format("{0}> ", AccountName));
+        //            ////PrintCon(string.Format("{0}> ", AccountName));
         //        }
         //    }
 
@@ -1110,7 +1111,7 @@ namespace Lyra.Core.Accounts
                 PrintConLine($"Receive transfer block has been authorized successfully");
                 PrintConLine("Balance: " + await GetDisplayBalancesAsync());
             }
-            PrintCon(string.Format("{0}> ", AccountName));
+            //PrintCon(string.Format("{0}> ", AccountName));
             return result;
         }
 
@@ -1172,7 +1173,7 @@ namespace Lyra.Core.Accounts
                 _lastTransactionBlock = block;
                 PrintConLine("Balance: " + await GetDisplayBalancesAsync());
             }
-            PrintCon(string.Format("{0}> ", AccountName));
+            //PrintCon(string.Format("{0}> ", AccountName));
             
         }
 
@@ -1375,7 +1376,7 @@ namespace Lyra.Core.Accounts
                 PrintConLine($"Genesis block has been authorized successfully");
                 PrintConLine("Balance: " + await GetDisplayBalancesAsync());
             }
-            //PrintCon(string.Format("{0}> ", AccountName));
+            ////PrintCon(string.Format("{0}> ", AccountName));
             return result.ResultCode;
         }
 

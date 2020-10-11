@@ -40,6 +40,7 @@ namespace Lyra.Core.Accounts
         public void Delete(string DatabaseName = null)
         {
             // Do nothing for now
+            _accountName = null;
         }
 
         public void Reset()
@@ -204,7 +205,7 @@ namespace Lyra.Core.Accounts
 
         public bool Exists(string accountName)
         {
-            throw new NotImplementedException();
+            return _accountName != null;
         }
 
         public bool Create(string accountName, string password, string networkId, string privateKey, string accountId, string voteFor)

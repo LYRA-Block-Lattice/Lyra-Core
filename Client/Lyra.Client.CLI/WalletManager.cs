@@ -172,6 +172,13 @@ namespace Lyra.Client.CLI
 
                 await wallet.Sync(rpcClient);
 
+                var lastServiceBlock = await wallet.GetLastServiceBlockAsync();
+                Console.WriteLine($"Last Service Block Received {lastServiceBlock.Height}");
+                Console.WriteLine(string.Format("Transfer Fee: {0} ", lastServiceBlock.TransferFee));
+                Console.WriteLine(string.Format("Token Generation Fee: {0} ", lastServiceBlock.TokenGenerationFee));
+                Console.WriteLine(string.Format("Trade Fee: {0} ", lastServiceBlock.TradeFee));
+                Console.Write(string.Format("{0}> ", wallet.AccountName));
+
                 //timer1 = new Timer(async _ =>
                 //{
                 //    if (timer_busy1)
@@ -189,14 +196,14 @@ namespace Lyra.Client.CLI
                 //null, 2000, 30000);
 
 
-                walletName = CommandProcessor.COMMAND_STATUS;
+                var cmdInput = CommandProcessor.COMMAND_STATUS;
 
-                while (walletName != CommandProcessor.COMMAND_STOP)
+                while (cmdInput != CommandProcessor.COMMAND_STOP)
                 {
-                    var result = await command.Execute(wallet, walletName);
+                    var result = await command.Execute(wallet, cmdInput);
                     Console.Write(string.Format("{0}> ", wallet.AccountName));
                     //Console.Write
-                    walletName = Console.ReadLine();
+                    cmdInput = Console.ReadLine();
                 }
 
                 Console.WriteLine($"{LyraGlobal.PRODUCTNAME} Client is shutting down");
