@@ -64,6 +64,12 @@ namespace Lyra.Core.Blocks
         /// </summary>
         public string VoteFor { get; set; }
 
+        /// <summary>
+        /// the payment ID associated to the transaction.
+        /// should be copied to receiver's block like source hash.
+        /// </summary>
+        public string PaymentID { get; set; }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
@@ -78,6 +84,8 @@ namespace Lyra.Core.Blocks
             extraData += FeeType.ToString() + "|";
             extraData += GetHashInputFromNonFungibleToken() + "|";
             extraData += VoteFor + "|";
+            if (!string.IsNullOrEmpty(PaymentID))
+                extraData += PaymentID + "|";
             return extraData;
         }
 
@@ -132,6 +140,8 @@ namespace Lyra.Core.Blocks
             else
                 result += $"NonFungibleToken: {NonFungibleToken}\n";
             result += $"Voted Delegate/Authorizer: {VoteFor}\n";
+            if (!string.IsNullOrEmpty(PaymentID))
+                result += $"PaymentID: {PaymentID}";
             return result;
         }
 

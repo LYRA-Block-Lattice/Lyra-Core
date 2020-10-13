@@ -374,13 +374,13 @@ namespace LyraLexWeb2
             return await _trans.SendTransfer(sendBlock);
         }
 
-        [Route("SendExchangeTransfer")]
-        [HttpPost]
-        public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock sendBlock)
-        {
-            if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
-            return await _trans.SendExchangeTransfer(sendBlock);
-        }
+        //[Route("SendExchangeTransfer")]
+        //[HttpPost]
+        //public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock sendBlock)
+        //{
+        //    if(!CheckServiceStatus()) throw new Exception("System Not Ready.");
+        //    return await _trans.SendExchangeTransfer(sendBlock);
+        //}
 
         [Route("ReceiveTransfer")]
         [HttpPost]

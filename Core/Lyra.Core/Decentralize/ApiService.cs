@@ -148,10 +148,10 @@ namespace Lyra.Core.Decentralize
             return await Pre_PrepareAsync(sendBlock).ConfigureAwait(false);
         }
 
-        public Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
-        {
-            return SendTransfer(block);
-        }
+        //public Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
+        //{
+        //    return SendTransfer(block);
+        //}
 
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {

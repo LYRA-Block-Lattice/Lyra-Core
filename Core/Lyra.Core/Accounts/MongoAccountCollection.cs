@@ -60,7 +60,7 @@ namespace Lyra.Core.Accounts
 
             BsonClassMap.RegisterClassMap<TransactionBlock>();
             BsonClassMap.RegisterClassMap<SendTransferBlock>();
-            BsonClassMap.RegisterClassMap<ExchangingBlock>();
+            //BsonClassMap.RegisterClassMap<ExchangingBlock>();
             BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
             BsonClassMap.RegisterClassMap<OpenWithReceiveTransferBlock>();
             BsonClassMap.RegisterClassMap<LyraTokenGenesisBlock>();
@@ -340,18 +340,24 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> WasAccountImportedAsync(string ImportedAccountId)
         {
-            var p1 = new BsonArray
-            {
-                BlockTypes.ImportAccount,
-                BlockTypes.OpenAccountWithImport
-            };
+            var blockQuery = await _blocks.OfType<ImportAccountBlock>()
+                .FindAsync(a => a.ImportedAccountId == ImportedAccountId);
 
-            var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("ImportedAccountId", ImportedAccountId)));
-
-            var result = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
-
+            var result = await blockQuery.FirstOrDefaultAsync();
             return result != null;
+
+            //var p1 = new BsonArray
+            //{
+            //    BlockTypes.ImportAccount,
+            //    BlockTypes.OpenAccountWithImport
+            //};
+
+            //var builder = Builders<Block>.Filter;
+            //var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("ImportedAccountId", ImportedAccountId)));
+
+            //var result = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
+
+            //return result != null;
         }
 
         public async Task<bool> WasAccountImportedAsync(string ImportedAccountId, string AccountId)

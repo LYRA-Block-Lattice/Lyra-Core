@@ -201,9 +201,9 @@ namespace Lyra.Core.API
                 case BlockTypes.ExecuteTradeOrder:
                     block = JsonConvert.DeserializeObject<ExecuteTradeOrderBlock>(BlockData);
                     break;
-                case BlockTypes.ExchangingTransfer:
-                    block = JsonConvert.DeserializeObject<ExchangingBlock>(BlockData);
-                    break;
+                //case BlockTypes.ExchangingTransfer:
+                //    block = JsonConvert.DeserializeObject<ExchangingBlock>(BlockData);
+                //    break;
                 case BlockTypes.ImportAccount:
                     block = JsonConvert.DeserializeObject<ImportAccountBlock>(BlockData);
                     break;
@@ -229,6 +229,7 @@ namespace Lyra.Core.API
     {
         public TransactionInfo Transfer { get; set; }
         public string SourceHash { get; set; }
+        public string PaymentID { get; set; }
         public NonFungibleToken NonFungibleToken { get; set; }
     }
 

@@ -6,25 +6,25 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class ExchangingAuthorizer : SendTransferAuthorizer
-    {
-        public ExchangingAuthorizer()
-        {
+    //public class ExchangingAuthorizer : SendTransferAuthorizer
+    //{
+    //    public ExchangingAuthorizer()
+    //    {
 
-        }
+    //    }
 
-        protected override Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
-        {
-            APIResultCodes result;
-            if (block.FeeType != AuthorizationFeeTypes.Regular)
-                result = APIResultCodes.InvalidFeeAmount;
+    //    protected override Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
+    //    {
+    //        APIResultCodes result;
+    //        if (block.FeeType != AuthorizationFeeTypes.Regular)
+    //            result = APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != ExchangingBlock.FEE)
-                result = APIResultCodes.InvalidFeeAmount;
+    //        if (block.Fee != ExchangingBlock.FEE)
+    //            result = APIResultCodes.InvalidFeeAmount;
 
-            result = APIResultCodes.Success;
+    //        result = APIResultCodes.Success;
 
-            return Task.FromResult(result);
-        }
-    }
+    //        return Task.FromResult(result);
+    //    }
+    //}
 }

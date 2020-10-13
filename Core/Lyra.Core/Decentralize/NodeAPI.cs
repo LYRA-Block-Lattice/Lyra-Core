@@ -784,6 +784,7 @@ namespace Lyra.Core.Decentralize
                     {
                         transfer_info.Transfer = sendBlock.GetTransaction(previousBlock); //CalculateTransaction(sendBlock, previousSendBlock);
                         transfer_info.SourceHash = sendBlock.Hash;
+                        transfer_info.PaymentID = sendBlock.PaymentID;
                         transfer_info.NonFungibleToken = sendBlock.NonFungibleToken;
                         transfer_info.ResultCode = APIResultCodes.Success;
                     }

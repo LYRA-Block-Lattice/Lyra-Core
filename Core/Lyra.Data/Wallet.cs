@@ -625,7 +625,7 @@ namespace Lyra.Core.Accounts
         //}
 
 
-        public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
+        public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, string paymentID = null)
         {
             // verify input
             AuthorizationAPIResult result;
@@ -646,7 +646,7 @@ namespace Lyra.Core.Accounts
 
             while (true)
             {
-                result = await SendOnce(Amount, DestinationAccountId, ticker, ToExchange);
+                result = await SendOnce(Amount, DestinationAccountId, ticker, paymentID);
                 if (result.ResultCode == APIResultCodes.ConsensusTimeout)
                 {                    
                     bool viewChanged = false;
@@ -674,7 +674,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> SendOnce(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
+        private async Task<AuthorizationAPIResult> SendOnce(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, string paymentID = null)
         {
             Trace.Assert(Amount > 0);
             if (Amount <= 0)
@@ -699,7 +699,7 @@ namespace Lyra.Core.Accounts
 
             //var transaction = new TransactionInfo() { TokenCode = ticker, Amount = atomicamount };
 
-            var fee = ToExchange ? ExchangingBlock.FEE : TransferFee;
+            var fee = /*ToExchange ? ExchangingBlock.FEE : */TransferFee;
 
             if (ticker == LyraGlobal.OFFICIALTICKERCODE)
                 balance_change += fee;
@@ -726,23 +726,23 @@ namespace Lyra.Core.Accounts
             //}
 
             SendTransferBlock sendBlock;
-            if (ToExchange)
-            {
-                sendBlock = new ExchangingBlock()
-                {
-                    AccountID = AccountId,
-                    VoteFor = VoteFor,
-                    ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
-                    DestinationAccountId = DestinationAccountId,
-                    Balances = new Dictionary<string, long>(),
-                    //PaymentID = string.Empty,
-                    Fee = fee,
-                    FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                    FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
-                };
-            }
-            else
-            {
+            //if (ToExchange)
+            //{
+            //    sendBlock = new ExchangingBlock()
+            //    {
+            //        AccountID = AccountId,
+            //        VoteFor = VoteFor,
+            //        ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
+            //        DestinationAccountId = DestinationAccountId,
+            //        Balances = new Dictionary<string, long>(),
+            //        //PaymentID = string.Empty,
+            //        Fee = fee,
+            //        FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+            //        FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
+            //    };
+            //}
+            //else
+            //{
                 sendBlock = new SendTransferBlock()
                 {
                     AccountID = AccountId,
@@ -750,12 +750,12 @@ namespace Lyra.Core.Accounts
                     ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, long>(),
-                    //PaymentID = string.Empty,
+                    PaymentID = paymentID,
                     Fee = fee,
                     FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                     FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
                 };
-            };
+            //};
 
             sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change.ToBalanceLong());
             //sendBlock.Transaction = transaction;
@@ -779,15 +779,15 @@ namespace Lyra.Core.Accounts
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
             AuthorizationAPIResult result;
-            if (ToExchange)
-                result = await _rpcClient.SendExchangeTransfer((ExchangingBlock)sendBlock);
-            else
-            {
+            //if (ToExchange)
+            //    result = await _rpcClient.SendExchangeTransfer((ExchangingBlock)sendBlock);
+            //else
+            //{
                 //var stopwatch = Stopwatch.StartNew();
                 result = await _rpcClient.SendTransfer(sendBlock);
                 //stopwatch.Stop();
                 //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
-            }
+            //}
 
             if (result.ResultCode == APIResultCodes.Success)
                 _lastTransactionBlock = sendBlock;
@@ -1077,6 +1077,7 @@ namespace Lyra.Core.Accounts
                 AccountID = AccountId,
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
+                PaymentID = new_transfer_info.PaymentID,
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
@@ -1268,6 +1269,7 @@ namespace Lyra.Core.Accounts
                 VoteFor = VoteFor,
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
+                PaymentID = new_transfer_info.PaymentID,
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,

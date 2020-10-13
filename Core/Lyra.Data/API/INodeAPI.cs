@@ -87,7 +87,7 @@ namespace Lyra.Core.API
         // These methods return authorization result and authorizers' signatures if approved
 
         Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block);
-        Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block);
+        //Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block);
 
         Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block);
         Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock block);

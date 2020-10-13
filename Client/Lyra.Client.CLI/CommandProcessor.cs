@@ -336,14 +336,22 @@ namespace Lyra.Client.CLI
             {
                 Console.WriteLine(string.Format("Please select token to send, or press Enter for {0}: ", LyraGlobal.OFFICIALTICKERCODE));
                 ticker = Console.ReadLine();
-
             }
+            if (string.IsNullOrEmpty(ticker))
+                ticker = LyraGlobal.OFFICIALTICKERCODE;
+
+            Console.WriteLine($"Please enter payment id (optional, length {CryptoUtils.PAYMENTID_LENGTH}): ");
+            string paymentId = Console.ReadLine();
+            while (!string.IsNullOrEmpty(paymentId) && paymentId.Length != CryptoUtils.PAYMENTID_LENGTH)
+            {
+                Console.WriteLine($"Please enter payment id (optional, length {CryptoUtils.PAYMENTID_LENGTH}): ");
+                paymentId = Console.ReadLine();
+            }
+            if (string.IsNullOrEmpty(paymentId))
+                paymentId = null;
 
             APIResultCodes send_result;
-            if (string.IsNullOrEmpty(ticker))
-                send_result = (await _wallet.Send(amount, destination)).ResultCode;
-            else
-                send_result = (await _wallet.Send(amount, destination, ticker)).ResultCode;
+            send_result = (await _wallet.Send(amount, destination, ticker, paymentId)).ResultCode;
 
             if (send_result != APIResultCodes.Success)
             {

@@ -512,10 +512,10 @@ namespace Lyra.Core.API
             return await PostBlock("SendTransfer", block);
         }
 
-        public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
-        {
-            return await PostBlock("SendExchangeTransfer", block);
-        }
+        //public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
+        //{
+        //    return await PostBlock("SendExchangeTransfer", block);
+        //}
 
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
         {
