@@ -219,7 +219,13 @@ namespace Lyra.Core.API
                 default:
                     throw new ApplicationException("Unknown block type");
             }
-            return block;
+            // here verify block signature. 
+            if(block != null && block.VerifyHash())
+            {
+                return block;
+            }
+            else
+                return null;
         }
     }
 
