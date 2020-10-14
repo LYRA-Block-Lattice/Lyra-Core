@@ -351,13 +351,13 @@ namespace Lyra.Core.Decentralize
                     if(lsb == null)
                     {
                         _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
-                        _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators.ToList();        // default to seeds
+                        _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());        // default to seeds
                         _board.AllVoters = _board.PrimaryAuthorizers;                           // default to all seed nodes
                     }
                     else
                     {
                         _board.CurrentLeader = lsb.Leader;
-                        _board.PrimaryAuthorizers = lsb.Authorizers.Keys.ToList();
+                        _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
                         _board.AllVoters = _board.PrimaryAuthorizers;
                     }
 
@@ -382,40 +382,33 @@ namespace Lyra.Core.Decentralize
 
                             await Task.Delay(5000);
 
-                            var q = from ns in _nodeStatus
-                                    group ns by ns.totalBlockCount into heights
-                                    orderby heights.Count() descending
-                                    select new
-                                    {
-                                        Height = heights.Key,
-                                        Count = heights.Count()
-                                    };
+                            var currentMajority = GetNetworkMajority();
 
-                            if (q.Any())
+                            if (currentMajority.Any())
                             {
-                                var majorHeight = q.First();
+                                var majorHeight = currentMajority.First().totalBlockCount;
 
                                 var majority = 3;// LyraGlobal.GetMajority(_board.ActiveNodes.Count);
-                                _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight.Height} of {majorHeight.Count} majority {majority}");
+                                _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight} of {currentMajority.Count} majority {majority}");
 
                                 var myStatus = await GetNodeStatusAsync();
                                 
-                                if (myStatus.totalBlockCount == 0 && majorHeight.Height == 0 && majorHeight.Count >= majority)
+                                if (myStatus.totalBlockCount == 0 && majorHeight == 0 && currentMajority.Count >= majority)
                                 {
                                     //_stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
                                     _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
                                     break;
                                 }
-                                else if (majorHeight.Height >= 2 && majorHeight.Count >= majority)
+                                else if (majorHeight >= 2 && currentMajority.Count >= majority)
                                 {
                                     // verify local database
-                                    while (!await SyncDatabase(majorHeight.Height))
+                                    while (!await SyncDatabase(majorHeight))
                                     {
                                         //fatal error. should not run program
                                         _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
                                         await Task.Delay(60000);
                                     }
-                                    _stateMachine.Fire(_engageTriggerStart, majorHeight.Height);
+                                    _stateMachine.Fire(_engageTriggerStart, majorHeight);
                                     break;
                                 }
                                 else
@@ -593,7 +586,7 @@ namespace Lyra.Core.Decentralize
 
         internal void ServiceBlockCreated(ServiceBlock sb)
         {
-            Board.PrimaryAuthorizers = sb.Authorizers.Keys.ToList();
+            Board.UpdatePrimary(sb.Authorizers.Keys.ToList());
             Board.CurrentLeader = sb.Leader;
             _viewChangeHandler.ShiftView(sb.Height + 1);
         }
@@ -761,12 +754,12 @@ namespace Lyra.Core.Decentralize
             {
                 _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];
                 _board.LeaderCandidate = ProtocolSettings.Default.StandbyValidators[0];
-                _board.PrimaryAuthorizers = ProtocolSettings.Default.StandbyValidators.ToList();                
+                _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());                
             }
             else
             {
                 _board.CurrentLeader = lsb.Leader;
-                _board.PrimaryAuthorizers = lsb.Authorizers.Keys.ToList();
+                _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
             }
 
             var me = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == _sys.PosWallet.AccountId);
@@ -1175,6 +1168,9 @@ namespace Lyra.Core.Decentralize
                     var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
                     if (statusReply != null)
                     {
+                        if (!Board.PrimaryAuthorizers.Contains(statusReply.accountId))
+                            return;
+
                         if (Board.ActiveNodes.Any(a => a.AccountID == statusReply.accountId) && !_nodeStatus.Any(a => a.accountId == statusReply.accountId))
                             _nodeStatus.Add(statusReply);
                     }

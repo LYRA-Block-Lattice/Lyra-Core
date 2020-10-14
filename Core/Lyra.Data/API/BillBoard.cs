@@ -26,7 +26,7 @@ namespace Lyra.Data.API
         public List<string> AllVoters { get; set; }
 
         // for other block, validate from primary authorizers.
-        public List<string> PrimaryAuthorizers { get; set; }
+        public List<string> PrimaryAuthorizers { get; private set; }
 
         public string CurrentLeader { get; set; }
 
@@ -39,6 +39,11 @@ namespace Lyra.Data.API
             NodeAddresses = new ConcurrentDictionary<string, string>();
             ActiveNodes = new List<ActiveNode>();
             AllVoters = new List<string>();
+        }
+
+        public void UpdatePrimary(List<string> list)
+        {
+            PrimaryAuthorizers = list;
         }
     }
 

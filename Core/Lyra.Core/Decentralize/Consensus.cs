@@ -23,7 +23,7 @@ namespace Lyra.Core.Decentralize
         public async Task<NodeStatus> GetNodeStatusAsync()
         {
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-            var unCons = lastCons == null ? null : (await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, DateTime.UtcNow)).ToList();
+            var unCons = lastCons == null ? null : (await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, DateTime.MaxValue)).ToList();
             var status = new NodeStatus
             {
                 accountId = _sys.PosWallet.AccountId,
@@ -55,6 +55,47 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
+        private List<NodeStatus> GetNetworkMajority()
+        {
+            long heightMajority = 0;
+            string unConsHashMajority = null;
+
+            var q1 = from ns in _nodeStatus
+                    group ns by ns.totalBlockCount into heights
+                    orderby heights.Count() descending
+                    select new
+                    {
+                        Height = heights.Key,
+                        Count = heights.Count()
+                    };
+
+            if (q1.Any())
+            {
+                heightMajority = q1.First().Height;
+            }
+
+            var q2 = from ns in _nodeStatus
+                    group ns by ns.lastUnSolidationHash into unCons
+                    orderby unCons.Count() descending
+                    select new
+                    {
+                        unConsHash = unCons.Key,
+                        Count = unCons.Count()
+                    };
+
+            if (q2.Any())
+            {
+                unConsHashMajority = q2.First().unConsHash;
+            }
+
+            if (heightMajority > 0 && unConsHashMajority != null)
+                return _nodeStatus.Where(a => a.totalBlockCount == heightMajority
+                    && a.lastUnSolidationHash == unConsHashMajority)
+                    .ToList();
+            else
+                return new List<NodeStatus>();
+        }
+
         private async Task<LyraClientForNode> GetOptimizedSyncClientAsync(bool reQuery = false)
         {
             var reQueryNetwork = reQuery;
@@ -74,25 +115,17 @@ namespace Lyra.Core.Decentralize
                     await Task.Delay(5000);
                 }
 
-                var q = from ns in _nodeStatus
-                        group ns by ns.totalBlockCount into heights
-                        orderby heights.Count() descending
-                        select new
-                        {
-                            Height = heights.Key,
-                            Count = heights.Count()
-                        };
+                var currentMajority = GetNetworkMajority();
 
-                if (q.Any())
+                if (currentMajority.Any())
                 {
-                    var majorHeight = q.First();
+                    var majorHeight = currentMajority.First().totalBlockCount;
 
-                    _log.LogInformation($"GetOptimizedSyncClientAsync major height {majorHeight.Height} count {majorHeight.Count} ");
+                    _log.LogInformation($"GetOptimizedSyncClientAsync major height {majorHeight} count {currentMajority.Count} ");
 
-                    if (majorHeight.Height >= 2 && majorHeight.Count >= 3)
+                    if (majorHeight >= 2 && currentMajority.Count >= 3)
                     {
-                        var validNodeList = _nodeStatus
-                            .Where(a => a.totalBlockCount == majorHeight.Height)
+                        var validNodeList = currentMajority
                             .Select(a => a.accountId);
 
                         var validNodeIps = Board.NodeAddresses.Where(a => validNodeList.Contains(a.Key))
