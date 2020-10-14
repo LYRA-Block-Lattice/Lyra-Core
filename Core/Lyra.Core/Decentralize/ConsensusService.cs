@@ -348,6 +348,17 @@ namespace Lyra.Core.Decentralize
                     var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                     if(lsb == null)
                     {
+                        // try get lsb from seed0
+                        var seed0 = GetClientForSeed0();
+                        var result = await seed0.GetLastServiceBlock();
+                        if(result.ResultCode == APIResultCodes.Success)
+                        {
+                            lsb = result.GetBlock() as ServiceBlock;
+                        }
+                    }
+
+                    if(lsb == null)
+                    {
                         _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
                         _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());        // default to seeds
                         _board.AllVoters = _board.PrimaryAuthorizers;                           // default to all seed nodes
@@ -747,18 +758,18 @@ namespace Lyra.Core.Decentralize
         private async Task HeartBeatAsync()
         {
             // this keep the node up pace
-            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-            if(lsb == null)
-            {
-                _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];
-                _board.LeaderCandidate = ProtocolSettings.Default.StandbyValidators[0];
-                _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());                
-            }
-            else
-            {
-                _board.CurrentLeader = lsb.Leader;
-                _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
-            }
+            //var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+            //if(lsb == null)
+            //{
+            //    _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];
+            //    _board.LeaderCandidate = ProtocolSettings.Default.StandbyValidators[0];
+            //    _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());                
+            //}
+            //else
+            //{
+            //    _board.CurrentLeader = lsb.Leader;
+            //    _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
+            //}
 
             var me = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == _sys.PosWallet.AccountId);
             if (me == null)
