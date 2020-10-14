@@ -49,9 +49,16 @@ namespace Lyra.Core.Decentralize
         {
             if(msg is BlockConsensusMessage bmsg)
             {
-                if(bmsg.IsServiceBlock) // service block must come from the new elected leader
+                if (bmsg.IsServiceBlock)
                 {
-                    if(_context.Board.LeaderCandidate != bmsg.From)
+                    if (!_context.Board.AllVoters.Contains(bmsg.From))
+                    {
+                        return;
+                    }
+                }
+                if (bmsg is AuthorizingMsg svcB && svcB.Block.BlockType == BlockTypes.Service) // service block must come from the new elected leader
+                {
+                    if (_context.Board.LeaderCandidate != bmsg.From)
                     {
                         _log.LogWarning($"Service block not from leader candidate {_context.Board.LeaderCandidate.Shorten()} but from {bmsg.From.Shorten()}");
                         return;
