@@ -233,10 +233,17 @@ namespace Lyra.Core.Decentralize
                 }
 
                 // sync unconsolidated blocks
-                var endTime = DateTime.UtcNow.AddSeconds(2);
+                var endTime = DateTime.MaxValue;
                 var unConsHashResult = await client.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
                 if (unConsHashResult.ResultCode == APIResultCodes.Success)
                 {
+                    var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
+                    foreach(var h in myUnConsHashes)
+                    {
+                        if (!unConsHashResult.Entities.Contains(h))
+                            await _sys.Storage.RemoveBlockAsync(h);
+                    }
+
                     foreach (var hash in unConsHashResult.Entities)  // the first one is previous consolidation block
                     {
                         if (hash == myLastCons.Hash)
