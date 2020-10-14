@@ -115,9 +115,11 @@ namespace Lyra.Core.Accounts
                 }
             }
 
-            if(_blocks.Indexes.List().ToList().Count < 17)
+            var allIndexes = _blocks.Indexes.List().ToList();
+            if(!allIndexes.Any())
             {
                 _log.LogWarning("mongodb index is not enough. creating...");
+
                 CreateIndexes("_t", false).Wait();
                 CreateIndexes("Hash", true).Wait();
                 CreateIndexes("TimeStamp", false).Wait();

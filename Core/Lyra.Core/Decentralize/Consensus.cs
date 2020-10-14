@@ -564,11 +564,11 @@ namespace Lyra.Core.Decentralize
         {
             if (_seed0Client == null)
             {
-                var accId = ProtocolSettings.Default.StandbyValidators[0];
-                var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
-
-                var seed0 = new List<KeyValuePair<string, string>>();
-                seed0.Add(new KeyValuePair<string, string>(accId, addr));
+                var q = ProtocolSettings.Default.StandbyValidators.Where(a => a != _sys.PosWallet.AccountId)
+                    .ToList();
+                var seed0 = _board.NodeAddresses.Where(a => q.Contains(a.Key))
+                    .ToList();
+                
                 _seed0Client = new LyraClientForNode(_sys, seed0);
                 
                 //var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
