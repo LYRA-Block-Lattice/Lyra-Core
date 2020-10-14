@@ -289,7 +289,7 @@ namespace Lyra.Core.Decentralize
             {
                 var sb = new StringBuilder();
                 sb.AppendLine();
-                sb.AppendLine($"* Transaction From Node {_state.InputMsg.From} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
+                sb.AppendLine($"* Transaction From Node {_state.InputMsg.From.Shorten()} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
                 foreach (var msg in _state.OutputMsgs.ToList())
                 {
                     var seed0 = msg.From == _context.Board.CurrentLeader ? "[Leader]" : "";

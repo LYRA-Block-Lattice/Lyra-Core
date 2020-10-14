@@ -26,7 +26,7 @@ namespace Lyra.Data.API
         public List<string> AllVoters { get; set; }
 
         // for other block, validate from primary authorizers.
-        public List<string> PrimaryAuthorizers { get; private set; }
+        public List<string> PrimaryAuthorizers { get; set; }
 
         public string CurrentLeader { get; set; }
 
