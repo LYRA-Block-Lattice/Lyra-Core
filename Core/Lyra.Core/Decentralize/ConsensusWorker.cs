@@ -49,13 +49,6 @@ namespace Lyra.Core.Decentralize
         {
             if(msg is BlockConsensusMessage bmsg)
             {
-                if (bmsg.IsServiceBlock)
-                {
-                    if (!_context.Board.AllVoters.Contains(bmsg.From))
-                    {
-                        return;
-                    }
-                }
                 if (bmsg is AuthorizingMsg svcB && svcB.Block.BlockType == BlockTypes.Service) // service block must come from the new elected leader
                 {
                     if (_context.Board.LeaderCandidate != bmsg.From)
@@ -64,6 +57,13 @@ namespace Lyra.Core.Decentralize
                         return;
                     }
                 }
+                else if (bmsg.IsServiceBlock)
+                {
+                    if (!_context.Board.AllVoters.Contains(bmsg.From))
+                    {
+                        return;
+                    }
+                }                
                 else if(bmsg is AuthorizingMsg am && am.Block.BlockType == BlockTypes.Consolidation)
                 {
                     if (_context.Board.CurrentLeader != bmsg.From)
@@ -71,7 +71,7 @@ namespace Lyra.Core.Decentralize
                         _log.LogWarning($"Service block not from current leader {_context.Board.CurrentLeader.Shorten()} but from {bmsg.From.Shorten()}");
                         return;
                     }
-                }
+                }                
                 else if (!(bmsg is AuthorizingMsg))     // allow authorizingmsg from anywhere
                 {
                     if(!_context.Board.PrimaryAuthorizers.Contains(bmsg.From))
