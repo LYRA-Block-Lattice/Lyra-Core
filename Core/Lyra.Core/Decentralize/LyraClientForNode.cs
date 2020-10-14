@@ -234,6 +234,28 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        public async Task<BlockAPIResult> GetLastServiceBlock()
+        {
+            try
+            {
+                if (_client == null)
+                    _client = await FindValidSeedForSyncAsync(_sys);
+
+                return await _client.GetLastServiceBlock();
+            }
+            catch (Exception ex)
+            {
+                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
+                {
+                    // retry
+                    _client = await FindValidSeedForSyncAsync(_sys);
+                    return await GetLastServiceBlock();
+                }
+                else
+                    throw ex;
+            }
+        }
+
         public async Task<LyraRestClient> FindValidSeedForSyncAsync(DagSystem sys)
         {
             if (_validNodes == null)

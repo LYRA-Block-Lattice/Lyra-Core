@@ -219,25 +219,36 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation("Engaging Sync...");
 
-                LyraClientForNode client = await GetOptimizedSyncClientAsync(true);
+                LyraClientForNode client = GetClientForSeed0();
+                var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
                 var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
-                var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                if (myLastCons == null || myLastCons.Height < lastConsOfSeed.GetBlock().Height)
+                if(lastConsOfSeed.ResultCode == APIResultCodes.Success)
                 {
-                    if (!await SyncDatabase())
+                    var lastConsBlockOfSeed = lastConsOfSeed.GetBlock();                    
+                    if (myLastCons == null || myLastCons.Height < lastConsBlockOfSeed.Height)
                     {
-                        _log.LogError($"Error sync database. wait 5 minutes and retry...");
-                        await Task.Delay(5 * 60 * 1000);
+                        _log.LogInformation($"Engaging: new consolidation block {lastConsBlockOfSeed.Height}");
+                        if (!await SyncDatabase())
+                        {
+                            _log.LogError($"Error sync database. wait 5 minutes and retry...");
+                            await Task.Delay(5 * 60 * 1000);
+                        }
+                        continue;
                     }
+                }
+                else
+                {
                     continue;
                 }
 
+                _log.LogInformation($"Engaging: Sync all unconsolidated blocks");
                 // sync unconsolidated blocks
                 var endTime = DateTime.MaxValue;
                 var unConsHashResult = await client.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
                 if (unConsHashResult.ResultCode == APIResultCodes.Success)
                 {
+                    _log.LogInformation($"Engaging: total unconsolidated blocks {unConsHashResult.Entities.Count}");
                     var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
                     foreach(var h in myUnConsHashes)
                     {
@@ -245,8 +256,10 @@ namespace Lyra.Core.Decentralize
                             await _sys.Storage.RemoveBlockAsync(h);
                     }
 
+                    int count = 0;
                     foreach (var hash in unConsHashResult.Entities)  // the first one is previous consolidation block
                     {
+                        _log.LogInformation($"Engaging: Syncunconsolidated block {count++}/{unConsHashResult.Entities.Count}");
                         if (hash == myLastCons.Hash)
                             continue;       // already synced by previous steps
                         var localBlock = await _sys.Storage.FindBlockByHashAsync(hash);
@@ -261,6 +274,8 @@ namespace Lyra.Core.Decentralize
                             
                     }
                 }
+
+                _log.LogInformation($"Engaging: finalizing...");
 
                 var remoteState = await client.GetSyncState();
                 var localState = await GetNodeStatusAsync();
@@ -544,15 +559,21 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private LyraRestClient _seed0Client;
-        public LyraRestClient GetClientForSeed0()
+        private LyraClientForNode _seed0Client;
+        public LyraClientForNode GetClientForSeed0()
         {
             if (_seed0Client == null)
             {
+                var accId = ProtocolSettings.Default.StandbyValidators[0];
                 var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
-                var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
-                _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-                _seed0Client = LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+
+                var seed0 = new List<KeyValuePair<string, string>>();
+                seed0.Add(new KeyValuePair<string, string>(accId, addr));
+                _seed0Client = new LyraClientForNode(_sys, seed0);
+                
+                //var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
+                //_log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
+                //_seed0Client = LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
 
             }
             return _seed0Client;
