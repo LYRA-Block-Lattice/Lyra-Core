@@ -33,7 +33,8 @@ namespace Lyra.Core.Decentralize
                 lastConsolidationHash = lastCons?.Hash,
                 lastUnSolidationHash = GetUnConsolidatedHash(unCons),
                 activePeers = Board.ActiveNodes.Count,
-                connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount
+                connectedPeers = Neo.Network.P2P.LocalNode.Singleton.ConnectedCount,
+                now = DateTime.UtcNow
             };
             return status;
         }

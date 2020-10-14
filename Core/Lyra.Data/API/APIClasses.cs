@@ -46,6 +46,7 @@ namespace Lyra.Data.API
         public string lastUnSolidationHash { get; set; }
         public int activePeers { get; set; }
         public int connectedPeers { get; set; }
+        public DateTime now { get; set; }
 
         //public override bool Equals(object obj)
         //{
