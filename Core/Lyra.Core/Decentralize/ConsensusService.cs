@@ -64,6 +64,8 @@ namespace Lyra.Core.Decentralize
         // status inquiry
         private List<NodeStatus> _nodeStatus;
 
+        private TimeSpan _tsValid = TimeSpan.FromSeconds(7);
+
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
 
@@ -146,8 +148,9 @@ namespace Lyra.Core.Decentralize
                     var signedMsg = relayMsg.signedMessage;
 
                     //_log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
-
-                    if (DateTime.UtcNow - signedMsg.TimeStamp < TimeSpan.FromSeconds(10) &&
+                    
+                    if (signedMsg.TimeStamp < DateTime.UtcNow &&
+                        DateTime.UtcNow - signedMsg.TimeStamp < _tsValid &&                        
                         signedMsg.VerifySignature(signedMsg.From))
                     {
                         await CriticalRelayAsync(signedMsg, async (msg) =>
@@ -157,7 +160,7 @@ namespace Lyra.Core.Decentralize
                     }
                     else
                     {
-                        //_log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
+                        _log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
                     }
                 }
                 catch (Exception ex)

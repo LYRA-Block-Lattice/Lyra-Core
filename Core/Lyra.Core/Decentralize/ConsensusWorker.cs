@@ -49,10 +49,19 @@ namespace Lyra.Core.Decentralize
         {
             if(msg is BlockConsensusMessage bmsg)
             {
-                if(bmsg.IsServiceBlock)
+                if(bmsg.IsServiceBlock) // service block must come from the new elected leader
                 {
-                    if(!_context.Board.AllVoters.Contains(bmsg.From))
+                    if(_context.Board.LeaderCandidate != bmsg.From)
                     {
+                        _log.LogWarning($"Service block not from leader candidate {_context.Board.LeaderCandidate.Shorten()} but from {bmsg.From.Shorten()}");
+                        return;
+                    }
+                }
+                else if(bmsg is AuthorizingMsg am && am.Block.BlockType == BlockTypes.Consolidation)
+                {
+                    if (_context.Board.CurrentLeader != bmsg.From)
+                    {
+                        _log.LogWarning($"Service block not from current leader {_context.Board.CurrentLeader.Shorten()} but from {bmsg.From.Shorten()}");
                         return;
                     }
                 }
@@ -61,7 +70,7 @@ namespace Lyra.Core.Decentralize
                     if(!_context.Board.PrimaryAuthorizers.Contains(bmsg.From))
                     {
                         return;
-                    }
+                    }                    
                 }
             }
 
@@ -280,8 +289,7 @@ namespace Lyra.Core.Decentralize
             {
                 var sb = new StringBuilder();
                 sb.AppendLine();
-                var acctId = _state.InputMsg.Block is TransactionBlock ? (_state.InputMsg.Block as TransactionBlock).AccountID.Shorten() : "";
-                sb.AppendLine($"* Transaction From Node {acctId} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
+                sb.AppendLine($"* Transaction From Node {_state.InputMsg.From} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
                 foreach (var msg in _state.OutputMsgs.ToList())
                 {
                     var seed0 = msg.From == _context.Board.CurrentLeader ? "[Leader]" : "";
