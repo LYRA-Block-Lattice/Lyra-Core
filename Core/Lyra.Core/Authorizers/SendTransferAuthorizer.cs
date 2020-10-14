@@ -87,6 +87,10 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
+            // verify PaymentID. it should either null or 12 char string with crc
+            if (block.PaymentID != null && block.PaymentID.Length != CryptoUtils.PAYMENTID_LENGTH)
+                return APIResultCodes.InvalidPaymentID;
+
             //stopwatch3.Stop();
             //Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 
