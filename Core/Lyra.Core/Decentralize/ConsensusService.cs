@@ -64,8 +64,6 @@ namespace Lyra.Core.Decentralize
         // status inquiry
         private List<NodeStatus> _nodeStatus;
 
-        private TimeSpan _tsValid = TimeSpan.FromSeconds(7);
-
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
 
@@ -149,8 +147,8 @@ namespace Lyra.Core.Decentralize
 
                     //_log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
                     
-                    if (signedMsg.TimeStamp < DateTime.UtcNow &&
-                        DateTime.UtcNow - signedMsg.TimeStamp < _tsValid &&                        
+                    if (signedMsg.TimeStamp < DateTime.UtcNow.AddSeconds(5) &&
+                        signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-7) &&                        
                         signedMsg.VerifySignature(signedMsg.From))
                     {
                         await CriticalRelayAsync(signedMsg, async (msg) =>
