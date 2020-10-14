@@ -248,6 +248,10 @@ namespace Lyra.Core.Decentralize
                     {
                         if (hash == myLastCons.Hash)
                             continue;       // already synced by previous steps
+                        var localBlock = await _sys.Storage.FindBlockByHashAsync(hash);
+                        if (localBlock != null)
+                            continue;
+
                         var blockResult = await client.GetBlockByHash(hash);
                         if(blockResult.ResultCode == APIResultCodes.Success)
                         {
