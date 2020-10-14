@@ -148,7 +148,7 @@ namespace Lyra.Core.Decentralize
                     //_log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
                     
                     if (signedMsg.TimeStamp < DateTime.UtcNow.AddSeconds(5) &&
-                        signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-7) &&                        
+                        signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-16) &&                        
                         signedMsg.VerifySignature(signedMsg.From))
                     {
                         await CriticalRelayAsync(signedMsg, async (msg) =>
