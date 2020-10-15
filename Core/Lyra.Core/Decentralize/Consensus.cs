@@ -256,7 +256,10 @@ namespace Lyra.Core.Decentralize
                     foreach(var h in myUnConsHashes)
                     {
                         if (!unConsHashResult.Entities.Contains(h))
+                        {
                             await _sys.Storage.RemoveBlockAsync(h);
+                            someBlockSynced = true;
+                        }                            
                     }
 
                     int count = 0;
@@ -274,13 +277,25 @@ namespace Lyra.Core.Decentralize
                         {
                             await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
                             someBlockSynced = true;
-                        }                            
+                        }   
+                        else
+                        {
+                            someBlockSynced = true;
+                            break;
+                        }
                     }
+                }
+                else
+                {
+                    continue;
                 }
 
                 _log.LogInformation($"Engaging: finalizing...");
 
                 var remoteState = await client.GetSyncState();
+                if (remoteState.ResultCode != APIResultCodes.Success)
+                    continue;
+
                 var localState = await GetNodeStatusAsync();
                 if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash
                     && remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash
@@ -298,7 +313,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 _log.LogInformation("Engaging Sync partial success. continue...");
-                await Task.Delay(5000);
+                await Task.Delay(1000);
             }
         }
 
