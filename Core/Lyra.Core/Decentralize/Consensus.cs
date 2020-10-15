@@ -217,103 +217,111 @@ namespace Lyra.Core.Decentralize
             // so make sure Last Float Hash equal to seed.
             while (true)
             {
-                _log.LogInformation("Engaging Sync...");
-
-                var someBlockSynced = false;
-
-                LyraClientForNode client = GetClientForSeed0();
-                var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-
-                var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
-                if(lastConsOfSeed.ResultCode == APIResultCodes.Success)
+                try
                 {
-                    var lastConsBlockOfSeed = lastConsOfSeed.GetBlock();                    
-                    if (myLastCons == null || myLastCons.Height < lastConsBlockOfSeed.Height)
+                    _log.LogInformation("Engaging Sync...");
+
+                    var someBlockSynced = false;
+
+                    LyraClientForNode client = GetClientForSeed0();
+                    var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+
+                    var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
+                    if (lastConsOfSeed.ResultCode == APIResultCodes.Success)
                     {
-                        _log.LogInformation($"Engaging: new consolidation block {lastConsBlockOfSeed.Height}");
-                        if (!await SyncDatabase())
+                        var lastConsBlockOfSeed = lastConsOfSeed.GetBlock();
+                        if (myLastCons == null || myLastCons.Height < lastConsBlockOfSeed.Height)
                         {
-                            _log.LogError($"Error sync database. wait 5 minutes and retry...");
-                            await Task.Delay(5 * 60 * 1000);
-                        }
-                        someBlockSynced = true;
-                        continue;
-                    }
-                }
-                else
-                {
-                    continue;
-                }
-
-                _log.LogInformation($"Engaging: Sync all unconsolidated blocks");
-                // sync unconsolidated blocks
-                var endTime = DateTime.MaxValue;
-                var unConsHashResult = await client.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
-                if (unConsHashResult.ResultCode == APIResultCodes.Success)
-                {
-                    _log.LogInformation($"Engaging: total unconsolidated blocks {unConsHashResult.Entities.Count}");
-                    var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
-                    foreach(var h in myUnConsHashes)
-                    {
-                        if (!unConsHashResult.Entities.Contains(h))
-                        {
-                            await _sys.Storage.RemoveBlockAsync(h);
+                            _log.LogInformation($"Engaging: new consolidation block {lastConsBlockOfSeed.Height}");
+                            if (!await SyncDatabase())
+                            {
+                                _log.LogError($"Error sync database. wait 5 minutes and retry...");
+                                await Task.Delay(5 * 60 * 1000);
+                            }
                             someBlockSynced = true;
-                        }                            
-                    }
-
-                    int count = 0;
-                    foreach (var hash in unConsHashResult.Entities)  // the first one is previous consolidation block
-                    {
-                        _log.LogInformation($"Engaging: Syncunconsolidated block {count++}/{unConsHashResult.Entities.Count}");
-                        if (hash == myLastCons.Hash)
-                            continue;       // already synced by previous steps
-                        var localBlock = await _sys.Storage.FindBlockByHashAsync(hash);
-                        if (localBlock != null)
                             continue;
-
-                        var blockResult = await client.GetBlockByHash(hash);
-                        if(blockResult.ResultCode == APIResultCodes.Success)
-                        {
-                            await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
-                            someBlockSynced = true;
-                        }   
-                        else
-                        {
-                            someBlockSynced = true;
-                            break;
                         }
                     }
-                }
-                else
-                {
-                    continue;
-                }
-
-                _log.LogInformation($"Engaging: finalizing...");
-
-                var remoteState = await client.GetSyncState();
-                if (remoteState.ResultCode != APIResultCodes.Success)
-                    continue;
-
-                var localState = await GetNodeStatusAsync();
-                if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash
-                    && remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash
-                    )
-                {
-                    if (someBlockSynced)
-                        continue;
                     else
-                        break;
-                }
-                else
-                {
-                    // we need to know why
-                    _log.LogWarning($"Engaging sync local vs remote: lastcons {localState.lastConsolidationHash.Shorten()} {remoteState.Status.lastConsolidationHash.Shorten()}, last uncons: {localState.lastUnSolidationHash.Shorten()} {remoteState.Status.lastUnSolidationHash.Shorten()}");
-                }
+                    {
+                        continue;
+                    }
 
-                _log.LogInformation("Engaging Sync partial success. continue...");
-                await Task.Delay(1000);
+                    _log.LogInformation($"Engaging: Sync all unconsolidated blocks");
+                    // sync unconsolidated blocks
+                    var endTime = DateTime.MaxValue;
+                    var unConsHashResult = await client.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
+                    if (unConsHashResult.ResultCode == APIResultCodes.Success)
+                    {
+                        _log.LogInformation($"Engaging: total unconsolidated blocks {unConsHashResult.Entities.Count}");
+                        var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
+                        foreach (var h in myUnConsHashes)
+                        {
+                            if (!unConsHashResult.Entities.Contains(h))
+                            {
+                                await _sys.Storage.RemoveBlockAsync(h);
+                                someBlockSynced = true;
+                            }
+                        }
+
+                        int count = 0;
+                        foreach (var hash in unConsHashResult.Entities)  // the first one is previous consolidation block
+                        {
+                            _log.LogInformation($"Engaging: Syncunconsolidated block {count++}/{unConsHashResult.Entities.Count}");
+                            if (hash == myLastCons.Hash)
+                                continue;       // already synced by previous steps
+                            var localBlock = await _sys.Storage.FindBlockByHashAsync(hash);
+                            if (localBlock != null)
+                                continue;
+
+                            var blockResult = await client.GetBlockByHash(hash);
+                            if (blockResult.ResultCode == APIResultCodes.Success)
+                            {
+                                await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
+                                someBlockSynced = true;
+                            }
+                            else
+                            {
+                                someBlockSynced = true;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    _log.LogInformation($"Engaging: finalizing...");
+
+                    var remoteState = await client.GetSyncState();
+                    if (remoteState.ResultCode != APIResultCodes.Success)
+                        continue;
+
+                    var localState = await GetNodeStatusAsync();
+                    if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash
+                        && remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash
+                        )
+                    {
+                        if (someBlockSynced)
+                            continue;
+                        else
+                            break;
+                    }
+                    else
+                    {
+                        // we need to know why
+                        _log.LogWarning($"Engaging sync local vs remote: lastcons {localState.lastConsolidationHash.Shorten()} {remoteState.Status.lastConsolidationHash.Shorten()}, last uncons: {localState.lastUnSolidationHash.Shorten()} {remoteState.Status.lastUnSolidationHash.Shorten()}");
+                    }
+
+                    _log.LogInformation("Engaging Sync partial success. continue...");
+                    await Task.Delay(1000);
+                }
+                catch(Exception ex)
+                {
+                    _log.LogInformation($"Engaging Sync failed with error \"{ex.Message}\". continue...");
+                    await Task.Delay(1000);
+                }
             }
         }
 
