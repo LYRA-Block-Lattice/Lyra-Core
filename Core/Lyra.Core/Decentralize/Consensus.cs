@@ -219,6 +219,8 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation("Engaging Sync...");
 
+                var someBlockSynced = false;
+
                 LyraClientForNode client = GetClientForSeed0();
                 var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
@@ -234,6 +236,7 @@ namespace Lyra.Core.Decentralize
                             _log.LogError($"Error sync database. wait 5 minutes and retry...");
                             await Task.Delay(5 * 60 * 1000);
                         }
+                        someBlockSynced = true;
                         continue;
                     }
                 }
@@ -270,8 +273,8 @@ namespace Lyra.Core.Decentralize
                         if(blockResult.ResultCode == APIResultCodes.Success)
                         {
                             await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
-                        }
-                            
+                            someBlockSynced = true;
+                        }                            
                     }
                 }
 
@@ -279,9 +282,15 @@ namespace Lyra.Core.Decentralize
 
                 var remoteState = await client.GetSyncState();
                 var localState = await GetNodeStatusAsync();
-                if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash 
-                    && remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash)
-                    break;
+                if (remoteState.Status.lastConsolidationHash == localState.lastConsolidationHash
+                    && remoteState.Status.lastUnSolidationHash == localState.lastUnSolidationHash
+                    )
+                {
+                    if (someBlockSynced)
+                        continue;
+                    else
+                        break;
+                }
                 else
                 {
                     // we need to know why

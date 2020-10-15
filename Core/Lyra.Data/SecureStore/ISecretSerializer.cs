@@ -4,8 +4,8 @@ namespace NeoSmart.SecureStore
 {
     public interface ISecretSerializer
     {
-        public SecureBuffer Serialize<T>(T @object);
-        public T Deserialize<T>(SecureBuffer serialized);
+        SecureBuffer Serialize<T>(T @object);
+        T Deserialize<T>(SecureBuffer serialized);
     }
 
     namespace Serializers
