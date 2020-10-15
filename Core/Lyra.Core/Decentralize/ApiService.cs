@@ -78,7 +78,7 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.CommitConsensus == ConsensusResult.Yea} with {resultMsg}");
 
             // keep a snapshot of last success consensus.
-            if (state?.CommitConsensus != ConsensusResult.Uncertain)
+            if ((state?.CommitConsensus ?? ConsensusResult.Uncertain) != ConsensusResult.Uncertain)
                 LastState = state;
 
             return state;

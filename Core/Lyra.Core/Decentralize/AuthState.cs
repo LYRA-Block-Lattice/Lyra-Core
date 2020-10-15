@@ -41,7 +41,7 @@ namespace Lyra.Core.Decentralize
 
         public ConsensusResult PrepareConsensus => GetPrepareConsensusSuccess();
 
-        public ConsensusResult CommitConsensus => GetCommitConsensusSuccess();
+        public ConsensusResult? CommitConsensus => CheckCommitedResults();
 
         public virtual int WinNumber
         {
@@ -151,9 +151,16 @@ namespace Lyra.Core.Decentralize
             return ConsensusResult.Uncertain;
         }
 
-        private ConsensusResult CheckCommitedResults()
+        private ConsensusResult? CheckCommitedResults()
         {
             var CommitMsgList = CommitMsgs.ToList();
+
+            if(CommitMsgList.Count < WinNumber)
+            {
+                // votes not enough
+                return null;
+            }
+
             var ok = CommitMsgList.Count(a => a.Consensus == ConsensusResult.Yea);
             if (ok >= WinNumber)
                 return ConsensusResult.Yea;
@@ -187,19 +194,6 @@ namespace Lyra.Core.Decentralize
                 return ConsensusResult.Yea;
 
             if (authResult == ConsensusResult.Nay)
-                return ConsensusResult.Nay;
-
-            return ConsensusResult.Uncertain;
-        }
-
-        private ConsensusResult GetCommitConsensusSuccess()
-        {
-            var commitResult = CheckCommitedResults();
-
-            if (commitResult == ConsensusResult.Yea)
-                return ConsensusResult.Yea;
-
-            if (commitResult == ConsensusResult.Nay)
                 return ConsensusResult.Nay;
 
             return ConsensusResult.Uncertain;
