@@ -123,7 +123,7 @@ namespace Lyra.Core.Decentralize
                         if (CurrentState == BlockChainState.Almighty)
                         {
                             // redo view change
-                            await _viewChangeHandler.BeginChangeViewAsync(false);
+                            _viewChangeHandler.BeginChangeView(false);
                         }
                     }
                 });
@@ -267,7 +267,7 @@ namespace Lyra.Core.Decentralize
                                 _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
                                 if (CurrentState == BlockChainState.Almighty)
                                 {
-                                    await _viewChangeHandler.BeginChangeViewAsync(false);
+                                    _viewChangeHandler.BeginChangeView(false);
                                 }
                             }
                         }
@@ -331,13 +331,13 @@ namespace Lyra.Core.Decentralize
             });
         }
 
-        internal async Task GotViewChangeRequestAsync(long viewId)
+        internal void GotViewChangeRequest(long viewId)
         {
             if (CurrentState == BlockChainState.Almighty)
             {
                 _log.LogWarning($"GotViewChangeRequest from other nodes for {viewId}");
-                await _viewChangeHandler.BeginChangeViewAsync(false);
-            }                
+                _viewChangeHandler.BeginChangeView(true);
+            }
             else
                 _log.LogWarning($"GotViewChangeRequest for CurrentState: {CurrentState}");
         }
@@ -591,7 +591,7 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation($"We have new player(s). Change view...");
                     // should change view for new member
-                    await _viewChangeHandler.BeginChangeViewAsync(false);
+                    _viewChangeHandler.BeginChangeView(false);
                 }
                 else
                 {
@@ -756,7 +756,7 @@ namespace Lyra.Core.Decentralize
 
                         _log.LogInformation($"We have no leader online. Change view...");
                         // should change view for new member
-                        await _viewChangeHandler.BeginChangeViewAsync(false);
+                        _viewChangeHandler.BeginChangeView(false);
                     }
                 }
             }

@@ -208,9 +208,9 @@ namespace Lyra.Core.Decentralize
                 if (TimeStarted == DateTime.MinValue)
                 {
                     _log.LogInformation("too many view change request. force into view change mode");
-                    TimeStarted = DateTime.Now;
+                    
                     // too many view change request. force into view change mode
-                    await _context.GotViewChangeRequestAsync(ViewId);
+                    _context.GotViewChangeRequest(ViewId);
 
                     // also do clean of req msgs queue
                     var unqualifiedReqs = reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
@@ -326,46 +326,48 @@ namespace Lyra.Core.Decentralize
         /// 
         /// </summary>
         /// <returns></returns>
-        internal async Task BeginChangeViewAsync(bool IsPassive)
+        internal void BeginChangeView(bool IsPassive)
         {
             if (IsViewChanging)
                 return;
 
-            _log.LogInformation($"Begin Change View");
-
-            _log.LogInformation($"AllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
-
-            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-
-            if (lastSb == null)
-            {
-                // genesis?
-                _log.LogCritical($"BeginChangeViewAsync has null service block. should not happend. error.");
-                return;
-            }
-
-            // refresh billboard all voters
-            _context.UpdateVoters();
-
-            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-
-            ViewId = lastSb.Height + 1;
             TimeStarted = DateTime.Now;
-            selectedSuccess = false;
-            
-            _log.LogInformation($"View change begin at {TimeStarted}");
 
-            var req = new ViewChangeRequestMessage
+            _ = Task.Run(async () =>
             {
-                From = _sys.PosWallet.AccountId,
-                ViewID = ViewId,
-                prevViewID = lastSb.Height,
-                requestSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
-                    $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
-            };
+                _log.LogInformation($"Begin Change View");
 
-            _ = Task.Run(async () => {
-                if(!IsPassive)
+                _log.LogInformation($"AllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+
+                var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+
+                if (lastSb == null)
+                {
+                    // genesis?
+                    _log.LogCritical($"BeginChangeViewAsync has null service block. should not happend. error.");
+                    return;
+                }
+
+                // refresh billboard all voters
+                _context.UpdateVoters();
+
+                var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+
+                ViewId = lastSb.Height + 1;
+                selectedSuccess = false;
+
+                _log.LogInformation($"View change begin at {TimeStarted}");
+
+                var req = new ViewChangeRequestMessage
+                {
+                    From = _sys.PosWallet.AccountId,
+                    ViewID = ViewId,
+                    prevViewID = lastSb.Height,
+                    requestSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
+                        $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
+                };
+
+                if (!IsPassive)
                     await Task.Delay(1000);         // wait for the gate to open
                 await _context.Send2P2pNetworkAsync(req);
                 await CheckRequestAsync(req);
