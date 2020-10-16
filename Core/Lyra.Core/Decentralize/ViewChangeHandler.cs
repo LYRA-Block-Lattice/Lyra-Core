@@ -269,15 +269,12 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckCommitAsync(ViewChangeCommitMessage vcm)
         {
-            if (!commitMsgs.ContainsKey(vcm.From))
-            {
-                var cmt = new VCCommitWithTime(vcm);
-                commitMsgs.AddOrUpdate(vcm.From, cmt, (key, oldValue) => cmt);
+            var cmt = new VCCommitWithTime(vcm);
+            commitMsgs.AddOrUpdate(vcm.From, cmt, (key, oldValue) => cmt);
 
-                _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count}");
+            _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count}");
 
-                await CheckAllStatsAsync();
-            }
+            await CheckAllStatsAsync();
         }
 
         private async Task CheckReplyAsync(ViewChangeReplyMessage reply)

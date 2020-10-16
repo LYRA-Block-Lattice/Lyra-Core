@@ -194,16 +194,19 @@ namespace Lyra.Core.Decentralize
 
         private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)
         {
-            ////_log.LogInformation($"LocalAuthorizingAsync: {item.Block.BlockType} {item.Block.UIndex}/{item.Block.Index}/{item.Block.Hash}");
             var errCode = APIResultCodes.Success;
-            //if (!ConsensusService.Board.CanDoConsensus)
-            //{
-            //    errCode = APIResultCodes.PBFTNetworkNotReadyForConsensus;
-            //}
-            //else if(!ConsensusService.AuthorizerShapshot.Contains(_context.GetDagSystem().PosWallet.AccountId))
-            //{
-            //    errCode = APIResultCodes.NotListedAsQualifiedAuthorizer;
-            //}
+
+            if(State is ServiceBlockAuthState sbas)
+            {
+                // if no leader elected, this will fail.
+                int waited = 0;
+                while (_context.Board.LeaderCandidate == null && waited < 5000)
+                {
+                    await Task.Delay(100);
+                }
+
+                _log.LogInformation($"After waiting, LeaderCandidate is {_context.Board.LeaderCandidate?.Shorten()}");
+            }
 
             if(errCode != APIResultCodes.Success)
             {
