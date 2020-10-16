@@ -601,13 +601,13 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public LyraRestClient GetClientForSeed0()
-        {
-            var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
-            var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
-            _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-            return LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
-        }
+        //public LyraRestClient GetClientForSeed0()
+        //{
+        //    var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
+        //    var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
+        //    _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
+        //    return LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+        //}
 
         public LyraClientForNode GetClientForSeeds()
         {

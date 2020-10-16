@@ -258,7 +258,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task<LyraRestClient> FindValidSeedForSyncAsync(DagSystem sys)
         {
-            if (_validNodes == null)
+            if (_validNodes == null || _validNodes.Count == 0)
             {
                 do
                 {

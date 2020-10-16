@@ -352,19 +352,17 @@ namespace Lyra.Core.Decentralize
                 {                 
                     _log.LogInformation($"Consensus Service Startup... ");
 
-                    var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-                    if(lsb == null)
+                    ServiceBlock lsb = null;
+
+                    // try get lsb from seed0
+                    var seed0 = GetClientForSeeds();
+                    var result = await seed0.GetLastServiceBlock();
+                    if (result.ResultCode == APIResultCodes.Success)
                     {
-                        // try get lsb from seed0
-                        var seed0 = GetClientForSeed0();
-                        var result = await seed0.GetLastServiceBlock();
-                        if(result.ResultCode == APIResultCodes.Success)
-                        {
-                            lsb = result.GetBlock() as ServiceBlock;
-                        }
+                        lsb = result.GetBlock() as ServiceBlock;
                     }
 
-                    if(lsb == null)
+                    if (lsb == null)
                     {
                         _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
                         _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());        // default to seeds
