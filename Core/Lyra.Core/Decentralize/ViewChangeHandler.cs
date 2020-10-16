@@ -175,12 +175,6 @@ namespace Lyra.Core.Decentralize
             // request
             if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                if(ViewId == 0)
-                {
-                    // passive initialized view-change
-                    await BeginChangeViewAsync(true);
-                }
-
                 // the new leader:
                 // 1, not the previous one;
                 // 2, viewid mod [voters count], index of _qualifiedVoters.
