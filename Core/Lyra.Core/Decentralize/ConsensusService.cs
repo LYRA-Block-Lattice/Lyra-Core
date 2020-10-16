@@ -352,27 +352,39 @@ namespace Lyra.Core.Decentralize
                 {                 
                     _log.LogInformation($"Consensus Service Startup... ");
 
-                    ServiceBlock lsb = null;
+                    while(true)
+                    {
+                        try
+                        {
+                            ServiceBlock lsb = null;
 
-                    // try get lsb from seed0
-                    var seed0 = GetClientForSeeds();
-                    var result = await seed0.GetLastServiceBlock();
-                    if (result.ResultCode == APIResultCodes.Success)
-                    {
-                        lsb = result.GetBlock() as ServiceBlock;
-                    }
+                            // try get lsb from seed0
+                            var seed0 = GetClientForSeeds();
+                            var result = await seed0.GetLastServiceBlock();
+                            if (result.ResultCode == APIResultCodes.Success)
+                            {
+                                lsb = result.GetBlock() as ServiceBlock;
+                            }
 
-                    if (lsb == null)
-                    {
-                        _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
-                        _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());        // default to seeds
-                        _board.AllVoters = _board.PrimaryAuthorizers;                           // default to all seed nodes
-                    }
-                    else
-                    {
-                        _board.CurrentLeader = lsb.Leader;
-                        _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
-                        _board.AllVoters = _board.PrimaryAuthorizers;
+                            if (lsb == null)
+                            {
+                                _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
+                                _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());        // default to seeds
+                                _board.AllVoters = _board.PrimaryAuthorizers;                           // default to all seed nodes
+                            }
+                            else
+                            {
+                                _board.CurrentLeader = lsb.Leader;
+                                _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
+                                _board.AllVoters = _board.PrimaryAuthorizers;
+                            }
+
+                            break;
+                        }
+                        catch(Exception ex)
+                        {
+                            _log.LogInformation($"Consensus Service Startup Exception: {ex.Message}");
+                        }
                     }
 
                     // swith mode
