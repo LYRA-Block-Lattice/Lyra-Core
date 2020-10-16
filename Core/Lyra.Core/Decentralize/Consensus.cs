@@ -223,7 +223,7 @@ namespace Lyra.Core.Decentralize
 
                     var someBlockSynced = false;
 
-                    LyraClientForNode client = GetClientForSeed0();
+                    LyraClientForNode client = GetClientForSeeds();
                     var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
                     var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
@@ -601,24 +601,22 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private LyraClientForNode _seed0Client;
-        public LyraClientForNode GetClientForSeed0()
+        public LyraRestClient GetClientForSeed0()
         {
-            if (_seed0Client == null)
-            {
-                var q = ProtocolSettings.Default.StandbyValidators.Where(a => a != _sys.PosWallet.AccountId)
-                    .ToList();
-                var seed0 = _board.NodeAddresses.Where(a => q.Contains(a.Key))
-                    .ToList();
-                
-                _seed0Client = new LyraClientForNode(_sys, seed0);
-                
-                //var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
-                //_log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-                //_seed0Client = LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+            var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
+            var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
+            _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
+            return LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
+        }
 
-            }
-            return _seed0Client;
+        public LyraClientForNode GetClientForSeeds()
+        {
+            var q = ProtocolSettings.Default.StandbyValidators.Where(a => a != _sys.PosWallet.AccountId)
+                .ToList();
+            var seed0 = _board.NodeAddresses.Where(a => q.Contains(a.Key))
+                .ToList();
+
+            return new LyraClientForNode(_sys, seed0);
         }
 
         public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
