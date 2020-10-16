@@ -101,7 +101,7 @@ namespace Lyra.Core.Decentralize
 
         private void OnPrePrepare(AuthorizingMsg msg)
         {
-            _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash}");
+            _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash} from {msg.From.Shorten()}");
             //_context.OnNodeActive(_context.GetDagSystem().PosWallet.AccountId);     // update billboard
 
             if (msg.Version != LyraGlobal.ProtocolVersion)
@@ -131,7 +131,7 @@ namespace Lyra.Core.Decentralize
                 _state.T3 = DateTime.Now;
 
             if (_state.AddAuthResult(item))
-                await CheckAuthorizedAllOkAsync();
+                await CheckAuthorizedAllOkAsync(item.From);
         }
 
         private async Task OnCommitAsync(AuthorizerCommitMsg item)
@@ -269,25 +269,24 @@ namespace Lyra.Core.Decentralize
 
         protected virtual async Task AuthorizeAsync(AuthorizingMsg msg)
         {
-            if(State.LocalResult == null)
-            {
-                var localAuthResult = await LocalAuthorizingAsync(msg);
-                State.LocalResult = localAuthResult;
-                //_log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
-                if (_state.AddAuthResult(localAuthResult))
-                {
-                    await _context.Send2P2pNetworkAsync(localAuthResult);
-                }
-            }
-            await CheckAuthorizedAllOkAsync();
+            var localAuthResult = await LocalAuthorizingAsync(msg);
+            State.LocalResult = localAuthResult;
+            //_log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
+            await _context.Send2P2pNetworkAsync(localAuthResult);
+
+            var ok = _state.AddAuthResult(localAuthResult);
+            if(!ok)
+                _log.LogError($"AuthorizeAsync: result not added ok.");
+
+            await CheckAuthorizedAllOkAsync(_context.GetDagSystem().PosWallet.AccountId);
         }
 
-        private async Task CheckAuthorizedAllOkAsync()
+        private async Task CheckAuthorizedAllOkAsync(string from)
         {
             await ProcessQueueAsync();
             // check state
             // debug: show all states
-            _log.LogInformation($"Consensus Result: {_state.OutputMsgs.Count}/{_state.WinNumber}");
+            _log.LogInformation($"Consensus Result: {_state.OutputMsgs.Count}/{_state.WinNumber} from {from.Shorten()}");
 
             if (_state.OutputMsgs.Count < _state.WinNumber)
             {

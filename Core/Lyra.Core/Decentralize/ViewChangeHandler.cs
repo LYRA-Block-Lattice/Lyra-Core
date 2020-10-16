@@ -143,7 +143,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync()
         {
-            //_log.LogInformation($"CheckAllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+            _log.LogInformation($"CheckAllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             if (selectedSuccess)
                 return;
@@ -175,6 +175,12 @@ namespace Lyra.Core.Decentralize
             // request
             if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
+                if(ViewId == 0)
+                {
+                    // passive initialized view-change
+                    await BeginChangeViewAsync(true);
+                }
+
                 // the new leader:
                 // 1, not the previous one;
                 // 2, viewid mod [voters count], index of _qualifiedVoters.
@@ -282,7 +288,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckReplyAsync(ViewChangeReplyMessage reply)
         {
-            //_log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {_replyMsgs.Count}/{_qualifiedVoters.Count}");
+            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {replyMsgs.Count}/{_context.Board.AllVoters.Count}");
 
             if (reply.Result == Blocks.APIResultCodes.Success)
             {
@@ -304,7 +310,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckRequestAsync(ViewChangeRequestMessage req)
         {
-            //_log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
+            _log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
 
             if (!reqMsgs.Values.Any(a => a.msg.From == req.From))
             {
@@ -326,7 +332,7 @@ namespace Lyra.Core.Decentralize
         /// 
         /// </summary>
         /// <returns></returns>
-        internal async Task BeginChangeViewAsync()
+        internal async Task BeginChangeViewAsync(bool IsPassive)
         {
             if (IsViewChanging)
                 return;
@@ -365,7 +371,8 @@ namespace Lyra.Core.Decentralize
             };
 
             _ = Task.Run(async () => {
-                await Task.Delay(1000);         // wait for the gate to open
+                if(!IsPassive)
+                    await Task.Delay(1000);         // wait for the gate to open
                 await _context.Send2P2pNetworkAsync(req);
                 await CheckRequestAsync(req);
             });
