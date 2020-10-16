@@ -48,7 +48,7 @@ namespace LyraLexWeb2
             if (NodeService.Dag != null && NodeService.Dag.FullStarted)
             {
                 var consensusState = await NodeService.Dag.Consensus.Ask<BlockChainState>(new ConsensusService.AskForState());
-                if (consensusState == BlockChainState.Almighty)
+                if (consensusState == BlockChainState.Almighty || consensusState == BlockChainState.Engaging)
                     return true;
             }
             
