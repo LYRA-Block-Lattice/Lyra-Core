@@ -98,7 +98,8 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+            // always response to query. nebula need this api.
+            //if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
             return await _node.GetSyncState();
         }
 
