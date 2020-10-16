@@ -538,8 +538,10 @@ namespace Lyra.Core.Decentralize
 
         public void UpdateVoters()
         {
+            _log.LogInformation("UpdateVoters begin...");
             RefreshAllNodesVotes();
             Board.AllVoters = LookforVoters();
+            _log.LogInformation("UpdateVoters ended.");
         }
 
         internal void ConsolidationSucceed(ConsolidationBlock cons)

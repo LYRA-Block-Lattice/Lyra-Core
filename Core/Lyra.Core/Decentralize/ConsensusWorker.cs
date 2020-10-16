@@ -63,6 +63,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (!_context.Board.AllVoters.Contains(bmsg.From))
                     {
+                        _log.LogWarning($"Service block auth msg not from AllVoters but from {bmsg.From.Shorten()}");
                         return;
                     }
                 }                

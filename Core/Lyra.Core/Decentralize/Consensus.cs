@@ -315,6 +315,7 @@ namespace Lyra.Core.Decentralize
                                 // wait for at least one successful consensus block
                                 while (_successBlockCount == 0)
                                     await Task.Delay(50);
+                                _log.LogInformation("Got consensus. continue...");
                             }
                         }
                     }

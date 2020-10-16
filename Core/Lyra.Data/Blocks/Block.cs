@@ -370,6 +370,7 @@ namespace Lyra.Core.Blocks
         FailedToSyncAccount,
         APIRouteFailed,
         InvalidDomainName,
-        InvalidTickerName
+        InvalidTickerName,
+        InvalidAuthorizerSignatureInServiceBlock
     }
 }

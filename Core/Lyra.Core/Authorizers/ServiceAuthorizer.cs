@@ -74,7 +74,7 @@ namespace Lyra.Core.Authorizers
                 var signAgainst = prevBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
                 if (!Signatures.VerifyAccountSignature(signAgainst, kvp.Key, kvp.Value))
                 {
-                    return APIResultCodes.InvalidAuthorizerInServiceBlock;
+                    return APIResultCodes.InvalidAuthorizerSignatureInServiceBlock;
                 }
 
                 // verify vote etc.
