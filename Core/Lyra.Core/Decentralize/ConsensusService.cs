@@ -182,7 +182,7 @@ namespace Lyra.Core.Decentralize
                     return;
 
                 _log.LogInformation($"State told.");
-                if (_stateMachine.State != BlockChainState.Almighty && _stateMachine.State != BlockChainState.Genesis)
+                if (_stateMachine.State != BlockChainState.Almighty && _stateMachine.State != BlockChainState.Engaging && _stateMachine.State != BlockChainState.Genesis)
                 {
                     state.Done?.Set();
                     return;
