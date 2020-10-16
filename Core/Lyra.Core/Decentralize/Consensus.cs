@@ -270,6 +270,7 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation($"Engaging: Syncunconsolidated block {count++}/{unConsHashResult.Entities.Count}");
                             if (hash == myLastCons.Hash)
                                 continue;       // already synced by previous steps
+
                             var localBlock = await _sys.Storage.FindBlockByHashAsync(hash);
                             if (localBlock != null)
                                 continue;
@@ -306,7 +307,16 @@ namespace Lyra.Core.Decentralize
                         if (someBlockSynced)
                             continue;
                         else
-                            break;
+                        {
+                            if (_successBlockCount > 0)
+                                break;
+                            else
+                            {
+                                // wait for at least one successful consensus block
+                                while (_successBlockCount == 0)
+                                    await Task.Delay(50);
+                            }
+                        }
                     }
                     else
                     {

@@ -19,11 +19,13 @@ using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {
+    public delegate void SuccessConsensusHandler(ConsensusHandlerBase handler, Block block);
     public class ConsensusWorker : ConsensusHandlerBase
     {
         private AuthorizersFactory _authorizers;
 
         AuthState _state;
+        public event SuccessConsensusHandler OnConsensusSuccess;
 
         public string Hash { get; }
         public AuthState State { get => _state as AuthState; set => _state = value; }
@@ -51,7 +53,7 @@ namespace Lyra.Core.Decentralize
             {
                 if (bmsg is AuthorizingMsg svcB && svcB.Block.BlockType == BlockTypes.Service) // service block must come from the new elected leader
                 {
-                    if (_context.Board.LeaderCandidate != bmsg.From)
+                    if (_context.Board.LeaderCandidate != null && _context.Board.LeaderCandidate != bmsg.From)
                     {
                         _log.LogWarning($"Service block not from leader candidate {_context.Board.LeaderCandidate.Shorten()} but from {bmsg.From.Shorten()}");
                         return;
@@ -68,7 +70,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (_context.Board.CurrentLeader != bmsg.From)
                     {
-                        _log.LogWarning($"Service block not from current leader {_context.Board.CurrentLeader.Shorten()} but from {bmsg.From.Shorten()}");
+                        _log.LogWarning($"Consolidation block not from current leader {_context.Board.CurrentLeader.Shorten()} but from {bmsg.From.Shorten()}");
                         return;
                     }
                 }                
@@ -409,7 +411,7 @@ namespace Lyra.Core.Decentralize
             }
 
             _state.Done?.Set();
-            _context.FinishBlock(block.Hash);
+            OnConsensusSuccess?.Invoke(this, block);
 
             if (block is ConsolidationBlock cons)
             {

@@ -72,6 +72,9 @@ namespace Lyra.Core.Decentralize
 
         private ViewChangeHandler _viewChangeHandler;
 
+        // how many suscess consensus did since started.
+        private int _successBlockCount;
+
         // authorizer snapshot
         private DagSystem _sys;
         public DagSystem GetDagSystem() => _sys;
@@ -81,6 +84,7 @@ namespace Lyra.Core.Decentralize
             _localNode = localNode;
             _blockchain = blockchain;
             _log = new SimpleLogger("ConsensusService").Logger;
+            _successBlockCount = 0;
 
             _criticalMsgCache = new ConcurrentDictionary<string, DateTime>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
@@ -107,13 +111,16 @@ namespace Lyra.Core.Decentralize
                 _ = Task.Run(async () =>
                 {
                     await Task.Delay(10000);
+
+                    _board.LeaderCandidate = null;
+
                     var sb = await _sys.Storage.GetLastServiceBlockAsync();
                     if(sb.Height < viewId)
                     {
                         _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. redo election.");
                         // the new leader failed.
-                       
-                        if(CurrentState == BlockChainState.Almighty)
+
+                        if (CurrentState == BlockChainState.Almighty)
                         {
                             // redo view change
                             await _viewChangeHandler.BeginChangeViewAsync();
@@ -1041,12 +1048,6 @@ namespace Lyra.Core.Decentralize
             return Akka.Actor.Props.Create(() => new ConsensusService(sys, localNode, blockchain)).WithMailbox("consensus-service-mailbox");
         }
 
-        public void FinishBlock(string hash)
-        {
-            _activeConsensus.TryRemove(hash, out _);
-            _log.LogInformation($"_activeConsensus: {_activeConsensus.Count}");
-        }
-
         private async Task SubmitToConsensusAsync(AuthState state)
         {
             if (state.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
@@ -1094,11 +1095,20 @@ namespace Lyra.Core.Decentralize
                 else
                     worker = new ConsensusWorker(this, hash);
 
+                worker.OnConsensusSuccess += Worker_OnConsensusSuccess;
+
                 if (_activeConsensus.TryAdd(hash, worker))
                     return worker;
                 else
                     return _activeConsensus[hash];
             }
+        }
+
+        private void Worker_OnConsensusSuccess(ConsensusHandlerBase handler, Block block)
+        {
+            _successBlockCount++;
+            _activeConsensus.TryRemove(block.Hash, out _);
+            _log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count}");
         }
 
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
