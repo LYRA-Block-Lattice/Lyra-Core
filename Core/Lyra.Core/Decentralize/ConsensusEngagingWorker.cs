@@ -12,10 +12,10 @@ namespace Lyra.Core.Decentralize
         {
         }
 
-        protected override Task AuthorizeAsync(AuthorizingMsg msg)
-        {
-            _log.LogWarning("Engaging Sync Mode. Bypass authorizing.");
-            return Task.CompletedTask;
-        }
+        //protected override Task AuthorizeAsync(AuthorizingMsg msg)
+        //{
+        //    _log.LogWarning("Engaging Sync Mode. Bypass authorizing.");
+        //    return Task.CompletedTask;
+        //}
     }
 }
