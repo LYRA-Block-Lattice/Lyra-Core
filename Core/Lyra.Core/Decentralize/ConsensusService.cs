@@ -511,7 +511,8 @@ namespace Lyra.Core.Decentralize
                     //await Task.Delay(35000);    // wait for enough heartbeat
                     //RefreshAllNodesVotes();
                 }))
-                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.StaticSync);
+                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.StaticSync)
+                .Permit(BlockChainTrigger.LocalNodeMissingBlock, BlockChainState.Engaging);
 
             _stateMachine.OnTransitioned(t =>
             {
@@ -627,6 +628,12 @@ namespace Lyra.Core.Decentralize
         {
             if (CurrentState == BlockChainState.Almighty)
                 _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
+        }
+
+        internal void LocalServiceBlockFailed(string hash)
+        {
+            if (CurrentState == BlockChainState.Almighty)
+                _stateMachine.Fire(BlockChainTrigger.LocalNodeMissingBlock);
         }
 
         private string PrintProfileInfo()

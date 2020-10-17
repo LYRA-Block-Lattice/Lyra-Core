@@ -439,6 +439,22 @@ namespace Lyra.Core.Decentralize
             {
                 // need update billboard
                 _context.ServiceBlockCreated(sb);
+
+                // check if missing service block
+                if (State.LocalResult != null && ((_state.CommitConsensus == ConsensusResult.Yea && State.LocalResult.Result == APIResultCodes.Success)
+                        || (_state.CommitConsensus == ConsensusResult.Nay && State.LocalResult.Result != APIResultCodes.Success)))
+                {
+                    _log.LogInformation("Service block succeeded.");
+                }
+                else if (!_state.CommitConsensus.HasValue || _state.CommitConsensus == ConsensusResult.Uncertain)
+                {
+                    _log.LogInformation("Service block no result.");
+                }
+                else
+                {
+                    _log.LogInformation("Local node can't do right consensus of Service block.");
+                    _context.LocalServiceBlockFailed(block.Hash);
+                }
             }
         }
 

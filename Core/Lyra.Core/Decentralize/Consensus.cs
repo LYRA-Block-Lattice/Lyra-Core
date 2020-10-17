@@ -811,6 +811,7 @@ namespace Lyra.Core.Decentralize
 
         // almighty
         LocalNodeOutOfSync,
+        LocalNodeMissingBlock,
 
         // genesis
         GenesisDone
