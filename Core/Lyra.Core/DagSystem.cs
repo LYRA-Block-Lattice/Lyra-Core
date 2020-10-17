@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Settings = Neo.Settings;
 using Lyra.Core.Authorizers;
+using Lyra.Data.API;
 
 namespace Lyra
 {
@@ -44,6 +45,9 @@ namespace Lyra
         public IAccountCollectionAsync Storage { get; private set; }
 
         public TradeMatchEngine TradeEngine { get; private set; }
+
+        public BlockChainState ConsensusState { get; private set; }
+        public void UpdateConsensusState(BlockChainState state) => ConsensusState = state;
 
         public DagSystem(IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {

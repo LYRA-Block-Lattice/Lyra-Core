@@ -72,10 +72,13 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
 
-                if (block.TimeStamp < uniNow.AddSeconds(-8) || block.TimeStamp > uniNow.AddSeconds(3))
+                if(sys.ConsensusState != BlockChainState.StaticSync)
                 {
-                    _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
-                    return APIResultCodes.InvalidBlockTimeStamp;
+                    if (block.TimeStamp < uniNow.AddSeconds(-8) || block.TimeStamp > uniNow.AddSeconds(3))
+                    {
+                        _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
+                        return APIResultCodes.InvalidBlockTimeStamp;
+                    }
                 }
             }
             else if(block is TransactionBlock)
@@ -107,19 +110,25 @@ namespace Lyra.Core.Authorizers
                 if (!await ValidateRenewalDateAsync(sys, blockt, previousBlock as TransactionBlock))
                     return APIResultCodes.TokenExpired;
 
-                if (block.TimeStamp < uniNow.AddSeconds(-8) || block.TimeStamp > uniNow.AddSeconds(3))
+                if (sys.ConsensusState != BlockChainState.StaticSync)
                 {
-                    _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
-                    return APIResultCodes.InvalidBlockTimeStamp;
+                    if (block.TimeStamp < uniNow.AddSeconds(-8) || block.TimeStamp > uniNow.AddSeconds(3))
+                    {
+                        _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
+                        return APIResultCodes.InvalidBlockTimeStamp;
+                    }
                 }
             }         
             else if(block is ConsolidationBlock cons)
             {
-                // time shift 10 seconds.
-                if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(-7))
+                if (sys.ConsensusState != BlockChainState.StaticSync)
                 {
-                    _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
-                    return APIResultCodes.InvalidBlockTimeStamp;
+                    // time shift 10 seconds.
+                    if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(-7))
+                    {
+                        _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
+                        return APIResultCodes.InvalidBlockTimeStamp;
+                    }
                 }
 
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());

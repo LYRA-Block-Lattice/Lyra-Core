@@ -888,7 +888,7 @@ namespace Lyra.Core.Accounts
             }
             catch(Exception e)
             {
-                _log.LogWarning("AccountCollection=>AddBlock: " + e.Message);
+                _log.LogWarning($"AccountCollection=>AddBlock: {block.BlockType}, {block.Hash}, {e.Message}");
                 return false;
             }            
         }

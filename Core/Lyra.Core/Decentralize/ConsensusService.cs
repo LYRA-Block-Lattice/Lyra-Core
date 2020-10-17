@@ -513,7 +513,11 @@ namespace Lyra.Core.Decentralize
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.StaticSync);
 
-            _stateMachine.OnTransitioned(t => _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})"));
+            _stateMachine.OnTransitioned(t =>
+            {
+                _sys.UpdateConsensusState(t.Destination);
+                _log.LogWarning($"OnTransitioned: {t.Source} -> {t.Destination} via {t.Trigger}({string.Join(", ", t.Parameters)})");
+            });
         }
 
         public int GetQualifiedNodeCount(List<ActiveNode> allNodes)
