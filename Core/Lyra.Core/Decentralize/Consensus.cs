@@ -444,18 +444,20 @@ namespace Lyra.Core.Decentralize
             {
                 var block = remoteBlock.GetBlock();
 
-                if(block is TransactionBlock tb)
-                {
-                    var authorizer = factory.Create(tb.BlockType);
-                    var authResult = await authorizer.AuthorizeAsync(GetDagSystem(), tb);
-                    if (authResult.Item1 != APIResultCodes.Success)
-                    {
-                        _log.LogWarning($"SyncOneBlockAsync: TX block {tb.Hash.Shorten()} failed to verify for {authResult.Item1}");
-                    }                        
-                }
+                // when block stored into database, they lost their order. so it's hard to do verification style of authorizer.
+                // and mixed with code change/logic upgrade, so just use hash verify to keep database integraty.
+                //if(block is TransactionBlock tb)
+                //{
+                //    var authorizer = factory.Create(tb.BlockType);
+                //    var authResult = await authorizer.AuthorizeAsync(GetDagSystem(), tb);
+                //    if (authResult.Item1 != APIResultCodes.Success)
+                //    {
+                //        _log.LogWarning($"SyncOneBlockAsync: TX block {tb.Hash.Shorten()} failed to verify for {authResult.Item1}");
+                //    }                        
+                //}
 
                 // non tx block just verify hash
-                if (block.VerifyHash())
+                if (block != null && block.VerifyHash())
                     return await _sys.Storage.AddBlockAsync(block);
                 else
                     return false;
