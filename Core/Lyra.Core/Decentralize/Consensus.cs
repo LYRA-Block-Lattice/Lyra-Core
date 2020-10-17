@@ -90,11 +90,18 @@ namespace Lyra.Core.Decentralize
             }
 
             if (heightMajority > 0 && unConsHashMajority != null)
-                return _nodeStatus.Where(a => a.totalBlockCount == heightMajority
-                    && a.lastUnSolidationHash == unConsHashMajority)
-                    .ToList();
-            else
-                return new List<NodeStatus>();
+            {
+                var list = _nodeStatus.Where(a => a.totalBlockCount == heightMajority
+                        && a.lastUnSolidationHash == unConsHashMajority)                        
+                        .ToList();
+
+                // for safty the list must contains at least 2 seed node.
+                // if no seed nodes included the network should have some problem.
+                if (list.Count(x => ProtocolSettings.Default.StandbyValidators.Contains(x.accountId)) >= 2)
+                    return list;
+            }
+            
+            return new List<NodeStatus>();
         }
 
         private async Task<LyraClientForNode> GetOptimizedSyncClientAsync(bool reQuery = false)
@@ -137,11 +144,11 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<bool> SyncDatabase(long height = 0)
+        private async Task<bool> SyncDatabase(bool withStatusQuery)
         {
             var seedClient = new LyraClientForNode(_sys);
 
-            LyraClientForNode client = await GetOptimizedSyncClientAsync();
+            LyraClientForNode client = await GetOptimizedSyncClientAsync(withStatusQuery);
  
             var seedSvcGen = await seedClient.GetServiceGenesisBlock();
             var localDbState = await GetNodeStatusAsync();
@@ -220,10 +227,12 @@ namespace Lyra.Core.Decentralize
             return IsSuccess;
         }
 
-        private async Task EngagingSyncAsync(long height)
+        private async Task EngagingSyncAsync(bool withStatusQuery)
         {
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
+            var emptySyncTimes = 0;
+            LyraClientForNode client = await GetOptimizedSyncClientAsync(withStatusQuery);
             while (true)
             {
                 try
@@ -232,7 +241,6 @@ namespace Lyra.Core.Decentralize
 
                     var someBlockSynced = false;
 
-                    LyraClientForNode client = GetClientForSeeds();
                     var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
                     var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
@@ -242,7 +250,7 @@ namespace Lyra.Core.Decentralize
                         if (myLastCons == null || myLastCons.Height < lastConsBlockOfSeed.Height)
                         {
                             _log.LogInformation($"Engaging: new consolidation block {lastConsBlockOfSeed.Height}");
-                            if (!await SyncDatabase())
+                            if (!await SyncDatabase(false))
                             {
                                 _log.LogError($"Error sync database. wait 5 minutes and retry...");
                                 await Task.Delay(5 * 60 * 1000);
@@ -314,17 +322,20 @@ namespace Lyra.Core.Decentralize
                         )
                     {
                         if (someBlockSynced)
+                        {
+                            emptySyncTimes = 0;
                             continue;
+                        }                            
                         else
                         {
-                            if (_successBlockCount > 0)
+                            emptySyncTimes++;
+
+                            if (emptySyncTimes >= 3)
                                 break;
                             else
                             {
-                                // wait for at least one successful consensus block
-                                while (_successBlockCount == 0)
-                                    await Task.Delay(50);
-                                _log.LogInformation("Got consensus. continue...");
+                                _log.LogInformation("Waiting for any new changes ...");
+                                await Task.Delay(20000);                                
                             }
                         }
                     }
