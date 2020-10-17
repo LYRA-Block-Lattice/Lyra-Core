@@ -355,7 +355,40 @@ namespace Lyra.Core.Decentralize
                     return false;
             }
 
-            return await SyncOneBlockAsync(factory, client, consBlock.Hash);
+            if (null != await _sys.Storage.FindBlockByHashAsync(consBlock.Hash))
+                await _sys.Storage.RemoveBlockAsync(consBlock.Hash);
+
+            var mt = new MerkleTree();
+            foreach (var hash1 in consBlock.blockHashes)
+            {
+                mt.AppendLeaf(MerkleHash.Create(hash1));
+            }
+            var merkelTreeHash = mt.BuildTree().ToString();
+
+            if (consBlock.MerkelTreeHash != merkelTreeHash)
+                return false;
+
+            // make sure no extra blocks here
+            if (consBlock.Height > 1)
+            {
+                var prevConsHash = consBlock.blockHashes.First();
+                var prevConsResult = await client.GetBlockByHash(prevConsHash);
+                if (prevConsResult.ResultCode != APIResultCodes.Success)
+                    return false;
+
+                var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
+                if (prevConsBlock == null)
+                    return false;
+
+                var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(prevConsBlock.TimeStamp, consBlock.TimeStamp);
+                var q = blocksInTimeRange.Where(a => !consBlock.blockHashes.Contains(a));
+                foreach (var extraBlock in q)
+                {
+                    await _sys.Storage.RemoveBlockAsync(extraBlock);
+                }
+            }
+
+            return await _sys.Storage.AddBlockAsync(consBlock);
         }
 
         private async Task SyncManyBlocksAsync(LyraClientForNode client, ConsolidationBlock consBlock)
@@ -421,40 +454,6 @@ namespace Lyra.Core.Decentralize
                         _log.LogWarning($"SyncOneBlockAsync: TX block {tb.Hash.Shorten()} failed to verify.");
                         return false;
                     }                        
-                }
-                else if(block is ConsolidationBlock consBlock)
-                {
-                    var mt = new MerkleTree();
-                    foreach (var hash1 in consBlock.blockHashes)
-                    {
-                        mt.AppendLeaf(MerkleHash.Create(hash1));
-                    }
-                    var merkelTreeHash = mt.BuildTree().ToString();
-
-                    if (consBlock.MerkelTreeHash != merkelTreeHash)
-                        return false;
-
-                    // make sure no extra blocks here
-                    if (consBlock.Height > 1)
-                    {
-                        var prevConsHash = consBlock.blockHashes.First();
-                        var prevConsResult = await client.GetBlockByHash(prevConsHash);
-                        if (prevConsResult.ResultCode != APIResultCodes.Success)
-                            return false;
-
-                        var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
-                        if (prevConsBlock == null)
-                            return false;
-
-                        var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(prevConsBlock.TimeStamp, consBlock.TimeStamp);
-                        var q = blocksInTimeRange.Where(a => !consBlock.blockHashes.Contains(a));
-                        foreach (var extraBlock in q)
-                        {
-                            await _sys.Storage.RemoveBlockAsync(extraBlock);
-                        }
-                    }
-
-                    return await _sys.Storage.AddBlockAsync(block);
                 }
                 else
                 {
