@@ -499,9 +499,29 @@ namespace Lyra.Core.Decentralize
                     {
                         _log.LogError($"In Engaging: {e}");
                     }
-
-                    _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
+                    finally
+                    {
+                        _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
+                    }                    
                 }))
+                .OnEntryFrom(BlockChainTrigger.LocalNodeMissingBlock, () => 
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await EngagingSyncAsync(true);
+                            }
+                            catch (Exception e)
+                            {
+                                _log.LogError($"In Engaging: {e}");
+                            }
+                            finally
+                            {
+                                _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
+                            }
+                        });
+                    })
                 .Permit(BlockChainTrigger.LocalNodeFullySynced, BlockChainState.Almighty);
 
             _stateMachine.Configure(BlockChainState.Almighty)
