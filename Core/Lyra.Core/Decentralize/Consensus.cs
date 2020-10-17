@@ -443,26 +443,22 @@ namespace Lyra.Core.Decentralize
             if (remoteBlock.ResultCode == APIResultCodes.Success)
             {
                 var block = remoteBlock.GetBlock();
+
                 if(block is TransactionBlock tb)
                 {
                     var authorizer = factory.Create(tb.BlockType);
                     var authResult = await authorizer.AuthorizeAsync(GetDagSystem(), tb);
-                    if (authResult.Item1 == APIResultCodes.Success)
-                        return await _sys.Storage.AddBlockAsync(tb);
-                    else
+                    if (authResult.Item1 != APIResultCodes.Success)
                     {
-                        _log.LogWarning($"SyncOneBlockAsync: TX block {tb.Hash.Shorten()} failed to verify.");
-                        return false;
+                        _log.LogWarning($"SyncOneBlockAsync: TX block {tb.Hash.Shorten()} failed to verify for {authResult.Item1}");
                     }                        
                 }
+
+                // non tx block just verify hash
+                if (block.VerifyHash())
+                    return await _sys.Storage.AddBlockAsync(block);
                 else
-                {
-                    // non tx block just verify hash
-                    if (block.VerifyHash())
-                        return await _sys.Storage.AddBlockAsync(block);
-                    else
-                        return false;
-                }
+                    return false;
             }
             else
                 return false;
