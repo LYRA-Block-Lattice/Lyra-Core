@@ -419,13 +419,21 @@ namespace Lyra.Core.Decentralize
             if (block is ConsolidationBlock cons)
             {
                 // get my authorize result
-                if (State.LocalResult != null && State.LocalResult.Result == APIResultCodes.Success)
+                if (State.LocalResult != null && ((_state.CommitConsensus == ConsensusResult.Yea && State.LocalResult.Result == APIResultCodes.Success)
+                        || (_state.CommitConsensus == ConsensusResult.Nay && State.LocalResult.Result != APIResultCodes.Success)))
                 {
+                    _log.LogInformation("Consolidation block succeeded.");
                     _context.ConsolidationSucceed(cons);
-                    return;
-                }                    
-
-                _context.LocalConsolidationFailed(block.Hash);
+                }
+                else if(!_state.CommitConsensus.HasValue || _state.CommitConsensus == ConsensusResult.Uncertain)
+                {
+                    _log.LogInformation("Consolidation block no result.");
+                }          
+                else
+                {
+                    _log.LogInformation("Local node can't do right consensus of consolidation block.");
+                    _context.LocalConsolidationFailed(block.Hash);
+                }
             }
             else if(block is ServiceBlock sb)
             {
