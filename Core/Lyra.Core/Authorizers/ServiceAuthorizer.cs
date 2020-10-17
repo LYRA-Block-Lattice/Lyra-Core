@@ -82,6 +82,10 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidAuthorizerInServiceBlock;
             }
 
+            // authorizer count should be at least 90% of all voters.
+            if (block.Authorizers.Count < 0.9 * board.AllVoters.Count)
+                return APIResultCodes.InvalidAuthorizerCount;
+
             //if(block.Height > 1)        // no genesis block
             //{
             //    var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());

@@ -372,5 +372,6 @@ namespace Lyra.Core.Blocks
         InvalidDomainName,
         InvalidTickerName,
         InvalidAuthorizerSignatureInServiceBlock
+
     }
 }
