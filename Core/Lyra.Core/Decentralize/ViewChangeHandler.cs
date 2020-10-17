@@ -103,7 +103,7 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessage(ViewChangeMessage vcm)
         {
-            _log.LogInformation($"VC Msgs type: {vcm.MsgType} from: {vcm.From.Shorten()}");
+            //_log.LogInformation($"VC Msgs type: {vcm.MsgType} from: {vcm.From.Shorten()}");
             if (selectedSuccess)
             {
                 _log.LogInformation($"VC Msgs return already selected. type: {vcm.MsgType} from: {vcm.From.Shorten()}");
@@ -143,7 +143,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync()
         {
-            _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+            //_log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             if (selectedSuccess)
                 return;
@@ -272,14 +272,14 @@ namespace Lyra.Core.Decentralize
             var cmt = new VCCommitWithTime(vcm);
             commitMsgs.AddOrUpdate(vcm.From, cmt, (key, oldValue) => cmt);
 
-            _log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count}");
+            //_log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count}");
 
             await CheckAllStatsAsync();
         }
 
         private async Task CheckReplyAsync(ViewChangeReplyMessage reply)
         {
-            _log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {replyMsgs.Count}/{_context.Board.AllVoters.Count}");
+            //_log.LogInformation($"CheckReply for view {reply.ViewID} with Candidate {reply.Candidate.Shorten()} of {replyMsgs.Count}/{_context.Board.AllVoters.Count}");
 
             if (reply.Result == Blocks.APIResultCodes.Success)
             {
@@ -301,7 +301,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckRequestAsync(ViewChangeRequestMessage req)
         {
-            _log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
+            //_log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
 
             if (!reqMsgs.Values.Any(a => a.msg.From == req.From))
             {
