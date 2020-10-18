@@ -187,7 +187,8 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BlockAPIResult> GetLastServiceBlock()
         {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+            // always response to query. node bootstrap need this api.
+            //if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
             return await _node.GetLastServiceBlock();
         }
 
