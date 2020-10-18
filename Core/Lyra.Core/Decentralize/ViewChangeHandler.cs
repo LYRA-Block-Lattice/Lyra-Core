@@ -106,7 +106,7 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation($"VC Msgs type: {vcm.MsgType} from: {vcm.From.Shorten()}");
             if (selectedSuccess)
             {
-                _log.LogInformation($"VC Msgs return already selected. type: {vcm.MsgType} from: {vcm.From.Shorten()}");
+                //_log.LogInformation($"VC Msgs return already selected. type: {vcm.MsgType} from: {vcm.From.Shorten()}");
                 return;
             }
 
@@ -232,7 +232,7 @@ namespace Lyra.Core.Decentralize
 
                 if (candidateQR?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
-                    _log.LogInformation($"CheckAllStats, By ReplyMsgs, commit next leader {nextLeader}");
+                    //_log.LogInformation($"CheckAllStats, By ReplyMsgs, commit next leader {nextLeader}");
 
                     var commit = new ViewChangeCommitMessage
                     {

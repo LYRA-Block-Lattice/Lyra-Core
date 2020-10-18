@@ -67,11 +67,12 @@ namespace Lyra.Core.Authorizers
             if (string.IsNullOrWhiteSpace(block.DomainName) || string.IsNullOrWhiteSpace(block.Ticker))
                 return APIResultCodes.InvalidTickerName;
 
-            if (block.DomainName.Length > 64 || block.Ticker.Length > 64)
+            if (block.DomainName.Length >= 64 || block.Ticker.Length >= 64)
                 return APIResultCodes.InvalidTickerName;
 
             // check ticker name
-            var r = new Regex(@"[^\w]");
+            // https://www.quora.com/What-characters-are-not-allowed-in-a-domain-name
+            var r = new Regex(@"[^\w-]|^-|-$");
             if (!block.Ticker.Contains(block.DomainName + "/") || r.IsMatch(block.DomainName))
                 return APIResultCodes.InvalidDomainName;
 
