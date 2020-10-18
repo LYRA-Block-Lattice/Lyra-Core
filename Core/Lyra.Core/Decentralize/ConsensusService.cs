@@ -427,13 +427,19 @@ namespace Lyra.Core.Decentralize
                                 }
                                 else if (majorHeight >= 2 && currentMajority.Count >= majority)
                                 {
-                                    // verify local database
-                                    while (!await SyncDatabase(false))
+                                    // if local == remote then no need for database sync
+                                    if(majorHeight != myStatus.totalBlockCount)
                                     {
-                                        //fatal error. should not run program
-                                        _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
-                                        await Task.Delay(60000);
+                                        _log.LogInformation($"local height {myStatus.totalBlockCount} not equal to majority {majorHeight}, do database sync.");
+                                        // verify local database
+                                        while (!await SyncDatabase(false))
+                                        {
+                                            //fatal error. should not run program
+                                            _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
+                                            await Task.Delay(60000);
+                                        }
                                     }
+
                                     _stateMachine.Fire(_engageTriggerStart, majorHeight);
                                     break;
                                 }
