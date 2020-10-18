@@ -106,7 +106,8 @@ namespace LyraLexWeb2
         [Route("GetSyncHeight")]
         [HttpGet]
         public async Task<AccountHeightAPIResult> GetSyncHeightAsync() {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+            // always response to query. node bootstrap need this api.
+            //if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
             return await _node.GetSyncHeight();
         }
 
