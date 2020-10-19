@@ -55,23 +55,8 @@
     <PackageReference Include="System.Reactive.Linq" Version="4.4.1" />
   </ItemGroup>
 
-  <!-- PROTO: The following section was added manually -->
-  <ItemGroup>
-    <Protobuf Include="..\PBFTNet\Protos\*.proto" GrpcServices="Server" />
-    <Content Include="..\PBFTNet\Protos\communication.proto">
-      <GrpcServices>GrpcServer</GrpcServices>
-      <LinkBase></LinkBase>
-    </Content>
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Lyra.Core\Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="grpcServer.pfx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>

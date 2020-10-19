@@ -46,7 +46,7 @@ namespace Lyra.Node2
         // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .UseSystemd()
+                .UseSystemd()   // https://swimburger.net/blog/dotnet/how-to-run-aspnet-core-as-a-service-on-linux
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()
