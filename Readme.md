@@ -53,19 +53,25 @@ Install the ASP.NET Core runtime
 
 4. download **the latest** release from https://github.com/LYRA-Block-Lattice/Lyra-Core/releases to a folder, for example, ~/lyra.permissionless-1.7.6.15tar.gz
 
+	```
 	tar -xjvf lyra.permissionless-1.7.6.15.tar.gz
+	```
 
 5. create mongodb user
 
+	```
 	mongo  
 	use lyra  
 	db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'lyra'}]})  
 	use dex  
 	db.createUser({user:'lexuser',pwd:'alongpassword',roles:[{role:'readWrite',db:'dex'}]})
+	```
 
 6. generate staking wallet by, give the wallet a name, e.g. "poswallet"
 
+	```
 	dotnet ~/lyra/cli/lyra.dll --networkid testnet -p webapi -g poswallet
+	```
 
 7. modify ~/lyra/noded/config.testnet.json
 
@@ -74,18 +80,23 @@ or see step 12
 
 8. run. (remember to set environment variable LYRA_NETWORK to testnet/mainnet etc.)
 
+	```
 	dotnet dev-certs https --clean
 	dotnet dev-certs https
 	cd ~/lyra/noded
 	export LYRA_NETWORK=testnet
 	dotnet lyra.noded.dll
+	```
 
 9. verify
 
 https://localhost:4505/api/Node/GetSyncState
 should return like:
+
+	```
 	{"mode":0,"newestBlockUIndex":8,"resultCode":0,"resultMessage":null}
 	mode 0 is normal, mode 1 is syncing blocks.
+	```
 
 https://localhost:4505/api/Node/GetBillboard
 display all connected nodes.
@@ -106,7 +117,9 @@ use "votefor" command in wallet cli.
 
 12. configure from environment varabiles (seprated by double underscore)
 
+	```
 	export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
+	```
 
 # Run noded as systemd service
 
