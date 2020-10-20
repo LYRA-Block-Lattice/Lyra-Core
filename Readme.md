@@ -125,6 +125,7 @@ use "votefor" command in wallet cli.
 
 1, create /etc/systemd/system/kestrel-noded.service (replace [username] with your user name, change mongodb login)
 
+	```
 	[Unit]
 	Description=Lyra node daemon
 
@@ -145,15 +146,19 @@ use "votefor" command in wallet cli.
 
 	[Install]
 	WantedBy=multi-user.target
+	```
 
 2, run these command to start noded service
 
+	```
 	sudo systemctl daemon-reload
 	sudo systemctl restart kestrel-noded
+	```
 
 3, view noded output
 
+	```
 	sudo journalctl -u kestrel-noded -f
-
+	```
 
 
