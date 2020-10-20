@@ -13,7 +13,17 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": ""
+      "applicationUrl": "https://0.0.0.0:4504;http://0.0.0.0:4505"
+    },
+    "WSL 2": {
+      "commandName": "WSL2",
+      "launchBrowser": true,
+      "launchUrl": "http://localhost:4505/api/node/GetSyncState",
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "https://0.0.0.0:4504;http://0.0.0.0:4505",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "distributionName": ""
     }
   }
 }

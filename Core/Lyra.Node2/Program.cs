@@ -14,6 +14,7 @@ using System.Diagnostics;
 using Lyra.Core.Decentralize;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
+using Microsoft.AspNetCore.Connections;
 
 namespace Lyra.Node2
 {
@@ -49,24 +50,22 @@ namespace Lyra.Node2
                 .UseSystemd()   // https://swimburger.net/blog/dotnet/how-to-run-aspnet-core-as-a-service-on-linux
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseStartup<Startup>()
-                    .ConfigureKestrel(options =>
-                    {
-                        options.Limits.MinRequestBodyDataRate = null;
-                        options.Listen(IPAddress.Any, Port,
-                        listenOptions =>
-                        {
-                            var httpsConnectionAdapterOptions = new HttpsConnectionAdapterOptions()
-                            {
-                                ClientCertificateMode = ClientCertificateMode.AllowCertificate,
-                                SslProtocols = System.Security.Authentication.SslProtocols.Tls,
-                            };
+                    webBuilder.UseStartup<Startup>();
+                    //.ConfigureKestrel(options =>
+                    //{
+                    //    options.Limits.MinRequestBodyDataRate = null;
+                    //    options.Listen(IPAddress.Any, Port,
+                    //    listenOptions =>
+                    //    {
+                    //        var httpsConnectionAdapterOptions = new HttpsConnectionAdapterOptions()
+                    //        {
+                    //            ClientCertificateMode = ClientCertificateMode.AllowCertificate,
+                    //            SslProtocols = System.Security.Authentication.SslProtocols.Tls
+                    //        };
 
-                            //listenOptions.UseHttps("grpcServer.pfx", "1511");
-
-                            listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-                        });                       
-                    });
+                    //        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                    //    });                       
+                    //});
                 })
                 .ConfigureServices(services =>
                 {

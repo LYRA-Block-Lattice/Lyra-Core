@@ -24,6 +24,7 @@ namespace Lyra.Node2
     public class Startup
     {
         public IConfiguration Configuration { get; }
+        private IWebHostEnvironment _env;
 
         public Startup(IConfiguration configuration)
         {
@@ -34,6 +35,21 @@ namespace Lyra.Node2
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            //if (!_env.IsDevelopment())
+            //{
+            //    services.AddHttpsRedirection(opts => {
+            //        opts.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
+            //        opts.HttpsPort = 4504;
+            //    });
+            //}
+            //else
+            //{
+            //    services.AddHttpsRedirection(opts =>
+            //    {
+            //        opts.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+            //        opts.HttpsPort = 4504;
+            //    });
+            //}
             //services.AddCors(options =>
             //{
             //    options.AddPolicy("my", builder =>
@@ -63,6 +79,7 @@ namespace Lyra.Node2
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            _env = env;
             //app.UseCors("my");
 
             // lyra network ID must be set early
@@ -98,11 +115,11 @@ namespace Lyra.Node2
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseHttpsRedirection();
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapGrpcService<DuplexService>();
                 endpoints.MapControllers();
                 endpoints.MapGet("/", async context =>
                 {
