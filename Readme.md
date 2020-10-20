@@ -119,26 +119,26 @@ use "votefor" command in wallet cli.
 
 1, create /etc/systemd/system/kestrel-noded.service (replace [username] with your user name, change mongodb login)
 
-`[Unit]
-Description=Lyra node daemon
+	`[Unit]
+	Description=Lyra node daemon
 
-[Service]
-WorkingDirectory=/home/[username]/lyra/noded
-ExecStart=/usr/bin/dotnet /home/[username]/lyra/noded/lyra.noded.dll
-Restart=always
-# Restart service after 10 seconds if the dotnet service crashes:
-RestartSec=10
-KillSignal=SIGINT
-SyslogIdentifier=lyra-noded
-User=[username]
-Environment=ASPNETCORE_ENVIRONMENT=Production
-Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
-Environment=LYRA_NETWORK=testnet
-Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1/lyra
-Environment=ASPNETCORE_URLS=http://*:4505;https://*:4504
+	[Service]
+	WorkingDirectory=/home/[username]/lyra/noded
+	ExecStart=/usr/bin/dotnet /home/[username]/lyra/noded/lyra.noded.dll
+	Restart=always
+	# Restart service after 10 seconds if the dotnet service crashes:
+	RestartSec=10
+	KillSignal=SIGINT
+	SyslogIdentifier=lyra-noded
+	User=[username]
+	Environment=ASPNETCORE_ENVIRONMENT=Production
+	Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+	Environment=LYRA_NETWORK=testnet
+	Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1/lyra
+	Environment=ASPNETCORE_URLS=http://*:4505;https://*:4504
 
-[Install]
-WantedBy=multi-user.target`
+	[Install]
+	WantedBy=multi-user.target`
 
 2, run these command to start noded service
 
