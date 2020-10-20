@@ -121,7 +121,7 @@ use "votefor" command in wallet cli.
 
 # Run noded as systemd service
 
-1, create /etc/systemd/system/kestrel-noded.service (replace [username] with your user name, change mongodb login)
+1, create /etc/systemd/system/lyra-noded.service (replace [username] with your user name, change mongodb login)
 
 	
 	[Unit]
@@ -150,7 +150,7 @@ use "votefor" command in wallet cli.
 
 	
 	sudo systemctl daemon-reload
-	sudo systemctl restart kestrel-noded
+	sudo systemctl restart lyra-noded
 	
 
 3, view noded output
