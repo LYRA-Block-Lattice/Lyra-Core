@@ -9,6 +9,7 @@
     <AssemblyName>lyra.noded</AssemblyName>
     <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
     <Company>LYRA</Company>
+    <UserSecretsId>d61b9a83-beab-4fa4-9fa9-b6b26d8918f6</UserSecretsId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

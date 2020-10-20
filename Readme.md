@@ -1,3 +1,9 @@
+# Index
+
+[LYRA Node Setup](#lyra-node-setup)
+
+[Run noded as systemd service](#run-noded-as-systemd-service)
+
 # What's New
 
 [LYRA Documentation Site](https://docs.lyra.live) - 
@@ -108,4 +114,40 @@ use "votefor" command in wallet cli.
 12. configure from environment varabiles (seprated by double underscore)
 
 `export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra`
+
+# Run noded as systemd service
+
+1, create /etc/systemd/system/kestrel-noded.service (replace [username] with your user name, change mongodb login)
+
+`[Unit]
+Description=Lyra node daemon
+
+[Service]
+WorkingDirectory=/home/[username]/lyra/noded
+ExecStart=/usr/bin/dotnet /home/[username]/lyra/noded/lyra.noded.dll
+Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=lyra-noded
+User=[username]
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+Environment=LYRA_NETWORK=testnet
+Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1/lyra
+Environment=ASPNETCORE_URLS=http://*:4505;https://*:4504
+
+[Install]
+WantedBy=multi-user.target`
+
+2, run these command to start noded service
+
+`sudo systemctl daemon-reload
+sudo systemctl restart kestrel-noded`
+
+3, view noded output
+
+`sudo journalctl -u kestrel-noded -f`
+
+
 
