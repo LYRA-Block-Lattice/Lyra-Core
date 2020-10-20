@@ -92,11 +92,13 @@ display all connected nodes.
 
 10. refresh DPoS wallet balance
 
+	```
 	dotnet ~/lyra/cli/lyra.dll --networkid testnet -p webapi
 	poswallet
 	sync
 	balance
 	stop
+	```
 
 11. set DPoS vote Account ID
 
