@@ -90,15 +90,13 @@ or see step 12
 
 9. verify
 
-https://localhost:4505/api/Node/GetSyncState
+https://localhost:4504/api/Node/GetSyncState
 should return like:
 
-	```
 	{"mode":0,"newestBlockUIndex":8,"resultCode":0,"resultMessage":null}
 	mode 0 is normal, mode 1 is syncing blocks.
-	```
 
-https://localhost:4505/api/Node/GetBillboard
+https://localhost:4504/api/Node/GetBillboard
 display all connected nodes.
 
 10. refresh DPoS wallet balance
