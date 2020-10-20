@@ -29,7 +29,6 @@ namespace Lyra.Client.CLI
         public const string COMMAND_PRINT_LAST_BLOCK = "last";
         public const string COMMAND_PRINT_BLOCK = "print";
         public const string COMMAND_SYNC = "sync";
-        //public const string COMMAND_RESYNC = "resync";
         public const string COMMAND_TRADE_ORDER = "trade";
         public const string COMMAND_TRADE_ORDER_SELL_TEST = "trade-sell-test";
         public const string COMMAND_TRADE_ORDER_BUY_TEST = "trade-buy-test";
@@ -39,6 +38,15 @@ namespace Lyra.Client.CLI
         public const string COMMAND_VOTEFOR = "votefor";
         public const string COMMAND_SYNCFEE = "syncfee";
         public const string COMMAND_IMPORT_ACCOUNT = "import";
+
+        // Generate new NFT
+        public const string COMMAND_NFT = "nft";
+
+        // Issues an new instance if NFT does not exists.
+        public const string COMMAND_ISSUE_NFT = "issuenft";
+
+        // Makes NFT transfer if NFT exists;
+        public const string COMMAND_SEND_NFT = "sendnft";
 
         // set wallet's private key
         public const string COMMAND_RESTORE = "restore";
@@ -72,18 +80,21 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Display Account Private Key", COMMAND_PRIVATE_KEY));
                         Console.WriteLine(string.Format(@"{0,10}: DPoS: Set Vote for Account Id", COMMAND_VOTEFOR));
                         Console.WriteLine(string.Format(@"{0,10}: Transfer funds to another account", COMMAND_SEND));
+                        Console.WriteLine(string.Format(@"{0,10}: Transfer collectible NFT to another account", COMMAND_SEND_NFT));
                         //Console.WriteLine(string.Format(@"{0,10}: Pay to a merchant", COMMAND_PAY));
                         //Console.WriteLine(string.Format(@"{0,10}: Accept payment from a buyer", COMMAND_SELL));
                         Console.WriteLine(string.Format(@"{0,10}: Display the account status summary", COMMAND_STATUS));
                         //Console.WriteLine(string.Format(@"{0,10}: Place a trade order", COMMAND_TRADE_ORDER));
                         //Console.WriteLine(string.Format(@"{0,10}: Cancel trade order", COMMAND_CANCEL_TRADE_ORDER));
                         Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
-                        Console.WriteLine(string.Format(@"{0,10}: Import account into wallet account", COMMAND_IMPORT_ACCOUNT));
-                        Console.WriteLine(string.Format(@"{0,10}: Create a new custom digital asset (token)", COMMAND_TOKEN));
+                        Console.WriteLine(string.Format(@"{0,10}: Import account into current wallet account", COMMAND_IMPORT_ACCOUNT));
+                        Console.WriteLine(string.Format(@"{0,10}: Create a new fungible token", COMMAND_TOKEN));
+                        Console.WriteLine(string.Format(@"{0,10}: Create a new collectible NFT (non-fungible token)", COMMAND_NFT));
+                        Console.WriteLine(string.Format(@"{0,10}: Issue a new collectible NFT instance", COMMAND_ISSUE_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Print last transaction block", COMMAND_PRINT_LAST_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Print transaction block", COMMAND_PRINT_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Print the list of active reward orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
-                        Console.WriteLine(string.Format(@"{0,10}: Sync up with the node", COMMAND_SYNC));
+                        Console.WriteLine(string.Format(@"{0,10}: Sync up with the node (receive transfers)", COMMAND_SYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up authorizer node's fees", COMMAND_SYNCFEE));
                         //Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Exit this app", COMMAND_STOP));
@@ -137,12 +148,21 @@ namespace Lyra.Client.CLI
                     case COMMAND_TOKEN:
                         await ProcessNewTokenAsync();
                         break;
+                    case COMMAND_NFT:
+                        await ProcessNewNFTAsync();
+                        break;
+                    case COMMAND_ISSUE_NFT:
+                        await ProcessSendNFTAsync(true);
+                        break;
+                    case COMMAND_SEND_NFT:
+                        await ProcessSendNFTAsync(false);
+                        break;
                     case COMMAND_SEND:
                         await ProcessSendAsync();
                         break;
-                    case COMMAND_GEN_NOTE:
-                        await _wallet.CreateGenesisForCoreTokenAsync();
-                        break;
+                    //case COMMAND_GEN_NOTE:
+                    //    await _wallet.CreateGenesisForCoreTokenAsync();
+                    //    break;
                     case COMMAND_PRINT_LAST_BLOCK:
                         Console.WriteLine(_wallet.PrintLastBlock());
                         break;
@@ -325,6 +345,12 @@ namespace Lyra.Client.CLI
       
         async Task ProcessSendAsync()
         {
+            if (_wallet.GetNumberOfNonZeroBalances() < 1)
+            {
+                Console.WriteLine($"Insufficient balance");
+                return;
+            }
+
             Console.WriteLine("Please enter destination account id: ");
             string destination = Console.ReadLine();
             Console.WriteLine("Please enter amount: ");
@@ -357,8 +383,49 @@ namespace Lyra.Client.CLI
             //Console.Write(string.Format("{0}> ", _wallet.AccountName));
         }
 
+        // If NFT with SerialNumber already exists and belongs to the account, it will send this NFT to DestinationAccount;
+        // If NFT with SerialNumber does not exists, it will attempt to issue a new instance of NFT and send it to DestinationAccount
+        async Task ProcessSendNFTAsync(bool IssueNewNFTInstance)
+        {
+            if (_wallet.GetNumberOfNonZeroBalances() < 2)
+            {
+                Console.WriteLine($"Insufficient balance");
+                return;
+            }
+
+            Console.WriteLine("Please enter destination account id: ");
+            string destination = Console.ReadLine();
+            Console.WriteLine("Please enter NFT name: ");
+            string ticker = Console.ReadLine();
+            Console.WriteLine("Please enter serial number: ");
+            string serial_number = Console.ReadLine();
+
+            APIResultCodes result;
+
+            if (IssueNewNFTInstance)
+                result = (await _wallet.IssueNFT(destination, ticker, serial_number)).ResultCode;
+            else
+                result = (await _wallet.SendNFT(destination, ticker, serial_number)).ResultCode;
+
+            if (result != APIResultCodes.Success)
+            {
+                Console.WriteLine($"Failed to send NFT with error code: {result}");
+            }
+            else
+            {
+                Console.WriteLine($"NFT instance has been sent successfully");
+                //Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
+            }
+        }
+
         async Task ProcessNewTokenAsync()
         {
+            if (_wallet.GetNumberOfNonZeroBalances() < 1)
+            {
+                Console.WriteLine($"Insufficient balance");
+                return;
+            }
+
             Console.WriteLine("Please enter token name ( minimum 2 characters ): ");
             string tokenname = Console.ReadLine();
 
@@ -422,6 +489,65 @@ namespace Lyra.Client.CLI
 
         }
 
+        async Task ProcessNewNFTAsync()
+        {
+            Console.WriteLine("Please enter token name ( minimum 3 characters ): ");
+            string tokenname = Console.ReadLine();
+
+            Console.WriteLine("Please enter domain name ( minimum 6 characters ): ");
+            string domainname = Console.ReadLine();
+
+            Console.WriteLine("Please enter description (optional): ");
+            string desc = Console.ReadLine();
+
+            Console.WriteLine("Please enter total supply ( maximum 90,000,000,000 ): ");
+            string supply = Console.ReadLine();
+
+            Console.WriteLine("Is it final supply? (Y/n): ");
+            bool isFinalSupply = ReadYesNoAnswer();
+
+            Console.WriteLine("Please enter owner name (optional): ");
+            string owner = Console.ReadLine();
+
+            Console.WriteLine("Please enter owner address (optional): ");
+            string address = Console.ReadLine();
+
+            Console.WriteLine("Please enter icon image URL (optional): ");
+            string icon = Console.ReadLine();
+
+            Console.WriteLine("Please enter image URL (optional): ");
+            string image = Console.ReadLine();
+
+            string tag_key = "no tag";
+            Dictionary<string, string> tags = null;
+
+            while (!string.IsNullOrWhiteSpace(tag_key))
+            {
+                Console.WriteLine("Please enter tag key (optional): ");
+                tag_key = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(tag_key))
+                    break;
+                Console.WriteLine("Please enter tag value (or press Enter to skip): ");
+                string tag_value = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(tag_value))
+                    break;
+                if (tags == null)
+                    tags = new Dictionary<string, string>();
+                tags.Add(tag_key, tag_value);
+            }
+
+            var result = _wallet.CreateNFT(tokenname, domainname, desc, Convert.ToDecimal(supply), isFinalSupply, owner, address, icon, image, tags).Result;
+
+            if (result.ResultCode != APIResultCodes.Success)
+            {
+                Console.WriteLine("NFT generation failed with code: " + result.ResultCode.ToString());
+            }
+            else
+            {
+                Console.WriteLine($"NFT generation has been authorized successfully");
+                Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
+            }
+        }
 
         public bool ReadYesNoAnswer()
         {

@@ -37,7 +37,11 @@ namespace Lyra.Core.Blocks
     {
         NotSet = 0,
 
+        // LoyalShopper Shopify discount code 
         LoyaltyDiscount = 1,
+
+        // Lyra or Custom Collectible NFT
+        Collectible = 2
     }
 
 

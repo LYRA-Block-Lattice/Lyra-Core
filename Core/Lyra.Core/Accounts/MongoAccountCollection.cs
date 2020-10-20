@@ -399,6 +399,39 @@ namespace Lyra.Core.Accounts
             return block as TransactionBlock;
         }
 
+        public async Task<List<NonFungibleToken>> GetIssuedNFTInstancesAsync(bool GetOnlySendBlocks, string AccountId, string TokenCode)
+        {
+            var p1 = new BsonArray();
+            p1.Add(BlockTypes.SendTransfer);
+            p1.Add(BlockTypes.ExecuteTradeOrder);
+
+            if (!GetOnlySendBlocks)
+            {
+                p1.Add(BlockTypes.ReceiveTransfer);
+                p1.Add(BlockTypes.OpenAccountWithReceiveTransfer);
+            }
+
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("AccountID", AccountId), builder.Ne("NonFungibleToken", BsonNull.Value)));
+
+            var find_result = await _blocks.FindAsync(filterDefinition);
+            if (find_result == null)
+                return null;
+
+            var block_list = await find_result.ToListAsync();
+
+            var the_list = new List<NonFungibleToken>();
+
+            foreach (TransactionBlock block in block_list)
+                if (block.NonFungibleToken.TokenCode == TokenCode)
+                    the_list.Add(block.NonFungibleToken);
+
+            if (the_list.Count > 0)
+                return the_list;
+
+            return null;
+        }
+
         public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync(string AccountId)
         {
             var p1 = new BsonArray

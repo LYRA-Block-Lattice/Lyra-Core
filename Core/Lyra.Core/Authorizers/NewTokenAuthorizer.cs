@@ -88,10 +88,23 @@ namespace Lyra.Core.Authorizers
             if (block.Fee != (await sys.Storage.GetLastServiceBlockAsync()).TokenGenerationFee)
                 return APIResultCodes.InvalidFeeAmount;
 
+            if (block.NonFungibleType == NonFungibleTokenTypes.Collectible && !block.IsNonFungible)
+                return APIResultCodes.InvalidNFT;
+
             if (block.IsNonFungible)
             {
                 if (!Signatures.ValidateAccountId(block.NonFungibleKey))
                     return APIResultCodes.InvalidNonFungiblePublicKey;
+
+                // Validate Collectible NFT
+                if (block.ContractType == ContractTypes.Collectible)
+                {
+                    if (block.Precision != 0)
+                        return APIResultCodes.InvalidNFT;
+
+                    if (block.NonFungibleType != NonFungibleTokenTypes.Collectible)
+                        return APIResultCodes.InvalidNFT;
+                }
             }
 
             if (block.RenewalDate > DateTime.UtcNow.Add(TimeSpan.FromDays(3660)) || block.RenewalDate < DateTime.UtcNow)

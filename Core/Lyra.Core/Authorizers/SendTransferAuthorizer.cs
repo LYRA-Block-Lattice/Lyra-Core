@@ -105,20 +105,50 @@ namespace Lyra.Core.Authorizers
             return result;
         }
 
-        protected override async Task<APIResultCodes> ValidateNonFungibleAsync(DagSystem sys, TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        //protected override async Task<APIResultCodes> ValidateNonFungibleAsync(DagSystem sys, TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
+        //{
+        //    var result = await base.ValidateNonFungibleAsync(sys, send_or_receice_block, previousBlock);
+        //    if (result != APIResultCodes.Success)
+        //        return result;
+
+        //    //if (send_or_receice_block.NonFungibleToken == null)
+        //    //    return APIResultCodes.Success;
+
+        //    //if (send_or_receice_block.NonFungibleToken.OriginHash != send_or_receice_block.Hash)
+        //    //    return APIResultCodes.OriginNonFungibleBlockHashDoesNotMatch;
+
+
+        //    return APIResultCodes.Success;
+        //}
+
+        protected override async Task<APIResultCodes> ValidateCollectibleNFTAsync(DagSystem sys, TransactionBlock send_or_receice_block, TokenGenesisBlock token_block)
         {
-            var result = await base.ValidateNonFungibleAsync(sys, send_or_receice_block, previousBlock);
-            if (result != APIResultCodes.Success)
-                return result;
+            if (send_or_receice_block.NonFungibleToken.Denomination != 1)
+                return APIResultCodes.InvalidCollectibleNFTDenomination;
 
-            if (send_or_receice_block.NonFungibleToken == null)
-                return APIResultCodes.Success;
+            if (string.IsNullOrEmpty(send_or_receice_block.NonFungibleToken.SerialNumber))
+                return APIResultCodes.InvalidCollectibleNFTSerialNumber;
 
-            //if (send_or_receice_block.NonFungibleToken.OriginHash != send_or_receice_block.Hash)
-            //    return APIResultCodes.OriginNonFungibleBlockHashDoesNotMatch;
+            bool nft_instance_exists = await WasNFTInstanceIssuedAsync(sys, token_block, send_or_receice_block.NonFungibleToken.SerialNumber);
+            bool is_there_a_token = await DoesAccountHaveNFTInstanceAsync(sys, send_or_receice_block.AccountID, token_block, send_or_receice_block.NonFungibleToken.SerialNumber);
 
+            if (nft_instance_exists) // this is a transfer of existing instance to another account
+            {
+                if (!is_there_a_token && send_or_receice_block.AccountID == token_block.AccountID)
+                    return APIResultCodes.DuplicateNFTCollectibleSerialNumber;
+
+                if (!is_there_a_token && send_or_receice_block.AccountID != token_block.AccountID)
+                    return APIResultCodes.InsufficientFunds;
+            }
+            else // otherwise, this is an attempt to issue a new instance
+            {
+                // Only the owner of the genesis token block can issue a new instance of NFT
+                if (send_or_receice_block.AccountID != token_block.AccountID)
+                    return APIResultCodes.NFTCollectibleSerialNumberDoesNotExist;
+            }
 
             return APIResultCodes.Success;
         }
+
     }
 }
