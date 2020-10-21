@@ -87,6 +87,7 @@ or see step 12
 	cd ~/lyra/noded
 	export LYRA_NETWORK=testnet
 	export ASPNETCORE_URLS=http://*:4505;https://*:4504
+	export ASPNETCORE_HTTPS_PORT=4504
 	dotnet lyra.noded.dll
 	```
 
@@ -97,6 +98,7 @@ or see step 12
 	cd ~/lyra/noded
 	export LYRA_NETWORK=mainnet
 	export ASPNETCORE_URLS=http://*:5505;https://*:5504
+	export ASPNETCORE_HTTPS_PORT=5504
 	dotnet lyra.noded.dll
 	```
 
@@ -150,15 +152,20 @@ use "votefor" command in wallet cli.
 	User=[username]
 	Environment=ASPNETCORE_ENVIRONMENT=Production
 	Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+	Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1/lyra
+
 	# for mainnet
 	# Environment=LYRA_NETWORK=mainnet
+	# Environment=ASPNETCORE_URLS=http://*:5505;https://*:5504
+	# Environment=ASPNETCORE_HTTPS_PORT=5504
+
 	# for testnet
 	Environment=LYRA_NETWORK=testnet
-	Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1/lyra
-	# for mainnet
-	# Environment=ASPNETCORE_URLS=http://*:5505;https://*:5504
-	# for testnet
 	Environment=ASPNETCORE_URLS=http://*:4505;https://*:4504
+	Environment=ASPNETCORE_HTTPS_PORT=4504
+
+	# if use Engix front end
+	# Environment=ASPNETCORE_HTTPS_PORT=443
 
 	[Install]
 	WantedBy=multi-user.target
