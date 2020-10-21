@@ -6,6 +6,8 @@
 
 [Run Lyra Node Daemon as systemd service](#run-noded-as-systemd-service)
 
+[Run noded as Windows service](#run-noded-as-windows-service)
+
 # What's New
 
 [LYRA Documentation Site](https://docs.lyra.live) - 
