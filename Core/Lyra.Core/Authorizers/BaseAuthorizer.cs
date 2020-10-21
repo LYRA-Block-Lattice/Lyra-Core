@@ -281,7 +281,59 @@ namespace Lyra.Core.Authorizers
             if (!vr)
                 return APIResultCodes.NonFungibleSignatureVerificationFailed;
 
+            if (token_block.ContractType == ContractTypes.Collectible)
+            {
+                var res = await ValidateCollectibleNFTAsync(sys, send_or_receice_block, token_block);
+                if (res != APIResultCodes.Success)
+                    return res;
+            }
+
             return APIResultCodes.Success;
+        }
+
+        // must be overriden and implemented in both send and receive authorizers as they have very different logic
+        protected virtual async Task<APIResultCodes> ValidateCollectibleNFTAsync(DagSystem sys, TransactionBlock send_or_receice_block, TokenGenesisBlock token_block)
+        {
+            return await Task.FromResult(APIResultCodes.Success);
+        }
+
+            // check if NFT instance with this serial number already exists to avoid duplicate serial numbers
+        protected async Task<bool> WasNFTInstanceIssuedAsync(DagSystem sys, TokenGenesisBlock token_block, string SerialNumber)
+        {
+            var non_fungible_tokens = await sys.Storage.GetIssuedNFTInstancesAsync(GetOnlySendBlocks: true, token_block.AccountID, token_block.Ticker);
+            if (non_fungible_tokens == null)
+                return false;
+            foreach (var nft in non_fungible_tokens)
+                if (nft.SerialNumber == SerialNumber)
+                    return true;
+            return false;
+        }
+
+        protected async Task<bool> DoesAccountHaveNFTInstanceAsync(DagSystem sys, string owner_account_id, TokenGenesisBlock token_block, string SerialNumber)
+        {
+            var non_fungible_tokens = await sys.Storage.GetIssuedNFTInstancesAsync(GetOnlySendBlocks: false, owner_account_id, token_block.Ticker);
+            if (non_fungible_tokens == null)
+                return false;
+
+            int block_count = 0;
+
+            foreach (var nft in non_fungible_tokens)
+                if (nft.SerialNumber == SerialNumber)
+                    block_count++;
+
+            // the issuer's account has one extra send block created when the NFT instance was issued 
+            if (owner_account_id == token_block.AccountID)
+                block_count--;
+
+            if (block_count <= 0)
+                return false;
+
+
+            // even number (block_count mod 2 result is zero) means that there was at least a couple of blocks with the serila number, 
+            // which means that there was receive and send for the same serial number. So the token was received and sent to another account.So there is no token on this account.
+            if (block_count % 2 == 0)
+                return false;
+            return true;
         }
 
         protected AuthorizationSignature Sign<T>(DagSystem sys, T tblock)

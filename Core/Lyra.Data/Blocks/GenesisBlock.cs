@@ -190,31 +190,31 @@ namespace Lyra.Core.Blocks
                 throw new ApplicationException("Description too long");
 
             if (NonFungibleKey != null && NonFungibleKey.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new ApplicationException("NonFungibleKey too long");
 
             if (Owner != null && Owner.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new ApplicationException("Owner too long");
 
             if (Address != null && Address.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new ApplicationException("Address too long");
 
             if (Currency != null && Currency.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new ApplicationException("Currency too long");
 
             if (Icon != null && Icon.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new ApplicationException("Icon too long");
 
             if (Image != null && Image.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new ApplicationException("Image too long");
 
             if (Custom1 != null && Custom1.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new ApplicationException("Custom1 too long");
 
             if (Custom2 != null && Custom2.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new ApplicationException("Custom2 too long");
 
             if (Custom3 != null && Custom3.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new ApplicationException("Custom3 too long");
 
             return true;
         }

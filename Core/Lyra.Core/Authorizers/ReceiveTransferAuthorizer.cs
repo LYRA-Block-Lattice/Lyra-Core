@@ -144,12 +144,15 @@ namespace Lyra.Core.Authorizers
             if (!originBlock.ContainsNonFungibleToken())
                 return APIResultCodes.OriginNonFungibleBlockNotFound;
 
+            // this validation eliminates the need to make all the validations that already have been done on send block
             if (originBlock.NonFungibleToken.Hash != send_or_receice_block.NonFungibleToken.Hash)
                 return APIResultCodes.OriginNonFungibleBlockHashDoesNotMatch;
 
+            // this validation eliminates the need to make all the validations that already have been done on send block
+            if (originBlock.NonFungibleToken.Signature != send_or_receice_block.NonFungibleToken.Signature)
+                return APIResultCodes.NFTSignaturesDontMatch;
+
             return APIResultCodes.Success;
         }
-
-
     }
 }

@@ -306,6 +306,17 @@ namespace Lyra.Core.Blocks
         NonFungibleSignatureVerificationFailed = 61,
         InvalidNonFungiblePublicKey = 62,
 
+        InvalidNFT = 6200,
+        InvalidCollectibleNFT = 6201,
+        DuplicateNFTCollectibleSerialNumber = 6202,
+        NFTCollectibleSerialNumberDoesNotExist = 6203,
+        InvalidCollectibleNFTDenomination = 6204,
+        InvalidCollectibleNFTSerialNumber = 6205,
+        NFTInstanceNotFound = 6206,
+        NFTSignaturesDontMatch = 6207,
+
+        ТlockHashDoesNotMatch = 59,
+
         CancelTradeOrderValidationFailed = 63,
 
         InvalidFeeType = 64,

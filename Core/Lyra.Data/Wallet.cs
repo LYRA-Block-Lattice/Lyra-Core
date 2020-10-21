@@ -536,19 +536,46 @@ namespace Lyra.Core.Accounts
                     //int precision = FindTokenPrecision(balance.Key).Result;
 
                     //res = res + string.Format(@"{0} {1}    ", balance.Value / Math.Pow(10, precision != -1?precision:0), balance.Key);
-                    res += $"{balance.Value.ToBalanceDecimal()} {balance.Key}\n";
+                    res += $"    {balance.Value.ToBalanceDecimal()} {balance.Key}\n";
                 }
                 if (lastBlock.NonFungibleToken != null)
                 {
                     var discount_token_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, lastBlock.NonFungibleToken.TokenCode, SignAPICallAsync());
-                    if (discount_token_genesis != null)
+                    if (discount_token_genesis == null || discount_token_genesis.GetBlock() == null)
                     {
-                        var issuer_account_id = (discount_token_genesis.GetBlock() as TokenGenesisBlock).AccountID;
-                        var decryptor = new ECC_DHA_AES_Encryptor();
-                        string decrypted_redemption_code = decryptor.Decrypt(PrivateKey, issuer_account_id, lastBlock.NonFungibleToken.SerialNumber, lastBlock.NonFungibleToken.RedemptionCode);
-
-                        res += $"Shopify Discount: {lastBlock.NonFungibleToken.Denomination.ToString("C")} Redemption Code: {decrypted_redemption_code}  \n";
+                        res += $"    Cannot retrieve token genesis block for {lastBlock.NonFungibleToken.TokenCode}  \n";
+                        return res;
                     }
+
+                    var sent_or_receive = lastBlock is ReceiveTransferBlock ? "received" : "sent";
+                    res += $"Last Non-Fungible Token {sent_or_receive}: {lastBlock.NonFungibleToken.TokenCode}  \n";
+
+                    var genesis_block = (TokenGenesisBlock)discount_token_genesis.GetBlock();
+                    if (genesis_block.ContractType == ContractTypes.Collectible)
+                    {
+                        res += $"    Collectible NFT \n";
+                        res += $"    Serial Number: {lastBlock.NonFungibleToken.SerialNumber}  \n";
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(lastBlock.NonFungibleToken.RedemptionCode))
+                        {
+                            var issuer_account_id = genesis_block.AccountID;
+                            var decryptor = new ECC_DHA_AES_Encryptor();
+                            string decrypted_redemption_code = decryptor.Decrypt(PrivateKey, issuer_account_id, lastBlock.NonFungibleToken.SerialNumber, lastBlock.NonFungibleToken.RedemptionCode);
+                            res += $"    Shopify Discount: {lastBlock.NonFungibleToken.Denomination.ToString("C")} Discount Code: {decrypted_redemption_code}  \n";
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(genesis_block.Description))
+                        res += $"    Description: {genesis_block.Description}  \n";
+                    if (!string.IsNullOrEmpty(genesis_block.Owner))
+                        res += $"    Issuer: {genesis_block.Owner}  \n";
+                    if (!string.IsNullOrEmpty(genesis_block.Address))
+                        res += $"    Address: {genesis_block.Address}  \n";
+                    if (!string.IsNullOrEmpty(genesis_block.Icon))
+                        res += $"    Icon: {genesis_block.Icon}  \n";
+                    if (!string.IsNullOrEmpty(genesis_block.Image))
+                        res += $"    Image: {genesis_block.Image}  \n";
                 }
             }
             return res;
@@ -788,6 +815,108 @@ namespace Lyra.Core.Accounts
                 //stopwatch.Stop();
                 //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
             }
+
+            if (result.ResultCode == APIResultCodes.Success)
+                _lastTransactionBlock = sendBlock;
+
+            return result;
+        }
+
+        // issues a new instance of collectible NFT
+        public async Task<AuthorizationAPIResult> IssueNFT(string DestinationAccountId, string ticker, string SerialNumber)
+        {
+            //var nft_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, ticker, SignAPICallAsync());
+            //if (nft_genesis == null || nft_genesis.GetBlock() == null)
+            //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
+            NonFungibleToken nft = new NonFungibleToken();
+            nft.SerialNumber = SerialNumber;
+            nft.TokenCode = ticker;
+            nft.Denomination = 1;
+            nft.Sign(PrivateKey, AccountId);
+
+            return await SendNFTInternal(DestinationAccountId, ticker, nft);
+        }
+
+        // Transfers and existing instance of collectible NFT to another account
+        public async Task<AuthorizationAPIResult> SendNFT(string DestinationAccountId, string ticker, string SerialNumber)
+        {
+            var height = GetLocalAccountHeight();
+            ReceiveTransferBlock receive_token_block = null;
+
+            // Scan the current account and find the receive block that continas the token that we want to send
+            for (var index = height; index >= 0; index--)
+            {
+               
+                var block = await GetBlockByIndex(index);
+                if (!(block is ReceiveTransferBlock))
+                    continue;
+                if (!block.ContainsNonFungibleToken())
+                    continue;
+
+                if (block.NonFungibleToken.TokenCode == ticker && block.NonFungibleToken.SerialNumber == SerialNumber)
+                {
+                    receive_token_block = block as ReceiveTransferBlock;
+                    break;
+                }
+            }
+
+            if (receive_token_block == null)
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.NFTInstanceNotFound };
+
+            return await SendNFTInternal(DestinationAccountId, ticker, receive_token_block.NonFungibleToken);
+        }
+
+        // Transfers and existing instance or issues a new instance of collectible NFT - this method can be used by either IssueNFT and SendNFT
+        private async Task<AuthorizationAPIResult> SendNFTInternal(string DestinationAccountId, string ticker, NonFungibleToken nft)
+        {
+            TransactionBlock previousBlock = GetLatestBlock();
+            if (previousBlock == null)
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
+
+            decimal balance_change = 1;
+
+            var fee = TransferFee;
+
+            // see if we have enough tokens
+            if (previousBlock.Balances[ticker] < balance_change.ToBalanceLong())
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
+
+            // see if we have enough LYR to pay the transfer fee
+                if (!previousBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < fee.ToBalanceLong())
+                    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
+
+            SendTransferBlock sendBlock;
+           
+                sendBlock = new SendTransferBlock()
+                {
+                    AccountID = AccountId,
+                    VoteFor = VoteFor,
+                    ServiceHash = await getLastServiceBlockHashAsync(), 
+                    DestinationAccountId = DestinationAccountId,
+                    Balances = new Dictionary<string, long>(),
+                    Fee = fee,
+                    FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                    FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular,
+                    NonFungibleToken = nft
+                };
+
+            sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change.ToBalanceLong());
+
+            // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
+            sendBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - fee.ToBalanceLong());
+
+            // transfer unchanged token balances from the previous block
+            foreach (var balance in previousBlock.Balances)
+                if (!(sendBlock.Balances.ContainsKey(balance.Key)))
+                    sendBlock.Balances.Add(balance.Key, balance.Value);
+
+            sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
+
+            if (!sendBlock.ValidateTransaction(previousBlock))
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
+
+            AuthorizationAPIResult result;
+                result = await _rpcClient.SendTransfer(sendBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
                 _lastTransactionBlock = sendBlock;
@@ -1315,70 +1444,74 @@ namespace Lyra.Core.Accounts
         //    return ret;
         //}
 
-        public async Task<APIResultCodes> CreateGenesisForCoreTokenAsync()
-        {
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
-            if (svcBlockResult.ResultCode != APIResultCodes.Success)
-            {
-                throw new Exception("Unable to get latest service block.");
-            }
+         
+        /* This is obsolete */
+       
+        //public async Task<APIResultCodes> CreateGenesisForCoreTokenAsync()
+        //{
+        //    var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+        //    if (svcBlockResult.ResultCode != APIResultCodes.Success)
+        //    {
+        //        throw new Exception("Unable to get latest service block.");
+        //    }
 
-            // initiate test coins
-            var openTokenGenesisBlock = new LyraTokenGenesisBlock
-            {
-                AccountType = AccountTypes.Standard,
-                Ticker = LyraGlobal.OFFICIALTICKERCODE,
-                DomainName = LyraGlobal.OFFICIALDOMAIN,
-                ContractType = ContractTypes.Cryptocurrency,
-                Description = LyraGlobal.PRODUCTNAME + " Gas Token",
-                Precision = LyraGlobal.OFFICIALTICKERPRECISION,
-                IsFinalSupply = true,
-                AccountID = AccountId,
-                Balances = new Dictionary<string, long>(),
-                ServiceHash = svcBlockResult.GetBlock().Hash,
-                Fee = TokenGenerationFee,
-                FeeType = AuthorizationFeeTypes.Regular,
-                Icon = "https://i.imgur.com/L3h0J1K.png",
-                Image = "https://i.imgur.com/B8l4ZG5.png",
-                RenewalDate = DateTime.UtcNow.AddYears(100)
-            };
-            // TO DO - set service hash
-            var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
-            //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
+        //    // initiate test coins
+        //    var openTokenGenesisBlock = new LyraTokenGenesisBlock
+        //    {
+        //        AccountType = AccountTypes.Standard,
+        //        Ticker = LyraGlobal.OFFICIALTICKERCODE,
+        //        DomainName = LyraGlobal.OFFICIALDOMAIN,
+        //        ContractType = ContractTypes.Cryptocurrency,
+        //        Description = LyraGlobal.PRODUCTNAME + " Gas Token",
+        //        Precision = LyraGlobal.OFFICIALTICKERPRECISION,
+        //        IsFinalSupply = true,
+        //        AccountID = AccountId,
+        //        Balances = new Dictionary<string, long>(),
+        //        ServiceHash = svcBlockResult.GetBlock().Hash,
+        //        Fee = TokenGenerationFee,
+        //        FeeType = AuthorizationFeeTypes.Regular,
+        //        Icon = "https://i.imgur.com/L3h0J1K.png",
+        //        Image = "https://i.imgur.com/B8l4ZG5.png",
+        //        RenewalDate = DateTime.UtcNow.AddYears(100)
+        //    };
+        //    // TO DO - set service hash
+        //    var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = LyraGlobal.OFFICIALGENESISAMOUNT };
+        //    //var transaction = new TransactionInfo() { TokenCode = openTokenGenesisBlock.Ticker, Amount = 150000000 };
 
-            openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
-                                                                                                           //openTokenGenesisBlock.Transaction = transaction;
-            openTokenGenesisBlock.InitializeBlock(null, PrivateKey, AccountId);
+        //    openTokenGenesisBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
+        //                                                                                                   //openTokenGenesisBlock.Transaction = transaction;
+        //    openTokenGenesisBlock.InitializeBlock(null, PrivateKey, AccountId);
 
-            //openTokenGenesisBlock.Signature = Signatures.GetSignature(PrivateKey, openTokenGenesisBlock.Hash);
+        //    //openTokenGenesisBlock.Signature = Signatures.GetSignature(PrivateKey, openTokenGenesisBlock.Hash);
 
-            var result = await _rpcClient.OpenAccountWithGenesis(openTokenGenesisBlock);
+        //    var result = await _rpcClient.OpenAccountWithGenesis(openTokenGenesisBlock);
 
-            if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
-            {
-                PrintConLine($"BlockSignatureValidationFailed");
-                PrintConLine("Error Message: ");
-                PrintConLine(result.ResultMessage);
-                PrintConLine("Local Block: ");
-                PrintConLine(openTokenGenesisBlock.Print());
-            }
-            else
-            if (result.ResultCode != APIResultCodes.Success)
-            {
-                PrintConLine($"Failed to add genesis block with error code: {result.ResultCode}");
-                PrintConLine("Error Message: " + result.ResultMessage);
-                PrintConLine(openTokenGenesisBlock.Print());
+        //    if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
+        //    {
+        //        PrintConLine($"BlockSignatureValidationFailed");
+        //        PrintConLine("Error Message: ");
+        //        PrintConLine(result.ResultMessage);
+        //        PrintConLine("Local Block: ");
+        //        PrintConLine(openTokenGenesisBlock.Print());
+        //    }
+        //    else
+        //    if (result.ResultCode != APIResultCodes.Success)
+        //    {
+        //        PrintConLine($"Failed to add genesis block with error code: {result.ResultCode}");
+        //        PrintConLine("Error Message: " + result.ResultMessage);
+        //        PrintConLine(openTokenGenesisBlock.Print());
 
-            }
-            else
-            {
-                _lastTransactionBlock = openTokenGenesisBlock;
-                PrintConLine($"Genesis block has been authorized successfully");
-                PrintConLine("Balance: " + await GetDisplayBalancesAsync());
-            }
-            ////PrintCon(string.Format("{0}> ", AccountName));
-            return result.ResultCode;
-        }
+        //    }
+        //    else
+        //    {
+        //        _lastTransactionBlock = openTokenGenesisBlock;
+        //        PrintConLine($"Genesis block has been authorized successfully");
+        //        PrintConLine("Balance: " + await GetDisplayBalancesAsync());
+        //    }
+        //    //PrintCon(string.Format("{0}> ", AccountName));
+        //    return result.ResultCode;
+        //}
+        
 
         public async Task<AuthorizationAPIResult> CreateToken(
             string tokenName,
@@ -1466,6 +1599,76 @@ namespace Lyra.Core.Accounts
             {
                 _lastTransactionBlock = tokenBlock;
             }
+            return result;
+        }
+
+        // Creates Custom User-defined Collectible NFT
+        public async Task<AuthorizationAPIResult> CreateNFT(
+            string tokenName,
+            string domainName,
+            string description,
+            decimal supply,
+            bool isFinalSupply,
+            string owner, // shop name
+            string address, // shop URL
+            string icon, // icon URL
+            string image, // image URL
+            Dictionary<string, string> tags)
+        {
+            if (string.IsNullOrWhiteSpace(domainName))
+                domainName = "Custom";
+
+            string ticker = domainName + "/" + tokenName;
+
+            TransactionBlock latestBlock = GetLatestBlock();
+            if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToBalanceLong())
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
+
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            if (svcBlockResult.ResultCode != APIResultCodes.Success)
+                throw new Exception("Unable to get latest service block.");
+
+            TokenGenesisBlock tokenBlock = new TokenGenesisBlock
+            {
+                Ticker = ticker,
+                DomainName = domainName,
+                Description = description,
+                Precision = 0,
+                IsFinalSupply = isFinalSupply,
+                AccountID = AccountId,
+                Balances = new Dictionary<string, long>(),
+                ServiceHash = svcBlockResult.GetBlock().Hash,
+                Fee = TokenGenerationFee,
+                FeeType = AuthorizationFeeTypes.Regular,
+                Owner = owner,
+                Address = address,
+                Tags = tags,
+                RenewalDate = DateTime.UtcNow.Add(TimeSpan.FromDays(3650)),
+                ContractType = ContractTypes.Collectible,
+                Icon = icon,
+                Image = image,
+                VoteFor = VoteFor,
+                IsNonFungible = true,
+                NonFungibleType = NonFungibleTokenTypes.Collectible,
+                NonFungibleKey = AccountId
+            };
+
+            var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply };
+
+            tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
+            tokenBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - TokenGenerationFee.ToBalanceLong());
+
+            // transfer unchanged token balances from the previous block
+            foreach (var balance in latestBlock.Balances)
+                if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
+                    tokenBlock.Balances.Add(balance.Key, balance.Value);
+
+            tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
+
+            var result = await _rpcClient.CreateToken(tokenBlock);
+
+            await ProcessResultAsync(result, "CreateNFT", tokenBlock);
+
             return result;
         }
 
