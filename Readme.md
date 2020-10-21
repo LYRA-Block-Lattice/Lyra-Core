@@ -2,7 +2,9 @@
 
 [LYRA Node Setup](#lyra-node-setup)
 
-[Run noded as systemd service](#run-noded-as-systemd-service)
+[Run Lyra Node Daemon](#run-lyra-node-daemon)
+
+[Run Lyra Node Daemon as systemd service](#run-noded-as-systemd-service)
 
 # What's New
 
@@ -78,7 +80,7 @@ Install the ASP.NET Core runtime
 change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step. change the wallet/password if your wallet has a password.
 or see step 12
 
-8. run.
+# Run Lyra node daemon
 
 * testnet
 	```
@@ -88,6 +90,8 @@ or see step 12
 	export LYRA_NETWORK=testnet
 	export ASPNETCORE_URLS=http://*:4505;https://*:4504
 	export ASPNETCORE_HTTPS_PORT=4504
+	# optional mongodb credential if not specified in config*.json
+	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
 	dotnet lyra.noded.dll
 	```
 
@@ -99,10 +103,12 @@ or see step 12
 	export LYRA_NETWORK=mainnet
 	export ASPNETCORE_URLS=http://*:5505;https://*:5504
 	export ASPNETCORE_HTTPS_PORT=5504
+	# optional mongodb credential if not specified in config*.json
+	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
 	dotnet lyra.noded.dll
 	```
 
-9. verify (use port 5504 for mainnet)
+1. verify (use port 5504 for mainnet)
 
 https://localhost:4504/api/Node/GetSyncState
 should return like:
@@ -113,7 +119,7 @@ should return like:
 https://localhost:4504/api/Node/GetBillboard
 display all connected nodes.
 
-10. refresh DPoS wallet balance
+2. refresh DPoS wallet balance
 
 	```
 	dotnet ~/lyra/cli/lyra.dll --networkid testnet -p webapi
@@ -123,15 +129,10 @@ display all connected nodes.
 	stop
 	```
 
-11. set DPoS vote Account ID
+3. set DPoS vote Account ID
 
 use "votefor" command in wallet cli.
 
-12. configure from environment varabiles (seprated by double underscore)
-
-	```
-	export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
-	```
 
 # Run noded as systemd service
 
