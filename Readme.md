@@ -190,7 +190,8 @@ use "votefor" command in wallet cli.
 
 # Run noded as Windows service
 
-	# first add rights "Log on as a service" to current user	(because it need POS wallet in current user's folder)
+	# remember to set all environment variables.
+	# add rights "Log on as a service" to current user. (because it need POS wallet in current user's folder)
 	New-Service -Name lyranoded -BinaryPathName "path\to\lyra\noded\lyra.noded.exe" -Credential "[domain/computer name]\current user" -Description "Lyra Node Daemon provides authorization service for Lyra network." -DisplayName "Lyra Node Daemon" -StartupType Automatic
 	Start-Service -Name lyranoded
 
