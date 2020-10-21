@@ -64,8 +64,8 @@ namespace Lyra.Core.API
 
 #endif
                 case "testnet":
-                    //return $"http://api.testnet.lyra.live:{port}/api/";
-                    return $"https://apis.testnet.lyra.live/api/";
+                    return $"http://api.testnet.lyra.live:{port}/api/";
+                    //return $"https://apis.testnet.lyra.live/api/";
                 case "mainnet":
                     return $"http://api.mainnet.lyra.live:{port}/api/";
                 default:
