@@ -186,4 +186,7 @@ use "votefor" command in wallet cli.
 	sudo journalctl -u lyra-noded -f
 	
 
+# Run noded as Windows service
+
+[Guide from Microsoft](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/windows-service?view=aspnetcore-3.1&tabs=visual-studio#log-on-as-a-service-rights)
 
