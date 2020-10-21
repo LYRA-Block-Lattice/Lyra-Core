@@ -524,6 +524,7 @@ namespace Lyra.Core.Accounts
         //    //     null, 500, 5000);
         //}
 
+       
         public async Task<string> GetDisplayBalancesAsync()
         {
             string res = "0";
@@ -558,7 +559,7 @@ namespace Lyra.Core.Accounts
                     }
                     else
                     {
-                        if (string.IsNullOrEmpty(lastBlock.NonFungibleToken.RedemptionCode))
+                        if (!string.IsNullOrEmpty(lastBlock.NonFungibleToken.RedemptionCode))
                         {
                             var issuer_account_id = genesis_block.AccountID;
                             var decryptor = new ECC_DHA_AES_Encryptor();
