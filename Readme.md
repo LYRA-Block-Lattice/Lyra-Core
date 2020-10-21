@@ -90,7 +90,7 @@ or see step 12
 	dotnet dev-certs https
 	cd ~/lyra/noded
 	export LYRA_NETWORK=testnet
-	export ASPNETCORE_URLS=http://*:4505;https://*:4504
+	export ASPNETCORE_URLS=http://*:4505\;https://*:4504
 	export ASPNETCORE_HTTPS_PORT=4504
 	# optional mongodb credential if not specified in config*.json
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
@@ -103,7 +103,7 @@ or see step 12
 	dotnet dev-certs https
 	cd ~/lyra/noded
 	export LYRA_NETWORK=mainnet
-	export ASPNETCORE_URLS=http://*:5505;https://*:5504
+	export ASPNETCORE_URLS=http://*:5505\;https://*:5504
 	export ASPNETCORE_HTTPS_PORT=5504
 	# optional mongodb credential if not specified in config*.json
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
