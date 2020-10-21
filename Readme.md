@@ -174,7 +174,7 @@ use "votefor" command in wallet cli.
 3, view noded output
 
 	
-	sudo journalctl -u kestrel-noded -f
+	sudo journalctl -u lyra-noded -f
 	
 
 
