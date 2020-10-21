@@ -198,9 +198,9 @@ use "votefor" command in wallet cli.
 
 * powershell script for service creation/auto upgrading
 
-	 param (
+	param (
 		[string]$url = ""
-	 )
+	)
 
 	Function ServiceExists([string] $ServiceName) {
 		[bool] $Return = $False
