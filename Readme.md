@@ -153,7 +153,8 @@ use "votefor" command in wallet cli.
 	User=[username]
 	Environment=ASPNETCORE_ENVIRONMENT=Production
 	Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
-	Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1/lyra
+	# optional mongodb credential if not specified in config*.json
+	# Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1/lyra
 
 	# for mainnet
 	# Environment=LYRA_NETWORK=mainnet
