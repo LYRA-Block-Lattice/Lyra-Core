@@ -192,8 +192,62 @@ use "votefor" command in wallet cli.
 
 	# remember to set all environment variables.
 	# add rights "Log on as a service" to current user. (because it need POS wallet in current user's folder)
+	#     secpol.msc -> Local Policies -> User Rights Assignment -> Log on as a service -> add current user
 	New-Service -Name lyranoded -BinaryPathName "path\to\lyra\noded\lyra.noded.exe" -Credential "[domain/computer name]\current user" -Description "Lyra Node Daemon provides authorization service for Lyra network." -DisplayName "Lyra Node Daemon" -StartupType Automatic
 	Start-Service -Name lyranoded
+
+* powershell script for service creation/auto upgrading
+
+	 param (
+		[string]$url = ""
+	 )
+
+	Function ServiceExists([string] $ServiceName) {
+		[bool] $Return = $False
+		if ( Get-WmiObject -Class Win32_Service -Filter "Name='$ServiceName'" ) {
+			$Return = $True
+		}
+		Return $Return
+	}
+
+	$lyrasvc = "lyranoded"
+
+	write-output "downoad from " + $url
+
+	#Remove-Item lyra -Force -Recurse
+
+	Invoke-WebRequest $url -OutFile lyra.tar.bz2
+
+	& "C:\Program Files\7-Zip\7z.exe" x lyra.tar.bz2
+	& "C:\Program Files\7-Zip\7z.exe" x lyra.tar
+
+	Remove-Item lyra.tar* -Force
+
+	[bool] $thisServiceExists = ServiceExists $lyrasvc
+
+
+	if($thisServiceExists)
+	{
+		Stop-Service -Name $lyrasvc
+	}
+
+	Start-Sleep -s 3
+	& cmd /c rd /q/s C:\Users\Administrator\lyra\
+	Start-Sleep -s 3
+	& cmd /c rd /q/s C:\Users\Administrator\lyra\
+
+	Move-Item -Path .\lyra -Destination C:\Users\Administrator -force
+
+	if(-Not $thisServiceExists)
+	{
+		New-Service -Name $lyrasvc -BinaryPathName "C:\Users\Administrator\lyra\noded\lyra.noded.exe" -Credential "$env:COMPUTERNAME\Administrator" -Description "Lyra Node Daemon provides authorization service for Lyra network." -DisplayName "Lyra Node Daemon" -StartupType Automatic
+	}
+
+	[Environment]::SetEnvironmentVariable("LYRA_NETWORK", "testnet", "User")
+	[Environment]::SetEnvironmentVariable("ASPNETCORE_URLS", "http://*:4505;https://*:4504", "User")
+	[Environment]::SetEnvironmentVariable("ASPNETCORE_HTTPS_PORT", "4504", "User")
+
+	Start-Service -Name $lyrasvc
 
 
 [Detailed Guide from Microsoft](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/windows-service?view=aspnetcore-3.1&tabs=visual-studio#log-on-as-a-service-rights)
