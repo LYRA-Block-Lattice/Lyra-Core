@@ -198,6 +198,7 @@ use "votefor" command in wallet cli.
 
 * powershell script for service creation/auto upgrading
 
+	```
 	param (
 		[string]$url = ""
 	)
@@ -248,7 +249,7 @@ use "votefor" command in wallet cli.
 	[Environment]::SetEnvironmentVariable("ASPNETCORE_HTTPS_PORT", "4504", "User")
 
 	Start-Service -Name $lyrasvc
-
+	```
 
 [Detailed Guide from Microsoft](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/windows-service?view=aspnetcore-3.1&tabs=visual-studio#log-on-as-a-service-rights)
 
