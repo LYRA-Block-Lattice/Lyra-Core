@@ -78,17 +78,29 @@ Install the ASP.NET Core runtime
 change monodb account/password, change the wallet/name (was poswallet) to the name you created previous step. change the wallet/password if your wallet has a password.
 or see step 12
 
-8. run. (remember to set environment variable LYRA_NETWORK to testnet/mainnet etc.)
+8. run.
 
+* testnet
 	```
 	dotnet dev-certs https --clean
 	dotnet dev-certs https
 	cd ~/lyra/noded
 	export LYRA_NETWORK=testnet
+	export ASPNETCORE_URLS=http://*:4505;https://*:4504
 	dotnet lyra.noded.dll
 	```
 
-9. verify
+* mainnet
+	```
+	dotnet dev-certs https --clean
+	dotnet dev-certs https
+	cd ~/lyra/noded
+	export LYRA_NETWORK=mainnet
+	export ASPNETCORE_URLS=http://*:5505;https://*:5504
+	dotnet lyra.noded.dll
+	```
+
+9. verify (use port 5504 for mainnet)
 
 https://localhost:4504/api/Node/GetSyncState
 should return like:
@@ -138,8 +150,14 @@ use "votefor" command in wallet cli.
 	User=[username]
 	Environment=ASPNETCORE_ENVIRONMENT=Production
 	Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+	# for mainnet
+	# Environment=LYRA_NETWORK=mainnet
+	# for testnet
 	Environment=LYRA_NETWORK=testnet
 	Environment=LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://lexuser:alongpassword@127.0.0.1/lyra
+	# for mainnet
+	# Environment=ASPNETCORE_URLS=http://*:5505;https://*:5504
+	# for testnet
 	Environment=ASPNETCORE_URLS=http://*:4505;https://*:4504
 
 	[Install]
