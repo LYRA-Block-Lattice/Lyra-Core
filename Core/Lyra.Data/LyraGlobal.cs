@@ -65,9 +65,10 @@ namespace Lyra.Core.API
 #endif
                 case "testnet":
                     return $"http://api.testnet.lyra.live:{port}/api/";
-                    //return $"https://apis.testnet.lyra.live/api/";
+                    //return $"https://testnet.lyra.live/api/";
                 case "mainnet":
                     return $"http://api.mainnet.lyra.live:{port}/api/";
+                    //return $"https://mainnet.lyra.live/api/";
                 default:
                     throw new Exception("Unsupported network ID: " + networkID);
             }

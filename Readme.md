@@ -86,8 +86,9 @@ or see step 12
 
 * testnet
 	```
-	dotnet dev-certs https --clean
-	dotnet dev-certs https
+	# do dev-certs only first time setup
+	# dotnet dev-certs https --clean
+	# dotnet dev-certs https
 	cd ~/lyra/noded
 	export LYRA_NETWORK=testnet
 	export ASPNETCORE_URLS=http://*:4505\;https://*:4504
@@ -101,8 +102,9 @@ or see step 12
 
 * mainnet
 	```
-	dotnet dev-certs https --clean
-	dotnet dev-certs https
+	# do dev-certs only first time setup
+	# dotnet dev-certs https --clean
+	# dotnet dev-certs https
 	cd ~/lyra/noded
 	export LYRA_NETWORK=mainnet
 	export ASPNETCORE_URLS=http://*:5505\;https://*:5504
