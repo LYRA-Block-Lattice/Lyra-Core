@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "LyraNodesBot": {
-      "commandName": "Project",
-      "commandLineArgs": "testnet"
-    }
-  }
-}
