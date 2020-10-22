@@ -94,6 +94,8 @@ or see step 12
 	export ASPNETCORE_HTTPS_PORT=4504
 	# optional mongodb credential if not specified in config*.json
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
+	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name=poswallet
+	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password=P@ssw0rd
 	dotnet lyra.noded.dll
 	```
 
@@ -107,7 +109,8 @@ or see step 12
 	export ASPNETCORE_HTTPS_PORT=5504
 	# optional mongodb credential if not specified in config*.json
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
-	dotnet lyra.noded.dll
+	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name=poswallet
+	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password=P@ssw0rd	dotnet lyra.noded.dll
 	```
 
 1. verify (use port 5504 for mainnet)
