@@ -110,7 +110,8 @@ or see step 12
 	# optional mongodb credential if not specified in config*.json
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect=mongodb://user:alongpassword@127.0.0.1/lyra
 	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name=poswallet
-	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password=P@ssw0rd	dotnet lyra.noded.dll
+	# export LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password=P@ssw0rd
+	dotnet lyra.noded.dll
 	```
 
 1. verify (use port 5504 for mainnet)
