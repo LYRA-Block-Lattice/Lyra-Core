@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Lyra;
@@ -11,9 +13,12 @@ using Lyra.Core.Decentralize;
 using Lyra.Core.Exchange;
 using Lyra.Data.API;
 using Lyra.Exchange;
+using Lyra.Node2;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Logging;
 
 namespace LyraLexWeb2
@@ -92,6 +97,24 @@ namespace LyraLexWeb2
         {
             if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
             return await _node.GetVersion(apiVersion, appName, appVersion);
+        }
+
+        [Route("GetThumbPrint")]
+        [HttpGet]
+        public async Task<string> GetThumbPrint()
+        {
+            var ks = Startup.App.ApplicationServices.GetService(typeof(IServer)) as KestrelServer;
+            var kso = ks.Options;
+
+            PropertyInfo prop =
+                typeof(KestrelServerOptions).GetProperty("DefaultCertificate", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            MethodInfo getter = prop.GetGetMethod(nonPublic: true);
+            var cert = getter.Invoke(kso, null) as X509Certificate2;
+            if (cert != null)
+                return cert.Thumbprint;
+            else
+                return null;
         }
 
         [Route("GetSyncState")]
