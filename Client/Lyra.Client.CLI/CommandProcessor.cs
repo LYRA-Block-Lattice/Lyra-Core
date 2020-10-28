@@ -9,6 +9,7 @@ using Lyra.Data.Crypto;
 using System.Linq;
 using System.Security.Cryptography;
 using Lyra.Shared;
+using System.Data;
 
 namespace Lyra.Client.CLI
 {
@@ -29,6 +30,7 @@ namespace Lyra.Client.CLI
         public const string COMMAND_PRINT_LAST_BLOCK = "last";
         public const string COMMAND_PRINT_BLOCK = "print";
         public const string COMMAND_SYNC = "sync";
+        public const string COMMAND_SYNC_SHORT = "s";
         public const string COMMAND_TRADE_ORDER = "trade";
         public const string COMMAND_TRADE_ORDER_SELL_TEST = "trade-sell-test";
         public const string COMMAND_TRADE_ORDER_BUY_TEST = "trade-buy-test";
@@ -50,6 +52,9 @@ namespace Lyra.Client.CLI
 
         // set wallet's private key
         public const string COMMAND_RESTORE = "restore";
+
+        public const string COMMAND_HISTORY = "history";
+        public const string COMMAND_HISTORY_SHORT = "h";
 
         public const string UNSUPPORTED_COMMAND_MSG = "This command is in development";
 
@@ -73,27 +78,28 @@ namespace Lyra.Client.CLI
                     case COMMAND_STOP:
                         break;
                     case COMMAND_HELP:
-                        Console.WriteLine(string.Format(@"{0,10}: List all client commands", COMMAND_HELP));
-                        Console.WriteLine(string.Format(@"{0,10}: Display all account balances", COMMAND_BALANCE));
-                        Console.WriteLine(string.Format(@"{0,10}: Display the number of transaction blocks in the account", COMMAND_COUNT));
-                        Console.WriteLine(string.Format(@"{0,10}: Display Account Id (aka ""wallet address"" or ""public key"")", COMMAND_ACCOUNT_ID));
-                        Console.WriteLine(string.Format(@"{0,10}: Display Account Private Key", COMMAND_PRIVATE_KEY));
+                        Console.WriteLine(string.Format(@"{0,10}: Show the list of all wallet commands", COMMAND_HELP));
+                        Console.WriteLine(string.Format(@"{0,10}: Show all account balances", COMMAND_BALANCE));
+                        Console.WriteLine(string.Format(@"{0,10}: Show the number of transaction blocks in the account", COMMAND_COUNT));
+                        Console.WriteLine(string.Format(@"{0,10}: Show Account Id (aka ""wallet address"" or ""public key"")", COMMAND_ACCOUNT_ID));
+                        Console.WriteLine(string.Format(@"{0,10}: Show Account Private Key", COMMAND_PRIVATE_KEY));
                         Console.WriteLine(string.Format(@"{0,10}: DPoS: Set Vote for Account Id", COMMAND_VOTEFOR));
                         Console.WriteLine(string.Format(@"{0,10}: Transfer funds to another account", COMMAND_SEND));
                         Console.WriteLine(string.Format(@"{0,10}: Transfer collectible NFT to another account", COMMAND_SEND_NFT));
                         //Console.WriteLine(string.Format(@"{0,10}: Pay to a merchant", COMMAND_PAY));
                         //Console.WriteLine(string.Format(@"{0,10}: Accept payment from a buyer", COMMAND_SELL));
-                        Console.WriteLine(string.Format(@"{0,10}: Display the account status summary", COMMAND_STATUS));
+                        Console.WriteLine(string.Format(@"{0,10}: Show the account status summary", COMMAND_STATUS));
                         //Console.WriteLine(string.Format(@"{0,10}: Place a trade order", COMMAND_TRADE_ORDER));
                         //Console.WriteLine(string.Format(@"{0,10}: Cancel trade order", COMMAND_CANCEL_TRADE_ORDER));
+                        Console.WriteLine(string.Format(@"{0,10}: Show last 50 transactions", COMMAND_HISTORY));
                         Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
                         Console.WriteLine(string.Format(@"{0,10}: Import account into current wallet account", COMMAND_IMPORT_ACCOUNT));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new fungible token", COMMAND_TOKEN));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new collectible NFT (non-fungible token)", COMMAND_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Issue a new collectible NFT instance", COMMAND_ISSUE_NFT));
-                        Console.WriteLine(string.Format(@"{0,10}: Print last transaction block", COMMAND_PRINT_LAST_BLOCK));
-                        Console.WriteLine(string.Format(@"{0,10}: Print transaction block", COMMAND_PRINT_BLOCK));
-                        Console.WriteLine(string.Format(@"{0,10}: Print the list of active reward orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
+                        Console.WriteLine(string.Format(@"{0,10}: Show last transaction block", COMMAND_PRINT_LAST_BLOCK));
+                        Console.WriteLine(string.Format(@"{0,10}: Show transaction block with specified index", COMMAND_PRINT_BLOCK));
+                        Console.WriteLine(string.Format(@"{0,10}: Show the list of active reward orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up with the node (receive transfers)", COMMAND_SYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up authorizer node's fees", COMMAND_SYNCFEE));
                         //Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
@@ -195,6 +201,10 @@ namespace Lyra.Client.CLI
                         string imported_private_key = Console.ReadLine();
                         var import_result = await _wallet.ImportAccount(imported_private_key);
                         Console.WriteLine("Import Result: " + import_result.ResultCode.ToString());
+                        break;
+                    case COMMAND_HISTORY:
+                    case COMMAND_HISTORY_SHORT:
+                        await ProcessHistoryAsync();
                         break;
                     case COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST:
                         //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
@@ -547,6 +557,235 @@ namespace Lyra.Client.CLI
                 Console.WriteLine($"NFT generation has been authorized successfully");
                 Console.WriteLine("Balance: " + await _wallet.GetDisplayBalancesAsync());
             }
+        }
+
+        async Task ProcessHistoryAsync()
+        {
+            Console.WriteLine(await GetDisplayTransactionHistoryAsync());
+        }
+
+        // Displays 20  transactions starting from start_height
+        public async Task<string> GetDisplayTransactionHistoryAsync(long start_height = 0)
+        {
+            const int MAX_TRANSACTIONS_TO_DISPLAY = 50;
+            string res = "No Transactions Found";
+            TransactionBlock lastBlock = _wallet.GetLatestBlock();
+            if (lastBlock == null)
+                return res;
+
+            if (start_height < 0 || start_height > lastBlock.Height)
+                start_height = 0;
+
+            long end_height = 0;
+
+            if (start_height == 0) // just 20 last transactions
+            {
+                end_height = lastBlock.Height;
+                start_height = end_height - MAX_TRANSACTIONS_TO_DISPLAY + 1;
+                if (start_height < 1)
+                    start_height = 1;
+            }
+            else
+            {
+                end_height = start_height + MAX_TRANSACTIONS_TO_DISPLAY - 1;
+                if (end_height > lastBlock.Height)
+                    end_height = lastBlock.Height;
+            }
+             
+            TransactionBlock block = null;
+            TransactionBlock previous_block = null;
+
+            const string INDEX_LABEL = "#";
+            const string DATETIME_LABEL = "Date       Time ";
+            const string TRANSACTION_LABEL = "Transaction";
+            const string AMOUNT_LABEL = "Amount";
+            const string TOKEN_LABEL = "Token";
+            const string BALANCE_LABEL = "Balance";
+            const string FEE_LABEL = "Fee";
+            const string HASH_LABEL = "Hash";
+
+            int index_width = INDEX_LABEL.Length;
+            int datetime_width = DATETIME_LABEL.Length;
+            int transaction_width = TRANSACTION_LABEL.Length;
+            int amount_width = AMOUNT_LABEL.Length;
+            int token_width = TOKEN_LABEL.Length;
+            int balance_width = BALANCE_LABEL.Length;
+            int fee_width = FEE_LABEL.Length;
+            int hash_width = HASH_LABEL.Length;
+
+            var blocks = new Dictionary<long, TransactionBlock>();
+            
+            if (start_height > 1) // prepare the first previous block 
+            {
+                block = await _wallet.GetBlockByIndex(start_height - 1);
+                blocks.Add(start_height - 1, block);
+            }
+
+            // find the max width of each variable field so we could format them nicely
+            for (long i = start_height; i <= end_height; i++)
+            {
+                previous_block = block;
+                block = await _wallet.GetBlockByIndex(i);
+                if (block == null)
+                    continue;
+                blocks.Add(i, block);
+                if (i.ToString().Length > index_width)
+                    index_width = i.ToString().Length;
+
+                if (GetTransactionName(block).Length > transaction_width)
+                    transaction_width = GetTransactionName(block).Length;
+
+                var transaction = block.GetTransaction(previous_block);
+                if (transaction != null)
+                {
+                    if (String.Format("{0:n}", transaction.Amount).Length > amount_width)
+                        amount_width = String.Format("{0:n}", transaction.Amount).Length;
+
+                    if (transaction.TokenCode.Length > token_width)
+                        token_width = transaction.TokenCode.Length;
+
+                    if (block.Balances.Count > 0 && block.Balances.ContainsKey(transaction.TokenCode))
+                    {
+                        if (String.Format("{0:n}", block.Balances[transaction.TokenCode].ToBalanceDecimal()).Length > balance_width)
+                            balance_width = String.Format("{0:n}", block.Balances[transaction.TokenCode].ToBalanceDecimal()).Length;
+                    }
+
+                    if (String.Format("{0:n}", block.Fee).Length > fee_width)
+                        fee_width = String.Format("{0:n}", block.Fee).Length;
+                }
+            }
+
+            res = $"\n";
+            //res += $"Index Date       Time  Transaction           Amount                         Token               Balance           Fee    Hash";
+            res += string.Format($"{{0,{-index_width}}} ", INDEX_LABEL);
+            res += string.Format($"{{0,{datetime_width}}} ", DATETIME_LABEL);
+            res += string.Format($"{{0,{-transaction_width}}} ", TRANSACTION_LABEL);
+            res += string.Format($"{{0,{-amount_width}}} ", AMOUNT_LABEL);
+            res += string.Format($"{{0,{-token_width}}} ", TOKEN_LABEL);
+            res += string.Format($"{{0,{-balance_width}}} ", BALANCE_LABEL);
+            res += string.Format($"{{0,{-fee_width}}} ", FEE_LABEL);
+            res += string.Format($"{{0,{-hash_width}}} ", HASH_LABEL);
+            res += $"\n";
+
+
+            if (start_height > 1)
+                block = blocks[start_height - 1];
+            else
+                block = null;
+
+            for (long i = start_height; i <= end_height; i++)
+            {
+                string index = string.Format($"{{0,{index_width}}}", i);
+                res += $"{index} ";
+
+                previous_block = block;
+                if (!blocks.TryGetValue(i, out block))
+                {
+                    res += "Could not get the block";
+                    res += $"\n";
+                    continue;
+                }
+
+                res += $"{block.TimeStamp.ToString("MM'/'dd'/'yyyy' 'HH':'mm")} ";
+
+                res += string.Format($"{{0,{-transaction_width}}} ", GetTransactionName(block)); 
+
+                var transaction = block.GetTransaction(previous_block);
+                //string amount = string.Format("{0,14:##########0.00}", 0m);
+                //if (transaction != null)
+                //    amount = string.Format("{0,14:##########0.00}", transaction.Amount);
+
+                //string amount = String.Format($"{{0,{amount_width}}}", 0m);
+                //if (transaction != null)
+                //    amount = string.Format($"{{0,{amount_width}}}", transaction.Amount);
+                //res += $"{amount} ";
+
+                string amount = String.Format("{0:n}", 0m);
+                if (transaction != null)
+                    amount = string.Format("{0:n}", transaction.Amount);
+                res += string.Format($"{{0,{amount_width}}} ", amount);
+
+                string token = String.Format($"{{0,{token_width}}}", string.Empty);
+                if (transaction != null)
+                    token = String.Format($"{{0,{-token_width}}}", transaction.TokenCode);
+                res += $"{token} ";
+
+                //string balance = string.Format($"{{0,{balance_width}}}", 0m);
+                //if (transaction != null && block.Balances.Count > 0)
+                //    balance = string.Format($"{{0,{balance_width}}}", block.Balances[transaction.TokenCode].ToBalanceDecimal());
+                //res += $"{balance} ";
+
+                //string balance = string.Format("{0,14:##########0.00}", 0m);
+                //if (transaction != null && block.Balances.Count > 0)
+                //    balance = string.Format("{0,14:##########0.00}", block.Balances[transaction.TokenCode].ToBalanceDecimal());
+                //res += $"{balance} ";
+
+                string balance = String.Format("{0:n}", 0m);
+                if (transaction != null && block.Balances.Count > 0)
+                    balance = string.Format("{0:n}", block.Balances[transaction.TokenCode].ToBalanceDecimal());
+                res += string.Format($"{{0,{balance_width}}} ", balance);
+
+                //string fee = string.Format($"{{0,{fee_width}}}", 0m);
+                //if (transaction != null)
+                //    fee = string.Format($"{{0,{fee_width}}}", transaction.FeeAmount);
+                //res += $"{fee} ";
+
+                //string fee = string.Format("{0,8:####0.00}", 0m);
+                //if (transaction != null)
+                //    fee = string.Format("{0,8:####0.00}", transaction.FeeAmount);
+                //res += $"{fee} ";
+
+                string fee = String.Format("{0:n}", 0m);
+                if (transaction != null)
+                    fee = String.Format("{0:n}", block.Fee);
+                res += string.Format($"{{0,{fee_width}}} ", fee);
+
+                res += $"{block.Hash}";
+
+                res += $"\n";
+
+            }
+            return res;
+        }
+
+        private string GetTransactionName(TransactionBlock block)
+        {
+            string res = string.Empty;
+            switch (block.BlockType)
+            {
+                case BlockTypes.OpenAccountWithReceiveTransfer:
+                case BlockTypes.OpenAccountWithReceiveFee:
+                case BlockTypes.ReceiveTransfer:
+                    res += $"+ Received";
+                    break;
+                case BlockTypes.OpenAccountWithImport:
+                case BlockTypes.ImportAccount:
+                    res += $"+ Import";
+                    break;
+                case BlockTypes.LyraTokenGenesis:
+                case BlockTypes.TokenGenesis:
+                    res += $"+ Genesis";
+                    break;
+                case BlockTypes.ReceiveAuthorizerFee:
+                case BlockTypes.ReceiveMultipleFee:
+                    res += $"+ Auth Fees";
+                    break;
+                case BlockTypes.SendTransfer:
+                    res += $"- Sent";
+                    break;
+                case BlockTypes.ExecuteTradeOrder:
+                    res += $"- Exec Trade";
+                    break;
+                case BlockTypes.TradeOrder:
+                    res += $"- Trade Order";
+                    break;
+                case BlockTypes.Trade:
+                    res += $"- Trade";
+                    break;
+                default:
+                    break;
+            }
+            return res;
         }
 
         public bool ReadYesNoAnswer()
