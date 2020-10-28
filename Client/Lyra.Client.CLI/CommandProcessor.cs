@@ -91,7 +91,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Show the account status summary", COMMAND_STATUS));
                         //Console.WriteLine(string.Format(@"{0,10}: Place a trade order", COMMAND_TRADE_ORDER));
                         //Console.WriteLine(string.Format(@"{0,10}: Cancel trade order", COMMAND_CANCEL_TRADE_ORDER));
-                        Console.WriteLine(string.Format(@"{0,10}: Show last 50 transactions", COMMAND_HISTORY));
+                        Console.WriteLine(string.Format(@"{0,10}: Show transaction history", COMMAND_HISTORY));
                         Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
                         Console.WriteLine(string.Format(@"{0,10}: Import account into current wallet account", COMMAND_IMPORT_ACCOUNT));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new fungible token", COMMAND_TOKEN));
@@ -561,7 +561,15 @@ namespace Lyra.Client.CLI
 
         async Task ProcessHistoryAsync()
         {
-            Console.WriteLine(await GetDisplayTransactionHistoryAsync());
+            Console.WriteLine("Please enter starting index or press Enter to show last transactions: ");
+            string index = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(index))
+                Console.WriteLine(await GetDisplayTransactionHistoryAsync());
+            else
+            {
+                long start_index = Convert.ToInt64(index);
+                Console.WriteLine(await GetDisplayTransactionHistoryAsync(start_index));
+            }
         }
 
         // Displays 20  transactions starting from start_height
