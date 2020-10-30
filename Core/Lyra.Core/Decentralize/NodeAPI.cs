@@ -397,11 +397,13 @@ namespace Lyra.Core.Decentralize
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             var result = new BlockAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
+
+            // engaging sync need to access this api without service block sync.
+            //if (!await VerifyClientAsync(AccountId, Signature))
+            //{
+            //    result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+            //    return result;
+            //}
 
             try
             {
