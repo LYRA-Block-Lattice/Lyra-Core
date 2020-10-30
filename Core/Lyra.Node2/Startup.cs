@@ -18,6 +18,8 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.HttpOverrides;
 using Lyra.Data.Utils;
 using Lyra.Data;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Hosting.Server;
 
 namespace Lyra.Node2
 {
@@ -25,6 +27,8 @@ namespace Lyra.Node2
     {
         public IConfiguration Configuration { get; }
         private IWebHostEnvironment _env;
+
+        public static IApplicationBuilder App { get; private set; }
 
         public Startup(IConfiguration configuration)
         {
@@ -86,6 +90,7 @@ namespace Lyra.Node2
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            App = app;
             _env = env;
             //app.UseCors("my");
 
