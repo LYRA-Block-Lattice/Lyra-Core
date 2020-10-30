@@ -298,6 +298,10 @@ namespace Lyra.Core.Decentralize
                                 await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
                                 someBlockSynced = true;
                             }
+                            else if(blockResult.ResultCode == APIResultCodes.APISignatureValidationFailed)
+                            {
+                                throw new Exception("Desynced by new service block.");
+                            }
                             else
                             {
                                 someBlockSynced = true;
@@ -352,6 +356,7 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation($"Engaging Sync failed with error \"{ex.Message}\". continue...");
                     await Task.Delay(1000);
+                    client = await GetOptimizedSyncClientAsync(true);
                 }
             }
         }
