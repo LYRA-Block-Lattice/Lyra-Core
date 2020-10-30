@@ -309,32 +309,32 @@ namespace Lyra.Core.Authorizers
             return false;
         }
 
-        protected async Task<bool> DoesAccountHaveNFTInstanceAsync(DagSystem sys, string owner_account_id, TokenGenesisBlock token_block, string SerialNumber)
-        {
-            var non_fungible_tokens = await sys.Storage.GetIssuedNFTInstancesAsync(GetOnlySendBlocks: false, owner_account_id, token_block.Ticker);
-            if (non_fungible_tokens == null)
-                return false;
+        //protected async Task<bool> DoesAccountHaveNFTInstanceAsync(DagSystem sys, string owner_account_id, TokenGenesisBlock token_block, string SerialNumber)
+        //{
+        //    var non_fungible_tokens = await sys.Storage.GetIssuedNFTInstancesAsync(GetOnlySendBlocks: false, owner_account_id, token_block.Ticker);
+        //    if (non_fungible_tokens == null)
+        //        return false;
 
-            int block_count = 0;
+        //    int block_count = 0;
 
-            foreach (var nft in non_fungible_tokens)
-                if (nft.SerialNumber == SerialNumber)
-                    block_count++;
+        //    foreach (var nft in non_fungible_tokens)
+        //        if (nft.SerialNumber == SerialNumber)
+        //            block_count++;
 
-            // the issuer's account has one extra send block created when the NFT instance was issued 
-            if (owner_account_id == token_block.AccountID)
-                block_count--;
+        //    // the issuer's account has one extra send block created when the NFT instance was issued 
+        //    if (owner_account_id == token_block.AccountID)
+        //        block_count--;
 
-            if (block_count <= 0)
-                return false;
+        //    if (block_count <= 0)
+        //        return false;
 
 
-            // even number (block_count mod 2 result is zero) means that there was at least a couple of blocks with the serila number, 
-            // which means that there was receive and send for the same serial number. So the token was received and sent to another account.So there is no token on this account.
-            if (block_count % 2 == 0)
-                return false;
-            return true;
-        }
+        //    // even number (block_count mod 2 result is zero) means that there was at least a couple of blocks with the serila number, 
+        //    // which means that there was receive and send for the same serial number. So the token was received and sent to another account.So there is no token on this account.
+        //    if (block_count % 2 == 0)
+        //        return false;
+        //    return true;
+        //}
 
         protected AuthorizationSignature Sign<T>(DagSystem sys, T tblock)
         {

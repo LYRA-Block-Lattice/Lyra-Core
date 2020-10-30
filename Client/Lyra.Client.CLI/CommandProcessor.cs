@@ -41,14 +41,17 @@ namespace Lyra.Client.CLI
         public const string COMMAND_SYNCFEE = "syncfee";
         public const string COMMAND_IMPORT_ACCOUNT = "import";
 
-        // Generate new NFT
-        public const string COMMAND_NFT = "nft";
+        // Generate new NFT genesis
+        public const string COMMAND_CREATE_NFT = "createnft";
 
         // Issues an new instance if NFT does not exists.
         public const string COMMAND_ISSUE_NFT = "issuenft";
 
         // Makes NFT transfer if NFT exists;
         public const string COMMAND_SEND_NFT = "sendnft";
+
+        // Shows all NFT instances owned by the account
+        public const string COMMAND_SHOW_NFT = "nft";
 
         // set wallet's private key
         public const string COMMAND_RESTORE = "restore";
@@ -95,8 +98,9 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Redeem reward tokens to get a discount token", COMMAND_REDEEM_REWARDS));
                         Console.WriteLine(string.Format(@"{0,10}: Import account into current wallet account", COMMAND_IMPORT_ACCOUNT));
                         Console.WriteLine(string.Format(@"{0,10}: Create a new fungible token", COMMAND_TOKEN));
-                        Console.WriteLine(string.Format(@"{0,10}: Create a new collectible NFT (non-fungible token)", COMMAND_NFT));
+                        Console.WriteLine(string.Format(@"{0,10}: Create a new collectible NFT (non-fungible token)", COMMAND_CREATE_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Issue a new collectible NFT instance", COMMAND_ISSUE_NFT));
+                        Console.WriteLine(string.Format(@"{0,10}: Show all NFT instances owned by the account", COMMAND_SHOW_NFT));
                         Console.WriteLine(string.Format(@"{0,10}: Show last transaction block", COMMAND_PRINT_LAST_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Show transaction block with specified index", COMMAND_PRINT_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Show the list of active reward orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
@@ -154,7 +158,7 @@ namespace Lyra.Client.CLI
                     case COMMAND_TOKEN:
                         await ProcessNewTokenAsync();
                         break;
-                    case COMMAND_NFT:
+                    case COMMAND_CREATE_NFT:
                         await ProcessNewNFTAsync();
                         break;
                     case COMMAND_ISSUE_NFT:
@@ -162,6 +166,9 @@ namespace Lyra.Client.CLI
                         break;
                     case COMMAND_SEND_NFT:
                         await ProcessSendNFTAsync(false);
+                        break;
+                    case COMMAND_SHOW_NFT:
+                        Console.WriteLine(await GetDisplayNFTAsync());
                         break;
                     case COMMAND_SEND:
                         await ProcessSendAsync();
@@ -572,11 +579,31 @@ namespace Lyra.Client.CLI
             }
         }
 
-        // Displays 20  transactions starting from start_height
+        // Shows all NFT instances owned by the account
+        public async Task<string> GetDisplayNFTAsync()
+        {
+            string res = "No NFT found";
+
+            var nft_list = await _wallet.GetNonFungibleTokensAsync();
+            if (nft_list == null)
+                return res;
+
+            res = string.Empty;
+
+            foreach (var nft in nft_list)
+            {
+                res += await _wallet.GetDisplayNFTInstanceAsync(nft);
+                res += $"\n";
+            }
+
+            return res;
+        }
+
+            // Displays 50 last transactions starting from start_height
         public async Task<string> GetDisplayTransactionHistoryAsync(long start_height = 0)
         {
             const int MAX_TRANSACTIONS_TO_DISPLAY = 50;
-            string res = "No Transactions Found";
+            string res = "No transactions found";
             TransactionBlock lastBlock = _wallet.GetLatestBlock();
             if (lastBlock == null)
                 return res;
@@ -795,6 +822,8 @@ namespace Lyra.Client.CLI
             }
             return res;
         }
+
+
 
         public bool ReadYesNoAnswer()
         {

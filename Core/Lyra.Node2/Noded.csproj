@@ -66,7 +66,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if &quot;%25COMPUTERNAME%25&quot; == &quot;xyz&quot; (&#xD;&#xA;copy $(OutDir)* \\Mac\slava\LYRA_FILES\NODE&#xD;&#xA;copy C:\Users\slava\source\LOCAL_LYRA_CONFIG\config.json $(OutDir)&#xD;&#xA;copy C:\Users\slava\source\LOCAL_LYRA_CONFIG\protocol.json $(OutDir)&#xD;&#xA;)" />
+    <Exec Command="if &quot;%25COMPUTERNAME%25&quot; == &quot;xyz&quot; (&#xD;&#xA;xcopy /E /I /Y $(OutDir)* \\Mac\slava\LYRA_FILES\NODE&#xD;&#xA;copy C:\Users\slava\source\LOCAL_LYRA_CONFIG\config.json $(OutDir)&#xD;&#xA;copy C:\Users\slava\source\LOCAL_LYRA_CONFIG\protocol.json $(OutDir)&#xD;&#xA;)" />
   </Target>
 
 </Project>

@@ -9,6 +9,7 @@ using System.Linq;
 using System.IO;
 using Lyra.Data.Crypto;
 using Lyra.Data;
+using System.Data;
 
 namespace Lyra.Core.Accounts
 {
@@ -157,6 +158,15 @@ namespace Lyra.Core.Accounts
         public TransactionBlock GetLatestBlock()
         {
             return _lastTransactionBlock;
+        }
+
+        public async Task<TokenGenesisBlock> GetTokenGenesisBlockAsync(string TokenCode)
+        {
+            var res = await _rpcClient.GetTokenGenesisBlock(AccountId, TokenCode, SignAPICallAsync());
+            if (res?.ResultCode == APIResultCodes.Success)
+                return res.GetBlock() as TokenGenesisBlock;
+            else
+                return null;
         }
 
         public long GetLocalAccountHeight()
@@ -524,7 +534,7 @@ namespace Lyra.Core.Accounts
         //    //     null, 500, 5000);
         //}
 
-       
+
         public async Task<string> GetDisplayBalancesAsync()
         {
             string res = "0";
@@ -534,60 +544,73 @@ namespace Lyra.Core.Accounts
                 res = $"\n";
                 foreach (var balance in lastBlock.Balances)
                 {
-                    //int precision = FindTokenPrecision(balance.Key).Result;
-
-                    //res = res + string.Format(@"{0} {1}    ", balance.Value / Math.Pow(10, precision != -1?precision:0), balance.Key);
                     res += $"    {balance.Value.ToBalanceDecimal()} {balance.Key}\n";
                 }
                 if (lastBlock.NonFungibleToken != null)
                 {
-                    var discount_token_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, lastBlock.NonFungibleToken.TokenCode, SignAPICallAsync());
-                    if (discount_token_genesis == null || discount_token_genesis.GetBlock() == null)
-                    {
-                        res += $"    Cannot retrieve token genesis block for {lastBlock.NonFungibleToken.TokenCode}  \n";
-                        return res;
-                    }
-
                     var sent_or_receive = lastBlock is ReceiveTransferBlock ? "received" : "sent";
                     res += $"Last Non-Fungible Token {sent_or_receive}: {lastBlock.NonFungibleToken.TokenCode}  \n";
-
-                    var genesis_block = (TokenGenesisBlock)discount_token_genesis.GetBlock();
-                    if (genesis_block.ContractType == ContractTypes.Collectible)
-                    {
-                        res += $"    Collectible NFT \n";
-                        res += $"    Serial Number: {lastBlock.NonFungibleToken.SerialNumber}  \n";
-                    }
-                    else
-                    {
-                        if (!string.IsNullOrEmpty(lastBlock.NonFungibleToken.RedemptionCode))
-                        {
-                            var issuer_account_id = genesis_block.AccountID;
-                            var decryptor = new ECC_DHA_AES_Encryptor();
-                            string decrypted_redemption_code = decryptor.Decrypt(PrivateKey, issuer_account_id, lastBlock.NonFungibleToken.SerialNumber, lastBlock.NonFungibleToken.RedemptionCode);
-                            res += $"    Shopify Discount: {lastBlock.NonFungibleToken.Denomination.ToString("C")} Discount Code: {decrypted_redemption_code}  \n";
-                        }
-                    }
-                    if (!string.IsNullOrEmpty(genesis_block.Description))
-                        res += $"    Description: {genesis_block.Description}  \n";
-                    if (!string.IsNullOrEmpty(genesis_block.Owner))
-                        res += $"    Issuer: {genesis_block.Owner}  \n";
-                    if (!string.IsNullOrEmpty(genesis_block.Address))
-                        res += $"    Address: {genesis_block.Address}  \n";
-                    if (!string.IsNullOrEmpty(genesis_block.Icon))
-                        res += $"    Icon: {genesis_block.Icon}  \n";
-                    if (!string.IsNullOrEmpty(genesis_block.Image))
-                        res += $"    Image: {genesis_block.Image}  \n";
+                    res += await GetDisplayNFTInstanceAsync(lastBlock.NonFungibleToken);
                 }
             }
             return res;
         }
 
+        // returns a list of all NFT instances owned by the account
+        public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync()
+        {
+            var res = await _rpcClient.GetNonFungibleTokens(AccountId, SignAPICallAsync());
+            if (res != null && res.Successful())
+                return res.GetList();
+            else
+                return null;
+        }
+
+        public async Task<string> GetDisplayNFTInstanceAsync(NonFungibleToken nft)
+        {
+            string res = string.Empty;
+            var genesis_block = await GetTokenGenesisBlockAsync(nft.TokenCode);
+            if (genesis_block == null)
+            {
+                res += $"    Cannot retrieve token genesis block for {nft.TokenCode}  \n";
+                return res;
+            }
+
+            if (genesis_block.ContractType == ContractTypes.Collectible)
+            {
+                res += $"    Collectible NFT: {nft.TokenCode} \n";
+                res += $"    Serial Number: {nft.SerialNumber}  \n";
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(nft.RedemptionCode))
+                {
+                    var issuer_account_id = genesis_block.AccountID;
+                    var decryptor = new ECC_DHA_AES_Encryptor();
+                    string decrypted_redemption_code = decryptor.Decrypt(PrivateKey, issuer_account_id, nft.SerialNumber, nft.RedemptionCode);
+                    res += $"    Shopify Discount: {nft.TokenCode} \n";
+                    res += $"    Discount Amount: {nft.Denomination.ToString("C")} \n";
+                    res += $"    Discount Code: {decrypted_redemption_code}  \n";
+                }
+            }
+            if (!string.IsNullOrEmpty(genesis_block.Description))
+                res += $"    Description: {genesis_block.Description}  \n";
+            if (!string.IsNullOrEmpty(genesis_block.Owner))
+                res += $"    Issuer: {genesis_block.Owner}  \n";
+            if (!string.IsNullOrEmpty(genesis_block.Address))
+                res += $"    Address: {genesis_block.Address}  \n";
+            if (!string.IsNullOrEmpty(genesis_block.Icon))
+                res += $"    Icon: {genesis_block.Icon}  \n";
+            if (!string.IsNullOrEmpty(genesis_block.Image))
+                res += $"    Image: {genesis_block.Image}  \n";
+            return res;
+        }
+
         public async Task<(string name, decimal Denomination, string Redemption)> NonFungToStringAsync(NonFungibleToken nftoken)
         {
-            var discount_token_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, nftoken.TokenCode, SignAPICallAsync());
-            if (discount_token_genesis?.ResultCode == APIResultCodes.Success)
+            var tgb = await GetTokenGenesisBlockAsync(nftoken.TokenCode);
+            if (tgb != null )
             {
-                var tgb = discount_token_genesis.GetBlock() as TokenGenesisBlock;
                 var issuer_account_id = tgb.AccountID;
                 var decryptor = new ECC_DHA_AES_Encryptor();
                 string decrypted_redemption_code = decryptor.Decrypt(PrivateKey, issuer_account_id, nftoken.SerialNumber, nftoken.RedemptionCode);
