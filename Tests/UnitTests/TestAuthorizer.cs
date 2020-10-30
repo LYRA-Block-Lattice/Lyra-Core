@@ -33,7 +33,7 @@ namespace UnitTests
             var keypair = Signatures.GenerateWallet();
             posWallet = UT_Wallet.Restore(keypair.privateKey);
 
-            TheDagSystem = new DagSystem(mockStore.Object, posWallet, fakeP2P);
+            TheDagSystem = new DagSystem(null, mockStore.Object, posWallet, fakeP2P);
         }
     }
 }
