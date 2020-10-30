@@ -54,6 +54,7 @@ namespace Lyra.Data.API
         public string AuthorizerSignature { get; set; }
         public decimal Votes { get; set; }
         public BlockChainState State { get; set; }
+        public string ThumbPrint { get; set; }
     }
 
     public class PosNode
@@ -64,6 +65,7 @@ namespace Lyra.Data.API
         public DateTime LastStaking { get; set; }
         public string AuthorizerSignature { get; set; }
         public string NodeVersion { get; set; }
+        public string ThumbPrint { get; set; }
 
         public PosNode(string accountId)
         {

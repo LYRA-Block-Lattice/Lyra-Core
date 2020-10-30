@@ -20,6 +20,7 @@ using Lyra.Data.Utils;
 using Lyra.Data;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Hosting.Server;
+using Noded.Services;
 
 namespace Lyra.Node2
 {
@@ -74,6 +75,7 @@ namespace Lyra.Node2
             // the apis
             services.AddSingleton<INodeAPI, NodeAPI>();
             services.AddSingleton<INodeTransactionAPI, ApiService>();
+            services.AddTransient<IHostEnv, HostEnvService>();
 
             services.AddMvc();
             services.AddControllers();

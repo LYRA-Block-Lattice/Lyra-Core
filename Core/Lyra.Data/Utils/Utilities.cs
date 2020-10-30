@@ -19,10 +19,20 @@ namespace Lyra.Data
 
             IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
 
-            return host
+            var ip1 = host
                 .AddressList
                 .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
                 .FirstOrDefault(b => getPublicIP ? !IsPrivate(b.ToString()) : true);
+
+            string localIP = ip1.ToString();
+            using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+            {
+                socket.Connect("8.8.8.8", 65530);
+                IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+                localIP = endPoint.Address.ToString();
+            }
+
+            return IPAddress.Parse(localIP);
         }
 
         public static bool IsPrivate(string ipAddress)

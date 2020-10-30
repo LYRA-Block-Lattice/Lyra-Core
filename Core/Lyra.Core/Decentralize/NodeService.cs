@@ -28,12 +28,13 @@ namespace Lyra.Core.Decentralize
 
         AutoResetEvent _waitOrder;
         ILogger _log;
+        IHostEnv _hostEnv;
 
         public string Leader { get; private set; }
 
         public static DagSystem Dag;
 
-        public NodeService(ILogger<NodeService> logger)
+        public NodeService(ILogger<NodeService> logger, IHostEnv hostEnv)
         {
             //if (Instance == null)
             //    Instance = this;
@@ -41,6 +42,7 @@ namespace Lyra.Core.Decentralize
             //    throw new InvalidOperationException("Should not do this");
 
             _log = logger;
+            _hostEnv = hostEnv;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -82,7 +84,7 @@ namespace Lyra.Core.Decentralize
 
                 var store = new MongoAccountCollection();
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
-                Dag = new DagSystem(store, PosWallet, localNode);
+                Dag = new DagSystem(_hostEnv, store, PosWallet, localNode);
                 _ = Task.Run(async () => await Dag.StartAsync());
                 await Task.Delay(30000);
 

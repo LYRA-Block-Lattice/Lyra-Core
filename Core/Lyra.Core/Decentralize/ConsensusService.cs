@@ -52,6 +52,7 @@ namespace Lyra.Core.Decentralize
         public BlockChainState CurrentState => _stateMachine.State;
 
         readonly ILogger _log;
+        readonly IHostEnv _hostEnv;
 
         ConcurrentDictionary<string, DateTime> _criticalMsgCache;
 
@@ -78,9 +79,10 @@ namespace Lyra.Core.Decentralize
         // authorizer snapshot
         private DagSystem _sys;
         public DagSystem GetDagSystem() => _sys;
-        public ConsensusService(DagSystem sys, IActorRef localNode, IActorRef blockchain)
+        public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
+            _hostEnv = hostEnv;
             _localNode = localNode;
             _blockchain = blockchain;
             _log = new SimpleLogger("ConsensusService").Logger;
@@ -704,6 +706,7 @@ namespace Lyra.Core.Decentralize
             // declare to the network
             PosNode me = new PosNode(_sys.PosWallet.AccountId);
             me.NodeVersion = LyraGlobal.NODE_VERSION.ToString();
+            me.ThumbPrint = _hostEnv.GetThumbPrint();
             _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId);
             me.IPAddress = $"{_myIpAddress}";
 
@@ -724,7 +727,7 @@ namespace Lyra.Core.Decentralize
             }
             else
                 _board.NodeAddresses.TryAdd(me.AccountID, me.IPAddress.ToString());
-            await OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State);
+            await OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint);
 
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
@@ -739,10 +742,10 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP);
+            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null);
         }
 
-        private async Task OnNodeActive(string accountId, string authSign, BlockChainState state, string ip = null)
+        private async Task OnNodeActive(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
@@ -753,6 +756,9 @@ namespace Lyra.Core.Decentralize
                 node.LastActive = DateTime.Now;
                 node.State = state;
                 node.AuthorizerSignature = authSign;
+
+                if (thumbPrint != null)
+                    node.ThumbPrint = thumbPrint;
             }
             else
             {
@@ -763,6 +769,10 @@ namespace Lyra.Core.Decentralize
                     LastActive = DateTime.Now,
                     AuthorizerSignature = authSign
                 };
+
+                if (thumbPrint != null)
+                    node.ThumbPrint = thumbPrint;
+
                 _board.ActiveNodes.Add(node);
             }
 
@@ -889,7 +899,7 @@ namespace Lyra.Core.Decentralize
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     return;
 
-                await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync);
+                await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync, node.IPAddress, node.ThumbPrint);
 
                 // add network/ip verifycation here
                 // if(verifyIP)
@@ -1092,9 +1102,9 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"ConsolidationBlock was submited. ");
         }
 
-        public static Props Props(DagSystem sys, IActorRef localNode, IActorRef blockchain)
+        public static Props Props(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
-            return Akka.Actor.Props.Create(() => new ConsensusService(sys, localNode, blockchain)).WithMailbox("consensus-service-mailbox");
+            return Akka.Actor.Props.Create(() => new ConsensusService(sys, hostEnv, localNode, blockchain)).WithMailbox("consensus-service-mailbox");
         }
 
         private async Task SubmitToConsensusAsync(AuthState state)

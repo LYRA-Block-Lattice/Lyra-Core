@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Settings = Neo.Settings;
 using Lyra.Core.Authorizers;
 using Lyra.Data.API;
+using Lyra.Core.API;
 
 namespace Lyra
 {
@@ -41,6 +42,7 @@ namespace Lyra
         private bool suspend = false;
 
         private ILogger _log;
+        private IHostEnv _hostEnv;
 
         public IAccountCollectionAsync Storage { get; private set; }
 
@@ -49,8 +51,9 @@ namespace Lyra
         public BlockChainState ConsensusState { get; private set; }
         public void UpdateConsensusState(BlockChainState state) => ConsensusState = state;
 
-        public DagSystem(IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
+        public DagSystem(IHostEnv hostEnv, IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {
+            _hostEnv = hostEnv;
             _log = new SimpleLogger("DagSystem").Logger;
             FullStarted = false;
 
@@ -105,7 +108,7 @@ namespace Lyra
 
         public void StartConsensus()
         {
-            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this, this.LocalNode, TheBlockchain));
+            Consensus = ActorSystem.ActorOf(ConsensusService.Props(this, this._hostEnv, this.LocalNode, TheBlockchain));
             Consensus.Tell(new ConsensusService.Startup { }, TheBlockchain);
         }
 
