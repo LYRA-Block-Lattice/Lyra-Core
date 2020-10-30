@@ -32,6 +32,9 @@ namespace Lyra.Core.Decentralize
         public AuthorizedMsg LocalResult { get; set; }
 
         public AuthorizingMsg InputMsg { get; set; }
+
+        /// for service block or consolidation block, form non-leader, will be false.
+        public bool IsSourceValid { get; set; }
         public ConcurrentBag<AuthorizedMsg> OutputMsgs { get; set; }
         public ConcurrentBag<AuthorizerCommitMsg> CommitMsgs { get; set; }
 

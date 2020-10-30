@@ -49,6 +49,7 @@ namespace Lyra.Core.Decentralize
         }
         protected override async Task InternalProcessMessage(ConsensusMessage msg)
         {
+            bool sourceValid = true;
             if(msg is BlockConsensusMessage bmsg)
             {
                 if (bmsg is AuthorizingMsg svcB && svcB.Block.BlockType == BlockTypes.Service) // service block must come from the new elected leader
@@ -56,7 +57,7 @@ namespace Lyra.Core.Decentralize
                     if (_context.Board.LeaderCandidate != null && _context.Board.LeaderCandidate != bmsg.From)
                     {
                         _log.LogWarning($"Service block not from leader candidate {_context.Board.LeaderCandidate.Shorten()} but from {bmsg.From.Shorten()}");
-                        return;
+                        sourceValid = false;
                     }
                 }
                 else if (bmsg.IsServiceBlock)
@@ -64,7 +65,7 @@ namespace Lyra.Core.Decentralize
                     if (!_context.Board.AllVoters.Contains(bmsg.From))
                     {
                         _log.LogWarning($"Service block auth msg not from AllVoters but from {bmsg.From.Shorten()}");
-                        return;
+                        sourceValid = false;
                     }
                 }                
                 else if(bmsg is AuthorizingMsg am && am.Block.BlockType == BlockTypes.Consolidation)
@@ -72,7 +73,7 @@ namespace Lyra.Core.Decentralize
                     if (_context.Board.CurrentLeader != bmsg.From)
                     {
                         _log.LogWarning($"Consolidation block not from current leader {_context.Board.CurrentLeader.Shorten()} but from {bmsg.From.Shorten()}");
-                        return;
+                        sourceValid = false;
                     }
                 }                
                 else if (!(bmsg is AuthorizingMsg))     // allow authorizingmsg from anywhere
@@ -87,7 +88,7 @@ namespace Lyra.Core.Decentralize
             switch (msg)
             {
                 case AuthorizingMsg msg1:
-                    OnPrePrepare(msg1);
+                    OnPrePrepare(msg1, sourceValid);
                     break;
                 case AuthorizedMsg msg2:
                     await OnPrepareAsync(msg2);
@@ -100,7 +101,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void OnPrePrepare(AuthorizingMsg msg)
+        private void OnPrePrepare(AuthorizingMsg msg, bool sourceValid)
         {
             _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash} from {msg.From.Shorten()}");
             //_context.OnNodeActive(_context.GetDagSystem().PosWallet.AccountId);     // update billboard
@@ -112,18 +113,22 @@ namespace Lyra.Core.Decentralize
 
             // first try auth locally
             if (_state == null)
-                _state = CreateAuthringState(msg);
+                _state = CreateAuthringState(msg, sourceValid);
 
             _state.SetView(msg.IsServiceBlock ? _context.Board.AllVoters : _context.Board.PrimaryAuthorizers);
 
-            //_context.Send2P2pNetwork(msg);
-            _ = Task.Run(async () =>
+            // if source is invalid, we just listen to the network. 
+            // we need to detect whether this node is out of sync now.
+            if(sourceValid)
             {
-                //if (waitHandle != null)
-                //    await waitHandle.AsTask();
+                _ = Task.Run(async () =>
+                {
+                    //if (waitHandle != null)
+                    //    await waitHandle.AsTask();
 
-                await AuthorizeAsync(msg);
-            });
+                    await AuthorizeAsync(msg);
+                });
+            }
         }
 
         private async Task OnPrepareAsync(AuthorizedMsg item)
@@ -174,7 +179,7 @@ namespace Lyra.Core.Decentralize
             //}
         }
 
-        private AuthState CreateAuthringState(AuthorizingMsg item)
+        private AuthState CreateAuthringState(AuthorizingMsg item, bool sourceValid)
         {
             _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {item.Block.Height}");
 
@@ -189,6 +194,7 @@ namespace Lyra.Core.Decentralize
                 state = new AuthState();
             }
             state.InputMsg = item;
+            state.IsSourceValid = sourceValid;
             return state;
         }
 
