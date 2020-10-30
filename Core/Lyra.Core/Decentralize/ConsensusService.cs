@@ -930,7 +930,7 @@ namespace Lyra.Core.Decentralize
             if (_stateMachine.State != BlockChainState.Almighty)
                 return;
 
-            if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State?.InputMsg.Block is ConsolidationBlock))
+            if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State != null && a.State.IsSourceValid && a.State.InputMsg.Block is ConsolidationBlock))
                 return;
 
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
