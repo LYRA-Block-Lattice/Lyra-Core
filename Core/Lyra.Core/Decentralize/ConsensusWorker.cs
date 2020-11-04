@@ -443,14 +443,14 @@ namespace Lyra.Core.Decentralize
             }
             else if(block is ServiceBlock sb)
             {
-                // need update billboard
-                _context.ServiceBlockCreated(sb);
-
                 // check if missing service block
                 if (State.LocalResult != null && ((_state.CommitConsensus == ConsensusResult.Yea && State.LocalResult.Result == APIResultCodes.Success)
                         || (_state.CommitConsensus == ConsensusResult.Nay && State.LocalResult.Result != APIResultCodes.Success)))
                 {
                     _log.LogInformation("Service block succeeded.");
+
+                    // need update billboard
+                    _context.ServiceBlockCreated(sb);
                 }
                 else if (!_state.CommitConsensus.HasValue || _state.CommitConsensus == ConsensusResult.Uncertain)
                 {

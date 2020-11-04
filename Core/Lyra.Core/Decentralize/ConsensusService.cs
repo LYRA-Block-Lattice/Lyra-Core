@@ -808,14 +808,46 @@ namespace Lyra.Core.Decentralize
             {
                 if (CurrentState == BlockChainState.Almighty && accountId == tickSeedId)
                 {
+                    // check leader generate consolidation block properly
+                    bool leaderConsFailed = false;
+                    var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                    if (lastCons != null) // wait for genesis
+                    {
+                        // consolidate time from lastcons to now - 10s
+                        var timeStamp = DateTime.UtcNow.AddSeconds(-10);
+                        var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
+
+                        // if 1 it must be previous consolidation block.
+                        if ((unConsList.Count() >= 100 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(1))
+                            || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(15)))
+                        {
+                            leaderConsFailed = true;
+                        }
+                    }
+
+                    // check leader offline
+                    bool leaderOffline = false;
                     if (_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb.Leader))
                     {
                         // leader is offline. we need chose one new
-                        UpdateVoters();
+                        leaderOffline = true;
+                    }
 
-                        _log.LogInformation($"We have no leader online. Change view...");
-                        // should change view for new member
-                        _viewChangeHandler.BeginChangeView(false);
+                    if(leaderConsFailed || leaderOffline)
+                    {
+                        var lastLeader = lastSb.Leader;
+
+                        _ = Task.Run(() => {
+                            UpdateVoters();
+
+                            // remove defunc leader. don't let it be elected leader again.
+                            if (Board.AllVoters.Contains(lastLeader))
+                                Board.AllVoters.Remove(lastLeader);
+
+                            _log.LogInformation($"Current leader {lastLeader.Shorten()} do no consolidation or offline. Change view...");
+                            // should change view for new member
+                            _viewChangeHandler.BeginChangeView(false);
+                        });
                     }
                 }
             }

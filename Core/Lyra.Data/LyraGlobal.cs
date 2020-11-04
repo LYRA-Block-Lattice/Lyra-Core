@@ -60,15 +60,15 @@ namespace Lyra.Core.API
                 case "devnet":
                     //return "http://192.168.3.73:4505/api/";
                     //return "http://10.211.55.5:4505/api/";
-                    return $"http://api.devnet:{port}/api/";       // better set static hosts entry
+                    return $"https://api.devnet:4504/api/";       // better set static hosts entry
 
 #endif
                 case "testnet":
                     //return $"http://api.testnet.lyra.live:{port}/api/";
                     return $"https://testnet.lyra.live/api/";
                 case "mainnet":
-                    return $"http://api.mainnet.lyra.live:{port}/api/";
-                    //return $"https://mainnet.lyra.live/api/";
+                    //return $"http://api.mainnet.lyra.live:{port}/api/";
+                    return $"https://mainnet.lyra.live/api/";
                 default:
                     throw new Exception("Unsupported network ID: " + networkID);
             }
