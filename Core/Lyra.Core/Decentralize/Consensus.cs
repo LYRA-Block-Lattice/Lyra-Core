@@ -97,7 +97,7 @@ namespace Lyra.Core.Decentralize
 
                 // for safty the list must contains at least 2 seed node.
                 // if no seed nodes included the network should have some problem.
-                //if (list.Count(x => ProtocolSettings.Default.StandbyValidators.Contains(x.accountId)) >= 1)
+                if (list.Count(x => ProtocolSettings.Default.StandbyValidators.Contains(x.accountId)) >= 1)
                     return list;
             }
             
