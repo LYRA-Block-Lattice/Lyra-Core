@@ -1247,7 +1247,7 @@ namespace Lyra.Core.Decentralize
                     var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
                     if (statusReply != null)
                     {
-                        if (Board.PrimaryAuthorizers == null || !Board.PrimaryAuthorizers.Contains(statusReply.accountId))
+                        if (Board.PrimaryAuthorizers == null || (!Board.PrimaryAuthorizers.Contains(statusReply.accountId) && !ProtocolSettings.Default.StandbyValidators.Contains(statusReply.accountId)))
                             return;
 
                         if (Board.ActiveNodes.Any(a => a.AccountID == statusReply.accountId) && !_nodeStatus.Any(a => a.accountId == statusReply.accountId))
