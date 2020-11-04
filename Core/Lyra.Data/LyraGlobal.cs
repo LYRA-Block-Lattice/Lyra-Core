@@ -24,7 +24,7 @@ namespace Lyra.Core.API
         public const int ProtocolVersion = 4;
         public const int DatabaseVersion = 3;
 
-        public readonly static Version MINIMAL_COMPATIBLE_VERSION = new Version("1.7.8.0");
+        public readonly static Version MINIMAL_COMPATIBLE_VERSION = new Version("1.7.10.1");
         public readonly static Version NODE_VERSION = typeof(LyraGlobal).Assembly.GetName().Version;
         public readonly static string NodeAppName = PRODUCTNAME + " " + typeof(LyraGlobal).Assembly.GetName().Version.ToString();
 
