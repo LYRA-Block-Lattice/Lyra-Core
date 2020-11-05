@@ -46,7 +46,9 @@ namespace Lyra.Core.Authorizers
             // service specifice feature
             if (block.FeeTicker != LyraGlobal.OFFICIALTICKERCODE)
                 return APIResultCodes.InvalidFeeTicker;
-            
+
+            var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+
             if (prevBlock != null) // only if this is not very first service block
             {
                 // verify fees
@@ -61,6 +63,11 @@ namespace Lyra.Core.Authorizers
                     || block.Authorizers.Count < LyraGlobal.MINIMUM_AUTHORIZERS)
                     //|| block.Authorizers.Count < (prevBlock as ServiceBlock).Authorizers.Count)
                     return APIResultCodes.InvalidAuthorizerCount;
+
+                // authorizer count should be at least 90% of all voters.
+                var validAuthorizersList = GetValidVoters(board, prevBlock);
+                if (block.Authorizers.Count < 0.9 * validAuthorizersList.Count())
+                    return APIResultCodes.InvalidAuthorizerCount;
             }
             else
             {
@@ -68,7 +75,6 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidAuthorizerCount;
             }
 
-            var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
             foreach (var kvp in block.Authorizers)
             {
                 var signAgainst = prevBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
@@ -82,9 +88,32 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidAuthorizerInServiceBlock;
             }
 
-            // authorizer count should be at least 90% of all voters.
-            if (block.Authorizers.Count < 0.9 * board.AllVoters.Count)
-                return APIResultCodes.InvalidAuthorizerCount;
+            // check CreateNewViewAsNewLeaderAsync in Consensus.cs
+            List<string> GetValidVoters(BillBoard board, Block prevSvcBlock)
+            {
+                var list = new List<string>();
+                foreach (var voter in board.AllVoters)
+                {
+                    if (board.ActiveNodes.Any(a => a.AccountID == voter))
+                    {
+                        var node = board.ActiveNodes.First(a => a.AccountID == voter);
+
+                        if (Signatures.VerifyAccountSignature(prevSvcBlock.Hash, node.AccountID, node.AuthorizerSignature))
+                        {
+                            list.Add(node.AccountID);
+                        }
+                    }
+                    else
+                    {
+                        // impossible. viewchangehandler has already filterd all none active messages.
+                        // or just bypass it?
+                    }
+
+                    if (list.Count >= LyraGlobal.MAXIMUM_AUTHORIZERS)
+                        break;
+                }
+                return list;
+            }
 
             //if(block.Height > 1)        // no genesis block
             //{

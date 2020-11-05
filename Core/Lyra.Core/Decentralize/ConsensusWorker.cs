@@ -454,6 +454,12 @@ namespace Lyra.Core.Decentralize
                         // need update billboard
                         _context.ServiceBlockCreated(sb);
                     }
+                    else
+                    {
+                        // dump service block
+                        var authrs = string.Join('\n', sb.Authorizers.Keys);
+                        _log.LogInformation($"In service bolock {sb.Hash.Shorten()}, authorizers count {sb.Authorizers.Count}\nAuthorizerList: \n{authrs}");
+                    }
                 }
                 else if (!_state.CommitConsensus.HasValue || _state.CommitConsensus == ConsensusResult.Uncertain)
                 {
