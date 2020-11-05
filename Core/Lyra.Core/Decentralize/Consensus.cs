@@ -97,7 +97,14 @@ namespace Lyra.Core.Decentralize
 
                 // for safty the list must contains at least 2 seed node.
                 // if no seed nodes included the network should have some problem.
-                if (list.Count(x => ProtocolSettings.Default.StandbyValidators.Contains(x.accountId)) >= 2)
+                var count = 2;
+                if(ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId))
+                {
+                    // for seed node it's hard to get two more. (p2p network feature)
+                    // better not relying on p2p but use web service. 
+                    count = 1;
+                }
+                if (list.Count(x => ProtocolSettings.Default.StandbyValidators.Contains(x.accountId)) >= count)
                     return list;
             }
             
@@ -313,6 +320,10 @@ namespace Lyra.Core.Decentralize
                     {
                         continue;
                     }
+
+                    // update billboard to latest
+                    var lastServiceBlock = await _sys.Storage.GetLastServiceBlockAsync();
+                    ServiceBlockCreated(lastServiceBlock);
 
                     _log.LogInformation($"Engaging: finalizing...");
 

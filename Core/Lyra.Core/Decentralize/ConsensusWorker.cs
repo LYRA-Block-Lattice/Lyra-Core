@@ -447,10 +447,13 @@ namespace Lyra.Core.Decentralize
                 if (State.LocalResult != null && ((_state.CommitConsensus == ConsensusResult.Yea && State.LocalResult.Result == APIResultCodes.Success)
                         || (_state.CommitConsensus == ConsensusResult.Nay && State.LocalResult.Result != APIResultCodes.Success)))
                 {
-                    _log.LogInformation("Service block succeeded.");
+                    _log.LogInformation($"Node synced with service block consensus result: {_state.CommitConsensus}.");
 
-                    // need update billboard
-                    _context.ServiceBlockCreated(sb);
+                    if(_state.CommitConsensus == ConsensusResult.Yea)
+                    {
+                        // need update billboard
+                        _context.ServiceBlockCreated(sb);
+                    }
                 }
                 else if (!_state.CommitConsensus.HasValue || _state.CommitConsensus == ConsensusResult.Uncertain)
                 {
