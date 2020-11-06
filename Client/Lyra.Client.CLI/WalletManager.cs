@@ -170,7 +170,14 @@ namespace Lyra.Client.CLI
                 Console.WriteLine("Type 'help' to see the list of available commands");
                 Console.WriteLine("");
 
-                await wallet.Sync(rpcClient);
+                try
+                {
+                    await wallet.Sync(rpcClient);
+                }
+                catch(Exception)
+                {
+                    Console.WriteLine("Startup sync failed. You may need to run sync command manually.");
+                }
 
                 var lastServiceBlock = await wallet.GetLastServiceBlockAsync();
                 Console.WriteLine($"Last Service Block Received {lastServiceBlock.Height}");
