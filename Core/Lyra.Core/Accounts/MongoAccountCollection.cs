@@ -1052,7 +1052,7 @@ namespace Lyra.Core.Accounts
         }
 
         // >= startTime <= endTime, count max 1000
-        public async Task<List<TransactionBlock>> SearchTransactions(string accountId, DateTime startTime, DateTime endTime, int count)
+        public async Task<List<TransactionDescription>> SearchTransactions(string accountId, DateTime startTime, DateTime endTime, int count)
         {
             var options = new FindOptions<TransactionBlock, TransactionBlock>
             {
@@ -1065,7 +1065,76 @@ namespace Lyra.Core.Accounts
             var result = await _blocks
                 .OfType<TransactionBlock>()
                 .FindAsync(filter, options);
-            return await result.ToListAsync();
+            var txes = await result.ToListAsync();
+
+            // convert it into tx desc
+            List<TransactionDescription> transactions = new List<TransactionDescription>();
+            Dictionary<string, long> oldBalance = null;
+            for (int i = 0; i < txes.Count; i++)
+            {
+                var block = txes[i];
+                var tx = new TransactionDescription
+                {
+                    AccountId = block.AccountID,
+                    TimeStamp = block.TimeStamp,
+                    IsReceive = block is ReceiveTransferBlock,
+                    Balance = block.Balances
+                };
+                if (block is SendTransferBlock sb)
+                    tx.PeerAccountId = sb.DestinationAccountId;
+                else if (block is ReceiveTransferBlock rb)
+                {
+                    if (rb.SourceHash == null)
+                    {
+                        tx.PeerAccountId = $"Genesis";
+                    }
+                    else
+                    {
+                        var from = await FindBlockByHashAsync(rb.SourceHash);
+                        tx.PeerAccountId = (from as TransactionBlock).AccountID;
+                    }
+                }
+
+                if (oldBalance == null)
+                {
+                    if (block.Height == 1)
+                        tx.Changes = block.Balances;
+                    else
+                        tx.Changes = null;
+                }
+                else
+                {
+                    tx.Changes = new Dictionary<string, long>();
+                    foreach (var kvp in block.Balances)
+                    {
+                        long oldValue = 0;
+                        if (oldBalance.ContainsKey(kvp.Key))
+                        {
+                            oldValue = oldBalance[kvp.Key];
+                        }
+
+                        var delta = kvp.Value - oldValue;
+                        if (delta > 0)
+                        {
+                            tx.Changes.Add(kvp.Key, delta);
+                        }
+                    }
+
+                    foreach(var kvp in oldBalance)
+                    {
+                        if(!block.Balances.ContainsKey(kvp.Key))        // the balance dispeared!
+                        {
+                            tx.Changes.Add(kvp.Key, 0 - kvp.Value);
+                        }
+                    }
+                }
+
+                oldBalance = block.Balances;
+
+                transactions.Add(tx);
+            }
+
+            return transactions;
         }
 
         // >= startTime < endTime

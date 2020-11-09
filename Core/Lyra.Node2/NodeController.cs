@@ -268,7 +268,7 @@ namespace LyraLexWeb2
 
         [Route("SearchTransactions")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
+        public async Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
         {
             if (!await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
             return await _node.SearchTransactions(accountId, startTimeTicks, endTimeTicks, count);

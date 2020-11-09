@@ -155,17 +155,6 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        public async Task<CreateBlockUIdAPIResult> CreateBlockUId(string AccountId, string Signature, string blockHash)
-        {
-            var args = new Dictionary<string, string>();
-
-            args.Add("AccountId", AccountId);
-            args.Add("Signature", Signature);
-            args.Add("blockHash", blockHash);
-
-            return await Get<CreateBlockUIdAPIResult>("CreateBlockUId", args);
-        }
-
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
             var api_call = $"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}";
@@ -649,7 +638,7 @@ namespace Lyra.Core.API
             return await Get<MultiBlockAPIResult>("GetBlocksByTimeRange", args);
         }
 
-        public async Task<MultiBlockAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
+        public async Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
         {
             var args = new Dictionary<string, string>();
 
@@ -658,7 +647,7 @@ namespace Lyra.Core.API
             args.Add("startTimeTicks", startTimeTicks.ToString());
             args.Add("endTimeTicks", endTimeTicks.ToString());
 
-            return await Get<MultiBlockAPIResult>("SearchTransactions", args);
+            return await Get<TransactionsAPIResult>("SearchTransactions", args);
         }
     }
 }

@@ -33,7 +33,7 @@ namespace Lyra.Core.API
         Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash);
         //Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature);
         // add new api, all upgraded, delete old api, done.
-        Task<MultiBlockAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count);
+        Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count);
         Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime);
         Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime);
         Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks);

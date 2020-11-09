@@ -31,6 +31,11 @@ namespace Lyra.Core.API
         public string JsonString { get; set; }
     }
 
+    public class TransactionsAPIResult : APIResult
+    {
+        public List<TransactionDescription> Transactions { get; set; }
+    }
+
     public class AccountHeightAPIResult : APIResult
     {
         public long Height { get; set; }
@@ -41,11 +46,6 @@ namespace Lyra.Core.API
         {
             Height = 0;
         }
-    }
-
-    public class CreateBlockUIdAPIResult : APIResult
-    {
-        public long uid { get; set; }
     }
 
     // returns the authorization signatures for send or receive blocks
