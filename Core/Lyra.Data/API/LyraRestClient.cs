@@ -655,8 +655,8 @@ namespace Lyra.Core.API
 
             args.Add("accountId", accountId);
             args.Add("count", count.ToString());
-            args.Add("startTime", startTimeTicks.ToString());
-            args.Add("endTime", endTimeTicks.ToString());
+            args.Add("startTimeTicks", startTimeTicks.ToString());
+            args.Add("endTimeTicks", endTimeTicks.ToString());
 
             return await Get<MultiBlockAPIResult>("SearchTransactions", args);
         }
