@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 
 namespace Lyra.Core.Blocks
 {
+    public delegate string SignHandler(string text);
+
     [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
@@ -59,6 +61,29 @@ namespace Lyra.Core.Blocks
             BlockType = GetBlockType();
 
             Sign(PrivateKey, AccountId);
+        }
+
+        public void InitializeBlock(Block prevBlock, SignHandler signr)
+        {
+            if (prevBlock != null)
+            {
+                Height = prevBlock.Height + 1;
+                PreviousHash = prevBlock.Hash;
+
+                if (prevBlock.Hash != prevBlock.CalculateHash())
+                    throw new Exception("Invalid previous block, possible data tampered.");
+            }
+            else
+            {
+                Height = 1;
+                PreviousHash = null;//string.Empty;
+            }
+            Version = LyraGlobal.DatabaseVersion; // to do: change to global constant; should be used to fork the network; should be validated by comparing with the Node Version (taken from teh same globla contstant)
+            BlockType = GetBlockType();
+
+            if (string.IsNullOrWhiteSpace(Hash))
+                Hash = CalculateHash();
+            Signature = signr(Hash);
         }
 
         public override string GetHashInput()
