@@ -648,5 +648,17 @@ namespace Lyra.Core.API
 
             return await Get<MultiBlockAPIResult>("GetBlocksByTimeRange", args);
         }
+
+        public async Task<MultiBlockAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
+        {
+            var args = new Dictionary<string, string>();
+
+            args.Add("accountId", accountId);
+            args.Add("count", count.ToString());
+            args.Add("startTime", startTimeTicks.ToString());
+            args.Add("endTime", endTimeTicks.ToString());
+
+            return await Get<MultiBlockAPIResult>("SearchTransactions", args);
+        }
     }
 }

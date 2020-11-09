@@ -655,6 +655,29 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<MultiBlockAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
+        {
+            var result = new MultiBlockAPIResult();
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.SearchTransactions(accountId, new DateTime(startTimeTicks, DateTimeKind.Utc), new DateTime(endTimeTicks, DateTimeKind.Utc), count);
+                if (blocks != null)
+                {
+                    result.SetBlocks(blocks.ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetBlocksByTimeRange: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+            }
+
+            return result;
+        }
+
         public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
         {
             var result = new MultiBlockAPIResult();
@@ -916,7 +939,6 @@ namespace Lyra.Core.Decentralize
             }
             return result;
         }
-
         #endregion
     }
 

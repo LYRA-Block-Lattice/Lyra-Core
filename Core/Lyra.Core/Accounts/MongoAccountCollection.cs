@@ -1051,6 +1051,23 @@ namespace Lyra.Core.Accounts
             return await finds.FirstOrDefaultAsync() as LyraTokenGenesisBlock;
         }
 
+        // >= startTime <= endTime, count max 1000
+        public async Task<List<TransactionBlock>> SearchTransactions(string accountId, DateTime startTime, DateTime endTime, int count)
+        {
+            var options = new FindOptions<TransactionBlock, TransactionBlock>
+            {
+                Sort = Builders<TransactionBlock>.Sort.Ascending(o => o.TimeStamp),
+                Limit = count > 1000 ? 1000 : count
+            };
+            var builder = Builders<TransactionBlock>.Filter;
+            var filter = builder.And(builder.Eq("AccountID", accountId),
+                builder.Gte("TimeStamp.Ticks", startTime.Ticks), builder.Lte("TimeStamp.Ticks", endTime.Ticks));
+            var result = await _blocks
+                .OfType<TransactionBlock>()
+                .FindAsync(filter, options);
+            return await result.ToListAsync();
+        }
+
         // >= startTime < endTime
         public async Task<List<Block>> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
         {

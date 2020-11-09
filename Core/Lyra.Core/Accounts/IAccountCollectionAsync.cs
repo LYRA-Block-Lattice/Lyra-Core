@@ -29,6 +29,7 @@ namespace Lyra.Core.Accounts
         Task<bool> DoesAccountHaveCollectibleNFTInstanceAsync(string owner_account_id, TokenGenesisBlock token_block, string serial_number);
         Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash);
         Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index);
+        Task<List<TransactionBlock>> SearchTransactions(string accountId, DateTime startTime, DateTime endTime, int count);
         Task<ServiceBlock> FindServiceBlockByIndexAsync(Int64 index);
         Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId);
         Task<SendTransferBlock> FindUnsettledSendBlockByDestinationAccountIdAsync(string AccountId);
