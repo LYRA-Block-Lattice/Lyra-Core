@@ -1078,7 +1078,7 @@ namespace Lyra.Core.Accounts
                     AccountId = block.AccountID,
                     TimeStamp = block.TimeStamp,
                     IsReceive = block is ReceiveTransferBlock,
-                    Balance = block.Balances
+                    Balances = block.Balances
                 };
                 if (block is SendTransferBlock sb)
                     tx.PeerAccountId = sb.DestinationAccountId;

@@ -13,6 +13,6 @@ namespace Lyra.Data.API
         public bool IsReceive { get; set; }
         public string PeerAccountId { get; set; }
         public Dictionary<string, long> Changes { get; set; }
-        public Dictionary<string, long> Balance { get; set; }
+        public Dictionary<string, long> Balances { get; set; }
     }
 }
