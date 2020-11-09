@@ -1114,7 +1114,7 @@ namespace Lyra.Core.Accounts
                         }
 
                         var delta = kvp.Value - oldValue;
-                        if (delta > 0)
+                        if (delta != 0)
                         {
                             tx.Changes.Add(kvp.Key, delta);
                         }
