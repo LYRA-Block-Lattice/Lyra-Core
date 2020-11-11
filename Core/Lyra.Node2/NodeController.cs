@@ -99,23 +99,23 @@ namespace LyraLexWeb2
             return await _node.GetVersion(apiVersion, appName, appVersion);
         }
 
-        [Route("GetThumbPrint")]
-        [HttpGet]
-        public async Task<string> GetThumbPrint()
-        {
-            var ks = Startup.App.ApplicationServices.GetService(typeof(IServer)) as KestrelServer;
-            var kso = ks.Options;
+        //[Route("GetThumbPrint")]
+        //[HttpGet]
+        //public async Task<string> GetThumbPrint()
+        //{
+        //    var ks = Startup.App.ApplicationServices.GetService(typeof(IServer)) as KestrelServer;
+        //    var kso = ks.Options;
 
-            PropertyInfo prop =
-                typeof(KestrelServerOptions).GetProperty("DefaultCertificate", BindingFlags.NonPublic | BindingFlags.Instance);
+        //    PropertyInfo prop =
+        //        typeof(KestrelServerOptions).GetProperty("DefaultCertificate", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            MethodInfo getter = prop.GetGetMethod(nonPublic: true);
-            var cert = getter.Invoke(kso, null) as X509Certificate2;
-            if (cert != null)
-                return cert.Thumbprint;
-            else
-                return null;
-        }
+        //    MethodInfo getter = prop.GetGetMethod(nonPublic: true);
+        //    var cert = getter.Invoke(kso, null) as X509Certificate2;
+        //    if (cert != null)
+        //        return cert.Thumbprint;
+        //    else
+        //        return null;
+        //}
 
         [Route("GetSyncState")]
         [HttpGet]
@@ -454,72 +454,72 @@ namespace LyraLexWeb2
             return await _trans.CreateToken(tokenBlock);
         }
 
-        [Route("CreateExchangeAccount")]
-        [HttpGet]
-        public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
-        {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
-            var acct = await _dex.AddExchangeAccount(AccountId);
-            return new ExchangeAccountAPIResult
-            {
-                AccountId = acct.AccountId,
-                ResultCode = APIResultCodes.Success
-            };
-        }
+        //[Route("CreateExchangeAccount")]
+        //[HttpGet]
+        //public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
+        //{
+        //    if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+        //    var acct = await _dex.AddExchangeAccount(AccountId);
+        //    return new ExchangeAccountAPIResult
+        //    {
+        //        AccountId = acct.AccountId,
+        //        ResultCode = APIResultCodes.Success
+        //    };
+        //}
 
-        [Route("GetExchangeBalance")]
-        [HttpGet]
-        public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
-        {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
-            var acct = await _dex.GetExchangeAccount(AccountId, true);
-            if(acct == null)
-            {
-                return new ExchangeBalanceAPIResult { ResultCode = APIResultCodes.AccountDoesNotExist };
-            }
-            else
-                return new ExchangeBalanceAPIResult
-                {
-                    AccountId = acct.AccountId,
-                    Balance = acct?.Balance,
-                    ResultCode = APIResultCodes.Success
-                };
-        }
+        //[Route("GetExchangeBalance")]
+        //[HttpGet]
+        //public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
+        //{
+        //    if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+        //    var acct = await _dex.GetExchangeAccount(AccountId, true);
+        //    if(acct == null)
+        //    {
+        //        return new ExchangeBalanceAPIResult { ResultCode = APIResultCodes.AccountDoesNotExist };
+        //    }
+        //    else
+        //        return new ExchangeBalanceAPIResult
+        //        {
+        //            AccountId = acct.AccountId,
+        //            Balance = acct?.Balance,
+        //            ResultCode = APIResultCodes.Success
+        //        };
+        //}
 
-        [Route("SubmitExchangeOrder")]
-        [HttpPost]
-        public async Task<CancelKey> SubmitExchangeOrder(string AccountId, TokenTradeOrder order)
-        {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
-            var acct = await _dex.GetExchangeAccount(AccountId);
-            return await _dex.AddOrderAsync(acct, order);
-        }
+        //[Route("SubmitExchangeOrder")]
+        //[HttpPost]
+        //public async Task<CancelKey> SubmitExchangeOrder(string AccountId, TokenTradeOrder order)
+        //{
+        //    if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+        //    var acct = await _dex.GetExchangeAccount(AccountId);
+        //    return await _dex.AddOrderAsync(acct, order);
+        //}
 
-        [Route("CancelExchangeOrder")]
-        [HttpGet]
-        public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
-        {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
-            await _dex.RemoveOrderAsync(cancelKey);
-            return new APIResult { ResultCode = APIResultCodes.Success };
-        }
+        //[Route("CancelExchangeOrder")]
+        //[HttpGet]
+        //public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
+        //{
+        //    if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+        //    await _dex.RemoveOrderAsync(cancelKey);
+        //    return new APIResult { ResultCode = APIResultCodes.Success };
+        //}
 
-        [Route("RequestMarket")]
-        [HttpGet]
-        public async Task<APIResult> RequestMarket(string TokenName)
-        {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
-            await _dex.SendMarket(TokenName);
-            return new APIResult { ResultCode = APIResultCodes.Success };
-        }
+        //[Route("RequestMarket")]
+        //[HttpGet]
+        //public async Task<APIResult> RequestMarket(string TokenName)
+        //{
+        //    if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+        //    await _dex.SendMarket(TokenName);
+        //    return new APIResult { ResultCode = APIResultCodes.Success };
+        //}
 
-        [Route("GetOrdersForAccount")]
-        [HttpGet]
-        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
-        {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
-            return await _dex.GetOrdersForAccount(AccountId);
-        }
+        //[Route("GetOrdersForAccount")]
+        //[HttpGet]
+        //public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
+        //{
+        //    if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+        //    return await _dex.GetOrdersForAccount(AccountId);
+        //}
 
         [Route("GetVoters")]
         [HttpPost]
