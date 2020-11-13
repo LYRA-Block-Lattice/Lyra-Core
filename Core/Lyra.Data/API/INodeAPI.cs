@@ -55,6 +55,7 @@ namespace Lyra.Core.API
         // Retrives a block by its hash
         Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature);
         Task<BlockAPIResult> GetBlock(string Hash);
+        Task<BlockAPIResult> GetBlockBySourceHash(string sourceHash);
 
         Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature);
         Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature);

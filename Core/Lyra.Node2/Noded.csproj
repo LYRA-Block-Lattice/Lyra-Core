@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
-
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker;Microsoft.NET.Sdk.Publish">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Version>1.7.3</Version>
@@ -7,18 +6,11 @@
     <Authors>lyra.live</Authors>
     <Product>Lyra Blockchain Permissionless</Product>
     <AssemblyName>lyra.noded</AssemblyName>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
     <Company>LYRA</Company>
     <UserSecretsId>d61b9a83-beab-4fa4-9fa9-b6b26d8918f6</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <WarningLevel>0</WarningLevel>
-    <OutputPath></OutputPath>
-  </PropertyGroup>
-
   <ItemGroup>
     <Compile Remove="Accounts\**" />
     <Compile Remove="Authorizers\**" />
@@ -33,11 +25,9 @@
     <None Remove="Authorizers\**" />
     <None Remove="Protos\**" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="API\APIResultCodes.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore.Server" Version="2.27.0" />
     <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
@@ -48,6 +38,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.9" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.2" />
     <PackageReference Include="MongoDB.Driver" Version="2.10.3" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
@@ -58,17 +49,10 @@
     <PackageReference Include="System.Reactive.Interfaces" Version="4.4.1" />
     <PackageReference Include="System.Reactive.Linq" Version="4.4.1" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Lyra.Core\Core.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Models\" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if &quot;%25COMPUTERNAME%25&quot; == &quot;xyz&quot; (&#xD;&#xA;xcopy /E /I /Y $(OutDir)* \\Mac\slava\LYRA_FILES\NODE&#xD;&#xA;copy C:\Users\slava\source\LOCAL_LYRA_CONFIG\config.json $(OutDir)&#xD;&#xA;copy C:\Users\slava\source\LOCAL_LYRA_CONFIG\protocol.json $(OutDir)&#xD;&#xA;)" />
-  </Target>
-
 </Project>

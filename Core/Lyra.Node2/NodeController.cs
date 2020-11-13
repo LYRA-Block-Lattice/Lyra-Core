@@ -190,6 +190,14 @@ namespace LyraLexWeb2
             return await _node.GetBlock(Hash);
         }
 
+        [Route("GetBlockBySourceHash")]
+        [HttpGet]
+        public async Task<BlockAPIResult> GetBlockBySourceHash(string Hash)
+        {
+            if (!await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+            return await _node.GetBlockBySourceHash(Hash);
+        }
+
         [Route("GetNonFungibleTokens")]
         [HttpGet]
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
