@@ -600,6 +600,26 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
+        // this api will be used to implement 'virtual balance'
+        public async IAsyncEnumerable<SendTransferBlock> FindAllUnsettledSendForAsync(string AccountId)
+        {
+            // First, let find all send blocks:
+            // (It can be optimzed as it's going to be growing, so it can be called with munimum Service Chain Height parameter to look only for recent blocks) 
+            var builder = Builders<Block>.Filter;
+            //var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("Height", fromIndex);
+            var filterDefinition = builder.Eq("DestinationAccountId", AccountId);
+
+            var allSendBlocks = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
+
+            foreach (SendTransferBlock sendBlock in allSendBlocks)
+            {
+                var result = await FindReceiveBlockAsync(AccountId, sendBlock.Hash);
+
+                if (result == null)
+                    yield return sendBlock;
+            }
+        }
+
         // look up by destination account
         public async Task<SendTransferBlock> FindUnsettledSendBlockByDestinationAccountIdAsync(string AccountId)
         {
