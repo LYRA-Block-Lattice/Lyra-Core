@@ -68,7 +68,7 @@ namespace Lyra.Core.API
 //#if DEBUG
 //            _client.Timeout = new TimeSpan(0, 0, 30);
 //#else
-            _client.Timeout = new TimeSpan(0, 0, 5);
+            _client.Timeout = new TimeSpan(0, 0, 15);
 //#endif
         }
 
