@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.7.11.6</Version>
+    <Version>1.7.11.7</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Wizard Young</Authors>
     <Company>Lyra.Live</Company>
