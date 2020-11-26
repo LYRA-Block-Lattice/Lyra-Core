@@ -1095,23 +1095,39 @@ namespace Lyra.Core.Accounts
                 var block = txes[i];
                 var tx = new TransactionDescription
                 {
-                    AccountId = block.AccountID,
+                    Height = block.Height,
                     TimeStamp = block.TimeStamp,
-                    IsReceive = block is ReceiveTransferBlock,
                     Balances = block.Balances
                 };
                 if (block is SendTransferBlock sb)
-                    tx.PeerAccountId = sb.DestinationAccountId;
+                {
+                    tx.IsReceive = false;
+
+                    tx.SendAccountId = block.AccountID;
+                    tx.SendHash = block.Hash;
+
+                    tx.RecvAccountId = sb.DestinationAccountId;
+                    var recvBlock = await FindReceiveBlockAsync(sb.DestinationAccountId, block.Hash);
+                    if (recvBlock != null)
+                        tx.RecvHash = recvBlock.Hash;
+                }                    
                 else if (block is ReceiveTransferBlock rb)
                 {
+                    tx.IsReceive = true;
+
+                    tx.RecvAccountId = block.AccountID;
+                    tx.RecvHash = block.Hash;
+
                     if (rb.SourceHash == null)
                     {
-                        tx.PeerAccountId = $"Genesis";
+                        tx.SendAccountId = null;    // Genesis
+                        tx.SendHash = null;
                     }
                     else
                     {
                         var from = await FindBlockByHashAsync(rb.SourceHash);
-                        tx.PeerAccountId = (from as TransactionBlock).AccountID;
+                        tx.SendAccountId = (from as TransactionBlock).AccountID;
+                        tx.SendHash = from.Hash;
                     }
                 }
 
