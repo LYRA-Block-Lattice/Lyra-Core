@@ -116,7 +116,7 @@ namespace StressTest
             var restore_result_code = await result.RestoreAsync(Config.NetworkId, Config.NodeURL, recipient_private_key);
             if (restore_result_code == APIResultCodes.Success)
             {
-                var balance = result.Wallet.MainBalance;
+                var balance = result.Wallet.BaseBalance;
                 var log_message = $"Receive wallet balance: {balance}";
                 Console.WriteLine(log_message);
                 logger.LogInformation(log_message);

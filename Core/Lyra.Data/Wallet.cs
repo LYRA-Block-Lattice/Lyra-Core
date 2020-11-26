@@ -46,12 +46,12 @@ namespace Lyra.Core.Accounts
 
         private TransactionBlock _lastTransactionBlock;
 
-        public decimal MainBalance
+        public decimal BaseBalance
         {
             get
             {
                 if (_lastTransactionBlock != null && _lastTransactionBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                    return _lastTransactionBlock.Balances[LyraGlobal.OFFICIALTICKERCODE];
+                    return _lastTransactionBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
                 else
                     return 0m;                    
             }
