@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net5</TargetFramework>
     <ReleaseVersion>0.5.1</ReleaseVersion>
     <AssemblyName>lyra.client</AssemblyName>
     <PackageId>lyra.client</PackageId>

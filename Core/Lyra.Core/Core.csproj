@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net5</TargetFramework>
     <ReleaseVersion>0.5.1</ReleaseVersion>
     <Version>1.7.11.7</Version>
     <AssemblyName>lyra.core</AssemblyName>
@@ -29,24 +29,25 @@
     <None Remove="Protos\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Akka" Version="1.4.6" />
-    <PackageReference Include="Akka.Cluster" Version="1.4.6" />
-    <PackageReference Include="Akka.Streams" Version="1.4.6" />
-    <PackageReference Include="K4os.Compression.LZ4" Version="1.1.11" />
-    <PackageReference Include="Loyc.Collections" Version="27.2.0" />
+    <PackageReference Include="Akka" Version="1.4.12" />
+    <PackageReference Include="Akka.Cluster" Version="1.4.12" />
+    <PackageReference Include="Akka.Streams" Version="1.4.12" />
+    <PackageReference Include="K4os.Compression.LZ4" Version="1.2.6" />
+    <PackageReference Include="Loyc.Collections" Version="28.4.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.2.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="3.1.8" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.8" />
-    <PackageReference Include="MongoDB.Driver" Version="2.10.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.12.0-beta1" />
+    <PackageReference Include="Neo.VM" Version="3.0.0-CI00255" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.4.1" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
     <PackageReference Include="System.Runtime" Version="4.3.1" />
-    <PackageReference Include="System.Security.Cryptography.Cng" Version="4.7.0" />
+    <PackageReference Include="System.Security.Cryptography.Cng" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,6 +59,9 @@
     <Compile Remove="BaseAccount %281%29.cs" />
     <Compile Remove="API\AuthenticationInfo.cs" />
     <Compile Remove="Neo\ProtocolHandler.cs" />
+    <Compile Remove="Neo\SmartContract\Native\Tokens\GasToken.cs" />
+    <Compile Remove="Neo\SmartContract\Native\Tokens\NeoToken.cs" />
+    <Compile Remove="Neo\SmartContract\Native\Tokens\Nep5Token.cs" />
   </ItemGroup>
 
   <ItemGroup>

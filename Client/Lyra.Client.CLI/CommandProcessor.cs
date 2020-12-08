@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using Lyra.Shared;
 using System.Data;
+using System.IO;
 
 namespace Lyra.Client.CLI
 {
@@ -238,6 +239,7 @@ namespace Lyra.Client.CLI
             }
             catch (Exception e)
             {
+                File.AppendAllText(Wallet.GetFullFolderName(wallet.NetworkId, "logs") + "cli.log", e.ToString());
                 Console.WriteLine(string.Format("Error: {0}", e.Message));
             }
             return 0;

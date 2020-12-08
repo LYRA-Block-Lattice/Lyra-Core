@@ -1,30 +1,15 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
-using Akka.Streams.Util;
-using Clifton.Blockchain;
 using Lyra.Core.Accounts;
-using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Data.Crypto;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
+using Lyra.Data.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
-using Neo;
-using Neo.Cryptography.ECC;
 using Neo.IO.Actors;
-using Neo.Network.P2P.Payloads;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using static Lyra.Core.Decentralize.ConsensusService;
-using Settings = Neo.Settings;
-using Lyra.Data.Utils;
 
 namespace Lyra
 {
