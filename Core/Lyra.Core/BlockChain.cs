@@ -8,12 +8,14 @@ using Lyra.Data.Utils;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Neo.IO.Actors;
+using Neo.Persistence;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Lyra
 {
-    public class BlockChain : ReceiveActor
+    public class Blockchain : ReceiveActor
     {
         public class Startup { }
         public class PersistCompleted { }
@@ -34,7 +36,17 @@ namespace Lyra
         private DagSystem _sys;
         private ILogger _log;
 
-        public BlockChain(DagSystem sys, IAccountCollectionAsync store)
+        private static Blockchain singleton;
+        public static Blockchain Singleton
+        {
+            get
+            {
+                while (singleton == null) Thread.Sleep(10);
+                return singleton;
+            }
+        }
+
+        public Blockchain(DagSystem sys, IAccountCollectionAsync store)
         {
             _sys = sys;
 
@@ -48,11 +60,18 @@ namespace Lyra
 
             Receive<Startup>(_ => { });
             Receive<Idle>(_ => { });
+
+            singleton = this;
         }
 
         public static Props Props(DagSystem system, IAccountCollectionAsync store)
         {
-            return Akka.Actor.Props.Create(() => new BlockChain(system, store)).WithMailbox("blockchain-mailbox");
+            return Akka.Actor.Props.Create(() => new Blockchain(system, store)).WithMailbox("blockchain-mailbox");
+        }
+
+        public SnapshotView GetSnapshot()
+        {
+            return new SnapshotView(null);
         }
 
         #region storage api

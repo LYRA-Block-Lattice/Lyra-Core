@@ -51,6 +51,10 @@ namespace Lyra
         public BlockChainState ConsensusState { get; private set; }
         public void UpdateConsensusState(BlockChainState state) => ConsensusState = state;
 
+        public DagSystem()
+        {
+
+        }
         public DagSystem(IHostEnv hostEnv, IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {
             _hostEnv = hostEnv;
@@ -63,7 +67,7 @@ namespace Lyra
             LocalNode = localNode;
             this.LocalNode.Tell(this);
 
-            TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, store));
+            TheBlockchain = ActorSystem.ActorOf(Blockchain.Props(this, store));
             TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
 
             TradeEngine = new TradeMatchEngine(Storage);
@@ -91,7 +95,7 @@ namespace Lyra
             }
             _log.LogWarning($"p2p network connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
 
-            TheBlockchain.Tell(new BlockChain.Startup());
+            TheBlockchain.Tell(new Blockchain.Startup());
 
             StartConsensus();
 

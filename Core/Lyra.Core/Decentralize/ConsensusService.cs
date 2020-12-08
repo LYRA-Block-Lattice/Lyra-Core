@@ -216,7 +216,7 @@ namespace Lyra.Core.Decentralize
                 await SubmitToConsensusAsync(state);
             });
 
-            Receive<BlockChain.BlockAdded>(nb =>
+            Receive<Blockchain.BlockAdded>(nb =>
             {
                 //if (nb.NewBlock is ServiceBlock lastSvcBlk)
                 //{

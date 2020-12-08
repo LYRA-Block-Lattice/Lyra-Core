@@ -390,7 +390,7 @@ namespace Lyra.Core.Decentralize
 
                     // event hooks
                     var sys = _context.GetDagSystem();
-                    sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
+                    sys.Consensus.Tell(new Blockchain.BlockAdded { NewBlock = block });
                 }
 
                 // if self result is Nay, need (re)send commited msg here
