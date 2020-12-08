@@ -11,7 +11,9 @@ namespace UnitTests
     public class UT_Cryptography
     {
         const string PrivateKey1 = "26qLSmxsAe1YYtHnHCde9749QqzSkY8W7PwyJXUqDaPb6iuedq";
+        const string PublicKey1 = "LQnynZRbNMYtNJxVdL5LUJtGX8qCkKpQSDhArNU8Vhgy8eSix2oTu69C7u4WQeH5RDWvVRbDKBKqN3HtCaK6p6t79fHNmy";
         const string PrivateKey2 = "wj22AaVJX3xpB1idUCd93j36K6GtqJvCCqzPwmkj1YhoYT3Tq";
+        const string PublicKey2 = "La5UhGXdEdAibQbccAFLhwLupWhvspegfg4pHFP1T5wiXAxDuLi43YcF1Wa3B3wPecP9G2Um4p7jj7F41EJN7ySAJH8Uqn";
         const string message = "Hello, World!";
 
         [TestMethod]
@@ -58,9 +60,25 @@ namespace UnitTests
         }
 
         [TestMethod]
+        public void AccountIdByNeo()
+        {
+            var pubKey1 = Signatures.GetAccountIdFromPrivateKey(PrivateKey1);
+            Assert.AreEqual(pubKey1, PublicKey1);
+        }
+
+        [TestMethod]
+        public void AccountIdByMono()
+        {
+            var pubKey1 = PortableSignatures.GetAccountIdFromPrivateKey(PrivateKey1);
+            Assert.AreEqual(pubKey1, PublicKey1);
+        }
+
+        [TestMethod]
         public void VerifySignatureMono()
         {
-            var account_id = Signatures.GetAccountIdFromPrivateKey(PrivateKey1);
+            var account_id = PortableSignatures.GetAccountIdFromPrivateKey(PrivateKey1);
+            Assert.AreEqual(account_id, PublicKey1);
+
             var signature = PortableSignatures.GetSignature(PrivateKey1, message);
 
             var result = PortableSignatures.VerifyAccountSignature(message, account_id, signature);
@@ -71,6 +89,7 @@ namespace UnitTests
         public void VerifyNeoSignatureByMono()
         {
             var account_id = Signatures.GetAccountIdFromPrivateKey(PrivateKey1);
+
             var signature = Signatures.GetSignature(PrivateKey1, message, account_id);
 
             var result = PortableSignatures.VerifyAccountSignature(message, account_id, signature);
@@ -81,23 +100,25 @@ namespace UnitTests
         public void VerifyMonoSignatureByNeo()
         {
             var account_id = Signatures.GetAccountIdFromPrivateKey(PrivateKey1);
+            Assert.AreEqual(account_id, PublicKey1);
             var signature = PortableSignatures.GetSignature(PrivateKey1, message);
 
             var result = Signatures.VerifyAccountSignature(message, account_id, signature);
             Assert.IsTrue(result);
         }
 
-        [TestMethod]
-        public void SignNeoAndMono()
-        {
-            var account_id = Signatures.GetAccountIdFromPrivateKey(PrivateKey1);
+        // con't compare signatures directly
+        //[TestMethod]
+        //public void SignNeoAndMono()
+        //{
+        //    var account_id = Signatures.GetAccountIdFromPrivateKey(PrivateKey1);
 
-            var neo = Signatures.GetSignature(PrivateKey1, message, account_id);
+        //    var neo = Signatures.GetSignature(PrivateKey1, message, account_id);
 
-            var mono = PortableSignatures.GetSignature(PrivateKey1, message);
+        //    var mono = PortableSignatures.GetSignature(PrivateKey1, message);
 
-            Assert.AreEqual(neo, mono);
-        }
+        //    Assert.AreEqual(neo, mono);
+        //}
 
         [TestMethod]
         public void GetSharedSecret()

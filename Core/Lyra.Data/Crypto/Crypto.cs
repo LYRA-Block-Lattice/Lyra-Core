@@ -79,7 +79,7 @@ namespace Neo.Cryptography
                 {
                     pubkey = pubkey[1..];
                 }
-                else
+                else if (pubkey.Length != 64)
                 {
                     throw new ArgumentException();
                 }
