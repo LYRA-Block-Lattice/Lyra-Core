@@ -1,3 +1,4 @@
+using Akka.Actor;
 using Lyra;
 using Neo.Ledger;
 using System;
@@ -11,7 +12,8 @@ namespace Neo.UnitTests
         static TestBlockchain()
         {
             Console.WriteLine("initialize DagSystem");
-            TheNeoSystem = new DagSystem();
+            TheNeoSystem = new DagSystem(null, null, null, null);
+            TheNeoSystem.TheBlockchain.Tell(new Blockchain.Startup());
 
             // Ensure that blockchain is loaded
 

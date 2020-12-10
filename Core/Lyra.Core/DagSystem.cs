@@ -51,10 +51,6 @@ namespace Lyra
         public BlockChainState ConsensusState { get; private set; }
         public void UpdateConsensusState(BlockChainState state) => ConsensusState = state;
 
-        public DagSystem()
-        {
-
-        }
         public DagSystem(IHostEnv hostEnv, IAccountCollectionAsync store, Wallet posWallet, IActorRef localNode)
         {
             _hostEnv = hostEnv;
@@ -65,7 +61,7 @@ namespace Lyra
             PosWallet = posWallet;
 
             LocalNode = localNode;
-            this.LocalNode.Tell(this);
+            this.LocalNode?.Tell(this);     // for unit test
 
             TheBlockchain = ActorSystem.ActorOf(Blockchain.Props(this, store));
             TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));

@@ -50,13 +50,19 @@ namespace Lyra
         {
             _sys = sys;
 
-            var nodeConfig = Neo.Settings.Default.LyraNode;
+            if(store != null)       // for unit test compitable
+            {
+                var nodeConfig = Neo.Settings.Default.LyraNode;
+
+                _nodeConfig = nodeConfig;
+                NetworkID = nodeConfig.Lyra.NetworkId;
+            }
+
             _store = store; //new MongoAccountCollection();
 
             //_store = new LiteAccountCollection(Utilities.LyraDataDir);
             _log = new SimpleLogger("BlockChain").Logger;
-            _nodeConfig = nodeConfig;
-            NetworkID = nodeConfig.Lyra.NetworkId;
+
 
             Receive<Startup>(_ => { });
             Receive<Idle>(_ => { });
