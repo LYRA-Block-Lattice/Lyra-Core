@@ -89,28 +89,11 @@ namespace Lyra.Core.Decentralize
                 unConsHashMajority = q2.First().unConsHash;
             }
 
-            if (heightMajority > 0 && unConsHashMajority != null)
-            {
-                var list = _nodeStatus.Where(a => a.totalBlockCount == heightMajority
-                        && a.lastUnSolidationHash == unConsHashMajority)                        
+            var list = _nodeStatus.Where(a => a.totalBlockCount == heightMajority
+                        && a.lastUnSolidationHash == unConsHashMajority)
                         .ToList();
 
-                return list;
-
-                //// for safty the list must contains at least 2 seed node.
-                //// if no seed nodes included the network should have some problem.
-                //var count = 2;
-                //if(ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId))
-                //{
-                //    // for seed node it's hard to get two more. (p2p network feature)
-                //    // better not relying on p2p but use web service. 
-                //    count = 1;
-                //}
-                //if (list.Count(x => ProtocolSettings.Default.StandbyValidators.Contains(x.accountId)) >= count)
-                //    return list;
-            }
-            
-            return new List<NodeStatus>();
+            return list;
         }
 
         private async Task<LyraClientForNode> GetOptimizedSyncClientAsync(bool reQuery = false)
