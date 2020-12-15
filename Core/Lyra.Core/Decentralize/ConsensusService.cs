@@ -470,6 +470,10 @@ namespace Lyra.Core.Decentralize
                 {
                     LocalDbSyncState.Remove();
 
+                    // reset bill board contents related to leader
+                    Board.LeaderCandidate = ProtocolSettings.Default.StandbyValidators[0];
+                    Board.LeaderCandidateVotes = 4;
+
                     var IsSeed0 = _sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[0];
                     if (await _sys.Storage.FindLatestBlockAsync() == null && IsSeed0)
                     {
