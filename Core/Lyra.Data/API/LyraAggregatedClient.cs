@@ -2,6 +2,7 @@
 using Lyra.Core.Blocks;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,6 +13,40 @@ namespace Lyra.Data.API
     /// </summary>
     public class LyraAggregatedClient : INodeAPI, INodeTransactionAPI, INodeDexAPI
     {
+        private string _networkId;
+        private Dictionary<string, LyraRestClient> _primaryClients;
+
+        public LyraAggregatedClient(string networkId)
+        {
+            this._networkId = networkId;
+        }
+
+        public async Task InitAsync()
+        {
+            var platform = Environment.OSVersion.Platform.ToString();
+            var appName = "LyraAggregatedClient";
+            var appVer = "1.0";
+
+            ushort peerPort = 4504;
+            if (_networkId == "mainnet")
+                peerPort = 5504;
+
+            // get latest service block
+            var seedApiNodeClient = LyraRestClient.Create(_networkId, platform, appName, appVer);
+
+            // get nodes list (from billboard)
+            var seedBillBoard = await seedApiNodeClient.GetBillBoardAsync();
+
+            // create clients for primary nodes
+            _primaryClients = seedBillBoard.NodeAddresses
+                .Where(a => seedBillBoard.PrimaryAuthorizers.Contains(a.Key))
+                .Select(c => new
+                {
+                    c.Key,
+                    Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/")
+                })
+                .ToDictionary(p => p.Key, p => p.Value);
+        }
 
         public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
@@ -138,9 +173,47 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        public Task<BlockAPIResult> GetLastServiceBlock()
+        public async Task<BlockAPIResult> GetLastServiceBlock()
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => new
+            {
+                result = await client.Value.GetLastServiceBlock()
+            }).ToList();
+            
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            catch(Exception e)
+            {
+                // do nothing?                
+            }
+
+            var goodResults = tasks.Where(a => a.IsCompletedSuccessfully)
+                .Select(a => a.Result)
+                .Where(a => a.result.ResultCode == APIResultCodes.Success);
+
+            var goodCount = goodResults.Count();
+            if (goodCount >= LyraGlobal.GetMajority(_primaryClients.Count))
+            {
+                var best = goodResults
+                    .GroupBy(b => b.result.BlockData)
+                    .Select(g => new
+                    {
+                        Data = g.Key,
+                        Count = g.Count()
+                    })
+                    .OrderByDescending(x => x.Count)
+                    .First();
+
+                if (best.Count >= LyraGlobal.GetMajority(_primaryClients.Count))
+                {
+                    var x = goodResults.First(a => a.result.BlockData == best.Data);
+                    return x.result;
+                }
+            }
+            
+            return new BlockAPIResult { ResultCode = APIResultCodes.APIRouteFailed };
         }
 
         public Task<BlockAPIResult> GetLyraTokenGenesisBlock()

@@ -144,7 +144,7 @@ namespace Lyra.Core.API
     }
 
     // return the auhtorization signatures for send or receive blocks
-    public class BlockAPIResult : APIResult
+    public class BlockAPIResult : APIResult, IEquatable<BlockAPIResult>
     {
         public string BlockData { get; set; }
         public BlockTypes ResultBlockType { get; set; }
@@ -226,6 +226,35 @@ namespace Lyra.Core.API
             }
             else
                 return null;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as BlockAPIResult);
+        }
+
+        public bool Equals(BlockAPIResult other)
+        {
+            return other != null &&
+                   ResultCode == other.ResultCode &&
+                   ResultMessage == other.ResultMessage &&
+                   BlockData == other.BlockData &&
+                   ResultBlockType == other.ResultBlockType;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ResultCode, ResultMessage, BlockData, ResultBlockType);
+        }
+
+        public static bool operator ==(BlockAPIResult left, BlockAPIResult right)
+        {
+            return EqualityComparer<BlockAPIResult>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(BlockAPIResult left, BlockAPIResult right)
+        {
+            return !(left == right);
         }
     }
 

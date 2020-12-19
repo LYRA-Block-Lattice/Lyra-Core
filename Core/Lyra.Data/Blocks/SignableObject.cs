@@ -9,7 +9,7 @@ using Lyra.Data.Crypto;
 
 namespace Lyra.Core.Blocks
 {
-    abstract public class SignableObject
+    abstract public class SignableObject : IEquatable<SignableObject>
     {
         public string Hash { get; set; }
 
@@ -86,6 +86,32 @@ namespace Lyra.Core.Blocks
                 string hash = Base58Encoding.Encode(hash_bytes);
                 return hash;
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as SignableObject);
+        }
+
+        public bool Equals(SignableObject other)
+        {
+            return other != null &&
+                   Hash == other.Hash;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Hash);
+        }
+
+        public static bool operator ==(SignableObject left, SignableObject right)
+        {
+            return EqualityComparer<SignableObject>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(SignableObject left, SignableObject right)
+        {
+            return !(left == right);
         }
     }
 }
