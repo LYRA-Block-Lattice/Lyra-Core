@@ -147,22 +147,22 @@ namespace Neo.Network.P2P
         private void OnRelay(IInventory inventory)
         {
             if (!IsFullNode) return;
-            if (inventory.InventoryType == InventoryType.TX)
-            {
-                if (bloom_filter != null && !bloom_filter.Test((Transaction)inventory))
-                    return;
-            }
+            //if (inventory.InventoryType == InventoryType.TX)
+            //{
+            //    if (bloom_filter != null && !bloom_filter.Test((Transaction)inventory))
+            //        return;
+            //}
             EnqueueMessage(MessageCommand.Inv, InvPayload.Create(inventory.InventoryType, inventory.Hash));
         }
 
         private void OnSend(IInventory inventory)
         {
             if (!IsFullNode) return;
-            if (inventory.InventoryType == InventoryType.TX)
-            {
-                if (bloom_filter != null && !bloom_filter.Test((Transaction)inventory))
-                    return;
-            }
+            //if (inventory.InventoryType == InventoryType.TX)
+            //{
+            //    if (bloom_filter != null && !bloom_filter.Test((Transaction)inventory))
+            //        return;
+            //}
             EnqueueMessage((MessageCommand)inventory.InventoryType, inventory);
         }
 

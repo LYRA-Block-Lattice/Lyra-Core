@@ -6,6 +6,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Math;
 using Lyra.Core.API;
+using System.Linq;
 
 namespace Lyra.Data.Crypto
 {
@@ -83,7 +84,10 @@ namespace Lyra.Data.Crypto
             //var publicKeyBytes = Base58Encoding.DecodeWithCheckSum(publicKey);
             //var publicKeyBytes = Base58Encoding.DecodePublicKey(publicKey);
 
-            var q = curve.Curve.DecodePoint(public_key_bytes);
+            var byte0 = new byte[public_key_bytes.Length+1];
+            byte0[0] = 4;
+            Array.Copy(public_key_bytes, 0, byte0, 1, public_key_bytes.Length);
+            var q = curve.Curve.DecodePoint(byte0);
 
             var keyParameters = new
                     Org.BouncyCastle.Crypto.Parameters.ECPublicKeyParameters(q,
@@ -109,7 +113,7 @@ namespace Lyra.Data.Crypto
             byte[] pkbytes = Base58Encoding.DecodePrivateKey(privateKey);
 
             var keyParameters = new
-                    ECPrivateKeyParameters(new Org.BouncyCastle.Math.BigInteger(1, pkbytes),
+                    ECPrivateKeyParameters(new BigInteger(1, pkbytes),
                     domain);
 
             ISigner signer = SignerUtilities.GetSigner("SHA-256withECDSA");
@@ -127,18 +131,18 @@ namespace Lyra.Data.Crypto
             var domain = new ECDomainParameters(curve.Curve, curve.G, curve.N, curve.H);
 
             byte[] pkbytes = Base58Encoding.DecodePrivateKey(privateKey);
-            var d = new BigInteger(pkbytes);
+            var d = new BigInteger(1, pkbytes);
             var q = domain.G.Multiply(d);
 
             var publicKey = new ECPublicKeyParameters(q, domain);
 
-            return publicKey.Q.GetEncoded();
+            return publicKey.Q.GetEncoded(false);
         }
 
         public static string GetAccountIdFromPrivateKey(string privateKey)
         {
             byte[] public_key_bytes = DerivePublicKeyBytes(privateKey);
-            return Base58Encoding.EncodeAccountId(public_key_bytes);
+            return Base58Encoding.EncodeAccountId(public_key_bytes[1..]);   // skip first byte which indicate compress or not.
         }
 
         public static string GetPublicKeyFromPrivateKey(string privateKey)

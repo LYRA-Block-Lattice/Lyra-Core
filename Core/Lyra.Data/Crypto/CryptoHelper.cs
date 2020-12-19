@@ -1,6 +1,3 @@
-using Lyra;
-using Neo.IO;
-using Neo.Network.P2P.Payloads;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
@@ -76,6 +73,12 @@ namespace Neo.Cryptography
             return ripemd160.ComputeHash(value);
         }
 
+        public static byte[] RIPEMD160(this ReadOnlySpan<byte> value)
+        {
+            byte[] source = value.ToArray();
+            return source.RIPEMD160();
+        }
+
         public static uint Murmur32(this byte[] value, uint seed)
         {
             using (Murmur3 murmur = new Murmur3(seed))
@@ -109,13 +112,13 @@ namespace Neo.Cryptography
             return Sha256((ReadOnlySpan<byte>)value);
         }
 
-        internal static bool Test(this BloomFilter filter, Transaction tx)
-        {
-            if (filter.Check(tx.Hash.ToArray())) return true;
-            //if (tx.Witnesses.Any(p => filter.Check(p.ScriptHash.ToArray())))
-            //    return true;
-            return false;
-        }
+        //internal static bool Test(this BloomFilter filter, Transaction tx)
+        //{
+        //    if (filter.Check(tx.Hash.ToArray())) return true;
+        //    if (tx.Signers.Any(p => filter.Check(p.Account.ToArray())))
+        //        return true;
+        //    return false;
+        //}
 
         internal static byte[] ToAesKey(this string password)
         {

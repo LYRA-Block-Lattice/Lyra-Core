@@ -90,8 +90,7 @@ namespace Lyra.Data.Crypto
                 var signatureBytes = Base58Encoding.Decode(signature);
                 var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
 
-                var result = Neo.Cryptography.Crypto.Default.VerifySignature(Encoding.UTF8.GetBytes(message), signatureBytes, publicKeyBytes);
-
+                var result = Neo.Cryptography.Crypto.VerifySignature(Encoding.UTF8.GetBytes(message), signatureBytes, publicKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1);
                 return result;
             }
             catch(Exception ex)
@@ -108,7 +107,7 @@ namespace Lyra.Data.Crypto
 
             var publicKeyBytes = Base58Encoding.DecodeAccountId(AccountId);
             var privateKeyBytes = Base58Encoding.DecodePrivateKey(privateKey);
-            var signature = Neo.Cryptography.Crypto.Default.Sign(Encoding.UTF8.GetBytes(message), privateKeyBytes, publicKeyBytes);
+            var signature = Neo.Cryptography.Crypto.Sign(Encoding.UTF8.GetBytes(message), privateKeyBytes, publicKeyBytes);
             return Base58Encoding.Encode(signature);
 
             //Neo.Cryptography.ECC.ECDsa sa = new Neo.Cryptography.ECC.ECDsa(privateKeyBytes, Neo.Cryptography.ECC.ECCurve.Secp256r1);
