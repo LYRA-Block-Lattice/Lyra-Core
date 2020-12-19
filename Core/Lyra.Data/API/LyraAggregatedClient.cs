@@ -48,6 +48,44 @@ namespace Lyra.Data.API
                 .ToDictionary(p => p.Key, p => p.Value);
         }
 
+        public async Task<BlockAPIResult> BlockResultAsync(List<Task<BlockAPIResult>> tasks)
+        {
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception e)
+            {
+                // do nothing?                
+            }
+
+            var goodResults = tasks.Where(a => a.IsCompletedSuccessfully)
+                .Select(a => a.Result)
+                .Where(a => a.ResultCode == APIResultCodes.Success);
+
+            var goodCount = goodResults.Count();
+            if (goodCount >= LyraGlobal.GetMajority(_primaryClients.Count))
+            {
+                var best = goodResults
+                    .GroupBy(b => b.BlockData)
+                    .Select(g => new
+                    {
+                        Data = g.Key,
+                        Count = g.Count()
+                    })
+                    .OrderByDescending(x => x.Count)
+                    .First();
+
+                if (best.Count >= LyraGlobal.GetMajority(_primaryClients.Count))
+                {
+                    var x = goodResults.First(a => a.BlockData == best.Data);
+                    return x;
+                }
+            }
+
+            return new BlockAPIResult { ResultCode = APIResultCodes.APIRouteFailed };
+        }
+
         public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
             throw new NotImplementedException();
@@ -98,24 +136,32 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        public Task<BlockAPIResult> GetBlock(string Hash)
+        public async Task<BlockAPIResult> GetBlock(string Hash)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetBlock(Hash)).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
-        public Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetBlockByHash(AccountId, Hash, Signature)).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
-        public Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
+        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetBlockByIndex(AccountId, Index)).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
-        public Task<BlockAPIResult> GetBlockBySourceHash(string sourceHash)
+        public async Task<BlockAPIResult> GetBlockBySourceHash(string sourceHash)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetBlockBySourceHash(sourceHash)).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
         public Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
@@ -163,62 +209,32 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        public Task<BlockAPIResult> GetLastBlock(string AccountId)
+        public async Task<BlockAPIResult> GetLastBlock(string AccountId)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetLastBlock(AccountId)).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
-        public Task<BlockAPIResult> GetLastConsolidationBlock()
+        public async Task<BlockAPIResult> GetLastConsolidationBlock()
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetLastConsolidationBlock()).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetLastServiceBlock()
         {
-            var tasks = _primaryClients.Select(async client => new
-            {
-                result = await client.Value.GetLastServiceBlock()
-            }).ToList();
-            
-            try
-            {
-                await Task.WhenAll(tasks);
-            }
-            catch(Exception e)
-            {
-                // do nothing?                
-            }
+            var tasks = _primaryClients.Select(async client => await client.Value.GetLastServiceBlock()).ToList();
 
-            var goodResults = tasks.Where(a => a.IsCompletedSuccessfully)
-                .Select(a => a.Result)
-                .Where(a => a.result.ResultCode == APIResultCodes.Success);
-
-            var goodCount = goodResults.Count();
-            if (goodCount >= LyraGlobal.GetMajority(_primaryClients.Count))
-            {
-                var best = goodResults
-                    .GroupBy(b => b.result.BlockData)
-                    .Select(g => new
-                    {
-                        Data = g.Key,
-                        Count = g.Count()
-                    })
-                    .OrderByDescending(x => x.Count)
-                    .First();
-
-                if (best.Count >= LyraGlobal.GetMajority(_primaryClients.Count))
-                {
-                    var x = goodResults.First(a => a.result.BlockData == best.Data);
-                    return x.result;
-                }
-            }
-            
-            return new BlockAPIResult { ResultCode = APIResultCodes.APIRouteFailed };
+            return await BlockResultAsync(tasks);
         }
 
-        public Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetLyraTokenGenesisBlock()).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
         public Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
@@ -231,14 +247,18 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        public Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
+        public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetServiceBlockByIndex(blockType, Index)).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
-        public Task<BlockAPIResult> GetServiceGenesisBlock()
+        public async Task<BlockAPIResult> GetServiceGenesisBlock()
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetServiceGenesisBlock()).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
         public Task<AccountHeightAPIResult> GetSyncHeight()
@@ -251,9 +271,11 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        public Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetTokenGenesisBlock(AccountId, TokenTicker, Signature)).ToList();
+
+            return await BlockResultAsync(tasks);
         }
 
         public Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
