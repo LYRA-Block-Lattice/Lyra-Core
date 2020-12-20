@@ -280,7 +280,14 @@ namespace Lyra.Core.Decentralize
 
             var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
 
-            await client.InitAsync(addr);
+            try
+            {
+                await client.InitAsync(addr);
+            }
+            catch(Exception ex)
+            {
+
+            }
             _syncInfo = await client.GetSyncHeight();
 
             return client;

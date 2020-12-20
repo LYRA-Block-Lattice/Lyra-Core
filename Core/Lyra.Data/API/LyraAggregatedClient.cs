@@ -35,7 +35,7 @@ namespace Lyra.Data.API
                 peerPort = 5504;
 
             // get latest service block
-            SeedClient = LyraRestClient.Create(_networkId, platform, appName, appVer);
+            SeedClient = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{seedNodeAddress}:{peerPort}/api/Node/");
 
             // get nodes list (from billboard)
             var seedBillBoard = await SeedClient.GetBillBoardAsync();
