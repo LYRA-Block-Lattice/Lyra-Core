@@ -63,8 +63,7 @@ namespace Lyra.Data.API
             }
 
             var goodResults = tasks.Where(a => a.IsCompletedSuccessfully)
-                .Select(a => a.Result)
-                .Where(a => a.ResultCode == APIResultCodes.Success);
+                .Select(a => a.Result);
 
             var goodCount = goodResults.Count();
             if (goodCount >= LyraGlobal.GetMajority(_primaryClients.Count))
@@ -84,14 +83,14 @@ namespace Lyra.Data.API
                     var x = goodResults.First(a => a == best.Data);
                     return x;
                 }
-                else
-                {
-                    // only for debug
-                    var q = goodResults.Select(a => a.GetHashCode()).ToList();
-                    var q2 = goodResults.Select(a => (a as GetSyncStateAPIResult).Status.GetHashCode()).ToList();
-                    var q3 = goodResults.Select(a => (a as GetSyncStateAPIResult)).ToList();
-                    var q4 = q3;
-                }
+                //else
+                //{
+                //    // only for debug
+                //    var q = goodResults.Select(a => a.GetHashCode()).ToList();
+                //    var q2 = goodResults.Select(a => (a as GetSyncStateAPIResult).Status.GetHashCode()).ToList();
+                //    var q3 = goodResults.Select(a => (a as GetSyncStateAPIResult)).ToList();
+                //    var q4 = q3;
+                //}
             }
 
             return new T { ResultCode = APIResultCodes.APIRouteFailed };
