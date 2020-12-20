@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Lyra.Core.API
@@ -20,11 +21,14 @@ namespace Lyra.Core.API
         private string _url;
         private HttpClient _client;
         public string Host { get; private set; }
+        private CancellationTokenSource _cancel;
         public LyraRestClient(string platform, string appName, string appVersion, string url)
         {
             _url = url;
             _appName = appName;
             _appVersion = appVersion;
+
+            _cancel = new CancellationTokenSource();
 
             if(platform == "iOS")
             {
@@ -84,6 +88,13 @@ namespace Lyra.Core.API
             return restClient;
         }
 
+        public void Abort()
+        {
+            _cancel.Cancel();
+            _cancel.Dispose();
+            _cancel = new CancellationTokenSource();
+        }
+
         private async Task<AuthorizationAPIResult> PostBlock(string action, Block block)
         {
             return await PostBlock<AuthorizationAPIResult>(action, block).ConfigureAwait(false);
@@ -92,7 +103,7 @@ namespace Lyra.Core.API
         private async Task<T> PostBlock<T>(string action, object obj)
         {
             HttpResponseMessage response = await _client.PostAsJsonAsync(
-                    action, obj).ConfigureAwait(false);
+                    action, obj, _cancel.Token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             if (response.IsSuccessStatusCode)
             {
@@ -109,7 +120,7 @@ namespace Lyra.Core.API
                           (sb, kvp) => sb.AppendFormat("{0}{1}={2}",
                                        sb.Length > 0 ? "&" : "", kvp.Key, kvp.Value),
                           sb => sb.ToString());
-            HttpResponseMessage response = await _client.GetAsync(url);
+            HttpResponseMessage response = await _client.GetAsync(url, _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<T>();
@@ -145,7 +156,7 @@ namespace Lyra.Core.API
 
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
-            HttpResponseMessage response = await _client.GetAsync("GetSyncState");
+            HttpResponseMessage response = await _client.GetAsync("GetSyncState", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<GetSyncStateAPIResult>();
@@ -158,7 +169,7 @@ namespace Lyra.Core.API
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
             var api_call = $"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}";
-            HttpResponseMessage response = await _client.GetAsync(api_call);
+            HttpResponseMessage response = await _client.GetAsync(api_call, _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<GetVersionAPIResult>();
@@ -175,7 +186,7 @@ namespace Lyra.Core.API
 
         public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetAccountHeight/?AccountId={AccountId}");
+            HttpResponseMessage response = await _client.GetAsync($"GetAccountHeight/?AccountId={AccountId}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
@@ -242,7 +253,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -254,7 +265,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetBlock(string Hash)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlock/?Hash={Hash}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlock/?Hash={Hash}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -266,7 +277,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetBlockBySourceHash(string Hash)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockBySourceHash/?Hash={Hash}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockBySourceHash/?Hash={Hash}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -278,7 +289,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByIndex/?AccountId={AccountId}&Index={Index}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockByIndex/?AccountId={AccountId}&Index={Index}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -290,7 +301,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetLastBlock(string AccountId)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLastBlock/?AccountId={AccountId}");
+            HttpResponseMessage response = await _client.GetAsync($"GetLastBlock/?AccountId={AccountId}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -302,7 +313,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetServiceBlockByIndex/?blockType={blockType}&Index={Index}");
+            HttpResponseMessage response = await _client.GetAsync($"GetServiceBlockByIndex/?blockType={blockType}&Index={Index}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -314,7 +325,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetLastServiceBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLastServiceBlock");
+            HttpResponseMessage response = await _client.GetAsync($"GetLastServiceBlock", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -326,7 +337,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetLastConsolidationBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLastConsolidationBlock");
+            HttpResponseMessage response = await _client.GetAsync($"GetLastConsolidationBlock", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -338,7 +349,7 @@ namespace Lyra.Core.API
 
         public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlocksByConsolidation/?AccountId={AccountId}&Signature={Signature}&consolidationHash={consolidationHash}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlocksByConsolidation/?AccountId={AccountId}&Signature={Signature}&consolidationHash={consolidationHash}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
@@ -360,7 +371,7 @@ namespace Lyra.Core.API
 
         public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
@@ -372,7 +383,7 @@ namespace Lyra.Core.API
 
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockHashesByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
+            HttpResponseMessage response = await _client.GetAsync($"GetBlockHashesByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
@@ -384,7 +395,7 @@ namespace Lyra.Core.API
 
         public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetConsolidationBlocks/?AccountId={AccountId}&Signature={Signature}&startHeight={startHeight}&count={count}");
+            HttpResponseMessage response = await _client.GetAsync($"GetConsolidationBlocks/?AccountId={AccountId}&Signature={Signature}&startHeight={startHeight}&count={count}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
@@ -396,7 +407,7 @@ namespace Lyra.Core.API
 
         //public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
         //{
-        //    HttpResponseMessage response = await _client.GetAsync($"GetUnConsolidatedBlocks/?AccountId={AccountId}&Signature={Signature}");
+        //    HttpResponseMessage response = await _client.GetAsync($"GetUnConsolidatedBlocks/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
         //    if (response.IsSuccessStatusCode)
         //    {
         //        var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
@@ -408,7 +419,7 @@ namespace Lyra.Core.API
 
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetNonFungibleTokens/?AccountId={AccountId}&Signature={Signature}");
+            HttpResponseMessage response = await _client.GetAsync($"GetNonFungibleTokens/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<NonFungibleListAPIResult>();
@@ -420,7 +431,7 @@ namespace Lyra.Core.API
 
         public async Task<AccountHeightAPIResult> GetSyncHeight()
         {
-            HttpResponseMessage response = await _client.GetAsync("GetSyncHeight");
+            HttpResponseMessage response = await _client.GetAsync("GetSyncHeight", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
@@ -432,7 +443,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetTokenGenesisBlock/?AccountId={AccountId}&TokenTicker={TokenTicker}&Signature={Signature}");
+            HttpResponseMessage response = await _client.GetAsync($"GetTokenGenesisBlock/?AccountId={AccountId}&TokenTicker={TokenTicker}&Signature={Signature}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -444,7 +455,7 @@ namespace Lyra.Core.API
 
         public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetTokenNames/?AccountId={AccountId}&Signature={Signature}&keyword={keyword}");
+            HttpResponseMessage response = await _client.GetAsync($"GetTokenNames/?AccountId={AccountId}&Signature={Signature}&keyword={keyword}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
@@ -461,7 +472,7 @@ namespace Lyra.Core.API
 
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"LookForNewTransfer/?AccountId={AccountId}&Signature={Signature}");
+            HttpResponseMessage response = await _client.GetAsync($"LookForNewTransfer/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<NewTransferAPIResult>();
@@ -473,7 +484,7 @@ namespace Lyra.Core.API
 
         public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"LookForNewFees/?AccountId={AccountId}&Signature={Signature}");
+            HttpResponseMessage response = await _client.GetAsync($"LookForNewFees/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<NewFeesAPIResult>();
@@ -570,7 +581,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetServiceGenesisBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetServiceGenesisBlock");
+            HttpResponseMessage response = await _client.GetAsync($"GetServiceGenesisBlock", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -582,7 +593,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLyraTokenGenesisBlock");
+            HttpResponseMessage response = await _client.GetAsync($"GetLyraTokenGenesisBlock", _cancel.Token);
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsAsync<BlockAPIResult>();
@@ -595,7 +606,7 @@ namespace Lyra.Core.API
         public async Task<List<Voter>> GetVotersAsync(VoteQueryModel model)
         {
             HttpResponseMessage response = await _client.PostAsJsonAsync(
-                    "GetVoters", model).ConfigureAwait(false);
+                    "GetVoters", model, _cancel.Token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             if (response.IsSuccessStatusCode)
             {
@@ -609,7 +620,7 @@ namespace Lyra.Core.API
         public async Task<List<Vote>> FindVotesAsync(VoteQueryModel model)
         {
             HttpResponseMessage response = await _client.PostAsJsonAsync(
-                    "FindVotes", model).ConfigureAwait(false);
+                    "FindVotes", model, _cancel.Token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             if (response.IsSuccessStatusCode)
             {
