@@ -17,12 +17,14 @@ namespace Lyra.Data.API
         private LyraRestClient _seedClient;
         private Dictionary<string, LyraRestClient> _primaryClients;
 
+        public LyraRestClient SeedClient { get => _seedClient; set => _seedClient = value; }
+
         public LyraAggregatedClient(string networkId)
         {
             this._networkId = networkId;
         }
 
-        public async Task InitAsync()
+        public async Task InitAsync(string seedNodeAddress)
         {
             var platform = Environment.OSVersion.Platform.ToString();
             var appName = "LyraAggregatedClient";
@@ -33,10 +35,10 @@ namespace Lyra.Data.API
                 peerPort = 5504;
 
             // get latest service block
-            _seedClient = LyraRestClient.Create(_networkId, platform, appName, appVer);
+            SeedClient = LyraRestClient.Create(_networkId, platform, appName, appVer);
 
             // get nodes list (from billboard)
-            var seedBillBoard = await _seedClient.GetBillBoardAsync();
+            var seedBillBoard = await SeedClient.GetBillBoardAsync();
 
             // create clients for primary nodes
             _primaryClients = seedBillBoard.NodeAddresses
@@ -82,6 +84,14 @@ namespace Lyra.Data.API
                     var x = goodResults.First(a => a == best.Data);
                     return x;
                 }
+                else
+                {
+                    // only for debug
+                    var q = goodResults.Select(a => a.GetHashCode()).ToList();
+                    var q2 = goodResults.Select(a => (a as GetSyncStateAPIResult).Status.GetHashCode()).ToList();
+                    var q3 = goodResults.Select(a => (a as GetSyncStateAPIResult)).ToList();
+                    var q4 = q3;
+                }
             }
 
             return new T { ResultCode = APIResultCodes.APIRouteFailed };
@@ -89,32 +99,32 @@ namespace Lyra.Data.API
 
         public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            return await _seedClient.CancelExchangeOrder(AccountId, Signature, cancelKey);
+            return await SeedClient.CancelExchangeOrder(AccountId, Signature, cancelKey);
         }
 
         public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
         {
-            return await _seedClient.CancelTradeOrder(block);
+            return await SeedClient.CancelTradeOrder(block);
         }
 
         public async Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
         {
-            return await _seedClient.CloseExchangeAccount(AccountId, Signature);
+            return await SeedClient.CloseExchangeAccount(AccountId, Signature);
         }
 
         public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
-            return await _seedClient.CreateExchangeAccount(AccountId, Signature);
+            return await SeedClient.CreateExchangeAccount(AccountId, Signature);
         }
 
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
         {
-            return await _seedClient.CreateToken(block);
+            return await SeedClient.CreateToken(block);
         }
 
         public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
         {
-            return await _seedClient.ExecuteTradeOrder(block);
+            return await SeedClient.ExecuteTradeOrder(block);
         }
 
         public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
@@ -126,12 +136,12 @@ namespace Lyra.Data.API
 
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
-            return await _seedClient.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, Signature);
+            return await SeedClient.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, Signature);
         }
 
         public async Task<BillBoard> GetBillBoardAsync()
         {
-            return await _seedClient.GetBillBoardAsync();
+            return await SeedClient.GetBillBoardAsync();
         }
 
         public async Task<BlockAPIResult> GetBlock(string Hash)
@@ -206,7 +216,7 @@ namespace Lyra.Data.API
 
         public async Task<string> GetDbStats()
         {
-            return await _seedClient.GetDbStats();
+            return await SeedClient.GetDbStats();
         }
 
         public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
@@ -253,7 +263,7 @@ namespace Lyra.Data.API
 
         public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
-            return await _seedClient.GetOrdersForAccount(AccountId, Signature);
+            return await SeedClient.GetOrdersForAccount(AccountId, Signature);
         }
 
         public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
@@ -300,7 +310,7 @@ namespace Lyra.Data.API
 
         public async Task<List<TransStats>> GetTransStatsAsync()
         {
-            return await _seedClient.GetTransStatsAsync();
+            return await SeedClient.GetTransStatsAsync();
         }
 
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
@@ -312,97 +322,97 @@ namespace Lyra.Data.API
 
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
         {
-            return await _seedClient.ImportAccount(block);
+            return await SeedClient.ImportAccount(block);
         }
 
         public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
         {
-            return await _seedClient.LookForNewFees(AccountId, Signature);
+            return await SeedClient.LookForNewFees(AccountId, Signature);
         }
 
         public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
-            return await _seedClient.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, Signature);
+            return await SeedClient.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, Signature);
         }
 
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
-            return await _seedClient.LookForNewTransfer(AccountId, Signature);
+            return await SeedClient.LookForNewTransfer(AccountId, Signature);
         }
 
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
-            return await _seedClient.OpenAccountWithGenesis(block);
+            return await SeedClient.OpenAccountWithGenesis(block);
         }
 
         public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
         {
-            return await _seedClient.OpenAccountWithImport(block);
+            return await SeedClient.OpenAccountWithImport(block);
         }
 
         public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock block)
         {
-            return await _seedClient.ReceiveFee(block);
+            return await SeedClient.ReceiveFee(block);
         }
 
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block)
         {
-            return await _seedClient.ReceiveTransfer(block);
+            return await SeedClient.ReceiveTransfer(block);
         }
 
         public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)
         {
-            return await _seedClient.ReceiveTransferAndOpenAccount(block);
+            return await SeedClient.ReceiveTransferAndOpenAccount(block);
         }
 
         public async Task<APIResult> RequestMarket(string tokenName)
         {
-            return await _seedClient.RequestMarket(tokenName);
+            return await SeedClient.RequestMarket(tokenName);
         }
 
         public async Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
         {
-            return await _seedClient.SearchTransactions(accountId, startTimeTicks, endTimeTicks, count);
+            return await SeedClient.SearchTransactions(accountId, startTimeTicks, endTimeTicks, count);
         }
 
         public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
         {
-            return await _seedClient.SendExchangeTransfer(block);
+            return await SeedClient.SendExchangeTransfer(block);
         }
 
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
         {
-            return await _seedClient.SendTransfer(block);
+            return await SeedClient.SendTransfer(block);
         }
 
         public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
         {
-            return await _seedClient.SubmitExchangeOrder(order);
+            return await SeedClient.SubmitExchangeOrder(order);
         }
 
         public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
         {
-            return await _seedClient.Trade(block);
+            return await SeedClient.Trade(block);
         }
 
         public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
         {
-            return await _seedClient.TradeOrder(block);
+            return await SeedClient.TradeOrder(block);
         }
 
         public async Task<List<Voter>> GetVoters(VoteQueryModel model)
         {
-            return await _seedClient.GetVotersAsync(model);
+            return await SeedClient.GetVotersAsync(model);
         }
 
         public async Task<List<Vote>> FindVotes(VoteQueryModel model)
         {
-            return await _seedClient.FindVotesAsync(model);
+            return await SeedClient.FindVotesAsync(model);
         }
 
         public async Task<FeeStats> GetFeeStats()
         {
-            return await _seedClient.GetFeeStatsAsync();
+            return await SeedClient.GetFeeStatsAsync();
         }
 
         // because using class not interface so these not used

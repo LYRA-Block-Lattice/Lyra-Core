@@ -85,18 +85,17 @@ namespace Lyra.Data.API
         public bool Equals(NodeStatus other)
         {
             return other != null &&
-                   accountId == other.accountId &&
+                   //accountId == other.accountId &&
                    version == other.version &&
                    state == other.state &&
                    totalBlockCount == other.totalBlockCount &&
                    lastConsolidationHash == other.lastConsolidationHash &&
-                   lastUnSolidationHash == other.lastUnSolidationHash &&
-                   activePeers == other.activePeers;
+                   lastUnSolidationHash == other.lastUnSolidationHash;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(accountId, version, state, totalBlockCount, lastConsolidationHash, lastUnSolidationHash, activePeers);
+            return HashCode.Combine(version, state, totalBlockCount, lastConsolidationHash, lastUnSolidationHash);
         }
 
         public static bool operator ==(NodeStatus left, NodeStatus right)

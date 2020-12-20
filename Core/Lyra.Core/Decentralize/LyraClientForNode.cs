@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using Neo;
 using System;
@@ -17,9 +18,11 @@ namespace Lyra.Core.Decentralize
     public class LyraClientForNode
     {
         DagSystem _sys;
-        private LyraRestClient _client;
+        private LyraAggregatedClient _client;
         private AccountHeightAPIResult _syncInfo;
         private List<KeyValuePair<string, string>> _validNodes;
+
+        public LyraAggregatedClient Client { get => _client; set => _client = value; }
 
         public LyraClientForNode(DagSystem sys)
         {
@@ -168,14 +171,14 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async Task<MultiBlockAPIResult> GetBlockByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
         {
             try
             {
                 if (_client == null)
                     _client = await FindValidSeedForSyncAsync(_sys);
 
-                return await _client.GetBlockByTimeRange(startTime, endTime);
+                return await _client.GetBlocksByTimeRange(startTime, endTime);
             }
             catch (Exception ex)
             {
@@ -183,7 +186,7 @@ namespace Lyra.Core.Decentralize
                 {
                     // retry
                     _client = await FindValidSeedForSyncAsync(_sys);
-                    return await GetBlockByTimeRange(startTime, endTime);
+                    return await GetBlocksByTimeRange(startTime, endTime);
                 }
                 else
                     throw ex;
@@ -256,9 +259,30 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async Task<LyraRestClient> FindValidSeedForSyncAsync(DagSystem sys)
+        public async Task<LyraAggregatedClient> FindValidSeedForSyncAsync(DagSystem sys)
         {
-            ushort peerPort = 4504;
+            var client = new LyraAggregatedClient(Neo.Settings.Default.LyraNode.Lyra.NetworkId);
+
+            var rand = new Random();
+            int ndx;
+
+            using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider())
+            {
+                do
+                {
+                    byte[] rno = new byte[5];
+                    rg.GetBytes(rno);
+                    int randomvalue = BitConverter.ToInt32(rno, 0);
+
+                    ndx = randomvalue % ProtocolSettings.Default.SeedList.Length;
+                } while (ndx < 0 || sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
+            }
+
+            var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
+
+            await client.InitAsync(addr);
+            return client;
+/*            ushort peerPort = 4504;
             if (Neo.Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
                 peerPort = 5504;
             
@@ -310,7 +334,7 @@ namespace Lyra.Core.Decentralize
                     }
                     await Task.Delay(10000);    // incase of hammer
                 }
-            }
+            }*/
         }
     }
 }

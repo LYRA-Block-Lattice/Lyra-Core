@@ -16,7 +16,7 @@ namespace UnitTests
             var client = LyraRestClient.Create("testnet", "Windows", "UnitTest", "1.0");
 
             var aggClient = new LyraAggregatedClient("testnet");
-            await aggClient.InitAsync();
+            await aggClient.InitAsync("api.testnet.lyra.live");
 
             var svcBlock1 = await client.GetLastServiceBlock();
             var svcBlock2 = await aggClient.GetLastServiceBlock();
@@ -30,7 +30,7 @@ namespace UnitTests
             var client = LyraRestClient.Create("testnet", "Windows", "UnitTest", "1.0");
 
             var aggClient = new LyraAggregatedClient("testnet");
-            await aggClient.InitAsync();
+            await aggClient.InitAsync("api.testnet.lyra.live");
 
             var accountId = "LT8din6wm6SyfnqmmJN7jSnyrQjqAaRmixe2kKtTY4xpDBRtTxBmuHkJU9iMru5yqcNyL3Q21KDvHK45rkUS4f8tkXBBS3";
             var svcBlock1 = await client.GetLastBlock(accountId);

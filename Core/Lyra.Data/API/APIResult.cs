@@ -368,7 +368,7 @@ namespace Lyra.Core.API
         public string LastConsolidationHash { get; set; }
         public NodeStatus Status { get; set; }
 
-        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), NetworkID, Signature, SyncState, LastConsolidationHash, Status);
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), NetworkID, SyncState, LastConsolidationHash, Status);
     }
 
     public class ExchangeAccountAPIResult : APIResult

@@ -511,7 +511,7 @@ namespace Lyra.Core.Decentralize
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
                 var client = await new LyraClientForNode(_sys).FindValidSeedForSyncAsync(_sys);
-                await gensWallet.Sync(client);
+                await gensWallet.Sync(client.SeedClient);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.Send(amount, accId);
                 if (sendResult.ResultCode == APIResultCodes.Success)
