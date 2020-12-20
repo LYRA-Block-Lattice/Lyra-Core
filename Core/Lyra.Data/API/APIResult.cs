@@ -68,10 +68,15 @@ namespace Lyra.Core.API
             unchecked
             {
                 int hash = base.GetHashCode() + 19;
-                foreach (var t in Transactions)
+
+                if(null != Transactions)
                 {
-                    hash = hash * 31 + (t == null ? 0 : t.GetHashCode());
+                    foreach (var t in Transactions)
+                    {
+                        hash = hash * 31 + (t == null ? 0 : t.GetHashCode());
+                    }
                 }
+
                 return hash;
             }
         }
@@ -210,10 +215,12 @@ namespace Lyra.Core.API
             unchecked
             {
                 int hash = base.GetHashCode() + 19;
+                if(null != BlockDatas)
                 foreach (var d in BlockDatas)
                 {
                     hash = hash * 31 + (d == null ? 0 : d.GetHashCode());
                 }
+                if(null != ResultBlockTypes)
                 foreach (var t in ResultBlockTypes)
                 {
                     hash = hash * 31 + t.GetHashCode();
@@ -341,6 +348,7 @@ namespace Lyra.Core.API
             unchecked
             {
                 int hash = base.GetHashCode() + 19;
+                if(null != Entities)
                 foreach (var t in Entities)
                 {
                     hash = hash * 31 + (t == null ? 0 : t.GetHashCode());
@@ -386,6 +394,7 @@ namespace Lyra.Core.API
             unchecked
             {
                 int hash = base.GetHashCode() + 19;
+                if(null != Balance)
                 foreach (var t in Balance)
                 {
                     hash = hash * 31 + t.Key.GetHashCode() + t.Value.GetHashCode();
