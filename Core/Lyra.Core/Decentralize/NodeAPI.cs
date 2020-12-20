@@ -22,63 +22,42 @@ namespace Lyra.Core.Decentralize
 {
     public class NodeAPI : INodeAPI
     {
-        LyraRestClient _seed0Client;
-
-        private ConcurrentDictionary<string, LyraRestClient> _clients;
-        private readonly Random _rnd;
-
         public NodeAPI()
         {
-            _clients = new ConcurrentDictionary<string, LyraRestClient>();
-            _rnd = new Random();
         }
 
-        private bool IsThisNodeOk
-        {
-            get
-            {
-                if (ApiService.LastState == null)
-                    return false;
+        //// smart routing based on last consensus
+        //private async IAsyncEnumerable<LyraRestClient> GetRoutesAsync()
+        //{
+        //    if (ApiService.LastState == null)
+        //        yield break;
 
-                if (ApiService.LastState.CommitMsgs.Any(a => a.From == NodeService.Dag.PosWallet.AccountId && a.Consensus == ApiService.LastState.CommitConsensus))
-                    return true;
+        //    var networkId = LyraNodeConfig.GetNetworkId();
+        //    int port = networkId.Equals("mainnet") ? 5505 : 4505;
+        //    int sampleCount = 3;
+        //    var bb = await NodeService.Dag.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
+        //    var majority = from commit in ApiService.LastState.CommitMsgs
+        //                   join ipkvp in bb.NodeAddresses on commit.From equals ipkvp.Key
+        //                   where commit.Consensus == ApiService.LastState.CommitConsensus
+        //                   select new
+        //                   {
+        //                       commit.From,
+        //                       IP = ipkvp.Value
+        //                   };
 
-                return false;
-            }
-        }
-
-        // smart routing based on last consensus
-        private async IAsyncEnumerable<LyraRestClient> GetRoutesAsync()
-        {
-            if (ApiService.LastState == null)
-                yield break;
-
-            var networkId = LyraNodeConfig.GetNetworkId();
-            int port = networkId.Equals("mainnet") ? 5505 : 4505;
-            int sampleCount = 3;
-            var bb = await NodeService.Dag.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
-            var majority = from commit in ApiService.LastState.CommitMsgs
-                           join ipkvp in bb.NodeAddresses on commit.From equals ipkvp.Key
-                           where commit.Consensus == ApiService.LastState.CommitConsensus
-                           select new
-                           {
-                               commit.From,
-                               IP = ipkvp.Value
-                           };
-
-            var samples = majority.OrderBy(x => _rnd.Next()).Take(sampleCount);
-            foreach (var liveNode in samples)
-            {
-                if (_clients.ContainsKey(liveNode.From) && _clients[liveNode.From].Host == liveNode.IP)
-                    yield return _clients[liveNode.From];
-                else
-                {
-                    var client = LyraRestClient.Create(networkId, Environment.OSVersion.Platform.ToString(),
-                        "API Router", "1.0", $"http://{liveNode.IP}:{port}/api/Node/");
-                    yield return _clients.AddOrUpdate(liveNode.From, client, (k, v) => client);
-                }
-            }
-        }
+        //    var samples = majority.OrderBy(x => _rnd.Next()).Take(sampleCount);
+        //    foreach (var liveNode in samples)
+        //    {
+        //        if (_clients.ContainsKey(liveNode.From) && _clients[liveNode.From].Host == liveNode.IP)
+        //            yield return _clients[liveNode.From];
+        //        else
+        //        {
+        //            var client = LyraRestClient.Create(networkId, Environment.OSVersion.Platform.ToString(),
+        //                "API Router", "1.0", $"http://{liveNode.IP}:{port}/api/Node/");
+        //            yield return _clients.AddOrUpdate(liveNode.From, client, (k, v) => client);
+        //        }
+        //    }
+        //}
 
         private async Task<bool> VerifyClientAsync(string accountId, string signature)
         {
@@ -156,45 +135,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task<BlockAPIResult> GetServiceGenesisBlock()
         {
-            if(true)//IsThisNodeOk)
-            {
-                return await InternalGetServiceGenesisBlockAsync();
-            }
-            else
-            {
-                var routes = GetRoutesAsync();
-
-                var reqs = new List<Task<BlockAPIResult>>();
-                await foreach(var rt in routes)
-                {
-                    reqs.Add(rt.GetServiceGenesisBlock());
-                }
-
-                if(reqs.Any())
-                {
-                    //var first = await Task.WhenAny(Task.WhenAll(reqs), Task.Delay(3000));
-                    var okCount = Task.WaitAny(reqs.ToArray(), 3000);
-                    if(okCount > 0)
-                    {
-                        var completedResults =
-                          reqs
-                          .Where(t => t.Status == TaskStatus.RanToCompletion)
-                          .Select(t => t.Result)
-                          .ToList();
-
-                        var result = completedResults.FirstOrDefault(a => a.ResultCode == APIResultCodes.Success);
-                        if (result != null)
-                            return result;
-                    }
-                    var apiResult = new BlockAPIResult();
-                    apiResult.ResultCode = APIResultCodes.APIRouteFailed;
-                    return apiResult;
-                }
-            }
-
-            var badResult = new BlockAPIResult();
-            badResult.ResultCode = APIResultCodes.NodeOutOfSync;
-            return badResult;
+            return await InternalGetServiceGenesisBlockAsync();
         }
         public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
         {
