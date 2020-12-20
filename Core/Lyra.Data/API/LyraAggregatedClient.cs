@@ -14,6 +14,7 @@ namespace Lyra.Data.API
     public class LyraAggregatedClient : INodeAPI, INodeTransactionAPI, INodeDexAPI
     {
         private string _networkId;
+        private LyraRestClient _seedClient;
         private Dictionary<string, LyraRestClient> _primaryClients;
 
         public LyraAggregatedClient(string networkId)
@@ -32,10 +33,10 @@ namespace Lyra.Data.API
                 peerPort = 5504;
 
             // get latest service block
-            var seedApiNodeClient = LyraRestClient.Create(_networkId, platform, appName, appVer);
+            _seedClient = LyraRestClient.Create(_networkId, platform, appName, appVer);
 
             // get nodes list (from billboard)
-            var seedBillBoard = await seedApiNodeClient.GetBillBoardAsync();
+            var seedBillBoard = await _seedClient.GetBillBoardAsync();
 
             // create clients for primary nodes
             _primaryClients = seedBillBoard.NodeAddresses
@@ -48,7 +49,7 @@ namespace Lyra.Data.API
                 .ToDictionary(p => p.Key, p => p.Value);
         }
 
-        public async Task<T> BlockResultAsync<T>(List<Task<T>> tasks) where T: APIResult, new()
+        public async Task<T> CheckResultAsync<T>(List<Task<T>> tasks) where T: APIResult, new()
         {
             try
             {
@@ -86,294 +87,336 @@ namespace Lyra.Data.API
             return new T { ResultCode = APIResultCodes.APIRouteFailed };
         }
 
-        public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
+        public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
         {
-            throw new NotImplementedException();
+            return await _seedClient.CancelExchangeOrder(AccountId, Signature, cancelKey);
         }
 
-        public Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
         {
-            throw new NotImplementedException();
+            return await _seedClient.CancelTradeOrder(block);
         }
 
-        public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
+        public async Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
         {
-            throw new NotImplementedException();
+            return await _seedClient.CloseExchangeAccount(AccountId, Signature);
         }
 
-        public Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
+        public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
         {
-            throw new NotImplementedException();
+            return await _seedClient.CreateExchangeAccount(AccountId, Signature);
         }
 
-        public Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
         {
-            throw new NotImplementedException();
+            return await _seedClient.CreateToken(block);
         }
 
-        public Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
         {
-            throw new NotImplementedException();
+            return await _seedClient.ExecuteTradeOrder(block);
         }
 
-        public List<Vote> FindVotes(VoteQueryModel model)
+        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetAccountHeight(AccountId)).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
+        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
-            throw new NotImplementedException();
+            return await _seedClient.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, Signature);
         }
 
-        public Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        public async Task<BillBoard> GetBillBoardAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<BillBoard> GetBillBoardAsync()
-        {
-            throw new NotImplementedException();
+            return await _seedClient.GetBillBoardAsync();
         }
 
         public async Task<BlockAPIResult> GetBlock(string Hash)
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetBlock(Hash)).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetBlockByHash(AccountId, Hash, Signature)).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetBlockByIndex(AccountId, Index)).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetBlockBySourceHash(string sourceHash)
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetBlockBySourceHash(sourceHash)).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetBlockHashesByTimeRange(startTime, endTime)).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetBlockHashesByTimeRange(startTimeTicks, endTimeTicks)).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
+        public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetBlocksByConsolidation(AccountId, Signature, consolidationHash)).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetBlocksByTimeRange(startTime, endTime)).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetBlocksByTimeRange(startTimeTicks, endTimeTicks)).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetConsolidationBlocks(AccountId, Signature, startHeight, count)).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<string> GetDbStats()
+        public async Task<string> GetDbStats()
         {
-            throw new NotImplementedException();
+            return await _seedClient.GetDbStats();
         }
 
-        public Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
+        public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
         {
-            throw new NotImplementedException();
-        }
+            var tasks = _primaryClients.Select(async client => await client.Value.GetExchangeBalance(AccountId, Signature)).ToList();
 
-        public FeeStats GetFeeStats()
-        {
-            throw new NotImplementedException();
+            return await CheckResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetLastBlock(string AccountId)
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetLastBlock(AccountId)).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetLastConsolidationBlock()
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetLastConsolidationBlock()).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetLastServiceBlock()
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetLastServiceBlock()).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetLyraTokenGenesisBlock()).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetNonFungibleTokens(AccountId, Signature)).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
+        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
         {
-            throw new NotImplementedException();
+            return await _seedClient.GetOrdersForAccount(AccountId, Signature);
         }
 
         public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetServiceBlockByIndex(blockType, Index)).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetServiceGenesisBlock()
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetServiceGenesisBlock()).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<AccountHeightAPIResult> GetSyncHeight()
+        public async Task<AccountHeightAPIResult> GetSyncHeight()
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetSyncHeight()).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<GetSyncStateAPIResult> GetSyncState()
+        public async Task<GetSyncStateAPIResult> GetSyncState()
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(async client => await client.Value.GetSyncState()).ToList();
+
+            return await CheckResultAsync(tasks);
         }
 
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
             var tasks = _primaryClients.Select(async client => await client.Value.GetTokenGenesisBlock(AccountId, TokenTicker, Signature)).ToList();
 
-            return await BlockResultAsync(tasks);
+            return await CheckResultAsync(tasks);
         }
 
-        public Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        {
+            var tasks = _primaryClients.Select(async client => await client.Value.GetTokenNames(AccountId, Signature, keyword)).ToList();
+
+            return await CheckResultAsync(tasks);
+        }
+
+        public async Task<List<TransStats>> GetTransStatsAsync()
+        {
+            return await _seedClient.GetTransStatsAsync();
+        }
+
+        public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
+        {
+            var tasks = _primaryClients.Select(async client => await client.Value.GetVersion(apiVersion, appName, appVersion)).ToList();
+
+            return await CheckResultAsync(tasks);
+        }
+
+        public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
+        {
+            return await _seedClient.ImportAccount(block);
+        }
+
+        public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
+        {
+            return await _seedClient.LookForNewFees(AccountId, Signature);
+        }
+
+        public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
+        {
+            return await _seedClient.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, Signature);
+        }
+
+        public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
+        {
+            return await _seedClient.LookForNewTransfer(AccountId, Signature);
+        }
+
+        public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
+        {
+            return await _seedClient.OpenAccountWithGenesis(block);
+        }
+
+        public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
+        {
+            return await _seedClient.OpenAccountWithImport(block);
+        }
+
+        public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock block)
+        {
+            return await _seedClient.ReceiveFee(block);
+        }
+
+        public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block)
+        {
+            return await _seedClient.ReceiveTransfer(block);
+        }
+
+        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)
+        {
+            return await _seedClient.ReceiveTransferAndOpenAccount(block);
+        }
+
+        public async Task<APIResult> RequestMarket(string tokenName)
+        {
+            return await _seedClient.RequestMarket(tokenName);
+        }
+
+        public async Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
+        {
+            return await _seedClient.SearchTransactions(accountId, startTimeTicks, endTimeTicks, count);
+        }
+
+        public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
+        {
+            return await _seedClient.SendExchangeTransfer(block);
+        }
+
+        public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
+        {
+            return await _seedClient.SendTransfer(block);
+        }
+
+        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
+        {
+            return await _seedClient.SubmitExchangeOrder(order);
+        }
+
+        public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
+        {
+            return await _seedClient.Trade(block);
+        }
+
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
+        {
+            return await _seedClient.TradeOrder(block);
+        }
+
+        public async Task<List<Voter>> GetVoters(VoteQueryModel model)
+        {
+            return await _seedClient.GetVotersAsync(model);
+        }
+
+        public async Task<List<Vote>> FindVotes(VoteQueryModel model)
+        {
+            return await _seedClient.FindVotesAsync(model);
+        }
+
+        public async Task<FeeStats> GetFeeStats()
+        {
+            return await _seedClient.GetFeeStatsAsync();
+        }
+
+        // because using class not interface so these not used
+        List<Voter> INodeAPI.GetVoters(VoteQueryModel model)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<TransStats>> GetTransStatsAsync()
+        List<Vote> INodeAPI.FindVotes(VoteQueryModel model)
         {
             throw new NotImplementedException();
         }
 
-        public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<Voter> GetVoters(VoteQueryModel model)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<APIResult> RequestMarket(string tokenName)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<AuthorizationAPIResult> Trade(TradeBlock block)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
+        FeeStats INodeAPI.GetFeeStats()
         {
             throw new NotImplementedException();
         }
