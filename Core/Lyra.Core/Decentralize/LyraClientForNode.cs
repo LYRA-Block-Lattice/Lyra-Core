@@ -281,6 +281,8 @@ namespace Lyra.Core.Decentralize
             var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
 
             await client.InitAsync(addr);
+            _syncInfo = await client.GetSyncHeight();
+
             return client;
 /*            ushort peerPort = 4504;
             if (Neo.Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
