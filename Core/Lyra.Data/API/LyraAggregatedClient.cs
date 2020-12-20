@@ -68,7 +68,7 @@ namespace Lyra.Data.API
             var expectedCount = LyraGlobal.GetMajority(taskRecords.Count);
             int compeletedCount = 0;
 
-            var tasks = taskRecords.Select(a => a.task);
+            var tasks = taskRecords.Select(a => a.task).ToList();
             ISet<Task<T>> activeTasks = new HashSet<Task<T>>(tasks);
             while (activeTasks.Count > 0)
             {
@@ -98,8 +98,8 @@ namespace Lyra.Data.API
                                 // abort other tasks
                                 foreach(var running in activeTasks)
                                 {
-                                    taskRecords.First(a => a.task == running)
-                                        .client.Abort();
+                                    //taskRecords.First(a => a.task == running)
+                                    //    .client.Abort();
                                 }
                                 //Console.WriteLine($"Result {best.Count} >= Expected {expectedCount} Abort {activeTasks.Count} tasks.");
                                 return x.Result;
