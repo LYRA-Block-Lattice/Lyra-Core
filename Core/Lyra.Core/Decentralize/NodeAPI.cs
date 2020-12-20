@@ -538,11 +538,11 @@ namespace Lyra.Core.Decentralize
         public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
         {
             var result = new MultiBlockAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
+            //if (!await VerifyClientAsync(AccountId, Signature))
+            //{
+            //    result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+            //    return result;
+            //}
 
             var consBlock = (await NodeService.Dag.Storage.FindBlockByHashAsync(consolidationHash)) as ConsolidationBlock;
             if(consBlock == null)
@@ -692,11 +692,11 @@ namespace Lyra.Core.Decentralize
         public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
         {
             var result = new MultiBlockAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
+            //if (!await VerifyClientAsync(AccountId, Signature))
+            //{
+            //    result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+            //    return result;
+            //}
 
             try
             {
