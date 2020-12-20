@@ -8,11 +8,38 @@ using Newtonsoft.Json;
 namespace Lyra.Core.Blocks
 {
     // This transaction recording, in any direction (send or receive)
-    public class TransactionInfo
+    public class TransactionInfo : IEquatable<TransactionInfo>
     {
         // This is the "pure" transacted amount (not including fee):
         public decimal Amount { get; set; }
         public string TokenCode { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as TransactionInfo);
+        }
+
+        public bool Equals(TransactionInfo other)
+        {
+            return other != null &&
+                   Amount == other.Amount &&
+                   TokenCode == other.TokenCode;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Amount, TokenCode);
+        }
+
+        public static bool operator ==(TransactionInfo left, TransactionInfo right)
+        {
+            return EqualityComparer<TransactionInfo>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(TransactionInfo left, TransactionInfo right)
+        {
+            return !(left == right);
+        }
     }
 
     public class TransactionInfoEx: TransactionInfo

@@ -48,7 +48,7 @@ namespace Lyra.Data.API
                 .ToDictionary(p => p.Key, p => p.Value);
         }
 
-        public async Task<BlockAPIResult> BlockResultAsync(List<Task<BlockAPIResult>> tasks)
+        public async Task<T> BlockResultAsync<T>(List<Task<T>> tasks) where T: APIResult, new()
         {
             try
             {
@@ -67,7 +67,7 @@ namespace Lyra.Data.API
             if (goodCount >= LyraGlobal.GetMajority(_primaryClients.Count))
             {
                 var best = goodResults
-                    .GroupBy(b => b.BlockData)
+                    .GroupBy(b => b)
                     .Select(g => new
                     {
                         Data = g.Key,
@@ -78,12 +78,12 @@ namespace Lyra.Data.API
 
                 if (best.Count >= LyraGlobal.GetMajority(_primaryClients.Count))
                 {
-                    var x = goodResults.First(a => a.BlockData == best.Data);
+                    var x = goodResults.First(a => a == best.Data);
                     return x;
                 }
             }
 
-            return new BlockAPIResult { ResultCode = APIResultCodes.APIRouteFailed };
+            return new T { ResultCode = APIResultCodes.APIRouteFailed };
         }
 
         public Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)

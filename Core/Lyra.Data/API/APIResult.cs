@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace Lyra.Core.API
 {
-    public class APIResult
+    public class APIResult : IEquatable<APIResult>
     {
         public APIResultCodes ResultCode { get; set; }
         public string ResultMessage { get; set; }
@@ -24,16 +24,57 @@ namespace Lyra.Core.API
         {
             return ResultCode == APIResultCodes.Success;
         }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as APIResult);
+        }
+
+        public bool Equals(APIResult other)
+        {
+            return other != null &&
+                   GetHashCode() == other.GetHashCode();
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(ResultCode, ResultMessage);
+        }
+
+        public static bool operator ==(APIResult left, APIResult right)
+        {
+            return EqualityComparer<APIResult>.Default.Equals(left, right);
+        }
+
+        public static bool operator !=(APIResult left, APIResult right)
+        {
+            return !(left == right);
+        }
     }
 
     public class SimpleJsonAPIResult : APIResult
     {
         public string JsonString { get; set; }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), JsonString);
     }
 
     public class TransactionsAPIResult : APIResult
     {
         public List<TransactionDescription> Transactions { get; set; }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = base.GetHashCode() + 19;
+                foreach (var t in Transactions)
+                {
+                    hash = hash * 31 + (t == null ? 0 : t.GetHashCode());
+                }
+                return hash;
+            }
+        }
     }
 
     public class AccountHeightAPIResult : APIResult
@@ -46,6 +87,8 @@ namespace Lyra.Core.API
         {
             Height = 0;
         }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Height, SyncHash, NetworkId);
     }
 
     // returns the authorization signatures for send or receive blocks
@@ -53,6 +96,18 @@ namespace Lyra.Core.API
     {
         public string ServiceHash { get; set; }
         public List<AuthorizationSignature> Authorizations { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return obj is AuthorizationAPIResult result &&
+                   base.Equals(obj) &&
+                   ServiceHash == result.ServiceHash;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(base.GetHashCode(), ServiceHash);
+        }
     }
 
     public class TradeAPIResult : APIResult
@@ -68,6 +123,8 @@ namespace Lyra.Core.API
         {
            return JsonConvert.DeserializeObject<TradeBlock>(TradeBlockData);
         }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), TradeBlockData);
     }
 
     public class TradeOrderAuthorizationAPIResult : AuthorizationAPIResult
@@ -83,6 +140,8 @@ namespace Lyra.Core.API
         {
             return JsonConvert.DeserializeObject<TradeBlock>(TradeBlockData);
         }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), TradeBlockData);
     }
 
     public class ActiveTradeOrdersAPIResult : APIResult
@@ -98,6 +157,8 @@ namespace Lyra.Core.API
         {
             return JsonConvert.DeserializeObject<List<TradeOrderBlock>>(ListDataSerialized);
         }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ListDataSerialized);
     }
 
 
@@ -114,6 +175,8 @@ namespace Lyra.Core.API
         {
             return JsonConvert.DeserializeObject<List<NonFungibleToken>>(ListDataSerialized);
         }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ListDataSerialized);
     }
 
     //// returns the auhtorization signatures for send or receive blocks
@@ -141,10 +204,27 @@ namespace Lyra.Core.API
                 yield return block.GetBlock();
             }
         }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = base.GetHashCode() + 19;
+                foreach (var d in BlockDatas)
+                {
+                    hash = hash * 31 + (d == null ? 0 : d.GetHashCode());
+                }
+                foreach (var t in ResultBlockTypes)
+                {
+                    hash = hash * 31 + t.GetHashCode();
+                }
+                return hash;
+            }
+        }
     }
 
     // return the auhtorization signatures for send or receive blocks
-    public class BlockAPIResult : APIResult, IEquatable<BlockAPIResult>
+    public class BlockAPIResult : APIResult
     {
         public string BlockData { get; set; }
         public BlockTypes ResultBlockType { get; set; }
@@ -228,33 +308,9 @@ namespace Lyra.Core.API
                 return null;
         }
 
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as BlockAPIResult);
-        }
-
-        public bool Equals(BlockAPIResult other)
-        {
-            return other != null &&
-                   ResultCode == other.ResultCode &&
-                   ResultMessage == other.ResultMessage &&
-                   BlockData == other.BlockData &&
-                   ResultBlockType == other.ResultBlockType;
-        }
-
         public override int GetHashCode()
         {
-            return HashCode.Combine(ResultCode, ResultMessage, BlockData, ResultBlockType);
-        }
-
-        public static bool operator ==(BlockAPIResult left, BlockAPIResult right)
-        {
-            return EqualityComparer<BlockAPIResult>.Default.Equals(left, right);
-        }
-
-        public static bool operator !=(BlockAPIResult left, BlockAPIResult right)
-        {
-            return !(left == right);
+            return HashCode.Combine(base.GetHashCode(), BlockData, ResultBlockType);
         }
     }
 
@@ -265,16 +321,33 @@ namespace Lyra.Core.API
         public TransactionInfo Transfer { get; set; }
         public string SourceHash { get; set; }
         public NonFungibleToken NonFungibleToken { get; set; }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Transfer, SourceHash, NonFungibleToken);
     }
 
     public class NewFeesAPIResult : APIResult
     {
         public UnSettledFees pendingFees { get; set; }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), pendingFees);
     }
 
     public class GetListStringAPIResult : APIResult
     {
         public List<string> Entities { get; set; }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = base.GetHashCode() + 19;
+                foreach (var t in Entities)
+                {
+                    hash = hash * 31 + (t == null ? 0 : t.GetHashCode());
+                }
+                return hash;
+            }
+        }
     }
 
     public class GetVersionAPIResult : APIResult
@@ -282,7 +355,9 @@ namespace Lyra.Core.API
         public int ApiVersion { get; set; }
         public string NodeVersion { get; set; }
         public bool UpgradeNeeded { get; set; }
-        public bool MustUpgradeToConnect { get; set; }        
+        public bool MustUpgradeToConnect { get; set; }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ApiVersion, NodeVersion, UpgradeNeeded, MustUpgradeToConnect);
     }
 
     public class GetSyncStateAPIResult : APIResult
@@ -292,16 +367,32 @@ namespace Lyra.Core.API
         public ConsensusWorkingMode SyncState { get; set; }
         public string LastConsolidationHash { get; set; }
         public NodeStatus Status { get; set; }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), NetworkID, Signature, SyncState, LastConsolidationHash, Status);
     }
 
     public class ExchangeAccountAPIResult : APIResult
     {
         public string AccountId { get; set; }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), AccountId);
     }
 
     public class ExchangeBalanceAPIResult : ExchangeAccountAPIResult
     {
         public Dictionary<string, decimal> Balance { get; set; }
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = base.GetHashCode() + 19;
+                foreach (var t in Balance)
+                {
+                    hash = hash * 31 + t.Key.GetHashCode() + t.Value.GetHashCode();
+                }
+                return hash;
+            }
+        }
     }
 
     public enum NotifySource { None, System, Balance, Dex, DShop, DPay };
@@ -312,5 +403,7 @@ namespace Lyra.Core.API
         public string Action { get; set; }
         public string Catalog { get; set; }
         public string ExtraInfo { get; set; }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), HasEvent, Source, Action, Catalog, ExtraInfo);
     }
 }
