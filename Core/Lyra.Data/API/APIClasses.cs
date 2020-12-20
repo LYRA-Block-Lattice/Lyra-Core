@@ -86,8 +86,8 @@ namespace Lyra.Data.API
         {
             return other != null &&
                    //accountId == other.accountId &&
-                   version == other.version &&
-                   state == other.state &&
+                   //version == other.version &&
+                   //state == other.state &&
                    totalBlockCount == other.totalBlockCount &&
                    lastConsolidationHash == other.lastConsolidationHash &&
                    lastUnSolidationHash == other.lastUnSolidationHash;
@@ -95,7 +95,7 @@ namespace Lyra.Data.API
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(version, state, totalBlockCount, lastConsolidationHash, lastUnSolidationHash);
+            return HashCode.Combine(totalBlockCount, lastConsolidationHash, lastUnSolidationHash);
         }
 
         public static bool operator ==(NodeStatus left, NodeStatus right)
