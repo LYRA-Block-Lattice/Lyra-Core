@@ -89,7 +89,15 @@ namespace Lyra.Core.Decentralize
                 if (_client == null)
                     _client = await FindValidSeedForSyncAsync(_sys);
 
-                return await _client.GetBlocksByConsolidation(_sys.PosWallet.AccountId, await SignAPICallAsync(), consolidationHash);
+                var result = await _client.GetBlocksByConsolidation(_sys.PosWallet.AccountId, await SignAPICallAsync(), consolidationHash);
+                if (result.ResultCode == APIResultCodes.APISignatureValidationFailed)
+                {
+                    _syncInfo = await _client.GetSyncHeight();
+
+                    return await GetBlocksByConsolidation(consolidationHash);
+                }
+                else
+                    return result;
             }
             catch (Exception ex)
             {
@@ -112,7 +120,15 @@ namespace Lyra.Core.Decentralize
                 if (_client == null)
                     _client = await FindValidSeedForSyncAsync(_sys);
 
-                return await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight, 10);
+                var result = await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight, 10);
+                if (result.ResultCode == APIResultCodes.APISignatureValidationFailed)
+                {
+                    _syncInfo = await _client.GetSyncHeight();
+
+                    return await GetConsolidationBlocks(startConsHeight);
+                }
+                else
+                    return result;
             }
             catch (Exception ex)
             {
@@ -134,7 +150,7 @@ namespace Lyra.Core.Decentralize
                 if (_client == null)
                     _client = await FindValidSeedForSyncAsync(_sys);
 
-                return await _client.GetBlockByHash(_sys.PosWallet.AccountId, Hash, await SignAPICallAsync());
+                return await _client.GetBlockByHash(_sys.PosWallet.AccountId, Hash, "");
             }
             catch (Exception ex)
             {
