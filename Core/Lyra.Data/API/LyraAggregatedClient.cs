@@ -101,7 +101,7 @@ namespace Lyra.Data.API
                                     taskRecords.First(a => a.task == running)
                                         .client.Abort();
                                 }
-                                Console.WriteLine($"Result {best.Count} >= Expected {expectedCount} Abort {activeTasks.Count} tasks.");
+                                //Console.WriteLine($"Result {best.Count} >= Expected {expectedCount} Abort {activeTasks.Count} tasks.");
                                 return x.Result;
                             }
                         }
