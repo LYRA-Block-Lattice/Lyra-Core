@@ -112,7 +112,8 @@ namespace Lyra.Data.API
                 }
                 catch(Exception ex)
                 {
-                    // do nothing?   
+                    foreach (var t in activeTasks.Where(a => a.IsFaulted || a.IsCanceled).ToList())
+                        activeTasks.Remove(t);
                 }
             }
             // No successful tasks
