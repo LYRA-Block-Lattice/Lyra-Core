@@ -62,9 +62,6 @@ namespace Lyra.Core.Decentralize
         private List<TransStats> _stats;
         private System.Net.IPAddress _myIpAddress;
 
-        // status inquiry
-        private List<NodeStatus> _nodeStatus;
-
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
 
@@ -91,7 +88,6 @@ namespace Lyra.Core.Decentralize
             _criticalMsgCache = new ConcurrentDictionary<string, DateTime>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
             _stats = new List<TransStats>();
-            _nodeStatus = new List<NodeStatus>();
 
             _board = new BillBoard();
 
@@ -407,52 +403,42 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogInformation($"Querying Lyra Network Status... ");
 
-                            _nodeStatus.Clear();
-                            var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
-                            inq.From = _sys.PosWallet.AccountId;
-                            await Send2P2pNetworkAsync(inq);
-
-                            await Task.Delay(5000);
-
-                            var currentMajority = GetNetworkMajority();
-
-                            if (currentMajority.Any())
+                            var client = new LyraClientForNode(_sys);
+                            var networkStatus = await client.GetSyncState();
+                            if(networkStatus.ResultCode != APIResultCodes.Success)
                             {
-                                var majorHeight = currentMajority.First().totalBlockCount;
+                                await Task.Delay(2000);
+                                continue;
+                            }
 
-                                var majority = 3;// LyraGlobal.GetMajority(_board.ActiveNodes.Count);
-                                _log.LogInformation($"CheckInquiryResult: Major Height = {majorHeight} of {currentMajority.Count} majority {majority}");
+                            var majorHeight = networkStatus.Status.totalBlockCount;
+                            _log.LogInformation($"Consensus network: Major Height = {majorHeight}");
 
-                                var myStatus = await GetNodeStatusAsync();
-                                
-                                if (myStatus.totalBlockCount == 0 && majorHeight == 0 && currentMajority.Count >= majority)
+                            var myStatus = await GetNodeStatusAsync();
+
+                            if (myStatus.totalBlockCount == 0 && majorHeight == 0)
+                            {
+                                //_stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
+                                _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                                break;
+                            }
+                            else if (majorHeight >= 2)
+                            {
+                                // if local == remote then no need for database sync
+                                if (majorHeight != myStatus.totalBlockCount)
                                 {
-                                    //_stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
-                                    _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
-                                    break;
-                                }
-                                else if (majorHeight >= 2 && currentMajority.Count >= majority)
-                                {
-                                    // if local == remote then no need for database sync
-                                    if(majorHeight != myStatus.totalBlockCount)
+                                    _log.LogInformation($"local height {myStatus.totalBlockCount} not equal to majority {majorHeight}, do database sync.");
+                                    // verify local database
+                                    while (!await SyncDatabase())
                                     {
-                                        _log.LogInformation($"local height {myStatus.totalBlockCount} not equal to majority {majorHeight}, do database sync.");
-                                        // verify local database
-                                        while (!await SyncDatabase(false))
-                                        {
-                                            //fatal error. should not run program
-                                            _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
-                                            await Task.Delay(60000);
-                                        }
+                                        //fatal error. should not run program
+                                        _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
+                                        await Task.Delay(60000);
                                     }
+                                }
 
-                                    _stateMachine.Fire(_engageTriggerStart, majorHeight);
-                                    break;
-                                }
-                                else
-                                {
-                                    continue;
-                                }
+                                _stateMachine.Fire(_engageTriggerStart, majorHeight);
+                                break;
                             }
                             else
                             {
@@ -508,7 +494,7 @@ namespace Lyra.Core.Decentralize
                         if (blockCount > 2)
                         {
                             // sync cons and uncons
-                            await EngagingSyncAsync(true);
+                            await EngagingSyncAsync();
                         }
                     }
                     catch (Exception e)
@@ -526,7 +512,7 @@ namespace Lyra.Core.Decentralize
                         {
                             try
                             {
-                                await EngagingSyncAsync(true);
+                                await EngagingSyncAsync();
                             }
                             catch (Exception e)
                             {
@@ -1295,17 +1281,6 @@ namespace Lyra.Core.Decentralize
                     var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);
                     resp.From = _sys.PosWallet.AccountId;
                     await Send2P2pNetworkAsync(resp);
-                    break;
-                case ChatMessageType.NodeStatusReply:
-                    var statusReply = JsonConvert.DeserializeObject<NodeStatus>(chat.Text);
-                    if (statusReply != null)
-                    {
-                        if (Board.PrimaryAuthorizers == null || (!Board.PrimaryAuthorizers.Contains(statusReply.accountId) && !ProtocolSettings.Default.StandbyValidators.Contains(statusReply.accountId)))
-                            return;
-
-                        if (Board.ActiveNodes.Any(a => a.AccountID == statusReply.accountId) && !_nodeStatus.Any(a => a.accountId == statusReply.accountId))
-                            _nodeStatus.Add(statusReply);
-                    }
                     break;
             }
         }

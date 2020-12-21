@@ -56,93 +56,11 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
-        private List<NodeStatus> GetNetworkMajority()
+        private async Task<bool> SyncDatabase()
         {
-            long heightMajority = 0;
-            string unConsHashMajority = null;
+            var consensusClient = new LyraClientForNode(_sys);
 
-            var q1 = from ns in _nodeStatus
-                    group ns by ns.totalBlockCount into heights
-                    orderby heights.Count() descending
-                    select new
-                    {
-                        Height = heights.Key,
-                        Count = heights.Count()
-                    };
-
-            if (q1.Any())
-            {
-                heightMajority = q1.First().Height;
-            }
-
-            var q2 = from ns in _nodeStatus
-                    group ns by ns.lastUnSolidationHash into unCons
-                    orderby unCons.Count() descending
-                    select new
-                    {
-                        unConsHash = unCons.Key,
-                        Count = unCons.Count()
-                    };
-
-            if (q2.Any())
-            {
-                unConsHashMajority = q2.First().unConsHash;
-            }
-
-            var list = _nodeStatus.Where(a => a.totalBlockCount == heightMajority
-                        && a.lastUnSolidationHash == unConsHashMajority)
-                        .ToList();
-
-            return list;
-        }
-
-        private async Task<LyraClientForNode> GetOptimizedSyncClientAsync(bool reQuery = false)
-        {
-            var reQueryNetwork = reQuery;
-            while (true)
-            {
-                if(reQueryNetwork)
-                {
-                    reQueryNetwork = true;
-
-                    _log.LogInformation($"GetOptimizedSyncClientAsync Querying Lyra Network Status... ");
-
-                    _nodeStatus.Clear();
-                    var inq = new ChatMsg("", ChatMessageType.NodeStatusInquiry);
-                    inq.From = _sys.PosWallet.AccountId;
-                    await Send2P2pNetworkAsync(inq);
-
-                    await Task.Delay(5000);
-                }
-
-                var currentMajority = GetNetworkMajority();
-
-                if (currentMajority.Any())
-                {
-                    var majorHeight = currentMajority.First().totalBlockCount;
-
-                    _log.LogInformation($"GetOptimizedSyncClientAsync major height {majorHeight} count {currentMajority.Count} ");
-
-                    if (majorHeight >= 2 && currentMajority.Count >= 3)
-                    {
-                        var validNodeList = currentMajority
-                            .Select(a => a.accountId);
-
-                        var validNodeIps = Board.NodeAddresses.Where(a => validNodeList.Contains(a.Key))
-                            .ToList();
-                        return new LyraClientForNode(_sys);
-                    }
-                }
-            }
-        }
-
-        private async Task<bool> SyncDatabase(bool withStatusQuery)
-        {
-            var seedClient = new LyraClientForNode(_sys);
-
-            LyraClientForNode client = await GetOptimizedSyncClientAsync(withStatusQuery);
- 
-            var seedSvcGen = await seedClient.GetServiceGenesisBlock();
+            var seedSvcGen = await consensusClient.GetServiceGenesisBlock();
             var localDbState = await GetNodeStatusAsync();
             if (localDbState.totalBlockCount == 0)
             {
@@ -171,14 +89,14 @@ namespace Lyra.Core.Decentralize
                 localState.databaseVersion = LyraGlobal.DatabaseVersion;
             }
 
-            var lastCons = (await client.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
+            var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
             bool IsSuccess = true;
             var _authorizers = new AuthorizersFactory();
             while (true)
             {
                 try
                 {
-                    var remoteConsQuery = await client.GetConsolidationBlocks(localState.lastVerifiedConsHeight + 1);
+                    var remoteConsQuery = await consensusClient.GetConsolidationBlocks(localState.lastVerifiedConsHeight + 1);
                     if(remoteConsQuery.ResultCode == APIResultCodes.Success)
                     {
                         var remoteConsBlocks = remoteConsQuery.GetBlocks();
@@ -188,7 +106,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 var consTarget = block as ConsolidationBlock;
                                 _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget.Height} of total {lastCons.Height}.");
-                                if (await SyncAndVerifyConsolidationBlock(_authorizers, client, consTarget))
+                                if (await SyncAndVerifyConsolidationBlock(_authorizers, consensusClient, consTarget))
                                 {
                                     _log.LogInformation($"Consolidation block {consTarget.Height} is OK.");
 
@@ -219,12 +137,12 @@ namespace Lyra.Core.Decentralize
             return IsSuccess;
         }
 
-        private async Task EngagingSyncAsync(bool withStatusQuery)
+        private async Task EngagingSyncAsync()
         {
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
-            LyraClientForNode client = await GetOptimizedSyncClientAsync(withStatusQuery);
+            LyraClientForNode client = new LyraClientForNode(_sys);
             while (true)
             {
                 try
@@ -242,7 +160,7 @@ namespace Lyra.Core.Decentralize
                         if (myLastCons == null || myLastCons.Height < lastConsBlockOfSeed.Height)
                         {
                             _log.LogInformation($"Engaging: new consolidation block {lastConsBlockOfSeed.Height}");
-                            if (!await SyncDatabase(false))
+                            if (!await SyncDatabase())
                             {
                                 _log.LogError($"Error sync database. wait 5 minutes and retry...");
                                 await Task.Delay(5 * 60 * 1000);
@@ -352,7 +270,7 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation($"Engaging Sync failed with error \"{ex.Message}\". continue...");
                     await Task.Delay(1000);
-                    client = await GetOptimizedSyncClientAsync(true);
+                    client = new LyraClientForNode(_sys);
                 }
             }
         }
