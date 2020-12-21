@@ -350,7 +350,49 @@ namespace Lyra.Core.Decentralize
                 {                 
                     _log.LogInformation($"Consensus Service Startup... ");
 
-                    while(true)
+                    _log.LogInformation($"Database intergrate check... It may take a while.");
+
+                    var authorizers = new AuthorizersFactory();
+                    var consensusClient = new LyraClientForNode(_sys);
+
+                    var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                    for(long i = lastCons.Height; i > 0; i--)
+                    {
+                        bool missingBlock = false;
+                        for(int k = 1; k < lastCons.blockHashes.Count; k++)
+                        {
+                            var b = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[k]);
+                            if(b == null)
+                            {
+                                _log.LogCritical($"DBCheck: missing block: {lastCons.blockHashes[k]}");
+                                missingBlock = true;
+                            }
+                        }
+
+                        if (i == 1)
+                            break;
+
+                        var nextCons = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[0]) as ConsolidationBlock;
+                        if(nextCons == null)
+                        {
+                            _log.LogCritical($"DBCheck: missing consolidation block: {lastCons.Height - 1} {lastCons.blockHashes[0]}");
+                            missingBlock = true;
+                        }
+
+                        if(missingBlock)
+                        {
+                            await SyncAndVerifyConsolidationBlock(authorizers, consensusClient, lastCons);
+                            i++;
+                        }
+                        else
+                        {
+                            lastCons = nextCons;
+                        }                        
+                    }
+
+                    _log.LogInformation($"Database intergrate check is done.");
+
+                    while (true)
                     {
                         try
                         {
