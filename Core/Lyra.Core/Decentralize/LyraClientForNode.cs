@@ -29,12 +29,6 @@ namespace Lyra.Core.Decentralize
             _sys = sys;
         }
 
-        public LyraClientForNode(DagSystem sys, List<KeyValuePair<string, string>> validNodes)
-        {
-            _sys = sys;
-            _validNodes = validNodes;
-        }
-
         public async Task<string> SignAPICallAsync()
         {
             try

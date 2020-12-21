@@ -130,7 +130,7 @@ namespace Lyra.Core.Decentralize
 
                         var validNodeIps = Board.NodeAddresses.Where(a => validNodeList.Contains(a.Key))
                             .ToList();
-                        return new LyraClientForNode(_sys, validNodeIps);
+                        return new LyraClientForNode(_sys);
                     }
                 }
             }
@@ -611,24 +611,6 @@ namespace Lyra.Core.Decentralize
                     _creatingSvcBlock = false;
                 }
             }
-        }
-
-        //public LyraRestClient GetClientForSeed0()
-        //{
-        //    var addr = ProtocolSettings.Default.SeedList[0].Split(':')[0];
-        //    var apiUrl = $"http://{addr}:{Neo.Settings.Default.P2P.WebAPI}/api/Node/";
-        //    _log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-        //    return LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNode2", "1.0", apiUrl);
-        //}
-
-        public LyraClientForNode GetClientForSeeds()
-        {
-            var q = ProtocolSettings.Default.StandbyValidators.Where(a => a != _sys.PosWallet.AccountId)
-                .ToList();
-            var seed0 = _board.NodeAddresses.Where(a => q.Contains(a.Key))
-                .ToList();
-
-            return new LyraClientForNode(_sys, seed0);
         }
 
         public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)

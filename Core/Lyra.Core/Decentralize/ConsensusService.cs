@@ -360,12 +360,16 @@ namespace Lyra.Core.Decentralize
                         {
                             ServiceBlock lsb = null;
 
-                            // try get lsb from seed0
-                            var seed0 = GetClientForSeeds();
-                            var result = await seed0.GetLastServiceBlock();
+                            var client = new LyraClientForNode(_sys);
+                            var result = await client.GetLastServiceBlock();
                             if (result.ResultCode == APIResultCodes.Success)
                             {
                                 lsb = result.GetBlock() as ServiceBlock;
+                            }
+                            else
+                            {
+                                await Task.Delay(2000);
+                                continue;
                             }
 
                             if (lsb == null)
@@ -786,9 +790,31 @@ namespace Lyra.Core.Decentralize
                 if (System.Net.IPAddress.TryParse(ip, out addr))
                 {
                     _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
+
+                    // backslash. will do this later
+                    //var platform = Environment.OSVersion.Platform.ToString();
+                    //var appName = "LyraAggregatedClient";
+                    //var appVer = "1.0";
+                    //ushort peerPort = 4504;
+                    //var networkdId = Neo.Settings.Default.LyraNode.Lyra.NetworkId;
+                    //if (networkdId == "mainnet")
+                    //    peerPort = 5504;
+                    //var client = LyraRestClient.Create(networkdId, platform, appName, appVer, $"https://{ip}:{peerPort}/api/Node/");
+                    //var lsb = await client.GetLastServiceBlock();
+                    //if(lsb.ResultCode == APIResultCodes.Success)
+                    //{
+                    //    var block = lsb.GetBlock();
+                    //    if(block?.Hash == lastSb.Hash)
+                    //    {
+                    //        _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
+                    //    }
+                    //}                    
                 }
             }
 
+            var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-60)).ToList();
+            foreach (var n in deadList)
+                _board.NodeAddresses.TryRemove(n.AccountID, out _);
             _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
 
             if (_viewChangeHandler.IsViewChanging)
@@ -936,15 +962,6 @@ namespace Lyra.Core.Decentralize
                     return;
 
                 await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync, node.IPAddress, node.ThumbPrint);
-
-                // add network/ip verifycation here
-                // if(verifyIP)
-                // {}
-
-                if (_board.NodeAddresses.ContainsKey(node.AccountID))
-                    _board.NodeAddresses[node.AccountID] = node.IPAddress;
-                else
-                    _board.NodeAddresses.TryAdd(node.AccountID, node.IPAddress);
             }
             catch (Exception ex)
             {
