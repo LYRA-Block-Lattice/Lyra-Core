@@ -66,7 +66,6 @@ namespace Lyra.Data.API
         public async Task<T> CheckResultAsync<T>(List<TaskRecord<T>> taskRecords) where T: APIResult, new()
         {
             var expectedCount = LyraGlobal.GetMajority(taskRecords.Count);
-            int compeletedCount = 0;
 
             var tasks = taskRecords.Select(a => a.task).ToList();
             ISet<Task<T>> activeTasks = new HashSet<Task<T>>(tasks);
@@ -74,46 +73,50 @@ namespace Lyra.Data.API
             {
                 try
                 {
-                    Task<T> completed = await Task.WhenAny(activeTasks);
-                    if (completed.Status == TaskStatus.RanToCompletion)
+                    try
                     {
-                        compeletedCount++;
+                        await Task.WhenAny(activeTasks);
+                    }
+                    catch(Exception ex)
+                    {
 
-                        if (compeletedCount >= expectedCount)
-                        {
-                            var best = tasks.Where(a => a.IsCompletedSuccessfully)
-                                .Select(a => a.Result)
-                                .GroupBy(b => b)
-                                .Select(g => new
-                                {
-                                    Data = g.Key,
-                                    Count = g.Count()
-                                })
-                                .OrderByDescending(x => x.Count)
-                                .First();
+                    }
 
-                            if (best.Count >= expectedCount)
+                    foreach (var t in activeTasks.Where(a => a.IsCompleted).ToList())
+                        activeTasks.Remove(t);
+
+                    var compeletedCount = tasks.Count(a => a.IsCompletedSuccessfully);
+
+                    if (compeletedCount >= expectedCount)
+                    {
+                        var best = tasks.Where(a => a.IsCompletedSuccessfully)
+                            .Select(a => a.Result)
+                            .GroupBy(b => b)
+                            .Select(g => new
                             {
-                                var x = tasks.First(a => a.Result == best.Data);
-                                // abort other tasks
-                                foreach(var running in activeTasks)
-                                {
-                                    //taskRecords.First(a => a.task == running)
-                                    //    .client.Abort();
-                                }
-                                //Console.WriteLine($"Result {best.Count} >= Expected {expectedCount} Abort {activeTasks.Count} tasks.");
-                                return x.Result;
+                                Data = g.Key,
+                                Count = g.Count()
+                            })
+                            .OrderByDescending(x => x.Count)
+                            .First();
+
+                        if (best.Count >= expectedCount)
+                        {
+                            var x = tasks.First(a => a.Result == best.Data);
+                            // abort other tasks
+                            foreach (var running in activeTasks)
+                            {
+                                //taskRecords.First(a => a.task == running)
+                                //    .client.Abort();
                             }
+                            //Console.WriteLine($"Result {best.Count} >= Expected {expectedCount} Abort {activeTasks.Count} tasks.");
+                            return x.Result;
                         }
                     }
-                    // Task was faulted, cancelled, or had a result of false.
-                    // Go round again.
-                    activeTasks.Remove(completed);
                 }
                 catch(Exception ex)
                 {
-                    foreach (var t in activeTasks.Where(a => a.IsFaulted || a.IsCanceled).ToList())
-                        activeTasks.Remove(t);
+
                 }
             }
             // No successful tasks
