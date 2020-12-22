@@ -58,7 +58,7 @@ namespace Lyra.Core.Decentralize
 
         private async Task<bool> SyncDatabase()
         {
-            var consensusClient = new LyraClientForNode(_sys);
+            var consensusClient = _networkClient;
 
             var seedSvcGen = await consensusClient.GetServiceGenesisBlock();
             var localDbState = await GetNodeStatusAsync();
@@ -142,7 +142,7 @@ namespace Lyra.Core.Decentralize
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
-            LyraClientForNode client = new LyraClientForNode(_sys);
+            LyraClientForNode client = _networkClient;
             while (true)
             {
                 try
@@ -171,6 +171,8 @@ namespace Lyra.Core.Decentralize
                     }
                     else
                     {
+                        _log.LogError($"Error get database status. Please wait for retry...");
+                        await Task.Delay(10 * 1000);
                         continue;
                     }
 
@@ -270,7 +272,6 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation($"Engaging Sync failed with error \"{ex.Message}\". continue...");
                     await Task.Delay(1000);
-                    client = new LyraClientForNode(_sys);
                 }
             }
         }
@@ -428,8 +429,7 @@ namespace Lyra.Core.Decentralize
             var gensWallet = Wallet.Open(memStore, "tmp", "");
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                var client = await new LyraClientForNode(_sys).FindValidSeedForSyncAsync(_sys);
-                await gensWallet.Sync(client.SeedClient);
+                await gensWallet.Sync(_networkClient.Client.SeedClient);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.Send(amount, accId);
                 if (sendResult.ResultCode == APIResultCodes.Success)

@@ -20,7 +20,6 @@ namespace Lyra.Core.Decentralize
         DagSystem _sys;
         private LyraAggregatedClient _client;
         private AccountHeightAPIResult _syncInfo;
-        private List<KeyValuePair<string, string>> _validNodes;
 
         public LyraAggregatedClient Client { get => _client; set => _client = value; }
 
@@ -35,7 +34,7 @@ namespace Lyra.Core.Decentralize
             {
                 if(_client == null)
                 {
-                    _client = await FindValidSeedForSyncAsync(_sys);                    
+                    _client = await FindValidSeedForSyncAsync();                    
                 }
                     
                 return Signatures.GetSignature(_sys.PosWallet.PrivateKey, _syncInfo.SyncHash, _sys.PosWallet.AccountId);
@@ -45,7 +44,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await SignAPICallAsync();
                 }
                 else
@@ -58,7 +57,7 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_client == null)
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
 
                 return await _client.GetLastConsolidationBlock();
             }
@@ -67,7 +66,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await GetLastConsolidationBlockAsync();
                 }
                 else
@@ -81,7 +80,7 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_client == null)
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
 
                 var result = await _client.GetBlocksByConsolidation(_sys.PosWallet.AccountId, await SignAPICallAsync(), consolidationHash);
                 if (result.ResultCode == APIResultCodes.APISignatureValidationFailed)
@@ -98,7 +97,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await GetBlocksByConsolidation(consolidationHash);
                 }
                 else
@@ -112,7 +111,7 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_client == null)
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
 
                 var result = await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight, 10);
                 if (result.ResultCode == APIResultCodes.APISignatureValidationFailed)
@@ -129,7 +128,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await GetConsolidationBlocks(startConsHeight);
                 }
                 else
@@ -142,7 +141,7 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_client == null)
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
 
                 return await _client.GetBlockByHash(_sys.PosWallet.AccountId, Hash, "");
             }
@@ -151,7 +150,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await GetBlockByHash(Hash);
                 }
                 else
@@ -164,7 +163,7 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_client == null)
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
 
                 return await _client.GetSyncState();
             }
@@ -173,7 +172,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await GetSyncState();
                 }
                 else
@@ -186,7 +185,7 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_client == null)
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
 
                 return await _client.GetBlocksByTimeRange(startTime, endTime);
             }
@@ -195,7 +194,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await GetBlocksByTimeRange(startTime, endTime);
                 }
                 else
@@ -208,7 +207,7 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_client == null)
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
 
                 return await _client.GetBlockHashesByTimeRange(startTime, endTime);
             }
@@ -217,7 +216,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await GetBlockHashesByTimeRange(startTime, endTime);
                 }
                 else
@@ -230,7 +229,7 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_client == null)
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
 
                 return await _client.GetServiceGenesisBlock();
             }
@@ -239,7 +238,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await GetServiceGenesisBlock();
                 }
                 else
@@ -252,7 +251,7 @@ namespace Lyra.Core.Decentralize
             try
             {
                 if (_client == null)
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
 
                 return await _client.GetLastServiceBlock();
             }
@@ -261,7 +260,7 @@ namespace Lyra.Core.Decentralize
                 if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
                 {
                     // retry
-                    _client = await FindValidSeedForSyncAsync(_sys);
+                    _client = await FindValidSeedForSyncAsync();
                     return await GetLastServiceBlock();
                 }
                 else
@@ -269,91 +268,12 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async Task<LyraAggregatedClient> FindValidSeedForSyncAsync(DagSystem sys)
+        public async Task<LyraAggregatedClient> FindValidSeedForSyncAsync()
         {
-            var client = new LyraAggregatedClient(Neo.Settings.Default.LyraNode.Lyra.NetworkId);
-
-            var rand = new Random();
-            int ndx;
-
-            using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider())
-            {
-                do
-                {
-                    byte[] rno = new byte[5];
-                    rg.GetBytes(rno);
-                    int randomvalue = BitConverter.ToInt32(rno, 0);
-
-                    ndx = randomvalue % ProtocolSettings.Default.SeedList.Length;
-                } while (ndx < 0 || sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
-            }
-
-            var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
-
-            try
-            {
-                await client.InitAsync(addr);
-            }
-            catch(Exception ex)
-            {
-
-            }
+            var client = new LyraAggregatedClient(Neo.Settings.Default.LyraNode.Lyra.NetworkId, _sys.PosWallet.AccountId);
+            await client.InitAsync();
             _syncInfo = await client.GetSyncHeight();
-
             return client;
-/*            ushort peerPort = 4504;
-            if (Neo.Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
-                peerPort = 5504;
-            
-            if (_validNodes == null || _validNodes.Count == 0)
-            {
-                do
-                {
-                    var rand = new Random();
-                    int ndx;
-
-                    using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider())
-                    {
-                        do
-                        {
-                            byte[] rno = new byte[5];
-                            rg.GetBytes(rno);
-                            int randomvalue = BitConverter.ToInt32(rno, 0);
-
-                            ndx = randomvalue % ProtocolSettings.Default.SeedList.Length;
-                        } while (ndx < 0 || sys.PosWallet.AccountId == ProtocolSettings.Default.StandbyValidators[ndx]);
-                    }
-
-                    var addr = ProtocolSettings.Default.SeedList[ndx].Split(':')[0];
-                    var apiUrl = $"https://{addr}:{peerPort}/api/Node/";
-                    //_log.LogInformation("Platform {1} Use seed node of {0}", apiUrl, Environment.OSVersion.Platform);
-                    var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
-                    var mode = await client.GetSyncState();
-                    if (mode.ResultCode == APIResultCodes.Success)
-                    {
-                        _syncInfo = await client.GetSyncHeight();
-                        return client;
-                    }
-                    await Task.Delay(10000);    // incase of hammer
-                } while (true);
-            }
-            else
-            {
-                var rand = new Random();
-                while(true)
-                {
-                    var addr = _validNodes[rand.Next(0, _validNodes.Count - 1)].Value;
-                    var apiUrl = $"https://{addr}:{peerPort}/api/Node/";
-                    var client = LyraRestClient.Create(Neo.Settings.Default.LyraNode.Lyra.NetworkId, Environment.OSVersion.Platform.ToString(), "LyraNoded", "1.7", apiUrl);
-                    var mode = await client.GetSyncState();
-                    if (mode.ResultCode == APIResultCodes.Success)
-                    {
-                        _syncInfo = await client.GetSyncHeight();
-                        return client;
-                    }
-                    await Task.Delay(10000);    // incase of hammer
-                }
-            }*/
         }
     }
 }

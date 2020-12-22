@@ -71,7 +71,7 @@ namespace LyraLexWeb2
         [HttpGet]
         public async Task<BillBoard> GetBillboard()
         {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+            if (!await CheckServiceStatusAsync()) return null;// throw new Exception("System Not Ready.");
             return await _trans.GetBillBoardAsync();
         }
 

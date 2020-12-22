@@ -14,17 +14,19 @@ namespace Lyra.Data.API
     public class LyraAggregatedClient : INodeAPI, INodeTransactionAPI, INodeDexAPI
     {
         private string _networkId;
-        private LyraRestClient _seedClient;
+        private string _accountId;
+
         private Dictionary<string, LyraRestClient> _primaryClients;
 
-        public LyraRestClient SeedClient { get => _seedClient; set => _seedClient = value; }
+        public LyraRestClient SeedClient => _primaryClients?.First().Value;
 
-        public LyraAggregatedClient(string networkId)
+        public LyraAggregatedClient(string networkId, string selfAccountId)
         {
             this._networkId = networkId;
+            _accountId = selfAccountId;
         }
 
-        public async Task InitAsync(string seedNodeAddress)
+        public async Task InitAsync()
         {
             var platform = Environment.OSVersion.Platform.ToString();
             var appName = "LyraAggregatedClient";
@@ -34,15 +36,54 @@ namespace Lyra.Data.API
             if (_networkId == "mainnet")
                 peerPort = 5504;
 
-            // get latest service block
-            SeedClient = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{seedNodeAddress}:{peerPort}/api/Node/");
+            string[] seedNodes;
+            if (_networkId == "devnet")
+                seedNodes = new[] { "seed.devnet", "seed2.devnet", "seed3.devnet" };
+            else if (_networkId == "testnet")
+                seedNodes = new[] { "seed.testnet.lyra.live", "seed2.testnet.lyra.live", "seed3.testnet.lyra.live", "seed4.testnet.lyra.live" };
+            else
+                seedNodes = new[] { "seed1.mainnet.lyra.live", "seed2.mainnet.lyra.live", "seed3.mainnet.lyra.live", "seed4.mainnet.lyra.live" };
 
             // get nodes list (from billboard)
-            var seedBillBoard = await SeedClient.GetBillBoardAsync();
+            var seeds = seedNodes.Select(a => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{a}:{peerPort}/api/Node/")).ToList();
+
+            BillBoard currentBillBoard = null;
+            do
+            {
+                var bbtasks = seeds.Select(client => client.GetBillBoardAsync()).ToList();
+                try
+                {
+                    await Task.WhenAll(bbtasks);
+                }
+                catch (Exception e)
+                {
+                }
+                var goodbb = bbtasks.Where(a => a.IsCompletedSuccessfully && a.Result != null).Select(a => a.Result).ToList();
+                // pickup best result
+                var best = goodbb
+                        .GroupBy(b => b.CurrentLeader)
+                        .Select(g => new
+                        {
+                            Data = g.Key,
+                            Count = g.Count()
+                        })
+                        .OrderByDescending(x => x.Count)
+                        .First();
+
+                if (best.Count >= 2 && !string.IsNullOrWhiteSpace(best.Data))
+                {
+                    currentBillBoard = goodbb.First(a => a.CurrentLeader == best.Data);
+
+                }
+                else
+                {
+                    await Task.Delay(2000);
+                }
+            } while (currentBillBoard == null);
 
             // create clients for primary nodes
-            _primaryClients = seedBillBoard.NodeAddresses
-                .Where(a => seedBillBoard.PrimaryAuthorizers.Contains(a.Key))
+            _primaryClients = currentBillBoard.NodeAddresses
+                .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
                 .Select(c => new
                 {
                     c.Key,

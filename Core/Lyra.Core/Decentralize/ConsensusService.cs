@@ -76,6 +76,7 @@ namespace Lyra.Core.Decentralize
         // authorizer snapshot
         private DagSystem _sys;
         public DagSystem GetDagSystem() => _sys;
+        private LyraClientForNode _networkClient;
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
@@ -353,7 +354,8 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"Database consistent check... It may take a while.");
 
                     var authorizers = new AuthorizersFactory();
-                    var consensusClient = new LyraClientForNode(_sys);
+                    _networkClient = new LyraClientForNode(_sys);
+                    _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
 
                     var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                     for(long i = lastCons.Height; i > 0; i--)
@@ -384,7 +386,7 @@ namespace Lyra.Core.Decentralize
                         if(missingBlock)
                         {
                             _log.LogInformation($"DBCC: Fixing database...");
-                            await SyncAndVerifyConsolidationBlock(authorizers, consensusClient, lastCons);
+                            await SyncAndVerifyConsolidationBlock(authorizers, _networkClient, lastCons);
                             i++;
                         }
                         else
@@ -404,7 +406,7 @@ namespace Lyra.Core.Decentralize
                         {
                             ServiceBlock lsb = null;
 
-                            var client = new LyraClientForNode(_sys);
+                            var client = _networkClient;
                             var result = await client.GetLastServiceBlock();
                             if (result.ResultCode == APIResultCodes.Success)
                             {
@@ -451,7 +453,7 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogInformation($"Querying Lyra Network Status... ");
 
-                            var client = new LyraClientForNode(_sys);
+                            var client = _networkClient;
                             var networkStatus = await client.GetSyncState();
                             if(networkStatus.ResultCode != APIResultCodes.Success)
                             {
