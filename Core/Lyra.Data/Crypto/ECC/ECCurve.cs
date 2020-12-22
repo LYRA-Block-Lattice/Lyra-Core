@@ -1,3 +1,4 @@
+using Lyra.Data.Utils;
 using System.Globalization;
 using System.Numerics;
 
@@ -12,12 +13,9 @@ namespace Neo.Cryptography.ECC
         public readonly ECPoint Infinity;
         public readonly ECPoint G;
 
-        public readonly int ExpectedECPointLength;
-
         private ECCurve(BigInteger Q, BigInteger A, BigInteger B, BigInteger N, byte[] G)
         {
             this.Q = Q;
-            this.ExpectedECPointLength = (Q.GetBitLength() + 7) / 8;
             this.A = new ECFieldElement(A, this);
             this.B = new ECFieldElement(B, this);
             this.N = N;

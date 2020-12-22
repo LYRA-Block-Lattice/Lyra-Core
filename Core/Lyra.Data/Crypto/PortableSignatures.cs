@@ -142,7 +142,7 @@ namespace Lyra.Data.Crypto
         public static string GetAccountIdFromPrivateKey(string privateKey)
         {
             byte[] public_key_bytes = DerivePublicKeyBytes(privateKey);
-            return Base58Encoding.EncodeAccountId(public_key_bytes[1..]);   // skip first byte which indicate compress or not.
+            return Base58Encoding.EncodeAccountId(public_key_bytes.Skip(1).ToArray());   // skip first byte which indicate compress or not.
         }
 
         public static string GetPublicKeyFromPrivateKey(string privateKey)

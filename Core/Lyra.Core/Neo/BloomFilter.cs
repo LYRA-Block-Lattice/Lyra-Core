@@ -24,19 +24,19 @@ namespace Neo.Cryptography
             this.Tweak = nTweak;
         }
 
-        public void Add(byte[] element)
-        {
-            foreach (uint i in seeds.AsParallel().Select(s => element.Murmur32(s)))
-                bits.Set((int)(i % (uint)bits.Length), true);
-        }
+        //public void Add(byte[] element)
+        //{
+        //    foreach (uint i in seeds.AsParallel().Select(s => element.Murmur32(s)))
+        //        bits.Set((int)(i % (uint)bits.Length), true);
+        //}
 
-        public bool Check(byte[] element)
-        {
-            foreach (uint i in seeds.AsParallel().Select(s => element.Murmur32(s)))
-                if (!bits.Get((int)(i % (uint)bits.Length)))
-                    return false;
-            return true;
-        }
+        //public bool Check(byte[] element)
+        //{
+        //    foreach (uint i in seeds.AsParallel().Select(s => element.Murmur32(s)))
+        //        if (!bits.Get((int)(i % (uint)bits.Length)))
+        //            return false;
+        //    return true;
+        //}
 
         public void GetBits(byte[] newBits)
         {

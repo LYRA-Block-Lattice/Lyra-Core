@@ -58,7 +58,7 @@ namespace Lyra.Data.API
                 catch (Exception e)
                 {
                 }
-                var goodbb = bbtasks.Where(a => a.IsCompletedSuccessfully && a.Result != null).Select(a => a.Result).ToList();
+                var goodbb = bbtasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.Result != null).Select(a => a.Result).ToList();
                 // pickup best result
                 var best = goodbb
                         .GroupBy(b => b.CurrentLeader)
@@ -113,11 +113,11 @@ namespace Lyra.Data.API
                     foreach (var t in activeTasks.Where(a => a.IsCompleted).ToList())
                         activeTasks.Remove(t);
 
-                    var compeletedCount = tasks.Count(a => a.IsCompletedSuccessfully);
+                    var compeletedCount = tasks.Count(a => !(a.IsFaulted || a.IsCanceled));
 
                     if (compeletedCount >= expectedCount)
                     {
-                        var best = tasks.Where(a => a.IsCompletedSuccessfully)
+                        var best = tasks.Where(a => !(a.IsFaulted || a.IsCanceled))
                             .Select(a => a.Result)
                             .GroupBy(b => b)
                             .Select(g => new
