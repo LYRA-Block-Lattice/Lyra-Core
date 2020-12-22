@@ -350,7 +350,7 @@ namespace Lyra.Core.Decentralize
                 {                 
                     _log.LogInformation($"Consensus Service Startup... ");
 
-                    _log.LogInformation($"Database intergrate check... It may take a while.");
+                    _log.LogInformation($"Database consistent check... It may take a while.");
 
                     var authorizers = new AuthorizersFactory();
                     var consensusClient = new LyraClientForNode(_sys);
@@ -359,38 +359,44 @@ namespace Lyra.Core.Decentralize
                     for(long i = lastCons.Height; i > 0; i--)
                     {
                         bool missingBlock = false;
-                        for(int k = 1; k < lastCons.blockHashes.Count; k++)
+
+                        for(int k = i == 1 ? 0 : 1; k < lastCons.blockHashes.Count; k++)
                         {
                             var b = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[k]);
                             if(b == null)
                             {
-                                _log.LogCritical($"DBCheck: missing block: {lastCons.blockHashes[k]}");
+                                _log.LogCritical($"DBCC: missing block: {lastCons.blockHashes[k]}");
                                 missingBlock = true;
                             }
                         }
 
-                        if (i == 1)
-                            break;
-
-                        var nextCons = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[0]) as ConsolidationBlock;
-                        if(nextCons == null)
+                        ConsolidationBlock nextCons = null;
+                        if (i > 1)
                         {
-                            _log.LogCritical($"DBCheck: missing consolidation block: {lastCons.Height - 1} {lastCons.blockHashes[0]}");
-                            missingBlock = true;
+                            nextCons = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[0]) as ConsolidationBlock;
+                            if (nextCons == null)
+                            {
+                                _log.LogCritical($"DBCC: missing consolidation block: {lastCons.Height - 1} {lastCons.blockHashes[0]}");
+                                missingBlock = true;
+                            }
                         }
 
                         if(missingBlock)
                         {
+                            _log.LogInformation($"DBCC: Fixing database...");
                             await SyncAndVerifyConsolidationBlock(authorizers, consensusClient, lastCons);
                             i++;
                         }
                         else
                         {
+                            if (i == 1)
+                                break;
+
                             lastCons = nextCons;
                         }                        
                     }
 
-                    _log.LogInformation($"Database intergrate check is done.");
+                    _log.LogInformation($"Database consistent check is done.");
 
                     while (true)
                     {
