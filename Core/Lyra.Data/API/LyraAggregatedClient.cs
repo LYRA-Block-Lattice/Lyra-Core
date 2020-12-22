@@ -58,7 +58,7 @@ namespace Lyra.Data.API
                 catch (Exception e)
                 {
                 }
-                var goodbb = bbtasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.Result != null).Select(a => a.Result).ToList();
+                var goodbb = bbtasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result != null).Select(a => a.Result).ToList();
                 // pickup best result
                 var best = goodbb
                         .GroupBy(b => b.CurrentLeader)
@@ -70,10 +70,9 @@ namespace Lyra.Data.API
                         .OrderByDescending(x => x.Count)
                         .First();
 
-                if (best.Count >= 2 && !string.IsNullOrWhiteSpace(best.Data))
+                if (best.Count >= seedNodes.Length - 2 && !string.IsNullOrWhiteSpace(best.Data))
                 {
                     currentBillBoard = goodbb.First(a => a.CurrentLeader == best.Data);
-
                 }
                 else
                 {
@@ -113,11 +112,11 @@ namespace Lyra.Data.API
                     foreach (var t in activeTasks.Where(a => a.IsCompleted).ToList())
                         activeTasks.Remove(t);
 
-                    var compeletedCount = tasks.Count(a => !(a.IsFaulted || a.IsCanceled));
+                    var compeletedCount = tasks.Count(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted);
 
                     if (compeletedCount >= expectedCount)
                     {
-                        var best = tasks.Where(a => !(a.IsFaulted || a.IsCanceled))
+                        var best = tasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted)
                             .Select(a => a.Result)
                             .GroupBy(b => b)
                             .Select(g => new
@@ -130,7 +129,7 @@ namespace Lyra.Data.API
 
                         if (best.Count >= expectedCount)
                         {
-                            var x = tasks.First(a => a.Result == best.Data);
+                            var x = tasks.First(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result == best.Data);
                             return x.Result;
                         }
                     }
