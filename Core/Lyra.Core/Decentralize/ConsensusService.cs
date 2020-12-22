@@ -348,99 +348,111 @@ namespace Lyra.Core.Decentralize
 
             _stateMachine.Configure(BlockChainState.Initializing)
                 .OnEntry(async () =>
-                {                 
-                    _log.LogInformation($"Consensus Service Startup... ");
-
-                    _log.LogInformation($"Database consistent check... It may take a while.");
-
-                    var authorizers = new AuthorizersFactory();
-                    _networkClient = new LyraClientForNode(_sys);
-                    _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
-
-                    var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                    for(long i = lastCons == null ? 0 : lastCons.Height; i > 0; i--)
-                    {
-                        bool missingBlock = false;
-
-                        for(int k = i == 1 ? 0 : 1; k < lastCons.blockHashes.Count; k++)
-                        {
-                            var b = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[k]);
-                            if(b == null)
-                            {
-                                _log.LogCritical($"DBCC: missing block: {lastCons.blockHashes[k]}");
-                                missingBlock = true;
-                            }
-                        }
-
-                        ConsolidationBlock nextCons = null;
-                        if (i > 1)
-                        {
-                            nextCons = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[0]) as ConsolidationBlock;
-                            if (nextCons == null)
-                            {
-                                _log.LogCritical($"DBCC: missing consolidation block: {lastCons.Height - 1} {lastCons.blockHashes[0]}");
-                                missingBlock = true;
-                            }
-                        }
-
-                        if(missingBlock)
-                        {
-                            _log.LogInformation($"DBCC: Fixing database...");
-                            await SyncAndVerifyConsolidationBlock(authorizers, _networkClient, lastCons);
-                            i++;
-                        }
-                        else
-                        {
-                            if (i == 1)
-                                break;
-
-                            lastCons = nextCons;
-                        }                        
-                    }
-
-                    _log.LogInformation($"Database consistent check is done.");
-
-                    while (true)
+                {
+                    do
                     {
                         try
                         {
-                            ServiceBlock lsb = null;
+                            _log.LogInformation($"Consensus Service Startup... ");
 
-                            var client = _networkClient;
-                            var result = await client.GetLastServiceBlock();
-                            if (result.ResultCode == APIResultCodes.Success)
+                            _log.LogInformation($"Database consistent check... It may take a while.");
+
+                            var authorizers = new AuthorizersFactory();
+                            _networkClient = new LyraClientForNode(_sys);
+                            _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+
+                            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                            for (long i = lastCons == null ? 0 : lastCons.Height; i > 0; i--)
                             {
-                                lsb = result.GetBlock() as ServiceBlock;
-                            }
-                            else
-                            {
-                                await Task.Delay(2000);
-                                continue;
+                                bool missingBlock = false;
+
+                                for (int k = i == 1 ? 0 : 1; k < lastCons.blockHashes.Count; k++)
+                                {
+                                    var b = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[k]);
+                                    if (b == null)
+                                    {
+                                        _log.LogCritical($"DBCC: missing block: {lastCons.blockHashes[k]}");
+                                        missingBlock = true;
+                                    }
+                                }
+
+                                ConsolidationBlock nextCons = null;
+                                if (i > 1)
+                                {
+                                    nextCons = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[0]) as ConsolidationBlock;
+                                    if (nextCons == null)
+                                    {
+                                        _log.LogCritical($"DBCC: missing consolidation block: {lastCons.Height - 1} {lastCons.blockHashes[0]}");
+                                        missingBlock = true;
+                                    }
+                                }
+
+                                if (missingBlock)
+                                {
+                                    _log.LogInformation($"DBCC: Fixing database...");
+                                    await SyncAndVerifyConsolidationBlock(authorizers, _networkClient, lastCons);
+                                    i++;
+                                }
+                                else
+                                {
+                                    if (i == 1)
+                                        break;
+
+                                    lastCons = nextCons;
+                                }
                             }
 
-                            if (lsb == null)
+                            _log.LogInformation($"Database consistent check is done.");
+
+                            while (true)
                             {
-                                _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
-                                _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());        // default to seeds
-                                _board.AllVoters = _board.PrimaryAuthorizers;                           // default to all seed nodes
-                            }
-                            else
-                            {
-                                _board.CurrentLeader = lsb.Leader;
-                                _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
-                                _board.AllVoters = _board.PrimaryAuthorizers;
+                                try
+                                {
+                                    ServiceBlock lsb = null;
+
+                                    var client = _networkClient;
+                                    var result = await client.GetLastServiceBlock();
+                                    if (result.ResultCode == APIResultCodes.Success)
+                                    {
+                                        lsb = result.GetBlock() as ServiceBlock;
+                                    }
+                                    else
+                                    {
+                                        await Task.Delay(2000);
+                                        continue;
+                                    }
+
+                                    if (lsb == null)
+                                    {
+                                        _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
+                                        _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());        // default to seeds
+                                        _board.AllVoters = _board.PrimaryAuthorizers;                           // default to all seed nodes
+                                    }
+                                    else
+                                    {
+                                        _board.CurrentLeader = lsb.Leader;
+                                        _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
+                                        _board.AllVoters = _board.PrimaryAuthorizers;
+                                    }
+
+                                    break;
+                                }
+                                catch (Exception ex)
+                                {
+                                    _log.LogInformation($"Consensus Service Startup Exception: {ex.Message}");
+                                }
                             }
 
+                            // swith mode
+                            _stateMachine.Fire(BlockChainTrigger.DatabaseSync);
                             break;
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
-                            _log.LogInformation($"Consensus Service Startup Exception: {ex.Message}");
+                            _log.LogError("Error In startup: " + ex.ToString());
+                            await Task.Delay(10000);
                         }
-                    }
-
-                    // swith mode
-                    _stateMachine.Fire(BlockChainTrigger.DatabaseSync);
+                    } while (true);
                 })
                 .Permit(BlockChainTrigger.DatabaseSync, BlockChainState.StaticSync);
 
