@@ -358,7 +358,7 @@ namespace Lyra.Core.Decentralize
                     _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
 
                     var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                    for(long i = lastCons.Height; i > 0; i--)
+                    for(long i = lastCons == null ? 0 : lastCons.Height; i > 0; i--)
                     {
                         bool missingBlock = false;
 
