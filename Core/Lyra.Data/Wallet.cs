@@ -346,6 +346,12 @@ namespace Lyra.Core.Accounts
             }
         }
 
+        public async Task<PoolInfoAPIResult> GetLiquidatePoolAsync(string token0, string token1)
+        {
+            var result = await _rpcClient.GetPool(token0, token1);
+            return result;
+        }
+
         #region Reward Trade Processing
 
         public async Task<TradeAPIResult> LookForNewTrade(string BuyTokenCode, string SellTokenCode)
@@ -697,7 +703,7 @@ namespace Lyra.Core.Accounts
 
             while (true)
             {
-                result = await SendOnce(Amount, DestinationAccountId, ticker, ToExchange);
+                result = await SendOnce(Amount, DestinationAccountId, ticker, null);
                 if (result.ResultCode == APIResultCodes.ConsensusTimeout)
                 {                    
                     bool viewChanged = false;
@@ -725,7 +731,110 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> SendOnce(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
+        public async Task<AuthorizationAPIResult> SendEx(string DestinationAccountId, Dictionary<string, decimal> Amounts, Dictionary<string, string> tags)
+        {
+            if (Amounts.Any(a => a.Value <= 0m))
+                throw new Exception("Amount must > 0");
+
+            TransactionBlock previousBlock = GetLatestBlock();
+            if (previousBlock == null)
+            {
+                //throw new ApplicationException("Previous block not found");
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
+            }
+
+            // check tokens exists
+            if(Amounts.Keys.Any(a => !previousBlock.Balances.ContainsKey(a)))
+            {
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
+            }
+
+            // check if fee is enough
+            // check if amounts is enough
+
+            ////long atomicamount = (long)(Amount * (decimal)Math.Pow(10, precision));
+            //var balance_change = Amount;
+
+            ////var transaction = new TransactionInfo() { TokenCode = ticker, Amount = atomicamount };
+
+            var fee = TransferFee;
+
+            //if (ticker == LyraGlobal.OFFICIALTICKERCODE)
+            //    balance_change += fee;
+
+            //// see if we have enough tokens
+            //if (previousBlock.Balances[ticker] < balance_change.ToBalanceLong())
+            //{
+            //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
+            //    //throw new ApplicationException("Insufficient funds");
+            //}
+
+            //// see if we have enough LYR to pay the transfer fee
+            //if (ticker != LyraGlobal.OFFICIALTICKERCODE)
+            //    if (!previousBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < fee.ToBalanceLong())
+            //    {
+            //        //throw new ApplicationException("Insufficient funds to pay transfer fee");
+            //        return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
+            //    }
+
+            //var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
+            //if (svcBlockResult.ResultCode != APIResultCodes.Success)
+            //{
+            //    throw new Exception("Unable to get latest service block.");
+            //}
+
+            SendTransferBlock sendBlock = new SendTransferBlock()
+            {
+                AccountID = AccountId,
+                VoteFor = VoteFor,
+                ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
+                DestinationAccountId = DestinationAccountId,
+                Balances = new Dictionary<string, long>(),
+                //PaymentID = string.Empty,
+                Tags = tags,
+                Fee = fee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
+            };
+
+            // transfer unchanged token balances from the previous block
+            foreach (var balance in previousBlock.Balances)
+            {
+                if(Amounts.ContainsKey(balance.Key))
+                {
+                    sendBlock.Balances.Add(balance.Key, (balance.Value.ToBalanceDecimal() - Amounts[balance.Key]).ToBalanceLong());
+                }
+                else
+                {
+                    sendBlock.Balances.Add(balance.Key, balance.Value);
+                }
+            }
+            // substract the fee
+            // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
+            sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = (sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() - fee).ToBalanceLong();
+
+            sendBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
+
+            if (!sendBlock.ValidateTransaction(previousBlock))
+            {
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
+                //throw new ApplicationException("ValidateTransaction failed");
+            }
+
+            //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
+            AuthorizationAPIResult result;
+            //var stopwatch = Stopwatch.StartNew();
+            result = await _rpcClient.SendTransfer(sendBlock);
+            //stopwatch.Stop();
+            //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
+
+            if (result.ResultCode == APIResultCodes.Success)
+                _lastTransactionBlock = sendBlock;
+
+            return result;
+        }
+
+        private async Task<AuthorizationAPIResult> SendOnce(decimal Amount, string DestinationAccountId, string ticker, Dictionary<string, string> tags)
         {
             Trace.Assert(Amount > 0);
             if (Amount <= 0)
@@ -784,6 +893,7 @@ namespace Lyra.Core.Accounts
                 DestinationAccountId = DestinationAccountId,
                 Balances = new Dictionary<string, long>(),
                 //PaymentID = string.Empty,
+                Tags = tags,
                 Fee = fee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular

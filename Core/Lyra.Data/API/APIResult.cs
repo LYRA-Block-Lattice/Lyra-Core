@@ -413,8 +413,8 @@ namespace Lyra.Core.API
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), HasEvent, Source, Action, Catalog, ExtraInfo);
     }
 
-    public class PoolAPIResult : APIResult
+    public class PoolInfoAPIResult : BlockAPIResult
     {
-        
+        public string PoolFactoryAccountId { get; set; }
     }
 }

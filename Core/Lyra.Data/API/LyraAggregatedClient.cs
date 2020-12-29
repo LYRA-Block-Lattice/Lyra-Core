@@ -434,5 +434,10 @@ namespace Lyra.Data.API
         {
             throw new NotImplementedException();
         }
+
+        Task<PoolInfoAPIResult> INodeAPI.GetPool(string token0, string token1)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

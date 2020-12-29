@@ -904,6 +904,11 @@ namespace Lyra.Core.Decentralize
             }
             return result;
         }
+
+        public Task<PoolInfoAPIResult> GetPool(string token0, string token1)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 

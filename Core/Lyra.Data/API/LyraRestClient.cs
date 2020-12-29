@@ -617,5 +617,15 @@ namespace Lyra.Core.API
 
             return await Get<TransactionsAPIResult>("SearchTransactions", args);
         }
+
+        public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
+        {
+            var args = new Dictionary<string, string>();
+
+            args.Add("token0", token0);
+            args.Add("token1", token1);
+
+            return await Get<PoolInfoAPIResult>("GetPool", args);
+        }
     }
 }

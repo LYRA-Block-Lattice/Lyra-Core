@@ -77,6 +77,10 @@ namespace Lyra.Core.API
 
         #endregion
 
+        #region Liquidate Pool
+        Task<PoolInfoAPIResult> GetPool(string token0, string token1);
+        #endregion
+
     }
 
     public interface INodeTransactionAPI

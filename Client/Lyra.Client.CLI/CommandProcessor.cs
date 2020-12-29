@@ -56,6 +56,9 @@ namespace Lyra.Client.CLI
         // set wallet's private key
         public const string COMMAND_RESTORE = "restore";
 
+        // create liquidate pool
+        public const string COMMAND_CREATE_POOL = "createpool";
+
         public const string COMMAND_HISTORY = "history";
         public const string COMMAND_HISTORY_SHORT = "h";
 
@@ -208,6 +211,64 @@ namespace Lyra.Client.CLI
                         string imported_private_key = Console.ReadLine();
                         var import_result = await _wallet.ImportAccount(imported_private_key);
                         Console.WriteLine("Import Result: " + import_result.ResultCode.ToString());
+                        break;
+                    case COMMAND_CREATE_POOL:
+                        Console.WriteLine("Create liquidate pool for two tokens. The first token is:");
+                        var token0 = Console.ReadLine();
+                        Console.WriteLine("The second token is:");
+                        var token1 = Console.ReadLine();
+
+                        var lp = await _wallet.GetLiquidatePoolAsync(token0, token1);
+                        if(lp == null)
+                        {
+                            Console.WriteLine($"No liquidate pool for {token0} and {token1}. Would you like create a pool for it? It cost 1000 LYR to create a pool.");
+                            if(ReadYesNoAnswer())
+                            {
+                                var tags = new Dictionary<string, string>();
+                                tags.Add("token0", token0);
+                                tags.Add("token1", token1);
+                                var amounts = new Dictionary<string, decimal>();
+                                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1000m);
+                                var poolCreateResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amounts, tags);
+                                if(poolCreateResult.ResultCode == APIResultCodes.Success)
+                                {
+                                    Console.WriteLine("Liquidate pool creating in progress...");
+
+                                    PoolInfoAPIResult lpNew = null;
+                                    while(true)
+                                    {
+                                        lpNew = await _wallet.GetLiquidatePoolAsync(token0, token1);
+                                        if (lpNew.Successful())
+                                            break;
+                                        else
+                                        {
+                                            Console.Write(".");
+                                            await Task.Delay(2000);
+                                        }
+                                    }
+                                    Console.WriteLine("Liquidate pool created successfully.");
+                                    Console.WriteLine($"How many {token0} will you add to the pool:");
+                                    var token0Amount = decimal.Parse(Console.ReadLine());
+                                    Console.WriteLine($"How many {token1} will you add to the pool:");
+                                    var token1Amount = decimal.Parse(Console.ReadLine());
+
+                                    var amountsDeposit = new Dictionary<string, decimal>();
+                                    amountsDeposit.Add(token0, token0Amount);
+                                    amountsDeposit.Add(token1, token1Amount);
+                                    var poolDepositResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amountsDeposit, tags);
+
+                                    if(poolDepositResult.Successful())
+                                    {
+                                        var poolResult2 = await _wallet.GetLiquidatePoolAsync(token0, token1);
+                                        if(poolResult2.Successful())
+                                        {
+                                            var poolBlock = poolResult2.GetBlock() as PoolBlock;
+                                            Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId].ToBalanceDecimal() * 100} %");
+                                        }                                        
+                                    }
+                                }
+                            }
+                        }
                         break;
                     case COMMAND_HISTORY:
                     case COMMAND_HISTORY_SHORT:
