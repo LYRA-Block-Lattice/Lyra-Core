@@ -288,9 +288,6 @@ namespace Lyra.Core.API
                 case BlockTypes.ExecuteTradeOrder:
                     block = JsonConvert.DeserializeObject<ExecuteTradeOrderBlock>(BlockData);
                     break;
-                case BlockTypes.ExchangingTransfer:
-                    block = JsonConvert.DeserializeObject<ExchangingBlock>(BlockData);
-                    break;
                 case BlockTypes.ImportAccount:
                     block = JsonConvert.DeserializeObject<ImportAccountBlock>(BlockData);
                     break;
@@ -414,5 +411,10 @@ namespace Lyra.Core.API
         public string ExtraInfo { get; set; }
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), HasEvent, Source, Action, Catalog, ExtraInfo);
+    }
+
+    public class PoolAPIResult : APIResult
+    {
+        
     }
 }

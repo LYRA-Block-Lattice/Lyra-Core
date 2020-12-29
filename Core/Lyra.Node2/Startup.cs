@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Lyra.Core.Decentralize;
 using Microsoft.AspNetCore.Http;
 using Lyra.Core.API;
-using Lyra.Core.Exchange;
 using System;
 using System.IO;
 using Lyra.Node2.Services;

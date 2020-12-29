@@ -1,7 +1,6 @@
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
-using Lyra.Exchange;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -148,11 +147,6 @@ namespace Lyra.Core.Decentralize
             return await Pre_PrepareAsync(sendBlock).ConfigureAwait(false);
         }
 
-        public Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
-        {
-            return SendTransfer(block);
-        }
-
         public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
         {
             return await Pre_PrepareAsync(receiveBlock).ConfigureAwait(false);
@@ -181,86 +175,6 @@ namespace Lyra.Core.Decentralize
             //}
 
             return await Pre_PrepareAsync(tokenBlock).ConfigureAwait(false);
-        }
-
-        public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
-        {
-            // TODO verify signature first
-
-            // store to database
-            var acct = await NodeService.Dealer.AddExchangeAccount(AccountId);
-
-            var result = new ExchangeAccountAPIResult()
-            {
-                ResultCode = APIResultCodes.Success,
-                AccountId = acct.AccountId
-            };
-            return result;            
-        }
-
-        public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
-        {
-            var acct = await NodeService.Dealer.GetExchangeAccount(AccountId, true);
-            var result = new ExchangeBalanceAPIResult()
-            {
-                ResultCode = APIResultCodes.Success
-            };
-            if(acct != null)
-            {
-                result.AccountId = acct.AccountId;
-                result.Balance = acct.Balance;
-            }
-            return result;
-        }
-        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder reqOrder)
-        {
-            CancelKey key;
-            var result = reqOrder.VerifySignature(reqOrder.AccountID);
-            if (!result
-                || reqOrder.TokenName == null 
-                || reqOrder.Price <= 0 
-                || reqOrder.Amount <= 0)
-            {
-                key = new CancelKey() { Key = string.Empty, State = OrderState.BadOrder };
-                return key;
-            }
-
-            // verify the balance. 
-            var acct = await NodeService.Dealer.GetExchangeAccount(reqOrder.AccountID, true);
-            if(acct == null)
-            {
-                return new CancelKey() { Key = string.Empty, State = OrderState.BadOrder };
-            }
-
-            if (reqOrder.BuySellType == OrderType.Sell)
-            {                
-                if(acct.Balance.ContainsKey(reqOrder.TokenName) && acct.Balance[reqOrder.TokenName] < reqOrder.Amount)
-                    return new CancelKey() { Key = string.Empty, State = OrderState.InsufficientFunds };
-            }
-            else
-            {
-                // buy order
-                if(acct.Balance.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) && acct.Balance[LyraGlobal.OFFICIALTICKERCODE] < reqOrder.Amount * reqOrder.Price)
-                    return new CancelKey() { Key = string.Empty, State = OrderState.InsufficientFunds };
-            }
-                
-            return await NodeService.Dealer.AddOrderAsync(acct, reqOrder);
-        }
-
-        public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
-        {
-            await NodeService.Dealer.RemoveOrderAsync(cancelKey);
-            return new APIResult() { ResultCode = APIResultCodes.Success };
-        }
-
-        public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<APIResult> CustomizeNotifySettings(NotifySettings settings)
-        {
-            throw new NotImplementedException();
         }
 
         //#region Fee processing private methods
@@ -412,18 +326,6 @@ namespace Lyra.Core.Decentralize
         }
 
         #endregion
-
-        public async Task<APIResult> RequestMarket(string tokenName)
-        {
-            if(tokenName != null)
-                await NodeService.Dealer.SendMarket(tokenName);
-            return new APIResult() { ResultCode = APIResultCodes.Success };
-        }
-
-        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
-        {
-            return await NodeService.Dealer.GetOrdersForAccount(AccountId);
-        }
 
         //public override async Task<GetVersionReply> GetVersion(GetVersionRequest request, ServerCallContext context)
         //{

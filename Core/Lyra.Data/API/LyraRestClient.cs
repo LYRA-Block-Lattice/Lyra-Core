@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.API
 {
-    public class LyraRestClient : INodeAPI, INodeTransactionAPI, INodeDexAPI
+    public class LyraRestClient : INodeAPI, INodeTransactionAPI
     {
         private string _appName;
         private string _appVersion;
@@ -522,61 +522,6 @@ namespace Lyra.Core.API
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
         {
             return await PostBlock("SendTransfer", block);
-        }
-
-        public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
-        {
-            return await PostBlock("SendExchangeTransfer", block);
-        }
-
-        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
-        {
-            return await PostBlock<CancelKey>("SubmitExchangeOrder", order);
-        }
-
-        public async Task<APIResult> RequestMarket(string tokenName)
-        {
-            var args = new Dictionary<string, string>();
-            args.Add("TokenName", tokenName);
-            return await Get<APIResult>("RequestMarket", args);
-        }
-
-        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
-        {
-            var args = new Dictionary<string, string>();
-            args.Add("AccountId", AccountId);
-            args.Add("Signature", Signature);
-            return await Get<List<ExchangeOrder>>("GetOrdersForAccount", args);
-        }
-
-        public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
-        {
-            var args = new Dictionary<string, string>();
-            args.Add("AccountId", AccountId);
-            args.Add("Signature", Signature);
-            return await Get<ExchangeAccountAPIResult>("CreateExchangeAccount", args);
-        }
-
-        public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
-        {
-            var args = new Dictionary<string, string>();
-            args.Add("AccountId", AccountId);
-            args.Add("Signature", Signature);
-            return await Get<ExchangeBalanceAPIResult>("GetExchangeBalance", args);
-        }
-
-        public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
-        {
-            var args = new Dictionary<string, string>();
-            args.Add("AccountId", AccountId);
-            args.Add("Signature", Signature);
-            args.Add("cancelKey", cancelKey);
-            return await Get<APIResult>("CancelExchangeOrder", args);
-        }
-
-        public Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<BlockAPIResult> GetServiceGenesisBlock()

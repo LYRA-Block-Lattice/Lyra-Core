@@ -10,9 +10,7 @@ using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
-using Lyra.Core.Exchange;
 using Lyra.Data.API;
-using Lyra.Exchange;
 using Lyra.Node2;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
@@ -30,7 +28,6 @@ namespace LyraLexWeb2
         DateTime _dtStarted;
         INodeAPI _node;
         INodeTransactionAPI _trans;
-        DealEngine _dex;
 
         ILogger _log;
         public NodeController(
@@ -42,7 +39,6 @@ namespace LyraLexWeb2
             _log = logger;
             _node = node;
             _trans = trans;
-            _dex = NodeService.Dealer;
             _dtStarted = DateTime.Now;
         }
         private async Task<bool> CheckServiceStatusAsync()
@@ -420,14 +416,6 @@ namespace LyraLexWeb2
         {
             if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
             return await _trans.SendTransfer(sendBlock);
-        }
-
-        [Route("SendExchangeTransfer")]
-        [HttpPost]
-        public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock sendBlock)
-        {
-            if (! await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
-            return await _trans.SendExchangeTransfer(sendBlock);
         }
 
         [Route("ReceiveTransfer")]

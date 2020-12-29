@@ -11,7 +11,7 @@ namespace Lyra.Data.API
     /// <summary>
     /// access all primary nodes to determinate state
     /// </summary>
-    public class LyraAggregatedClient : INodeAPI, INodeTransactionAPI, INodeDexAPI
+    public class LyraAggregatedClient : INodeAPI, INodeTransactionAPI
     {
         private string _networkId;
         private string _accountId;
@@ -143,24 +143,9 @@ namespace Lyra.Data.API
             return new T { ResultCode = APIResultCodes.APIRouteFailed };
         }
 
-        public async Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey)
-        {
-            return await SeedClient.CancelExchangeOrder(AccountId, Signature, cancelKey);
-        }
-
         public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
         {
             return await SeedClient.CancelTradeOrder(block);
-        }
-
-        public async Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature)
-        {
-            return await SeedClient.CloseExchangeAccount(AccountId, Signature);
-        }
-
-        public async Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature)
-        {
-            return await SeedClient.CreateExchangeAccount(AccountId, Signature);
         }
 
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
@@ -265,13 +250,6 @@ namespace Lyra.Data.API
             return await SeedClient.GetDbStats();
         }
 
-        public async Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature)
-        {
-            var tasks = _primaryClients.Select(client => client.Value.GetExchangeBalance(AccountId, Signature)).ToList();
-
-            return await CheckResultAsync(tasks);
-        }
-
         public async Task<BlockAPIResult> GetLastBlock(string AccountId)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetLastBlock(AccountId)).ToList();
@@ -305,11 +283,6 @@ namespace Lyra.Data.API
             var tasks = _primaryClients.Select(client => client.Value.GetNonFungibleTokens(AccountId, Signature)).ToList();
 
             return await CheckResultAsync(tasks);
-        }
-
-        public async Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature)
-        {
-            return await SeedClient.GetOrdersForAccount(AccountId, Signature);
         }
 
         public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
@@ -411,29 +384,14 @@ namespace Lyra.Data.API
             return await SeedClient.ReceiveTransferAndOpenAccount(block);
         }
 
-        public async Task<APIResult> RequestMarket(string tokenName)
-        {
-            return await SeedClient.RequestMarket(tokenName);
-        }
-
         public async Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
         {
             return await SeedClient.SearchTransactions(accountId, startTimeTicks, endTimeTicks, count);
         }
 
-        public async Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block)
-        {
-            return await SeedClient.SendExchangeTransfer(block);
-        }
-
         public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
         {
             return await SeedClient.SendTransfer(block);
-        }
-
-        public async Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order)
-        {
-            return await SeedClient.SubmitExchangeOrder(order);
         }
 
         public async Task<AuthorizationAPIResult> Trade(TradeBlock block)

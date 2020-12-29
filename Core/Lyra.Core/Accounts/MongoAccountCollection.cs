@@ -60,7 +60,6 @@ namespace Lyra.Core.Accounts
 
             BsonClassMap.RegisterClassMap<TransactionBlock>();
             BsonClassMap.RegisterClassMap<SendTransferBlock>();
-            BsonClassMap.RegisterClassMap<ExchangingBlock>();
             BsonClassMap.RegisterClassMap<ReceiveTransferBlock>();
             BsonClassMap.RegisterClassMap<OpenWithReceiveTransferBlock>();
             BsonClassMap.RegisterClassMap<LyraTokenGenesisBlock>();

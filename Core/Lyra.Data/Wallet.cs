@@ -750,7 +750,7 @@ namespace Lyra.Core.Accounts
 
             //var transaction = new TransactionInfo() { TokenCode = ticker, Amount = atomicamount };
 
-            var fee = ToExchange ? ExchangingBlock.FEE : TransferFee;
+            var fee = TransferFee;
 
             if (ticker == LyraGlobal.OFFICIALTICKERCODE)
                 balance_change += fee;
@@ -776,36 +776,17 @@ namespace Lyra.Core.Accounts
             //    throw new Exception("Unable to get latest service block.");
             //}
 
-            SendTransferBlock sendBlock;
-            if (ToExchange)
+            SendTransferBlock sendBlock = new SendTransferBlock()
             {
-                sendBlock = new ExchangingBlock()
-                {
-                    AccountID = AccountId,
-                    VoteFor = VoteFor,
-                    ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
-                    DestinationAccountId = DestinationAccountId,
-                    Balances = new Dictionary<string, long>(),
-                    //PaymentID = string.Empty,
-                    Fee = fee,
-                    FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                    FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
-                };
-            }
-            else
-            {
-                sendBlock = new SendTransferBlock()
-                {
-                    AccountID = AccountId,
-                    VoteFor = VoteFor,
-                    ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
-                    DestinationAccountId = DestinationAccountId,
-                    Balances = new Dictionary<string, long>(),
-                    //PaymentID = string.Empty,
-                    Fee = fee,
-                    FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                    FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
-                };
+                AccountID = AccountId,
+                VoteFor = VoteFor,
+                ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
+                DestinationAccountId = DestinationAccountId,
+                Balances = new Dictionary<string, long>(),
+                //PaymentID = string.Empty,
+                Fee = fee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
             };
 
             sendBlock.Balances.Add(ticker, previousBlock.Balances[ticker] - balance_change.ToBalanceLong());
@@ -830,15 +811,10 @@ namespace Lyra.Core.Accounts
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
             AuthorizationAPIResult result;
-            if (ToExchange)
-                result = await _rpcClient.SendExchangeTransfer((ExchangingBlock)sendBlock);
-            else
-            {
-                //var stopwatch = Stopwatch.StartNew();
-                result = await _rpcClient.SendTransfer(sendBlock);
-                //stopwatch.Stop();
-                //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
-            }
+            //var stopwatch = Stopwatch.StartNew();
+            result = await _rpcClient.SendTransfer(sendBlock);
+            //stopwatch.Stop();
+            //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
 
             if (result.ResultCode == APIResultCodes.Success)
                 _lastTransactionBlock = sendBlock;

@@ -89,7 +89,6 @@ namespace Lyra.Core.API
         // These methods return authorization result and authorizers' signatures if approved
 
         Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block);
-        Task<AuthorizationAPIResult> SendExchangeTransfer(ExchangingBlock block);
 
         Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block);
         Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock block);
@@ -117,26 +116,5 @@ namespace Lyra.Core.API
         Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block);
         
         #endregion
-    }
-
-    public interface INodeDexAPI
-    { 
-        #region Exchange, DEX
-        Task<ExchangeAccountAPIResult> CreateExchangeAccount(string AccountId, string Signature);
-        Task<CancelKey> SubmitExchangeOrder(TokenTradeOrder order);
-        Task<APIResult> CancelExchangeOrder(string AccountId, string Signature, string cancelKey);
-        Task<ExchangeBalanceAPIResult> GetExchangeBalance(string AccountId, string Signature);
-        Task<ExchangeAccountAPIResult> CloseExchangeAccount(string AccountId, string Signature);
-        Task<APIResult> RequestMarket(string tokenName);
-        Task<List<ExchangeOrder>> GetOrdersForAccount(string AccountId, string Signature);
-        //Task<APIResult> CustomizeNotifySettings(NotifySettings settings);
-        #endregion
-    }
-
-    public class NotifySettings
-    {
-        public string AccountID { get; set; }
-        public string Signature { get; set; }
-        Dictionary<NotifySource, string> SourceConfig { get; set; }
     }
 }

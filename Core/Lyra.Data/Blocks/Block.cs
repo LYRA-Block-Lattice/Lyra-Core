@@ -253,8 +253,9 @@ namespace Lyra.Core.Blocks
         // Cancels the order and frees up the locked funds
         CancelTradeOrder = 43,
 
-        // to/from exchange
-        ExchangingTransfer = 50,
+        // Liquidate Pool
+        PoolFactory = 51,
+        Pool = 52,
     }
 
     public enum APIResultCodes

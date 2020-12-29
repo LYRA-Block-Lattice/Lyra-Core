@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "AutoSender": {
-      "commandName": "Project",
-      "commandLineArgs": "devnet gens C:\\Users\\rcvbu\\OneDrive\\dev\\lyra\\GetBillBoard.json"
-    }
-  }
-}

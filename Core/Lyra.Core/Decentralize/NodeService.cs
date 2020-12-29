@@ -1,5 +1,4 @@
 ﻿using Lyra.Core.API;
-using Lyra.Exchange;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -9,7 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
-using Lyra.Core.Exchange;
 using Neo;
 using System.Linq;
 using Lyra.Data.Utils;
@@ -20,8 +18,6 @@ namespace Lyra.Core.Decentralize
     public class NodeService : BackgroundService
     {
         //public static NodeService Instance { get; private set; } 
-        public static DealEngine Dealer { get; private set; }
-
         //private INodeAPI _dataApi;
         public MongoClient client;
         private IMongoDatabase _db;
@@ -92,14 +88,6 @@ namespace Lyra.Core.Decentralize
                 {
                     client = new MongoClient(Neo.Settings.Default.LyraNode.Lyra.Database.DexDBConnect);
                     _db = client.GetDatabase("Dex");
-
-                    var exchangeAccounts = _db.GetCollection<ExchangeAccount>("exchangeAccounts");
-                    var queue = _db.GetCollection<ExchangeOrder>("queuedDexOrders");
-                    var finished = _db.GetCollection<ExchangeOrder>("finishedDexOrders");
-
-                    // TODO: make it DI
-                    Dealer = new DealEngine(exchangeAccounts, queue, finished);
-                    Dealer.OnNewOrder += (s, a) => _waitOrder.Set();
                 }
             }
             catch (Exception ex)
@@ -114,7 +102,6 @@ namespace Lyra.Core.Decentralize
                 {
                     _waitOrder.Reset();
 
-                    await Dealer.MakeDealAsync();
                 }
                 else
                 {
