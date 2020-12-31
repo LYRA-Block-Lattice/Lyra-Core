@@ -93,19 +93,22 @@ namespace Lyra.Core.Authorizers
 
             // a normal send is success.
             // monitor special account
-            if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount
-                && block.Tags != null
-                        && block.Tags.ContainsKey("token0") && CheckToken(sys, block.Tags["token0"])
-                        && block.Tags.ContainsKey("token1") && CheckToken(sys, block.Tags["token1"])
-                        && block.Tags["token0"] != block.Tags["token01"])
+            if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
             {
-                if (block.Tags["token0"] == LyraGlobal.OFFICIALTICKERCODE || block.Tags["token1"] == LyraGlobal.OFFICIALTICKERCODE)
+                if (block.Tags != null
+                    && block.Tags.ContainsKey("token0") && CheckToken(sys, block.Tags["token0"])
+                    && block.Tags.ContainsKey("token1") && CheckToken(sys, block.Tags["token1"])
+                    && block.Tags["token0"] != block.Tags["token01"]
+                    && (block.Tags["token0"] == LyraGlobal.OFFICIALTICKERCODE || block.Tags["token1"] == LyraGlobal.OFFICIALTICKERCODE)
+                    )
                 {
                     return APIResultCodes.Success;
                 }
+                else
+                    return APIResultCodes.InvalidTokenPair;
             }
 
-            return APIResultCodes.InvalidTokenPair;
+            return APIResultCodes.Success;
         }
 
         protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
