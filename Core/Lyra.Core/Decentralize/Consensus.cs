@@ -640,7 +640,7 @@ namespace Lyra.Core.Decentralize
                 {
                     Height = 1,
                     AccountType = AccountTypes.Pool,
-                    AccountID = lygen.AccountID,        // indeed we not use this account.
+                    AccountID = "LPFA82ZDTo4cyoeY3EGozTpbWWzUXAtHCm33cMDcXyPzuV2HQf1X2Z9xVAins9kGJdBY12iGAzBPuMZvvW6x4ktLXa1MKQ",        // in fact we not use this account.
                     Balances = new Dictionary<string, long>(),
                     PreviousHash = sb.Hash,
                     ServiceHash = sb.Hash,
