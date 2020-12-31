@@ -74,6 +74,8 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
             BsonClassMap.RegisterClassMap<ImportAccountBlock>();
             BsonClassMap.RegisterClassMap<OpenAccountWithImportBlock>();
+            BsonClassMap.RegisterClassMap<PoolFactoryBlock>();
+            BsonClassMap.RegisterClassMap<PoolBlock>();
 
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
 
@@ -89,8 +91,10 @@ namespace Lyra.Core.Accounts
                     var indexModel = new CreateIndexModel<Block>(indexDefinition, options);
                     await _blocks.Indexes.CreateOneAsync(indexModel);
                 }
-                catch(Exception)
+                catch(Exception ex)
                 {
+                    if (ex.Message.Contains("already exists"))
+                        return;
                     await _blocks.Indexes.DropOneAsync(columnName + "_1");
                     await CreateIndexes(columnName, uniq);
                 }
@@ -106,39 +110,41 @@ namespace Lyra.Core.Accounts
                     await _blocks.Indexes.CreateOneAsync(codeIndexModel);
 
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    if (ex.Message.Contains("already exists"))
+                        return;
+
                     await _blocks.Indexes.DropOneAsync(colName + "_1");
                     await CreateIndexes(colName, uniq);
                 }
             }
 
-            var allIndexes = _blocks.Indexes.List().ToList();
-            if(!allIndexes.Any())
-            {
-                _log.LogWarning("mongodb index is not enough. creating...");
+            _log.LogWarning("ensure mongodb index...");
 
-                CreateIndexes("_t", false).Wait();
-                CreateIndexes("Hash", true).Wait();
-                CreateIndexes("TimeStamp", false).Wait();
-                CreateIndexes("TimeStamp.Ticks", false).Wait();
-                CreateIndexes("PreviousHash", false).Wait();
-                CreateIndexes("AccountID", false).Wait();
-                CreateNoneStringIndex("Height", false).Wait();
-                CreateNoneStringIndex("BlockType", false).Wait();
+            CreateIndexes("_t", false).Wait();
+            CreateIndexes("Hash", true).Wait();
+            CreateIndexes("TimeStamp", false).Wait();
+            CreateIndexes("TimeStamp.Ticks", false).Wait();
+            CreateIndexes("PreviousHash", false).Wait();
+            CreateIndexes("AccountID", false).Wait();
+            CreateNoneStringIndex("Height", false).Wait();
+            CreateNoneStringIndex("BlockType", false).Wait();
 
-                CreateIndexes("SourceHash", false).Wait();
-                CreateIndexes("DestinationAccountId", false).Wait();
-                CreateIndexes("Ticker", false).Wait();
-                CreateIndexes("VoteFor", false).Wait();
+            CreateIndexes("SourceHash", false).Wait();
+            CreateIndexes("DestinationAccountId", false).Wait();
+            CreateIndexes("Ticker", false).Wait();
+            CreateIndexes("VoteFor", false).Wait();
 
-                CreateNoneStringIndex("OrderType", false).Wait();
-                CreateIndexes("SellTokenCode", false).Wait();
-                CreateIndexes("BuyTokenCode", false).Wait();
-                CreateIndexes("TradeOrderId", false).Wait();
+            CreateNoneStringIndex("OrderType", false).Wait();
+            CreateIndexes("SellTokenCode", false).Wait();
+            CreateIndexes("BuyTokenCode", false).Wait();
+            CreateIndexes("TradeOrderId", false).Wait();
 
-                CreateIndexes("ImportedAccountId", false).Wait();
-            }
+            CreateIndexes("ImportedAccountId", false).Wait();
+
+            CreateIndexes("Token0", false).Wait();
+            CreateIndexes("Token1", false).Wait();
         }
 
         /// <summary>
