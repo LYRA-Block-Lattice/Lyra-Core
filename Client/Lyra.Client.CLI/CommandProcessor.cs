@@ -238,7 +238,7 @@ namespace Lyra.Client.CLI
                                     while(true)
                                     {
                                         lpNew = await _wallet.GetLiquidatePoolAsync(token0, token1);
-                                        if (lpNew.Successful())
+                                        if (lpNew.Successful() && lpNew.PoolAccountId != null)
                                             break;
                                         else
                                         {
@@ -255,7 +255,7 @@ namespace Lyra.Client.CLI
                                     var amountsDeposit = new Dictionary<string, decimal>();
                                     amountsDeposit.Add(token0, token0Amount);
                                     amountsDeposit.Add(token1, token1Amount);
-                                    var poolDepositResult = await _wallet.SendEx(lp.PoolAccountId, amountsDeposit, tags);
+                                    var poolDepositResult = await _wallet.SendEx(lpNew.PoolAccountId, amountsDeposit, tags);
 
                                     if(poolDepositResult.Successful())
                                     {

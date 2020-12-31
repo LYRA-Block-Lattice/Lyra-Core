@@ -1306,6 +1306,7 @@ namespace Lyra.Core.Decentralize
                 && Board.CurrentLeader == _sys.PosWallet.AccountId
                 )       // create liquidate pool
             {
+                _log.LogInformation("Creating pool ...");
                 _ = Task.Run(async () => {
                     // first, do a receive.
                     var platform = Environment.OSVersion.Platform.ToString();
@@ -1314,7 +1315,17 @@ namespace Lyra.Core.Decentralize
 
                     var client = LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, platform, appName, appVer);
                     var wallet = new TransitWallet(_sys.PosWallet.PrivateKey, client);
-                    var result = await wallet.GetBalanceAsync();
+                    var result = await wallet.ReceiveAsync();
+
+                    if(result == APIResultCodes.Success)
+                    {
+                        _log.LogInformation($"Receive fee for creating pool: success.");
+                    }
+                    else
+                    {
+                        _log.LogInformation($"Receive fee for creating pool: failed.");
+                        return;
+                    }
 
                     // then create pool for it.
                     var sb = await _sys.Storage.GetLastServiceBlockAsync();
