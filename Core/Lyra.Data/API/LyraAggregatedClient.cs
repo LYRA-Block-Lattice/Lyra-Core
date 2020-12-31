@@ -90,7 +90,7 @@ namespace Lyra.Data.API
                         Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/")
                     })
                     .ToDictionary(p => p.Key, p => p.Value);
-            } while (currentBillBoard == null);
+            } while (currentBillBoard == null || _primaryClients.Count < 3);
         }
 
         public async Task<T> CheckResultAsync<T>(List<Task<T>> tasks) where T: APIResult, new()
