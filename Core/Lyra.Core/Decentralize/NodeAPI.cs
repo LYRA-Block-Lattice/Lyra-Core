@@ -904,6 +904,7 @@ namespace Lyra.Core.Decentralize
             }
             return result;
         }
+        #endregion
 
         public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
         {
@@ -931,7 +932,7 @@ namespace Lyra.Core.Decentralize
             }
             return result;
         }
-        #endregion
+
     }
 
 }
