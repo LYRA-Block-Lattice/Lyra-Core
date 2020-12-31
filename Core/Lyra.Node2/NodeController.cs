@@ -541,6 +541,14 @@ namespace LyraLexWeb2
             return _node.GetFeeStats();
         }
 
+        [Route("GetPool")]
+        [HttpGet]
+        public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
+        {
+            if (!await CheckServiceStatusAsync()) throw new Exception("System Not Ready.");
+            return await _node.GetPool(token0, token1);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 
