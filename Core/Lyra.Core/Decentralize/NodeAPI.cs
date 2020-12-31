@@ -926,8 +926,9 @@ namespace Lyra.Core.Decentralize
                     if(pool != null)
                     {
                         result.PoolAccountId = pool.AccountID;
-                    }                    
+                    }
 
+                    result.ResultCode = APIResultCodes.Success;
                     return result;
                 }                    
             }

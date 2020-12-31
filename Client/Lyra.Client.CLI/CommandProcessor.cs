@@ -219,7 +219,7 @@ namespace Lyra.Client.CLI
                         var token1 = Console.ReadLine();
 
                         var lp = await _wallet.GetLiquidatePoolAsync(token0, token1);
-                        if(lp == null)
+                        if(lp.Successful())
                         {
                             Console.WriteLine($"No liquidate pool for {token0} and {token1}. Would you like create a pool for it? It cost 1000 LYR to create a pool.");
                             if(ReadYesNoAnswer())
