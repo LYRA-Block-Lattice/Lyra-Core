@@ -634,7 +634,7 @@ namespace Lyra.Core.Decentralize
             if (Board.CurrentLeader == _sys.PosWallet.AccountId)
             {
                 // current leader need to create the pool factory
-                var sb = await _sys.Storage.GetServiceGenesisBlock();
+                var sb = await _sys.Storage.GetLastServiceBlockAsync();
                 var lygen = await _sys.Storage.GetLyraTokenGenesisBlock();
                 var pf = new PoolFactoryBlock
                 {
