@@ -12,9 +12,6 @@ namespace Lyra.Core.Authorizers
         {
             var result = await AuthorizeImplAsync(sys, tblock);
 
-            if (result == APIResultCodes.Success)
-                result = (await base.AuthorizeAsync(sys, tblock)).Item1;
-
             if (APIResultCodes.Success == result)
                 return (APIResultCodes.Success, Sign(sys, tblock));
             else
