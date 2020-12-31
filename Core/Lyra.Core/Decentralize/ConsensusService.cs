@@ -357,6 +357,20 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogInformation($"Consensus Service Startup... ");
 
+                            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+                            if (lsb == null)
+                            {
+                                _board.CurrentLeader = ProtocolSettings.Default.StandbyValidators[0];          // default to seed0
+                                _board.UpdatePrimary(ProtocolSettings.Default.StandbyValidators.ToList());        // default to seeds
+                                _board.AllVoters = _board.PrimaryAuthorizers;                           // default to all seed nodes
+                            }
+                            else
+                            {
+                                _board.CurrentLeader = lsb.Leader;
+                                _board.UpdatePrimary(lsb.Authorizers.Keys.ToList());
+                                _board.AllVoters = _board.PrimaryAuthorizers;
+                            }
+
                             _log.LogInformation($"Database consistent check... It may take a while.");
 
                             var authorizers = new AuthorizersFactory();
@@ -410,8 +424,6 @@ namespace Lyra.Core.Decentralize
                             {
                                 try
                                 {
-                                    ServiceBlock lsb = null;
-
                                     var client = _networkClient;
                                     var result = await client.GetLastServiceBlock();
                                     if (result.ResultCode == APIResultCodes.Success)
