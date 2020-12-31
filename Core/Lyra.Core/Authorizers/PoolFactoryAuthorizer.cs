@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class PoolFactoryAuthorizer : ReceiveTransferAuthorizer
+    public class PoolFactoryAuthorizer : BaseAuthorizer
     {
         public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
@@ -31,6 +31,9 @@ namespace Lyra.Core.Authorizers
             var result = await VerifyBlockAsync(sys, block, null);
             if (result != APIResultCodes.Success)
                 return result;
+
+            if (await sys.Storage.AccountExistsAsync(block.AccountID))
+                return APIResultCodes.AccountAlreadyExists;
 
             return APIResultCodes.Success;
         }
