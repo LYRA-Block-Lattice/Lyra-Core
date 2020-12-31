@@ -98,7 +98,7 @@ namespace Lyra.Core.Authorizers
                 if (block.Tags != null
                     && block.Tags.ContainsKey("token0") && CheckToken(sys, block.Tags["token0"])
                     && block.Tags.ContainsKey("token1") && CheckToken(sys, block.Tags["token1"])
-                    && block.Tags["token0"] != block.Tags["token01"]
+                    && block.Tags["token0"] != block.Tags["token1"]
                     && (block.Tags["token0"] == LyraGlobal.OFFICIALTICKERCODE || block.Tags["token1"] == LyraGlobal.OFFICIALTICKERCODE)
                     )
                 {
