@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,6 +8,7 @@ namespace Lyra.Core.Blocks
     /// <summary>
     /// 
     /// </summary>
+    [BsonIgnoreExtraElements]
     public class PoolBlock : ReceiveTransferBlock
     {
         public string Token0 { get; set; }

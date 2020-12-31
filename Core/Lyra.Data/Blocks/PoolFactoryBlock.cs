@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,6 +8,7 @@ namespace Lyra.Core.Blocks
     // user send the specified amount fee to pool factory
     // pool factory will generate a new pool account
     // user send funds to the pool to create it
+    [BsonIgnoreExtraElements]
     public class PoolFactoryBlock : ReceiveTransferBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
