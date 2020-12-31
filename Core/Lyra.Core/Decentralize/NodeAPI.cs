@@ -912,18 +912,24 @@ namespace Lyra.Core.Decentralize
             var result = new PoolInfoAPIResult();
             try
             {
-                while(true)
+                var factory = await NodeService.Dag.Storage.GetPoolFactoryAsync();
+                if (factory == null)
                 {
-                    var factory = await NodeService.Dag.Storage.GetPoolFactoryAsync();
-                    if (factory == null)
-                    {
-                        NodeService.Dag.Consensus.Tell(new ConsensusService.ReqCreatePoolFactory());
-                        await Task.Delay(1000);
-                    }
-                    else
-                        break;
+                    NodeService.Dag.Consensus.Tell(new ConsensusService.ReqCreatePoolFactory());
+                    throw new Exception("pool factory not ready.");
                 }
-                                    
+                else
+                {
+                    result.PoolFactoryAccountId = factory.AccountID;                    
+                    var pool = await NodeService.Dag.Storage.GetPoolAsync(token0, token1);
+                    
+                    if(pool != null)
+                    {
+                        result.PoolAccountId = pool.AccountID;
+                    }                    
+
+                    return result;
+                }                    
             }
             catch (Exception e)
             {

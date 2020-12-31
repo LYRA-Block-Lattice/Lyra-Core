@@ -1230,7 +1230,7 @@ namespace Lyra.Core.Decentralize
                 
                 if (sameHeight || samePrevHash)
                 {
-                    _log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
+                    //_log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
                     return true;
                 }
             }
