@@ -371,11 +371,11 @@ namespace Lyra.Core.Decentralize
                                 _board.AllVoters = _board.PrimaryAuthorizers;
                             }
 
-                            _log.LogInformation($"Database consistent check... It may take a while.");
-
                             var authorizers = new AuthorizersFactory();
                             _networkClient = new LyraClientForNode(_sys);
                             _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+
+                            _log.LogInformation($"Database consistent check... It may take a while.");
 
                             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                             for (long i = lastCons == null ? 0 : lastCons.Height; i > 0; i--)

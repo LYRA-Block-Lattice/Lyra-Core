@@ -50,6 +50,7 @@ namespace Lyra.Data.API
             BillBoard currentBillBoard = null;
             do
             {
+                Console.WriteLine("LyraAggregatedClient.InitAsync");
                 var bbtasks = seeds.Select(client => client.GetBillBoardAsync()).ToList();
                 try
                 {
@@ -77,18 +78,19 @@ namespace Lyra.Data.API
                 else
                 {
                     await Task.Delay(2000);
+                    continue;
                 }
-            } while (currentBillBoard == null);
 
-            // create clients for primary nodes
-            _primaryClients = currentBillBoard.NodeAddresses
-                .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
-                .Select(c => new
-                {
-                    c.Key,
-                    Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/")
-                })
-                .ToDictionary(p => p.Key, p => p.Value);
+                // create clients for primary nodes
+                _primaryClients = currentBillBoard.NodeAddresses
+                    .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
+                    .Select(c => new
+                    {
+                        c.Key,
+                        Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/")
+                    })
+                    .ToDictionary(p => p.Key, p => p.Value);
+            } while (currentBillBoard == null);
         }
 
         public async Task<T> CheckResultAsync<T>(List<Task<T>> tasks) where T: APIResult, new()
