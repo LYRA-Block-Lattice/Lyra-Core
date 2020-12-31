@@ -90,6 +90,10 @@ namespace Lyra.Data.API
                         Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/")
                     })
                     .ToDictionary(p => p.Key, p => p.Value);
+
+                if (_primaryClients.Count < 3)      // billboard not harvest address enough
+                    await Task.Delay(2000);
+
             } while (currentBillBoard == null || _primaryClients.Count < 3);
         }
 

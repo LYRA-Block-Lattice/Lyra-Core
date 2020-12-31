@@ -51,9 +51,6 @@ namespace Lyra.Core.Authorizers
             if (previousBlock != null && !block.IsBlockValid(previousBlock))
                 return APIResultCodes.InvalidPreviousBlock;
 
-            //if (!Signatures.VerifySignature(block.Hash, block.AccountID, block.Signature))
-            //    return APIResultCodes.BlockSignatureValidationFailed;
-
             // allow time drift: form -5 to +3
             var uniNow = DateTime.UtcNow;
             if (block is ServiceBlock bsb)
@@ -72,7 +69,7 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
 
-                if(sys.ConsensusState != BlockChainState.StaticSync)
+                if (sys.ConsensusState != BlockChainState.StaticSync)
                 {
                     if (block.TimeStamp < uniNow.AddSeconds(-8) || block.TimeStamp > uniNow.AddSeconds(3))
                     {
@@ -81,14 +78,21 @@ namespace Lyra.Core.Authorizers
                     }
                 }
             }
-            else if(block is TransactionBlock)
+            else if (block is TransactionBlock)
             {
                 var blockt = block as TransactionBlock;
 
                 if (!blockt.VerifyHash())
                     _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock Index: {block.Height} by {block.GetHashInput()}");
 
-                var result = block.VerifySignature(blockt.AccountID);
+                var verifyAgainst = blockt.AccountID;
+                if (block is PoolFactoryBlock || block is PoolBlock)      // pool block is both service and transaction
+                {
+                    var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                    verifyAgainst = board.CurrentLeader;
+                }
+
+                var result = block.VerifySignature(verifyAgainst);
                 if (!result)
                 {
                     _log.LogWarning($"VerifyBlock failed for TransactionBlock Index: {block.Height} Type: {block.BlockType} by {blockt.AccountID}");
@@ -118,8 +122,8 @@ namespace Lyra.Core.Authorizers
                         return APIResultCodes.InvalidBlockTimeStamp;
                     }
                 }
-            }         
-            else if(block is ConsolidationBlock cons)
+            }
+            else if (block is ConsolidationBlock cons)
             {
                 if (sys.ConsensusState != BlockChainState.StaticSync)
                 {
@@ -136,7 +140,7 @@ namespace Lyra.Core.Authorizers
                 {
                     _log.LogWarning($"Invalid leader. was {cons.createdBy.Shorten()} should be {board.CurrentLeader.Shorten()}");
                     return APIResultCodes.InvalidLeaderInConsolidationBlock;
-                }                    
+                }
 
                 var result = block.VerifySignature(board.CurrentLeader);
                 if (!result)
@@ -145,6 +149,8 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.BlockSignatureValidationFailed;
                 }
             }
+            else
+                return APIResultCodes.InvalidBlockType;
 
             // This is the double-spending check for send block!
             if (!string.IsNullOrEmpty(block.PreviousHash) && (await sys.Storage.FindBlockByPreviousBlockHashAsync(block.PreviousHash)) != null)
