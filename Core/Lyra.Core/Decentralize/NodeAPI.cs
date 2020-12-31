@@ -906,24 +906,24 @@ namespace Lyra.Core.Decentralize
         }
         #endregion
 
+        #region pool
         public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
         {
             var result = new PoolInfoAPIResult();
             try
             {
-                var factory = NodeService.Dag.Storage.GetPoolFactoryAsync();
-                if(factory == null)
+                while(true)
                 {
-                    var bb = await NodeService.Dag.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
-                    if (bb.CurrentLeader == NodeService.Dag.PosWallet.AccountId)
+                    var factory = NodeService.Dag.Storage.GetPoolFactoryAsync();
+                    if (factory == null)
                     {
-                        // current leader need to create the pool factory
-
+                        NodeService.Dag.Consensus.Tell(new ConsensusService.ReqCreatePoolFactory());
+                        await Task.Delay(1000);
                     }
                     else
-                        throw new Exception("Pool Factory not ready.");
+                        break;
                 }
-                    
+                                    
             }
             catch (Exception e)
             {
@@ -933,6 +933,6 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        #endregion
     }
-
 }

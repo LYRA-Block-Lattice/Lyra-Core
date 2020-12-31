@@ -625,6 +625,35 @@ namespace Lyra.Core.Decentralize
             return svcGenesis;
         }
 
+        private async void CreatePoolFactory()
+        {
+            var factory = _sys.Storage.GetPoolFactoryAsync();
+            if (factory != null)
+                return;
+
+            if (Board.CurrentLeader == _sys.PosWallet.AccountId)
+            {
+                // current leader need to create the pool factory
+                var sb = await _sys.Storage.GetServiceGenesisBlock();
+                var lygen = await _sys.Storage.GetLyraTokenGenesisBlock();
+                var pf = new PoolFactoryBlock
+                {
+                    Height = 1,
+                    AccountType = AccountTypes.Pool,
+                    AccountID = lygen.AccountID,        // indeed we not use this account.
+                    Balances = new Dictionary<string, long>(),
+                    PreviousHash = sb.Hash,
+                    ServiceHash = sb.Hash,
+                    Fee = 0,
+                    FeeType = AuthorizationFeeTypes.NoFee
+                };
+
+                // pool blocks are service block so all service block signed by leader node
+                pf.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+                await SendBlockToConsensusAsync(pf);
+            }
+        }
+
         private async Task SendBlockToConsensusAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
         {
             AuthorizingMsg msg = new AuthorizingMsg

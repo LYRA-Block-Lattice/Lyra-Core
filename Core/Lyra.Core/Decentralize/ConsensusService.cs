@@ -41,6 +41,7 @@ namespace Lyra.Core.Decentralize
         public class AskForStats { }
         public class AskForDbStats { }
         public class QueryBlockchainStatus { }
+        public class ReqCreatePoolFactory { }
 
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
@@ -144,6 +145,7 @@ namespace Lyra.Core.Decentralize
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
+            Receive<ReqCreatePoolFactory>((_) => CreatePoolFactory());
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
