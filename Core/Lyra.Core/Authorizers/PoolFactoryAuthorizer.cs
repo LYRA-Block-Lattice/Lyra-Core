@@ -27,9 +27,6 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as PoolFactoryBlock;
 
-            if (block.AccountID != Neo.ProtocolSettings.Default.StandbyValidators[0])
-                return APIResultCodes.InvalidAccountId;
-
             // Validate blocks
             var result = await VerifyBlockAsync(sys, block, null);
             if (result != APIResultCodes.Success)
