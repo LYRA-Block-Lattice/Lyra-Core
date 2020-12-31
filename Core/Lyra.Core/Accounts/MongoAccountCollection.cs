@@ -1308,6 +1308,36 @@ namespace Lyra.Core.Accounts
             };
         }
 
+        public async Task<PoolFactoryBlock> GetPoolFactoryAsync()
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1
+            };
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("BlockType", BlockTypes.PoolFactory);
+
+            var finds = await _blocks.FindAsync(filterDefination, options);
+            return await finds.FirstOrDefaultAsync() as PoolFactoryBlock;
+        }
+
+        public async Task<PoolBlock> GetPoolAsync(string token0, string token1)
+        {
+            // first sort token
+            var arrStr = new[] { token0, token1 };
+            Array.Sort(arrStr);
+
+            var builder = Builders<PoolBlock>.Filter;
+            var poolFilter = builder.And(builder.Eq("Token0", arrStr[0]), builder.Eq("Token1", arrStr[1]));
+            var pool = await _blocks.OfType<PoolBlock>()
+                .Aggregate()
+                .Match(poolFilter)
+                .SortByDescending(x => x.Height)
+                .FirstOrDefaultAsync();
+
+            return pool;
+        }
+
     }
     public static class MyExtensions
     {

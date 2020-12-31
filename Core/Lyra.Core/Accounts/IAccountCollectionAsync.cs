@@ -90,6 +90,8 @@ namespace Lyra.Core.Accounts
         /// </summary>
         Task<bool> WasAccountImportedAsync(string ImportedAccountId, string AccountId);
 
+        Task<PoolFactoryBlock> GetPoolFactoryAsync();
+        Task<PoolBlock> GetPoolAsync(string token0, string token1);
         /// <summary>
         /// Cleans up or deletes blocks collection.
         /// Used for unit testing.

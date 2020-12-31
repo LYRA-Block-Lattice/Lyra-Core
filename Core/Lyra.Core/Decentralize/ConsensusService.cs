@@ -1208,22 +1208,38 @@ namespace Lyra.Core.Decentralize
             return Akka.Actor.Props.Create(() => new ConsensusService(sys, hostEnv, localNode, blockchain)).WithMailbox("consensus-service-mailbox");
         }
 
-        private async Task SubmitToConsensusAsync(AuthState state)
+        public bool IsBlockInQueue(Block block)
         {
-            if (state.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
-            {
-                var tx = state.InputMsg.Block as TransactionBlock;
-                var allSend = _activeConsensus.Values.Where(a => a.State?.InputMsg?.Block?.BlockType == BlockTypes.SendTransfer)
-                    .Select(x => x.State.InputMsg.Block as TransactionBlock);
+            if (block == null)
+                return false;
 
-                var sameHeight = allSend.Any(y => y.AccountID == tx.AccountID && y.Height == tx.Height);
-                var sameHash = _activeConsensus.Values.Any(a => a.State?.InputMsg.Hash == tx.Hash);
-                if (sameHeight || sameHash)
+            var sameHash = _activeConsensus.Values.Any(a => a.State?.InputMsg.Hash == block.Hash);
+            if (sameHash)
+                return true;
+
+            if (block is TransactionBlock tx)
+            {
+                var sameChainBlocks = _activeConsensus.Values
+                    .Select(x => x.State.InputMsg.Block as TransactionBlock)
+                    .Where(a => a?.AccountID == tx.AccountID);
+
+                var sameHeight = sameChainBlocks.Any(y => y.Height == tx.Height);
+                var samePrevHash = sameChainBlocks.Any(a => a.PreviousHash == tx.PreviousHash);
+                
+                if (sameHeight || samePrevHash)
                 {
                     _log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
-                    return;
+                    return true;
                 }
             }
+
+            return false;
+        }
+
+        private async Task SubmitToConsensusAsync(AuthState state)
+        {
+            if (IsBlockInQueue(state.InputMsg?.Block))
+                return;
 
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
             if(worker != null)
@@ -1316,6 +1332,12 @@ namespace Lyra.Core.Decentralize
                 _stateMachine.State == BlockChainState.Engaging ||
                 _stateMachine.State == BlockChainState.Almighty)
             {
+                if( item is AuthorizingMsg ppMsg)
+                {
+                    if (IsBlockInQueue(ppMsg.Block))
+                        return;
+                }
+
                 if (item is BlockConsensusMessage cm)
                 {
                     var worker = await GetWorkerAsync(cm.BlockHash, true);

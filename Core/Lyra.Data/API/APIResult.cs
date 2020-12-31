@@ -416,5 +416,6 @@ namespace Lyra.Core.API
     public class PoolInfoAPIResult : BlockAPIResult
     {
         public string PoolFactoryAccountId { get; set; }
+        public string PoolAccountId { get; set; }
     }
 }

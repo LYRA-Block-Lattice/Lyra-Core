@@ -255,7 +255,7 @@ namespace Lyra.Client.CLI
                                     var amountsDeposit = new Dictionary<string, decimal>();
                                     amountsDeposit.Add(token0, token0Amount);
                                     amountsDeposit.Add(token1, token1Amount);
-                                    var poolDepositResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amountsDeposit, tags);
+                                    var poolDepositResult = await _wallet.SendEx(lp.PoolAccountId, amountsDeposit, tags);
 
                                     if(poolDepositResult.Successful())
                                     {

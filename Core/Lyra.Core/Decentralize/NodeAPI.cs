@@ -905,9 +905,31 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public Task<PoolInfoAPIResult> GetPool(string token0, string token1)
+        public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
         {
-            throw new NotImplementedException();
+            var result = new PoolInfoAPIResult();
+            try
+            {
+                var factory = NodeService.Dag.Storage.GetPoolFactoryAsync();
+                if(factory == null)
+                {
+                    var bb = await NodeService.Dag.Consensus.Ask<BillBoard>(new ConsensusService.AskForBillboard());
+                    if (bb.CurrentLeader == NodeService.Dag.PosWallet.AccountId)
+                    {
+                        // current leader need to create the pool factory
+
+                    }
+                    else
+                        throw new Exception("Pool Factory not ready.");
+                }
+                    
+            }
+            catch (Exception e)
+            {
+                result.ResultCode = APIResultCodes.UndefinedError;
+                result.ResultMessage = e.Message;
+            }
+            return result;
         }
         #endregion
     }
