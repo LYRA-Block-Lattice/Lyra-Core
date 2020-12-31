@@ -652,6 +652,23 @@ namespace Lyra.Core.Decentralize
                 pf.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
                 await SendBlockToConsensusAsync(pf);
             }
+            else
+            {
+                // just send it to the leader
+                var platform = Environment.OSVersion.Platform.ToString();
+                var appName = "LyraNode";
+                var appVer = "1.0";
+                var networkId = Settings.Default.LyraNode.Lyra.NetworkId;
+                ushort peerPort = 4504;
+                if (networkId == "mainnet")
+                    peerPort = 5504;
+
+                if (Board.NodeAddresses.ContainsKey(Board.CurrentLeader))
+                {
+                    var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{Board.NodeAddresses[Board.CurrentLeader]}:{peerPort}/api/Node/");
+                    _ = client.GetPool("a", "b");
+                }     
+            }
         }
 
         private async Task SendBlockToConsensusAsync(Block block, List<string> voters = null)        // default is genesus, 4 default

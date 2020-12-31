@@ -435,9 +435,11 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        Task<PoolInfoAPIResult> INodeAPI.GetPool(string token0, string token1)
+        public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
         {
-            throw new NotImplementedException();
+            var tasks = _primaryClients.Select(client => client.Value.GetPool(token0, token1)).ToList();
+
+            return await CheckResultAsync(tasks);
         }
     }
 }
