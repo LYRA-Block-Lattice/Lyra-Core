@@ -1294,11 +1294,60 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void Worker_OnConsensusSuccess(ConsensusHandlerBase handler, Block block)
+        private void Worker_OnConsensusSuccess(ConsensusHandlerBase handler, Block block, ConsensusResult? result)
         {
             _successBlockCount++;
             _activeConsensus.TryRemove(block.Hash, out _);
             _log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count}");
+
+            // pool events
+            if(block is SendTransferBlock send 
+                && send.DestinationAccountId == PoolFactoryBlock.FactoryAccount
+                && Board.CurrentLeader == _sys.PosWallet.AccountId
+                )       // create liquidate pool
+            {
+                _ = Task.Run(async () => {
+                    // first, do a receive.
+                    var platform = Environment.OSVersion.Platform.ToString();
+                    var appName = "Lyra TransitWallet";
+                    var appVer = "1.0";
+
+                    var client = LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, platform, appName, appVer);
+                    var wallet = new TransitWallet(_sys.PosWallet.PrivateKey, client);
+                    var result = await wallet.GetBalanceAsync();
+
+                    // then create pool for it.
+                    var sb = await _sys.Storage.GetLastServiceBlockAsync();
+                    var pf = await _sys.Storage.GetPoolFactoryAsync();
+                    var arrStr = new[] { send.Tags["token0"], send.Tags["token1"] };
+                    Array.Sort(arrStr);
+
+                    // create a semi random account for pool.
+                    // it can be verified by other nodes.
+                    var keyStr = $"{pf.Height},{arrStr[0]},{arrStr[1]},{pf.Hash}";
+                    var randAccount = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+
+                    var poolBlock = new PoolBlock
+                    {
+                        Height = 1,
+                        AccountType = AccountTypes.Standard,
+                        AccountID = randAccount.AccountId,        // in fact we not use this account.
+                        Balances = new Dictionary<string, long>(),
+                        PreviousHash = sb.Hash,
+                        ServiceHash = sb.Hash,
+                        Fee = 0,
+                        FeeType = AuthorizationFeeTypes.NoFee,
+
+                        // pool specified config
+                        Token0 = arrStr[0],
+                        Token1 = arrStr[1]
+                    };
+
+                    // pool blocks are service block so all service block signed by leader node
+                    poolBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+                    await SendBlockToConsensusAsync(poolBlock);
+                });
+            }
         }
 
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)

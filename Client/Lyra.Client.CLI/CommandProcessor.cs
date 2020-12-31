@@ -57,7 +57,7 @@ namespace Lyra.Client.CLI
         public const string COMMAND_RESTORE = "restore";
 
         // create liquidate pool
-        public const string COMMAND_CREATE_POOL = "createpool";
+        public const string COMMAND_CREATE_POOL = "pool";
 
         public const string COMMAND_HISTORY = "history";
         public const string COMMAND_HISTORY_SHORT = "h";
@@ -213,7 +213,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine("Import Result: " + import_result.ResultCode.ToString());
                         break;
                     case COMMAND_CREATE_POOL:
-                        Console.WriteLine("Create liquidate pool for two tokens. The first token is:");
+                        Console.WriteLine("Create liquidate pool for two tokens. One of the token must be LYR. The first token is:");
                         var token0 = Console.ReadLine();
                         Console.WriteLine("The second token is:");
                         var token1 = Console.ReadLine();

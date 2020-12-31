@@ -19,7 +19,7 @@ using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {
-    public delegate void SuccessConsensusHandler(ConsensusHandlerBase handler, Block block);
+    public delegate void SuccessConsensusHandler(ConsensusHandlerBase handler, Block block, ConsensusResult? result);
     public class ConsensusWorker : ConsensusHandlerBase
     {
         private AuthorizersFactory _authorizers;
@@ -420,7 +420,7 @@ namespace Lyra.Core.Decentralize
             }
 
             _state.Done?.Set();
-            OnConsensusSuccess?.Invoke(this, block);
+            OnConsensusSuccess?.Invoke(this, block, _state.CommitConsensus);
 
             if (block is ConsolidationBlock cons)
             {

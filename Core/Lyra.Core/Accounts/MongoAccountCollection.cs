@@ -1308,7 +1308,8 @@ namespace Lyra.Core.Accounts
         {
             var options = new FindOptions<Block, Block>
             {
-                Limit = 1
+                Limit = 1,
+                Sort = Builders<Block>.Sort.Descending(o => o.Height)
             };
             var filter = Builders<Block>.Filter;
             var filterDefination = filter.Eq("BlockType", BlockTypes.PoolFactory);

@@ -9,7 +9,7 @@ namespace Lyra.Core.Blocks
     /// 
     /// </summary>
     [BsonIgnoreExtraElements]
-    public class PoolBlock : ReceiveTransferBlock
+    public class PoolBlock : ReceiveTransferBlock, IOpeningBlock
     {
         public string Token0 { get; set; }
         public string Token1 { get; set; }
@@ -28,5 +28,6 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         public Dictionary<string, long> Shares { get; set; }
+        public AccountTypes AccountType { get; set; }
     }
 }

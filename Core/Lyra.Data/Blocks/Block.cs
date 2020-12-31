@@ -408,7 +408,9 @@ namespace Lyra.Core.Blocks
         APIRouteFailed,
         InvalidDomainName,
         InvalidTickerName,
-        InvalidAuthorizerSignatureInServiceBlock
+        InvalidAuthorizerSignatureInServiceBlock,
+
+        InvalidTokenPair = 330
 
     }
 }

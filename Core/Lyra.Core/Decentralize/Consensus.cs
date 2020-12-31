@@ -635,12 +635,11 @@ namespace Lyra.Core.Decentralize
             {
                 // current leader need to create the pool factory
                 var sb = await _sys.Storage.GetLastServiceBlockAsync();
-                var lygen = await _sys.Storage.GetLyraTokenGenesisBlock();
                 var pf = new PoolFactoryBlock
                 {
                     Height = 1,
                     AccountType = AccountTypes.Pool,
-                    AccountID = "LPFA82ZDTo4cyoeY3EGozTpbWWzUXAtHCm33cMDcXyPzuV2HQf1X2Z9xVAins9kGJdBY12iGAzBPuMZvvW6x4ktLXa1MKQ",        // in fact we not use this account.
+                    AccountID = PoolFactoryBlock.FactoryAccount,        // in fact we not use this account.
                     Balances = new Dictionary<string, long>(),
                     PreviousHash = sb.Hash,
                     ServiceHash = sb.Hash,

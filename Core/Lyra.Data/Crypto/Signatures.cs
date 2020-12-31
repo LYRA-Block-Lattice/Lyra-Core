@@ -163,19 +163,24 @@ namespace Lyra.Data.Crypto
             }
         }
 
-        public static (string privateKey, string AccountId) GenerateWallet()
+        public static (string privateKey, string AccountId) GenerateWallet(byte [] keyData)
         {
-            byte[] privateKey = new byte[32];
-            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(privateKey);
-            }
-            var kp = new KeyPair(privateKey);
+            var kp = new KeyPair(keyData);
 
-            var pvtKeyStr = Base58Encoding.EncodePrivateKey(privateKey);
+            var pvtKeyStr = Base58Encoding.EncodePrivateKey(keyData);
 
             var pubKey = kp.PublicKey.EncodePoint(false).Skip(1).ToArray();
             return (pvtKeyStr, Base58Encoding.EncodeAccountId(pubKey));
+        }
+
+        public static (string privateKey, string AccountId) GenerateWallet()
+        {
+            byte[] keyData = new byte[32];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(keyData);
+            }
+            return GenerateWallet(keyData);
         }
 
         public static string GetAccountIdFromPrivateKey(string privateKey)

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using System.Diagnostics;
+using Lyra.Core.API;
 
 namespace Lyra.Core.Authorizers
 {
@@ -90,7 +91,21 @@ namespace Lyra.Core.Authorizers
             //stopwatch3.Stop();
             //Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 
-            return APIResultCodes.Success;
+            // a normal send is success.
+            // monitor special account
+            if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount
+                && block.Tags != null
+                        && block.Tags.ContainsKey("token0") && CheckToken(sys, block.Tags["token0"])
+                        && block.Tags.ContainsKey("token1") && CheckToken(sys, block.Tags["token1"])
+                        && block.Tags["token0"] != block.Tags["token01"])
+            {
+                if (block.Tags["token0"] == LyraGlobal.OFFICIALTICKERCODE || block.Tags["token1"] == LyraGlobal.OFFICIALTICKERCODE)
+                {
+                    return APIResultCodes.Success;
+                }
+            }
+
+            return APIResultCodes.InvalidTokenPair;
         }
 
         protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
