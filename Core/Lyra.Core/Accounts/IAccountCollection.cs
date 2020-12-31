@@ -18,7 +18,6 @@ namespace Lyra.Core.Accounts
         TransactionBlock FindLatestBlock(string AccountId);
         TokenGenesisBlock FindTokenGenesisBlock(string Hash, string Ticker);
         List<TokenGenesisBlock> FindTokenGenesisBlocks(string keyword);
-        NullTransactionBlock FindNullTransBlockByHash(string hash);
         TransactionBlock FindBlockByHash(string hash);
         TransactionBlock FindBlockByHash(string AccountId, string hash);
         ReceiveTransferBlock FindBlockBySourceHash(string hash);

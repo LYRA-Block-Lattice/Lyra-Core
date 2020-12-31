@@ -192,7 +192,7 @@ namespace Lyra.Core.Blocks
     {
         Null = 0,
 
-        NullTransaction = 1,
+        //NullTransaction = 1,
 
         // Network service blocks
 

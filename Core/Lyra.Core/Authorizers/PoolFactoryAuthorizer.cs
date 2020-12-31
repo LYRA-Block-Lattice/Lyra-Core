@@ -6,40 +6,31 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class NullTransactionAuthorizer : BaseAuthorizer
+    public class PoolFactoryAuthorizer : ReceiveTransferAuthorizer
     {
         public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
             var result = await AuthorizeImplAsync(sys, tblock);
+
+            if (result == APIResultCodes.Success)
+                result = (await base.AuthorizeAsync(sys, tblock)).Item1;
+
             if (APIResultCodes.Success == result)
                 return (APIResultCodes.Success, Sign(sys, tblock));
             else
                 return (result, (AuthorizationSignature)null);
         }
-
-        protected override Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
-        {
-            return Task.FromResult(APIResultCodes.Success);
-        }
-
         private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is NullTransactionBlock))
+            if (!(tblock is PoolFactoryBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as NullTransactionBlock;
+            var block = tblock as PoolFactoryBlock;
 
-            //// 1. check if the block already exists
-            //if (null != await sys.Storage.GetBlockByUIndexAsync(block.UIndex))
-            //    return APIResultCodes.BlockWithThisIndexAlreadyExists;
+            if (block.AccountID != Neo.ProtocolSettings.Default.StandbyValidators[0])
+                return APIResultCodes.InvalidAccountId;
 
-            var lastCons = await sys.Storage.GetLastConsolidationBlockAsync();
-            if (lastCons == null)
-                return APIResultCodes.CouldNotFindLatestBlock;
-
-            if (block.PreviousConsolidateHash != lastCons.Hash)
-                return APIResultCodes.PreviousBlockNotFound;
-
+            // Validate blocks
             var result = await VerifyBlockAsync(sys, block, null);
             if (result != APIResultCodes.Success)
                 return result;

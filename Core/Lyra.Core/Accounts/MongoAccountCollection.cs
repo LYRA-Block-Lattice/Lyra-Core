@@ -72,7 +72,6 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<ConsolidationBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
-            BsonClassMap.RegisterClassMap<NullTransactionBlock>();
             BsonClassMap.RegisterClassMap<ImportAccountBlock>();
             BsonClassMap.RegisterClassMap<OpenAccountWithImportBlock>();
 
@@ -329,15 +328,6 @@ namespace Lyra.Core.Accounts
             {
                 return result.ToList().Cast<TokenGenesisBlock>().Where(a => a.Ticker.Contains(keyword)).ToList();
             }
-        }
-
-        public async Task<NullTransactionBlock> FindNullTransBlockByHashAsync(string hash)
-        {
-            var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.NullTransaction), builder.Eq("FailedBlockHash", hash));
-            var result = await _blocks.FindAsync(filterDefinition);
-
-            return await result.FirstOrDefaultAsync() as NullTransactionBlock;
         }
 
         public async Task<bool> WasAccountImportedAsync(string ImportedAccountId)

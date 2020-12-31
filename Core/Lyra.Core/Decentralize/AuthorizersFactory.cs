@@ -34,12 +34,14 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.ImportAccount, "ImportAccountAuthorizer");
             _authorizers.Add(BlockTypes.TokenGenesis, "NewTokenAuthorizer");
             _authorizers.Add(BlockTypes.Consolidation, "ConsolidationBlockAuthorizer");
-            _authorizers.Add(BlockTypes.NullTransaction, "NullTransactionAuthorizer");
+            //_authorizers.Add(BlockTypes.NullTransaction, "NullTransactionAuthorizer");
             _authorizers.Add(BlockTypes.Service, "ServiceAuthorizer");
             _authorizers.Add(BlockTypes.TradeOrder, "TradeOrderAuthorizer");
             _authorizers.Add(BlockTypes.Trade, "TradeAuthorizer");
             _authorizers.Add(BlockTypes.CancelTradeOrder, "CancelTradeOrderAuthorizer"); //HACK: wait for code check in
             _authorizers.Add(BlockTypes.ExecuteTradeOrder, "ExecuteTradeOrderAuthorizer");
+            _authorizers.Add(BlockTypes.PoolFactory, "PoolFactoryAuthorizer");
+            _authorizers.Add(BlockTypes.Pool, "PoolAuthorizer");
 
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
             foreach(var kvp in _authorizers)

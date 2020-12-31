@@ -294,8 +294,11 @@ namespace Lyra.Core.API
                 case BlockTypes.OpenAccountWithImport:
                     block = JsonConvert.DeserializeObject<OpenAccountWithImportBlock>(BlockData);
                     break;
-                case BlockTypes.NullTransaction:
-                    block = JsonConvert.DeserializeObject<NullTransactionBlock>(BlockData);
+                case BlockTypes.PoolFactory:
+                    block = JsonConvert.DeserializeObject<PoolFactoryBlock>(BlockData);
+                    break;
+                case BlockTypes.Pool:
+                    block = JsonConvert.DeserializeObject<PoolBlock>(BlockData);
                     break;
                 case BlockTypes.Null:
                     block = null;

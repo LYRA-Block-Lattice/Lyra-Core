@@ -96,7 +96,7 @@ namespace Lyra.Core.Authorizers
                 }
 
                 // check if this Index already exists (double-spending, kind of)
-                if (block.BlockType != BlockTypes.NullTransaction && await (sys.Storage.FindBlockByIndexAsync(blockt.AccountID, block.Height)) != null)
+                if (await sys.Storage.FindBlockByIndexAsync(blockt.AccountID, block.Height) != null)
                     return APIResultCodes.BlockWithThisIndexAlreadyExists;
 
                 // check service hash
