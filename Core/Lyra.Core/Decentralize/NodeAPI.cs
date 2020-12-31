@@ -914,7 +914,7 @@ namespace Lyra.Core.Decentralize
             {
                 while(true)
                 {
-                    var factory = NodeService.Dag.Storage.GetPoolFactoryAsync();
+                    var factory = await NodeService.Dag.Storage.GetPoolFactoryAsync();
                     if (factory == null)
                     {
                         NodeService.Dag.Consensus.Tell(new ConsensusService.ReqCreatePoolFactory());

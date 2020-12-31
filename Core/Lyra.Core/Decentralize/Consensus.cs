@@ -627,7 +627,7 @@ namespace Lyra.Core.Decentralize
 
         private async void CreatePoolFactory()
         {
-            var factory = _sys.Storage.GetPoolFactoryAsync();
+            var factory = await _sys.Storage.GetPoolFactoryAsync();
             if (factory != null)
                 return;
 
