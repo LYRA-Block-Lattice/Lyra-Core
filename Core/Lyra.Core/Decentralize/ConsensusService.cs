@@ -1327,8 +1327,10 @@ namespace Lyra.Core.Decentralize
                             FeeType = AuthorizationFeeTypes.NoFee
                         };
 
-                        TransactionBlock latestBlock = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
-                        var txInfo = sendBlock.GetTransaction(latestBlock);
+                        TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+                        var txInfo = sendBlock.GetTransaction(prevSend);
+
+                        TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(PoolFactoryBlock.FactoryAccount) as TransactionBlock;
 
                         var newBalance = txInfo.Amount;
                         // if the recipient's account has this token already, add the transaction amount to the existing balance
