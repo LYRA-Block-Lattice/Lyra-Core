@@ -86,7 +86,7 @@ namespace Lyra.Core.Authorizers
                     _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock Index: {block.Height} by {block.GetHashInput()}");
 
                 var verifyAgainst = blockt.AccountID;
-                if (blockt.AccountID == PoolFactoryBlock.FactoryAccount || blockt is PoolBlock)      // pool block is both service and transaction
+                if (blockt.ContainsTag(Block.MANAGEDTAG))      // pool block is both service and transaction
                 {
                     var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                     verifyAgainst = board.CurrentLeader;
@@ -208,7 +208,7 @@ namespace Lyra.Core.Authorizers
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
-                    if(block.Tags?.ContainsKey("managed") == true)
+                    if(block.ContainsTag(Block.MANAGEDTAG))
                     {
                         var svcBlock = await sys.Storage.FindBlockByHashAsync(block.ServiceHash) as ServiceBlock;
                         var result = Signatures.VerifyAccountSignature(thisBlock.Hash, svcBlock.Leader, thisBlock.Signature);

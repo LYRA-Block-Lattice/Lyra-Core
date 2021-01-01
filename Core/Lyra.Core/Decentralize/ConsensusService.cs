@@ -1327,7 +1327,7 @@ namespace Lyra.Core.Decentralize
                             FeeType = AuthorizationFeeTypes.NoFee
                         };
 
-                        receiveBlock.AddTag("managed", "");   // value is always ignored
+                        receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
                         TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
                         var txInfo = sendBlock.GetTransaction(prevSend);

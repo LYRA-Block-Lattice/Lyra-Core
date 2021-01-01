@@ -14,6 +14,7 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
+        public const string MANAGEDTAG = "managed";
         // block data
         public long Height { get; set; }
 
@@ -192,6 +193,11 @@ namespace Lyra.Core.Blocks
                 Tags = new Dictionary<string, string>();
 
             Tags.Add(tagKey, tagValue);
+        }
+
+        public bool ContainsTag(string tagKey)
+        {
+            return true == Tags?.ContainsKey(tagKey);
         }
     }
 
