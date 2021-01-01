@@ -208,9 +208,19 @@ namespace Lyra.Core.Authorizers
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
-                    var result = Signatures.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature);
-                    if (!result)
-                        return APIResultCodes.AccountChainSignatureValidationFailed;
+                    if(block.Tags?.ContainsKey("managed") == true)
+                    {
+                        var svcBlock = await sys.Storage.FindBlockByHashAsync(block.ServiceHash) as ServiceBlock;
+                        var result = Signatures.VerifyAccountSignature(thisBlock.Hash, svcBlock.Leader, thisBlock.Signature);
+                        if (!result)
+                            return APIResultCodes.AccountChainSignatureValidationFailed;
+                    }
+                    else
+                    {
+                        var result = Signatures.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature);
+                        if (!result)
+                            return APIResultCodes.AccountChainSignatureValidationFailed;
+                    }
 
                     thisBlock = prevBlock;
                 }

@@ -186,6 +186,13 @@ namespace Lyra.Core.Blocks
             return result;
         }
 
+        public void AddTag(string tagKey, string tagValue)
+        {
+            if (Tags == null)
+                Tags = new Dictionary<string, string>();
+
+            Tags.Add(tagKey, tagValue);
+        }
     }
 
     public enum BlockTypes : byte
