@@ -1327,7 +1327,7 @@ namespace Lyra.Core.Decentralize
                             FeeType = AuthorizationFeeTypes.NoFee
                         };
 
-                        TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.PreviousHash) as TransactionBlock;
+                        TransactionBlock latestBlock = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
                         var txInfo = sendBlock.GetTransaction(latestBlock);
 
                         var newBalance = txInfo.Amount;
