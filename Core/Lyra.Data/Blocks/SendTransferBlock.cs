@@ -1,6 +1,7 @@
 ﻿
 using Lyra.Core.API;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace Lyra.Core.Blocks
 {
@@ -67,6 +68,28 @@ namespace Lyra.Core.Blocks
             transaction.FeeAmount = this.Fee;
 
             return transaction;
+        }
+
+        public override BalanceChanges GetBalanceChanges(TransactionBlock previousBlock)
+        {
+            var bc = new BalanceChanges();
+            // transfer unchanged token balances from the previous block
+            foreach (var balance in previousBlock.Balances)
+            {
+                if (balance.Value > Balances[balance.Key])
+                {
+                    var amount = (balance.Value - Balances[balance.Key]).ToBalanceDecimal();
+                    if (balance.Key == FeeCode)
+                        amount -= Fee;
+
+                    if(amount != 0)
+                        bc.Changes.Add(new TransactionInfo { TokenCode = balance.Key, Amount = amount });
+                }
+            }
+            bc.FeeCode = this.FeeCode;
+            bc.FeeAmount = this.Fee;
+
+            return bc;
         }
 
         //// Returns the non-fungible token being transacted in THIS block.

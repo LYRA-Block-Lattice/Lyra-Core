@@ -57,6 +57,31 @@ namespace Lyra.Core.Blocks
             return transaction;
         }
 
+        public override BalanceChanges GetBalanceChanges(TransactionBlock previousBlock)
+        {
+            var bc = new BalanceChanges();
+            // transfer unchanged token balances from the previous block
+            foreach (var balance in Balances)
+            {
+                decimal amount;
+                if(previousBlock.Balances.ContainsKey(balance.Key))
+                {
+                    amount = (balance.Value - previousBlock.Balances[balance.Key]).ToBalanceDecimal();
+                }
+                else
+                {
+                    amount = balance.Value.ToBalanceDecimal();
+                }
+
+                if(amount != 0)
+                    bc.Changes.Add(new TransactionInfo { TokenCode = balance.Key, Amount = amount });
+            }
+            bc.FeeCode = this.FeeCode;
+            bc.FeeAmount = this.Fee;
+
+            return bc;
+        }
+
         //public override INonFungibleToken GetNonFungibleTransaction(TransactionBlock previousBlock)
         //{
 

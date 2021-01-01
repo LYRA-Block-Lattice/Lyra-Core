@@ -53,6 +53,19 @@ namespace Lyra.Core.Blocks
         public string FeeCode { get; set; }
     }
 
+    public class BalanceChanges
+    {
+        public List<TransactionInfo> Changes;
+        public decimal FeeAmount { get; set; }
+
+        public string FeeCode { get; set; }
+
+        public BalanceChanges()
+        {
+            Changes = new List<TransactionInfo>();
+        }
+    }
+
     // this is base class for all send and receive blocks, i.e. all blocks containing transaction,
     // including genesis blocks and opening derivatives
     [BsonIgnoreExtraElements]
@@ -136,6 +149,11 @@ namespace Lyra.Core.Blocks
         // the trans amount is always positive, and it counts for the fee if transacting main currency, 
         // so the actual implementation will be different for send and receive blocks
         public virtual TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual BalanceChanges GetBalanceChanges(TransactionBlock previousBlock)
         {
             throw new NotImplementedException();
         }
