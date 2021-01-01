@@ -1314,7 +1314,7 @@ namespace Lyra.Core.Decentralize
                     var appVer = "1.0";
 
                     var client = LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, platform, appName, appVer);
-                    var wallet = new TransitWallet(_sys.PosWallet.PrivateKey, client);
+                    var wallet = new TransitWallet(PoolFactoryBlock.FactoryAccount, _sys.PosWallet.PrivateKey, client);
                     var result = await wallet.ReceiveAsync();
 
                     if(result == APIResultCodes.Success)

@@ -12,9 +12,8 @@ namespace Lyra.Data.API
 {
     public class TransitWallet
     {
-        private string _uniqId;
-
-        private string _privateKey;
+        private string _signingPrivateKey;
+        private string _signingAccountId;
         private string _accountId;
         private SignHandler _signer;
 
@@ -25,16 +24,16 @@ namespace Lyra.Data.API
 
         public string LastTxHash { get; private set; }
 
-        public TransitWallet(string privateKey, LyraRestClient client)
+        public TransitWallet(string AccountId, string signingPrivateKey, LyraRestClient client)
         {
-            _uniqId = Guid.NewGuid().ToString();
+            _signingPrivateKey = signingPrivateKey;
+            _signingAccountId = Signatures.GetAccountIdFromPrivateKey(_signingPrivateKey);
 
-            _privateKey = privateKey;
-            _accountId = Signatures.GetAccountIdFromPrivateKey(privateKey);
+            _accountId = AccountId;
 
             _rpcClient = client;
 
-            _signer = (hash) => Signatures.GetSignature(_privateKey, hash, _accountId);
+            _signer = (hash) => Signatures.GetSignature(_signingPrivateKey, hash, _signingAccountId);
         }
 
         public async Task<Dictionary<string, long>> GetBalanceAsync()
