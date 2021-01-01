@@ -1309,22 +1309,59 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation("Creating pool ...");
                 _ = Task.Run(async () => {
                     // first, do a receive.
-                    var platform = Environment.OSVersion.Platform.ToString();
-                    var appName = "Lyra TransitWallet";
-                    var appVer = "1.0";
-
-                    var client = LyraRestClient.Create(Settings.Default.LyraNode.Lyra.NetworkId, platform, appName, appVer);
-                    var wallet = new TransitWallet(PoolFactoryBlock.FactoryAccount, _sys.PosWallet.PrivateKey, client);
-                    var result = await wallet.ReceiveAsync();
-
-                    if(result == APIResultCodes.Success)
+                    while (true)
                     {
-                        _log.LogInformation($"Receive fee for creating pool: success.");
-                    }
-                    else
-                    {
-                        _log.LogInformation($"Receive fee for creating pool: failed.");
-                        return;
+                        SendTransferBlock sendBlock = await _sys.Storage.FindUnsettledSendBlockAsync(PoolFactoryBlock.FactoryAccount);
+                        if (sendBlock == null)
+                            break;
+
+                        var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+                        var receiveBlock = new ReceiveTransferBlock
+                        {
+                            AccountID = PoolFactoryBlock.FactoryAccount,
+                            VoteFor = null,
+                            ServiceHash = lsb.Hash,
+                            SourceHash = sendBlock.Hash,
+                            Balances = new Dictionary<string, long>(),
+                            Fee = 0,
+                            FeeType = AuthorizationFeeTypes.NoFee
+                        };
+
+                        TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(PoolFactoryBlock.FactoryAccount) as TransactionBlock;
+                        var txInfo = sendBlock.GetTransaction(latestBlock);
+
+                        var newBalance = txInfo.Amount;
+                        // if the recipient's account has this token already, add the transaction amount to the existing balance
+                        if (latestBlock.Balances.ContainsKey(txInfo.TokenCode))
+                            newBalance += latestBlock.Balances[txInfo.TokenCode].ToBalanceDecimal();
+
+                        receiveBlock.Balances.Add(txInfo.TokenCode, newBalance.ToBalanceLong());
+
+                        // transfer unchanged token balances from the previous block
+                        foreach (var balance in latestBlock.Balances)
+                            if (!(receiveBlock.Balances.ContainsKey(balance.Key)))
+                                receiveBlock.Balances.Add(balance.Key, balance.Value);
+
+                        receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
+
+                        AuthorizingMsg msg = new AuthorizingMsg
+                        {
+                            From = _sys.PosWallet.AccountId,
+                            Block = receiveBlock,
+                            BlockHash = receiveBlock.Hash,
+                            MsgType = ChatMessageType.AuthorizerPrePrepare
+                        };
+
+                        AuthState state = new AuthState(true);
+                        state.SetView(Board.PrimaryAuthorizers);
+                        msg.IsServiceBlock = false;
+                        state.InputMsg = msg;
+
+                        await SubmitToConsensusAsync(state);
+
+                        await state.Done.AsTask();
+                        state.Done.Close();
+                        state.Done = null;
                     }
 
                     // then create pool for it.
