@@ -1343,29 +1343,12 @@ namespace Lyra.Core.Decentralize
 
                         // transfer unchanged token balances from the previous block
                         foreach (var balance in latestBlock.Balances)
-                            if (!(receiveBlock.Balances.ContainsKey(balance.Key)))
+                            if (!receiveBlock.Balances.ContainsKey(balance.Key))
                                 receiveBlock.Balances.Add(balance.Key, balance.Value);
 
                         receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-                        AuthorizingMsg msg = new AuthorizingMsg
-                        {
-                            From = _sys.PosWallet.AccountId,
-                            Block = receiveBlock,
-                            BlockHash = receiveBlock.Hash,
-                            MsgType = ChatMessageType.AuthorizerPrePrepare
-                        };
-
-                        AuthState state = new AuthState(true);
-                        state.SetView(Board.PrimaryAuthorizers);
-                        msg.IsServiceBlock = false;
-                        state.InputMsg = msg;
-
-                        await SubmitToConsensusAsync(state);
-
-                        await state.Done.AsTask();
-                        state.Done.Close();
-                        state.Done = null;
+                        await SendBlockToConsensusAndWaitResultAsync(receiveBlock);
                     }
 
                     // then create pool for it.
@@ -1395,9 +1378,11 @@ namespace Lyra.Core.Decentralize
                         Token1 = arrStr[1]
                     };
 
+                    poolBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
                     // pool blocks are service block so all service block signed by leader node
                     poolBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-                    await SendBlockToConsensusAsync(poolBlock);
+                    await SendBlockToConsensusAndWaitResultAsync(poolBlock);
                 });
             }
         }

@@ -403,19 +403,19 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation("all seed nodes are ready. do genesis.");
 
             var svcGen = await CreateServiceGenesisBlockAsync();
-            await SendBlockToConsensusAsync(svcGen, ProtocolSettings.Default.StandbyValidators.ToList());
+            await SendBlockToConsensusAndWaitResultAsync(svcGen, ProtocolSettings.Default.StandbyValidators.ToList());
 
             await Task.Delay(10000);
 
             var tokenGen = CreateLyraTokenGenesisBlock(svcGen);
             // DEBUG
             //_log.LogInformation("genesis block string:\n" + tokenGen.GetHashInput());
-            await SendBlockToConsensusAsync(tokenGen);
+            await SendBlockToConsensusAndWaitResultAsync(tokenGen);
 
             await Task.Delay(15000);        // because cons block has a time shift.
 
             var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen);
-            await SendBlockToConsensusAsync(consGen);
+            await SendBlockToConsensusAndWaitResultAsync(consGen);
 
             await Task.Delay(1000);
 
@@ -517,7 +517,7 @@ namespace Lyra.Core.Decentralize
                     svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey, _sys.PosWallet.AccountId);
 
                     _log.LogInformation($"New View was created. send to network...");
-                    await SendBlockToConsensusAsync(svcBlock, _board.AllVoters);
+                    await SendBlockToConsensusAndWaitResultAsync(svcBlock, _board.AllVoters);
                 }
                 catch (Exception e)
                 {
@@ -649,7 +649,7 @@ namespace Lyra.Core.Decentralize
 
                 // pool blocks are service block so all service block signed by leader node
                 pf.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-                await SendBlockToConsensusAsync(pf);
+                await SendBlockToConsensusAndWaitResultAsync(pf);
             }
             else
             {
@@ -670,7 +670,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task SendBlockToConsensusAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
+        private async Task SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
         {
             AuthorizingMsg msg = new AuthorizingMsg
             {
