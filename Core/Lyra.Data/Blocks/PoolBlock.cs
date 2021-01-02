@@ -8,7 +8,7 @@ namespace Lyra.Core.Blocks
 {
     public interface IPool
     {
-        Dictionary<string, long> Shares { get; set; }
+        Dictionary<string, decimal> Shares { get; set; }
     }
     /// <summary>
     /// 
@@ -25,7 +25,21 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Shares { get; set; }
+        public Dictionary<string, decimal> Shares { get; set; }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += DictToStr(Shares) + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"Shares: {DictToStr(Shares)}\n";
+            return result;
+        }
     }
 
     [BsonIgnoreExtraElements]
@@ -40,7 +54,21 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Shares { get; set; }
+        public Dictionary<string, decimal> Shares { get; set; }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += DictToStr(Shares) + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"Shares: {DictToStr(Shares)}\n";
+            return result;
+        }
     }
 
     [BsonIgnoreExtraElements]
@@ -55,7 +83,21 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Shares { get; set; }
+        public Dictionary<string, decimal> Shares { get; set; }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += DictToStr(Shares) + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"Shares: {DictToStr(Shares)}\n";
+            return result;
+        }
     }
 
     [BsonIgnoreExtraElements]
@@ -70,7 +112,21 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Shares { get; set; }
+        public Dictionary<string, decimal> Shares { get; set; }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += DictToStr(Shares) + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"Shares: {DictToStr(Shares)}\n";
+            return result;
+        }
     }
 
     /// <summary>
@@ -88,5 +144,23 @@ namespace Lyra.Core.Blocks
         }
 
         public AccountTypes AccountType { get; set; }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += Token0 + "|";
+            extraData += Token1 + "|";
+            extraData += AccountType + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"Token0: {Token0}\n";
+            result += $"Token1: {Token1}\n";
+            result += $"AccountType: {AccountType}\n";
+            return result;
+        }
     }
 }

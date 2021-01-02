@@ -18,5 +18,21 @@ namespace Lyra.Core.Blocks
         {
             return BlockTypes.PoolFactory;
         }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += FactoryAccount + "|";
+            extraData += AccountType + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"FactoryAccount: {FactoryAccount}\n";
+            result += $"AccountType: {AccountType}\n";
+            return result;
+        }
     }
 }

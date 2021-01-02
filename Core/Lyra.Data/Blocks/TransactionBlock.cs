@@ -191,6 +191,18 @@ namespace Lyra.Core.Blocks
             }
             return sb.ToString();
         }
+
+        protected string DictToStr<TKey, TValue>(Dictionary<TKey, TValue> dict)
+        {
+            var sb = new StringBuilder();
+            foreach (var kvp in dict)
+            {
+                if (sb.Length > 0)
+                    sb.Append(", ");
+                sb.Append($"{kvp.Key}:{kvp.Value}");
+            }
+            return sb.ToString();
+        }
     }
 }
 

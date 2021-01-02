@@ -263,7 +263,7 @@ namespace Lyra.Client.CLI
                                         if(poolResult2.Successful())
                                         {
                                             var poolBlock = poolResult2.GetBlock() as PoolDepositBlock;
-                                            Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId].ToBalanceDecimal() * 100} %");
+                                            Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId] * 100} %");
                                         }                                        
                                     }
                                 }
