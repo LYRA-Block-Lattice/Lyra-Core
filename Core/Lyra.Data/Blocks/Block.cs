@@ -14,7 +14,14 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public abstract class Block: SignableObject
     {
+        /// <summary>
+        /// a tag indicate that the signature is created by current leader, not the private key owner.
+        /// </summary>
         public const string MANAGEDTAG = "managed";
+        /// <summary>
+        /// a tag indicate that the block is to a managed account and need process by leader/consensus network.
+        /// </summary>
+        public const string REQSERVICETAG = "svcreq";
         // block data
         public long Height { get; set; }
 

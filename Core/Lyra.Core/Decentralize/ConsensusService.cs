@@ -1305,7 +1305,7 @@ namespace Lyra.Core.Decentralize
 
             // pool events
             // only current leader deals with managed blocks
-            if (Board.CurrentLeader == _sys.PosWallet.AccountId && block.ContainsTag(Block.MANAGEDTAG))
+            if (Board.CurrentLeader == _sys.PosWallet.AccountId && block.ContainsTag(Block.REQSERVICETAG))
             {
                 if (block is SendTransferBlock send)
                 {
@@ -1315,7 +1315,7 @@ namespace Lyra.Core.Decentralize
                         _ = Task.Run(async () =>
                         {
                             // first, do a receive.
-                            var (send, recvResult) = await ReceivePoolFactoryFeeAsync(PoolFactoryBlock.FactoryAccount);
+                            var recvResult = await ReceivePoolFactoryFeeAsync(send);
                             if (recvResult == ConsensusResult.Yea)
                             {
                                 // then create pool for it.
@@ -1363,54 +1363,43 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<(SendTransferBlock, ConsensusResult?)> ReceivePoolFactoryFeeAsync(string managedAccountId)
+        private async Task<ConsensusResult?> ReceivePoolFactoryFeeAsync(SendTransferBlock sendBlock)
         {
-            SendTransferBlock lastSend = null;
-            ConsensusResult? result = null;
-            while (true)
+            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+            var receiveBlock = new ReceiveTransferBlock
             {
-                SendTransferBlock sendBlock = await _sys.Storage.FindUnsettledSendBlockAsync(managedAccountId);
-                if (sendBlock == null)
-                    break;
+                AccountID = sendBlock.DestinationAccountId,
+                VoteFor = null,
+                ServiceHash = lsb.Hash,
+                SourceHash = sendBlock.Hash,
+                Balances = new Dictionary<string, long>(),
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee
+            };
 
-                var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-                var receiveBlock = new ReceiveTransferBlock
-                {
-                    AccountID = managedAccountId,
-                    VoteFor = null,
-                    ServiceHash = lsb.Hash,
-                    SourceHash = sendBlock.Hash,
-                    Balances = new Dictionary<string, long>(),
-                    Fee = 0,
-                    FeeType = AuthorizationFeeTypes.NoFee
-                };
+            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
-                receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+            var txInfo = sendBlock.GetTransaction(prevSend);
 
-                TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
-                var txInfo = sendBlock.GetTransaction(prevSend);
+            TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
-                TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(managedAccountId) as TransactionBlock;
+            var newBalance = txInfo.Amount;
+            // if the recipient's account has this token already, add the transaction amount to the existing balance
+            if (latestBlock.Balances.ContainsKey(txInfo.TokenCode))
+                newBalance += latestBlock.Balances[txInfo.TokenCode].ToBalanceDecimal();
 
-                var newBalance = txInfo.Amount;
-                // if the recipient's account has this token already, add the transaction amount to the existing balance
-                if (latestBlock.Balances.ContainsKey(txInfo.TokenCode))
-                    newBalance += latestBlock.Balances[txInfo.TokenCode].ToBalanceDecimal();
+            receiveBlock.Balances.Add(txInfo.TokenCode, newBalance.ToBalanceLong());
 
-                receiveBlock.Balances.Add(txInfo.TokenCode, newBalance.ToBalanceLong());
+            // transfer unchanged token balances from the previous block
+            foreach (var balance in latestBlock.Balances)
+                if (!receiveBlock.Balances.ContainsKey(balance.Key))
+                    receiveBlock.Balances.Add(balance.Key, balance.Value);
 
-                // transfer unchanged token balances from the previous block
-                foreach (var balance in latestBlock.Balances)
-                    if (!receiveBlock.Balances.ContainsKey(balance.Key))
-                        receiveBlock.Balances.Add(balance.Key, balance.Value);
+            receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-                receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
-
-                result = await SendBlockToConsensusAndWaitResultAsync(receiveBlock);
-
-                lastSend = sendBlock;
-            }
-            return (lastSend, result);
+            var result = await SendBlockToConsensusAndWaitResultAsync(receiveBlock);
+            return result;
         }
 
         private async Task<ConsensusResult?> ReceivePoolDepositionAsync(SendTransferBlock sendBlock)

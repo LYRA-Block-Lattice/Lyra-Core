@@ -227,6 +227,7 @@ namespace Lyra.Client.CLI
                                 var tags = new Dictionary<string, string>();
                                 tags.Add("token0", token0);
                                 tags.Add("token1", token1);
+                                tags.Add(Block.REQSERVICETAG, "");
                                 var amounts = new Dictionary<string, decimal>();
                                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1000m);
                                 var poolCreateResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amounts, tags);
@@ -268,6 +269,10 @@ namespace Lyra.Client.CLI
                                     }
                                 }
                             }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Liquidate pool failed to create. Please retry.");
                         }
                         break;
                     case COMMAND_HISTORY:
