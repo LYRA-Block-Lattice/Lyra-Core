@@ -431,7 +431,7 @@ namespace Lyra.Core.Decentralize
                                     {
                                         lsb = result.GetBlock() as ServiceBlock;
                                     }
-                                    else
+                                    else if(result.ResultCode != APIResultCodes.ServiceBlockNotFound)
                                     {
                                         await Task.Delay(2000);
                                         continue;
