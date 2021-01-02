@@ -959,7 +959,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.Hash}");
+            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.h}");
 
             if (await FindBlockByHashAsync(block.Hash) != null)
             {
@@ -1323,15 +1323,15 @@ namespace Lyra.Core.Accounts
             return await finds.FirstOrDefaultAsync() as PoolFactoryBlock;
         }
 
-        public async Task<Block> GetPoolAsync(string token0, string token1)
+        public async Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1)
         {
             // first sort token
             var arrStr = new[] { token0, token1 };
             Array.Sort(arrStr);
 
-            var builder = Builders<Block>.Filter;
+            var builder = Builders<PoolGenesisBlock>.Filter;
             var poolFilter = builder.And(builder.Eq("Token0", arrStr[0]), builder.Eq("Token1", arrStr[1]));
-            var pool = await _blocks
+            var pool = await _blocks.OfType<PoolGenesisBlock>()
                 .Aggregate()
                 .Match(poolFilter)
                 .SortByDescending(x => x.Height)
@@ -1340,17 +1340,18 @@ namespace Lyra.Core.Accounts
             return pool;
         }
 
-        public async Task<PoolGenesisBlock> GetPoolByAccountIdAsync(string poolAccountId)
+        public async Task<TransactionBlock> GetPoolByAccountIdAsync(string poolAccountId)
         {
             var options = new FindOptions<Block, Block>
             {
-                Limit = 1
+                Limit = 1,
+                Sort = Builders<Block>.Sort.Descending(o => o.Height)
             };
             var filter = Builders<Block>.Filter;
-            var filterDefination = filter.And(filter.Eq("BlockType", BlockTypes.PoolGenesis), filter.Eq("Height", 1));
+            var filterDefination = filter.Eq("AccountID", poolAccountId);
 
             var finds = await _blocks.FindAsync(filterDefination, options);
-            return await finds.FirstOrDefaultAsync() as PoolGenesisBlock;
+            return await finds.FirstOrDefaultAsync() as TransactionBlock;
         }
 
     }
