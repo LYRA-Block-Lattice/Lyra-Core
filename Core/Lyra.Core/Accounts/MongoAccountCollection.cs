@@ -959,9 +959,11 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
+            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.Hash}");
+
             if (await FindBlockByHashAsync(block.Hash) != null)
             {
-                //_log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
+                _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
                 return false;
             }
 
@@ -974,7 +976,6 @@ namespace Lyra.Core.Accounts
                 }
             }
 
-            //_log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height}");
             try
             {
                 await _blocks.InsertOneAsync(block);
