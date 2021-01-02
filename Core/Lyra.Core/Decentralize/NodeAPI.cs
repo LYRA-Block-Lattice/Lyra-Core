@@ -926,7 +926,7 @@ namespace Lyra.Core.Decentralize
 
                     if (poolGenesis != null)
                     {
-                        var latestPoolBlock = await NodeService.Dag.Storage.GetPoolByAccountIdAsync(poolGenesis.AccountID);
+                        var latestPoolBlock = await NodeService.Dag.Storage.FindLatestBlockAsync(poolGenesis.AccountID) as TransactionBlock;
                         
                         if(latestPoolBlock.Balances != null)
                         {

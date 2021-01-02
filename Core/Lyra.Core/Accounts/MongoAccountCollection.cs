@@ -304,6 +304,19 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
+        public async Task<Block> FindFirstBlockAsync(string AccountId)
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1,
+                Sort = Builders<Block>.Sort.Ascending(o => o.Height)
+            };
+            var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
+
+            var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
+            return result;
+        }
+
         public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker)
         {
             //TokenGenesisBlock result = null;
@@ -959,7 +972,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.h}");
+            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.Hash}");
 
             if (await FindBlockByHashAsync(block.Hash) != null)
             {
@@ -1340,19 +1353,6 @@ namespace Lyra.Core.Accounts
             return pool;
         }
 
-        public async Task<TransactionBlock> GetPoolByAccountIdAsync(string poolAccountId)
-        {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Height)
-            };
-            var filter = Builders<Block>.Filter;
-            var filterDefination = filter.Eq("AccountID", poolAccountId);
-
-            var finds = await _blocks.FindAsync(filterDefination, options);
-            return await finds.FirstOrDefaultAsync() as TransactionBlock;
-        }
 
     }
     public static class MyExtensions

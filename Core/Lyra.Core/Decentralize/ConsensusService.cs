@@ -1339,7 +1339,7 @@ namespace Lyra.Core.Decentralize
                         _ = Task.Run(async () =>
                         {
 
-                            var pool = await _sys.Storage.GetPoolByAccountIdAsync(send.DestinationAccountId);
+                            var pool = await _sys.Storage.FindLatestBlockAsync(send.DestinationAccountId);
                             if (pool == null)
                             {
                                 _log.LogWarning($"destination pool {send.DestinationAccountId} not exists.");
@@ -1427,7 +1427,7 @@ namespace Lyra.Core.Decentralize
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
 
             TransactionBlock latestPoolBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
-            PoolGenesisBlock poolGenesis = await _sys.Storage.GetPoolByAccountIdAsync(latestPoolBlock.AccountID);
+            PoolGenesisBlock poolGenesis = await _sys.Storage.FindFirstBlockAsync(latestPoolBlock.AccountID) as PoolGenesisBlock;
 
             if(latestPoolBlock.Balances.Any())
             {

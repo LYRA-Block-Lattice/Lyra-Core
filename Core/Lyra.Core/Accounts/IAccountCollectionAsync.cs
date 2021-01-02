@@ -18,6 +18,7 @@ namespace Lyra.Core.Accounts
         Task<bool> AccountExistsAsync(string AccountId);
         Task<Block> FindLatestBlockAsync();
         Task<Block> FindLatestBlockAsync(string AccountId);
+        Task<Block> FindFirstBlockAsync(string AccountId);
         Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker);
         Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword);
         Task<Block> FindBlockByHashAsync(string hash);
@@ -91,7 +92,6 @@ namespace Lyra.Core.Accounts
 
         Task<PoolFactoryBlock> GetPoolFactoryAsync();
         Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1);
-        Task<TransactionBlock> GetPoolByAccountIdAsync(string poolAccountId);
         /// <summary>
         /// Cleans up or deletes blocks collection.
         /// Used for unit testing.
