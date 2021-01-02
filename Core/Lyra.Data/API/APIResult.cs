@@ -238,6 +238,7 @@ namespace Lyra.Core.API
 
         public void SetBlock(Block block)
         {
+            ResultBlockType = block.GetBlockType();
             BlockData = JsonConvert.SerializeObject(block);
         }
 

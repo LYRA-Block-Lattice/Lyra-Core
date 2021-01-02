@@ -262,8 +262,12 @@ namespace Lyra.Client.CLI
                             token1 = lp.Token1;
                             var swapRito = lp.SwapRito.ToBalanceDecimal();
 
-                            Console.WriteLine($"Liquidate pool existing for {token0} and {token1}. Rito is {swapRito}. \n 1 {token0} = {1/ swapRito} {token1}\n 1 {token1} = {swapRito} {token0}\n\n" +
-                                $"Do you want to add liquidate to the pool?");
+                            Console.WriteLine($"Liquidate pool existing for {token0} and {token1}. \nPool account ID is {lp.PoolAccountId}\n Swap rito is {swapRito}.");
+                            if(swapRito > 0)
+                            {
+                                Console.WriteLine($"\n 1 {token0} = {1 / swapRito} {token1}\n 1 {token1} = {swapRito} {token0}\n\n");
+                            }
+                            Console.WriteLine($"Do you want to add liquidate to the pool?");
 
                             if (ReadYesNoAnswer())
                             {
@@ -272,28 +276,35 @@ namespace Lyra.Client.CLI
                                 Console.WriteLine($"How many {token1} will you add to the pool:");
                                 var token1Amount = decimal.Parse(Console.ReadLine());
 
-                                var amountsDeposit = new Dictionary<string, decimal>();
-                                amountsDeposit.Add(token0, token0Amount);
-                                amountsDeposit.Add(token1, token1Amount);
-
-                                var tags = new Dictionary<string, string>();
-                                tags.Add("token0", token0);
-                                tags.Add("token1", token1);
-                                tags.Add(Block.REQSERVICETAG, "");
-
-                                var poolDepositResult = await _wallet.SendEx(lp.PoolAccountId, amountsDeposit, tags);
-
-                                if (poolDepositResult.Successful())
+                                if(swapRito == 0 || token0Amount / token1Amount == swapRito)
                                 {
-                                    var poolResult2 = await _wallet.GetLiquidatePoolAsync(token0, token1);
-                                    if (poolResult2.Successful())
+                                    var amountsDeposit = new Dictionary<string, decimal>();
+                                    amountsDeposit.Add(token0, token0Amount);
+                                    amountsDeposit.Add(token1, token1Amount);
+
+                                    var tags = new Dictionary<string, string>();
+                                    tags.Add("token0", token0);
+                                    tags.Add("token1", token1);
+                                    tags.Add(Block.REQSERVICETAG, "");
+
+                                    var poolDepositResult = await _wallet.SendEx(lp.PoolAccountId, amountsDeposit, tags);
+
+                                    if (poolDepositResult.Successful())
                                     {
-                                        var poolBlock = poolResult2.GetBlock() as PoolDepositBlock;
-                                        if (poolBlock != null)
-                                            Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId] * 100} %");
-                                        else
-                                            Console.WriteLine("Deposition not good.");
+                                        var poolResult2 = await _wallet.GetLiquidatePoolAsync(token0, token1);
+                                        if (poolResult2.Successful())
+                                        {
+                                            var poolBlock = poolResult2.GetBlock() as PoolDepositBlock;
+                                            if (poolBlock != null)
+                                                Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId] * 100} %");
+                                            else
+                                                Console.WriteLine("Deposition not good.");
+                                        }
                                     }
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"The amount rito of {token0}/{token1} must be {swapRito}");
                                 }
                             }
 
