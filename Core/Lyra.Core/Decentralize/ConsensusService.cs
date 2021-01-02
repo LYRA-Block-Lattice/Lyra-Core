@@ -1441,19 +1441,19 @@ namespace Lyra.Core.Decentralize
                 var prevBalance = latestPoolBlock.Balances[poolGenesis.Token0].ToBalanceDecimal();
                 var curBalance = depositBlock.Balances[poolGenesis.Token0].ToBalanceDecimal();                
 
-                depositBlock.Shares = new Dictionary<string, decimal>();
+                depositBlock.Shares = new Dictionary<string, long>();
                 foreach(var share in ((IPool)latestPoolBlock).Shares)
                 {
-                    depositBlock.Shares.Add(share.Key, (share.Value * prevBalance) / curBalance);
+                    depositBlock.Shares.Add(share.Key, (share.Value * prevBalance / curBalance).ToBalanceLong());
                 }
 
                 // merge share if any
                 var r0 = txInfo.Changes[poolGenesis.Token0] / curBalance;
 
                 if (depositBlock.Shares.ContainsKey(sendBlock.AccountID))
-                    depositBlock.Shares[sendBlock.AccountID] += r0;
+                    depositBlock.Shares[sendBlock.AccountID] += r0.ToBalanceLong();
                 else
-                    depositBlock.Shares.Add(sendBlock.AccountID, r0);
+                    depositBlock.Shares.Add(sendBlock.AccountID, r0.ToBalanceLong());
             }
             else
             {
@@ -1462,7 +1462,7 @@ namespace Lyra.Core.Decentralize
                     depositBlock.Balances.Add(token.Key, token.Value.ToBalanceLong());
                 }
 
-                depositBlock.Shares = new Dictionary<string, decimal>();
+                depositBlock.Shares = new Dictionary<string, long>();
                 depositBlock.Shares.Add(sendBlock.AccountID, 1m.ToBalanceLong());   // 100%
             }
 

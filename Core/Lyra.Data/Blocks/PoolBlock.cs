@@ -8,7 +8,7 @@ namespace Lyra.Core.Blocks
 {
     public interface IPool
     {
-        Dictionary<string, decimal> Shares { get; set; }
+        Dictionary<string, long> Shares { get; set; }
     }
     /// <summary>
     /// 
@@ -25,7 +25,7 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, decimal> Shares { get; set; }
+        public Dictionary<string, long> Shares { get; set; }
 
         protected override string GetExtraData()
         {
@@ -54,7 +54,7 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, decimal> Shares { get; set; }
+        public Dictionary<string, long> Shares { get; set; }
 
         protected override string GetExtraData()
         {
@@ -83,7 +83,7 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, decimal> Shares { get; set; }
+        public Dictionary<string, long> Shares { get; set; }
 
         protected override string GetExtraData()
         {
@@ -112,7 +112,7 @@ namespace Lyra.Core.Blocks
         // Initial pool token is 1M
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, decimal> Shares { get; set; }
+        public Dictionary<string, long> Shares { get; set; }
 
         protected override string GetExtraData()
         {
