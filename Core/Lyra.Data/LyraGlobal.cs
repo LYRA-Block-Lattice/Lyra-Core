@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Lyra.Core.API
@@ -82,6 +83,16 @@ namespace Lyra.Core.API
         public static decimal ToBalanceDecimal(this long currency)
         {
             return ((decimal)currency) / LyraGlobal.TOKENSTORAGERITO;
+        }
+
+        public static Dictionary<string, decimal> ToDecimalDict(this Dictionary<string, long> dict)
+        {
+            return dict.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal());
+        }
+
+        public static Dictionary<string, long> ToLongDict(this Dictionary<string, decimal> dict)
+        {
+            return dict.ToDictionary(k => k.Key, k => k.Value.ToBalanceLong());
         }
     }
 }

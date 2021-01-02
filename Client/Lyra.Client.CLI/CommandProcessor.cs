@@ -260,8 +260,9 @@ namespace Lyra.Client.CLI
 
                             token0 = lp.Token0;
                             token1 = lp.Token1;
+                            var swapRito = lp.SwapRito.ToBalanceDecimal();
 
-                            Console.WriteLine($"Liquidate pool existing for {token0} and {token1}. Rito is {lp.SwapRito}. \n 1 {token0} = {1/lp.SwapRito} {token1}\n 1 {token1} = {lp.SwapRito} {token0}" +
+                            Console.WriteLine($"Liquidate pool existing for {token0} and {token1}. Rito is {swapRito}. \n 1 {token0} = {1/ swapRito} {token1}\n 1 {token1} = {swapRito} {token0}\n\n" +
                                 $"Do you want to add liquidate to the pool?");
 
                             if (ReadYesNoAnswer())

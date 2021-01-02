@@ -1429,42 +1429,47 @@ namespace Lyra.Core.Decentralize
             TransactionBlock latestPoolBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
             PoolGenesisBlock poolGenesis = await _sys.Storage.FindFirstBlockAsync(latestPoolBlock.AccountID) as PoolGenesisBlock;
 
+            var depositBalance = new Dictionary<string, decimal>();
+            var depositShares = new Dictionary<string, decimal>();
             if(latestPoolBlock.Balances.Any())
             {
+                var lastBalance = latestPoolBlock.Balances.ToDecimalDict();
+
                 // the rito must be preserved for every deposition
-                var poolRito = latestPoolBlock.Balances[poolGenesis.Token0].ToBalanceDecimal() / latestPoolBlock.Balances[poolGenesis.Token1].ToBalanceDecimal();
-                foreach (var oldBalance in latestPoolBlock.Balances)
+                var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
+                foreach (var oldBalance in lastBalance)
                 {
-                    depositBlock.Balances.Add(oldBalance.Key, (oldBalance.Value.ToBalanceDecimal() + txInfo.Changes[oldBalance.Key]).ToBalanceLong());
+                    depositBalance.Add(oldBalance.Key, oldBalance.Value + txInfo.Changes[oldBalance.Key]);
                 }
 
-                var prevBalance = latestPoolBlock.Balances[poolGenesis.Token0].ToBalanceDecimal();
-                var curBalance = depositBlock.Balances[poolGenesis.Token0].ToBalanceDecimal();                
+                var prevBalance = lastBalance[poolGenesis.Token0];
+                var curBalance = depositBalance[poolGenesis.Token0];                
 
-                depositBlock.Shares = new Dictionary<string, long>();
                 foreach(var share in ((IPool)latestPoolBlock).Shares)
                 {
-                    depositBlock.Shares.Add(share.Key, (share.Value * prevBalance / curBalance).ToBalanceLong());
+                    depositShares.Add(share.Key, (share.Value * prevBalance / curBalance));
                 }
 
                 // merge share if any
                 var r0 = txInfo.Changes[poolGenesis.Token0] / curBalance;
 
-                if (depositBlock.Shares.ContainsKey(sendBlock.AccountID))
-                    depositBlock.Shares[sendBlock.AccountID] += r0.ToBalanceLong();
+                if (depositShares.ContainsKey(sendBlock.AccountID))
+                    depositShares[sendBlock.AccountID] += r0;
                 else
-                    depositBlock.Shares.Add(sendBlock.AccountID, r0.ToBalanceLong());
+                    depositShares.Add(sendBlock.AccountID, r0);
             }
             else
             {
                 foreach(var token in txInfo.Changes)
                 {
-                    depositBlock.Balances.Add(token.Key, token.Value.ToBalanceLong());
+                    depositBalance.Add(token.Key, token.Value);
                 }
 
-                depositBlock.Shares = new Dictionary<string, long>();
-                depositBlock.Shares.Add(sendBlock.AccountID, 1m.ToBalanceLong());   // 100%
+                depositShares.Add(sendBlock.AccountID, 1m);   // 100%
             }
+
+            depositBlock.Balances = depositBalance.ToLongDict();
+            depositBlock.Shares = depositShares.ToLongDict();
 
             depositBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
