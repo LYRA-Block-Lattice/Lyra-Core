@@ -547,7 +547,7 @@ namespace Lyra.Core.Decentralize
                         // check if other seeds is ready
                         do
                         {
-                            _log.LogInformation("Check if other node is in genesis mode.");
+                            _log.LogInformation("Check if other nodes are in genesis mode.");
                             await Task.Delay(3000);
                         } while (_board.ActiveNodes
                             .Where(a => _board.PrimaryAuthorizers.Contains(a.AccountID))
