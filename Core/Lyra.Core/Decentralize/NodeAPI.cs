@@ -929,7 +929,7 @@ namespace Lyra.Core.Decentralize
 
                         var latestPoolBlock = await NodeService.Dag.Storage.FindLatestBlockAsync(poolGenesis.AccountID) as TransactionBlock;
                         
-                        if(latestPoolBlock.Balances?.Any())
+                        if(latestPoolBlock.Balances?.Any() == true)
                         {
                             result.Token0 = poolGenesis.Token0;
                             result.Token1 = poolGenesis.Token1;
