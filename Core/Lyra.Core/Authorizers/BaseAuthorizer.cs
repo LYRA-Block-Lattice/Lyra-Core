@@ -150,7 +150,9 @@ namespace Lyra.Core.Authorizers
                 }
             }
             else
+            {
                 return APIResultCodes.InvalidBlockType;
+            }                
 
             // This is the double-spending check for send block!
             if (!string.IsNullOrEmpty(block.PreviousHash) && (await sys.Storage.FindBlockByPreviousBlockHashAsync(block.PreviousHash)) != null)

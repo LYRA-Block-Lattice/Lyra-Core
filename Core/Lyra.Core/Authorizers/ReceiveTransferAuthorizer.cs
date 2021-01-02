@@ -90,7 +90,8 @@ namespace Lyra.Core.Authorizers
 
             // find the actual amount of transaction 
             TransactionInfo sendTransaction;
-            if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer)
+            if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer
+                || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn)  // temp code. should use getbalancechanges
             {
                 if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
                 {
@@ -115,7 +116,7 @@ namespace Lyra.Core.Authorizers
             if (block.BlockType == BlockTypes.ReceiveFee || block.BlockType == BlockTypes.OpenAccountWithReceiveFee)
             {
                 sendTransaction = new TransactionInfo() { TokenCode = LyraGlobal.OFFICIALTICKERCODE, Amount = sourceBlock.Fee };
-            }
+            }            
             else
                 return APIResultCodes.InvalidBlockType;
 
