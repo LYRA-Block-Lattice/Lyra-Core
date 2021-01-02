@@ -242,7 +242,10 @@ namespace Lyra.Client.CLI
                                         {
                                             lpNew = await _wallet.GetLiquidatePoolAsync(token0, token1);
                                             if (lpNew.Successful() && lpNew.PoolAccountId != null)
+                                            {
+                                                lp = lpNew;
                                                 break;
+                                            }
                                             else
                                             {
                                                 Console.Write(".");
@@ -296,7 +299,7 @@ namespace Lyra.Client.CLI
                                         {
                                             var poolBlock = poolResult2.GetBlock() as PoolDepositBlock;
                                             if (poolBlock != null)
-                                                Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId] * 100} %");
+                                                Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId].ToBalanceDecimal() * 100} %");
                                             else
                                                 Console.WriteLine("Deposition not good.");
                                         }

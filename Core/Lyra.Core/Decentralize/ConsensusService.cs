@@ -1434,6 +1434,7 @@ namespace Lyra.Core.Decentralize
             if(latestPoolBlock.Balances.Any())
             {
                 var lastBalance = latestPoolBlock.Balances.ToDecimalDict();
+                var lastShares = ((IPool)latestPoolBlock).Shares.ToDecimalDict();
 
                 // the rito must be preserved for every deposition
                 var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
@@ -1445,7 +1446,7 @@ namespace Lyra.Core.Decentralize
                 var prevBalance = lastBalance[poolGenesis.Token0];
                 var curBalance = depositBalance[poolGenesis.Token0];                
 
-                foreach(var share in ((IPool)latestPoolBlock).Shares)
+                foreach(var share in lastShares)
                 {
                     depositShares.Add(share.Key, (share.Value * prevBalance / curBalance));
                 }
