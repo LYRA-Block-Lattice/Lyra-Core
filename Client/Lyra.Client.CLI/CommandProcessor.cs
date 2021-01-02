@@ -258,7 +258,9 @@ namespace Lyra.Client.CLI
                                 }
                             }
 
-                            Console.WriteLine($"Liquidate pool existing for {token0} and {token1}. \nDo you want to add liquidate to the pool?");
+
+                            Console.WriteLine($"Liquidate pool existing for {token0} and {token1}. Rito is {lp.SwapRito}. \n 1 {token0} = {1/lp.SwapRito} {token1}\n 1 {token1} = {lp.SwapRito} {token0}" +
+                                $"Do you want to add liquidate to the pool?");
 
                             if (ReadYesNoAnswer())
                             {
@@ -270,7 +272,13 @@ namespace Lyra.Client.CLI
                                 var amountsDeposit = new Dictionary<string, decimal>();
                                 amountsDeposit.Add(token0, token0Amount);
                                 amountsDeposit.Add(token1, token1Amount);
-                                var poolDepositResult = await _wallet.SendEx(lpNew.PoolAccountId, amountsDeposit, tags);
+
+                                var tags = new Dictionary<string, string>();
+                                tags.Add("token0", token0);
+                                tags.Add("token1", token1);
+                                tags.Add(Block.REQSERVICETAG, "");
+
+                                var poolDepositResult = await _wallet.SendEx(lp.PoolAccountId, amountsDeposit, tags);
 
                                 if (poolDepositResult.Successful())
                                 {
@@ -278,7 +286,10 @@ namespace Lyra.Client.CLI
                                     if (poolResult2.Successful())
                                     {
                                         var poolBlock = poolResult2.GetBlock() as PoolDepositBlock;
-                                        Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId] * 100} %");
+                                        if (poolBlock != null)
+                                            Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId] * 100} %");
+                                        else
+                                            Console.WriteLine("Deposition not good.");
                                     }
                                 }
                             }

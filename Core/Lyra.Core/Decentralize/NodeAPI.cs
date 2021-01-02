@@ -926,6 +926,11 @@ namespace Lyra.Core.Decentralize
                     if(pool != null)
                     {
                         result.PoolAccountId = pool.AccountID;
+                        if(pool.Balances != null)
+                        {
+                            var poolGenesis = await NodeService.Dag.Storage.GetPoolByAccountIdAsync(pool.AccountID);
+                            result.SwapRito = (pool.Balances[poolGenesis.Token0].ToBalanceDecimal() / pool.Balances[poolGenesis.Token1].ToBalanceDecimal()).ToBalanceLong();
+                        }
                     }
 
                     result.ResultCode = APIResultCodes.Success;
