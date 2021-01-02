@@ -432,6 +432,8 @@ namespace Lyra.Core.API
     {
         public string PoolFactoryAccountId { get; set; }
         public string PoolAccountId { get; set; }
+        public string Token0 { get; set; }
+        public string Token1 { get; set; }
         public long SwapRito { get; set; }    // token0 / token1
     }
 }

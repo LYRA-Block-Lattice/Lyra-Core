@@ -258,6 +258,8 @@ namespace Lyra.Client.CLI
                                 }
                             }
 
+                            token0 = lp.Token0;
+                            token1 = lp.Token1;
 
                             Console.WriteLine($"Liquidate pool existing for {token0} and {token1}. Rito is {lp.SwapRito}. \n 1 {token0} = {1/lp.SwapRito} {token1}\n 1 {token1} = {lp.SwapRito} {token0}" +
                                 $"Do you want to add liquidate to the pool?");
