@@ -1315,7 +1315,7 @@ namespace Lyra.Core.Decentralize
                         _ = Task.Run(async () =>
                         {
                             // first, do a receive.
-                            var (send, recvResult) = await ReceiveManagedAsync(PoolFactoryBlock.FactoryAccount);
+                            var (send, recvResult) = await ReceivePoolFactoryFeeAsync(PoolFactoryBlock.FactoryAccount);
                             if (recvResult == ConsensusResult.Yea)
                             {
                                 // then create pool for it.
@@ -1363,7 +1363,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<(SendTransferBlock, ConsensusResult?)> ReceiveManagedAsync(string managedAccountId)
+        private async Task<(SendTransferBlock, ConsensusResult?)> ReceivePoolFactoryFeeAsync(string managedAccountId)
         {
             SendTransferBlock lastSend = null;
             ConsensusResult? result = null;

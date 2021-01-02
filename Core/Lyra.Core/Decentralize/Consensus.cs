@@ -647,6 +647,8 @@ namespace Lyra.Core.Decentralize
                     FeeType = AuthorizationFeeTypes.NoFee
                 };
 
+                pf.AddTag(Block.MANAGEDTAG, "");
+
                 // pool blocks are service block so all service block signed by leader node
                 pf.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
                 await SendBlockToConsensusAndWaitResultAsync(pf);
