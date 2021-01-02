@@ -519,25 +519,25 @@ namespace LyraLexWeb2
 
         [Route("GetVoters")]
         [HttpPost]
-        public async Task<List<Voter>> GetVotersAsync(VoteQueryModel model)
+        public List<Voter> GetVoters(VoteQueryModel model)
         {
-            if (! CheckServiceStatus()) throw new Exception("System Not Ready.");
+            if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return _node.GetVoters(model);
         }
 
         [Route("FindVotes")]
         [HttpPost]
-        public async Task<List<Vote>> FindVotesAsync(VoteQueryModel model)
+        public List<Vote> FindVotes(VoteQueryModel model)
         {
-            if (! CheckServiceStatus()) throw new Exception("System Not Ready.");
+            if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return _node.FindVotes(model);
         }
 
         [Route("GetFeeStats")]
         [HttpGet]
-        public async Task<FeeStats> GetFeeStatsAsync()
+        public FeeStats GetFeeStats()
         {
-            if (! CheckServiceStatus()) throw new Exception("System Not Ready.");
+            if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
             return _node.GetFeeStats();
         }
 

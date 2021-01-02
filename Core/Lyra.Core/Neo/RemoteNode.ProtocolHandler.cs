@@ -29,7 +29,7 @@ namespace Neo.Network.P2P
         //private readonly HashSetCache<UInt256> knownHashes = new HashSetCache<UInt256>(DagSystem.Singleton.Storage.MemPool.Capacity * 2 / 5);
         //private readonly HashSetCache<UInt256> sentHashes = new HashSetCache<UInt256>(DagSystem.Singleton.Storage.MemPool.Capacity * 2 / 5);
         private bool verack = false;
-        private BloomFilter bloom_filter;
+        //private BloomFilter bloom_filter;
 
         private static readonly TimeSpan TimerInterval = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan PendingTimeout = TimeSpan.FromMinutes(1);
@@ -144,7 +144,7 @@ namespace Neo.Network.P2P
 
         private void OnFilterClearMessageReceived()
         {
-            bloom_filter = null;
+            //bloom_filter = null;
         }
 
         //private void OnFilterLoadMessageReceived(FilterLoadPayload payload)

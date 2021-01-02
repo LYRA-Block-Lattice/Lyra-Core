@@ -267,8 +267,12 @@ namespace Lyra.Core.Blocks
         CancelTradeOrder = 43,
 
         // Liquidate Pool
-        PoolFactory = 51,
-        Pool = 52,
+        PoolFactory = 50,
+        PoolGenesis = 51,
+        PoolDeposit = 52,
+        PoolWithdraw = 53,
+        PoolSwapIn = 54,
+        PoolSwapOut = 55
     }
 
     public enum APIResultCodes

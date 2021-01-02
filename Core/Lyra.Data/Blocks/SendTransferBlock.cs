@@ -83,7 +83,7 @@ namespace Lyra.Core.Blocks
                         amount -= Fee;
 
                     if(amount != 0)
-                        bc.Changes.Add(new TransactionInfo { TokenCode = balance.Key, Amount = amount });
+                        bc.Changes.Add(balance.Key, amount );
                 }
             }
             bc.FeeCode = this.FeeCode;

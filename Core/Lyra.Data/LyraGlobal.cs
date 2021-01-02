@@ -50,9 +50,9 @@ namespace Lyra.Core.API
         // get api for (rpcurl, resturl)
         public static string SelectNode(string networkID)
         {
-            int port = 4505;
-            if ("mainnet".Equals(networkID, StringComparison.InvariantCultureIgnoreCase))
-                port = 5505;
+            //int port = 4505;
+            //if ("mainnet".Equals(networkID, StringComparison.InvariantCultureIgnoreCase))
+            //    port = 5505;
 
             switch (networkID)
             {

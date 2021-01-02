@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class PoolAuthorizer : BaseAuthorizer
+    public class PoolGenesisAuthorizer : BaseAuthorizer
     {
         public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
@@ -21,10 +21,10 @@ namespace Lyra.Core.Authorizers
         }
         private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is PoolBlock))
+            if (!(tblock is PoolGenesisBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as PoolBlock;
+            var block = tblock as PoolGenesisBlock;
 
             // Validate blocks
             var result = await VerifyBlockAsync(sys, block, null);

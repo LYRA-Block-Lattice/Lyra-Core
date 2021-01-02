@@ -55,14 +55,14 @@ namespace Lyra.Core.Blocks
 
     public class BalanceChanges
     {
-        public List<TransactionInfo> Changes;
+        public Dictionary<string, decimal> Changes;
         public decimal FeeAmount { get; set; }
 
         public string FeeCode { get; set; }
 
         public BalanceChanges()
         {
-            Changes = new List<TransactionInfo>();
+            Changes = new Dictionary<string, decimal>();
         }
     }
 

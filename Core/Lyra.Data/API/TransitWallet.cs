@@ -87,7 +87,7 @@ namespace Lyra.Data.API
 
                 return lookup_result.ResultCode;
             }
-            catch (Exception e)
+            catch
             {
                 //PrintConLine("Exception in SyncIncomingTransfers(): " + e.Message);
                 return APIResultCodes.UnknownError;

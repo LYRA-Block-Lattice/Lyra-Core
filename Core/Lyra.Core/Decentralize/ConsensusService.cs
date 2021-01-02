@@ -93,12 +93,13 @@ namespace Lyra.Core.Decentralize
 
             _board = new BillBoard();
 
-            _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) => {
+            _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) =>
+            {
                 _log.LogInformation($"New leader selected: {leader} with votes {votes}");
                 _board.LeaderCandidate = leader;
                 _board.LeaderCandidateVotes = votes;
 
-                if(leader == _sys.PosWallet.AccountId)
+                if (leader == _sys.PosWallet.AccountId)
                 {
                     // its me!
                     _ = Task.Run(async () =>
@@ -115,7 +116,7 @@ namespace Lyra.Core.Decentralize
                     _board.LeaderCandidate = null;
 
                     var sb = await _sys.Storage.GetLastServiceBlockAsync();
-                    if(sb.Height < viewId)
+                    if (sb.Height < viewId)
                     {
                         _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. redo election.");
                         // the new leader failed.
@@ -127,7 +128,7 @@ namespace Lyra.Core.Decentralize
                         }
                     }
                 });
-                    //_viewChangeHandler.Reset(); // wait for svc block generated
+                //_viewChangeHandler.Reset(); // wait for svc block generated
             });
 
             Receive<Startup>(state =>
@@ -154,9 +155,9 @@ namespace Lyra.Core.Decentralize
                     var signedMsg = relayMsg.signedMessage;
 
                     //_log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
-                    
+
                     if (signedMsg.TimeStamp < DateTime.UtcNow.AddSeconds(3) &&
-                        signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-18) &&                        
+                        signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-18) &&
                         signedMsg.VerifySignature(signedMsg.From))
                     {
                         await CriticalRelayAsync(signedMsg, async (msg) =>
@@ -189,7 +190,7 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
-                if(_viewChangeHandler.TimeStarted != DateTime.MinValue)
+                if (_viewChangeHandler.TimeStarted != DateTime.MinValue)
                 {
                     // view changing in progress. no block accepted
                     state.Done?.Set();
@@ -207,7 +208,7 @@ namespace Lyra.Core.Decentralize
                     }
                     state.SetView(Board.PrimaryAuthorizers);
                 }
-                else if(state.InputMsg.Block is ServiceBlock)
+                else if (state.InputMsg.Block is ServiceBlock)
                 {
                     state.SetView(Board.AllVoters);
                 }
@@ -239,7 +240,7 @@ namespace Lyra.Core.Decentralize
             CreateStateMachine();
 
             var timr = new System.Timers.Timer(200);
-            timr.Elapsed += async (s, o) =>
+            timr.Elapsed += (s, o) =>
             {
                 try
                 {
@@ -274,7 +275,7 @@ namespace Lyra.Core.Decentralize
                         }
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     _log.LogError($"In Time keeper: {e}");
                 }
@@ -293,14 +294,14 @@ namespace Lyra.Core.Decentralize
                 {
                     try
                     {
-                        if (_stateMachine.State == BlockChainState.Almighty 
+                        if (_stateMachine.State == BlockChainState.Almighty
                                 || _stateMachine.State == BlockChainState.Genesis)
                         {
                             var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
                                     .Select(b => b.Key)
                                     .ToList();
 
-                            foreach(var hb in oldList)
+                            foreach (var hb in oldList)
                             {
                                 _criticalMsgCache.TryRemove(hb, out _);
                             }
@@ -318,7 +319,7 @@ namespace Lyra.Core.Decentralize
                         if (count > 4 * 5)     // 5 minutes
                         {
                             count = 0;
-                        }                        
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -472,7 +473,7 @@ namespace Lyra.Core.Decentralize
 
             _stateMachine.Configure(BlockChainState.StaticSync)
                 .OnEntry(() => Task.Run(async () =>
-                {                    
+                {
                     while (true)
                     {
                         try
@@ -481,7 +482,7 @@ namespace Lyra.Core.Decentralize
 
                             var client = _networkClient;
                             var networkStatus = await client.GetSyncState();
-                            if(networkStatus.ResultCode != APIResultCodes.Success)
+                            if (networkStatus.ResultCode != APIResultCodes.Success)
                             {
                                 await Task.Delay(2000);
                                 continue;
@@ -580,9 +581,9 @@ namespace Lyra.Core.Decentralize
                     finally
                     {
                         _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
-                    }                    
+                    }
                 }))
-                .OnEntryFrom(BlockChainTrigger.LocalNodeMissingBlock, () => 
+                .OnEntryFrom(BlockChainTrigger.LocalNodeMissingBlock, () =>
                     {
                         _ = Task.Run(async () =>
                         {
@@ -661,7 +662,8 @@ namespace Lyra.Core.Decentralize
 
         internal void ConsolidationSucceed(ConsolidationBlock cons)
         {
-            _ = Task.Run(async () => {
+            _ = Task.Run(async () =>
+            {
                 _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
                 var lsb = await _sys.Storage.GetLastServiceBlockAsync();
 
@@ -680,7 +682,7 @@ namespace Lyra.Core.Decentralize
                 if (CurrentState == BlockChainState.Almighty)
                 {
                     var localState = LocalDbSyncState.Load();
-                    if(localState.lastVerifiedConsHeight == 0)
+                    if (localState.lastVerifiedConsHeight == 0)
                     {
                         localState.databaseVersion = LyraGlobal.DatabaseVersion;
                         localState.svcGenHash = lsb.Hash;
@@ -743,11 +745,11 @@ namespace Lyra.Core.Decentralize
             var sbLog = new StringBuilder();
 
             var q = dat.Select(g => new
-             {
-                 name = g.Key,
-                 times = g.Value.Count(),
-                 totalTime = g.Value.Sum(t => t.MS),
-                 avgTime = g.Value.Sum(t => t.MS) / g.Value.Count()
+            {
+                name = g.Key,
+                times = g.Value.Count(),
+                totalTime = g.Value.Sum(t => t.MS),
+                avgTime = g.Value.Sum(t => t.MS) / g.Value.Count()
             })
              .OrderByDescending(b => b.totalTime);
             foreach (var d in q)
@@ -791,7 +793,7 @@ namespace Lyra.Core.Decentralize
             await Send2P2pNetworkAsync(msg);
 
             // add self to active nodes list
-            if(_board.NodeAddresses.ContainsKey(me.AccountID))
+            if (_board.NodeAddresses.ContainsKey(me.AccountID))
             {
                 _board.NodeAddresses[me.AccountID] = me.IPAddress.ToString();
             }
@@ -806,7 +808,7 @@ namespace Lyra.Core.Decentralize
         {
             // dq any lower version
             var ver = new Version(heartBeat.NodeVersion);
-            if(string.IsNullOrWhiteSpace(heartBeat.NodeVersion) || LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) > 0)
+            if (string.IsNullOrWhiteSpace(heartBeat.NodeVersion) || LyraGlobal.MINIMAL_COMPATIBLE_VERSION.CompareTo(ver) > 0)
             {
                 //_log.LogInformation($"Node {heartBeat.From.Shorten()} ver {heartBeat.NodeVersion} is too old. Need at least {LyraGlobal.MINIMAL_COMPATIBLE_VERSION}");
                 return;
@@ -887,7 +889,7 @@ namespace Lyra.Core.Decentralize
             /// if seed0 not active, then seed2,seed3, etc.
             /// if all seeds are offline, what the...
             string tickSeedId = null;
-            for(int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
+            for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
             {
                 if (Board.ActiveNodes.Any(a => a.AccountID == ProtocolSettings.Default.StandbyValidators[i]))
                 {
@@ -896,7 +898,7 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            if(tickSeedId != null)
+            if (tickSeedId != null)
             {
                 if (CurrentState == BlockChainState.Almighty && accountId == tickSeedId)
                 {
@@ -925,11 +927,12 @@ namespace Lyra.Core.Decentralize
                         leaderOffline = true;
                     }
 
-                    if(leaderConsFailed || leaderOffline)
+                    if (leaderConsFailed || leaderOffline)
                     {
                         var lastLeader = lastSb.Leader;
 
-                        _ = Task.Run(() => {
+                        _ = Task.Run(() =>
+                        {
                             UpdateVoters();
 
                             // remove defunc leader. don't let it be elected leader again.
@@ -1053,7 +1056,7 @@ namespace Lyra.Core.Decentralize
                 return;         // wait for genesis
 
             try
-            {                
+            {
                 if (IsThisNodeLeader && _stateMachine.State == BlockChainState.Almighty)
                 {
                     //// test code
@@ -1065,11 +1068,11 @@ namespace Lyra.Core.Decentralize
                     {
                         allNodeSyncd = true;// await CheckPrimaryNodesStatus();
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         _log.LogWarning("Exception in CheckPrimaryNodesStatus: " + ex.ToString());
                     }
-                    if(allNodeSyncd)
+                    if (allNodeSyncd)
                     {
                         // consolidate time from lastcons to now - 10s
                         var timeStamp = DateTime.UtcNow.AddSeconds(-10);
@@ -1101,7 +1104,7 @@ namespace Lyra.Core.Decentralize
             }
             finally
             {
-                
+
             }
         }
 
@@ -1239,7 +1242,7 @@ namespace Lyra.Core.Decentralize
 
                 var sameHeight = sameChainBlocks.Any(y => y.Height == tx.Height);
                 var samePrevHash = sameChainBlocks.Any(a => a.PreviousHash == tx.PreviousHash);
-                
+
                 if (sameHeight || samePrevHash)
                 {
                     //_log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
@@ -1256,7 +1259,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
-            if(worker != null)
+            if (worker != null)
             {
                 await worker.ProcessState(state);
             }
@@ -1273,7 +1276,7 @@ namespace Lyra.Core.Decentralize
                 return null;
             }
 
-            if(_activeConsensus.ContainsKey(hash))
+            if (_activeConsensus.ContainsKey(hash))
                 return _activeConsensus[hash];
             else
             {
@@ -1301,90 +1304,199 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count}");
 
             // pool events
-            if(block is SendTransferBlock send 
-                && send.DestinationAccountId == PoolFactoryBlock.FactoryAccount
-                && Board.CurrentLeader == _sys.PosWallet.AccountId
-                )       // create liquidate pool
+            // only current leader deals with managed blocks
+            if (Board.CurrentLeader == _sys.PosWallet.AccountId && block.ContainsTag(Block.MANAGEDTAG))
             {
-                _log.LogInformation("Creating pool ...");
-                _ = Task.Run(async () => {
-                    // first, do a receive.
-                    while (true)
+                if (block is SendTransferBlock send)
+                {
+                    if (send.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
                     {
-                        SendTransferBlock sendBlock = await _sys.Storage.FindUnsettledSendBlockAsync(PoolFactoryBlock.FactoryAccount);
-                        if (sendBlock == null)
-                            break;
-
-                        var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-                        var receiveBlock = new ReceiveTransferBlock
+                        _log.LogInformation("Creating pool ...");
+                        _ = Task.Run(async () =>
                         {
-                            AccountID = PoolFactoryBlock.FactoryAccount,
-                            VoteFor = null,
-                            ServiceHash = lsb.Hash,
-                            SourceHash = sendBlock.Hash,
-                            Balances = new Dictionary<string, long>(),
-                            Fee = 0,
-                            FeeType = AuthorizationFeeTypes.NoFee
-                        };
-
-                        receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-
-                        TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
-                        var txInfo = sendBlock.GetTransaction(prevSend);
-
-                        TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(PoolFactoryBlock.FactoryAccount) as TransactionBlock;
-
-                        var newBalance = txInfo.Amount;
-                        // if the recipient's account has this token already, add the transaction amount to the existing balance
-                        if (latestBlock.Balances.ContainsKey(txInfo.TokenCode))
-                            newBalance += latestBlock.Balances[txInfo.TokenCode].ToBalanceDecimal();
-
-                        receiveBlock.Balances.Add(txInfo.TokenCode, newBalance.ToBalanceLong());
-
-                        // transfer unchanged token balances from the previous block
-                        foreach (var balance in latestBlock.Balances)
-                            if (!receiveBlock.Balances.ContainsKey(balance.Key))
-                                receiveBlock.Balances.Add(balance.Key, balance.Value);
-
-                        receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
-
-                        await SendBlockToConsensusAndWaitResultAsync(receiveBlock);
+                            // first, do a receive.
+                            var (send, recvResult) = await ReceiveManagedAsync(PoolFactoryBlock.FactoryAccount);
+                            if (recvResult == ConsensusResult.Yea)
+                            {
+                                // then create pool for it.
+                                _log.LogInformation("Creating pool ...");
+                                var poolCreateResult = await CreateLiquidatePoolAsync(send.Tags["token0"], send.Tags["token1"]);
+                                if (poolCreateResult == ConsensusResult.Yea)
+                                    _log.LogInformation($"Pool created successfully.");
+                                else
+                                    _log.LogWarning("Can't create pool.");
+                            }
+                            else
+                            {
+                                _log.LogWarning("Pool factory not receive funds properly.");
+                            }
+                        });
                     }
-
-                    // then create pool for it.
-                    var sb = await _sys.Storage.GetLastServiceBlockAsync();
-                    var pf = await _sys.Storage.GetPoolFactoryAsync();
-                    var arrStr = new[] { send.Tags["token0"], send.Tags["token1"] };
-                    Array.Sort(arrStr);
-
-                    // create a semi random account for pool.
-                    // it can be verified by other nodes.
-                    var keyStr = $"{pf.Height},{arrStr[0]},{arrStr[1]},{pf.Hash}";
-                    var randAccount = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
-
-                    var poolBlock = new PoolBlock
+                    else
                     {
-                        Height = 1,
-                        AccountType = AccountTypes.Standard,
-                        AccountID = randAccount.AccountId,        // in fact we not use this account.
-                        Balances = new Dictionary<string, long>(),
-                        PreviousHash = sb.Hash,
-                        ServiceHash = sb.Hash,
-                        Fee = 0,
-                        FeeType = AuthorizationFeeTypes.NoFee,
+                        // check which pool
+                        _log.LogInformation("Add liquidation to pool ...");
+                        _ = Task.Run(async () =>
+                        {
 
-                        // pool specified config
-                        Token0 = arrStr[0],
-                        Token1 = arrStr[1]
-                    };
+                            var pool = await _sys.Storage.GetPoolByAccountIdAsync(send.DestinationAccountId);
+                            if (pool == null)
+                            {
+                                _log.LogWarning($"destination pool {send.DestinationAccountId} not exists.");
+                                return;
+                            }
 
-                    poolBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+                            var result = await ReceivePoolDepositionAsync(send);
 
-                    // pool blocks are service block so all service block signed by leader node
-                    poolBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-                    await SendBlockToConsensusAndWaitResultAsync(poolBlock);
-                });
+                            if (result == ConsensusResult.Yea)
+                            {
+                                _log.LogInformation($"Adding liquidate to pool {send.DestinationAccountId} is successfully.");
+                            }
+                            else
+                            {
+                                _log.LogWarning($"Adding liquidate to pool {send.DestinationAccountId} is failed.");
+                            }
+                        });
+                    }
+                }
+
             }
+        }
+
+        private async Task<(SendTransferBlock, ConsensusResult?)> ReceiveManagedAsync(string managedAccountId)
+        {
+            SendTransferBlock lastSend = null;
+            ConsensusResult? result = null;
+            while (true)
+            {
+                SendTransferBlock sendBlock = await _sys.Storage.FindUnsettledSendBlockAsync(managedAccountId);
+                if (sendBlock == null)
+                    break;
+
+                var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+                var receiveBlock = new ReceiveTransferBlock
+                {
+                    AccountID = managedAccountId,
+                    VoteFor = null,
+                    ServiceHash = lsb.Hash,
+                    SourceHash = sendBlock.Hash,
+                    Balances = new Dictionary<string, long>(),
+                    Fee = 0,
+                    FeeType = AuthorizationFeeTypes.NoFee
+                };
+
+                receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+                TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+                var txInfo = sendBlock.GetTransaction(prevSend);
+
+                TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(managedAccountId) as TransactionBlock;
+
+                var newBalance = txInfo.Amount;
+                // if the recipient's account has this token already, add the transaction amount to the existing balance
+                if (latestBlock.Balances.ContainsKey(txInfo.TokenCode))
+                    newBalance += latestBlock.Balances[txInfo.TokenCode].ToBalanceDecimal();
+
+                receiveBlock.Balances.Add(txInfo.TokenCode, newBalance.ToBalanceLong());
+
+                // transfer unchanged token balances from the previous block
+                foreach (var balance in latestBlock.Balances)
+                    if (!receiveBlock.Balances.ContainsKey(balance.Key))
+                        receiveBlock.Balances.Add(balance.Key, balance.Value);
+
+                receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
+
+                result = await SendBlockToConsensusAndWaitResultAsync(receiveBlock);
+
+                lastSend = sendBlock;
+            }
+            return (lastSend, result);
+        }
+
+        private async Task<ConsensusResult?> ReceivePoolDepositionAsync(SendTransferBlock sendBlock)
+        {
+            // assume all send variables are legal
+            // token0/1, amount, etc.
+
+            ConsensusResult? result = null;
+
+            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+            var receiveBlock = new ReceiveTransferBlock
+            {
+                AccountID = sendBlock.DestinationAccountId,
+                VoteFor = null,
+                ServiceHash = lsb.Hash,
+                SourceHash = sendBlock.Hash,
+                Balances = new Dictionary<string, long>(),
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee
+            };
+
+            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+            var txInfo = sendBlock.GetBalanceChanges(prevSend);
+
+            TransactionBlock latestPoolBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+            PoolGenesisBlock poolGenesis = await _sys.Storage.GetPoolByAccountIdAsync(latestPoolBlock.AccountID);
+
+            if(latestPoolBlock.Balances.Any())
+            {
+                // the rito must be preserved for every deposition
+                var poolRito = latestPoolBlock.Balances[poolGenesis.Token0].ToBalanceDecimal() / latestPoolBlock.Balances[poolGenesis.Token1].ToBalanceDecimal();
+                foreach (var oldBalance in latestPoolBlock.Balances)
+                {
+                    receiveBlock.Balances.Add(oldBalance.Key, (oldBalance.Value.ToBalanceDecimal() + txInfo.Changes[oldBalance.Key]).ToBalanceLong());
+                }
+            }
+            else
+            {
+                foreach(var token in txInfo.Changes)
+                {
+                    receiveBlock.Balances.Add(token.Key, token.Value.ToBalanceLong());
+                }
+            }
+
+            receiveBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
+
+            result = await SendBlockToConsensusAndWaitResultAsync(receiveBlock);
+
+            return result;
+        }
+
+        private async Task<ConsensusResult?> CreateLiquidatePoolAsync(string token0, string token1)
+        {
+            var sb = await _sys.Storage.GetLastServiceBlockAsync();
+            var pf = await _sys.Storage.GetPoolFactoryAsync();
+            var arrStr = new[] { token0, token1 };
+            Array.Sort(arrStr);
+
+            // create a semi random account for pool.
+            // it can be verified by other nodes.
+            var keyStr = $"{pf.Height},{arrStr[0]},{arrStr[1]},{pf.Hash}";
+            var randAccount = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+
+            var poolBlock = new PoolGenesisBlock
+            {
+                Height = 1,
+                AccountType = AccountTypes.Standard,
+                AccountID = randAccount.AccountId,        // in fact we not use this account.
+                Balances = new Dictionary<string, long>(),
+                PreviousHash = sb.Hash,
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // pool specified config
+                Token0 = arrStr[0],
+                Token1 = arrStr[1]
+            };
+
+            poolBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            // pool blocks are service block so all service block signed by leader node
+            poolBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            return await SendBlockToConsensusAndWaitResultAsync(poolBlock);
         }
 
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
@@ -1402,7 +1514,7 @@ namespace Lyra.Core.Decentralize
 
                 _localNode.Tell(message);     // no sign again!!!
 
-                if(localAction != null)
+                if (localAction != null)
                     await localAction(message);
                 return true;
             }
@@ -1422,7 +1534,7 @@ namespace Lyra.Core.Decentralize
             if (item is ViewChangeMessage vcm)
             {
                 // need to listen to any view change event.
-                if(/*_viewChangeHandler.IsViewChanging && */CurrentState == BlockChainState.Almighty && Board.ActiveNodes.Any(a => a.AccountID == vcm.From))
+                if (/*_viewChangeHandler.IsViewChanging && */CurrentState == BlockChainState.Almighty && Board.ActiveNodes.Any(a => a.AccountID == vcm.From))
                 {
                     await _viewChangeHandler.ProcessMessage(vcm);
                 }
@@ -1432,7 +1544,7 @@ namespace Lyra.Core.Decentralize
                 _stateMachine.State == BlockChainState.Engaging ||
                 _stateMachine.State == BlockChainState.Almighty)
             {
-                if( item is AuthorizingMsg ppMsg)
+                if (item is AuthorizingMsg ppMsg)
                 {
                     if (IsBlockInQueue(ppMsg.Block))
                         return;
@@ -1443,8 +1555,8 @@ namespace Lyra.Core.Decentralize
                     var worker = await GetWorkerAsync(cm.BlockHash, true);
                     if (worker != null)
                     {
-                       await worker.ProcessMessage(cm);           
-                    }                        
+                        await worker.ProcessMessage(cm);
+                    }
                     return;
                 }
             }
@@ -1452,13 +1564,13 @@ namespace Lyra.Core.Decentralize
 
         private async Task OnRecvChatMsg(ChatMsg chat)
         {
-            switch(chat.MsgType)
+            switch (chat.MsgType)
             {
                 case ChatMessageType.HeartBeat:
                     await OnHeartBeatAsync(chat as HeartBeatMessage);
                     break;
                 case ChatMessageType.NodeUp:
-                    await Task.Run(async () => { await OnNodeUpAsync(chat); });                    
+                    await Task.Run(async () => { await OnNodeUpAsync(chat); });
                     break;
                 case ChatMessageType.NodeStatusInquiry:
                     var status = await GetNodeStatusAsync();

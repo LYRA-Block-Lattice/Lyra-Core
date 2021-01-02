@@ -75,7 +75,11 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<ImportAccountBlock>();
             BsonClassMap.RegisterClassMap<OpenAccountWithImportBlock>();
             BsonClassMap.RegisterClassMap<PoolFactoryBlock>();
-            BsonClassMap.RegisterClassMap<PoolBlock>();
+            BsonClassMap.RegisterClassMap<PoolGenesisBlock>();
+            BsonClassMap.RegisterClassMap<PoolDepositBlock>();
+            BsonClassMap.RegisterClassMap<PoolWithdrawBlock>();
+            BsonClassMap.RegisterClassMap<PoolSwapInBlock>();
+            BsonClassMap.RegisterClassMap<PoolSwapOutBlock>();
 
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
 
@@ -1318,21 +1322,34 @@ namespace Lyra.Core.Accounts
             return await finds.FirstOrDefaultAsync() as PoolFactoryBlock;
         }
 
-        public async Task<PoolBlock> GetPoolAsync(string token0, string token1)
+        public async Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1)
         {
             // first sort token
             var arrStr = new[] { token0, token1 };
             Array.Sort(arrStr);
 
-            var builder = Builders<PoolBlock>.Filter;
+            var builder = Builders<PoolGenesisBlock>.Filter;
             var poolFilter = builder.And(builder.Eq("Token0", arrStr[0]), builder.Eq("Token1", arrStr[1]));
-            var pool = await _blocks.OfType<PoolBlock>()
+            var pool = await _blocks.OfType<PoolGenesisBlock>()
                 .Aggregate()
                 .Match(poolFilter)
                 .SortByDescending(x => x.Height)
                 .FirstOrDefaultAsync();
 
             return pool;
+        }
+
+        public async Task<PoolGenesisBlock> GetPoolByAccountIdAsync(string poolAccountId)
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1
+            };
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.And(filter.Eq("BlockType", BlockTypes.PoolGenesis), filter.Eq("Height", 1));
+
+            var finds = await _blocks.FindAsync(filterDefination, options);
+            return await finds.FirstOrDefaultAsync() as PoolGenesisBlock;
         }
 
     }

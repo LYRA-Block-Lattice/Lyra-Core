@@ -297,8 +297,20 @@ namespace Lyra.Core.API
                 case BlockTypes.PoolFactory:
                     block = JsonConvert.DeserializeObject<PoolFactoryBlock>(BlockData);
                     break;
-                case BlockTypes.Pool:
-                    block = JsonConvert.DeserializeObject<PoolBlock>(BlockData);
+                case BlockTypes.PoolGenesis:
+                    block = JsonConvert.DeserializeObject<PoolGenesisBlock>(BlockData);
+                    break;
+                case BlockTypes.PoolDeposit:
+                    block = JsonConvert.DeserializeObject<PoolDepositBlock>(BlockData);
+                    break;
+                case BlockTypes.PoolWithdraw:
+                    block = JsonConvert.DeserializeObject<PoolWithdrawBlock>(BlockData);
+                    break;
+                case BlockTypes.PoolSwapIn:
+                    block = JsonConvert.DeserializeObject<PoolSwapInBlock>(BlockData);
+                    break;
+                case BlockTypes.PoolSwapOut:
+                    block = JsonConvert.DeserializeObject<PoolSwapOutBlock>(BlockData);
                     break;
                 case BlockTypes.Null:
                     block = null;

@@ -670,7 +670,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
+        private async Task<ConsensusResult?> SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
         {
             AuthorizingMsg msg = new AuthorizingMsg
             {
@@ -701,6 +701,8 @@ namespace Lyra.Core.Decentralize
             await state.Done.AsTask();
             state.Done.Close();
             state.Done = null;
+
+            return state.CommitConsensus;
         }
 
         private class LocalDbSyncState

@@ -56,7 +56,7 @@ namespace Lyra.Data.API
                 {
                     await Task.WhenAll(bbtasks);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                 }
                 var goodbb = bbtasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result != null).Select(a => a.Result).ToList();
@@ -110,7 +110,7 @@ namespace Lyra.Data.API
                     {
                         await Task.WhenAny(activeTasks);
                     }
-                    catch(Exception ex)
+                    catch(Exception)
                     {
 
                     }
@@ -140,7 +140,7 @@ namespace Lyra.Data.API
                         }
                     }
                 }
-                catch(Exception ex)
+                catch(Exception)
                 {
 
                 }

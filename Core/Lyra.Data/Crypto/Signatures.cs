@@ -94,7 +94,7 @@ namespace Lyra.Data.Crypto
 
                 return result;
             }
-            catch(Exception ex)
+            catch
             {
                 //_log?.LogError("VerifySignature failed: " + ex.Message);
                 return false;

@@ -16,10 +16,6 @@ namespace Lyra.Client.CLI
 {
     public class WalletManager
     {
-        Boolean timer_busy1;
-
-        Timer timer1;
-
         public async Task<int> RunWallet(Options options)
         {
             Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
@@ -80,7 +76,7 @@ namespace Lyra.Client.CLI
                     if (string.IsNullOrEmpty(walletName))
                         walletName = "My Account";
 
-                    string fileName = "";
+                    //string fileName = "";
                     //if (INMEMORY)
                     //{
                     //    fileName = lyra_folder + wallet.AccountName + ".key";
