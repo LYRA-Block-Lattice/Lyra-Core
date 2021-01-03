@@ -104,7 +104,7 @@ namespace Lyra.Core.Decentralize
             }
 
             swapInBlock.Balances = depositBalance.ToLongDict();
-
+            swapInBlock.Shares = (latestPoolBlock as IPool).Shares;
             swapInBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
             result = await SendBlockToConsensusAndWaitResultAsync(swapInBlock);
@@ -141,7 +141,7 @@ namespace Lyra.Core.Decentralize
             nextBalance[LyraGlobal.OFFICIALTICKERCODE] -= lsb.TransferFee;
 
             swapOutBlock.Balances = nextBalance.ToLongDict();
-
+            swapOutBlock.Shares = (poolLatestBlock as IPool).Shares;
             swapOutBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
             var result = await SendBlockToConsensusAndWaitResultAsync(swapOutBlock);
