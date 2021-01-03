@@ -482,6 +482,18 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
+        {
+            HttpResponseMessage response = await _client.GetAsync($"LookForNewTransfer2/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsAsync<NewTransferAPIResult2>();
+                return result;
+            }
+            else
+                throw new Exception("Web Api Failed.");
+        }
+
         public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"LookForNewFees/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);

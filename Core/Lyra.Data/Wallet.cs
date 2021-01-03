@@ -237,7 +237,7 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTransfer(AccountId, SignAPICallAsync());
+                var lookup_result = await _rpcClient.LookForNewTransfer2(AccountId, SignAPICallAsync());
                 int max_counter = 0;
 
                 while (lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
@@ -250,7 +250,7 @@ namespace Lyra.Core.Accounts
                     if (!receive_result.Successful())
                         return receive_result.ResultCode;
 
-                    lookup_result = await _rpcClient.LookForNewTransfer(AccountId, SignAPICallAsync());
+                    lookup_result = await _rpcClient.LookForNewTransfer2(AccountId, SignAPICallAsync());
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -1277,7 +1277,7 @@ namespace Lyra.Core.Accounts
         //    return precision;
         //}
 
-        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult new_transfer_info)
+        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult2 new_transfer_info)
         {
             var svcBlockResult = await _rpcClient.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
@@ -1298,7 +1298,10 @@ namespace Lyra.Core.Accounts
                 VoteFor = VoteFor
             };
 
-            openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount.ToBalanceLong());
+            foreach(var chg in new_transfer_info.Transfer.Changes)
+            {
+                openReceiveBlock.Balances.Add(chg.Key, chg.Value.ToBalanceLong());
+            }
             openReceiveBlock.InitializeBlock(null, PrivateKey, AccountId);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
@@ -1460,7 +1463,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> ReceiveTransfer(NewTransferAPIResult new_transfer_info)
+        private async Task<AuthorizationAPIResult> ReceiveTransfer(NewTransferAPIResult2 new_transfer_info)
         {
 
             // *** Slava - July 19, 2020 - I am not sure if we need this call anymore? 
@@ -1490,17 +1493,17 @@ namespace Lyra.Core.Accounts
 
             TransactionBlock latestBlock = GetLatestBlock();
 
-            var newBalance = new_transfer_info.Transfer.Amount;
-            // if the recipient's account has this token already, add the transaction amount to the existing balance
-            if (latestBlock.Balances.ContainsKey(new_transfer_info.Transfer.TokenCode))
-                newBalance += latestBlock.Balances[new_transfer_info.Transfer.TokenCode].ToBalanceDecimal();
+            var latestBalances = latestBlock.Balances.ToDecimalDict();
+            var recvBalances = new Dictionary<string, decimal>();
+            foreach(var balance in latestBalances)
+            {
+                if (new_transfer_info.Transfer.Changes.ContainsKey(balance.Key))
+                    recvBalances.Add(balance.Key, balance.Value + new_transfer_info.Transfer.Changes[balance.Key]);
+                else
+                    recvBalances.Add(balance.Key, balance.Value);
+            }
 
-            receiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, newBalance.ToBalanceLong());
-
-            // transfer unchanged token balances from the previous block
-            foreach (var balance in latestBlock.Balances)
-                if (!(receiveBlock.Balances.ContainsKey(balance.Key)))
-                    receiveBlock.Balances.Add(balance.Key, balance.Value);
+            receiveBlock.Balances = recvBalances.ToLongDict();
 
             receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
 

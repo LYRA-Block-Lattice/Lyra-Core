@@ -365,6 +365,11 @@ namespace Lyra.Data.API
             return await SeedClient.LookForNewTransfer(AccountId, Signature);
         }
 
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
+        {
+            return await SeedClient.LookForNewTransfer2(AccountId, Signature);
+        }
+
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
         {
             return await SeedClient.OpenAccountWithGenesis(block);

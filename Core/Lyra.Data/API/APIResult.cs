@@ -345,6 +345,15 @@ namespace Lyra.Core.API
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Transfer, SourceHash, NonFungibleToken);
     }
 
+    public class NewTransferAPIResult2 : APIResult
+    {
+        public BalanceChanges Transfer { get; set; }
+        public string SourceHash { get; set; }
+        public NonFungibleToken NonFungibleToken { get; set; }
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Transfer, SourceHash, NonFungibleToken);
+    }
+
     public class NewFeesAPIResult : APIResult
     {
         public UnSettledFees pendingFees { get; set; }

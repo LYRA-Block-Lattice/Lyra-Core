@@ -788,6 +788,47 @@ namespace Lyra.Core.Decentralize
             return transfer_info;
         }
 
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
+        {
+            NewTransferAPIResult2 transfer_info = new NewTransferAPIResult2();
+            if (!await VerifyClientAsync(AccountId, Signature))
+            {
+                transfer_info.ResultCode = APIResultCodes.APISignatureValidationFailed;
+                return transfer_info;
+            }
+            try
+            {
+                if (await NodeService.Dag.Storage.WasAccountImportedAsync(AccountId))
+                {
+                    transfer_info.ResultCode = APIResultCodes.AccountAlreadyImported;
+                    return transfer_info;
+                }
+
+                SendTransferBlock sendBlock = await NodeService.Dag.Storage.FindUnsettledSendBlockAsync(AccountId);
+
+                if (sendBlock != null)
+                {
+                    TransactionBlock previousBlock = await NodeService.Dag.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+                    if (previousBlock == null)
+                        transfer_info.ResultCode = APIResultCodes.CouldNotTraceSendBlockChain;
+                    else
+                    {
+                        transfer_info.Transfer = sendBlock.GetBalanceChanges(previousBlock); //CalculateTransaction(sendBlock, previousSendBlock);
+                        transfer_info.SourceHash = sendBlock.Hash;
+                        transfer_info.NonFungibleToken = sendBlock.NonFungibleToken;
+                        transfer_info.ResultCode = APIResultCodes.Success;
+                    }
+                }
+                else
+                    transfer_info.ResultCode = APIResultCodes.NoNewTransferFound;
+            }
+            catch (Exception)
+            {
+                transfer_info.ResultCode = APIResultCodes.UnknownError;
+            }
+            return transfer_info;
+        }
+
         public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
         {
             NewFeesAPIResult fbs = new NewFeesAPIResult();

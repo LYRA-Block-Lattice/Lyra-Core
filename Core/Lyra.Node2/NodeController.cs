@@ -320,6 +320,14 @@ namespace LyraLexWeb2
             return await _node.LookForNewTransfer(AccountId, Signature);
         }
 
+        [Route("LookForNewTransfer2")]
+        [HttpGet]
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
+        {
+            if (!CheckServiceStatus()) throw new Exception("System Not Ready.");
+            return await _node.LookForNewTransfer2(AccountId, Signature);
+        }
+
         [Route("LookForNewFees")]
         [HttpGet]
         public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)

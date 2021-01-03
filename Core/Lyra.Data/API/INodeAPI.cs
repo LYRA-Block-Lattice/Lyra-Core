@@ -58,6 +58,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetBlockBySourceHash(string sourceHash);
 
         Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature);
+        Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature);
         Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature);
 
         Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature);
