@@ -429,19 +429,53 @@ namespace Lyra.Client.CLI
                         }
                         break;
                     case 3:
-                        Console.WriteLine($"Do you want to swap token {token0} to {token1} in the pool?");
+                        Console.Write($"How many {token0} do you want to swap: ");
+                        var token0ToSwap = decimal.Parse(Console.ReadLine());
+                        var token1ToGet = Math.Round(token0ToSwap / swapRito, 8);
+                        Console.WriteLine($"Do you want to swap {token0ToSwap} {token0} to {token1ToGet} {token1} by the pool?");
                         Console.Write("Y/n? ");
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
+
+                            var tags = new Dictionary<string, string>();
+                            tags.Add(Block.REQSERVICETAG, "swaptoken0");
+                            tags.Add("poolid", lp.PoolAccountId);
+                            tags.Add("token0", token0);
+                            tags.Add("token1", token1);
+                            var amounts = new Dictionary<string, decimal>();
+                            amounts.Add(token0, token0ToSwap);
+                            var swapToken0Result = await _wallet.SendEx(lp.PoolAccountId, amounts, tags);
+                            if (swapToken0Result.Successful())
+                            {
+                                await Task.Delay(3000);     // wait for the withdraw block to generate
+                                Console.WriteLine($"Swap of token {token0} is succeeded. Do sync to get your funds.");
+                            }
                         }
                         break;
                     case 4:
-                        Console.WriteLine($"Do you want to swap token {token1} to {token0} in the pool?");
+                        Console.Write($"How many {token1} do you want to swap: ");
+                        var token1ToSwap = decimal.Parse(Console.ReadLine());
+                        var token0ToGet = Math.Round(token1ToSwap * swapRito, 8);
+                        Console.WriteLine($"Do you want to swap {token1ToSwap} {token1} to {token0ToGet} {token0} by the pool?");
                         Console.Write("Y/n? ");
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
+
+                            var tags = new Dictionary<string, string>();
+                            tags.Add(Block.REQSERVICETAG, "swaptoken1");
+                            tags.Add("poolid", lp.PoolAccountId);
+                            tags.Add("token0", token0);
+                            tags.Add("token1", token1);
+                            var amounts = new Dictionary<string, decimal>();
+                            amounts.Add(token1, token1ToSwap);
+                            var swapToken0Result = await _wallet.SendEx(lp.PoolAccountId, amounts, tags);
+                            if (swapToken0Result.Successful())
+                            {
+                                await Task.Delay(3000);     // wait for the withdraw block to generate
+                                Console.WriteLine($"Swap of token {token1} is succeeded. Do sync to get your funds.");
+                            }
                         }
                         break;
                     default:

@@ -1349,12 +1349,42 @@ namespace Lyra.Core.Decentralize
                         _log.LogInformation("Add liquidation to pool ...");
                         _ = Task.Run(async () =>
                         {
-
-                            var pool = await _sys.Storage.FindLatestBlockAsync(send.DestinationAccountId);
+                            var pool = await _sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
                             if (pool == null)
                             {
                                 _log.LogWarning($"destination pool {send.DestinationAccountId} not exists.");
                                 return;
+                            }
+
+                            var poolGenesis = await _sys.Storage.FindFirstBlockAsync(send.DestinationAccountId) as PoolGenesisBlock;
+                            if (send.Tags[Block.REQSERVICETAG] == "swaptoken0" || send.Tags[Block.REQSERVICETAG] == "swaptoken1")
+                            {
+                                var swapRito = pool.Balances[poolGenesis.Token0].ToBalanceDecimal() / pool.Balances[poolGenesis.Token1].ToBalanceDecimal();
+                                var (swapInResult, swapInTokenAmount) = await ReceivePoolSwapInAsync(send);
+                                if(swapInResult == ConsensusResult.Yea)
+                                {
+                                    ConsensusResult? swapOutResult = null;
+                                    if(send.Tags[Block.REQSERVICETAG] == "swaptoken0")
+                                    {
+                                        var token1ToGet = Math.Round(swapInTokenAmount / swapRito, 8);
+                                        swapOutResult = await SendPoolSwapOutToken(pool.AccountID, send.AccountID, poolGenesis.Token1, token1ToGet);
+                                    }
+
+                                    if (send.Tags[Block.REQSERVICETAG] == "swaptoken1")
+                                    {
+                                        var token0ToGet = Math.Round(swapInTokenAmount * swapRito, 8);
+                                        swapOutResult = await SendPoolSwapOutToken(pool.AccountID, send.AccountID, poolGenesis.Token0, token0ToGet);
+                                    }
+
+                                    if(swapOutResult == ConsensusResult.Yea)
+                                    {
+                                        _log.LogInformation($"Swap out of token is success. TxIn: {send.Hash}");
+                                    }
+                                    else
+                                    {
+                                        _log.LogError($"Swap out of token is failed. TxIn: {send.Hash}");
+                                    }
+                                }
                             }
 
                             var result = await ReceivePoolDepositionAsync(send);

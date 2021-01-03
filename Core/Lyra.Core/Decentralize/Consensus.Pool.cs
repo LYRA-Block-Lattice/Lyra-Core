@@ -50,6 +50,102 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        private async Task<(ConsensusResult?, decimal)> ReceivePoolSwapInAsync(SendTransferBlock sendBlock)
+        {
+            // assume all send variables are legal
+            // token0/1, amount, etc.
+
+            ConsensusResult? result = null;
+
+            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+            var swapInBlock = new PoolSwapInBlock
+            {
+                AccountID = sendBlock.DestinationAccountId,
+                VoteFor = null,
+                ServiceHash = lsb.Hash,
+                SourceHash = sendBlock.Hash,
+                Balances = new Dictionary<string, long>(),
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee
+            };
+
+            swapInBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+            var txInfo = sendBlock.GetBalanceChanges(prevSend);
+
+            TransactionBlock latestPoolBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+            PoolGenesisBlock poolGenesis = await _sys.Storage.FindFirstBlockAsync(latestPoolBlock.AccountID) as PoolGenesisBlock;
+
+            var depositBalance = new Dictionary<string, decimal>();
+            if (latestPoolBlock.Balances.Any())
+            {
+                var lastBalance = latestPoolBlock.Balances.ToDecimalDict();
+
+                // the rito must be preserved for every deposition
+                var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
+                foreach (var oldBalance in lastBalance)
+                {
+                    depositBalance.Add(oldBalance.Key, oldBalance.Value + txInfo.Changes[oldBalance.Key]);
+                }
+
+                var prevBalance = lastBalance[poolGenesis.Token0];
+                var curBalance = depositBalance[poolGenesis.Token0];
+            }
+            else
+            {
+                foreach (var token in txInfo.Changes)
+                {
+                    depositBalance.Add(token.Key, token.Value);
+                }
+            }
+
+            swapInBlock.Balances = depositBalance.ToLongDict();
+
+            swapInBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
+
+            result = await SendBlockToConsensusAndWaitResultAsync(swapInBlock);
+
+            return (result, txInfo.Changes.Values.First());
+        }
+
+        private async Task<ConsensusResult?> SendPoolSwapOutToken(string poolId, string targetAccountId, string token, decimal amount)
+        {
+            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+            var swapOutBlock = new PoolSwapOutBlock()
+            {
+                AccountID = poolId,
+                ServiceHash = lsb.Hash,
+                DestinationAccountId = targetAccountId,
+                Balances = new Dictionary<string, long>(),
+                Tags = null,
+                Fee = lsb.TransferFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.Regular
+            };
+
+            swapOutBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            var poolGenesisBlock = await _sys.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
+            var poolLatestBlock = await _sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
+
+            var curBalance = poolLatestBlock.Balances.ToDecimalDict();
+            var nextBalance = poolLatestBlock.Balances.ToDecimalDict();
+
+            nextBalance[token] = curBalance[token] - amount;
+
+            // pay the fee
+            nextBalance[LyraGlobal.OFFICIALTICKERCODE] -= lsb.TransferFee;
+
+            swapOutBlock.Balances = nextBalance.ToLongDict();
+
+            swapOutBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
+
+            var result = await SendBlockToConsensusAndWaitResultAsync(swapOutBlock);
+
+            return result;
+        }
+
         private async Task<ConsensusResult?> ReceivePoolDepositionAsync(SendTransferBlock sendBlock)
         {
             // assume all send variables are legal
