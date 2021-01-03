@@ -1494,13 +1494,13 @@ namespace Lyra.Core.Accounts
             TransactionBlock latestBlock = GetLatestBlock();
 
             var latestBalances = latestBlock.Balances.ToDecimalDict();
-            var recvBalances = new Dictionary<string, decimal>();
-            foreach(var balance in latestBalances)
+            var recvBalances = latestBlock.Balances.ToDecimalDict();
+            foreach (var chg in new_transfer_info.Transfer.Changes)
             {
-                if (new_transfer_info.Transfer.Changes.ContainsKey(balance.Key))
-                    recvBalances.Add(balance.Key, balance.Value + new_transfer_info.Transfer.Changes[balance.Key]);
+                if (recvBalances.ContainsKey(chg.Key))
+                    recvBalances[chg.Key] += chg.Value;
                 else
-                    recvBalances.Add(balance.Key, balance.Value);
+                    recvBalances.Add(chg.Key, chg.Value);
             }
 
             receiveBlock.Balances = recvBalances.ToLongDict();
