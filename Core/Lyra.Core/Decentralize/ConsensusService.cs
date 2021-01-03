@@ -1386,16 +1386,18 @@ namespace Lyra.Core.Decentralize
                                     }
                                 }
                             }
-
-                            var result = await ReceivePoolDepositionAsync(send);
-
-                            if (result == ConsensusResult.Yea)
-                            {
-                                _log.LogInformation($"Adding liquidate to pool {send.DestinationAccountId} is successfully.");
-                            }
                             else
                             {
-                                _log.LogWarning($"Adding liquidate to pool {send.DestinationAccountId} is failed.");
+                                var result = await ReceivePoolDepositionAsync(send);
+
+                                if (result == ConsensusResult.Yea)
+                                {
+                                    _log.LogInformation($"Adding liquidate to pool {send.DestinationAccountId} is successfully.");
+                                }
+                                else
+                                {
+                                    _log.LogWarning($"Adding liquidate to pool {send.DestinationAccountId} is failed.");
+                                }
                             }
                         });
                     }
