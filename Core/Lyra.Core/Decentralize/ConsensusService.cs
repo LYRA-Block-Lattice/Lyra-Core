@@ -1311,20 +1311,31 @@ namespace Lyra.Core.Decentralize
                 {
                     if (send.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
                     {
-                        _log.LogInformation("Creating pool ...");
+                        _log.LogInformation("Pool operation requested...");
                         _ = Task.Run(async () =>
                         {
                             // first, do a receive.
                             var recvResult = await ReceivePoolFactoryFeeAsync(send);
                             if (recvResult == ConsensusResult.Yea)
                             {
-                                // then create pool for it.
-                                _log.LogInformation("Creating pool ...");
-                                var poolCreateResult = await CreateLiquidatePoolAsync(send.Tags["token0"], send.Tags["token1"]);
-                                if (poolCreateResult == ConsensusResult.Yea)
-                                    _log.LogInformation($"Pool created successfully.");
-                                else
-                                    _log.LogWarning("Can't create pool.");
+                                if(send.Tags[Block.REQSERVICETAG] == "")
+                                {
+                                    // then create pool for it.
+                                    _log.LogInformation("Creating pool ...");
+                                    var poolCreateResult = await CreateLiquidatePoolAsync(send.Tags["token0"], send.Tags["token1"]);
+                                    if (poolCreateResult == ConsensusResult.Yea)
+                                        _log.LogInformation($"Pool created successfully.");
+                                    else
+                                        _log.LogWarning("Can't create pool.");
+                                }
+                                else if (send.Tags[Block.REQSERVICETAG] == "poolwithdraw")
+                                {
+                                    var poolId = send.Tags["poolid"];
+
+                                    _log.LogInformation($"Withdraw from pool {poolId}...");
+
+                                    await SendWithdrawFunds(poolId, send.AccountID);
+                                }
                             }
                             else
                             {
@@ -1475,6 +1486,62 @@ namespace Lyra.Core.Decentralize
             depositBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
             result = await SendBlockToConsensusAndWaitResultAsync(depositBlock);
+
+            return result;
+        }
+
+        private async Task<ConsensusResult?> SendWithdrawFunds(string poolId, string targetAccountId)
+        {
+            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+            PoolWithdrawBlock withdrawBlock = new PoolWithdrawBlock()
+            {
+                AccountID = poolId,
+                ServiceHash = lsb.Hash,
+                DestinationAccountId = targetAccountId,
+                Balances = new Dictionary<string, long>(),
+                Tags = null,
+                Fee = lsb.TransferFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.Regular
+            };
+
+            withdrawBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            var poolGenesisBlock = await _sys.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
+            var poolLatestBlock = await _sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
+
+            var curBalance = poolLatestBlock.Balances.ToDecimalDict();
+            var curShares = (poolLatestBlock as IPool).Shares.ToDecimalDict();
+
+            var nextBalance = poolLatestBlock.Balances.ToDecimalDict();
+            var nextShares = (poolLatestBlock as IPool).Shares.ToDecimalDict();
+
+            var usersShare = curShares[targetAccountId];
+            var amountsToSend = new Dictionary<string, decimal>();
+            amountsToSend.Add(poolGenesisBlock.Token0, curBalance[poolGenesisBlock.Token0] * usersShare);
+            amountsToSend.Add(poolGenesisBlock.Token1, curBalance[poolGenesisBlock.Token1] * usersShare);
+
+            nextBalance[poolGenesisBlock.Token0] -= amountsToSend[poolGenesisBlock.Token0];
+            nextBalance[poolGenesisBlock.Token1] -= amountsToSend[poolGenesisBlock.Token1];
+            nextShares.Remove(targetAccountId);
+
+            foreach (var share in curShares)
+            {
+                if (share.Key == targetAccountId)
+                    continue;
+
+                nextShares[share.Key] = (share.Value * curBalance[share.Key]) / nextBalance[share.Key];
+            }
+
+            // pay the fee
+            nextBalance[LyraGlobal.OFFICIALTICKERCODE] -= lsb.TradeFee;
+
+            withdrawBlock.Balances = nextBalance.ToLongDict();
+            withdrawBlock.Shares = nextShares.ToLongDict();
+
+            withdrawBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
+
+            var result = await SendBlockToConsensusAndWaitResultAsync(withdrawBlock);
 
             return result;
         }

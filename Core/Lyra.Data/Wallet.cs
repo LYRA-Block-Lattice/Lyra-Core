@@ -759,30 +759,6 @@ namespace Lyra.Core.Accounts
 
             var fee = TransferFee;
 
-            //if (ticker == LyraGlobal.OFFICIALTICKERCODE)
-            //    balance_change += fee;
-
-            //// see if we have enough tokens
-            //if (previousBlock.Balances[ticker] < balance_change.ToBalanceLong())
-            //{
-            //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
-            //    //throw new ApplicationException("Insufficient funds");
-            //}
-
-            //// see if we have enough LYR to pay the transfer fee
-            //if (ticker != LyraGlobal.OFFICIALTICKERCODE)
-            //    if (!previousBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < fee.ToBalanceLong())
-            //    {
-            //        //throw new ApplicationException("Insufficient funds to pay transfer fee");
-            //        return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
-            //    }
-
-            //var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-            //if (svcBlockResult.ResultCode != APIResultCodes.Success)
-            //{
-            //    throw new Exception("Unable to get latest service block.");
-            //}
-
             SendTransferBlock sendBlock = new SendTransferBlock()
             {
                 AccountID = AccountId,
@@ -790,7 +766,6 @@ namespace Lyra.Core.Accounts
                 ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
                 DestinationAccountId = DestinationAccountId,
                 Balances = new Dictionary<string, long>(),
-                //PaymentID = string.Empty,
                 Tags = tags,
                 Fee = fee,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,

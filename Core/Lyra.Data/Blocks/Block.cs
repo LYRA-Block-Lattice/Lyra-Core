@@ -18,10 +18,14 @@ namespace Lyra.Core.Blocks
         /// a tag indicate that the signature is created by current leader, not the private key owner.
         /// </summary>
         public const string MANAGEDTAG = "managed";
+
         /// <summary>
         /// a tag indicate that the block is to a managed account and need process by leader/consensus network.
+        /// "" -> create pool [to factory] or deposit funds [to pool]
+        /// "withdraw" -> [to factory] withdraw funds from pool. 
         /// </summary>
         public const string REQSERVICETAG = "svcreq";
+
         // block data
         public long Height { get; set; }
 

@@ -213,116 +213,13 @@ namespace Lyra.Client.CLI
                         Console.WriteLine("Import Result: " + import_result.ResultCode.ToString());
                         break;
                     case COMMAND_CREATE_POOL:
-                        Console.WriteLine("Create liquidate pool for two tokens. One of the token must be LYR. The first token is:");
-                        var token0 = Console.ReadLine();
-                        Console.WriteLine("The second token is:");
-                        var token1 = Console.ReadLine();
-
-                        var lp = await _wallet.GetLiquidatePoolAsync(token0, token1);
-                        if(lp.Successful())
+                        try
                         {
-                            if (lp.PoolAccountId == null)
-                            {
-                                Console.WriteLine($"No liquidate pool for {token0} and {token1}. Would you like create a pool for it? It cost 1000 LYR to create a pool.");
-                                if (ReadYesNoAnswer())
-                                {
-                                    var tags = new Dictionary<string, string>();
-                                    tags.Add("token0", token0);
-                                    tags.Add("token1", token1);
-                                    tags.Add(Block.REQSERVICETAG, "");
-                                    var amounts = new Dictionary<string, decimal>();
-                                    amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1000m);
-                                    var poolCreateResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amounts, tags);
-                                    if (poolCreateResult.ResultCode == APIResultCodes.Success)
-                                    {
-                                        Console.WriteLine("Liquidate pool creating in progress...");
-
-                                        PoolInfoAPIResult lpNew = null;
-                                        while (true)
-                                        {
-                                            lpNew = await _wallet.GetLiquidatePoolAsync(token0, token1);
-                                            if (lpNew.Successful() && lpNew.PoolAccountId != null)
-                                            {
-                                                lp = lpNew;
-                                                break;
-                                            }
-                                            else
-                                            {
-                                                Console.Write(".");
-                                                await Task.Delay(2000);
-                                            }
-                                        }
-                                        Console.WriteLine("Liquidate pool created successfully.");
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("No Liquidate pool created.");
-                                }
-                            }
-
-                            token0 = lp.Token0;
-                            token1 = lp.Token1;
-                            var swapRito = lp.SwapRito.ToBalanceDecimal();
-
-                            Console.WriteLine($"Liquidate pool existing for {token0} and {token1}. \nPool account ID is {lp.PoolAccountId}\n Swap rito is {swapRito}.");
-                            if(swapRito > 0)
-                            {
-                                Console.WriteLine($"\n 1 {token0} = {1 / swapRito} {token1}\n 1 {token1} = {swapRito} {token0}\n\n");
-                            }
-                            Console.WriteLine($"Do you want to add liquidate to the pool?");
-
-                            if (ReadYesNoAnswer())
-                            {
-                                Console.WriteLine($"How many {token0} will you add to the pool:");
-                                var token0Amount = decimal.Parse(Console.ReadLine());
-                                Console.WriteLine($"How many {token1} will you add to the pool:");
-                                var token1Amount = decimal.Parse(Console.ReadLine());
-
-                                if(swapRito == 0 || token0Amount / token1Amount == swapRito)
-                                {
-                                    var amountsDeposit = new Dictionary<string, decimal>();
-                                    amountsDeposit.Add(token0, token0Amount);
-                                    amountsDeposit.Add(token1, token1Amount);
-
-                                    var tags = new Dictionary<string, string>();
-                                    tags.Add("token0", token0);
-                                    tags.Add("token1", token1);
-                                    tags.Add(Block.REQSERVICETAG, "");
-
-                                    var poolDepositResult = await _wallet.SendEx(lp.PoolAccountId, amountsDeposit, tags);
-
-                                    if (poolDepositResult.Successful())
-                                    {
-                                        var poolResult2 = await _wallet.GetLiquidatePoolAsync(token0, token1);
-                                        if (poolResult2.Successful())
-                                        {
-                                            var poolBlock = poolResult2.GetBlock() as PoolDepositBlock;
-                                            if (poolBlock != null)
-                                                Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId].ToBalanceDecimal() * 100} %");
-                                            else
-                                                Console.WriteLine("Deposition not good.");
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"The amount rito of {token0}/{token1} must be {swapRito}");
-                                }
-                            }
-
-                            Console.WriteLine($"Do you want to swap token {token0}/{token1} in the pool?");
-
-                            if(ReadYesNoAnswer())
-                            {
-                                Console.WriteLine($"Ok. swap token.");
-                            }
-
-                            Console.WriteLine("Done.");
+                            await ProcessPoolCommandAsync();
                         }
-                        else
+                        catch(Exception ex)
                         {
-                            Console.WriteLine("Liquidate pool failed to create. Please retry.");
+                            Console.WriteLine("Error while process pool command: " + ex.Message);
                         }
                         break;
                     case COMMAND_HISTORY:
@@ -359,6 +256,186 @@ namespace Lyra.Client.CLI
             return 0;
         }
 
+        private async Task ProcessPoolCommandAsync()
+        {
+            Console.WriteLine("Create liquidate pool for two tokens. One of the token must be LYR. The first token is:");
+            var token0 = Console.ReadLine();
+            Console.WriteLine("The second token is:");
+            var token1 = Console.ReadLine();
+
+            var lp = await _wallet.GetLiquidatePoolAsync(token0, token1);
+            if (lp.Successful())
+            {
+                if (lp.PoolAccountId == null)
+                {
+                    Console.WriteLine($"No liquidate pool for {token0} and {token1}. Would you like create a pool for it? It cost 1000 LYR to create a pool.");
+                    if (ReadYesNoAnswer())
+                    {
+                        var tags = new Dictionary<string, string>();
+                        tags.Add("token0", token0);
+                        tags.Add("token1", token1);
+                        tags.Add(Block.REQSERVICETAG, "");
+                        var amounts = new Dictionary<string, decimal>();
+                        amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1000m);
+                        var poolCreateResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amounts, tags);
+                        if (poolCreateResult.ResultCode == APIResultCodes.Success)
+                        {
+                            Console.WriteLine("Liquidate pool creating in progress...");
+
+                            PoolInfoAPIResult lpNew = null;
+                            int i = 0;
+                            while (i < 15)
+                            {
+                                lpNew = await _wallet.GetLiquidatePoolAsync(token0, token1);
+                                if (lpNew.Successful() && lpNew.PoolAccountId != null)
+                                {
+                                    lp = lpNew;
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.Write(".");
+                                    await Task.Delay(2000);
+                                    i++;
+                                }
+                            }
+
+                            if(lpNew?.PoolAccountId != null)
+                                Console.WriteLine("Liquidate pool created successfully.");
+                            else
+                            {
+                                Console.WriteLine($"Liquidate pool create failed. Please retry.");
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Liquidate pool create failed: {poolCreateResult.ResultCode}, error message: {poolCreateResult.ResultMessage}");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No Liquidate pool created.");
+                        return;
+                    }
+                }
+
+                token0 = lp.Token0;
+                token1 = lp.Token1;
+                var swapRito = lp.SwapRito.ToBalanceDecimal();
+
+                Console.WriteLine($"Liquidate pool for {token0} and {token1}: \n Pool account ID is {lp.PoolAccountId}\n Swap rito is {swapRito}.");
+                if (swapRito > 0)
+                {
+                    Console.WriteLine($"\n 1 {token0} = {1 / swapRito} {token1}\n 1 {token1} = {swapRito} {token0}\n");
+                }
+
+                Console.WriteLine("Please choose your action:");
+                Console.WriteLine("\t1, Add liquidate to pool");
+                Console.WriteLine("\t2, Remove liquidate from pool");
+                Console.WriteLine($"\t3, Swap {token0} to {token1}");
+                Console.WriteLine($"\t4, Swap {token1} to {token0}");
+                Console.WriteLine("\t5, Exit pool\n");
+
+                Console.Write($"Your choice is: ");
+                var act = int.Parse(Console.ReadLine());
+                switch(act)
+                {
+                    case 1:
+                        Console.WriteLine("Add liquidate too pool");
+                        Console.WriteLine($"How many {token0} will you add to the pool:");
+                        var token0Amount = decimal.Parse(Console.ReadLine());
+                        Console.WriteLine($"How many {token1} will you add to the pool:");
+                        var token1Amount = decimal.Parse(Console.ReadLine());
+
+                        if (swapRito == 0 || token0Amount / token1Amount == swapRito)
+                        {
+                            var amountsDeposit = new Dictionary<string, decimal>();
+                            amountsDeposit.Add(token0, token0Amount);
+                            amountsDeposit.Add(token1, token1Amount);
+
+                            var tags = new Dictionary<string, string>();
+                            tags.Add("token0", token0);
+                            tags.Add("token1", token1);
+                            tags.Add(Block.REQSERVICETAG, "");
+
+                            var poolDepositResult = await _wallet.SendEx(lp.PoolAccountId, amountsDeposit, tags);
+
+                            if (poolDepositResult.Successful())
+                            {
+                                await Task.Delay(3000);     // wait for the deposit block to generate
+                                var poolResult2 = await _wallet.GetLiquidatePoolAsync(token0, token1);
+                                if (poolResult2.Successful())
+                                {
+                                    var poolBlock = poolResult2.GetBlock() as PoolDepositBlock;
+                                    if (poolBlock != null)
+                                        Console.WriteLine($"Your deposition is successed. Your share on the liquidate pool is {poolBlock.Shares[_wallet.AccountId].ToBalanceDecimal() * 100} %");
+                                    else
+                                        Console.WriteLine("Deposition not good.");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"The amount rito of {token0}/{token1} must be {swapRito}");
+                        }
+                        break;
+
+                    case 2:
+                        Console.WriteLine("Remove liquidate from pool");
+                        var latestPool = lp.GetBlock() as PoolDepositBlock;
+                        if (latestPool?.Shares?.ContainsKey(_wallet.AccountId) == true)
+                        {
+                            var myshare = latestPool.Shares[_wallet.AccountId].ToBalanceDecimal();
+                            Console.WriteLine($"Do you want to remove your {myshare * 100} % liquidate from the pool?");
+
+                            Console.WriteLine($"You will receive {latestPool.Balances[lp.Token0].ToBalanceDecimal() * myshare} {lp.Token0}");
+                            Console.WriteLine($"You will receive {latestPool.Balances[lp.Token1].ToBalanceDecimal() * myshare} {lp.Token1}");
+                            Console.Write("Y/n? ");
+                            if (ReadYesNoAnswer())
+                            {
+                                var tags = new Dictionary<string, string>();
+                                tags.Add(Block.REQSERVICETAG, "poolwithdraw");
+                                tags.Add("poolid", lp.PoolAccountId);
+                                var amounts = new Dictionary<string, decimal>();
+                                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
+                                var poolWithdrawResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amounts, tags);
+                                if(poolWithdrawResult.Successful())
+                                {
+                                    await Task.Delay(3000);     // wait for the withdraw block to generate
+                                    Console.WriteLine("Withdraw is succeeded. Do sync to get your funds.");
+                                }                                
+                            }
+                        }
+                        break;
+                    case 3:
+                        Console.WriteLine($"Do you want to swap token {token0} to {token1} in the pool?");
+                        Console.Write("Y/n? ");
+                        if (ReadYesNoAnswer())
+                        {
+                            Console.WriteLine($"Ok. swap token.");
+                        }
+                        break;
+                    case 4:
+                        Console.WriteLine($"Do you want to swap token {token1} to {token0} in the pool?");
+                        Console.Write("Y/n? ");
+                        if (ReadYesNoAnswer())
+                        {
+                            Console.WriteLine($"Ok. swap token.");
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                Console.WriteLine("Done.");
+            }
+            else
+            {
+                Console.WriteLine("Liquidate pool failed to create. Please retry.");
+            }
+        }
        
         /*        void TradeOrderSellTest()
                 {
