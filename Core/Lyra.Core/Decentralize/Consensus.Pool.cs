@@ -86,7 +86,10 @@ namespace Lyra.Core.Decentralize
                 var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
                 foreach (var oldBalance in lastBalance)
                 {
-                    depositBalance.Add(oldBalance.Key, oldBalance.Value + txInfo.Changes[oldBalance.Key]);
+                    if(txInfo.Changes.ContainsKey(oldBalance.Key))
+                        depositBalance.Add(oldBalance.Key, oldBalance.Value + txInfo.Changes[oldBalance.Key]);
+                    else
+                        depositBalance.Add(oldBalance.Key, oldBalance.Value);
                 }
 
                 var prevBalance = lastBalance[poolGenesis.Token0];

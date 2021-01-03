@@ -1314,32 +1314,39 @@ namespace Lyra.Core.Decentralize
                         _log.LogInformation("Pool operation requested...");
                         _ = Task.Run(async () =>
                         {
-                            // first, do a receive.
-                            var recvResult = await ReceivePoolFactoryFeeAsync(send);
-                            if (recvResult == ConsensusResult.Yea)
+                            try
                             {
-                                if(send.Tags[Block.REQSERVICETAG] == "")
+                                // first, do a receive.
+                                var recvResult = await ReceivePoolFactoryFeeAsync(send);
+                                if (recvResult == ConsensusResult.Yea)
                                 {
-                                    // then create pool for it.
-                                    _log.LogInformation("Creating pool ...");
-                                    var poolCreateResult = await CreateLiquidatePoolAsync(send.Tags["token0"], send.Tags["token1"]);
-                                    if (poolCreateResult == ConsensusResult.Yea)
-                                        _log.LogInformation($"Pool created successfully.");
-                                    else
-                                        _log.LogWarning("Can't create pool.");
+                                    if (send.Tags[Block.REQSERVICETAG] == "")
+                                    {
+                                        // then create pool for it.
+                                        _log.LogInformation("Creating pool ...");
+                                        var poolCreateResult = await CreateLiquidatePoolAsync(send.Tags["token0"], send.Tags["token1"]);
+                                        if (poolCreateResult == ConsensusResult.Yea)
+                                            _log.LogInformation($"Pool created successfully.");
+                                        else
+                                            _log.LogWarning("Can't create pool.");
+                                    }
+                                    else if (send.Tags[Block.REQSERVICETAG] == "poolwithdraw")
+                                    {
+                                        var poolId = send.Tags["poolid"];
+
+                                        _log.LogInformation($"Withdraw from pool {poolId}...");
+
+                                        await SendWithdrawFunds(poolId, send.AccountID);
+                                    }
                                 }
-                                else if (send.Tags[Block.REQSERVICETAG] == "poolwithdraw")
+                                else
                                 {
-                                    var poolId = send.Tags["poolid"];
-
-                                    _log.LogInformation($"Withdraw from pool {poolId}...");
-
-                                    await SendWithdrawFunds(poolId, send.AccountID);
+                                    _log.LogWarning("Pool factory not receive funds properly.");
                                 }
                             }
-                            else
+                            catch(Exception ex)
                             {
-                                _log.LogWarning("Pool factory not receive funds properly.");
+                                _log.LogWarning("Pool factory error: " + ex.ToString());
                             }
                         });
                     }
@@ -1349,59 +1356,66 @@ namespace Lyra.Core.Decentralize
                         _log.LogInformation($"Action to pool ... svcreq = {send.Tags[Block.REQSERVICETAG]}");
                         _ = Task.Run(async () =>
                         {
-                            var pool = await _sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
-                            if (pool == null)
+                            try
                             {
-                                _log.LogWarning($"destination pool {send.DestinationAccountId} not exists.");
-                                return;
-                            }
-
-                            var poolGenesis = await _sys.Storage.FindFirstBlockAsync(send.DestinationAccountId) as PoolGenesisBlock;
-                            if (send.Tags[Block.REQSERVICETAG] == "swaptoken0" || send.Tags[Block.REQSERVICETAG] == "swaptoken1")
-                            {
-                                var swapRito = pool.Balances[poolGenesis.Token0].ToBalanceDecimal() / pool.Balances[poolGenesis.Token1].ToBalanceDecimal();
-                                var (swapInResult, swapInTokenAmount) = await ReceivePoolSwapInAsync(send);
-                                _log.LogInformation($"Got swap in token amount: {swapInTokenAmount} Result: {swapInResult}");
-
-                                if(swapInResult == ConsensusResult.Yea)
+                                var pool = await _sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
+                                if (pool == null)
                                 {
-                                    ConsensusResult? swapOutResult = null;
-                                    if(send.Tags[Block.REQSERVICETAG] == "swaptoken0")
-                                    {
-                                        var token1ToGet = Math.Round(swapInTokenAmount / swapRito, 8);
-                                        _log.LogInformation($"Sending out {token1ToGet}");
-                                        swapOutResult = await SendPoolSwapOutToken(pool.AccountID, send.AccountID, poolGenesis.Token1, token1ToGet);
-                                    }
-
-                                    if (send.Tags[Block.REQSERVICETAG] == "swaptoken1")
-                                    {
-                                        var token0ToGet = Math.Round(swapInTokenAmount * swapRito, 8);
-                                        _log.LogInformation($"Sending out {token0ToGet}");
-                                        swapOutResult = await SendPoolSwapOutToken(pool.AccountID, send.AccountID, poolGenesis.Token0, token0ToGet);
-                                    }
-
-                                    if(swapOutResult == ConsensusResult.Yea)
-                                    {
-                                        _log.LogInformation($"Swap out of token is success. TxIn: {send.Hash}");
-                                    }
-                                    else
-                                    {
-                                        _log.LogError($"Swap out of token is failed. TxIn: {send.Hash}");
-                                    }
+                                    _log.LogWarning($"destination pool {send.DestinationAccountId} not exists.");
+                                    return;
                                 }
-                            }
-                            else
-                            {
-                                var result = await ReceivePoolDepositionAsync(send);
 
-                                if (result == ConsensusResult.Yea)
+                                var poolGenesis = await _sys.Storage.FindFirstBlockAsync(send.DestinationAccountId) as PoolGenesisBlock;
+                                if (send.Tags[Block.REQSERVICETAG] == "swaptoken0" || send.Tags[Block.REQSERVICETAG] == "swaptoken1")
                                 {
-                                    _log.LogInformation($"Adding liquidate to pool {send.DestinationAccountId} is successfully.");
+                                    var swapRito = pool.Balances[poolGenesis.Token0].ToBalanceDecimal() / pool.Balances[poolGenesis.Token1].ToBalanceDecimal();
+                                    var (swapInResult, swapInTokenAmount) = await ReceivePoolSwapInAsync(send);
+                                    _log.LogInformation($"Got swap in token amount: {swapInTokenAmount} Result: {swapInResult}");
+
+                                    if (swapInResult == ConsensusResult.Yea)
+                                    {
+                                        ConsensusResult? swapOutResult = null;
+                                        if (send.Tags[Block.REQSERVICETAG] == "swaptoken0")
+                                        {
+                                            var token1ToGet = Math.Round(swapInTokenAmount / swapRito, 8);
+                                            _log.LogInformation($"Sending out {token1ToGet}");
+                                            swapOutResult = await SendPoolSwapOutToken(pool.AccountID, send.AccountID, poolGenesis.Token1, token1ToGet);
+                                        }
+
+                                        if (send.Tags[Block.REQSERVICETAG] == "swaptoken1")
+                                        {
+                                            var token0ToGet = Math.Round(swapInTokenAmount * swapRito, 8);
+                                            _log.LogInformation($"Sending out {token0ToGet}");
+                                            swapOutResult = await SendPoolSwapOutToken(pool.AccountID, send.AccountID, poolGenesis.Token0, token0ToGet);
+                                        }
+
+                                        if (swapOutResult == ConsensusResult.Yea)
+                                        {
+                                            _log.LogInformation($"Swap out of token is success. TxIn: {send.Hash}");
+                                        }
+                                        else
+                                        {
+                                            _log.LogError($"Swap out of token is failed. TxIn: {send.Hash}");
+                                        }
+                                    }
                                 }
                                 else
                                 {
-                                    _log.LogWarning($"Adding liquidate to pool {send.DestinationAccountId} is failed.");
+                                    var result = await ReceivePoolDepositionAsync(send);
+
+                                    if (result == ConsensusResult.Yea)
+                                    {
+                                        _log.LogInformation($"Adding liquidate to pool {send.DestinationAccountId} is successfully.");
+                                    }
+                                    else
+                                    {
+                                        _log.LogWarning($"Adding liquidate to pool {send.DestinationAccountId} is failed.");
+                                    }
                                 }
+                            }
+                            catch(Exception ex)
+                            {
+                                _log.LogWarning("Pool action error: " + ex.ToString());
                             }
                         });
                     }
