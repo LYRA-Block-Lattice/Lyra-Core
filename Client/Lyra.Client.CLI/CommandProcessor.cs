@@ -349,13 +349,24 @@ namespace Lyra.Client.CLI
                 switch(act)
                 {
                     case 1:
+                        decimal token0Amount, token1Amount;
                         Console.WriteLine("Add liquidate too pool");
                         Console.WriteLine($"How many {token0} will you add to the pool:");
-                        var token0Amount = decimal.Parse(Console.ReadLine());
-                        Console.WriteLine($"How many {token1} will you add to the pool:");
-                        var token1Amount = decimal.Parse(Console.ReadLine());
+                        token0Amount = decimal.Parse(Console.ReadLine());
 
-                        if (swapRito == 0 || token0Amount / token1Amount == swapRito)
+                        if(swapRito == 0)
+                        {
+                            //Console.WriteLine($"How many {token1} will you add to the pool:");
+                            token1Amount = decimal.Parse(Console.ReadLine());
+                        }
+                        else
+                        {
+                            token1Amount = Math.Round(token0Amount / swapRito, 8);
+                            Console.WriteLine($"{token1} amount will be {token1Amount}");
+                        }
+
+                        Console.Write("Is it OK? Y/n? ");
+                        if (ReadYesNoAnswer())
                         {
                             var amountsDeposit = new Dictionary<string, decimal>();
                             amountsDeposit.Add(token0, token0Amount);

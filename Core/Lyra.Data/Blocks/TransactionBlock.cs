@@ -55,7 +55,7 @@ namespace Lyra.Core.Blocks
 
     public class BalanceChanges
     {
-        public Dictionary<string, decimal> Changes;
+        public Dictionary<string, decimal> Changes { get; set; }
         public decimal FeeAmount { get; set; }
 
         public string FeeCode { get; set; }
