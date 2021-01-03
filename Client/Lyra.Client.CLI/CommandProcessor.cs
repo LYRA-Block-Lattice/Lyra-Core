@@ -331,6 +331,12 @@ namespace Lyra.Client.CLI
                     Console.WriteLine($"\n 1 {token0} = {1 / swapRito} {token1}\n 1 {token1} = {swapRito} {token0}\n");
                 }
 
+                var poolLatestBlock = lp.GetBlock() as TransactionBlock;
+                if ((poolLatestBlock as IPool).Shares?.ContainsKey(_wallet.AccountId) == true)
+                    Console.WriteLine($"My share of the liquidate pool is {(poolLatestBlock as IPool).Shares[_wallet.AccountId].ToBalanceDecimal() * 100} %\n");
+                else
+                    Console.WriteLine($"My share of the liquidate pool is 0 %\n");
+
                 Console.WriteLine("Please choose your action:");
                 Console.WriteLine("\t1, Add liquidate to pool");
                 Console.WriteLine("\t2, Remove liquidate from pool");
@@ -398,6 +404,8 @@ namespace Lyra.Client.CLI
                                 var tags = new Dictionary<string, string>();
                                 tags.Add(Block.REQSERVICETAG, "poolwithdraw");
                                 tags.Add("poolid", lp.PoolAccountId);
+                                tags.Add("token0", token0);
+                                tags.Add("token1", token1);
                                 var amounts = new Dictionary<string, decimal>();
                                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
                                 var poolWithdrawResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amounts, tags);

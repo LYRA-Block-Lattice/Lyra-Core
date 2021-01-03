@@ -1530,7 +1530,7 @@ namespace Lyra.Core.Decentralize
                 if (share.Key == targetAccountId)
                     continue;
 
-                nextShares[share.Key] = (share.Value * curBalance[share.Key]) / nextBalance[share.Key];
+                nextShares[share.Key] = (share.Value * curBalance[poolGenesisBlock.Token0]) / nextBalance[poolGenesisBlock.Token0];
             }
 
             // pay the fee
