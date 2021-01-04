@@ -187,7 +187,7 @@ namespace Lyra.Core.Decentralize
                 var lastShares = ((IPool)latestPoolBlock).Shares.ToRitoDecimalDict();
 
                 // the rito must be preserved for every deposition
-                var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
+                //var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
                 foreach (var oldBalance in lastBalance)
                 {
                     depositBalance.Add(oldBalance.Key, oldBalance.Value + txInfo.Changes[oldBalance.Key]);
