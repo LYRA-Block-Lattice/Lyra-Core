@@ -104,7 +104,7 @@ namespace UnitTests.Swap
                 else
                 {
                     var token0Amount = (decimal)((new Random().NextDouble() + 0.03) * 1000);
-                    var token1Amount = Math.Round(token0Amount / pool.SwapRito, 8);
+                    var token1Amount = Math.Round(token0Amount / pool.SwapRito.ToBalanceDecimal(), 8);
 
                     var result = await w1.AddLiquidateToPoolAsync(pool.Token0, token0Amount, pool.Token1, token1Amount);
                     Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to deposit to pool: " + result.ResultCode);

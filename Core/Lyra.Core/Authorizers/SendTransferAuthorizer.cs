@@ -167,7 +167,7 @@ namespace Lyra.Core.Authorizers
                         // compare rito
                         if(poolLatest.Balances.ContainsKey(poolGenesis.Token0) && poolLatest.Balances.ContainsKey(poolGenesis.Token1))
                         {
-                            var rito = (poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal()).ToBalanceLong();
+                            var rito = (poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal());
                             var token0Amount = chgs.Changes[poolGenesis.Token0];
                             var token1AmountShouldBe = Math.Round(token0Amount / rito, 8);
                             if (chgs.Changes[poolGenesis.Token1] != token1AmountShouldBe)
