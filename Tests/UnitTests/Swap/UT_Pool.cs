@@ -139,6 +139,12 @@ namespace UnitTests.Swap
                 if (!poolWithShare.Shares.ContainsKey(w1.AccountId))
                     return;
 
+                var token0BalanceBefore = w1.GetLatestBlock().Balances[pool.Token0].ToBalanceDecimal();
+                var token1BalanceBefore = w1.GetLatestBlock().Balances[pool.Token1].ToBalanceDecimal();
+                var myshare = poolWithShare.Shares[w1.AccountId].ToBalanceDecimal();
+                var token0ShouldReceive = Math.Round(myshare * poolLatest.Balances[pool.Token0].ToBalanceDecimal(), 8);
+                var token1ShouldReceive = Math.Round(myshare * poolLatest.Balances[pool.Token1].ToBalanceDecimal(), 8);
+
                 var result = await w1.RemoveLiquidateFromPoolAsync(pool.Token0, pool.Token1);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to withdraw from pool: " + result.ResultCode);
 
@@ -153,6 +159,10 @@ namespace UnitTests.Swap
                 Assert.IsNotNull(poolWithShare);
 
                 Assert.IsFalse(poolWithShare.Shares.ContainsKey(w1.AccountId), "The pool share is still there.");
+
+                await w1.Sync(client);
+                Assert.AreEqual(token0BalanceBefore + token0ShouldReceive, w1.GetLatestBlock().Balances[pool.Token0].ToBalanceDecimal());
+                Assert.AreEqual(token1BalanceBefore + token1ShouldReceive, w1.GetLatestBlock().Balances[pool.Token1].ToBalanceDecimal());
             }
             finally
             {
