@@ -494,7 +494,10 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var block = await NodeService.Dag?.Storage.GetLastServiceBlockAsync();
+                if (NodeService.Dag == null)
+                    throw new Exception();
+
+                var block = await NodeService.Dag?.Storage?.GetLastServiceBlockAsync();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
