@@ -172,8 +172,10 @@ namespace Lyra.Core.Authorizers
 
                         var poolLatest = await sys.Storage.FindLatestBlockAsync(block.DestinationAccountId) as TransactionBlock;
                         // compare rito
-                        if (poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal()
-                            != chgs.Changes[poolGenesis.Token0] / chgs.Changes[poolGenesis.Token1])
+                        var rito = (poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal()).ToBalanceLong();
+                        var token0Amount = chgs.Changes[poolGenesis.Token0];
+                        var token1AmountShouldBe = Math.Round(token0Amount / rito, 8);
+                        if (chgs.Changes[poolGenesis.Token1] != token1AmountShouldBe)
                             return APIResultCodes.InvalidPoolDepositionRito;
                     }
                 }

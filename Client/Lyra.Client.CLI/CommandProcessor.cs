@@ -334,9 +334,9 @@ namespace Lyra.Client.CLI
                 }
 
                 if ((poolLatestBlock as IPool).Shares?.ContainsKey(_wallet.AccountId) == true)
-                    Console.WriteLine($"My share of the liquidate pool is {(poolLatestBlock as IPool).Shares[_wallet.AccountId].ToBalanceDecimal() * 100} %\n");
+                    Console.WriteLine($"Your share of the liquidate pool is {(poolLatestBlock as IPool).Shares[_wallet.AccountId].ToBalanceDecimal() * 100} %\n");
                 else
-                    Console.WriteLine($"My share of the liquidate pool is 0 %\n");
+                    Console.WriteLine($"Your share of the liquidate pool is 0 %\n");
 
                 Console.WriteLine("Please choose your action:");
                 Console.WriteLine("\t1, Add liquidate to pool");
