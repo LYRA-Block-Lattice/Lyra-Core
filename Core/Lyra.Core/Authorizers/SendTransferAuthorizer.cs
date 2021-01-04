@@ -170,7 +170,9 @@ namespace Lyra.Core.Authorizers
                             var rito = (poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal());
                             var token0Amount = chgs.Changes[poolGenesis.Token0];
                             var token1AmountShouldBe = Math.Round(token0Amount / rito, 8);
-                            if (chgs.Changes[poolGenesis.Token1] != token1AmountShouldBe)
+                            if (chgs.Changes[poolGenesis.Token1] != token1AmountShouldBe
+                                && Math.Abs(chgs.Changes[poolGenesis.Token1] - token1AmountShouldBe) / token1AmountShouldBe > 0.0000001m)
+                                )
                                 return APIResultCodes.InvalidPoolDepositionRito;
                         }
                     }

@@ -96,7 +96,12 @@ namespace UnitTests.Swap
                 var w1 = Restore(testPrivateKey);
                 await w1.Sync(client);
 
-                if(pool.SwapRito == 0)
+                var swapRito = 0m;
+                var poolLatestBlock = pool.GetBlock() as TransactionBlock;
+                if (poolLatestBlock.Balances.ContainsKey(pool.Token0))
+                    swapRito = poolLatestBlock.Balances[pool.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[pool.Token1].ToBalanceDecimal();
+
+                if (swapRito == 0)
                 {
                     var result = await w1.AddLiquidateToPoolAsync(pool.Token0, 50000m, pool.Token1, 3000000m);
                     Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to deposit to pool: " + result.ResultCode);
@@ -104,7 +109,7 @@ namespace UnitTests.Swap
                 else
                 {
                     var token0Amount = (decimal)((new Random().NextDouble() + 0.03) * 1000);
-                    var token1Amount = Math.Round(token0Amount / pool.SwapRito.ToBalanceDecimal(), 8);
+                    var token1Amount = Math.Round(token0Amount / swapRito, 8);
 
                     var result = await w1.AddLiquidateToPoolAsync(pool.Token0, token0Amount, pool.Token1, token1Amount);
                     Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to deposit to pool: " + result.ResultCode);

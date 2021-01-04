@@ -317,15 +317,17 @@ namespace Lyra.Client.CLI
 
                 token0 = lp.Token0;
                 token1 = lp.Token1;
-                var swapRito = lp.SwapRito.ToBalanceDecimal();
+                var swapRito = 0m;
                 var poolLatestBlock = lp.GetBlock() as TransactionBlock;
+                if (poolLatestBlock.Balances.ContainsKey(lp.Token0))
+                    swapRito = poolLatestBlock.Balances[lp.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[lp.Token1].ToBalanceDecimal();
 
                 Console.WriteLine($"Liquidate pool for {token0} and {token1}: \n Pool account ID is {lp.PoolAccountId}\n");
                 if (swapRito > 0)
                 {
                     Console.WriteLine($" Pool liquidate of {token0}: {poolLatestBlock.Balances[token0].ToBalanceDecimal()}");
                     Console.WriteLine($" Pool liquidate of {token1}: {poolLatestBlock.Balances[token1].ToBalanceDecimal()}");
-                    Console.WriteLine($" Swap rito is {swapRito}.");
+                    Console.WriteLine($" Swap rito is {Math.Round(swapRito, 8)}.");
                     Console.WriteLine($"\n 1 {token0} = {Math.Round(1 / swapRito, 8)} {token1}\n 1 {token1} = {Math.Round(swapRito, 8)} {token0}\n");
                 }
                 else

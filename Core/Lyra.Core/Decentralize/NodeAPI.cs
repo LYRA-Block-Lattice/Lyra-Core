@@ -978,14 +978,14 @@ namespace Lyra.Core.Decentralize
 
                         var latestPoolBlock = await NodeService.Dag.Storage.FindLatestBlockAsync(poolGenesis.AccountID) as TransactionBlock;
                         result.SetBlock(latestPoolBlock);
-                        if(latestPoolBlock.Balances?.Any() == true && latestPoolBlock.Balances[poolGenesis.Token1] > 0)
-                        {
-                            result.SwapRito = (latestPoolBlock.Balances[poolGenesis.Token0].ToBalanceDecimal() / latestPoolBlock.Balances[poolGenesis.Token1].ToBalanceDecimal()).ToBalanceLong();
-                        }
-                        else
-                        {
-                            result.SwapRito = 0;
-                        }
+                        //if(latestPoolBlock.Balances?.Any() == true && latestPoolBlock.Balances[poolGenesis.Token1] > 0)
+                        //{
+                        //    result.SwapRito = (latestPoolBlock.Balances[poolGenesis.Token0].ToBalanceDecimal() / latestPoolBlock.Balances[poolGenesis.Token1].ToBalanceDecimal()).ToBalanceLong();
+                        //}
+                        //else
+                        //{
+                        //    result.SwapRito = 0;
+                        //}
                     }
 
                     result.ResultCode = APIResultCodes.Success;
