@@ -167,6 +167,9 @@ namespace Lyra.Core.Decentralize
             var result = new AccountHeightAPIResult();
             try
             {
+                if (NodeService.Dag == null)
+                    throw new Exception();
+
                 var last_svc_block = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
                 //if(last_svc_block == null)
                 //{
