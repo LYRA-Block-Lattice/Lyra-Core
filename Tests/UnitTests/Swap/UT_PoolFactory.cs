@@ -131,7 +131,7 @@ namespace UnitTests.Swap
                 var amounts = new Dictionary<string, decimal>();
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
                 var poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
-                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
                 tags = new Dictionary<string, string>();
                 tags.Add("token0", token0);
@@ -139,7 +139,7 @@ namespace UnitTests.Swap
                 amounts = new Dictionary<string, decimal>();
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
                 poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
-                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
                 tags = new Dictionary<string, string>();
                 tags.Add("token0", token0);
@@ -147,7 +147,7 @@ namespace UnitTests.Swap
                 amounts = new Dictionary<string, decimal>();
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
                 poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
-                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
                 tags = new Dictionary<string, string>();
                 tags.Add("token0", token0);
@@ -156,7 +156,7 @@ namespace UnitTests.Swap
                 amounts = new Dictionary<string, decimal>();
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
                 poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
-                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
                 tags = new Dictionary<string, string>();
                 tags.Add("token0", token0);
@@ -165,7 +165,7 @@ namespace UnitTests.Swap
                 amounts = new Dictionary<string, decimal>();
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 10010);
                 poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
-                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
                 tags = new Dictionary<string, string>();
                 tags.Add("token0", token0);
@@ -174,7 +174,7 @@ namespace UnitTests.Swap
                 amounts = new Dictionary<string, decimal>();
                 amounts.Add(testTokenA, PoolFactoryBlock.PoolCreateFee);
                 poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
-                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
                 tags = new Dictionary<string, string>();
                 tags.Add("token0", token0);
@@ -183,7 +183,7 @@ namespace UnitTests.Swap
                 amounts = new Dictionary<string, decimal>();
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
                 poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId + "a", amounts, tags);
-                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
                 tags = new Dictionary<string, string>();
                 tags.Add("token0", token0);
@@ -193,7 +193,17 @@ namespace UnitTests.Swap
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
                 amounts.Add(testTokenA, PoolFactoryBlock.PoolCreateFee);
                 poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
-                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
+
+                // finally do it right
+                tags = new Dictionary<string, string>();
+                tags.Add("token0", token0);
+                tags.Add("token1", token1);
+                tags.Add(Block.REQSERVICETAG, "");
+                amounts = new Dictionary<string, decimal>();
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+                var poolCreateResultx = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                Assert.IsTrue(poolCreateResultx.ResultCode == APIResultCodes.Success, "Should finally OK.");
             }
             finally
             {
