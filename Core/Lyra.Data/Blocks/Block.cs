@@ -441,7 +441,8 @@ namespace Lyra.Core.Blocks
         InvalidTokenPair = 330,
         PoolAlreadyExists,
         PoolNotExists,
-        PoolShareNotExists
+        PoolShareNotExists,
+        InvalidPoolOperation
 
     }
 }
