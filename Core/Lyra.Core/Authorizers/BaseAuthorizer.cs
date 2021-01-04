@@ -387,9 +387,9 @@ namespace Lyra.Core.Authorizers
             return authSignature;
         }
 
-        protected bool CheckToken(DagSystem sys, string tokenName)
+        protected async Task<bool> CheckTokenAsync(DagSystem sys, string tokenName)
         {
-            var tokn = sys.Storage.FindTokenGenesisBlockAsync(null, tokenName);
+            var tokn = await sys.Storage.FindTokenGenesisBlockAsync(null, tokenName);
             return tokn != null;
         }
 
