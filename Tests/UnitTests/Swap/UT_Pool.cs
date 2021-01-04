@@ -59,6 +59,7 @@ namespace UnitTests.Swap
                 var secs = testTokenA.Split('/');
                 var result = await w1.CreateToken(secs[1], secs[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
                 Assert.IsTrue(result.Successful(), "Failed to create token: " + result.ResultCode);
+                await w1.Sync(client);
             }
 
             var pool = await client.GetPool(LyraGlobal.OFFICIALTICKERCODE, testTokenA);
