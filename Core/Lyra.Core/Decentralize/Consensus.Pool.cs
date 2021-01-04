@@ -143,9 +143,6 @@ namespace Lyra.Core.Decentralize
 
             nextBalance[token] = curBalance[token] - amount;
 
-            // pay the fee
-            nextBalance[LyraGlobal.OFFICIALTICKERCODE] -= lsb.TransferFee;
-
             swapOutBlock.Balances = nextBalance.ToLongDict();
             swapOutBlock.Shares = (poolLatestBlock as IPool).Shares;
             swapOutBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
@@ -273,9 +270,6 @@ namespace Lyra.Core.Decentralize
 
                 nextShares[share.Key] = (share.Value * curBalance[poolGenesisBlock.Token0]) / nextBalance[poolGenesisBlock.Token0];
             }
-
-            // pay the fee
-            nextBalance[LyraGlobal.OFFICIALTICKERCODE] -= lsb.TradeFee;
 
             withdrawBlock.Balances = nextBalance.ToLongDict();
             withdrawBlock.Shares = nextShares.ToRitoLongDict();

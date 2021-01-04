@@ -16,7 +16,7 @@ namespace UnitTests.Swap
     public class UT_Pool
     {
         LyraRestClient client = LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0");
-        private string testTokenA = "unittest/PoolCoinB2";
+        private string testTokenA = "unittest/PoolCoinB4";
 
         string testPrivateKey = "2LqBaZopCiPjBQ9tbqkqqyo4TSaXHUth3mdMJkhaBbMTf6Mr8u";
         string testPublicKey = "LUTPLGNAP4vTzXh5tWVCmxUBh8zjGTR8PKsfA8E67QohNsd1U6nXPk4Q9jpFKsKfULaaT3hs6YK7WKm57QL5oarx8mZdbM";
