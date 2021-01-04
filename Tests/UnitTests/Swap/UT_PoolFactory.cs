@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Accounts;
+﻿using FluentAssertions;
+using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
@@ -52,7 +53,8 @@ namespace UnitTests.Swap
             {
                 var w1 = Restore(testPrivateKey);
                 await w1.Sync(client);
-                var result = await w1.CreateToken("UCoinA", "unittest", "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
+                var secs = testTokenA.Split('/');
+                var result = await w1.CreateToken(secs[1], secs[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
                 Assert.IsTrue(result.Successful(), "Failed to create token: " + result.ResultCode);
             }
         }
@@ -67,9 +69,136 @@ namespace UnitTests.Swap
         [TestMethod]
         public async Task CreatePoolAsync()
         {
-            var pool = await client.GetPool("test1", "test2");
-            Assert.IsNull(pool.PoolAccountId);
-            Assert.IsTrue(!string.IsNullOrEmpty(pool.PoolFactoryAccountId), "factory not created");
+            try
+            {
+                await semaphore.WaitAsync();
+
+                var secs = testTokenA.Split('/');
+                var tokenName = $"{secs[1]}-{DateTime.UtcNow.Ticks}";
+                var tokenFullName = $"{secs[0]}/{tokenName}";
+
+                // create token first
+                var w1 = Restore(testPrivateKey);
+                await w1.Sync(client);
+                var result = await w1.CreateToken(tokenName, secs[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
+                Assert.IsTrue(result.Successful(), $"Failed to create token {tokenFullName}: {result.ResultCode}");
+
+                var pool = await client.GetPool(tokenFullName, LyraGlobal.OFFICIALTICKERCODE);
+                Assert.IsNull(pool.PoolAccountId, "Pool is already exists.");
+                Assert.IsNotNull(pool.PoolFactoryAccountId, "Pool Factory should be exists.");
+
+                var token0 = LyraGlobal.OFFICIALTICKERCODE;
+                var token1 = tokenFullName;
+
+                var poolCreateResult = await w1.CreateLiquidatePoolAsync(token0, token1);
+                Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, "Can't create pool for " + token1);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        [TestMethod]
+        public async Task CreatePoolWrongAsync()
+        {
+            try
+            {
+                await semaphore.WaitAsync();
+
+                var secs = testTokenA.Split('/');
+                var tokenName = $"{secs[1]}-{DateTime.UtcNow.Ticks}";
+                var tokenFullName = $"{secs[0]}/{tokenName}";
+
+                // create token first
+                var w1 = Restore(testPrivateKey);
+                await w1.Sync(client);
+                var result = await w1.CreateToken(tokenName, secs[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
+                Assert.IsTrue(result.Successful(), $"Failed to create token {tokenFullName}: {result.ResultCode}");
+
+                var pool = await client.GetPool(tokenFullName, LyraGlobal.OFFICIALTICKERCODE);
+                Assert.IsNull(pool.PoolAccountId, "Pool is already exists.");
+                Assert.IsNotNull(pool.PoolFactoryAccountId, "Pool Factory should be exists.");
+
+                var token0 = LyraGlobal.OFFICIALTICKERCODE;
+                var token1 = tokenFullName;
+
+                // should fail
+                var tags = new Dictionary<string, string>();
+                tags.Add("token0", token0);
+                tags.Add("token1", "");
+                tags.Add(Block.REQSERVICETAG, "");
+                var amounts = new Dictionary<string, decimal>();
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+                var poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+
+                tags = new Dictionary<string, string>();
+                tags.Add("token0", token0);
+                tags.Add(Block.REQSERVICETAG, "");
+                amounts = new Dictionary<string, decimal>();
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+                poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+
+                tags = new Dictionary<string, string>();
+                tags.Add("token0", token0);
+                tags.Add("token1", token1);
+                amounts = new Dictionary<string, decimal>();
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+                poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+
+                tags = new Dictionary<string, string>();
+                tags.Add("token0", token0);
+                tags.Add("token1", token1);
+                tags.Add(Block.REQSERVICETAG, "");
+                amounts = new Dictionary<string, decimal>();
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
+                poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+
+                tags = new Dictionary<string, string>();
+                tags.Add("token0", token0);
+                tags.Add("token1", token1);
+                tags.Add(Block.REQSERVICETAG, "");
+                amounts = new Dictionary<string, decimal>();
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 10010);
+                poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+
+                tags = new Dictionary<string, string>();
+                tags.Add("token0", token0);
+                tags.Add("token1", token1);
+                tags.Add(Block.REQSERVICETAG, "");
+                amounts = new Dictionary<string, decimal>();
+                amounts.Add(testTokenA, PoolFactoryBlock.PoolCreateFee);
+                poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+
+                tags = new Dictionary<string, string>();
+                tags.Add("token0", token0);
+                tags.Add("token1", token1);
+                tags.Add(Block.REQSERVICETAG, "");
+                amounts = new Dictionary<string, decimal>();
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+                poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId + "a", amounts, tags);
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+
+                tags = new Dictionary<string, string>();
+                tags.Add("token0", token0);
+                tags.Add("token1", token1);
+                tags.Add(Block.REQSERVICETAG, "");
+                amounts = new Dictionary<string, decimal>();
+                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+                amounts.Add(testTokenA, PoolFactoryBlock.PoolCreateFee);
+                poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, "Should failed");
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
     }
 }

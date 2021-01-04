@@ -1760,6 +1760,21 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
+        public async Task<APIResult> CreateLiquidatePoolAsync(string token0, string token1)
+        {
+            var pool = await _rpcClient.GetPool(token0, token1);
+            if (pool.PoolAccountId != null)
+                return new APIResult { ResultCode = APIResultCodes.AccountAlreadyExists };
+
+            var tags = new Dictionary<string, string>();
+            tags.Add("token0", token0);
+            tags.Add("token1", token1);
+            tags.Add(Block.REQSERVICETAG, "");
+            var amounts = new Dictionary<string, decimal>();
+            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+            return await SendEx(pool.PoolFactoryAccountId, amounts, tags);
+        }
+
         public string PrintLastBlock()
         {
             TransactionBlock latestBlock = GetLatestBlock();

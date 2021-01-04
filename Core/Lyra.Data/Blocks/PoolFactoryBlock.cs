@@ -12,6 +12,7 @@ namespace Lyra.Core.Blocks
     public class PoolFactoryBlock : ReceiveTransferBlock, IOpeningBlock
     {
         public const string FactoryAccount = "LPFA82ZDTo4cyoeY3EGozTpbWWzUXAtHCm33cMDcXyPzuV2HQf1X2Z9xVAins9kGJdBY12iGAzBPuMZvvW6x4ktLXa1MKQ";
+        public const decimal PoolCreateFee = 1000m;
         public AccountTypes AccountType { get; set; }
 
         public override BlockTypes GetBlockType()
