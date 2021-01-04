@@ -28,21 +28,28 @@ namespace Lyra.Core.Decentralize
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
-            var txInfo = sendBlock.GetTransaction(prevSend);
+            var txInfo = sendBlock.GetBalanceChanges(prevSend);
 
             TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
-            var newBalance = txInfo.Amount;
-            // if the recipient's account has this token already, add the transaction amount to the existing balance
-            if (latestBlock.Balances.ContainsKey(txInfo.TokenCode))
-                newBalance += latestBlock.Balances[txInfo.TokenCode].ToBalanceDecimal();
+            // ignore any token but LYR. keep the block clean.
+            if (!txInfo.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                return ConsensusResult.Uncertain;
 
-            receiveBlock.Balances.Add(txInfo.TokenCode, newBalance.ToBalanceLong());
+            var latestBalances = latestBlock.Balances.ToDecimalDict();
+            var recvBalances = latestBlock.Balances.ToDecimalDict();
+            foreach (var chg in txInfo.Changes)
+            {
+                if (chg.Key != LyraGlobal.OFFICIALTICKERCODE)
+                    continue;
 
-            // transfer unchanged token balances from the previous block
-            foreach (var balance in latestBlock.Balances)
-                if (!receiveBlock.Balances.ContainsKey(balance.Key))
-                    receiveBlock.Balances.Add(balance.Key, balance.Value);
+                if (recvBalances.ContainsKey(chg.Key))
+                    recvBalances[chg.Key] += chg.Value;
+                else
+                    recvBalances.Add(chg.Key, chg.Value);
+            }
+
+            receiveBlock.Balances = recvBalances.ToLongDict();
 
             receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 

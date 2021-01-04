@@ -68,7 +68,7 @@ namespace Lyra.Core.Blocks
             foreach (var balance in Balances)
             {
                 decimal amount;
-                if(previousBlock.Balances.ContainsKey(balance.Key))
+                if(previousBlock?.Balances?.ContainsKey(balance.Key) == true)
                 {
                     amount = (balance.Value - previousBlock.Balances[balance.Key]).ToBalanceDecimal();
                 }

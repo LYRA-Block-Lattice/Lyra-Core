@@ -14,18 +14,18 @@ namespace UnitTests
     [TestClass]
     public class UT_Wallet
     {
-        const string PRIVATE_KEY_1 = "25kksnE589CTHcDeMNbatGBGoCjiMNFzcDCuGULj1vgCMAfxNV"; // merchant
-        const string PRIVATE_KEY_2 = "2QvkckNTBttTt9EwsvWhDCwibcvzSkksx5iBuikh1AzgdYsNov"; // customer
+        const string PRIVATE_KEY_1 = "2gbESTeBHsgt8um1aNN2dC9jajEDk3CoEupwmN6TRJQckyRbHa"; // merchant
+        const string PRIVATE_KEY_2 = "KufWHKVUxqCjBVunJXqqpPBkajdxb4mKLbYZYFnxDNXhUsnCT"; // customer
 
-        const string ADDRESS_ID_1 = "L4hksrWP5pzQ4pdDdUZ4D9GgZoT3iGZiaWNgcTPjSUATyogyJaZk1qYHfKuMnTytqfqEp3fgWQ7NxoQXVZPykqj2ALWejo";
-        const string ADDRESS_ID_2 = "LPR9pZeLhB4eHHuQBEDLTVoAJUZUWNbfux2QpSvK6vJbcXsGK6Rz3gN3ynNixcz9yAaA9iLCEJ7c5oQobQpUS66vPtZ2Yq";
+        const string ADDRESS_ID_1 = "LUTkgGP9tb4iAFAFXv7i83N4GreEUakWbaDrUbUFnKHpPp46n9KF1QzCtvUwZRBCQz6yqerkWvvGXtCTkz4knzeKRmqid";
+        const string ADDRESS_ID_2 = "LUTDSh9xEn21ZDjgGQ9g9g1zd9JxhY2rEoqH9kh8E3EwHk76jP6x24iYaT64HG3zEznZqptK88Y6nM1zz9NbxRWt45XdBx";
 
         public static Wallet Restore(string privateKey)
         {
             var memStor = new AccountInMemoryStorage();
             try
             {
-                Wallet.Create(memStor, "tmpAcct", "", LyraNodeConfig.GetNetworkId(), privateKey);
+                Wallet.Create(memStor, "tmpAcct", "", "devnet", privateKey);
                 return Wallet.Open(memStor, "tmpAcct", "");
             }
             catch (Exception)
