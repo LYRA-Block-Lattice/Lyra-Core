@@ -114,5 +114,50 @@ namespace UnitTests.Swap
                 semaphore.Release();
             }
         }
+
+        [TestMethod]
+        public async Task PoolWithdraw()
+        {
+            try
+            {
+                await semaphore.WaitAsync();
+
+                var pool = await client.GetPool(testTokenA, LyraGlobal.OFFICIALTICKERCODE);
+                Assert.IsNotNull(pool.PoolAccountId);
+                Assert.IsTrue(LyraGlobal.OFFICIALTICKERCODE == pool.Token0);
+                Assert.IsTrue(testTokenA == pool.Token1);
+
+                var w1 = Restore(testPrivateKey);
+                await w1.Sync(client);
+
+                var poolLatest = pool.GetBlock() as TransactionBlock;
+                Assert.IsNotNull(poolLatest);
+
+                var poolWithShare = poolLatest as IPool;
+                Assert.IsNotNull(poolWithShare);
+
+                if (!poolWithShare.Shares.ContainsKey(w1.AccountId))
+                    return;
+
+                var result = await w1.RemoveLiquidateFromPoolAsync(pool.Token0, pool.Token1);
+                Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to withdraw from pool: " + result.ResultCode);
+
+                await Task.Delay(3000);
+                pool = await client.GetPool(testTokenA, LyraGlobal.OFFICIALTICKERCODE);
+                Assert.IsNotNull(pool.PoolAccountId);
+
+                poolLatest = pool.GetBlock() as TransactionBlock;
+                Assert.IsNotNull(poolLatest);
+
+                poolWithShare = poolLatest as IPool;
+                Assert.IsNotNull(poolWithShare);
+
+                Assert.IsFalse(poolWithShare.Shares.ContainsKey(w1.AccountId), "The pool share is still there.");
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
     }
 }

@@ -132,13 +132,6 @@ namespace Lyra.Core.Authorizers
                             if (poolGenesis == null)
                                 return APIResultCodes.PoolNotExists;
 
-                            var poolGenesis2 = await sys.Storage.FindFirstBlockAsync(block.DestinationAccountId);
-                            if (poolGenesis2 == null)
-                                return APIResultCodes.PoolNotExists;
-
-                            if (poolGenesis.Hash != poolGenesis2.Hash)
-                                return APIResultCodes.PoolNotExists;
-
                             if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != 1m)
                                 return APIResultCodes.InvalidFeeAmount;
 

@@ -1794,6 +1794,23 @@ namespace Lyra.Core.Accounts
             return poolDepositResult;
         }
 
+        public async Task<APIResult> RemoveLiquidateFromPoolAsync(string token0, string token1)
+        {
+            var pool = await _rpcClient.GetPool(token0, token1);
+            if (pool.PoolAccountId == null)
+                return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
+
+            var tags = new Dictionary<string, string>();
+            tags.Add(Block.REQSERVICETAG, "poolwithdraw");
+            tags.Add("poolid", pool.PoolAccountId);
+            tags.Add("token0", token0);
+            tags.Add("token1", token1);
+            var amounts = new Dictionary<string, decimal>();
+            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
+            var poolWithdrawResult = await SendEx(pool.PoolFactoryAccountId, amounts, tags);
+            return poolWithdrawResult;
+        }
+
         public string PrintLastBlock()
         {
             TransactionBlock latestBlock = GetLatestBlock();
