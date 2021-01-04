@@ -97,12 +97,12 @@ namespace Lyra.Core.API
 
         public static long ToRitoLong(this decimal currency)
         {
-            return (long)Math.Round(currency * (1 ^ 14));
+            return (long)Math.Round(currency * (decimal) Math.Pow(10, 14));
         }
 
         public static decimal ToRitoDecimal(this long currency)
         {
-            return ((decimal)currency) / (1^14);
+            return ((decimal)currency) / (decimal)Math.Pow(10, 14);
         }
 
         public static Dictionary<string, decimal> ToRitoDecimalDict(this Dictionary<string, long> dict)
