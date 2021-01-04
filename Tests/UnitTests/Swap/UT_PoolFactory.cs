@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -14,7 +15,7 @@ namespace UnitTests.Swap
     public class UT_PoolFactory
     {
         LyraRestClient client = LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0");
-        private string testTokenA = "UCoinA";
+        private string testTokenA = "unittest/UCoinA";
         private string testTokenB = "UCoinB";
 
         string testPrivateKey = "bdhSJXkMgbHQJDusDrrP9KLEDE7qYpebcko9ui1xbGWPBw97F";
@@ -47,11 +48,11 @@ namespace UnitTests.Swap
         {
             // make sure we have 2 test token
             var genResult = await client.GetTokenGenesisBlock(testPublicKey, testTokenA, await SignAPIAsync());
-            if(genResult.ResultCode != Lyra.Core.Blocks.APIResultCodes.Success)
+            if(genResult.ResultCode == APIResultCodes.TokenGenesisBlockNotFound)
             {
                 var w1 = Restore(testPrivateKey);
                 await w1.Sync(client);
-                var result = await w1.CreateToken(testTokenA, "unittest", "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
+                var result = await w1.CreateToken("UCoinA", "unittest", "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
                 Assert.IsTrue(result.Successful(), "Failed to create token: " + result.ResultCode);
             }
         }
