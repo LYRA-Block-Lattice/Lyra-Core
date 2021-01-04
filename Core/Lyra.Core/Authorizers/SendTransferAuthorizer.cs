@@ -93,58 +93,89 @@ namespace Lyra.Core.Authorizers
 
             // a normal send is success.
             // monitor special account
-            if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
+            if (block.Tags.ContainsKey(Block.REQSERVICETAG))
             {
-                if (!block.Tags.ContainsKey(Block.REQSERVICETAG))
-                    return APIResultCodes.InvalidPoolOperation;
-
                 if (block.Tags != null
-                    && block.Tags.ContainsKey("token0") && await CheckTokenAsync(sys, block.Tags["token0"])
-                    && block.Tags.ContainsKey("token1") && await CheckTokenAsync(sys, block.Tags["token1"])
-                    && block.Tags["token0"] != block.Tags["token1"]
-                    && (block.Tags["token0"] == LyraGlobal.OFFICIALTICKERCODE || block.Tags["token1"] == LyraGlobal.OFFICIALTICKERCODE)
-                    )
+                        && block.Tags.ContainsKey("token0") && await CheckTokenAsync(sys, block.Tags["token0"])
+                        && block.Tags.ContainsKey("token1") && await CheckTokenAsync(sys, block.Tags["token1"])
+                        && block.Tags["token0"] != block.Tags["token1"]
+                        && (block.Tags["token0"] == LyraGlobal.OFFICIALTICKERCODE || block.Tags["token1"] == LyraGlobal.OFFICIALTICKERCODE)
+                        )
                 {
-                    var chgs = block.GetBalanceChanges(lastBlock);
-                    if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                        return APIResultCodes.InvalidFeeAmount;
-
-                    if(chgs.Changes.Count > 1)
-                        return APIResultCodes.InvalidFeeAmount;
-
-                    if (block.Tags[Block.REQSERVICETAG] == "")
+                    if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
                     {
-                        if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.PoolCreateFee)
+                        var chgs = block.GetBalanceChanges(lastBlock);
+                        if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                             return APIResultCodes.InvalidFeeAmount;
 
-                        // check if pool exists
-                        var factory = await sys.Storage.GetPoolFactoryAsync();
-                        if (factory == null)
-                            return APIResultCodes.SystemNotReadyToServe;
+                        if (chgs.Changes.Count > 1)
+                            return APIResultCodes.InvalidFeeAmount;
 
-                        var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
-                        if (poolGenesis != null)
-                            return APIResultCodes.PoolAlreadyExists;
+                        if (block.Tags[Block.REQSERVICETAG] == "")
+                        {
+                            if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.PoolCreateFee)
+                                return APIResultCodes.InvalidFeeAmount;
+
+                            // check if pool exists
+                            var factory = await sys.Storage.GetPoolFactoryAsync();
+                            if (factory == null)
+                                return APIResultCodes.SystemNotReadyToServe;
+
+                            var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
+                            if (poolGenesis != null)
+                                return APIResultCodes.PoolAlreadyExists;
+                        }
+
+                        if (block.Tags[Block.REQSERVICETAG] == "poolwithdraw")
+                        {
+                            var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
+                            if (poolGenesis == null)
+                                return APIResultCodes.PoolNotExists;
+
+                            var poolGenesis2 = await sys.Storage.FindFirstBlockAsync(block.DestinationAccountId);
+                            if (poolGenesis2 == null)
+                                return APIResultCodes.PoolNotExists;
+
+                            if (poolGenesis.Hash != poolGenesis2.Hash)
+                                return APIResultCodes.PoolNotExists;
+
+                            if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != 1m)
+                                return APIResultCodes.InvalidFeeAmount;
+
+                            var pool = await sys.Storage.FindLatestBlockAsync(poolGenesis.AccountID) as IPool;
+                            if (pool == null)
+                                return APIResultCodes.PoolNotExists;
+
+                            if (!pool.Shares.ContainsKey(block.AccountID))
+                                return APIResultCodes.PoolShareNotExists;
+                        }
                     }
-
-                    if (block.Tags[Block.REQSERVICETAG] == "poolwithdraw")
+                    else  // target should be a pool
                     {
-                        if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != 1m)
-                            return APIResultCodes.InvalidFeeAmount;
-
                         var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
                         if (poolGenesis == null)
                             return APIResultCodes.PoolNotExists;
 
-                        var pool = await sys.Storage.FindLatestBlockAsync(poolGenesis.AccountID) as IPool;
-                        if(pool == null)
+                        var poolGenesis2 = await sys.Storage.FindFirstBlockAsync(block.DestinationAccountId);
+                        if (poolGenesis2 == null)
                             return APIResultCodes.PoolNotExists;
 
-                        if (!pool.Shares.ContainsKey(block.AccountID))
-                            return APIResultCodes.PoolShareNotExists;
-                    }
+                        if (poolGenesis.Hash != poolGenesis2.Hash)
+                            return APIResultCodes.PoolNotExists;
 
-                    return APIResultCodes.Success;
+                        var chgs = block.GetBalanceChanges(lastBlock);
+                        if (chgs.Changes.Count != 2)
+                            return APIResultCodes.InvalidPoolDepositionAmount;
+
+                        if (!chgs.Changes.ContainsKey(poolGenesis.Token0) || !chgs.Changes.ContainsKey(poolGenesis.Token1))
+                            return APIResultCodes.InvalidPoolDepositionAmount;
+
+                        var poolLatest = await sys.Storage.FindLatestBlockAsync(block.DestinationAccountId) as TransactionBlock;
+                        // compare rito
+                        if (poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal()
+                            != chgs.Changes[poolGenesis.Token0] / chgs.Changes[poolGenesis.Token1])
+                            return APIResultCodes.InvalidPoolDepositionRito;
+                    }
                 }
                 else
                     return APIResultCodes.InvalidTokenPair;

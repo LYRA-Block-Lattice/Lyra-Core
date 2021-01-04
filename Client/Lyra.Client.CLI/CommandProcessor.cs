@@ -271,13 +271,7 @@ namespace Lyra.Client.CLI
                     Console.WriteLine($"No liquidate pool for {token0} and {token1}. Would you like create a pool for it? It cost 1000 LYR to create a pool.");
                     if (ReadYesNoAnswer())
                     {
-                        var tags = new Dictionary<string, string>();
-                        tags.Add("token0", token0);
-                        tags.Add("token1", token1);
-                        tags.Add(Block.REQSERVICETAG, "");
-                        var amounts = new Dictionary<string, decimal>();
-                        amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1000m);
-                        var poolCreateResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amounts, tags);
+                        var poolCreateResult = await _wallet.CreateLiquidatePoolAsync(token0, token1);
                         if (poolCreateResult.ResultCode == APIResultCodes.Success)
                         {
                             Console.WriteLine("Liquidate pool creating in progress...");
@@ -355,7 +349,7 @@ namespace Lyra.Client.CLI
                 var act = int.Parse(Console.ReadLine());
                 switch(act)
                 {
-                    case 1:
+                    case 1: //Add liquidate to pool
                         decimal token0Amount, token1Amount;
                         Console.WriteLine("Add liquidate too pool");
                         Console.WriteLine($"How many {token0} will you add to the pool:");
@@ -375,16 +369,7 @@ namespace Lyra.Client.CLI
                         Console.Write("Is it OK? Y/n? ");
                         if (ReadYesNoAnswer())
                         {
-                            var amountsDeposit = new Dictionary<string, decimal>();
-                            amountsDeposit.Add(token0, token0Amount);
-                            amountsDeposit.Add(token1, token1Amount);
-
-                            var tags = new Dictionary<string, string>();
-                            tags.Add("token0", token0);
-                            tags.Add("token1", token1);
-                            tags.Add(Block.REQSERVICETAG, "");
-
-                            var poolDepositResult = await _wallet.SendEx(lp.PoolAccountId, amountsDeposit, tags);
+                            var poolDepositResult = await _wallet.AddLiquidateToPoolAsync(token0, token0Amount, token1, token1Amount);
 
                             if (poolDepositResult.Successful())
                             {
@@ -406,7 +391,7 @@ namespace Lyra.Client.CLI
                         }
                         break;
 
-                    case 2:
+                    case 2: //Remove liquidate from pool
                         Console.WriteLine("Remove liquidate from pool");
                         var latestPool = lp.GetBlock() as PoolDepositBlock;
                         if (latestPool?.Shares?.ContainsKey(_wallet.AccountId) == true)

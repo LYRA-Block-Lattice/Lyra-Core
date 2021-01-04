@@ -442,7 +442,9 @@ namespace Lyra.Core.Blocks
         PoolAlreadyExists,
         PoolNotExists,
         PoolShareNotExists,
-        InvalidPoolOperation
+        InvalidPoolOperation,
+        InvalidPoolDepositionAmount,
+        InvalidPoolDepositionRito
 
     }
 }

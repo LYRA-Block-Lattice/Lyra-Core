@@ -57,6 +57,19 @@ namespace UnitTests.Swap
                 var result = await w1.CreateToken(secs[1], secs[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
                 Assert.IsTrue(result.Successful(), "Failed to create token: " + result.ResultCode);
             }
+
+            var pool = await client.GetPool(LyraGlobal.OFFICIALTICKERCODE, testTokenA);
+            if(pool.PoolAccountId == null)
+            {
+                var w1 = Restore(testPrivateKey);
+                await w1.Sync(client);
+
+                var token0 = LyraGlobal.OFFICIALTICKERCODE;
+                var token1 = testTokenA;
+
+                var poolCreateResult = await w1.CreateLiquidatePoolAsync(token0, token1);
+                Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, "Can't create pool for " + token1);
+            }
         }
         [TestMethod]
         public async Task GetNullPoolFactory()

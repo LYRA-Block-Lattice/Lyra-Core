@@ -1775,6 +1775,25 @@ namespace Lyra.Core.Accounts
             return await SendEx(pool.PoolFactoryAccountId, amounts, tags);
         }
 
+        public async Task<APIResult> AddLiquidateToPoolAsync(string token0, decimal token0Amount, string token1, decimal token1Amount)
+        {
+            var pool = await _rpcClient.GetPool(token0, token1);
+            if (pool.PoolAccountId == null)
+                return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
+
+            var amountsDeposit = new Dictionary<string, decimal>();
+            amountsDeposit.Add(token0, token0Amount);
+            amountsDeposit.Add(token1, token1Amount);
+
+            var tags = new Dictionary<string, string>();
+            tags.Add("token0", token0);
+            tags.Add("token1", token1);
+            tags.Add(Block.REQSERVICETAG, "");
+
+            var poolDepositResult = await SendEx(pool.PoolAccountId, amountsDeposit, tags);
+            return poolDepositResult;
+        }
+
         public string PrintLastBlock()
         {
             TransactionBlock latestBlock = GetLatestBlock();
