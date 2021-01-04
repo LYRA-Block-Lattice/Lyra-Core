@@ -6,6 +6,7 @@ using Lyra.Data.Crypto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ namespace UnitTests.Swap
     public class UT_Pool
     {
         LyraRestClient client = LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0");
-        private string testTokenA = "unittest/PoolCoinB4";
+        private string testTokenA = "unittest/PoolCoinB5";
 
         string testPrivateKey = "2LqBaZopCiPjBQ9tbqkqqyo4TSaXHUth3mdMJkhaBbMTf6Mr8u";
         string testPublicKey = "LUTPLGNAP4vTzXh5tWVCmxUBh8zjGTR8PKsfA8E67QohNsd1U6nXPk4Q9jpFKsKfULaaT3hs6YK7WKm57QL5oarx8mZdbM";
@@ -100,7 +101,7 @@ namespace UnitTests.Swap
 
                 var swapRito = 0m;
                 var poolLatestBlock = pool.GetBlock() as TransactionBlock;
-                if (poolLatestBlock.Balances.ContainsKey(pool.Token0))
+                if (!poolLatestBlock.Balances.Any(a => a.Value == 0))
                     swapRito = poolLatestBlock.Balances[pool.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[pool.Token1].ToBalanceDecimal();
 
                 if (swapRito == 0)
@@ -169,7 +170,8 @@ namespace UnitTests.Swap
                 Assert.IsFalse(poolWithShare.Shares.ContainsKey(w1.AccountId), "The pool share is still there.");
 
                 await w1.Sync(client);
-                Assert.AreEqual(token0BalanceBefore + token0ShouldReceive, w1.GetLatestBlock().Balances[pool.Token0].ToBalanceDecimal());
+                // token0 is lyr, and fee + 1m = 2
+                Assert.AreEqual(token0BalanceBefore + token0ShouldReceive - 2, w1.GetLatestBlock().Balances[pool.Token0].ToBalanceDecimal());
                 Assert.AreEqual(token1BalanceBefore + token1ShouldReceive, w1.GetLatestBlock().Balances[pool.Token1].ToBalanceDecimal());
             }
             finally
