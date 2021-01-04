@@ -271,38 +271,44 @@ namespace Lyra.Core.Authorizers
 
         protected virtual async Task<APIResultCodes> ValidateNonFungibleAsync(DagSystem sys, TransactionBlock send_or_receice_block, TransactionBlock previousBlock)
         {
-            TransactionInfoEx transaction = send_or_receice_block.GetTransaction(previousBlock);
+            var transaction = send_or_receice_block.GetBalanceChanges(previousBlock);
 
-            if (transaction.TokenCode == LyraGlobal.OFFICIALTICKERCODE)
+            if (transaction.Changes.Count == 1 && transaction.Changes.First().Key == LyraGlobal.OFFICIALTICKERCODE)
                 return APIResultCodes.Success;
 
-            var token_block = await sys.Storage.FindTokenGenesisBlockAsync(null, transaction.TokenCode);
-            if (token_block == null)
-                return APIResultCodes.TokenGenesisBlockNotFound;
-
-            if (!token_block.IsNonFungible)
-                return APIResultCodes.Success;
-
-            //INonFungibleToken non_fungible_token = send_block.GetNonFungibleTransaction(previousBlock);
-
-            if (send_or_receice_block.NonFungibleToken == null)
-                return APIResultCodes.MissingNonFungibleToken;
-
-            if (send_or_receice_block.NonFungibleToken.Denomination != transaction.Amount)
-                return APIResultCodes.InvalidNonFungibleAmount;
-
-            if (send_or_receice_block.NonFungibleToken.TokenCode != transaction.TokenCode)
-                return APIResultCodes.InvalidNonFungibleTokenCode;
-
-            var vr = send_or_receice_block.NonFungibleToken.VerifySignature(token_block.NonFungibleKey);
-            if (!vr)
-                return APIResultCodes.NonFungibleSignatureVerificationFailed;
-
-            if (token_block.ContractType == ContractTypes.Collectible)
+            foreach(var chg in transaction.Changes)
             {
-                var res = await ValidateCollectibleNFTAsync(sys, send_or_receice_block, token_block);
-                if (res != APIResultCodes.Success)
-                    return res;
+                var tokenCode = chg.Key;
+                var tokenAmount = chg.Value;
+
+                var token_block = await sys.Storage.FindTokenGenesisBlockAsync(null, tokenCode);
+                if (token_block == null)
+                    return APIResultCodes.TokenGenesisBlockNotFound;
+
+                if (!token_block.IsNonFungible)
+                    return APIResultCodes.Success;
+
+                //INonFungibleToken non_fungible_token = send_block.GetNonFungibleTransaction(previousBlock);
+
+                if (send_or_receice_block.NonFungibleToken == null)
+                    return APIResultCodes.MissingNonFungibleToken;
+
+                if (send_or_receice_block.NonFungibleToken.Denomination != tokenAmount)
+                    return APIResultCodes.InvalidNonFungibleAmount;
+
+                if (send_or_receice_block.NonFungibleToken.TokenCode != tokenCode)
+                    return APIResultCodes.InvalidNonFungibleTokenCode;
+
+                var vr = send_or_receice_block.NonFungibleToken.VerifySignature(token_block.NonFungibleKey);
+                if (!vr)
+                    return APIResultCodes.NonFungibleSignatureVerificationFailed;
+
+                if (token_block.ContractType == ContractTypes.Collectible)
+                {
+                    var res = await ValidateCollectibleNFTAsync(sys, send_or_receice_block, token_block);
+                    if (res != APIResultCodes.Success)
+                        return res;
+                }
             }
 
             return APIResultCodes.Success;
