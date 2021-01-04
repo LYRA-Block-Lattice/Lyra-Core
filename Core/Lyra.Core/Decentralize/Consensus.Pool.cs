@@ -129,9 +129,8 @@ namespace Lyra.Core.Decentralize
                 DestinationAccountId = targetAccountId,
                 Balances = new Dictionary<string, long>(),
                 Tags = null,
-                Fee = lsb.TransferFee,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.Regular
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee
             };
 
             swapOutBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
@@ -243,9 +242,8 @@ namespace Lyra.Core.Decentralize
                 DestinationAccountId = targetAccountId,
                 Balances = new Dictionary<string, long>(),
                 Tags = null,
-                Fee = lsb.TransferFee,
-                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.Regular
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee
             };
 
             withdrawBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
