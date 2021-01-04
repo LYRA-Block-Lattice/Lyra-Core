@@ -438,7 +438,10 @@ namespace Lyra.Core.Blocks
         InvalidTickerName,
         InvalidAuthorizerSignatureInServiceBlock,
 
-        InvalidTokenPair = 330
+        InvalidTokenPair = 330,
+        PoolAlreadyExists,
+        PoolNotExists,
+        PoolShareNotExists
 
     }
 }
