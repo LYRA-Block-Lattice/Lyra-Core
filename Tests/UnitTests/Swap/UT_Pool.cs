@@ -16,8 +16,7 @@ namespace UnitTests.Swap
     public class UT_Pool
     {
         LyraRestClient client = LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0");
-        private string testTokenA = "unittest/PoolCoinA";
-        private string testTokenB = "unittest/PoolCoinB";
+        private string testTokenA = "unittest/PoolCoinB";
 
         string testPrivateKey = "2LqBaZopCiPjBQ9tbqkqqyo4TSaXHUth3mdMJkhaBbMTf6Mr8u";
         string testPublicKey = "LUTPLGNAP4vTzXh5tWVCmxUBh8zjGTR8PKsfA8E67QohNsd1U6nXPk4Q9jpFKsKfULaaT3hs6YK7WKm57QL5oarx8mZdbM";
@@ -52,7 +51,6 @@ namespace UnitTests.Swap
 
             var balances = w1.GetLatestBlock().Balances;
             Assert.IsTrue(balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() > 100000m, "Insufficient funds: LYR");
-            Assert.IsTrue(balances[testTokenA].ToBalanceDecimal() > 100000m, "Insufficient funds: " + testTokenA);
 
             // make sure we have 2 test token
             var genResult = await client.GetTokenGenesisBlock(testPublicKey, testTokenA, await SignAPIAsync());
@@ -73,6 +71,9 @@ namespace UnitTests.Swap
                 await Task.Delay(3000);     // give consens network time to create it.
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, "Can't create pool for " + token1);
             }
+
+            await w1.Sync(client);
+            Assert.IsTrue(balances[testTokenA].ToBalanceDecimal() > 100000m, "Insufficient funds: " + testTokenA);
         }
         [TestMethod]
         public async Task PoolSetupProperly()
