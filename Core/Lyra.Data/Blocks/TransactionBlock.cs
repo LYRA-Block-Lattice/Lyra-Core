@@ -65,6 +65,11 @@ namespace Lyra.Core.Blocks
         {
             Changes = new Dictionary<string, decimal>();
         }
+
+        public object OrderBy(Func<object, object> p)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     // this is base class for all send and receive blocks, i.e. all blocks containing transaction,

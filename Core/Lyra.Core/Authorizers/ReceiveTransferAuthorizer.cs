@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using System.Threading.Tasks;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
+using System.Linq;
 
 namespace Lyra.Core.Authorizers
 {
@@ -52,7 +53,7 @@ namespace Lyra.Core.Authorizers
             if (!block.ValidateTransaction(lastBlock))
                 return APIResultCodes.ReceiveTransactionValidationFailed;
 
-            result = await ValidateReceiveTransAmountAsync(sys, block, block.GetTransaction(lastBlock));
+            result = await ValidateReceiveTransAmountAsync(sys, block, block.GetBalanceChanges(lastBlock));
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -80,7 +81,7 @@ namespace Lyra.Core.Authorizers
         //}
 
 
-        protected async Task<APIResultCodes> ValidateReceiveTransAmountAsync(DagSystem sys, ReceiveTransferBlock block, TransactionInfo receiveTransaction)
+        protected async Task<APIResultCodes> ValidateReceiveTransAmountAsync(DagSystem sys, ReceiveTransferBlock block, BalanceChanges receiveTransaction)
         {
             //find the corresponding send block and validate the added transaction amount
             var sourceBlock = await sys.Storage.FindBlockByHashAsync(block.SourceHash) as TransactionBlock;
@@ -89,7 +90,7 @@ namespace Lyra.Core.Authorizers
 
 
             // find the actual amount of transaction 
-            TransactionInfo sendTransaction;
+            BalanceChanges sendTransaction;
             if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer
                 || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn)  // temp code. should use getbalancechanges
             {
@@ -104,7 +105,7 @@ namespace Lyra.Core.Authorizers
                 if (prevToSendBlock == null)
                     return APIResultCodes.CouldNotTraceSendBlockChain;
 
-                sendTransaction = sourceBlock.GetTransaction(prevToSendBlock);
+                sendTransaction = sourceBlock.GetBalanceChanges(prevToSendBlock);
 
                 if (!sourceBlock.ValidateTransaction(prevToSendBlock))
                     return APIResultCodes.SendTransactionValidationFailed;
@@ -115,16 +116,21 @@ namespace Lyra.Core.Authorizers
             else
             if (block.BlockType == BlockTypes.ReceiveFee || block.BlockType == BlockTypes.OpenAccountWithReceiveFee)
             {
-                sendTransaction = new TransactionInfo() { TokenCode = LyraGlobal.OFFICIALTICKERCODE, Amount = sourceBlock.Fee };
+                sendTransaction = new BalanceChanges();
+                sendTransaction.Changes.Add(LyraGlobal.OFFICIALTICKERCODE, sourceBlock.Fee);
             }            
             else
                 return APIResultCodes.InvalidBlockType;
 
-            if (sendTransaction.Amount != receiveTransaction.Amount)
+            if(!sendTransaction.Changes.OrderBy(kvp => kvp.Key)
+                .SequenceEqual(receiveTransaction.Changes.OrderBy(kvp => kvp.Key)))
                 return APIResultCodes.TransactionAmountDoesNotMatch;
 
-            if (sendTransaction.TokenCode != receiveTransaction.TokenCode)
-                return APIResultCodes.TransactionTokenDoesNotMatch;
+            //if (sendTransaction.Amount != receiveTransaction.Amount)
+            //    return APIResultCodes.TransactionAmountDoesNotMatch;
+
+            //if (sendTransaction.TokenCode != receiveTransaction.TokenCode)
+            //    return APIResultCodes.TransactionTokenDoesNotMatch;
 
             return APIResultCodes.Success;
         }

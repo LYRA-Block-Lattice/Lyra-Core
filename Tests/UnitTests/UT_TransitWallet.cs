@@ -14,6 +14,9 @@ using System.Threading;
 
 namespace UnitTests
 {
+    /// <summary>
+    /// Note: send at least 1M LYR to account 1. create a token named "unittest/trans" in account 1.
+    /// </summary>
     [TestClass]
     public class UT_TransitWallet
     {
