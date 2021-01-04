@@ -16,7 +16,7 @@ namespace UnitTests.Swap
     public class UT_Pool
     {
         LyraRestClient client = LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0");
-        private string testTokenA = "unittest/PoolCoinB";
+        private string testTokenA = "unittest/PoolCoinB1";
 
         string testPrivateKey = "2LqBaZopCiPjBQ9tbqkqqyo4TSaXHUth3mdMJkhaBbMTf6Mr8u";
         string testPublicKey = "LUTPLGNAP4vTzXh5tWVCmxUBh8zjGTR8PKsfA8E67QohNsd1U6nXPk4Q9jpFKsKfULaaT3hs6YK7WKm57QL5oarx8mZdbM";
@@ -147,7 +147,7 @@ namespace UnitTests.Swap
 
                 var token0BalanceBefore = w1.GetLatestBlock().Balances[pool.Token0].ToBalanceDecimal();
                 var token1BalanceBefore = w1.GetLatestBlock().Balances[pool.Token1].ToBalanceDecimal();
-                var myshare = poolWithShare.Shares[w1.AccountId].ToBalanceDecimal();
+                var myshare = poolWithShare.Shares[w1.AccountId].ToRitoDecimal();
                 var token0ShouldReceive = Math.Round(myshare * poolLatest.Balances[pool.Token0].ToBalanceDecimal(), 8);
                 var token1ShouldReceive = Math.Round(myshare * poolLatest.Balances[pool.Token1].ToBalanceDecimal(), 8);
 

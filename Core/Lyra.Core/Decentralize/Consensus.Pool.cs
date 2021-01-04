@@ -187,7 +187,7 @@ namespace Lyra.Core.Decentralize
             if (latestPoolBlock.Balances.Any())
             {
                 var lastBalance = latestPoolBlock.Balances.ToDecimalDict();
-                var lastShares = ((IPool)latestPoolBlock).Shares.ToDecimalDict();
+                var lastShares = ((IPool)latestPoolBlock).Shares.ToRitoDecimalDict();
 
                 // the rito must be preserved for every deposition
                 var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
@@ -223,7 +223,7 @@ namespace Lyra.Core.Decentralize
             }
 
             depositBlock.Balances = depositBalance.ToLongDict();
-            depositBlock.Shares = depositShares.ToLongDict();
+            depositBlock.Shares = depositShares.ToRitoLongDict();
 
             depositBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
@@ -252,10 +252,10 @@ namespace Lyra.Core.Decentralize
             var poolLatestBlock = await _sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
 
             var curBalance = poolLatestBlock.Balances.ToDecimalDict();
-            var curShares = (poolLatestBlock as IPool).Shares.ToDecimalDict();
+            var curShares = (poolLatestBlock as IPool).Shares.ToRitoDecimalDict();
 
             var nextBalance = poolLatestBlock.Balances.ToDecimalDict();
-            var nextShares = (poolLatestBlock as IPool).Shares.ToDecimalDict();
+            var nextShares = (poolLatestBlock as IPool).Shares.ToRitoDecimalDict();
 
             var usersShare = curShares[targetAccountId];
             var amountsToSend = new Dictionary<string, decimal>();
@@ -278,7 +278,7 @@ namespace Lyra.Core.Decentralize
             nextBalance[LyraGlobal.OFFICIALTICKERCODE] -= lsb.TradeFee;
 
             withdrawBlock.Balances = nextBalance.ToLongDict();
-            withdrawBlock.Shares = nextShares.ToLongDict();
+            withdrawBlock.Shares = nextShares.ToRitoLongDict();
 
             withdrawBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 

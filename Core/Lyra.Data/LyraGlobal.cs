@@ -94,5 +94,25 @@ namespace Lyra.Core.API
         {
             return dict.ToDictionary(k => k.Key, k => k.Value.ToBalanceLong());
         }
+
+        public static long ToRitoLong(this decimal currency)
+        {
+            return (long)Math.Round(currency * (1 ^ 14));
+        }
+
+        public static decimal ToRitoDecimal(this long currency)
+        {
+            return ((decimal)currency) / (1^14);
+        }
+
+        public static Dictionary<string, decimal> ToRitoDecimalDict(this Dictionary<string, long> dict)
+        {
+            return dict.ToDictionary(k => k.Key, k => k.Value.ToRitoDecimal());
+        }
+
+        public static Dictionary<string, long> ToRitoLongDict(this Dictionary<string, decimal> dict)
+        {
+            return dict.ToDictionary(k => k.Key, k => k.Value.ToRitoLong());
+        }
     }
 }
