@@ -178,15 +178,14 @@ namespace Lyra.Core.Authorizers
             if (previousBlock == null)
                 return true;
 
-            var trs = block.GetTransaction(previousBlock);
+            var trs = block.GetBalanceChanges(previousBlock);
 
-            if (trs.Amount <= 0)
-                return true;
-
-            var token = await sys.Storage.FindTokenGenesisBlockAsync(null, trs.TokenCode);
-            if (token != null)
-                if (token.RenewalDate < DateTime.UtcNow)
+            foreach(var chg in trs.Changes)
+            {
+                var token = await sys.Storage.FindTokenGenesisBlockAsync(null, chg.Key);
+                if (token == null || token.RenewalDate < DateTime.UtcNow)
                     return false;
+            }
 
             return true;
         }

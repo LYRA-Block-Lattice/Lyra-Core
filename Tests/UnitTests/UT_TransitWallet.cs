@@ -53,7 +53,7 @@ namespace UnitTests
                 var w2 = Restore(PRIVATE_KEY_2);
 
                 var syncResult = await w1.ReceiveAsync();
-                Assert.AreEqual(syncResult, Lyra.Core.Blocks.APIResultCodes.Success);
+                Assert.AreEqual(syncResult, APIResultCodes.Success);
                 var b1 = await w1.GetBalanceAsync();
 
                 var b1Before = b1[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
@@ -66,7 +66,7 @@ namespace UnitTests
                 var amounts = new Dictionary<string, decimal>();
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, amount);
                 var sendResult = await w1.SendAsync(amounts, w2.AccountId);
-                Assert.IsTrue(sendResult == Lyra.Core.Blocks.APIResultCodes.Success);
+                Assert.IsTrue(sendResult == APIResultCodes.Success, "Failed to send token.");
 
                 Assert.IsTrue(APIResultCodes.Success == await w2.ReceiveAsync());
 
@@ -93,7 +93,7 @@ namespace UnitTests
                 var w2 = Restore(PRIVATE_KEY_2);
 
                 var syncResult = await w1.ReceiveAsync();
-                Assert.AreEqual(syncResult, Lyra.Core.Blocks.APIResultCodes.Success);
+                Assert.AreEqual(syncResult, APIResultCodes.Success);
                 var b1 = await w1.GetBalanceAsync();
 
                 var b1Before = b1[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
@@ -114,7 +114,7 @@ namespace UnitTests
                 amounts.Add(testToken, amount2);
 
                 var sendResult = await w1.SendAsync(amounts, w2.AccountId);
-                Assert.IsTrue(sendResult == Lyra.Core.Blocks.APIResultCodes.Success);
+                Assert.IsTrue(sendResult == APIResultCodes.Success, "Failed to send token.");
 
                 Assert.IsTrue(APIResultCodes.Success == await w2.ReceiveAsync());
 
