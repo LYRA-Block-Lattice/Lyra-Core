@@ -41,6 +41,10 @@ namespace Lyra.Core.Blocks
 
         public override TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
         {
+            var chgs = GetBalanceChanges(previousBlock);
+            if (chgs.Changes.Count > 1)
+                throw new System.Exception("Obslete: Multiple token send not supported. use GetBalanceChanges instead.");
+
             // previous block cannot be null for send block as you have to have something to send
             if (previousBlock == null)
                 return null;

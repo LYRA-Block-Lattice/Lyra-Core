@@ -24,6 +24,10 @@ namespace Lyra.Core.Blocks
 
         public override TransactionInfoEx GetTransaction(TransactionBlock previousBlock)
         {
+            var chgs = GetBalanceChanges(previousBlock);
+            if (chgs.Changes.Count > 1)
+                throw new System.Exception("Obslete: Multiple token send not supported. use GetBalanceChanges instead.");
+
             var transaction = new TransactionInfoEx() { TokenCode = LyraGlobal.OFFICIALTICKERCODE, Amount = 0, FeeAmount = 0, FeeCode = null };
 
             // let's find te balance that was changed since the previous block - to determine the token being transacted

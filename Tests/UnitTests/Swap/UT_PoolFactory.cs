@@ -35,7 +35,7 @@ namespace UnitTests.Swap
             }
         }
         [TestMethod]
-        public async Task GetPoolFactoryAsync()
+        public async Task GetNullPoolFactory()
         {
             var pool = await client.GetPool("test1", "test2");
             Assert.IsNull(pool.PoolAccountId);

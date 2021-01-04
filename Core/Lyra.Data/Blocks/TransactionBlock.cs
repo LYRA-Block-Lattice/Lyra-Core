@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
@@ -130,10 +131,10 @@ namespace Lyra.Core.Blocks
 
         public virtual bool ValidateTransaction(TransactionBlock previousBlock)
         {
-            var trs = GetTransaction(previousBlock);
+            var trs = GetBalanceChanges(previousBlock);
 
             //if (trs.Amount == 0)
-            if (trs.Amount <= 0)
+            if (trs.Changes.Count == 0 || trs.Changes.Any(a => a.Value <= 0))
                 return false;
 
             return true;
