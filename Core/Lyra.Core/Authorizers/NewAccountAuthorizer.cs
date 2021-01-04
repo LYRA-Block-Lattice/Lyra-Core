@@ -46,7 +46,7 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            result = await ValidateReceiveTransAmountAsync(sys, block as ReceiveTransferBlock, block.GetTransaction(null));
+            result = await ValidateReceiveTransAmountAsync(sys, block as ReceiveTransferBlock, block.GetBalanceChanges(null));
             if (result != APIResultCodes.Success)
                 return result;
 
