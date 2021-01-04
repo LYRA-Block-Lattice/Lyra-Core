@@ -183,7 +183,7 @@ namespace Lyra.Core.Authorizers
             foreach(var chg in trs.Changes)
             {
                 var token = await sys.Storage.FindTokenGenesisBlockAsync(null, chg.Key);
-                if (token != null || token.RenewalDate < DateTime.UtcNow)
+                if (token != null && token.RenewalDate < DateTime.UtcNow)
                     return false;
 
                 if (token == null && block is TokenGenesisBlock gen && gen.Ticker != chg.Key)

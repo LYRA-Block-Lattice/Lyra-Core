@@ -494,7 +494,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var block = await NodeService.Dag.Storage.GetLastServiceBlockAsync();
+                var block = await NodeService.Dag?.Storage.GetLastServiceBlockAsync();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -519,7 +519,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var block = await NodeService.Dag.Storage.GetLastConsolidationBlockAsync();
+                var block = await NodeService.Dag?.Storage.GetLastConsolidationBlockAsync();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
