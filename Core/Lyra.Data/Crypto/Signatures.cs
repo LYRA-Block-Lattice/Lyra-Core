@@ -33,7 +33,7 @@ namespace Lyra.Data.Crypto
         {
             try
             {
-                if (AccountId[0] != LyraGlobal.ADDRESSPREFIX)
+                if (AccountId == null || AccountId[0] != LyraGlobal.ADDRESSPREFIX)
                     return false;
 
                 Base58Encoding.DecodeAccountId(AccountId);
