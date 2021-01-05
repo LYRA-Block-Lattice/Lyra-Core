@@ -444,7 +444,9 @@ namespace Lyra.Core.Blocks
         PoolShareNotExists,
         InvalidPoolOperation,
         InvalidPoolDepositionAmount,
-        InvalidPoolDepositionRito
+        InvalidPoolDepositionRito,
+        InvalidTokenToSwap,
+        TooManyTokensToSwap
 
     }
 }

@@ -179,5 +179,76 @@ namespace UnitTests.Swap
                 semaphore.Release();
             }
         }
+
+        [TestMethod]
+        public async Task SwapCoin1()
+        {
+            try
+            {
+                await semaphore.WaitAsync();
+
+                var pool = await client.GetPool(testTokenA, LyraGlobal.OFFICIALTICKERCODE);
+                Assert.IsNotNull(pool.PoolAccountId);
+                var poolLatestBlock = pool.GetBlock() as TransactionBlock;
+
+                Assert.IsTrue(poolLatestBlock.Balances[pool.Token0] > 0 && poolLatestBlock.Balances[pool.Token1] > 0, "No liquidate in pool.");
+
+                var w1 = Restore(testPrivateKey);
+                await w1.Sync(client);
+
+                var testTokenBalance = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+
+                var swapRito = poolLatestBlock.Balances[pool.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[pool.Token1].ToBalanceDecimal();
+
+                var amount = (decimal)((new Random().NextDouble() + 0.07) * 1000);
+                var result = await w1.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, testTokenA, amount);
+                Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {testTokenA}: {result.ResultCode}");
+                await Task.Delay(3000);
+
+                var amountToGet = swapRito * amount;
+                await w1.Sync(client);
+
+                var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalance2 = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+
+                Assert.AreEqual(testTokenBalance - amount, testTokenBalance2);
+                Assert.AreEqual(lyrBalance + amountToGet, lyrBalance2);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        [TestMethod]
+        public async Task SwapCoin2()
+        {
+            try
+            {
+                await semaphore.WaitAsync();
+
+
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        [TestMethod]
+        public async Task SwapCoinWrong()
+        {
+            try
+            {
+                await semaphore.WaitAsync();
+
+
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
     }
 }

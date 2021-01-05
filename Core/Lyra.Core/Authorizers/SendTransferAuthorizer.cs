@@ -8,6 +8,7 @@ using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using System.Diagnostics;
 using Lyra.Core.API;
+using System.Linq;
 
 namespace Lyra.Core.Authorizers
 {
@@ -156,26 +157,50 @@ namespace Lyra.Core.Authorizers
                         if (poolGenesis.Hash != poolGenesis2.Hash)
                             return APIResultCodes.PoolNotExists;
 
-                        var chgs = block.GetBalanceChanges(lastBlock);
-                        if (chgs.Changes.Count != 2)
-                            return APIResultCodes.InvalidPoolDepositionAmount;
-
-                        if (!chgs.Changes.ContainsKey(poolGenesis.Token0) || !chgs.Changes.ContainsKey(poolGenesis.Token1))
-                            return APIResultCodes.InvalidPoolDepositionAmount;
-
-                        var poolLatest = await sys.Storage.FindLatestBlockAsync(block.DestinationAccountId) as TransactionBlock;
-                        // compare rito
-                        if(poolLatest.Balances.ContainsKey(poolGenesis.Token0) && poolLatest.Balances.ContainsKey(poolGenesis.Token1)
-                            && poolLatest.Balances[poolGenesis.Token0] > 0 && poolLatest.Balances[poolGenesis.Token1] > 0
-                            )
+                        if(block.Tags[Block.REQSERVICETAG] == "")
                         {
-                            var rito = (poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal());
-                            var token0Amount = chgs.Changes[poolGenesis.Token0];
-                            var token1AmountShouldBe = Math.Round(token0Amount / rito, 8);
-                            if (chgs.Changes[poolGenesis.Token1] != token1AmountShouldBe
-                                && Math.Abs(chgs.Changes[poolGenesis.Token1] - token1AmountShouldBe) / token1AmountShouldBe > 0.0000001m
+                            var chgs = block.GetBalanceChanges(lastBlock);
+                            if (chgs.Changes.Count != 2)
+                                return APIResultCodes.InvalidPoolDepositionAmount;
+
+                            if (!chgs.Changes.ContainsKey(poolGenesis.Token0) || !chgs.Changes.ContainsKey(poolGenesis.Token1))
+                                return APIResultCodes.InvalidPoolDepositionAmount;
+
+                            var poolLatest = await sys.Storage.FindLatestBlockAsync(block.DestinationAccountId) as TransactionBlock;
+                            // compare rito
+                            if (poolLatest.Balances.ContainsKey(poolGenesis.Token0) && poolLatest.Balances.ContainsKey(poolGenesis.Token1)
+                                && poolLatest.Balances[poolGenesis.Token0] > 0 && poolLatest.Balances[poolGenesis.Token1] > 0
                                 )
-                                return APIResultCodes.InvalidPoolDepositionRito;
+                            {
+                                var rito = (poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal());
+                                var token0Amount = chgs.Changes[poolGenesis.Token0];
+                                var token1AmountShouldBe = Math.Round(token0Amount / rito, 8);
+                                if (chgs.Changes[poolGenesis.Token1] != token1AmountShouldBe
+                                    && Math.Abs(chgs.Changes[poolGenesis.Token1] - token1AmountShouldBe) / token1AmountShouldBe > 0.0000001m
+                                    )
+                                    return APIResultCodes.InvalidPoolDepositionRito;
+                            }
+                        }
+                        else if(block.Tags[Block.REQSERVICETAG] == "swaptoken")
+                        {
+                            var chgs = block.GetBalanceChanges(lastBlock);
+                            if (chgs.Changes.Count != 1)
+                                return APIResultCodes.InvalidTokenToSwap;
+
+                            string tokenToSwap = null;
+                            var kvp = chgs.Changes.First();
+                            if (kvp.Key == poolGenesis.Token0)
+                                tokenToSwap = poolGenesis.Token0;
+                            else if (kvp.Key == poolGenesis.Token1)
+                                tokenToSwap = poolGenesis.Token1;
+
+                            if(tokenToSwap == null)
+                                return APIResultCodes.InvalidTokenToSwap;
+
+                            // check amount
+                            var poolLatest = await sys.Storage.FindLatestBlockAsync(block.DestinationAccountId) as TransactionBlock;
+                            if (kvp.Value > poolLatest.Balances[tokenToSwap].ToBalanceDecimal() / 2)
+                                return APIResultCodes.TooManyTokensToSwap;
                         }
                     }
                 }

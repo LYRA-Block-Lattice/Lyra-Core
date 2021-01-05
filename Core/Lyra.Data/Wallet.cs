@@ -1811,6 +1811,23 @@ namespace Lyra.Core.Accounts
             return poolWithdrawResult;
         }
 
+        public async Task<APIResult> SwapToken(string token0, string token1, string tokenToSwap, decimal amountToSwap)
+        {
+            var pool = await _rpcClient.GetPool(token0, token1);
+            if (pool.PoolAccountId == null)
+                return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
+
+            var tags = new Dictionary<string, string>();
+            tags.Add(Block.REQSERVICETAG, "swaptoken");
+            tags.Add("poolid", pool.PoolAccountId);
+            tags.Add("token0", token0);
+            tags.Add("token1", token1);
+            var amounts = new Dictionary<string, decimal>();
+            amounts.Add(tokenToSwap, amountToSwap);
+            var swapTokenResult = await SendEx(pool.PoolAccountId, amounts, tags);
+            return swapTokenResult;
+        }
+
         public string PrintLastBlock()
         {
             TransactionBlock latestBlock = GetLatestBlock();
