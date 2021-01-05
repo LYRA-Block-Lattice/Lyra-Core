@@ -1238,7 +1238,7 @@ namespace Lyra.Core.Decentralize
             if (block is TransactionBlock tx)
             {
                 var sameChainBlocks = _activeConsensus.Values
-                    .Select(x => x.State.InputMsg.Block as TransactionBlock)
+                    .Select(x => x.State?.InputMsg.Block as TransactionBlock)
                     .Where(a => a?.AccountID == tx.AccountID);
 
                 var sameHeight = sameChainBlocks.Any(y => y.Height == tx.Height);
