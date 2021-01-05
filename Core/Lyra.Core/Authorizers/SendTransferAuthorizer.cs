@@ -182,6 +182,10 @@ namespace Lyra.Core.Authorizers
                 else
                     return APIResultCodes.InvalidTokenPair;
             }
+            else if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
+            {
+                return APIResultCodes.InvalidPoolOperation;
+            }
 
             return APIResultCodes.Success;
         }
