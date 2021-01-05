@@ -1273,6 +1273,7 @@ namespace Lyra.Core.Decentralize
         {
             if (IsBlockInQueue(state.InputMsg?.Block))
             {
+                state.Done?.Set();      // fail immediatelly
                 return;
             }                
 
