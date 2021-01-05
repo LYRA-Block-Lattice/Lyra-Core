@@ -47,8 +47,9 @@ namespace Lyra.Core.Authorizers
             var OriginalSendBlockPrevBlock = await sys.Storage.FindBlockByHashAsync(originalSendBlock.PreviousHash) as TransactionBlock;
             var chgs = originalSendBlock.GetBalanceChanges(OriginalSendBlockPrevBlock);
 
-            // calculate rito by latestBlock.prevBlock.
-            var swapRito = (previousBlock as TransactionBlock).Balances[poolGenesisBlock.Token0].ToBalanceDecimal() / (previousBlock as TransactionBlock).Balances[poolGenesisBlock.Token1].ToBalanceDecimal();
+            // calculate rito by prevBlock.prevBlock
+            var prevprevBlock = await sys.Storage.FindBlockByHashAsync(previousBlock.PreviousHash) as TransactionBlock;
+            var swapRito = prevprevBlock.Balances[poolGenesisBlock.Token0].ToBalanceDecimal() / prevprevBlock.Balances[poolGenesisBlock.Token1].ToBalanceDecimal();
             if (chgs.Changes.Count != 1)
                 return APIResultCodes.InvalidPoolOperation;
             string tokenIn = chgs.Changes.First().Key;
