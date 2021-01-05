@@ -49,12 +49,48 @@ namespace Lyra.Data.API
 
         public List<RevnuItem> ConfirmedEarns { get; set; }
         public List<RevnuItem> UnConfirmedEarns { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as FeeStats);
+        }
+
+        public bool Equals(FeeStats other)
+        {
+            return other != null &&
+                   TotalFeeConfirmed == other.TotalFeeConfirmed &&
+                   TotalFeeUnConfirmed == other.TotalFeeUnConfirmed;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = base.GetHashCode() + 19;
+                if (null != ConfirmedEarns)
+                    foreach (var t in ConfirmedEarns)
+                    {
+                        hash = hash * 31 + (t == null ? 0 : t.GetHashCode());
+                    }
+                if (null != UnConfirmedEarns)
+                    foreach (var t in UnConfirmedEarns)
+                    {
+                        hash = hash * 31 + (t == null ? 0 : t.GetHashCode());
+                    }
+                return HashCode.Combine(hash, TotalFeeConfirmed, TotalFeeUnConfirmed);
+            }
+        }
     }
 
     public class RevnuItem
     {
         public string AccId { get; set; }
         public decimal Revenue { get; set; }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(AccId, Revenue);
+        }
     }
 
     public class TransStats

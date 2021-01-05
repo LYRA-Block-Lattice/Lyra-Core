@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.API
 {
-    public class LyraRestClient : INodeAPI, INodeTransactionAPI
+    public class LyraRestClient : ILyraAPI
     {
         private string _appName;
         private string _appVersion;

@@ -11,19 +11,17 @@ namespace Lyra.Data.API
     /// <summary>
     /// access all primary nodes to determinate state
     /// </summary>
-    public class LyraAggregatedClient : INodeAPI, INodeTransactionAPI
+    public class LyraAggregatedClient : ILyraAPI
     {
         private string _networkId;
-        private string _accountId;
 
         private Dictionary<string, LyraRestClient> _primaryClients;
 
         public LyraRestClient SeedClient => _primaryClients?.First().Value;
 
-        public LyraAggregatedClient(string networkId, string selfAccountId)
+        public LyraAggregatedClient(string networkId)
         {
             this._networkId = networkId;
-            _accountId = selfAccountId;
         }
 
         public async Task InitAsync()
@@ -415,35 +413,28 @@ namespace Lyra.Data.API
             return await SeedClient.TradeOrder(block);
         }
 
-        public async Task<List<Voter>> GetVoters(VoteQueryModel model)
+        public List<Voter> GetVoters(VoteQueryModel model)
         {
-            return await SeedClient.GetVotersAsync(model);
+            List<Voter> result = null;
+            var t = Task.Run(async () => { result = await SeedClient.GetVotersAsync(model); });
+            Task.WaitAll(t);
+            return result;
         }
 
-        public async Task<List<Vote>> FindVotes(VoteQueryModel model)
+        public List<Vote> FindVotes(VoteQueryModel model)
         {
-            return await SeedClient.FindVotesAsync(model);
+            List<Vote> result = null;
+            var t = Task.Run(async () => { result = await SeedClient.FindVotesAsync(model); });
+            Task.WaitAll(t);
+            return result;
         }
 
-        public async Task<FeeStats> GetFeeStats()
+        public FeeStats GetFeeStats()
         {
-            return await SeedClient.GetFeeStatsAsync();
-        }
-
-        // because using class not interface so these not used
-        List<Voter> INodeAPI.GetVoters(VoteQueryModel model)
-        {
-            throw new NotImplementedException();
-        }
-
-        List<Vote> INodeAPI.FindVotes(VoteQueryModel model)
-        {
-            throw new NotImplementedException();
-        }
-
-        FeeStats INodeAPI.GetFeeStats()
-        {
-            throw new NotImplementedException();
+            FeeStats result = null;
+            var t = Task.Run(async () => { result = await SeedClient.GetFeeStatsAsync(); });
+            Task.WaitAll(t);
+            return result;
         }
 
         public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)

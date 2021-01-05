@@ -270,7 +270,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task<LyraAggregatedClient> FindValidSeedForSyncAsync()
         {
-            var client = new LyraAggregatedClient(Neo.Settings.Default.LyraNode.Lyra.NetworkId, _sys.PosWallet.AccountId);
+            var client = new LyraAggregatedClient(Neo.Settings.Default.LyraNode.Lyra.NetworkId);
             await client.InitAsync();
             _syncInfo = await client.GetSyncHeight();
             return client;

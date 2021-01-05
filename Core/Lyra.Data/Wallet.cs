@@ -10,6 +10,7 @@ using System.IO;
 using Lyra.Data.Crypto;
 using Lyra.Data;
 using System.Data;
+using Lyra.Data.API;
 
 namespace Lyra.Core.Accounts
 {
@@ -34,7 +35,7 @@ namespace Lyra.Core.Accounts
         // 2) create interface and reference rpcclient by interface here, use the same interface in server and REST API client (Shopify app)  
         //private RPCClient _rpcClient = null;
         private IAccountDatabase _store;
-        private LyraRestClient _rpcClient = null;
+        private ILyraAPI _rpcClient = null;
 
         private long SyncHeight = -1;
         private string SyncHash = string.Empty;
@@ -57,7 +58,7 @@ namespace Lyra.Core.Accounts
             }
         }
 
-        private Wallet(IAccountDatabase storage, string name, LyraRestClient rpcClient = null)
+        private Wallet(IAccountDatabase storage, string name, ILyraAPI rpcClient = null)
         {
             _store = storage;
             AccountName = name;
@@ -93,7 +94,7 @@ namespace Lyra.Core.Accounts
             return $"{Utilities.GetLyraDataDir(NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}{FolderName}{Utilities.PathSeperator}";
         }
 
-        public static Wallet Open(IAccountDatabase store, string name, string password, LyraRestClient rpcClient = null)
+        public static Wallet Open(IAccountDatabase store, string name, string password, ILyraAPI rpcClient = null)
         {
             var wallet = new Wallet(store, name, rpcClient);
             store.Open(name, password);
@@ -125,7 +126,7 @@ namespace Lyra.Core.Accounts
             return wallet;
         }
         // one-time "manual" sync up with the node 
-        public async Task<APIResultCodes> Sync(LyraRestClient RPCClient)
+        public async Task<APIResultCodes> Sync(ILyraAPI RPCClient)
         {
             if (RPCClient != null)
                 _rpcClient = RPCClient;

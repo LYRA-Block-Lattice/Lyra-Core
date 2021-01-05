@@ -1322,6 +1322,9 @@ namespace Lyra.Core.Decentralize
             _activeConsensus.TryRemove(block.Hash, out _);
             _log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count}");
 
+            // just save the block in queue
+            // non-leader will wait. if leader failed, the block can be send immediatelly
+            // the saved block can be used to verify/authenticate
             // pool events
             // only current leader deals with managed blocks
             if (Board.CurrentLeader == _sys.PosWallet.AccountId && block.ContainsTag(Block.REQSERVICETAG))
