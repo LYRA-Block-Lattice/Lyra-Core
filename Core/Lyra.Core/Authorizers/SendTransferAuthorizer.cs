@@ -93,7 +93,7 @@ namespace Lyra.Core.Authorizers
 
             // a normal send is success.
             // monitor special account
-            if (block.Tags.ContainsKey(Block.REQSERVICETAG))
+            if (block.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
             {
                 if (block.Tags != null
                         && block.Tags.ContainsKey("token0") && await CheckTokenAsync(sys, block.Tags["token0"])
