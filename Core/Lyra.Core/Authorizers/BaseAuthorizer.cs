@@ -46,7 +46,7 @@ namespace Lyra.Core.Authorizers
         //    throw new NotImplementedException("Must override");
         //}
 
-        protected async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
+        protected virtual async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
         {
             if (previousBlock != null && !block.IsBlockValid(previousBlock))
                 return APIResultCodes.InvalidPreviousBlock;
