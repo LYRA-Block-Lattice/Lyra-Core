@@ -481,6 +481,8 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation($"Querying Lyra Network Status... ");
 
                             _networkClient = new LyraClientForNode(_sys);
+                            _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+
                             var client = _networkClient;
                             var networkStatus = await client.GetSyncState();
                             if (networkStatus.ResultCode != APIResultCodes.Success)
