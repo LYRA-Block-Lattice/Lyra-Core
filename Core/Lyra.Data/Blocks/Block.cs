@@ -450,6 +450,9 @@ namespace Lyra.Core.Blocks
         InvalidPoolWithdrawRito, 
         InvalidTokenToSwap,
         TooManyTokensToSwap,
+        InvalidPoolSwapOutToken,
+        InvalidPoolSwapOutAmount,
+        InvalidPoolSwapOutShare
 
     }
 }

@@ -11,6 +11,7 @@ using Lyra.Data.Utils;
 using Lyra.Data.API;
 using Lyra.Core.Blocks;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace UnitTests
 {
@@ -36,6 +37,35 @@ namespace UnitTests
         {
             var accountId = Signatures.GetAccountIdFromPrivateKey(privateKey);
             return new TransitWallet(accountId, privateKey, LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0"));
+        }
+
+        private async Task<string> SignAPIAsync()
+        {
+            var lsb = await client.GetLastServiceBlock();
+            return Signatures.GetSignature(PRIVATE_KEY_1, lsb.GetBlock().Hash, ADDRESS_ID_1);
+        }
+
+        [TestInitialize]
+        public async Task UT_TransitWallet_SetupAsync()
+        {
+            var memStor = new AccountInMemoryStorage();
+            Wallet.Create(memStor, "tmpAcct", "", "devnet", PRIVATE_KEY_1);
+            var w1 = Wallet.Open(memStor, "tmpAcct", "");
+
+            await w1.Sync(client);
+
+            var balances = w1.GetLatestBlock().Balances;
+            Assert.IsTrue(balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() > 100000m, "Insufficient funds: LYR");
+
+            // make sure we have 2 test token
+            var genResult = await client.GetTokenGenesisBlock(ADDRESS_ID_1, testToken, await SignAPIAsync());
+            if (genResult.ResultCode == APIResultCodes.TokenGenesisBlockNotFound)
+            {
+                var secs = testToken.Split('/');
+                var result = await w1.CreateToken(secs[1], secs[0], "", 8, 50000000000, true, "", "", "", Lyra.Core.Blocks.ContractTypes.Cryptocurrency, null);
+                Assert.IsTrue(result.Successful(), "Failed to create token: " + result.ResultCode);
+                await w1.Sync(client);
+            }
         }
 
         [TestMethod]

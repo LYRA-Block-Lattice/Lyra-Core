@@ -111,7 +111,7 @@ namespace UnitTests.Swap
 
                 var swapRito = 0m;
                 var poolLatestBlock = pool.GetBlock() as TransactionBlock;
-                if (!poolLatestBlock.Balances.Any(a => a.Value == 0))
+                if (poolLatestBlock.Balances.Count == 2 && !poolLatestBlock.Balances.Any(a => a.Value == 0))
                     swapRito = poolLatestBlock.Balances[pool.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[pool.Token1].ToBalanceDecimal();
 
                 if (swapRito == 0)
