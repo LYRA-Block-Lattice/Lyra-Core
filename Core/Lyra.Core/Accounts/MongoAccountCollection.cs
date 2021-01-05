@@ -149,7 +149,7 @@ namespace Lyra.Core.Accounts
 
             CreateIndexes("Token0", false).Wait();
             CreateIndexes("Token1", false).Wait();
-            CreateIndexes("RelatedTx", true).Wait();
+            CreateIndexes("RelatedTx", false).Wait();
         }
 
         /// <summary>
