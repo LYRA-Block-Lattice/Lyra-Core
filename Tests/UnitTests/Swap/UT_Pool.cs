@@ -201,12 +201,12 @@ namespace UnitTests.Swap
 
                 var swapRito = poolLatestBlock.Balances[pool.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[pool.Token1].ToBalanceDecimal();
 
-                var amount = (decimal)((new Random().NextDouble() + 0.07) * 1000);
+                var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var result = await w1.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, testTokenA, amount);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {testTokenA}: {result.ResultCode}");
                 await Task.Delay(3000);
 
-                var amountToGet = swapRito * amount;
+                var amountToGet = Math.Round(swapRito * amount, 8);
                 await w1.Sync(client);
 
                 var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();

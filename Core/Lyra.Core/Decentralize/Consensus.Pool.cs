@@ -57,7 +57,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        private async Task<(ConsensusResult?, decimal)> ReceivePoolSwapInAsync(SendTransferBlock sendBlock)
+        private async Task<(ConsensusResult?, KeyValuePair<string, decimal>)> ReceivePoolSwapInAsync(SendTransferBlock sendBlock)
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -116,7 +116,7 @@ namespace Lyra.Core.Decentralize
 
             result = await SendBlockToConsensusAndWaitResultAsync(swapInBlock);
 
-            return (result, txInfo.Changes.Values.First());
+            return (result, txInfo.Changes.First());
         }
 
         private async Task<ConsensusResult?> SendPoolSwapOutToken(string poolId, string targetAccountId, string token, decimal amount)
