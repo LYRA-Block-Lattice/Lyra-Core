@@ -11,7 +11,7 @@ namespace Lyra.Core.Decentralize
 {
     public partial class ConsensusService
     {
-        private async Task<ConsensusResult?> ReceivePoolFactoryFeeAsync(SendTransferBlock sendBlock)
+        private async Task<(ConsensusResult?, ReceiveTransferBlock)> ReceivePoolFactoryFeeAsync(SendTransferBlock sendBlock)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var receiveBlock = new ReceiveTransferBlock
@@ -34,7 +34,7 @@ namespace Lyra.Core.Decentralize
 
             // ignore any token but LYR. keep the block clean.
             if (!txInfo.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                return ConsensusResult.Uncertain;
+                return (ConsensusResult.Uncertain, null);
 
             var latestBalances = latestBlock.Balances.ToDecimalDict();
             var recvBalances = latestBlock.Balances.ToDecimalDict();
@@ -54,10 +54,10 @@ namespace Lyra.Core.Decentralize
             receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
             var result = await SendBlockToConsensusAndWaitResultAsync(receiveBlock);
-            return result;
+            return (result, receiveBlock);
         }
 
-        private async Task<(ConsensusResult?, KeyValuePair<string, decimal>)> ReceivePoolSwapInAsync(SendTransferBlock sendBlock)
+        private async Task<(ConsensusResult?, KeyValuePair<string, decimal>, PoolSwapInBlock)> ReceivePoolSwapInAsync(SendTransferBlock sendBlock)
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -116,10 +116,10 @@ namespace Lyra.Core.Decentralize
 
             result = await SendBlockToConsensusAndWaitResultAsync(swapInBlock);
 
-            return (result, txInfo.Changes.First());
+            return (result, txInfo.Changes.First(), swapInBlock);
         }
 
-        private async Task<ConsensusResult?> SendPoolSwapOutToken(string poolId, string targetAccountId, string token, decimal amount)
+        private async Task<ConsensusResult?> SendPoolSwapOutToken(PoolSwapInBlock swapInBlock, string poolId, string targetAccountId, string token, decimal amount)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var swapOutBlock = new PoolSwapOutBlock()
@@ -130,7 +130,8 @@ namespace Lyra.Core.Decentralize
                 Balances = new Dictionary<string, long>(),
                 Tags = null,
                 Fee = 0,
-                FeeType = AuthorizationFeeTypes.NoFee
+                FeeType = AuthorizationFeeTypes.NoFee,
+                RelatedTx = swapInBlock.Hash
             };
 
             swapOutBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
@@ -229,7 +230,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        private async Task<ConsensusResult?> SendWithdrawFunds(string poolId, string targetAccountId)
+        private async Task<ConsensusResult?> SendWithdrawFunds(ReceiveTransferBlock recvBlock, string poolId, string targetAccountId)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             PoolWithdrawBlock withdrawBlock = new PoolWithdrawBlock()
@@ -240,7 +241,8 @@ namespace Lyra.Core.Decentralize
                 Balances = new Dictionary<string, long>(),
                 Tags = null,
                 Fee = 0,
-                FeeType = AuthorizationFeeTypes.NoFee
+                FeeType = AuthorizationFeeTypes.NoFee,
+                RelatedTx = recvBlock.Hash
             };
 
             withdrawBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

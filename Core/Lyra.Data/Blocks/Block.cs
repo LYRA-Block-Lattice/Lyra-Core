@@ -443,10 +443,13 @@ namespace Lyra.Core.Blocks
         PoolNotExists,
         PoolShareNotExists,
         InvalidPoolOperation,
+        PoolOperationAlreadyCompleted,
         InvalidPoolDepositionAmount,
         InvalidPoolDepositionRito,
+        InvalidPoolWithdrawAmount,
+        InvalidPoolWithdrawRito, 
         InvalidTokenToSwap,
-        TooManyTokensToSwap
+        TooManyTokensToSwap,
 
     }
 }

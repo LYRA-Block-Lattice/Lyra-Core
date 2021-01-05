@@ -149,6 +149,7 @@ namespace Lyra.Core.Accounts
 
             CreateIndexes("Token0", false).Wait();
             CreateIndexes("Token1", false).Wait();
+            CreateIndexes("RelatedTx", true).Wait();
         }
 
         /// <summary>
@@ -1353,7 +1354,14 @@ namespace Lyra.Core.Accounts
             return pool;
         }
 
+        public async Task<List<Block>> FindBlockInRelation(string relatedToHash)
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("RelatedTx", relatedToHash);
 
+            var finds = await _blocks.FindAsync(filterDefination);
+            return finds.ToList();
+        }
     }
     public static class MyExtensions
     {

@@ -1317,7 +1317,7 @@ namespace Lyra.Core.Decentralize
                             try
                             {
                                 // first, do a receive.
-                                var recvResult = await ReceivePoolFactoryFeeAsync(send);
+                                var (recvResult, recvBlock) = await ReceivePoolFactoryFeeAsync(send);
                                 if (recvResult == ConsensusResult.Yea)
                                 {
                                     if (send.Tags[Block.REQSERVICETAG] == "")
@@ -1336,7 +1336,7 @@ namespace Lyra.Core.Decentralize
 
                                         _log.LogInformation($"Withdraw from pool {poolId}...");
 
-                                        await SendWithdrawFunds(poolId, send.AccountID);
+                                        await SendWithdrawFunds(recvBlock, poolId, send.AccountID);
                                     }
                                 }
                                 else
@@ -1369,7 +1369,7 @@ namespace Lyra.Core.Decentralize
                                 if (send.Tags[Block.REQSERVICETAG] == "swaptoken")
                                 {
                                     var swapRito = pool.Balances[poolGenesis.Token0].ToBalanceDecimal() / pool.Balances[poolGenesis.Token1].ToBalanceDecimal();
-                                    var (swapInResult, kvp) = await ReceivePoolSwapInAsync(send);
+                                    var (swapInResult, kvp, swapInBlock) = await ReceivePoolSwapInAsync(send);
                                     _log.LogInformation($"Got swap in token amount: {kvp.Value} Result: {swapInResult}");
 
                                     if (swapInResult == ConsensusResult.Yea)
@@ -1379,14 +1379,14 @@ namespace Lyra.Core.Decentralize
                                         {
                                             var token1ToGet = Math.Round(kvp.Value / swapRito, 8);
                                             _log.LogInformation($"Sending out {token1ToGet}");
-                                            swapOutResult = await SendPoolSwapOutToken(pool.AccountID, send.AccountID, poolGenesis.Token1, token1ToGet);
+                                            swapOutResult = await SendPoolSwapOutToken(swapInBlock, pool.AccountID, send.AccountID, poolGenesis.Token1, token1ToGet);
                                         }
 
                                         if (kvp.Key == poolGenesis.Token1)
                                         {
                                             var token0ToGet = Math.Round(kvp.Value * swapRito, 8);
                                             _log.LogInformation($"Sending out {token0ToGet}");
-                                            swapOutResult = await SendPoolSwapOutToken(pool.AccountID, send.AccountID, poolGenesis.Token0, token0ToGet);
+                                            swapOutResult = await SendPoolSwapOutToken(swapInBlock, pool.AccountID, send.AccountID, poolGenesis.Token0, token0ToGet);
                                         }
 
                                         if (swapOutResult == ConsensusResult.Yea)

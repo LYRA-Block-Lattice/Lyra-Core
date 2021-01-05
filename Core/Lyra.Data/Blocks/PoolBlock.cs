@@ -45,6 +45,12 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class PoolWithdrawBlock : SendTransferBlock, IPool
     {
+        /// <summary>
+        /// the hash of requested SendTransferBlock and ReceiveTransferBlock onside pool factory's chain
+        /// RelatedTx -> RecvBlock (SourceHash) -> SendTransferBlcok
+        /// on pool action to one send/recv combine
+        /// </summary>
+        public string RelatedTx { get; set; }
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolWithdraw;
@@ -60,12 +66,14 @@ namespace Lyra.Core.Blocks
         {
             string extraData = base.GetExtraData();
             extraData += DictToStr(Shares) + "|";
+            extraData += RelatedTx + "|";
             return extraData;
         }
 
         public override string Print()
         {
             string result = base.Print();
+            result += $"RelatedTx: {RelatedTx}\n";
             result += $"Shares: {DictToStr(Shares)}\n";
             return result;
         }
@@ -103,6 +111,7 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class PoolSwapOutBlock : SendTransferBlock, IPool
     {
+        public string RelatedTx { get; set; }
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolSwapOut;
@@ -118,12 +127,14 @@ namespace Lyra.Core.Blocks
         {
             string extraData = base.GetExtraData();
             extraData += DictToStr(Shares) + "|";
+            extraData += RelatedTx + "|";
             return extraData;
         }
 
         public override string Print()
         {
             string result = base.Print();
+            result += $"RelatedTx: {RelatedTx}\n";
             result += $"Shares: {DictToStr(Shares)}\n";
             return result;
         }
