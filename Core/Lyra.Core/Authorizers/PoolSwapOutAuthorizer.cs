@@ -41,6 +41,9 @@ namespace Lyra.Core.Authorizers
             var originalSendBlock = await sys.Storage.FindBlockByHashAsync(relatedTxBlock.SourceHash) as SendTransferBlock;
             var targetAccountId = originalSendBlock.AccountID;
 
+            if (targetAccountId != swapOutBlock.DestinationAccountId)
+                return APIResultCodes.InvalidPoolSwapOutAccountId;
+
             if (originalSendBlock.Tags == null || originalSendBlock.Tags[Block.REQSERVICETAG] != "swaptoken")
                 return APIResultCodes.InvalidPoolOperation;
 

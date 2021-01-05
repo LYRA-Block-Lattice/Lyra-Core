@@ -47,6 +47,9 @@ namespace Lyra.Core.Authorizers
             var originalSendBlock = await sys.Storage.FindBlockByHashAsync(relatedTxBlock.SourceHash) as SendTransferBlock;
             var targetAccountId = originalSendBlock.AccountID;
 
+            if (targetAccountId != withdrawBlock.DestinationAccountId)
+                return APIResultCodes.InvalidPoolWithdrawAccountId;
+
             var usersShare = curShares[targetAccountId];
             var amountsToSend = new Dictionary<string, decimal>();
             amountsToSend.Add(poolGenesisBlock.Token0, curBalance[poolGenesisBlock.Token0] * usersShare);
