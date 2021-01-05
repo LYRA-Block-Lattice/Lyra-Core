@@ -272,6 +272,11 @@ namespace Lyra.Core.Decentralize
                                     _viewChangeHandler.BeginChangeView(false);
                                 }
                             }
+
+                            if(result == ConsensusResult.Yea)
+                            {
+                                _log.LogError("A Yea is removed. this should not happen.");
+                            }
                         }
                     }
                 }
@@ -1243,14 +1248,22 @@ namespace Lyra.Core.Decentralize
                     .Select(x => x.State?.InputMsg.Block as TransactionBlock)
                     .Where(a => a?.AccountID == tx.AccountID);
 
-                var sameHeight = sameChainBlocks.Any(y => y.Height == tx.Height);
-                var samePrevHash = sameChainBlocks.Any(a => a.PreviousHash == tx.PreviousHash);
-
-                if (sameHeight || samePrevHash)
+                // make strict check to ensure all account operations are in serial.
+                if (sameChainBlocks.Any())
                 {
-                    //_log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
+                    _log.LogInformation("Force single account ops in serial");
                     return true;
-                }
+                }                    
+
+                // bellow not necessary
+                //var sameHeight = sameChainBlocks.Any(y => y.Height == tx.Height);
+                //var samePrevHash = sameChainBlocks.Any(a => a.PreviousHash == tx.PreviousHash);
+
+                //if (sameHeight || samePrevHash)
+                //{
+                //    //_log.LogCritical($"double spend detected: {tx.AccountID} Height: {tx.Height} Hash: {tx.Hash}");
+                //    return true;
+                //}
             }
 
             return false;
@@ -1259,7 +1272,9 @@ namespace Lyra.Core.Decentralize
         private async Task SubmitToConsensusAsync(AuthState state)
         {
             if (IsBlockInQueue(state.InputMsg?.Block))
+            {
                 return;
+            }                
 
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
             if (worker != null)
@@ -1475,7 +1490,11 @@ namespace Lyra.Core.Decentralize
                 if (item is AuthorizingMsg ppMsg)
                 {
                     if (IsBlockInQueue(ppMsg.Block))
+                    {
+                        // need to send message indicate that a requota is needed
+
                         return;
+                    }                        
                 }
 
                 if (item is BlockConsensusMessage cm)

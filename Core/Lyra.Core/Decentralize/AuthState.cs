@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace Lyra.Core.Decentralize
 {
-    public enum ConsensusResult { Uncertain, Yea, Nay }
+    public enum ConsensusResult { Uncertain, Yea, Nay, Requote }
     public class ConsensusState
     {
         public DateTime Created { get; set; } = DateTime.Now;
