@@ -406,19 +406,12 @@ namespace Lyra.Client.CLI
                             Console.Write("Y/n? ");
                             if (ReadYesNoAnswer())
                             {
-                                var tags = new Dictionary<string, string>();
-                                tags.Add(Block.REQSERVICETAG, "poolwithdraw");
-                                tags.Add("poolid", lp.PoolAccountId);
-                                tags.Add("token0", token0);
-                                tags.Add("token1", token1);
-                                var amounts = new Dictionary<string, decimal>();
-                                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
-                                var poolWithdrawResult = await _wallet.SendEx(lp.PoolFactoryAccountId, amounts, tags);
-                                if(poolWithdrawResult.Successful())
+                                var poolWithdrawResult = await _wallet.RemoveLiquidateFromPoolAsync(token0, token1);
+                                if (poolWithdrawResult.Successful())
                                 {
                                     await Task.Delay(3000);     // wait for the withdraw block to generate
                                     Console.WriteLine("Withdraw is succeeded. Do sync to get your funds.");
-                                }                                
+                                }                           
                             }
                         }
                         break;
@@ -431,15 +424,7 @@ namespace Lyra.Client.CLI
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
-
-                            var tags = new Dictionary<string, string>();
-                            tags.Add(Block.REQSERVICETAG, "swaptoken0");
-                            tags.Add("poolid", lp.PoolAccountId);
-                            tags.Add("token0", token0);
-                            tags.Add("token1", token1);
-                            var amounts = new Dictionary<string, decimal>();
-                            amounts.Add(token0, token0ToSwap);
-                            var swapToken0Result = await _wallet.SendEx(lp.PoolAccountId, amounts, tags);
+                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token0, token0ToSwap);
                             if (swapToken0Result.Successful())
                             {
                                 await Task.Delay(3000);     // wait for the withdraw block to generate
@@ -456,19 +441,11 @@ namespace Lyra.Client.CLI
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
-
-                            var tags = new Dictionary<string, string>();
-                            tags.Add(Block.REQSERVICETAG, "swaptoken1");
-                            tags.Add("poolid", lp.PoolAccountId);
-                            tags.Add("token0", token0);
-                            tags.Add("token1", token1);
-                            var amounts = new Dictionary<string, decimal>();
-                            amounts.Add(token1, token1ToSwap);
-                            var swapToken0Result = await _wallet.SendEx(lp.PoolAccountId, amounts, tags);
+                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token1, token1ToSwap);
                             if (swapToken0Result.Successful())
                             {
                                 await Task.Delay(3000);     // wait for the withdraw block to generate
-                                Console.WriteLine($"Swap of token {token1} is succeeded. Do sync to get your funds.");
+                                Console.WriteLine($"Swap of token {token0} is succeeded. Do sync to get your funds.");
                             }
                         }
                         break;

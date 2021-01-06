@@ -14,6 +14,7 @@ using static Lyra.Core.Decentralize.ConsensusService;
 using Lyra.Shared;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 
 namespace Lyra.Core.Authorizers
 {
@@ -391,6 +392,14 @@ namespace Lyra.Core.Authorizers
         {
             var tokn = await sys.Storage.FindTokenGenesisBlockAsync(null, tokenName);
             return tokn != null;
+        }
+
+        private async Task<string[]> GetProperTokenNameAsync(DagSystem sys, string[] tokenNames)
+        {
+            var result = await tokenNames.SelectAsync(async a => await sys.Storage.FindTokenGenesisBlockAsync(null, a));
+            return result.Select(b => b?.Ticker)
+                .OrderBy(a => a)
+                .ToArray();
         }
 
         //protected async Task<bool> VerifyAuthorizationSignaturesAsync(TransactionBlock block)

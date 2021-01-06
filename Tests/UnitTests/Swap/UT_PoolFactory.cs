@@ -113,6 +113,50 @@ namespace UnitTests.Swap
         }
 
         [TestMethod]
+        public async Task CreatePoolTokenNameTest()
+        {
+            try
+            {
+                await semaphore.WaitAsync();
+
+                // create token first
+                var w1 = Restore(testPrivateKey);
+                await w1.Sync(client);
+
+                var result = await w1.CreateLiquidatePoolAsync("", "");
+                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+
+                result = await w1.CreateLiquidatePoolAsync("lyr", "");
+                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+
+                result = await w1.CreateLiquidatePoolAsync("", "lyr");
+                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+
+                result = await w1.CreateLiquidatePoolAsync("", "LYR");
+                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+
+                result = await w1.CreateLiquidatePoolAsync("*", "LYR");
+                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+
+                result = await w1.CreateLiquidatePoolAsync(".*", "LYR");
+                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+
+                result = await w1.CreateLiquidatePoolAsync("unittest/UCoinA", "LYR");
+                Assert.AreEqual(result.ResultCode, APIResultCodes.PoolAlreadyExists);
+
+                result = await w1.CreateLiquidatePoolAsync("UniTTest/uCoinA", "lYR");
+                Assert.AreEqual(result.ResultCode, APIResultCodes.PoolAlreadyExists);
+
+                result = await w1.CreateLiquidatePoolAsync("lYR", "UniTTest/uCoinA");
+                Assert.AreEqual(result.ResultCode, APIResultCodes.PoolAlreadyExists);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        [TestMethod]
         public async Task CreatePoolWrongAsync()
         {
             try
@@ -208,15 +252,25 @@ namespace UnitTests.Swap
                 poolCreateResult = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
                 Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
 
-                // finally do it right
+                // test name sort
                 tags = new Dictionary<string, string>();
-                tags.Add("token0", token0);
-                tags.Add("token1", token1);
+                tags.Add("token0", token1);
+                tags.Add("token1", token0);
                 tags.Add(Block.REQSERVICETAG, "");
                 amounts = new Dictionary<string, decimal>();
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
                 var poolCreateResultx = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
                 Assert.IsTrue(poolCreateResultx.ResultCode == APIResultCodes.Success, "Should finally OK.");
+
+                //// finally do it right
+                //tags = new Dictionary<string, string>();
+                //tags.Add("token0", token0);
+                //tags.Add("token1", token1);
+                //tags.Add(Block.REQSERVICETAG, "");
+                //amounts = new Dictionary<string, decimal>();
+                //amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+                //var poolCreateResultx = await w1.SendEx(pool.PoolFactoryAccountId, amounts, tags);
+                //Assert.IsTrue(poolCreateResultx.ResultCode == APIResultCodes.Success, "Should finally OK.");
             }
             finally
             {

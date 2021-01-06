@@ -11,6 +11,7 @@ using Lyra.Data.Crypto;
 using Lyra.Data;
 using System.Data;
 using Lyra.Data.API;
+using Lyra.Data.Utils;
 
 namespace Lyra.Core.Accounts
 {
@@ -1761,15 +1762,29 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
+        private async Task<string[]> GetProperTokenNameAsync(string[] tokenNames)
+        {
+            var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlock(AccountId, a, SignAPICallAsync()));
+            return result.Select(a => a.GetBlock() as TokenGenesisBlock)
+                .Select(b => b?.Ticker)
+                .OrderBy(a => a)
+                .ToArray();
+        }
+
         public async Task<APIResult> CreateLiquidatePoolAsync(string token0, string token1)
         {
-            var pool = await _rpcClient.GetPool(token0, token1);
+            var tokenNames = await GetProperTokenNameAsync(new[] { token0, token1 });
+
+            if(tokenNames.Any(a => a == null))
+                return new APIResult { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
+
+            var pool = await _rpcClient.GetPool(tokenNames[0], tokenNames[1]);
             if (pool.PoolAccountId != null)
-                return new APIResult { ResultCode = APIResultCodes.AccountAlreadyExists };
+                return new APIResult { ResultCode = APIResultCodes.PoolAlreadyExists };
 
             var tags = new Dictionary<string, string>();
-            tags.Add("token0", token0);
-            tags.Add("token1", token1);
+            tags.Add("token0", tokenNames[0]);
+            tags.Add("token1", tokenNames[1]);
             tags.Add(Block.REQSERVICETAG, "");
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
@@ -1787,8 +1802,8 @@ namespace Lyra.Core.Accounts
             amountsDeposit.Add(token1, token1Amount);
 
             var tags = new Dictionary<string, string>();
-            tags.Add("token0", token0);
-            tags.Add("token1", token1);
+            tags.Add("token0", pool.Token0);
+            tags.Add("token1", pool.Token1);
             tags.Add(Block.REQSERVICETAG, "");
 
             var poolDepositResult = await SendEx(pool.PoolAccountId, amountsDeposit, tags);
@@ -1804,8 +1819,8 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>();
             tags.Add(Block.REQSERVICETAG, "poolwithdraw");
             tags.Add("poolid", pool.PoolAccountId);
-            tags.Add("token0", token0);
-            tags.Add("token1", token1);
+            tags.Add("token0", pool.Token0);
+            tags.Add("token1", pool.Token1);
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
             var poolWithdrawResult = await SendEx(pool.PoolFactoryAccountId, amounts, tags);
@@ -1821,8 +1836,8 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>();
             tags.Add(Block.REQSERVICETAG, "swaptoken");
             tags.Add("poolid", pool.PoolAccountId);
-            tags.Add("token0", token0);
-            tags.Add("token1", token1);
+            tags.Add("token0", pool.Token0);
+            tags.Add("token1", pool.Token1);
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(tokenToSwap, amountToSwap);
             var swapTokenResult = await SendEx(pool.PoolAccountId, amounts, tags);
