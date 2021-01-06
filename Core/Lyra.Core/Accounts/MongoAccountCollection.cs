@@ -1339,8 +1339,16 @@ namespace Lyra.Core.Accounts
 
         public async Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1)
         {
-            // first sort token
-            var arrStr = new[] { token0, token1 };
+            // get token gensis to make the token name proper
+            var token0Gen = await FindTokenGenesisBlockAsync(null, token0);
+            var token1Gen = await FindTokenGenesisBlockAsync(null, token1);
+
+            if (token0Gen == null || token1Gen == null)
+            {
+                return null;
+            }
+
+            var arrStr = new[] { token0Gen.Ticker, token1Gen.Ticker };
             Array.Sort(arrStr);
 
             var builder = Builders<PoolGenesisBlock>.Filter;

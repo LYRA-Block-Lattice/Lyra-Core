@@ -287,7 +287,17 @@ namespace Lyra.Core.Decentralize
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
             var pf = await _sys.Storage.GetPoolFactoryAsync();
-            var arrStr = new[] { token0, token1 };
+
+            // get token gensis to make the token name proper
+            var token0Gen = await _sys.Storage.FindTokenGenesisBlockAsync(null, token0);
+            var token1Gen = await _sys.Storage.FindTokenGenesisBlockAsync(null, token1);
+
+            if(token0Gen == null || token1Gen == null)
+            {
+                return ConsensusResult.Nay;
+            }
+
+            var arrStr = new[] { token0Gen.Ticker, token1Gen.Ticker };
             Array.Sort(arrStr);
 
             // create a semi random account for pool.
