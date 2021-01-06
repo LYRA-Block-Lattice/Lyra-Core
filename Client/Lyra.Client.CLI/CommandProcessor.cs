@@ -319,7 +319,7 @@ namespace Lyra.Client.CLI
                 token1 = lp.Token1;
                 var swapRito = 0m;
                 var poolLatestBlock = lp.GetBlock() as TransactionBlock;
-                if (poolLatestBlock.Balances.ContainsKey(lp.Token0))
+                if (poolLatestBlock.Balances.ContainsKey(lp.Token0) && !poolLatestBlock.Balances.Any(a => a.Value == 0))
                     swapRito = poolLatestBlock.Balances[lp.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[lp.Token1].ToBalanceDecimal();
 
                 Console.WriteLine($"Liquidate pool for {token0} and {token1}: \n Pool account ID is {lp.PoolAccountId}\n");
@@ -335,7 +335,7 @@ namespace Lyra.Client.CLI
                     Console.WriteLine($" Pool doesn't have liquidate yet.");
                 }
 
-                if ((poolLatestBlock as IPool).Shares?.ContainsKey(_wallet.AccountId) == true)
+                if ((poolLatestBlock as IPool)?.Shares?.ContainsKey(_wallet.AccountId) == true)
                     Console.WriteLine($"Your share of the liquidate pool is {(poolLatestBlock as IPool).Shares[_wallet.AccountId].ToRitoDecimal() * 100} %\n");
                 else
                     Console.WriteLine($"Your share of the liquidate pool is 0 %\n");
@@ -359,7 +359,7 @@ namespace Lyra.Client.CLI
 
                         if(swapRito == 0)
                         {
-                            //Console.WriteLine($"How many {token1} will you add to the pool:");
+                            Console.WriteLine($"How many {token1} will you add to the pool:");
                             token1Amount = decimal.Parse(Console.ReadLine());
                         }
                         else
@@ -395,10 +395,11 @@ namespace Lyra.Client.CLI
 
                     case 2: //Remove liquidate from pool
                         Console.WriteLine("Remove liquidate from pool");
-                        var latestPool = lp.GetBlock() as PoolDepositBlock;
-                        if (latestPool?.Shares?.ContainsKey(_wallet.AccountId) == true)
+                        var latestPool = lp.GetBlock() as TransactionBlock;
+                        var latestIpool = latestPool as IPool;
+                        if (latestIpool?.Shares?.ContainsKey(_wallet.AccountId) == true)
                         {
-                            var myshare = latestPool.Shares[_wallet.AccountId].ToRitoDecimal();
+                            var myshare = latestIpool.Shares[_wallet.AccountId].ToRitoDecimal();
                             Console.WriteLine($"Do you want to remove your {myshare * 100} % liquidate from the pool?");
 
                             Console.WriteLine($"You will receive {latestPool.Balances[lp.Token0].ToBalanceDecimal() * myshare} {lp.Token0}");
