@@ -328,6 +328,9 @@ namespace Lyra.Core.Accounts
                     return result as TokenGenesisBlock;
             }
 
+            if (Ticker == null)
+                return null;
+
             var regexFilter = Regex.Escape(Ticker);
             var filter = Builders<TokenGenesisBlock>.Filter.Regex(u => u.Ticker, new BsonRegularExpression("/^" + regexFilter + "$/i"));
             var genResults = await _blocks.OfType<TokenGenesisBlock>()
