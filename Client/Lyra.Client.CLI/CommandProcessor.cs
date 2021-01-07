@@ -425,7 +425,7 @@ namespace Lyra.Client.CLI
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
-                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token0, token0ToSwap);
+                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token0, token0ToSwap, swapRito, 0m);
                             if (swapToken0Result.Successful())
                             {
                                 await Task.Delay(3000);     // wait for the withdraw block to generate
@@ -442,7 +442,7 @@ namespace Lyra.Client.CLI
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
-                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token1, token1ToSwap);
+                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token1, token1ToSwap, swapRito, 0m);
                             if (swapToken0Result.Successful())
                             {
                                 await Task.Delay(3000);     // wait for the withdraw block to generate

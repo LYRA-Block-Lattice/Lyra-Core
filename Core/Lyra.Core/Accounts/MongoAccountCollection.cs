@@ -99,8 +99,8 @@ namespace Lyra.Core.Accounts
                 {
                     if (ex.Message.Contains("already exists"))
                         return;
-                    await _blocks.Indexes.DropOneAsync(columnName + "_1");
-                    await CreateIndexes(columnName, uniq);
+                    //await _blocks.Indexes.DropOneAsync(columnName + "_1");
+                    //await CreateIndexes(columnName, uniq);
                 }
             }
 

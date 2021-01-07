@@ -201,6 +201,37 @@ namespace Lyra.Core.Authorizers
                             var poolLatest = await sys.Storage.FindLatestBlockAsync(block.DestinationAccountId) as TransactionBlock;
                             if (kvp.Value > poolLatest.Balances[tokenToSwap].ToBalanceDecimal() / 2)
                                 return APIResultCodes.TooManyTokensToSwap;
+
+                            if(block.Tags.ContainsKey("rito") && block.Tags.ContainsKey("slippage"))
+                            {
+                                decimal expectedRito, slippage;
+
+                                if (!decimal.TryParse(block.Tags["rito"], out expectedRito) || decimal.TryParse(block.Tags["slippage"], out slippage))
+                                    return APIResultCodes.InvalidSwapSlippage;
+
+                                if(expectedRito <= 0 || slippage < 0)
+                                    return APIResultCodes.InvalidSwapSlippage;
+
+                                if (poolLatest.Balances.Any(a => a.Value == 0))
+                                {
+                                    // can't calculate rito
+                                    return APIResultCodes.PoolOutOfLiquidaty;
+                                }
+
+                                // expected rito. if changed, fail requota
+                                var swapRito = Math.Round(poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal(), 14);
+                                if(slippage == 0 && swapRito != expectedRito)
+                                    return APIResultCodes.PoolSwapRitoChanged;
+                                
+                                if(slippage != 0)
+                                {
+                                    // calculate the slippage
+                                    var currentSlippage = Math.Round(Math.Abs(swapRito - expectedRito) / expectedRito, 14);
+                                    if (currentSlippage > slippage)
+                                        return APIResultCodes.SwapSlippageExcceeded;
+                                }
+                            }
+
                         }
                     }
                 }

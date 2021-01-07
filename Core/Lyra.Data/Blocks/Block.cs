@@ -455,6 +455,9 @@ namespace Lyra.Core.Blocks
         InvalidPoolSwapOutAmount,
         InvalidPoolSwapOutShare,
         InvalidPoolSwapOutAccountId,
-
+        PoolSwapRitoChanged,
+        InvalidSwapSlippage,
+        SwapSlippageExcceeded,
+        PoolOutOfLiquidaty,
     }
 }
