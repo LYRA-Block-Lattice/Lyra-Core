@@ -1839,7 +1839,7 @@ namespace Lyra.Core.Accounts
             tags.Add("token0", pool.Token0);
             tags.Add("token1", pool.Token1);
             tags.Add("rito", $"{expectedRito.ToRitoLong()}");
-            tags.Add("slippage", $"{slippage.ToRitoLong()}");
+            tags.Add("slippage", $"{expectedRito.ToRitoLong()}");
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(tokenToSwap, amountToSwap);
             var swapTokenResult = await SendEx(pool.PoolAccountId, amounts, tags);

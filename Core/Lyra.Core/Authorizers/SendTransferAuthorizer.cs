@@ -204,10 +204,13 @@ namespace Lyra.Core.Authorizers
 
                             if(block.Tags.ContainsKey("rito") && block.Tags.ContainsKey("slippage"))
                             {
-                                decimal expectedRito, slippage;
+                                long expectedRitoLong, slippageLong;
 
-                                if (!decimal.TryParse(block.Tags["rito"], out expectedRito) || decimal.TryParse(block.Tags["slippage"], out slippage))
+                                if (!long.TryParse(block.Tags["rito"], out expectedRitoLong) || long.TryParse(block.Tags["slippage"], out slippageLong))
                                     return APIResultCodes.InvalidSwapSlippage;
+
+                                decimal expectedRito = expectedRitoLong.ToRitoDecimal();
+                                decimal slippage = slippageLong.ToRitoDecimal();
 
                                 if(expectedRito <= 0 || slippage < 0)
                                     return APIResultCodes.InvalidSwapSlippage;
@@ -219,14 +222,14 @@ namespace Lyra.Core.Authorizers
                                 }
 
                                 // expected rito. if changed, fail requota
-                                var swapRito = Math.Round(poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal(), 14);
+                                var swapRito = Math.Round(poolLatest.Balances[poolGenesis.Token0].ToBalanceDecimal() / poolLatest.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
                                 if(slippage == 0 && swapRito != expectedRito)
                                     return APIResultCodes.PoolSwapRitoChanged;
                                 
                                 if(slippage != 0)
                                 {
                                     // calculate the slippage
-                                    var currentSlippage = Math.Round(Math.Abs(swapRito - expectedRito) / expectedRito, 14);
+                                    var currentSlippage = Math.Round(Math.Abs(swapRito - expectedRito) / expectedRito, LyraGlobal.RITOPRECISION);
                                     if (currentSlippage > slippage)
                                         return APIResultCodes.SwapSlippageExcceeded;
                                 }

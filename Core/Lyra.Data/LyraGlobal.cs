@@ -12,6 +12,7 @@ namespace Lyra.Core.API
         public const string OFFICIALDOMAIN = "lyra";
         public const string OFFICIALTICKERCODE = "LYR";
         public const int OFFICIALTICKERPRECISION = 8;
+        public const int RITOPRECISION = 14;
 
         public const char ADDRESSPREFIX = 'L';
         public const string WALLETFILEEXT = ".lyrawallet";
@@ -97,12 +98,12 @@ namespace Lyra.Core.API
 
         public static long ToRitoLong(this decimal currency)
         {
-            return (long)Math.Round(currency * (decimal) Math.Pow(10, 14));
+            return (long)Math.Round(currency * (decimal) Math.Pow(10, LyraGlobal.RITOPRECISION));
         }
 
         public static decimal ToRitoDecimal(this long currency)
         {
-            return ((decimal)currency) / (decimal)Math.Pow(10, 14);
+            return ((decimal)currency) / (decimal)Math.Pow(10, LyraGlobal.RITOPRECISION);
         }
 
         public static Dictionary<string, decimal> ToRitoDecimalDict(this Dictionary<string, long> dict)

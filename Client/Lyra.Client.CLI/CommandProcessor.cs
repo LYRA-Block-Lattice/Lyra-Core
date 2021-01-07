@@ -327,7 +327,7 @@ namespace Lyra.Client.CLI
                 {
                     Console.WriteLine($" Pool liquidate of {token0}: {poolLatestBlock.Balances[token0].ToBalanceDecimal()}");
                     Console.WriteLine($" Pool liquidate of {token1}: {poolLatestBlock.Balances[token1].ToBalanceDecimal()}");
-                    Console.WriteLine($" Swap rito is {Math.Round(swapRito, 14)}.");
+                    Console.WriteLine($" Swap rito is {Math.Round(swapRito, LyraGlobal.RITOPRECISION)}.");
                     Console.WriteLine($"\n 1 {token0} = {Math.Round(1 / swapRito, 8)} {token1}\n 1 {token1} = {Math.Round(swapRito, 8)} {token0}\n");
                 }
                 else
