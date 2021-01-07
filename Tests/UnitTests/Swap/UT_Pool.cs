@@ -2,6 +2,7 @@
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -16,7 +17,8 @@ namespace UnitTests.Swap
     [TestClass]
     public class UT_Pool
     {
-        LyraRestClient client = LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0");
+        string networkId = "devnet";
+        ILyraAPI client;// = LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0");
         private string testTokenA = "unittest/PoolCoinB5";
         private string testTokenB = "unittest/PoolCoinX";
 
@@ -48,6 +50,10 @@ namespace UnitTests.Swap
         [TestInitialize]
         public async Task UT_PoolFactory_SetupAsync()
         {
+            var aggClient = new LyraAggregatedClient(networkId);
+            await aggClient.InitAsync();
+            client = aggClient;
+
             var w1 = Restore(testPrivateKey);
             await w1.Sync(client);
 
@@ -251,6 +257,8 @@ namespace UnitTests.Swap
                 var lyrBalance = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
                 var swapRito = Math.Round(poolLatestBlock.Balances[pool.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[pool.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
+                // lol convert it like node side
+                swapRito = long.Parse(swapRito.ToRitoLong().ToString()).ToRitoDecimal();
 
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var result = await w1.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, swapRito, 0m);
