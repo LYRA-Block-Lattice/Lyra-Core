@@ -206,7 +206,7 @@ namespace Lyra.Core.Authorizers
                             {
                                 long expectedRitoLong, slippageLong;
 
-                                if (!long.TryParse(block.Tags["rito"], out expectedRitoLong) || long.TryParse(block.Tags["slippage"], out slippageLong))
+                                if (!long.TryParse(block.Tags["rito"], out expectedRitoLong) || !long.TryParse(block.Tags["slippage"], out slippageLong))
                                     return APIResultCodes.InvalidSwapSlippage;
 
                                 decimal expectedRito = expectedRitoLong.ToRitoDecimal();

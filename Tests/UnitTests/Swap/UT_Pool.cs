@@ -250,7 +250,7 @@ namespace UnitTests.Swap
                 var testTokenBalance = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
                 var lyrBalance = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 
-                var swapRito = poolLatestBlock.Balances[pool.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[pool.Token1].ToBalanceDecimal();
+                var swapRito = Math.Round(poolLatestBlock.Balances[pool.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[pool.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
 
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var result = await w1.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, swapRito, 0m);
