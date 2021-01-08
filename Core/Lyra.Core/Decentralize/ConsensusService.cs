@@ -1343,70 +1343,13 @@ namespace Lyra.Core.Decentralize
                     switch (block.Tags["type"])
                     {
                         case "pfrecv":      // pool factory receive
-                            if (result == ConsensusResult.Yea)
-                            {
-                                var recvBlock = block as ReceiveTransferBlock;
-                                var send = await _sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as TransactionBlock;
-                                if (send.Tags[Block.REQSERVICETAG] == "")
-                                {
-                                    // then create pool for it.
-                                    _log.LogInformation("Creating pool ...");
-                                    await CreateLiquidatePoolAsync(send.Tags["token0"], send.Tags["token1"]);
-                                    //if (poolCreateResult == ConsensusResult.Yea)
-                                    //    _log.LogInformation($"Pool created successfully.");
-                                    //else
-                                    //    _log.LogWarning("Can't create pool.");
-                                }
-                                else if (send.Tags[Block.REQSERVICETAG] == "poolwithdraw")
-                                {
-                                    var poolId = send.Tags["poolid"];
-
-                                    _log.LogInformation($"Withdraw from pool {poolId}...");
-
-                                    await SendWithdrawFunds(recvBlock, poolId, send.AccountID);
-                                }
-                            }
-                            else
-                            {
-                                _log.LogWarning("Pool factory not receive funds properly.");
-                            }
+                            await PoolFactoryRecvConsensusAction(block, result);
                             break;
                         case "plswaprecv":
-                            //var recvBlock = block as ReceiveTransferBlock;
-                            //var send = await _sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as TransactionBlock;
-
-                            throw new NotImplementedException();
-                            //_log.LogInformation($"Got swap in token amount: {kvp.Value} Result: {swapInResult}");
-                            //if (result == ConsensusResult.Yea)
-                            //{
-                            //    ConsensusResult? swapOutResult = null;
-                            //    if (kvp.Key == poolGenesis.Token0)
-                            //    {
-                            //        var token1ToGet = Math.Round(kvp.Value / swapRito, 8);
-                            //        _log.LogInformation($"Sending out {token1ToGet}");
-                            //        swapOutResult = await SendPoolSwapOutToken(swapInBlock, pool.AccountID, send.AccountID, poolGenesis.Token1, token1ToGet);
-                            //    }
-
-                            //    if (kvp.Key == poolGenesis.Token1)
-                            //    {
-                            //        var token0ToGet = Math.Round(kvp.Value * swapRito, 8);
-                            //        _log.LogInformation($"Sending out {token0ToGet}");
-                            //        swapOutResult = await SendPoolSwapOutToken(swapInBlock, pool.AccountID, send.AccountID, poolGenesis.Token0, token0ToGet);
-                            //    }
-
-                            //    if (swapOutResult == ConsensusResult.Yea)
-                            //    {
-                            //        _log.LogInformation($"Swap out of token is success. TxIn: {send.Hash}");
-                            //    }
-                            //    else
-                            //    {
-                            //        _log.LogError($"Swap out of token is failed. TxIn: {send.Hash}");
-                            //    }
-                            //}
-                            break;
-                        case "pladd":
+                            await PoolRecvSwapInConsensusAction(block, result);
                             break;
                         default:
+                            _log.LogWarning($"MANAGEDTAG Unsupported type: {block.Tags["type"]}");
                             break;
                     }
                 });

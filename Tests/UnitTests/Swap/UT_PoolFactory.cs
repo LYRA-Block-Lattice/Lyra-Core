@@ -15,7 +15,8 @@ namespace UnitTests.Swap
     [TestClass]
     public class UT_PoolFactory
     {
-        LyraRestClient client = LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0");
+        static string networkId = "devnet";
+        LyraRestClient client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
         private string testTokenA = "unittest/UCoinA";
         private string testTokenB = "UCoinB";
 
@@ -35,7 +36,7 @@ namespace UnitTests.Swap
             var memStor = new AccountInMemoryStorage();
             try
             {
-                Wallet.Create(memStor, "tmpAcct", "", "devnet", privateKey);
+                Wallet.Create(memStor, "tmpAcct", "", networkId, privateKey);
                 return Wallet.Open(memStor, "tmpAcct", "");
             }
             catch (Exception)
