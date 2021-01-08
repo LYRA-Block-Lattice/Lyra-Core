@@ -2,6 +2,7 @@
 using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,24 @@ namespace Lyra.Core.Decentralize
 {
     public partial class ConsensusService
     {
-        private async Task<(ConsensusResult?, ReceiveTransferBlock)> ReceivePoolFactoryFeeAsync(SendTransferBlock sendBlock)
+        //private class LeaderTask
+        //{
+        //    public string AssociatedToHash { get; set; }
+        //    public Block pendingBlock { get; set; }
+        //}
+        private ConcurrentDictionary<Block, DateTime> _leaderTasks = new ConcurrentDictionary<Block, DateTime>();
+        private async Task QueueBlockForPool(Block block)
+        {
+            if(IsThisNodeLeader)
+            {
+                await SendBlockToConsensusAndWaitResultAsync(block);
+            }
+            else
+            {
+                _leaderTasks.AddOrUpdate(block, DateTime.Now, (key, time) => DateTime.Now);
+            }
+        }
+        private async Task ReceivePoolFactoryFeeAsync(SendTransferBlock sendBlock)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var receiveBlock = new ReceiveTransferBlock
@@ -26,6 +44,7 @@ namespace Lyra.Core.Decentralize
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            receiveBlock.AddTag("type", "pfrecv");       // pool factory receive
 
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -34,7 +53,7 @@ namespace Lyra.Core.Decentralize
 
             // ignore any token but LYR. keep the block clean.
             if (!txInfo.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                return (ConsensusResult.Uncertain, null);
+                return;
 
             var latestBalances = latestBlock.Balances.ToDecimalDict();
             var recvBalances = latestBlock.Balances.ToDecimalDict();
@@ -53,11 +72,10 @@ namespace Lyra.Core.Decentralize
 
             receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            var result = await SendBlockToConsensusAndWaitResultAsync(receiveBlock);
-            return (result, receiveBlock);
+            await QueueBlockForPool(receiveBlock);
         }
 
-        private async Task<(ConsensusResult?, KeyValuePair<string, decimal>, PoolSwapInBlock)> ReceivePoolSwapInAsync(SendTransferBlock sendBlock)
+        private async Task ReceivePoolSwapInAsync(SendTransferBlock sendBlock)
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -114,12 +132,10 @@ namespace Lyra.Core.Decentralize
             swapInBlock.Shares = (latestPoolBlock as IPool).Shares;
             swapInBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            result = await SendBlockToConsensusAndWaitResultAsync(swapInBlock);
-
-            return (result, txInfo.Changes.First(), swapInBlock);
+            await QueueBlockForPool(swapInBlock);
         }
 
-        private async Task<ConsensusResult?> SendPoolSwapOutToken(PoolSwapInBlock swapInBlock, string poolId, string targetAccountId, string token, decimal amount)
+        private async Task SendPoolSwapOutToken(PoolSwapInBlock swapInBlock, string poolId, string targetAccountId, string token, decimal amount)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var swapOutBlock = new PoolSwapOutBlock()
@@ -148,12 +164,10 @@ namespace Lyra.Core.Decentralize
             swapOutBlock.Shares = (poolLatestBlock as IPool).Shares;
             swapOutBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            var result = await SendBlockToConsensusAndWaitResultAsync(swapOutBlock);
-
-            return result;
+            await QueueBlockForPool(swapOutBlock);
         }
 
-        private async Task<ConsensusResult?> ReceivePoolDepositionAsync(SendTransferBlock sendBlock)
+        private async Task ReceivePoolDepositionAsync(SendTransferBlock sendBlock)
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -225,12 +239,10 @@ namespace Lyra.Core.Decentralize
 
             depositBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            result = await SendBlockToConsensusAndWaitResultAsync(depositBlock);
-
-            return result;
+            await QueueBlockForPool(depositBlock);
         }
 
-        private async Task<ConsensusResult?> SendWithdrawFunds(ReceiveTransferBlock recvBlock, string poolId, string targetAccountId)
+        private async Task SendWithdrawFunds(ReceiveTransferBlock recvBlock, string poolId, string targetAccountId)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             PoolWithdrawBlock withdrawBlock = new PoolWithdrawBlock()
@@ -278,12 +290,10 @@ namespace Lyra.Core.Decentralize
 
             withdrawBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            var result = await SendBlockToConsensusAndWaitResultAsync(withdrawBlock);
-
-            return result;
+            await QueueBlockForPool(withdrawBlock);
         }
 
-        private async Task<ConsensusResult?> CreateLiquidatePoolAsync(string token0, string token1)
+        private async Task CreateLiquidatePoolAsync(string token0, string token1)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
             var pf = await _sys.Storage.GetPoolFactoryAsync();
@@ -294,7 +304,7 @@ namespace Lyra.Core.Decentralize
 
             if(token0Gen == null || token1Gen == null)
             {
-                return ConsensusResult.Nay;
+                return;
             }
 
             var arrStr = new[] { token0Gen.Ticker, token1Gen.Ticker };
@@ -325,7 +335,7 @@ namespace Lyra.Core.Decentralize
 
             // pool blocks are service block so all service block signed by leader node
             poolBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return await SendBlockToConsensusAndWaitResultAsync(poolBlock);
+            await QueueBlockForPool(poolBlock);
         }
     }
 }
