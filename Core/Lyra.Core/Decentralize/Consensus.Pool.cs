@@ -64,30 +64,33 @@ namespace Lyra.Core.Decentralize
 
         private async Task PoolRecvSwapInConsensusAction(Block block, ConsensusResult? result)
         {
-            var swapInBlock = block as PoolSwapInBlock;
-            var recvBlockPrev = await _sys.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
-            var recvChgs = swapInBlock.GetBalanceChanges(recvBlockPrev);
-            var kvp = recvChgs.Changes.First();
-            var poolGenesis = await _sys.Storage.FindFirstBlockAsync(swapInBlock.AccountID) as PoolGenesisBlock;
-
-            var send = await _sys.Storage.FindBlockByHashAsync(swapInBlock.SourceHash) as TransactionBlock;
-            //_log.LogInformation($"Got swap in token amount: {kvp.Value} Result: {swapInResult}");
             if (result == ConsensusResult.Yea)
             {
-                var swapRito = Math.Round(recvBlockPrev.Balances[poolGenesis.Token0].ToBalanceDecimal() / recvBlockPrev.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
+                var swapInBlock = block as PoolSwapInBlock;
+                var recvBlockPrev = await _sys.Storage.FindBlockByHashAsync(block.PreviousHash) as TransactionBlock;
+                var recvChgs = swapInBlock.GetBalanceChanges(recvBlockPrev);
+                var kvp = recvChgs.Changes.First();
+                var poolGenesis = await _sys.Storage.FindFirstBlockAsync(swapInBlock.AccountID) as PoolGenesisBlock;
 
-                if (kvp.Key == poolGenesis.Token0)
+                var send = await _sys.Storage.FindBlockByHashAsync(swapInBlock.SourceHash) as TransactionBlock;
+                //_log.LogInformation($"Got swap in token amount: {kvp.Value} Result: {swapInResult}");
+                if (result == ConsensusResult.Yea)
                 {
-                    var token1ToGet = Math.Round(kvp.Value / swapRito, 8);
-                    _log.LogInformation($"Sending out {token1ToGet}");
-                    await SendPoolSwapOutToken(swapInBlock, swapInBlock.AccountID, send.AccountID, poolGenesis.Token1, token1ToGet);
-                }
+                    var swapRito = Math.Round(recvBlockPrev.Balances[poolGenesis.Token0].ToBalanceDecimal() / recvBlockPrev.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
 
-                if (kvp.Key == poolGenesis.Token1)
-                {
-                    var token0ToGet = Math.Round(kvp.Value * swapRito, 8);
-                    _log.LogInformation($"Sending out {token0ToGet}");
-                    await SendPoolSwapOutToken(swapInBlock, swapInBlock.AccountID, send.AccountID, poolGenesis.Token0, token0ToGet);
+                    if (kvp.Key == poolGenesis.Token0)
+                    {
+                        var token1ToGet = Math.Round(kvp.Value / swapRito, 8);
+                        _log.LogInformation($"Sending out {token1ToGet}");
+                        await SendPoolSwapOutToken(swapInBlock, swapInBlock.AccountID, send.AccountID, poolGenesis.Token1, token1ToGet);
+                    }
+
+                    if (kvp.Key == poolGenesis.Token1)
+                    {
+                        var token0ToGet = Math.Round(kvp.Value * swapRito, 8);
+                        _log.LogInformation($"Sending out {token0ToGet}");
+                        await SendPoolSwapOutToken(swapInBlock, swapInBlock.AccountID, send.AccountID, poolGenesis.Token0, token0ToGet);
+                    }
                 }
             }
         }
