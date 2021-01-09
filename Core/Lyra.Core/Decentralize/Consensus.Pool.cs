@@ -68,7 +68,7 @@ namespace Lyra.Core.Decentralize
                 {
                     // then create pool for it.
                     _log.LogInformation("Creating pool ...");
-                    await CreateLiquidatePoolAsync(block as SendTransferBlock);
+                    await CreateLiquidatePoolAsync(recvBlock);
                     //if (poolCreateResult == ConsensusResult.Yea)
                     //    _log.LogInformation($"Pool created successfully.");
                     //else
@@ -393,10 +393,10 @@ namespace Lyra.Core.Decentralize
             await QueueBlockForPool(withdrawBlock, recvBlock.Hash);
         }
 
-        private async Task CreateLiquidatePoolAsync(SendTransferBlock sendBlock)
+        private async Task CreateLiquidatePoolAsync(ReceiveTransferBlock recvBlock)
         {
-            string token0 = sendBlock.Tags["token0"];
-            string token1 = sendBlock.Tags["token1"];
+            string token0 = recvBlock.Tags["token0"];
+            string token1 = recvBlock.Tags["token1"];
 
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
             var pf = await _sys.Storage.GetPoolFactoryAsync();
@@ -439,7 +439,7 @@ namespace Lyra.Core.Decentralize
 
             // pool blocks are service block so all service block signed by leader node
             poolBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            await QueueBlockForPool(poolBlock, sendBlock.Hash);
+            await QueueBlockForPool(poolBlock, recvBlock.Hash);
         }
     }
 }
