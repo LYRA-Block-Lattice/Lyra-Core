@@ -58,6 +58,8 @@ namespace Lyra.Core.Decentralize
                 {
                     _viewChangeHandler.BeginChangeView(false, "Leader Task failed timeout.");
                 }
+
+                break;
             }
         }
         private async Task QueueBlockForPool(Block block, string associatedHash)
@@ -74,6 +76,7 @@ namespace Lyra.Core.Decentralize
                     pendingBlock = block
                 };
                 _leaderTasks.AddOrUpdate(queuedTask, DateTime.Now, (key, time) => DateTime.Now);
+                _log.LogInformation($"Leader duty added one task for {block.BlockType}, height {block.Height}");
             }
         }
 
