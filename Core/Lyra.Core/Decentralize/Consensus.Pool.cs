@@ -37,7 +37,7 @@ namespace Lyra.Core.Decentralize
 
                 if (CurrentState == BlockChainState.Almighty)
                 {
-                    _viewChangeHandler.BeginChangeView(false);
+                    _viewChangeHandler.BeginChangeView(false, "Leader failed timeout.");
                 }
             }
         }

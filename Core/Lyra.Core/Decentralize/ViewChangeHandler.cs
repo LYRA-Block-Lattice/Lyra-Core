@@ -210,7 +210,7 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation("too many view change request. force into view change mode");
                     
                     // too many view change request. force into view change mode
-                    _context.GotViewChangeRequest(ViewId);
+                    _context.GotViewChangeRequest(ViewId, reqMsgs.Count);
 
                     // also do clean of req msgs queue
                     var unqualifiedReqs = reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
@@ -323,7 +323,7 @@ namespace Lyra.Core.Decentralize
         /// 
         /// </summary>
         /// <returns></returns>
-        internal void BeginChangeView(bool IsPassive)
+        internal void BeginChangeView(bool IsPassive, string reason)
         {
             if (IsViewChanging)
                 return;
@@ -332,7 +332,7 @@ namespace Lyra.Core.Decentralize
 
             _ = Task.Run(async () =>
             {
-                _log.LogInformation($"Begin Change View");
+                _log.LogWarning($"Begin Change View for reason: {reason}");
 
                 _log.LogInformation($"AllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
