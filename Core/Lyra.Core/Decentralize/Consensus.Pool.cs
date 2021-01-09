@@ -101,6 +101,9 @@ namespace Lyra.Core.Decentralize
         }
         private async Task QueueBlockForPool(Block block, string associatedHash)
         {
+            if (block == null || string.IsNullOrEmpty(associatedHash))
+                throw new ArgumentNullException();
+
             if(IsThisNodeLeader)
             {
                 await SendBlockToConsensusAndWaitResultAsync(block);
