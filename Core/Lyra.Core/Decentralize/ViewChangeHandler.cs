@@ -208,8 +208,8 @@ namespace Lyra.Core.Decentralize
                 if (TimeStarted == DateTime.MinValue)
                 {
                     var sb = new StringBuilder();
-                    foreach(var msg in reqMsgs)
-                        sb.Append($"{msg.Key.Shorten()}, ")
+                    foreach (var msg in reqMsgs)
+                        sb.Append($"{msg.Key.Shorten()}, ");
 
                     _log.LogInformation($"too many view change request, {sb.ToString()}. force into view change mode");
                     
