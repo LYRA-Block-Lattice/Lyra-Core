@@ -1349,10 +1349,12 @@ namespace Lyra.Core.Decentralize
             {
                 if(sb.Leader == _sys.PosWallet.AccountId)
                 {
+                    _log.LogInformation($"DumpLeaderTasks. count: {_leaderTasks.Count}");
                     DumpLeaderTasks();
                 }
                 else
                 {
+                    _log.LogInformation($"ResetLeaderTasksTime. count: {_leaderTasks.Count}");
                     ResetLeaderTasksTime();
                 }
                 return;
