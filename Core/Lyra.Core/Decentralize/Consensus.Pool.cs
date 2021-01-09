@@ -23,7 +23,7 @@ namespace Lyra.Core.Decentralize
         }
         private ConcurrentDictionary<LeaderTask, DateTime> _leaderTasks = new ConcurrentDictionary<LeaderTask, DateTime>();
 
-        private void CheckLeaderInDuty()
+        private async Task CheckLeaderInDutyAsync()
         {
             // called by timer every 200ms. need to be quick.
             var timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-60)).ToList();
@@ -35,7 +35,7 @@ namespace Lyra.Core.Decentralize
                 bool removed = false;
                 foreach (var entry in timeouted)
                 {
-                    var existingBlock = _sys.Storage.FindBlockByIndexAsync(((TransactionBlock)entry.Key.pendingBlock).AccountID, entry.Key.pendingBlock.Height);
+                    var existingBlock = await _sys.Storage.FindBlockByIndexAsync(((TransactionBlock)entry.Key.pendingBlock).AccountID, entry.Key.pendingBlock.Height);
                     if(existingBlock != null)
                     {
                         _leaderTasks.Remove(entry.Key, out _);
