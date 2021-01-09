@@ -26,7 +26,7 @@ namespace Lyra.Core.Decentralize
         private void CheckLeaderInDuty()
         {
             // called by timer every 200ms. need to be quick.
-            var timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-60)).ToList();
+            var timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-12)).ToList();
 
             while (timeouted.Any())
             {
@@ -46,7 +46,7 @@ namespace Lyra.Core.Decentralize
 
                 if(removed)
                 {
-                    timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-60)).ToList();
+                    timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-12)).ToList();
                     continue;
                 }
 
