@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using Microsoft.Extensions.Logging;
 using System;
@@ -7,19 +8,40 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
     public partial class ConsensusService
     {
-        //private class LeaderTask
-        //{
-        //    public string AssociatedToHash { get; set; }
-        //    public Block pendingBlock { get; set; }
-        //}
-        private ConcurrentDictionary<Block, DateTime> _leaderTasks = new ConcurrentDictionary<Block, DateTime>();
-        private async Task QueueBlockForPool(Block block)
+        private class LeaderTask
+        {
+            public string AssociatedToHash { get; set; }
+            public Block pendingBlock { get; set; }
+        }
+        private ConcurrentDictionary<LeaderTask, DateTime> _leaderTasks = new ConcurrentDictionary<LeaderTask, DateTime>();
+
+        private void CheckLeaderInDuty()
+        {
+            // called by timer every 200ms. need to be quick.
+            var timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-10));
+
+            if (timeouted.Any())
+            {
+                _log.LogWarning($"Leader failed timeout. start view change.");
+
+                // reset block time tag
+                foreach (var entry in timeouted)
+                    _leaderTasks.TryUpdate(entry.Key, DateTime.Now, entry.Value);
+
+                if (CurrentState == BlockChainState.Almighty)
+                {
+                    _viewChangeHandler.BeginChangeView(false);
+                }
+            }
+        }
+        private async Task QueueBlockForPool(Block block, string associatedHash)
         {
             if(IsThisNodeLeader)
             {
@@ -27,7 +49,12 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                _leaderTasks.AddOrUpdate(block, DateTime.Now, (key, time) => DateTime.Now);
+                var queuedTask = new LeaderTask
+                {
+                    AssociatedToHash = associatedHash,
+                    pendingBlock = block
+                };
+                _leaderTasks.AddOrUpdate(queuedTask, DateTime.Now, (key, time) => DateTime.Now);
             }
         }
 
@@ -41,7 +68,7 @@ namespace Lyra.Core.Decentralize
                 {
                     // then create pool for it.
                     _log.LogInformation("Creating pool ...");
-                    await CreateLiquidatePoolAsync(send.Tags["token0"], send.Tags["token1"]);
+                    await CreateLiquidatePoolAsync(block as SendTransferBlock);
                     //if (poolCreateResult == ConsensusResult.Yea)
                     //    _log.LogInformation($"Pool created successfully.");
                     //else
@@ -110,6 +137,7 @@ namespace Lyra.Core.Decentralize
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            receiveBlock.AddTag("relhash", sendBlock.Hash);  // related hash
             receiveBlock.AddTag("type", "pfrecv");       // pool factory receive
 
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
@@ -138,7 +166,7 @@ namespace Lyra.Core.Decentralize
 
             receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            await QueueBlockForPool(receiveBlock);
+            await QueueBlockForPool(receiveBlock, sendBlock.Hash);
         }
 
         private async Task ReceivePoolSwapInAsync(SendTransferBlock sendBlock)
@@ -161,6 +189,7 @@ namespace Lyra.Core.Decentralize
             };
 
             swapInBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            swapInBlock.AddTag("relhash", sendBlock.Hash);  // related hash
             swapInBlock.AddTag("type", "plswaprecv");       // pool swap in
 
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
@@ -199,7 +228,7 @@ namespace Lyra.Core.Decentralize
             swapInBlock.Shares = (latestPoolBlock as IPool).Shares;
             swapInBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            await QueueBlockForPool(swapInBlock);
+            await QueueBlockForPool(swapInBlock, sendBlock.Hash);
         }
 
         private async Task SendPoolSwapOutToken(PoolSwapInBlock swapInBlock, string poolId, string targetAccountId, string token, decimal amount)
@@ -218,6 +247,7 @@ namespace Lyra.Core.Decentralize
             };
 
             swapOutBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            swapOutBlock.AddTag("relhash", swapInBlock.Hash);  // related hash
 
             var poolGenesisBlock = await _sys.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
             var poolLatestBlock = await _sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
@@ -231,7 +261,7 @@ namespace Lyra.Core.Decentralize
             swapOutBlock.Shares = (poolLatestBlock as IPool).Shares;
             swapOutBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            await QueueBlockForPool(swapOutBlock);
+            await QueueBlockForPool(swapOutBlock, swapInBlock.Hash);
         }
 
         private async Task ReceivePoolDepositionAsync(SendTransferBlock sendBlock)
@@ -254,6 +284,7 @@ namespace Lyra.Core.Decentralize
             };
 
             depositBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            depositBlock.AddTag("relhash", sendBlock.Hash);  // related hash
             depositBlock.AddTag("type", "pladd");       // pool add liquidate
 
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
@@ -307,7 +338,7 @@ namespace Lyra.Core.Decentralize
 
             depositBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            await QueueBlockForPool(depositBlock);
+            await QueueBlockForPool(depositBlock, sendBlock.Hash);
         }
 
         private async Task SendWithdrawFunds(ReceiveTransferBlock recvBlock, string poolId, string targetAccountId)
@@ -326,6 +357,7 @@ namespace Lyra.Core.Decentralize
             };
 
             withdrawBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            withdrawBlock.AddTag("relhash", recvBlock.Hash);  // related hash
 
             var poolGenesisBlock = await _sys.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
             var poolLatestBlock = await _sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
@@ -358,11 +390,14 @@ namespace Lyra.Core.Decentralize
 
             withdrawBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            await QueueBlockForPool(withdrawBlock);
+            await QueueBlockForPool(withdrawBlock, recvBlock.Hash);
         }
 
-        private async Task CreateLiquidatePoolAsync(string token0, string token1)
+        private async Task CreateLiquidatePoolAsync(SendTransferBlock sendBlock)
         {
+            string token0 = sendBlock.Tags["token0"];
+            string token1 = sendBlock.Tags["token1"];
+
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
             var pf = await _sys.Storage.GetPoolFactoryAsync();
 
@@ -400,10 +435,11 @@ namespace Lyra.Core.Decentralize
             };
 
             poolBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            
 
             // pool blocks are service block so all service block signed by leader node
             poolBlock.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            await QueueBlockForPool(poolBlock);
+            await QueueBlockForPool(poolBlock, sendBlock.Hash);
         }
     }
 }

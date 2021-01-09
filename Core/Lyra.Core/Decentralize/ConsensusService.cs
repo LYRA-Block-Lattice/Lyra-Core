@@ -31,7 +31,7 @@ using Lyra.Data.Crypto;
 namespace Lyra.Core.Decentralize
 {
     /// <summary>
-    /// about seed generation: the seed0 seed will generate UIndex whild sending authorization message.
+    /// pBFT Consensus
     /// </summary>
     public partial class ConsensusService : ReceiveActor
     {
@@ -64,7 +64,6 @@ namespace Lyra.Core.Decentralize
         private System.Net.IPAddress _myIpAddress;
 
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
-        public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
 
         public BillBoard Board { get => _board; }
         public List<TransStats> Stats { get => _stats; }
@@ -244,6 +243,9 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
+                    // leader monitor
+                    CheckLeaderInDuty();
+
                     if (_viewChangeHandler.CheckTimeout())
                     {
                         _log.LogInformation($"View Change with Id {_viewChangeHandler.ViewId} begin {_viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - _viewChangeHandler.TimeStarted}");
@@ -1330,8 +1332,19 @@ namespace Lyra.Core.Decentralize
             //if (Board.CurrentLeader == _sys.PosWallet.AccountId && block.ContainsTag(Block.REQSERVICETAG))
 
             // node block require additional works
-            if(block.ContainsTag(Block.MANAGEDTAG))
+            if(block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
             {
+                if(block.ContainsTag("relhash"))
+                {
+                    var assoHash = block.Tags["relhash"];
+                    var lt = _leaderTasks.Keys.FirstOrDefault(x => x.AssociatedToHash == assoHash);
+                    if (lt != null)
+                    {
+                        _log.LogInformation($"Leader task associated with {assoHash} is finished and removed.");
+                        _leaderTasks.TryRemove(lt, out _);
+                    }                        
+                }
+
                 if (!block.ContainsTag("type"))
                 {
                     _log.LogWarning("A MANAGEDTAG block not have type.");
