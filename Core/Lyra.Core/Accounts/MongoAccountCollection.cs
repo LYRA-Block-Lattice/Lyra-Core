@@ -976,7 +976,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<bool> AddBlockAsync(Block block)
         {
-            _log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.Hash}");
+            //_log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.Hash}");
 
             if (await FindBlockByHashAsync(block.Hash) != null)
             {

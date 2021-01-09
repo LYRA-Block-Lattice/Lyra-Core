@@ -25,19 +25,17 @@ namespace Lyra.Core.Decentralize
         private void CheckLeaderInDuty()
         {
             // called by timer every 200ms. need to be quick.
-            var timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-10));
+            var timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-60));
 
             if (timeouted.Any())
             {
-                _log.LogWarning($"Leader failed timeout. start view change.");
-
                 // reset block time tag
                 foreach (var entry in timeouted)
                     _leaderTasks.TryUpdate(entry.Key, DateTime.Now, entry.Value);
 
                 if (CurrentState == BlockChainState.Almighty)
                 {
-                    _viewChangeHandler.BeginChangeView(false, "Leader failed timeout.");
+                    _viewChangeHandler.BeginChangeView(false, "Leader Task failed timeout.");
                 }
             }
         }

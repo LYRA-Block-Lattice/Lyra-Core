@@ -264,7 +264,7 @@ namespace Lyra.Core.Decentralize
             var candidate = q.FirstOrDefault();
             if (candidate?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                _log.LogInformation($"CheckAllStats, By CommitMsgs, leader selected {candidate.Candidate} with {candidate.Count} votes.");
+                //_log.LogInformation($"CheckAllStats, By CommitMsgs, leader selected {candidate.Candidate} with {candidate.Count} votes.");
 
                 selectedSuccess = true;
                 _leaderSelected(this, ViewId, candidate.Candidate, candidate.Count, _context.Board.AllVoters);
