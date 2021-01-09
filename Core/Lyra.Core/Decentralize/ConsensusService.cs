@@ -1345,7 +1345,7 @@ namespace Lyra.Core.Decentralize
             // only current leader deals with managed blocks
             //if (Board.CurrentLeader == _sys.PosWallet.AccountId && block.ContainsTag(Block.REQSERVICETAG))
 
-            if(block is ServiceBlock sb)
+            if(result == ConsensusResult.Yea && block is ServiceBlock sb)
             {
                 if(sb.Leader == _sys.PosWallet.AccountId)
                 {
