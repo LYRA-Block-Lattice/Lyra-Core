@@ -674,6 +674,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task<ConsensusResult?> SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
         {
+            if (block == null)
+                throw new ArgumentNullException();
+
             AuthorizingMsg msg = new AuthorizingMsg
             {
                 From = _sys.PosWallet.AccountId,
