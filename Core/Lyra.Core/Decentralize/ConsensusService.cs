@@ -239,12 +239,12 @@ namespace Lyra.Core.Decentralize
             CreateStateMachine();
 
             var timr = new System.Timers.Timer(200);
-            timr.Elapsed += (s, o) =>
+            timr.Elapsed += async (s, o) =>
             {
                 try
                 {
                     // leader monitor
-                    CheckLeaderInDuty();
+                    await CheckLeaderInDutyAsync();
 
                     if (_viewChangeHandler.CheckTimeout())
                     {
