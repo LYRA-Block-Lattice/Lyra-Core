@@ -244,7 +244,6 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     // leader monitor
-                    await CheckLeaderInDutyAsync();
 
                     if (_viewChangeHandler.CheckTimeout())
                     {
@@ -1360,19 +1359,6 @@ namespace Lyra.Core.Decentralize
                 if(result == ConsensusResult.Yea)
                 {
                     ServiceBlockCreated(serviceBlock);
-
-                    if (IsThisNodeLeader)
-                    {
-                        _log.LogInformation($"DumpLeaderTasks. count: {_leaderTasks.Count}");
-                        DumpLeaderTasks();
-
-                        // TODO: newly elected leader should scan all unsettled operations. (send to pool/pf)
-                    }
-                    else
-                    {
-                        _log.LogInformation($"ResetLeaderTasksTime. count: {_leaderTasks.Count}");
-                        ResetLeaderTasksTime();
-                    }
                 }                    
 
                 if(!localIsGood)
@@ -1384,25 +1370,6 @@ namespace Lyra.Core.Decentralize
             // node block require additional works
             if(block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
             {
-                if(block.ContainsTag("relhash"))
-                {
-                    var assoHash = block.Tags["relhash"];
-                    var lt = _leaderTasks.Keys.FirstOrDefault(x => x.AssociatedToHash == assoHash);
-                    if (lt != null)
-                    {
-                        _log.LogInformation($"Leader task associated with {assoHash} is finished and removed.");
-                        _leaderTasks.TryRemove(lt, out _);
-                    }
-                    else
-                    {
-                        _log.LogWarning($"leader task related to {assoHash} not found.");
-                    }
-                }
-                else
-                {
-                    _log.LogWarning($"block {block.Hash} tags contains no relhash.");
-                }
-
                 if (!block.ContainsTag("type"))
                 {
                     _log.LogWarning("A MANAGEDTAG block not have type.");

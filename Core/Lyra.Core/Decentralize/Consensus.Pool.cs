@@ -16,89 +16,6 @@ namespace Lyra.Core.Decentralize
 {
     public partial class ConsensusService
     {
-        private class LeaderTask
-        {
-            public string AssociatedToHash { get; set; }
-            public Block pendingBlock { get; set; }
-        }
-        private ConcurrentDictionary<LeaderTask, DateTime> _leaderTasks = new ConcurrentDictionary<LeaderTask, DateTime>();
-
-        private void ResetLeaderTasksTime()
-        {
-            foreach (var entry in _leaderTasks)
-                _leaderTasks.TryUpdate(entry.Key, DateTime.Now, entry.Value);
-        }
-        private void DumpLeaderTasks()
-        {
-            _ = Task.Run(async () => {
-
-                var tsks = _leaderTasks.Keys.ToList();
-                _leaderTasks.Clear();
-                foreach (var task in tsks)
-                {
-                    try
-                    {
-                        int i = 5;
-                        while(i > 0)
-                        {
-                            var block = task.pendingBlock;
-
-                            var sb = await _sys.Storage.GetLastServiceBlockAsync();
-                            block.ServiceHash = sb.Hash;
-                            var latestBlock = await _sys.Storage.FindBlockByHashAsync(block.PreviousHash);
-                            block.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
-                            var result = await SendBlockToConsensusAndWaitResultAsync(block);
-
-                            if (result == ConsensusResult.Yea)
-                                break;
-
-                            i--;
-                        }                   
-                    }
-                    catch { }
-                }
-            });
-
-        }
-        private async Task CheckLeaderInDutyAsync()
-        {
-            // called by timer every 200ms. need to be quick.
-            var timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-12)).ToList();
-
-            while (timeouted.Any())
-            {
-                _log.LogInformation($"Leader duty has {timeouted.Count} task timeout.");
-                // is it really failed task or just missed by local node?
-                bool removed = false;
-                foreach (var entry in timeouted)
-                {
-                    var existingBlock = await _sys.Storage.FindBlockByIndexAsync(((TransactionBlock)entry.Key.pendingBlock).AccountID, entry.Key.pendingBlock.Height);
-                    if(existingBlock != null)
-                    {
-                        _leaderTasks.Remove(entry.Key, out _);
-                        removed = true;
-                        _log.LogInformation($"Leader duty remove one task because block exists.");
-                    }
-                }                
-
-                if(removed)
-                {
-                    timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-12)).ToList();
-                    continue;
-                }
-
-                // reset block time tag
-                foreach (var entry in timeouted)
-                    _leaderTasks.TryUpdate(entry.Key, DateTime.Now, entry.Value);
-
-                if (CurrentState == BlockChainState.Almighty)
-                {
-                    _viewChangeHandler.BeginChangeView(false, "Leader Task failed timeout.");
-                }
-
-                break;
-            }
-        }
         private async Task QueueBlockForPool(Block block, string associatedHash)
         {
             if (block == null || string.IsNullOrEmpty(associatedHash))
@@ -107,16 +24,6 @@ namespace Lyra.Core.Decentralize
             if(IsThisNodeLeader)
             {
                 await SendBlockToConsensusAndWaitResultAsync(block);
-            }
-            else
-            {
-                var queuedTask = new LeaderTask
-                {
-                    AssociatedToHash = associatedHash,
-                    pendingBlock = block
-                };
-                _leaderTasks.AddOrUpdate(queuedTask, DateTime.Now, (key, time) => DateTime.Now);
-                _log.LogInformation($"Leader duty added one task for {block.BlockType}, height {block.Height}");
             }
         }
 
