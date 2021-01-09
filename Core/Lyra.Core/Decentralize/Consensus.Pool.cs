@@ -38,13 +38,22 @@ namespace Lyra.Core.Decentralize
                 {
                     try
                     {
-                        var block = task.pendingBlock;
+                        int i = 5;
+                        while(i > 0)
+                        {
+                            var block = task.pendingBlock;
 
-                        var sb = await _sys.Storage.GetLastServiceBlockAsync();
-                        block.ServiceHash = sb.Hash;
-                        var latestBlock = await _sys.Storage.FindBlockByHashAsync(block.PreviousHash);
-                        block.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
-                        _ = await SendBlockToConsensusAndWaitResultAsync(block);
+                            var sb = await _sys.Storage.GetLastServiceBlockAsync();
+                            block.ServiceHash = sb.Hash;
+                            var latestBlock = await _sys.Storage.FindBlockByHashAsync(block.PreviousHash);
+                            block.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
+                            var result = await SendBlockToConsensusAndWaitResultAsync(block);
+
+                            if (result == ConsensusResult.Yea)
+                                break;
+
+                            i--;
+                        }                   
                     }
                     catch { }
                 }
