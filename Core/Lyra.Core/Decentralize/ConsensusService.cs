@@ -1351,6 +1351,8 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation($"DumpLeaderTasks. count: {_leaderTasks.Count}");
                     DumpLeaderTasks();
+
+                    // TODO: newly elected leader should scan all unsettled operations. (send to pool/pf)
                 }
                 else
                 {
