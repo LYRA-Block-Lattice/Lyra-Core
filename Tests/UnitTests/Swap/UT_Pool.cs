@@ -394,6 +394,14 @@ namespace UnitTests.Swap
                 result = await w1.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, swapRito, 0m);
                 Assert.IsTrue(result.ResultCode != APIResultCodes.Success, $"Should failed but: {result.ResultCode}");
 
+                await Task.Delay(3000);
+                await w1.Sync(client);
+                // make sure the balance is not changed.
+                var testTokenBalancex = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
+                var lyrBalancex = w1.GetLatestBlock().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                Assert.AreEqual(testTokenBalance, testTokenBalancex);
+                Assert.AreEqual(lyrBalance, lyrBalancex);
+
                 // then ok token
                 amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 result = await w1.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, swapRito, 0m);

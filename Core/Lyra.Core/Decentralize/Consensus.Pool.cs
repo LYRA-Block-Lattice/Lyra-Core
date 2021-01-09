@@ -30,6 +30,7 @@ namespace Lyra.Core.Decentralize
 
             while (timeouted.Any())
             {
+                _log.LogInformation($"Leader duty has {timeouted.Count} task timeout.");
                 // is it really failed task or just missed by local node?
                 bool removed = false;
                 foreach (var entry in timeouted)
@@ -39,6 +40,7 @@ namespace Lyra.Core.Decentralize
                     {
                         _leaderTasks.Remove(entry.Key, out _);
                         removed = true;
+                        _log.LogInformation($"Leader duty remove one task because block exists.");
                     }
                 }                
 
