@@ -386,6 +386,7 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation($"Database consistent check... It may take a while.");
 
                             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                            var shouldReset = false;
                             for (long i = lastCons == null ? 0 : lastCons.Height; i > 0; i--)
                             {
                                 bool missingBlock = false;
@@ -414,8 +415,15 @@ namespace Lyra.Core.Decentralize
                                 if (missingBlock)
                                 {
                                     _log.LogInformation($"DBCC: Fixing database...");
-                                    await SyncAndVerifyConsolidationBlock(authorizers, _networkClient, lastCons);
-                                    i++;
+                                    var consSyncResult = await SyncAndVerifyConsolidationBlock(authorizers, _networkClient, lastCons);
+                                    if(consSyncResult)
+                                        i++;
+                                    else
+                                    {
+                                        // reset aggregated client
+                                        shouldReset = true;
+                                        break;
+                                    }
                                 }
                                 else
                                 {
@@ -424,6 +432,12 @@ namespace Lyra.Core.Decentralize
 
                                     lastCons = nextCons;
                                 }
+                            }
+
+                            if(shouldReset)
+                            {
+                                _log.LogInformation($"Database consistent check has problem syncing database. Redo... ");
+                                continue;
                             }
 
                             _log.LogInformation($"Database consistent check is done.");
