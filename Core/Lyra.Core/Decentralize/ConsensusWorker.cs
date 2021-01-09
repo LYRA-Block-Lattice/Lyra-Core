@@ -19,7 +19,7 @@ using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {
-    public delegate void SuccessConsensusHandler(ConsensusHandlerBase handler, Block block, ConsensusResult? result);
+    public delegate void SuccessConsensusHandler(ConsensusHandlerBase handler, Block block, ConsensusResult? result, bool localOk);
     public class ConsensusWorker : ConsensusHandlerBase
     {
         private AuthorizersFactory _authorizers;
@@ -419,58 +419,23 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
+            bool localResultGood;
+            if (State.LocalResult != null && ((_state.CommitConsensus == ConsensusResult.Yea && State.LocalResult.Result == APIResultCodes.Success)
+                    || (_state.CommitConsensus == ConsensusResult.Nay && State.LocalResult.Result != APIResultCodes.Success)))
+            {
+                localResultGood = true;
+            }
+            else if(_state.CommitConsensus == ConsensusResult.Uncertain)
+            {
+                localResultGood = true;
+            }
+            else
+            {
+                localResultGood = false;
+            }
+
             _state.Done?.Set();
-            OnConsensusSuccess?.Invoke(this, block, _state.CommitConsensus);
-
-            if (block is ConsolidationBlock cons)
-            {
-                // get my authorize result
-                if (State.LocalResult != null && ((_state.CommitConsensus == ConsensusResult.Yea && State.LocalResult.Result == APIResultCodes.Success)
-                        || (_state.CommitConsensus == ConsensusResult.Nay && State.LocalResult.Result != APIResultCodes.Success)))
-                {
-                    _log.LogInformation("Consolidation block succeeded.");
-                    _context.ConsolidationSucceed(cons);
-                }
-                else if(!_state.CommitConsensus.HasValue || _state.CommitConsensus == ConsensusResult.Uncertain)
-                {
-                    _log.LogInformation("Consolidation block no result.");
-                }          
-                else
-                {
-                    _log.LogInformation("Local node can't do right consensus of consolidation block.");
-                    _context.LocalConsolidationFailed(block.Hash);
-                }
-            }
-            else if(block is ServiceBlock sb)
-            {
-                // check if missing service block
-                if (State.LocalResult != null && ((_state.CommitConsensus == ConsensusResult.Yea && State.LocalResult.Result == APIResultCodes.Success)
-                        || (_state.CommitConsensus == ConsensusResult.Nay && State.LocalResult.Result != APIResultCodes.Success)))
-                {
-                    _log.LogInformation($"Node synced with service block consensus result: {_state.CommitConsensus}.");
-
-                    if(_state.CommitConsensus == ConsensusResult.Yea)
-                    {
-                        // need update billboard
-                        _context.ServiceBlockCreated(sb);
-                    }
-                    else
-                    {
-                        // dump service block
-                        var authrs = string.Join('\n', sb.Authorizers.Keys);
-                        _log.LogInformation($"In service bolock {sb.Hash.Shorten()}, authorizers count {sb.Authorizers.Count}\nAuthorizerList: \n{authrs}");
-                    }
-                }
-                else if (!_state.CommitConsensus.HasValue || _state.CommitConsensus == ConsensusResult.Uncertain)
-                {
-                    _log.LogInformation("Service block no result.");
-                }
-                else
-                {
-                    _log.LogInformation("Local node can't do right consensus of Service block.");
-                    _context.LocalServiceBlockFailed(block.Hash);
-                }
-            }
+            OnConsensusSuccess?.Invoke(this, block, _state.CommitConsensus, localResultGood);
         }
 
     }

@@ -1332,7 +1332,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void Worker_OnConsensusSuccess(ConsensusHandlerBase handler, Block block, ConsensusResult? result)
+        private void Worker_OnConsensusSuccess(ConsensusHandlerBase handler, Block block, ConsensusResult? result, bool localIsGood)
         {
             _successBlockCount++;
             _activeConsensus.TryRemove(block.Hash, out _);
@@ -1345,20 +1345,39 @@ namespace Lyra.Core.Decentralize
             // only current leader deals with managed blocks
             //if (Board.CurrentLeader == _sys.PosWallet.AccountId && block.ContainsTag(Block.REQSERVICETAG))
 
-            if(result == ConsensusResult.Yea && block is ServiceBlock sb)
+            if (block is ConsolidationBlock cons)
             {
-                if(sb.Leader == _sys.PosWallet.AccountId)
-                {
-                    _log.LogInformation($"DumpLeaderTasks. count: {_leaderTasks.Count}");
-                    DumpLeaderTasks();
+                if(result == ConsensusResult.Yea)
+                    ConsolidationSucceed(cons);
 
-                    // TODO: newly elected leader should scan all unsettled operations. (send to pool/pf)
-                }
-                else
+                if(!localIsGood)
+                    LocalConsolidationFailed(block.Hash);
+
+                return;
+            }
+            else if (block is ServiceBlock serviceBlock)
+            {
+                if(result == ConsensusResult.Yea)
                 {
-                    _log.LogInformation($"ResetLeaderTasksTime. count: {_leaderTasks.Count}");
-                    ResetLeaderTasksTime();
-                }
+                    ServiceBlockCreated(serviceBlock);
+
+                    if (IsThisNodeLeader)
+                    {
+                        _log.LogInformation($"DumpLeaderTasks. count: {_leaderTasks.Count}");
+                        DumpLeaderTasks();
+
+                        // TODO: newly elected leader should scan all unsettled operations. (send to pool/pf)
+                    }
+                    else
+                    {
+                        _log.LogInformation($"ResetLeaderTasksTime. count: {_leaderTasks.Count}");
+                        ResetLeaderTasksTime();
+                    }
+                }                    
+
+                if(!localIsGood)
+                    LocalServiceBlockFailed(serviceBlock.Hash);
+
                 return;
             }
 
