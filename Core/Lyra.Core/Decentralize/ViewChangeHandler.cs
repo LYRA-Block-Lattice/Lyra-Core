@@ -207,7 +207,11 @@ namespace Lyra.Core.Decentralize
             {
                 if (TimeStarted == DateTime.MinValue)
                 {
-                    _log.LogInformation("too many view change request. force into view change mode");
+                    var sb = new StringBuilder();
+                    foreach(var msg in reqMsgs)
+                        sb.Append($"{msg.Key.Shorten()}, ")
+
+                    _log.LogInformation($"too many view change request, {sb.ToString()}. force into view change mode");
                     
                     // too many view change request. force into view change mode
                     _context.GotViewChangeRequest(ViewId, reqMsgs.Count);
