@@ -31,12 +31,14 @@ namespace Lyra.Core.Decentralize
         private void DumpLeaderTasks()
         {
             _ = Task.Run(async () => {
+
+                var tsks = _leaderTasks.Keys.ToList();
                 _leaderTasks.Clear();
-                foreach (var task in _leaderTasks)
+                foreach (var task in tsks)
                 {
                     try
                     {
-                        _ = await SendBlockToConsensusAndWaitResultAsync(task.Key.pendingBlock);
+                        _ = await SendBlockToConsensusAndWaitResultAsync(task.pendingBlock);
                     }
                     catch { }
                 }
