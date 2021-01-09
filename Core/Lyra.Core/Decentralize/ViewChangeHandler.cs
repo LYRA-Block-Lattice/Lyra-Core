@@ -252,7 +252,7 @@ namespace Lyra.Core.Decentralize
                 }
                 else
                 {
-                    _log.LogInformation($"CheckAllStats, By ReplyMsgs, not commit, top candidate {candidateQR?.Candidate.Shorten()} has {candidateQR?.Count} votes");
+                    //_log.LogInformation($"CheckAllStats, By ReplyMsgs, not commit, top candidate {candidateQR?.Candidate.Shorten()} has {candidateQR?.Count} votes");
                 }
             }
 

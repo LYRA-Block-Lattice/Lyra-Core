@@ -2,6 +2,7 @@
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -25,10 +26,28 @@ namespace Lyra.Core.Decentralize
         private void CheckLeaderInDuty()
         {
             // called by timer every 200ms. need to be quick.
-            var timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-60));
+            var timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-60)).ToList();
 
-            if (timeouted.Any())
+            while (timeouted.Any())
             {
+                // is it really failed task or just missed by local node?
+                bool removed = false;
+                foreach (var entry in timeouted)
+                {
+                    var existingBlock = _sys.Storage.FindBlockByIndexAsync(((TransactionBlock)entry.Key.pendingBlock).AccountID, entry.Key.pendingBlock.Height);
+                    if(existingBlock != null)
+                    {
+                        _leaderTasks.Remove(entry.Key, out _);
+                        removed = true;
+                    }
+                }                
+
+                if(removed)
+                {
+                    timeouted = _leaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-60)).ToList();
+                    continue;
+                }
+
                 // reset block time tag
                 foreach (var entry in timeouted)
                     _leaderTasks.TryUpdate(entry.Key, DateTime.Now, entry.Value);
