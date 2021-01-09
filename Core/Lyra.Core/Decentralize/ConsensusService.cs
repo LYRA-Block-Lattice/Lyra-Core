@@ -1342,7 +1342,15 @@ namespace Lyra.Core.Decentralize
                     {
                         _log.LogInformation($"Leader task associated with {assoHash} is finished and removed.");
                         _leaderTasks.TryRemove(lt, out _);
-                    }                        
+                    }
+                    else
+                    {
+                        _log.LogWarning($"leader task related to {assoHash} not found.");
+                    }
+                }
+                else
+                {
+                    _log.LogWarning($"block {block.Hash} tags contains no relhash.");
                 }
 
                 if (!block.ContainsTag("type"))
