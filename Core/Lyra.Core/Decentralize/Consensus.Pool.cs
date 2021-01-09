@@ -68,7 +68,7 @@ namespace Lyra.Core.Decentralize
                 {
                     // then create pool for it.
                     _log.LogInformation("Creating pool ...");
-                    await CreateLiquidatePoolAsync(recvBlock);
+                    await CreateLiquidatePoolAsync(recvBlock, send.Tags["token0"], send.Tags["token1"]);
                     //if (poolCreateResult == ConsensusResult.Yea)
                     //    _log.LogInformation($"Pool created successfully.");
                     //else
@@ -393,11 +393,8 @@ namespace Lyra.Core.Decentralize
             await QueueBlockForPool(withdrawBlock, recvBlock.Hash);
         }
 
-        private async Task CreateLiquidatePoolAsync(ReceiveTransferBlock recvBlock)
+        private async Task CreateLiquidatePoolAsync(ReceiveTransferBlock recvBlock, string token0, string token1)
         {
-            string token0 = recvBlock.Tags["token0"];
-            string token1 = recvBlock.Tags["token1"];
-
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
             var pf = await _sys.Storage.GetPoolFactoryAsync();
 
