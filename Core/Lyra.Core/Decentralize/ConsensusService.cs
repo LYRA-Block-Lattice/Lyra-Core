@@ -1345,6 +1345,19 @@ namespace Lyra.Core.Decentralize
             // only current leader deals with managed blocks
             //if (Board.CurrentLeader == _sys.PosWallet.AccountId && block.ContainsTag(Block.REQSERVICETAG))
 
+            if(block is ServiceBlock sb)
+            {
+                if(sb.Leader == _sys.PosWallet.AccountId)
+                {
+                    DumpLeaderTasks();
+                }
+                else
+                {
+                    ResetLeaderTasksTime();
+                }
+                return;
+            }
+
             // node block require additional works
             if(block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
             {

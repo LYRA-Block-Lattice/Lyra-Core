@@ -23,6 +23,26 @@ namespace Lyra.Core.Decentralize
         }
         private ConcurrentDictionary<LeaderTask, DateTime> _leaderTasks = new ConcurrentDictionary<LeaderTask, DateTime>();
 
+        private void ResetLeaderTasksTime()
+        {
+            foreach (var entry in _leaderTasks)
+                _leaderTasks.TryUpdate(entry.Key, DateTime.Now, entry.Value);
+        }
+        private void DumpLeaderTasks()
+        {
+            _ = Task.Run(async () => {
+                _leaderTasks.Clear();
+                foreach (var task in _leaderTasks)
+                {
+                    try
+                    {
+                        _ = await SendBlockToConsensusAndWaitResultAsync(task.Key.pendingBlock);
+                    }
+                    catch { }
+                }
+            });
+
+        }
         private async Task CheckLeaderInDutyAsync()
         {
             // called by timer every 200ms. need to be quick.
