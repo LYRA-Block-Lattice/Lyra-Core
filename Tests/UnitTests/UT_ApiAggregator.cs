@@ -11,12 +11,14 @@ namespace UnitTests
     [TestClass]
     public class UT_ApiAggregator
     {
-        [TestMethod]
-        public async System.Threading.Tasks.Task TestGetServiceBlockAsync()
-        {
-            var client = LyraRestClient.Create("testnet", "Windows", "UnitTest", "1.0");
+        private string networkId = "devnet";
 
-            var aggClient = new LyraAggregatedClient("testnet");
+        [TestMethod]
+        public async Task TestGetServiceBlockAsync()
+        {
+            var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
+
+            var aggClient = new LyraAggregatedClient(networkId);
             await aggClient.InitAsync();
 
             var svcBlock1 = await client.GetLastServiceBlock();
@@ -28,7 +30,7 @@ namespace UnitTests
         [TestMethod]
         public async Task TestGetLastBlockAsync()
         {
-            var client = LyraRestClient.Create("testnet", "Windows", "UnitTest", "1.0");
+            var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
             var aggClient = new LyraAggregatedClient("testnet");
             await aggClient.InitAsync();
@@ -43,9 +45,9 @@ namespace UnitTests
         [TestMethod]
         public async Task TestGetFee()
         {
-            var client = LyraRestClient.Create("testnet", "Windows", "UnitTest", "1.0");
+            var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-            var aggClient = new LyraAggregatedClient("testnet");
+            var aggClient = new LyraAggregatedClient(networkId);
             await aggClient.InitAsync();
 
             var svcBlock1 = await client.GetFeeStatsAsync();

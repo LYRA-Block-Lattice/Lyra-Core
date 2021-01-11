@@ -43,82 +43,61 @@ namespace Lyra.Core.Decentralize
             return await NodeService.Dag.Consensus.Ask<string>(new ConsensusService.AskForDbStats());
         }
 
-        private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
-        {
-            _log.LogInformation($"ApiService: PostToConsensusAsync Called: {block.BlockType}");
+        //private async Task<AuthState> PostToConsensusAsync(TransactionBlock block)
+        //{
+        //    _log.LogInformation($"ApiService: PostToConsensusAsync Called: {block.BlockType}");
 
-            AuthorizingMsg msg = new AuthorizingMsg
-            {
-                IsServiceBlock = false,
-                From = NodeService.Dag.PosWallet.AccountId,
-                Block = block,
-                BlockHash = block.Hash,
-                MsgType = ChatMessageType.AuthorizerPrePrepare
-            };
+        //    //AuthorizingMsg msg = new AuthorizingMsg
+        //    //{
+        //    //    IsServiceBlock = false,
+        //    //    From = NodeService.Dag.PosWallet.AccountId,
+        //    //    Block = block,
+        //    //    BlockHash = block.Hash,
+        //    //    MsgType = ChatMessageType.AuthorizerPrePrepare
+        //    //};
 
-            var state = new AuthState(true);            
-            state.InputMsg = msg;
+        //    //var state = new AuthState(true);            
+        //    //state.InputMsg = msg;
 
-            NodeService.Dag.Consensus.Tell(state);
+        //    NodeService.Dag.Consensus.Tell(state);
 
-            await state.WaitForClose();
+        //    await state.WaitForClose();
 
-            var ts1 = state.T1 == null ? "" : ((int)(DateTime.Now - state.T1).TotalMilliseconds).ToString();
-            var ts2 = state.T2 == null ? "" : ((int)(DateTime.Now - state.T2).TotalMilliseconds).ToString();
-            var ts3 = state.T3 == null ? "" : ((int)(DateTime.Now - state.T3).TotalMilliseconds).ToString();
-            var ts4 = state.T4 == null ? "" : ((int)(DateTime.Now - state.T4).TotalMilliseconds).ToString();
-            var ts5 = state.T5 == null ? "" : ((int)(DateTime.Now - state.T5).TotalMilliseconds).ToString();
+        //    var ts1 = state.T1 == null ? "" : ((int)(DateTime.Now - state.T1).TotalMilliseconds).ToString();
+        //    var ts2 = state.T2 == null ? "" : ((int)(DateTime.Now - state.T2).TotalMilliseconds).ToString();
+        //    var ts3 = state.T3 == null ? "" : ((int)(DateTime.Now - state.T3).TotalMilliseconds).ToString();
+        //    var ts4 = state.T4 == null ? "" : ((int)(DateTime.Now - state.T4).TotalMilliseconds).ToString();
+        //    var ts5 = state.T5 == null ? "" : ((int)(DateTime.Now - state.T5).TotalMilliseconds).ToString();
 
-            _log.LogInformation($"ApiService Timing:\n{ts1}\n{ts2}\n{ts3}\n{ts4}\n{ts5}\n");
+        //    _log.LogInformation($"ApiService Timing:\n{ts1}\n{ts2}\n{ts3}\n{ts4}\n{ts5}\n");
 
-            var resultMsg = state.OutputMsgs.Count > 0 ? state.OutputMsgs.First().Result.ToString() : "Unable to authorize block";
-            _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.CommitConsensus == ConsensusResult.Yea} with {resultMsg}");
+        //    var resultMsg = state.OutputMsgs.Count > 0 ? state.OutputMsgs.First().Result.ToString() : "Unable to authorize block";
+        //    _log.LogInformation($"ApiService: PostToConsensusAsync Exited: IsAuthoringSuccess: {state?.CommitConsensus == ConsensusResult.Yea} with {resultMsg}");
 
-            // keep a snapshot of last success consensus.
-            if ((state?.CommitConsensus ?? ConsensusResult.Uncertain) != ConsensusResult.Uncertain)
-                LastState = state;
+        //    // keep a snapshot of last success consensus.
+        //    if ((state?.CommitConsensus ?? ConsensusResult.Uncertain) != ConsensusResult.Uncertain)
+        //        LastState = state;
 
-            return state;
-        }
+        //    return state;
+        //}
 
         internal async Task<AuthorizationAPIResult> Pre_PrepareAsync(TransactionBlock block1, Func<TransactionBlock, Task<TransactionBlock>> OnBlockSucceed = null)
         {
             var result = new AuthorizationAPIResult();
 
-            //AuthState state2 = null;
-            var state1 = await PostToConsensusAsync(block1).ConfigureAwait(false);
+            var (consensusResult, errorCode) = await NodeService.Dag.Consensus.Ask<(ConsensusResult?, APIResultCodes)>(new ConsensusService.AskForConsensus { block = block1 });
 
-            if (state1 != null && state1.CommitConsensus == ConsensusResult.Yea)
+            if (consensusResult == ConsensusResult.Yea)
             {
                 result.ResultCode = APIResultCodes.Success;
-
-                ////fee is the bottle neck!!! must do lazy fee collection by consolidation
-                //if (OnBlockSucceed != null)
-                //{
-                //    var block2 = await OnBlockSucceed(state1.InputMsg.Block as TransactionBlock).ConfigureAwait(false);
-                //    if(block2 != null)
-                //        state2 = await PostToConsensusAsync(block2).ConfigureAwait(false);
-                //}
             }
-            else if (state1 != null && state1.CommitConsensus == ConsensusResult.Nay)
+            else if (consensusResult == ConsensusResult.Nay)
             {
-                var mojCode = state1.OutputMsgs.GroupBy(a => a.Result)
-                    .Select(g => new { g.Key, Count = g.Count() })
-                    .OrderByDescending(x => x.Count)
-                    .FirstOrDefault();
-
-                if (mojCode == null)
-                    result.ResultCode = state1.LocalResult.Result;
-                else
-                    result.ResultCode = mojCode.Key;
+                result.ResultCode = errorCode;
             }
-            else if (state1 != null && state1.CommitConsensus == ConsensusResult.Uncertain)
+            else if (consensusResult == ConsensusResult.Uncertain)
             {
                 result.ResultCode = APIResultCodes.ConsensusTimeout;
-            }
-            else
-            {
-                result.ResultCode = state1.OutputMsgs.Count > 0 ? state1.OutputMsgs.First().Result : APIResultCodes.BlockFailedToBeAuthorized;
             }
 
             return result;

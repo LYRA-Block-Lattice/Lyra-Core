@@ -40,6 +40,7 @@ namespace Lyra.Core.Decentralize
         public class AskForState { }
         public class AskForStats { }
         public class AskForDbStats { }
+        public class AskForConsensus { public TransactionBlock block { get; set; } }
         public class QueryBlockchainStatus { }
         public class ReqCreatePoolFactory { }
 
@@ -145,6 +146,13 @@ namespace Lyra.Core.Decentralize
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
+
+            // consensus, replace authstate
+            ReceiveAsync<AskForConsensus>(async (askReq) => {
+                var (result, code) = await SendBlockToConsensusAndWaitResultAsync(askReq.block);
+                Sender.Tell((result, code));
+            });
+
             Receive<ReqCreatePoolFactory>((_) => CreatePoolFactory());
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
@@ -175,45 +183,45 @@ namespace Lyra.Core.Decentralize
                 }
             });
 
-            ReceiveAsync<AuthState>(async state =>
-            {
-                // not accepting new transaction from API
-                // service block generate as usual.
-                if (_viewChangeHandler.IsViewChanging)
-                    return;
+            //ReceiveAsync<AuthState>(async state =>
+            //{
+            //    // not accepting new transaction from API
+            //    // service block generate as usual.
+            //    if (_viewChangeHandler.IsViewChanging)
+            //        return;
 
-                _log.LogInformation($"State told.");
-                if (_stateMachine.State != BlockChainState.Almighty && _stateMachine.State != BlockChainState.Engaging && _stateMachine.State != BlockChainState.Genesis)
-                {
-                    state.Close();
-                    return;
-                }
+            //    _log.LogInformation($"State told.");
+            //    if (_stateMachine.State != BlockChainState.Almighty && _stateMachine.State != BlockChainState.Engaging && _stateMachine.State != BlockChainState.Genesis)
+            //    {
+            //        state.Close();
+            //        return;
+            //    }
 
-                if (_viewChangeHandler.TimeStarted != DateTime.MinValue)
-                {
-                    // view changing in progress. no block accepted
-                    state.Close();
-                    return;
-                }
+            //    if (_viewChangeHandler.TimeStarted != DateTime.MinValue)
+            //    {
+            //        // view changing in progress. no block accepted
+            //        state.Close();
+            //        return;
+            //    }
 
-                //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
-                if (state.InputMsg.Block is TransactionBlock)
-                {
-                    var acctId = (state.InputMsg.Block as TransactionBlock).AccountID;
-                    if (FindActiveBlock(acctId, state.InputMsg.Block.Height))
-                    {
-                        _log.LogCritical($"Double spent detected for {acctId}, index {state.InputMsg.Block.Height}");
-                        return;
-                    }
-                    state.SetView(Board.PrimaryAuthorizers);
-                }
-                else if (state.InputMsg.Block is ServiceBlock)
-                {
-                    state.SetView(Board.AllVoters);
-                }
+            //    //TODO: check  || _context.Board == null || !_context.Board.CanDoConsensus
+            //    if (state.InputMsg.Block is TransactionBlock)
+            //    {
+            //        var acctId = (state.InputMsg.Block as TransactionBlock).AccountID;
+            //        if (FindActiveBlock(acctId, state.InputMsg.Block.Height))
+            //        {
+            //            _log.LogCritical($"Double spent detected for {acctId}, index {state.InputMsg.Block.Height}");
+            //            return;
+            //        }
+            //        state.SetView(Board.PrimaryAuthorizers);
+            //    }
+            //    else if (state.InputMsg.Block is ServiceBlock)
+            //    {
+            //        state.SetView(Board.AllVoters);
+            //    }
 
-                await SubmitToConsensusAsync(state);
-            });
+            //    await SubmitToConsensusAsync(state);
+            //});
 
             Receive<BlockChain.BlockAdded>(nb =>
             {
@@ -1321,8 +1329,6 @@ namespace Lyra.Core.Decentralize
                     worker = new ConsensusEngagingWorker(this, hash);
                 else
                     worker = new ConsensusWorker(this, hash);
-
-                worker.OnConsensusSuccess += Worker_OnConsensusSuccess;
 
                 if (_activeConsensus.TryAdd(hash, worker))
                     return worker;

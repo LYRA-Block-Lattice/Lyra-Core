@@ -672,7 +672,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<ConsensusResult?> SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
+        private async Task<(ConsensusResult?, APIResultCodes errorCode)> SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default
         {
             if (block == null)
                 throw new ArgumentNullException();
@@ -705,7 +705,7 @@ namespace Lyra.Core.Decentralize
 
             await state.WaitForClose();
 
-            return state.CommitConsensus;
+            return (state.CommitConsensus, state.GetMajorErrorCode());
         }
 
         private class LocalDbSyncState

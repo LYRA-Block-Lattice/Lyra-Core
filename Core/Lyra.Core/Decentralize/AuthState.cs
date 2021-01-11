@@ -15,13 +15,16 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public enum ConsensusResult { Uncertain, Yea, Nay, Requote }
+    public enum ConsensusResult { Uncertain, Yea, Nay }
     public class ConsensusState
     {
         public DateTime Created { get; set; } = DateTime.Now;
     }
+    public delegate void SuccessConsensusHandler(Block block, ConsensusResult? result, bool localOk);
     public class AuthState : ConsensusState
     {
+        public event SuccessConsensusHandler OnConsensusSuccess;
+
         // for debug profiling only
         public DateTime T1 { get; set; }
         public DateTime T2 { get; set; }
@@ -51,7 +54,7 @@ namespace Lyra.Core.Decentralize
         {
             get
             {
-                if(_validNodes == null)
+                if (_validNodes == null)
                 {
                     return ProtocolSettings.Default.StandbyValidators.Length;
                 }
@@ -78,7 +81,7 @@ namespace Lyra.Core.Decentralize
             CommitMsgs = new ConcurrentBag<AuthorizerCommitMsg>();
 
             Semaphore = new SemaphoreSlim(1, 1);
-            if(haveWaiter)
+            if (haveWaiter)
                 Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 
@@ -159,7 +162,7 @@ namespace Lyra.Core.Decentralize
         {
             var CommitMsgList = CommitMsgs.ToList();
 
-            if(CommitMsgList.Count < WinNumber)
+            if (CommitMsgList.Count < WinNumber)
             {
                 // votes not enough
                 return null;
@@ -203,6 +206,22 @@ namespace Lyra.Core.Decentralize
             return ConsensusResult.Uncertain;
         }
 
+        public APIResultCodes GetMajorErrorCode()
+        {
+            var q = OutputMsgs.GroupBy(a => a.Result)
+                    .Select(g => new { g.Key, Count = g.Count() })
+                    .OrderByDescending(x => x.Count);
+
+            if(q.Any())
+            {
+                return q.First().Key;
+            }
+            else
+            {
+                return APIResultCodes.UnknownError;
+            }
+        }
+
         public async Task WaitForClose()
         {
             if (Done != null)
@@ -217,7 +236,17 @@ namespace Lyra.Core.Decentralize
             {
                 Done.Set();
                 Done.Dispose();
-            }                
+            }
+
+            var localResultGood = false;
+            if (CommitConsensus == ConsensusResult.Yea && LocalResult.Result == APIResultCodes.Success)
+                localResultGood = true;
+            else if (CommitConsensus == ConsensusResult.Nay && LocalResult.Result != APIResultCodes.Success)
+                localResultGood = true;
+            else if (CommitConsensus == ConsensusResult.Uncertain)
+                localResultGood = true;
+
+            OnConsensusSuccess?.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
         }
     }
 }

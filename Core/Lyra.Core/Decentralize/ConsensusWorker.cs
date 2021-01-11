@@ -19,13 +19,11 @@ using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {
-    public delegate void SuccessConsensusHandler(ConsensusHandlerBase handler, Block block, ConsensusResult? result, bool localOk);
     public class ConsensusWorker : ConsensusHandlerBase
     {
         private AuthorizersFactory _authorizers;
 
         AuthState _state;
-        public event SuccessConsensusHandler OnConsensusSuccess;
 
         public string Hash { get; }
         public AuthState State { get => _state as AuthState; set => _state = value; }
@@ -430,23 +428,7 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            bool localResultGood;
-            if (State.LocalResult != null && ((_state.CommitConsensus == ConsensusResult.Yea && State.LocalResult.Result == APIResultCodes.Success)
-                    || (_state.CommitConsensus == ConsensusResult.Nay && State.LocalResult.Result != APIResultCodes.Success)))
-            {
-                localResultGood = true;
-            }
-            else if(_state.CommitConsensus == ConsensusResult.Uncertain)
-            {
-                localResultGood = true;
-            }
-            else
-            {
-                localResultGood = false;
-            }
-
             _state.Close();
-            OnConsensusSuccess?.Invoke(this, _state.InputMsg?.Block, _state.CommitConsensus, localResultGood);
         }
     }
 }
