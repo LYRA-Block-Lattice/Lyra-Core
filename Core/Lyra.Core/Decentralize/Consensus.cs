@@ -221,6 +221,13 @@ namespace Lyra.Core.Decentralize
                             }
                         }
                     }
+                    else if (unConsHashResult.ResultCode == APIResultCodes.APIRouteFailed)
+                    {
+                        _log.LogInformation("Recreate aggregated client...");
+                        _networkClient = new LyraClientForNode(_sys);
+                        _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+                        continue;
+                    }
                     else
                     {
                         continue;
