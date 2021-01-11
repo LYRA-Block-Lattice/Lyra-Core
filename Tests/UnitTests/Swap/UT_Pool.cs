@@ -314,6 +314,8 @@ namespace UnitTests.Swap
                 var otherResult = await w2.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, otherAmount, swapRito, 0m);
                 Assert.IsTrue(otherResult.ResultCode == APIResultCodes.Success, $"Failed to swap other account {LyraGlobal.OFFICIALTICKERCODE}: {otherResult.ResultCode}");
 
+                await Task.Delay(3000);
+
                 // then the slippage is triggered
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var result = await w1.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, swapRito, 0m);
