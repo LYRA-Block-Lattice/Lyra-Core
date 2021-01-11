@@ -238,7 +238,7 @@ namespace Lyra.Core.Decentralize
                 // process service required send
                 if(localAuthResult == APIResultCodes.Success
                     && item.Block is SendTransferBlock send
-                    && send.Tags.ContainsKey(Block.REQSERVICETAG))
+                    && send.Tags?.ContainsKey(Block.REQSERVICETAG))
                 {
                     localAuthResult = _context.AddSvcQueue(send);
                     if (localAuthResult != APIResultCodes.Success)
