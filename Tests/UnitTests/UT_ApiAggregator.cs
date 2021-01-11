@@ -32,14 +32,14 @@ namespace UnitTests
         {
             var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-            var aggClient = new LyraAggregatedClient("testnet");
+            var aggClient = new LyraAggregatedClient(networkId);
             await aggClient.InitAsync();
 
             var accountId = "LT8din6wm6SyfnqmmJN7jSnyrQjqAaRmixe2kKtTY4xpDBRtTxBmuHkJU9iMru5yqcNyL3Q21KDvHK45rkUS4f8tkXBBS3";
             var svcBlock1 = await client.GetLastBlock(accountId);
             var svcBlock2 = await aggClient.GetLastBlock(accountId);
 
-            Assert.AreEqual(svcBlock1, svcBlock2);
+            Assert.AreEqual(svcBlock1.GetBlock().Hash, svcBlock2.GetBlock().Hash);
         }
 
         [TestMethod]

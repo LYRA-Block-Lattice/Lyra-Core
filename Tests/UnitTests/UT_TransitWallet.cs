@@ -83,7 +83,10 @@ namespace UnitTests
                 await semaphore.WaitAsync();
 
                 var w1 = Restore(PRIVATE_KEY_1);
+                Assert.IsTrue(await w1.ReceiveAsync() == APIResultCodes.Success);
+
                 var w2 = Restore(PRIVATE_KEY_2);
+                Assert.IsTrue(await w2.ReceiveAsync() == APIResultCodes.Success);
 
                 var syncResult = await w1.ReceiveAsync();
                 Assert.AreEqual(syncResult, APIResultCodes.Success);
@@ -99,7 +102,7 @@ namespace UnitTests
                 var amounts = new Dictionary<string, decimal>();
                 amounts.Add(LyraGlobal.OFFICIALTICKERCODE, amount);
                 var sendResult = await w1.SendAsync(amounts, w2.AccountId);
-                Assert.IsTrue(sendResult == APIResultCodes.Success, "Failed to send token.");
+                Assert.IsTrue(sendResult == APIResultCodes.Success, $"Failed to send token: {sendResult}");
 
                 Assert.IsTrue(APIResultCodes.Success == await w2.ReceiveAsync());
 

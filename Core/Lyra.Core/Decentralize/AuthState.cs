@@ -234,8 +234,17 @@ namespace Lyra.Core.Decentralize
                 Semaphore.Dispose();
             if (Done != null)
             {
-                Done.Set();
-                Done.Dispose();
+                try
+                {
+                    Done.Set();
+                }
+                catch { }
+                try
+                {
+                    Done.Dispose();
+                }
+                catch { }
+                Done = null;
             }
 
             var localResultGood = false;
