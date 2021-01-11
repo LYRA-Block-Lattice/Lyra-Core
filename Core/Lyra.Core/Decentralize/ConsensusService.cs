@@ -492,7 +492,13 @@ namespace Lyra.Core.Decentralize
                                     {
                                         lsb = result.GetBlock() as ServiceBlock;
                                     }
-                                    else if(result.ResultCode != APIResultCodes.ServiceBlockNotFound)
+                                    else if (result.ResultCode == APIResultCodes.APIRouteFailed)
+                                    {
+                                        _networkClient = new LyraClientForNode(_sys);
+                                        _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+                                        continue;
+                                    }
+                                    else if (result.ResultCode != APIResultCodes.ServiceBlockNotFound)
                                     {
                                         await Task.Delay(2000);
                                         continue;
@@ -1003,9 +1009,8 @@ namespace Lyra.Core.Decentralize
                             if (Board.AllVoters.Contains(lastLeader))
                                 Board.AllVoters.Remove(lastLeader);
 
-                            _log.LogInformation($"Current leader {lastLeader.Shorten()} do no consolidation or offline. Change view...");
                             // should change view for new member
-                            _viewChangeHandler.BeginChangeView(false, "Current leader {lastLeader.Shorten()} do no consolidation or offline.");
+                            _viewChangeHandler.BeginChangeView(false, $"Current leader {lastLeader.Shorten()} do no consolidation or offline.");
                         });
                     }
                 }
