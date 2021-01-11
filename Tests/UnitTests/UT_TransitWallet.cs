@@ -83,10 +83,12 @@ namespace UnitTests
                 await semaphore.WaitAsync();
 
                 var w1 = Restore(PRIVATE_KEY_1);
-                Assert.IsTrue(await w1.ReceiveAsync() == APIResultCodes.Success);
+                var s1 = await w1.ReceiveAsync();
+                Assert.IsTrue(s1 == APIResultCodes.Success, $"Failed to receive token: {s1}");
 
                 var w2 = Restore(PRIVATE_KEY_2);
-                Assert.IsTrue(await w2.ReceiveAsync() == APIResultCodes.Success);
+                var s2 = await w2.ReceiveAsync();
+                Assert.IsTrue(s2 == APIResultCodes.Success, $"Failed to receive token: {s2}");
 
                 var syncResult = await w1.ReceiveAsync();
                 Assert.AreEqual(syncResult, APIResultCodes.Success);

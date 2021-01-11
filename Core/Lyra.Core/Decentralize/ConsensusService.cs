@@ -40,7 +40,7 @@ namespace Lyra.Core.Decentralize
         public class AskForState { }
         public class AskForStats { }
         public class AskForDbStats { }
-        public class AskForConsensus { public TransactionBlock block { get; set; } }
+        public class AskForConsensusState { public TransactionBlock block { get; set; } }
         public class QueryBlockchainStatus { }
         public class ReqCreatePoolFactory { }
 
@@ -148,9 +148,22 @@ namespace Lyra.Core.Decentralize
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
 
             // consensus, replace authstate
-            ReceiveAsync<AskForConsensus>(async (askReq) => {
-                var (result, code) = await SendBlockToConsensusAndWaitResultAsync(askReq.block);
-                Sender.Tell((result, code));
+            ReceiveAsync<AuthState>(async (state) => {
+                await SubmitToConsensusAsync(state);
+            });
+            Receive<AskForConsensusState>((askReq) =>
+            {
+
+                AuthorizingMsg msg = new AuthorizingMsg
+                {
+                    From = _sys.PosWallet.AccountId,
+                    Block = askReq.block,
+                    BlockHash = askReq.block.Hash,
+                    MsgType = ChatMessageType.AuthorizerPrePrepare
+                };
+
+                var state = CreateAuthringState(msg, true);
+                Sender.Tell(state);
             });
 
             Receive<ReqCreatePoolFactory>((_) => CreatePoolFactory());

@@ -17,7 +17,7 @@ using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {
-    public class ApiService : INodeTransactionAPI//, IBlockConsensus
+    public class ApiService : INodeTransactionAPI
     {
         private readonly ILogger<ApiService> _log;
 
@@ -85,7 +85,10 @@ namespace Lyra.Core.Decentralize
         {
             var result = new AuthorizationAPIResult();
 
-            var (consensusResult, errorCode) = await NodeService.Dag.Consensus.Ask<(ConsensusResult?, APIResultCodes)>(new ConsensusService.AskForConsensus { block = block1 });
+            var state = await NodeService.Dag.Consensus.Ask<AuthState>(new ConsensusService.AskForConsensusState { block = block1 });
+            NodeService.Dag.Consensus.Tell(state);
+            await state.WaitForClose();
+            var consensusResult = state.CommitConsensus;
 
             if (consensusResult == ConsensusResult.Yea)
             {
@@ -93,7 +96,7 @@ namespace Lyra.Core.Decentralize
             }
             else if (consensusResult == ConsensusResult.Nay)
             {
-                result.ResultCode = errorCode;
+                result.ResultCode = state.GetMajorErrorCode();
             }
             else if (consensusResult == ConsensusResult.Uncertain)
             {
