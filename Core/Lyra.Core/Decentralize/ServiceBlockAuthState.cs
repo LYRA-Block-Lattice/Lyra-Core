@@ -9,7 +9,7 @@ namespace Lyra.Core.Decentralize
     public class ServiceBlockAuthState : AuthState
     {
         private List<string> _allVoters;
-        public ServiceBlockAuthState(List<string> AllVoters, bool haveWaiter = false) : base(haveWaiter)
+        public ServiceBlockAuthState(List<string> AllVoters) : base()
         {
             _allVoters = AllVoters;
         }

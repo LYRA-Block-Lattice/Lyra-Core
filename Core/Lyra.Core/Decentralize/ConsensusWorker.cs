@@ -111,7 +111,7 @@ namespace Lyra.Core.Decentralize
 
             // first try auth locally
             if (_state == null)
-                _state = CreateAuthringState(msg, sourceValid);
+                _state = _context.CreateAuthringState(msg, sourceValid);
 
             _state.SetView(msg.IsServiceBlock ? _context.Board.AllVoters : _context.Board.PrimaryAuthorizers);
 
@@ -175,25 +175,6 @@ namespace Lyra.Core.Decentralize
 
             //    msgs.Add(item);
             //}
-        }
-
-        private AuthState CreateAuthringState(AuthorizingMsg item, bool sourceValid)
-        {
-            _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {item.Block.Height}");
-
-            AuthState state;
-            if (item.Block.BlockType == BlockTypes.Service)
-            {
-                _log.LogInformation($"AllVoters: {_context.Board.AllVoters.Count}");
-                state = new ServiceBlockAuthState(_context.Board.AllVoters);
-            }
-            else
-            {
-                state = new AuthState();
-            }
-            state.InputMsg = item;
-            state.IsSourceValid = sourceValid;
-            return state;
         }
 
         private async Task<AuthorizedMsg> LocalAuthorizingAsync(AuthorizingMsg item)

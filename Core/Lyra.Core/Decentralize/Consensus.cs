@@ -685,27 +685,39 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            AuthState state;
-            if (block is ServiceBlock sb)
-            {
-                _log.LogInformation($"AllVoters: {voters.Count}");
-                state = new ServiceBlockAuthState(voters, true);
-                msg.IsServiceBlock = true;
-                state.SetView(Board.AllVoters);                
-            }
-            else
-            {
-                state = new AuthState(true);
-                msg.IsServiceBlock = false;
-                state.SetView(Board.PrimaryAuthorizers);
-            }
-            state.InputMsg = msg;
+            var state = CreateAuthringState(msg, true);
 
             await SubmitToConsensusAsync(state);
 
             await state.WaitForClose();
 
             return (state.CommitConsensus, state.GetMajorErrorCode());
+        }
+
+        public AuthState CreateAuthringState(AuthorizingMsg msg, bool sourceValid)
+        {
+            _log.LogInformation($"Consensus: CreateAuthringState Called: BlockIndex: {msg.Block.Height}");
+
+            AuthState state;
+            if (msg.Block is ServiceBlock sb)
+            {
+                _log.LogInformation($"AllVoters: {Board.AllVoters.Count}");
+                state = new ServiceBlockAuthState(Board.AllVoters);
+                msg.IsServiceBlock = true;
+                state.SetView(Board.AllVoters);
+            }
+            else
+            {
+                state = new AuthState();
+                msg.IsServiceBlock = false;
+                state.SetView(Board.PrimaryAuthorizers);
+            }
+            state.InputMsg = msg;
+
+            state.IsSourceValid = sourceValid;
+            state.OnConsensusSuccess += Worker_OnConsensusSuccess;
+
+            return state;
         }
 
         private class LocalDbSyncState

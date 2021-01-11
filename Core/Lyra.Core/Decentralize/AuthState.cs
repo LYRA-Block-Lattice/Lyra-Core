@@ -71,7 +71,7 @@ namespace Lyra.Core.Decentralize
 
         private IList<string> _validNodes;
 
-        public AuthState(bool haveWaiter = false)
+        public AuthState()
         {
             _log = new SimpleLogger("AuthState").Logger;
 
@@ -81,8 +81,7 @@ namespace Lyra.Core.Decentralize
             CommitMsgs = new ConcurrentBag<AuthorizerCommitMsg>();
 
             Semaphore = new SemaphoreSlim(1, 1);
-            if (haveWaiter)
-                Done = new EventWaitHandle(false, EventResetMode.ManualReset);
+            Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 
         public void SetView(IList<string> validNodes)

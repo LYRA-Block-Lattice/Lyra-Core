@@ -1242,9 +1242,7 @@ namespace Lyra.Core.Decentralize
                 MsgType = ChatMessageType.AuthorizerPrePrepare
             };
 
-            var state = new AuthState(true);
-            state.SetView(Board.PrimaryAuthorizers);
-            state.InputMsg = msg;
+            var state = CreateAuthringState(msg, true);
 
             await SubmitToConsensusAsync(state);
 
@@ -1346,7 +1344,7 @@ namespace Lyra.Core.Decentralize
             return APIResultCodes.Success;
         }
 
-        private void Worker_OnConsensusSuccess(ConsensusHandlerBase handler, Block block, ConsensusResult? result, bool localIsGood)
+        private void Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
         {
             _successBlockCount++;
             _activeConsensus.TryRemove(block.Hash, out _);
