@@ -247,7 +247,9 @@ namespace Lyra.Core.Decentralize
             }
 
             var localResultGood = false;
-            if (CommitConsensus == ConsensusResult.Yea && LocalResult.Result == APIResultCodes.Success)
+            if (LocalResult == null)
+                localResultGood = false;
+            else if (CommitConsensus == ConsensusResult.Yea && LocalResult.Result == APIResultCodes.Success)
                 localResultGood = true;
             else if (CommitConsensus == ConsensusResult.Nay && LocalResult.Result != APIResultCodes.Success)
                 localResultGood = true;
