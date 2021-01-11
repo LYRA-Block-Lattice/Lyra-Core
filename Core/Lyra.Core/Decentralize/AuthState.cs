@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
@@ -39,7 +40,7 @@ namespace Lyra.Core.Decentralize
         public ConcurrentBag<AuthorizerCommitMsg> CommitMsgs { get; set; }
 
         public SemaphoreSlim Semaphore { get; }
-        public EventWaitHandle Done { get; set; }
+        private EventWaitHandle Done { get; set; }
         public bool Saving { get; set; }
 
         public ConsensusResult PrepareConsensus => GetPrepareConsensusSuccess();
@@ -202,12 +203,21 @@ namespace Lyra.Core.Decentralize
             return ConsensusResult.Uncertain;
         }
 
+        public async Task WaitForClose()
+        {
+            if (Done != null)
+                await Done.AsTask();
+        }
+
         public void Close()
         {
             if (Semaphore != null)
                 Semaphore.Dispose();
             if (Done != null)
+            {
+                Done.Set();
                 Done.Dispose();
+            }                
         }
     }
 }

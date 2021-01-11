@@ -703,9 +703,7 @@ namespace Lyra.Core.Decentralize
 
             await SubmitToConsensusAsync(state);
 
-            await state.Done.AsTask();
-            state.Done.Close();
-            state.Done = null;
+            await state.WaitForClose();
 
             return state.CommitConsensus;
         }

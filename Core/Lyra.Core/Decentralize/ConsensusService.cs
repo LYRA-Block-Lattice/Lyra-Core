@@ -185,14 +185,14 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"State told.");
                 if (_stateMachine.State != BlockChainState.Almighty && _stateMachine.State != BlockChainState.Engaging && _stateMachine.State != BlockChainState.Genesis)
                 {
-                    state.Done?.Set();
+                    state.Close();
                     return;
                 }
 
                 if (_viewChangeHandler.TimeStarted != DateTime.MinValue)
                 {
                     // view changing in progress. no block accepted
-                    state.Done?.Set();
+                    state.Close();
                     return;
                 }
 
@@ -243,7 +243,28 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
-                    // leader monitor
+                    // leader monitor. check if all items in _pendingLeaderTasks is finished. if not, change view to remove the leader.
+                    //do
+                    //{
+                    //    var timeoutTasks = _pendingLeaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-30)).ToList();
+                    //    if (timeoutTasks.Any())
+                    //    {
+                    //        var removed = false;
+                    //        foreach (var entry in timeoutTasks)
+                    //        {
+                    //            //if(CheckHashSettled(entry.Key))
+                    //            //{
+                    //            //    _pendingLeaderTasks.Remove(entry.Key);
+                    //            //    removed = true;
+                    //            //}
+                    //            //else
+                    //            //    _pendingLeaderTasks[entry.Key] = DateTime.Now;
+                    //        }
+
+                    //        _viewChangeHandler.BeginChangeView(true, "Leader task timeout pending.");
+                    //    }
+                    //}
+                    
 
                     if (_viewChangeHandler.CheckTimeout())
                     {
@@ -259,7 +280,6 @@ namespace Lyra.Core.Decentralize
 
                             if (worker.State != null)
                             {
-                                worker.State.Done?.Set();
                                 worker.State.Close();
                             }
 
@@ -1218,26 +1238,6 @@ namespace Lyra.Core.Decentralize
             state.SetView(Board.PrimaryAuthorizers);
             state.InputMsg = msg;
 
-            //_ = Task.Run(async () =>
-            //{
-            //    _log.LogInformation($"Waiting for ConsolidateBlock authorizing...");
-
-            //    await state.Done.AsTask();
-            //    state.Done.Close();
-            //    state.Done = null;
-
-            //    if (state.CommitConsensus == ConsensusResult.Yea)
-            //    {
-            //        _log.LogInformation($"ConsolidateBlock is OK. update vote stats.");
-
-            //        RefreshAllNodesVotes();
-            //    }
-            //    else
-            //    {
-            //        _log.LogInformation($"ConsolidateBlock is Failed. vote stats not updated.");
-            //    }
-            //});
-
             await SubmitToConsensusAsync(state);
 
             _log.LogInformation($"ConsolidationBlock was submited. ");
@@ -1288,7 +1288,7 @@ namespace Lyra.Core.Decentralize
         {
             if (IsBlockInQueue(state.InputMsg?.Block))
             {
-                state.Done?.Set();      // fail immediatelly
+                state.Close();      // fail immediatelly
                 return;
             }                
 
@@ -1331,6 +1331,15 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        public APIResultCodes AddSvcQueue(SendTransferBlock send)
+        {
+            if (!_svcQueue.CanAdd(send.AccountID))
+                return APIResultCodes.ReQuotaNeeded;
+
+            _svcQueue.Add(send.DestinationAccountId, send.Hash);
+            return APIResultCodes.Success;
+        }
+
         private void Worker_OnConsensusSuccess(ConsensusHandlerBase handler, Block block, ConsensusResult? result, bool localIsGood)
         {
             _successBlockCount++;
@@ -1363,6 +1372,14 @@ namespace Lyra.Core.Decentralize
 
                 if(!localIsGood)
                     LocalServiceBlockFailed(serviceBlock.Hash);
+                else if (IsThisNodeLeader)
+                {
+                    // new leader. clean all the unfinished swap operations
+                    _ = Task.Run(() => { 
+                        // get all unsettled send to pool factory
+                        // get all unsettled send to pools
+                    });
+                }
 
                 return;
             }

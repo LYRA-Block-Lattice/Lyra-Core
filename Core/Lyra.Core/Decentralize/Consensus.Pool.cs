@@ -16,6 +16,7 @@ namespace Lyra.Core.Decentralize
 {
     public partial class ConsensusService
     {
+        private ServiceTxQueue _svcQueue = new ServiceTxQueue();
         private async Task QueueBlockForPool(Block block, string associatedHash)
         {
             if (block == null || string.IsNullOrEmpty(associatedHash))
@@ -25,6 +26,10 @@ namespace Lyra.Core.Decentralize
             {
                 await SendBlockToConsensusAndWaitResultAsync(block);
             }
+            //else
+            //{
+            //    _pendingLeaderTasks.Add(associatedHash, DateTime.Now);
+            //}
         }
 
         private async Task PoolFactoryRecvConsensusAction(Block block, ConsensusResult? result)

@@ -233,15 +233,26 @@ namespace Lyra.Core.Decentralize
             AuthorizedMsg result;
             try
             {
-                var localAuthResult = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
+                var (localAuthResult, localAuthSign) = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
+
+                // process service required send
+                if(localAuthResult == APIResultCodes.Success
+                    && item.Block is SendTransferBlock send
+                    && send.Tags.ContainsKey(Block.REQSERVICETAG))
+                {
+                    localAuthResult = _context.AddSvcQueue(send);
+                    if (localAuthResult != APIResultCodes.Success)
+                        localAuthSign = null;       // destroy it
+                }
+
                 result = new AuthorizedMsg
                 {
                     IsServiceBlock = State.InputMsg.IsServiceBlock,
                     From = _context.GetDagSystem().PosWallet.AccountId,
                     MsgType = ChatMessageType.AuthorizerPrepare,
                     BlockHash = item.Block.Hash,
-                    Result = localAuthResult.Item1,
-                    AuthSign = localAuthResult.Item2
+                    Result = localAuthResult,
+                    AuthSign = localAuthSign
                 };
 
                 _log.LogInformation($"Index {item.Block.Height} of block {item.Block.Hash.Shorten()} of Type {item.Block.BlockType}");
@@ -434,9 +445,8 @@ namespace Lyra.Core.Decentralize
                 localResultGood = false;
             }
 
-            _state.Done?.Set();
-            OnConsensusSuccess?.Invoke(this, block, _state.CommitConsensus, localResultGood);
+            _state.Close();
+            OnConsensusSuccess?.Invoke(this, _state.InputMsg?.Block, _state.CommitConsensus, localResultGood);
         }
-
     }
 }
