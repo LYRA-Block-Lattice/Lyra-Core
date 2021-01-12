@@ -34,7 +34,7 @@ namespace Lyra.Core.Decentralize
 
         public List<ServiceTx> AllTx => _poolFifoQueue.SelectMany(x => x.Value).ToList();
 
-        public List<ServiceTx> TimeoutTxes => _poolFifoQueue.SelectMany(x => x.Value).Where(x => !x.IsTxCompleted && x.CountDownTimeStamp < DateTime.UtcNow.AddSeconds(-30)).ToList();
+        public List<ServiceTx> TimeoutTxes => AllTx.Where(x => !x.IsTxCompleted && x.CountDownTimeStamp < DateTime.UtcNow.AddSeconds(-30)).ToList();
         public void ResetTimestamp()
         {
             foreach (var tx in _poolFifoQueue.SelectMany(x => x.Value))
