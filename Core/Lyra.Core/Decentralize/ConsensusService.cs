@@ -1397,9 +1397,29 @@ namespace Lyra.Core.Decentralize
                 else if (IsThisNodeLeader)
                 {
                     // new leader. clean all the unfinished swap operations
-                    _ = Task.Run(() => { 
+                    _ = Task.Run(async () => {
                         // get all unsettled send to pool factory
                         // get all unsettled send to pools
+
+                        var allLeaderTasks = _svcQueue.AllTx.OrderBy(x => x.TimeStamp).ToList();
+                        foreach(var entry in allLeaderTasks)
+                        {
+                            if(entry.ReqRecvHash == null)
+                            {
+                                // do receive
+                                var send = await _sys.Storage.FindBlockByHashAsync(entry.ReqSendHash) as SendTransferBlock;
+                                ProcessSendBlock(send);
+                            }
+                            else if((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
+                            {
+                                var recvBlock = await _sys.Storage.FindBlockByHashAsync(actx.ReqRecvHash) as ReceiveTransferBlock;
+                                ProcessRecvBlock(block as ReceiveTransferBlock, ConsensusResult.Yea);
+                            }
+                            else
+                            {
+                                _log.LogWarning($"Should not happen: svcqueue finished but in queue.");
+                            }
+                        }
                     });
                 }
 
@@ -1409,138 +1429,15 @@ namespace Lyra.Core.Decentralize
             // node block require additional works
             if(block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
             {
-                if (!block.ContainsTag("type"))
-                {
-                    _log.LogWarning("A MANAGEDTAG block not have type.");
-                    return;
-                }
-
-                if(!block.ContainsTag("relhash"))
-                {
-                    _log.LogWarning("A MANAGEDTAG block not have related hash.");
-                    return;
-                }
-
-                var blockRelHash = block.Tags["relhash"];
-                var blockType = block.Tags["type"];
-                var poolBlock = block as TransactionBlock;
-
-                _ = Task.Run(async () =>
-                {
-                    
-                    //_svcQueue[poolBlock.AccountID].
-                    switch (block.Tags["type"])
-                    {
-                        case "pfrecv":      // pool factory receive
-                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
-
-                            await PoolFactoryRecvAction(block, result);
-                            break;
-                        case "pfwithdraw":    // pool factory receive
-                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
-
-                            var send = await _sys.Storage.FindBlockByHashAsync((poolBlock as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
-                            var poolId = send.Tags["poolid"];
-                            _log.LogInformation($"Withdraw from pool {poolId}...");
-                            await SendWithdrawFunds(block as ReceiveTransferBlock, poolId, send.AccountID);
-                            break;
-
-                        case "pladdin":  // pool deposition
-                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
-
-                            break;
-                        case "plswapin":  // pool swapin
-                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
-
-                            await PoolRecvSwapInConsensusAction(block, result);
-                            break;
-
-                        case "pfcreat":
-                        case "plswapout":
-                        case "plrmout":
-                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, null, poolBlock.Hash);
-                            break;
-                        default:
-                            _log.LogWarning($"MANAGEDTAG Unsupported type: {block.Tags["type"]}");
-                            break;
-                    }
-                });
+                ProcessRecvBlock(block as ReceiveTransferBlock, result);
             }
             // client block require service
             else if (block.ContainsTag(Block.REQSERVICETAG))
             {
                 if (block is SendTransferBlock send)
                 {
-                    if (send.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
-                    {
-                        _log.LogInformation("Pool operation requested...");
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                switch(block.Tags[Block.REQSERVICETAG])
-                                {
-                                    case "":
-                                        await ReceivePoolFactoryFeeAsync(send, "pfrecv");
-                                        break;
-                                    case "poolwithdraw":
-                                        await ReceivePoolFactoryFeeAsync(send, "pfwithdraw");
-                                        break;
-                                    default:
-                                        _log.LogError("pool factory not allow such action: " + block.Tags[Block.REQSERVICETAG]);
-                                        break;
-                                }
-                                
-                            }
-                            catch(Exception ex)
-                            {
-                                _log.LogWarning("Pool factory error: " + ex.ToString());
-                            }
-                        });
-                    }
-                    else
-                    {
-                        // check which pool
-                        _log.LogInformation($"Action to pool ... svcreq = {send.Tags[Block.REQSERVICETAG]}");
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                var pool = await _sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
-                                if (pool == null)
-                                {
-                                    _log.LogWarning($"destination pool {send.DestinationAccountId} not exists.");
-                                    return;
-                                }
-
-                                var poolGenesis = await _sys.Storage.FindFirstBlockAsync(send.DestinationAccountId) as PoolGenesisBlock;
-                                if (send.Tags[Block.REQSERVICETAG] == "swaptoken")
-                                {
-                                    var swapRito = Math.Round(pool.Balances[poolGenesis.Token0].ToBalanceDecimal() / pool.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
-                                    await ReceivePoolSwapInAsync(send);
-                                }
-                                else
-                                {
-                                    await ReceivePoolDepositionAsync(send);
-
-                                    //if (result == ConsensusResult.Yea)
-                                    //{
-                                    //    _log.LogInformation($"Adding liquidate to pool {send.DestinationAccountId} is successfully.");
-                                    //}
-                                    //else
-                                    //{
-                                    //    _log.LogWarning($"Adding liquidate to pool {send.DestinationAccountId} is failed.");
-                                    //}
-                                }
-                            }
-                            catch(Exception ex)
-                            {
-                                _log.LogWarning("Pool action error: " + ex.ToString());
-                            }
-                        });
-                    }
+                    ProcessSendBlock(send);
                 }
-
             }
         }
 
