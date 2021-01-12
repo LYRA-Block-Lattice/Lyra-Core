@@ -284,7 +284,6 @@ namespace Lyra.Core.Blocks
         PoolWithdraw = 53,
         PoolSwapIn = 54,
         PoolSwapOut = 55,
-        PoolWithdrawReq = 56,
     }
 
     public enum APIResultCodes

@@ -1427,10 +1427,11 @@ namespace Lyra.Core.Decentralize
                         case "plswaprecv":
                             await PoolRecvSwapInConsensusAction(block, result);
                             break;
-                        case "plwithdraw":
-                            var recvBlock = block as ReceiveTransferBlock;
-                            var send = await _sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as SendTransferBlock;
-                            await SendWithdrawFunds(recvBlock, poolBlock.AccountID, send.AccountID);
+                        case "poolwithdraw":
+                            var send = await _sys.Storage.FindBlockByHashAsync((poolBlock as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
+                            var poolId = send.Tags["poolid"];
+                            _log.LogInformation($"Withdraw from pool {poolId}...");
+                            await SendWithdrawFunds(block as ReceiveTransferBlock, poolId, send.AccountID);
                             break;
                         default:
                             _log.LogWarning($"MANAGEDTAG Unsupported type: {block.Tags["type"]}");
@@ -1450,7 +1451,19 @@ namespace Lyra.Core.Decentralize
                         {
                             try
                             {
-                                await ReceivePoolFactoryFeeAsync(send);
+                                switch(block.Tags[Block.REQSERVICETAG])
+                                {
+                                    case "":
+                                        await ReceivePoolFactoryFeeAsync(send, "pfrecv");
+                                        break;
+                                    case "poolwithdraw":
+                                        await ReceivePoolFactoryFeeAsync(send, "poolwithdraw");
+                                        break;
+                                    default:
+                                        _log.LogError("pool factory not allow such action: " + block.Tags[Block.REQSERVICETAG]);
+                                        break;
+                                }
+                                
                             }
                             catch(Exception ex)
                             {
@@ -1478,13 +1491,6 @@ namespace Lyra.Core.Decentralize
                                 {
                                     var swapRito = Math.Round(pool.Balances[poolGenesis.Token0].ToBalanceDecimal() / pool.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
                                     await ReceivePoolSwapInAsync(send);
-                                }
-                                else if (send.Tags[Block.REQSERVICETAG] == "poolwithdraw")
-                                {
-                                    var poolId = send.Tags["poolid"];
-                                    _log.LogInformation($"Withdraw from pool {poolId}...");
-
-                                    await ReceivePoolWithdrawAsync(send);
                                 }
                                 else
                                 {

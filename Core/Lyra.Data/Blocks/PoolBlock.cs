@@ -43,35 +43,6 @@ namespace Lyra.Core.Blocks
     }
 
     [BsonIgnoreExtraElements]
-    public class PoolWithdrawRequestBlock : ReceiveTransferBlock, IPool
-    {
-        public override BlockTypes GetBlockType()
-        {
-            return BlockTypes.PoolWithdrawReq;
-        }
-
-        // AccountId -> Share
-        // Initial pool token is 1M
-        // make sure sum(share) is always 1M
-        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-        public Dictionary<string, long> Shares { get; set; }
-
-        protected override string GetExtraData()
-        {
-            string extraData = base.GetExtraData();
-            extraData += DictToStr(Shares) + "|";
-            return extraData;
-        }
-
-        public override string Print()
-        {
-            string result = base.Print();
-            result += $"Shares: {DictToStr(Shares)}\n";
-            return result;
-        }
-    }
-
-    [BsonIgnoreExtraElements]
     public class PoolWithdrawBlock : SendTransferBlock, IPool
     {
         /// <summary>

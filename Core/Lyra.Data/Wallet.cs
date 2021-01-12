@@ -1823,7 +1823,7 @@ namespace Lyra.Core.Accounts
             tags.Add("token1", pool.Token1);
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
-            var poolWithdrawResult = await SendEx(pool.PoolAccountId, amounts, tags);
+            var poolWithdrawResult = await SendEx(pool.PoolFactoryAccountId, amounts, tags);
             return poolWithdrawResult;
         }
 

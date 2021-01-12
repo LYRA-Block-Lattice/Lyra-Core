@@ -106,7 +106,7 @@ namespace Lyra.Core.Decentralize
         /// </summary>
         /// <param name="sendBlock"></param>
         /// <returns></returns>
-        private async Task ReceivePoolFactoryFeeAsync(SendTransferBlock sendBlock)
+        private async Task ReceivePoolFactoryFeeAsync(SendTransferBlock sendBlock, string actionType)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var receiveBlock = new ReceiveTransferBlock
@@ -122,7 +122,7 @@ namespace Lyra.Core.Decentralize
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
             receiveBlock.AddTag("relhash", sendBlock.Hash);  // related hash
-            receiveBlock.AddTag("type", "pfrecv");       // pool factory receive
+            receiveBlock.AddTag("type", actionType);       // pool factory receive
 
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -152,59 +152,6 @@ namespace Lyra.Core.Decentralize
 
             var tx = new ServiceWithActionTx(sendBlock.Hash);
             await QueueBlockForPool(receiveBlock, tx);  // create pool
-        }
-
-        /// <summary>
-        /// we got 1 LYR and user request to withdraw from pool
-        /// </summary>
-        /// <param name="sendBlock"></param>
-        /// <returns></returns>
-        private async Task ReceivePoolWithdrawAsync(SendTransferBlock sendBlock)
-        {
-            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-            var receiveBlock = new ReceiveTransferBlock
-            {
-                AccountID = sendBlock.DestinationAccountId,
-                VoteFor = null,
-                ServiceHash = lsb.Hash,
-                SourceHash = sendBlock.Hash,
-                Balances = new Dictionary<string, long>(),
-                Fee = 0,
-                FeeType = AuthorizationFeeTypes.NoFee
-            };
-
-            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            receiveBlock.AddTag("relhash", sendBlock.Hash);  // related hash
-            receiveBlock.AddTag("type", "plwithdraw");       // want to withdraw
-
-            TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
-            var txInfo = sendBlock.GetBalanceChanges(prevSend);
-
-            TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
-
-            // ignore any token but LYR. keep the block clean.
-            if (!txInfo.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                return;
-
-            var latestBalances = latestBlock.Balances.ToDecimalDict();
-            var recvBalances = latestBlock.Balances.ToDecimalDict();
-            foreach (var chg in txInfo.Changes)
-            {
-                if (chg.Key != LyraGlobal.OFFICIALTICKERCODE)
-                    continue;
-
-                if (recvBalances.ContainsKey(chg.Key))
-                    recvBalances[chg.Key] += chg.Value;
-                else
-                    recvBalances.Add(chg.Key, chg.Value);
-            }
-
-            receiveBlock.Balances = recvBalances.ToLongDict();
-
-            receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
-
-            var tx = new ServiceWithActionTx(sendBlock.Hash);
-            await QueueBlockForPool(receiveBlock, tx);  // pool withdraw
         }
 
         /// <summary>
