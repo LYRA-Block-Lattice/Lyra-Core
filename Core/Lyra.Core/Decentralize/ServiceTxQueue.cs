@@ -41,7 +41,7 @@ namespace Lyra.Core.Decentralize
                 throw new ArgumentException("Pool not found!", poolId);
 
             var poolTx = _poolFifoQueue[poolId];
-            var tx = poolTx.First(x => x.ReqRecvHash == relHash);
+            var tx = poolTx.First(x => x.ReqSendHash == relHash);
 
             if (!string.IsNullOrEmpty(recvHash))
                 tx.FinishRecv(recvHash);
