@@ -51,7 +51,9 @@ namespace Lyra.Core.Decentralize
 
             if(tx.IsTxCompleted)
             {
-                _poolFifoQueue.Remove(poolId);
+                poolTx.Remove(tx);
+                if(poolTx.Count == 0)
+                    _poolFifoQueue.Remove(poolId);
                 OnTxFinished?.Invoke(tx);
             }
         }
