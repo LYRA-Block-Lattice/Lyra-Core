@@ -269,49 +269,46 @@ namespace Lyra.Core.Decentralize
                     var timeoutTasks = _svcQueue.TimeoutTxes;
                     if (timeoutTasks.Any())
                     {
-                        foreach (var entry in timeoutTasks.ToArray())
+                        //foreach (var entry in timeoutTasks.ToArray())
+                        //{
+                        //    var recvx = await _sys.Storage.FindBlockBySourceHashAsync(entry.ReqSendHash);
+                        //    if (recvx != null)
+                        //    {
+                        //        entry.FinishRecv(recvx.Hash);
+                        //    }
+                        //    if (entry.IsTxCompleted)
+                        //    {
+                        //        timeoutTasks.Remove(entry);
+                        //        continue;
+                        //    }                                
+
+                        //    if(entry is ServiceWithActionTx satx)
+                        //    {
+                        //        // RelatedTx always point to recvblock 
+                        //        var actionBlock = await _sys.Storage.FindBlockByRelatedTxAsync(entry.ReqRecvHash);
+                        //        if(actionBlock != null)
+                        //        {
+                        //            entry.FinishAction(actionBlock.Hash);
+                        //        }
+
+                        //        if (entry.IsTxCompleted)
+                        //        {
+                        //            timeoutTasks.Remove(entry);
+                        //            continue;
+                        //        }
+                        //    }
+                        //    else
+                        //    {
+                        //        _log.LogError("should not happend: etnry not ServiceWithActionTx: " + entry.ToString());
+                        //    }
+                        //}
+
+                        _viewChangeHandler.BeginChangeView(true, $"Leader task timeout, {timeoutTasks.Count} pending.");
+                        if (_viewChangeHandler.IsViewChanging)
                         {
-                            var recvx = await _sys.Storage.FindBlockBySourceHashAsync(entry.ReqSendHash);
-                            if (recvx != null)
-                            {
-                                entry.FinishRecv(recvx.Hash);
-                            }
-                            if (entry.IsTxCompleted)
-                            {
-                                timeoutTasks.Remove(entry);
-                                continue;
-                            }                                
-
-                            if(entry is ServiceWithActionTx satx)
-                            {
-                                // RelatedTx always point to recvblock 
-                                var actionBlock = await _sys.Storage.FindBlockByRelatedTxAsync(entry.ReqRecvHash);
-                                if(actionBlock != null)
-                                {
-                                    entry.FinishAction(actionBlock.Hash);
-                                }
-
-                                if (entry.IsTxCompleted)
-                                {
-                                    timeoutTasks.Remove(entry);
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                _log.LogError("should not happend: etnry not ServiceWithActionTx: " + entry.ToString());
-                            }
+                            _svcQueue.Clean();
+                            _svcQueue.ResetTimestamp();
                         }
-
-                        if(timeoutTasks.Any())
-                        {
-                            _viewChangeHandler.BeginChangeView(true, "Leader task timeout pending.");
-                            if (_viewChangeHandler.IsViewChanging)
-                            {
-                                _svcQueue.Clean();
-                                _svcQueue.ResetTimestamp();
-                            }                                
-                        }                            
                     }
                     
                     if (_viewChangeHandler.CheckTimeout())
@@ -1441,7 +1438,7 @@ namespace Lyra.Core.Decentralize
                                 else if ((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
                                 {
                                     var block = await _sys.Storage.FindBlockByHashAsync(actx.ReqRecvHash);
-                                    ProcessRecvBlock(block, ConsensusResult.Yea);
+                                    ProcessManagedBlock(block, ConsensusResult.Yea);
                                 }
                                 else
                                 {
@@ -1458,7 +1455,7 @@ namespace Lyra.Core.Decentralize
             // node block require additional works
             if(block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
             {
-                ProcessRecvBlock(block, result);
+                ProcessManagedBlock(block, result);
             }
             // client block require service
             else if (block.ContainsTag(Block.REQSERVICETAG))

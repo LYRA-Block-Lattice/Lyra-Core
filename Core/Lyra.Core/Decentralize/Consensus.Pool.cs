@@ -543,7 +543,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void ProcessRecvBlock(Block block, ConsensusResult? result)
+        private void ProcessManagedBlock(Block block, ConsensusResult? result)
         {
             if (!block.ContainsTag("type"))
             {
