@@ -58,17 +58,23 @@ namespace Lyra.Core.Authorizers
             string tokenIn = chgs.Changes.First().Key;
             if (tokenIn != poolGenesisBlock.Token0 && tokenIn != poolGenesisBlock.Token1)
                 return APIResultCodes.InvalidPoolOperation;
+
+            var originalAmount = chgs.Changes.First().Value;
+            var poolFee = Math.Round(originalAmount * 0.001m, 8);
+            var transFee = Math.Round(originalAmount * 0.001m, 8);
+            var swapInAmount = Math.Round(originalAmount * 0.998m, 8);
+
             string tokenOut = null;
             decimal tokenOutAmount = 0m;
             if(tokenIn == poolGenesisBlock.Token0)
             {
                 tokenOut = poolGenesisBlock.Token1;
-                tokenOutAmount = Math.Round(chgs.Changes.First().Value / swapRito, 8);
+                tokenOutAmount = Math.Round(swapInAmount / swapRito, 8);
             }
             else if(tokenIn == poolGenesisBlock.Token1)
             {
                 tokenOut = poolGenesisBlock.Token0;
-                tokenOutAmount = Math.Round(chgs.Changes.First().Value * swapRito, 8);
+                tokenOutAmount = Math.Round(swapInAmount * swapRito, 8);
             }
             if (tokenOut == null || tokenOutAmount == 0m)
                 return APIResultCodes.InvalidPoolOperation;
@@ -84,6 +90,7 @@ namespace Lyra.Core.Authorizers
             var curBalance = poolLatestBlock.Balances.ToDecimalDict();
             var nextBalance = poolLatestBlock.Balances.ToDecimalDict();
 
+            nextBalance[tokenIn] = curBalance[tokenIn] - transFee;  // pool fee leave in the pool
             nextBalance[tokenOut] = curBalance[tokenOut] - tokenOutAmount;
 
             var outBalances = nextBalance.ToLongDict();
