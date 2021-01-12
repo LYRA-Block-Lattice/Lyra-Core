@@ -598,6 +598,8 @@ namespace Lyra.Core.Decentralize
                         _log.LogWarning($"MANAGEDTAG Unsupported type: {block.Tags["type"]}");
                         break;
                 }
+
+                _log.LogInformation($"svcqueue has {_svcQueue.AllTx.Count} items.");
             });
         }
     }
