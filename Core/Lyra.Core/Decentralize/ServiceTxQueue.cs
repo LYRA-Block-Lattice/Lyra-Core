@@ -24,6 +24,14 @@ namespace Lyra.Core.Decentralize
 
             _poolFifoQueue[poolId].Enqueue(new ServiceTx(sendHash));
         }
+
+        public void Add(string poolId, ServiceTx tx)
+        {
+            if (!_poolFifoQueue.ContainsKey(poolId))
+                _poolFifoQueue.Add(poolId, new ConcurrentQueue<ServiceTx>());
+
+            _poolFifoQueue[poolId].Enqueue(tx);
+        }
     }
 
     public class ServiceTx
@@ -38,8 +46,6 @@ namespace Lyra.Core.Decentralize
         /// the original send block hash.
         /// </summary>
         public string ReqSendHash { get; set; }
-
-        public ConsensusResult? ReqConsensusResult { get; set; }
 
         /// <summary>
         /// the consensus must do receive because of the law of block lattice
@@ -70,5 +76,10 @@ namespace Lyra.Core.Decentralize
         public string ReplyActionHash { get; set; }
 
         public override bool IsTxCompleted => base.IsTxCompleted && !string.IsNullOrEmpty(ReplyActionHash);
+
+        public ServiceWithActionTx(string reqSendHash) : base(reqSendHash)
+        {
+
+        }
     }
 }
