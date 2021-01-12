@@ -126,22 +126,9 @@ namespace Lyra.Core.Authorizers
                             if (poolGenesis != null)
                                 return APIResultCodes.PoolAlreadyExists;
                         }
-
-                        if (block.Tags[Block.REQSERVICETAG] == "poolwithdraw")
+                        else
                         {
-                            var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
-                            if (poolGenesis == null)
-                                return APIResultCodes.PoolNotExists;
-
-                            if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != 1m)
-                                return APIResultCodes.InvalidFeeAmount;
-
-                            var pool = await sys.Storage.FindLatestBlockAsync(poolGenesis.AccountID) as IPool;
-                            if (pool == null)
-                                return APIResultCodes.PoolNotExists;
-
-                            if (!pool.Shares.ContainsKey(block.AccountID))
-                                return APIResultCodes.PoolShareNotExists;
+                            return APIResultCodes.InvalidPoolOperation;
                         }
                     }
                     else  // target should be a pool
@@ -181,6 +168,21 @@ namespace Lyra.Core.Authorizers
                                     return APIResultCodes.InvalidPoolDepositionRito;
                             }
                         }
+
+                        else if (block.Tags[Block.REQSERVICETAG] == "poolwithdraw")
+                        {
+                            var chgs = block.GetBalanceChanges(lastBlock);
+                            if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != 1m)
+                                return APIResultCodes.InvalidFeeAmount;
+
+                            var pool = await sys.Storage.FindLatestBlockAsync(poolGenesis.AccountID) as IPool;
+                            if (pool == null)
+                                return APIResultCodes.PoolNotExists;
+
+                            if (!pool.Shares.ContainsKey(block.AccountID))
+                                return APIResultCodes.PoolShareNotExists;
+                        }
+
                         else if(block.Tags[Block.REQSERVICETAG] == "swaptoken")
                         {
                             var chgs = block.GetBalanceChanges(lastBlock);

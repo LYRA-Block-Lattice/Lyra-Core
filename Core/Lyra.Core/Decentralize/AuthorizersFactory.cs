@@ -43,6 +43,7 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.PoolFactory, "PoolFactoryAuthorizer");
             _authorizers.Add(BlockTypes.PoolGenesis, "PoolGenesisAuthorizer");
             _authorizers.Add(BlockTypes.PoolDeposit, "PoolDepositAuthorizer");
+            _authorizers.Add(BlockTypes.PoolWithdrawReq, "PoolWithdrawReqAuthorizer");
             _authorizers.Add(BlockTypes.PoolWithdraw, "PoolWithdrawAuthorizer");
             _authorizers.Add(BlockTypes.PoolSwapIn, "PoolSwapInAuthorizer");
             _authorizers.Add(BlockTypes.PoolSwapOut, "PoolSwapOutAuthorizer");

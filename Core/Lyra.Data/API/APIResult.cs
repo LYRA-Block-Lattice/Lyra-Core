@@ -304,6 +304,9 @@ namespace Lyra.Core.API
                 case BlockTypes.PoolDeposit:
                     block = JsonConvert.DeserializeObject<PoolDepositBlock>(BlockData);
                     break;
+                case BlockTypes.PoolWithdrawReq:
+                    block = JsonConvert.DeserializeObject<PoolWithdrawRequestBlock>(BlockData);
+                    break;
                 case BlockTypes.PoolWithdraw:
                     block = JsonConvert.DeserializeObject<PoolWithdrawBlock>(BlockData);
                     break;

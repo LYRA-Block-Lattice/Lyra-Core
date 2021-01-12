@@ -92,7 +92,8 @@ namespace Lyra.Core.Authorizers
             // find the actual amount of transaction 
             BalanceChanges sendTransaction;
             if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer
-                || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn)  // temp code. should use getbalancechanges
+                || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn
+                || block.BlockType == BlockTypes.PoolWithdrawReq)  // temp code. should use getbalancechanges
             {
                 if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
                 {
