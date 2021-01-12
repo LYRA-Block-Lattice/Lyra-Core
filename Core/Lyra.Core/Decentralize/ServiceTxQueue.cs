@@ -14,6 +14,8 @@ namespace Lyra.Core.Decentralize
         // pool ID, tx mem pool (queue)
         private Dictionary<string, List<ServiceTx>> _poolFifoQueue = new Dictionary<string, List<ServiceTx>>();
 
+        private DateTime _recountTime;
+
         public bool CanAdd(string poolId)
         {
             return !(_poolFifoQueue.ContainsKey(poolId) && _poolFifoQueue[poolId].Any(x => x.IsExclusive));
@@ -33,6 +35,13 @@ namespace Lyra.Core.Decentralize
                 _poolFifoQueue.Add(poolId, new List<ServiceTx>());
 
             _poolFifoQueue[poolId].Add(tx);
+        }
+
+        public List<ServiceTx> TimeoutTxes => _poolFifoQueue.SelectMany(x => x.Value).Where(x => x.TimeStamp < DateTime.UtcNow.AddSeconds(-8)).ToList();
+        public void ResetTimestamp()
+        {
+            foreach (var tx in _poolFifoQueue.SelectMany(x => x.Value))
+                tx.TimeStamp = DateTime.UtcNow;
         }
 
         public void Finish(string poolId, string relHash, string recvHash, string actionHash)
@@ -63,7 +72,7 @@ namespace Lyra.Core.Decentralize
 
     public class ServiceTx
     {
-        public DateTime TimeStamp { get; private set; }
+        public DateTime TimeStamp { get; set; }
         /// <summary>
         /// wether the tx can existing with others
         /// </summary>

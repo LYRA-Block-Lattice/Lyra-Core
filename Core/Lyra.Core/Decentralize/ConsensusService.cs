@@ -265,28 +265,28 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     // leader monitor. check if all items in _pendingLeaderTasks is finished. if not, change view to remove the leader.
-                    //do
-                    //{
-                    //    var timeoutTasks = _pendingLeaderTasks.Where(x => x.Value < DateTime.Now.AddSeconds(-30)).ToList();
-                    //    if (timeoutTasks.Any())
-                    //    {
-                    //        var removed = false;
-                    //        foreach (var entry in timeoutTasks)
-                    //        {
-                    //            //if(CheckHashSettled(entry.Key))
-                    //            //{
-                    //            //    _pendingLeaderTasks.Remove(entry.Key);
-                    //            //    removed = true;
-                    //            //}
-                    //            //else
-                    //            //    _pendingLeaderTasks[entry.Key] = DateTime.Now;
-                    //        }
+                    var timeoutTasks = _svcQueue.TimeoutTxes;
+                    if (timeoutTasks.Any())
+                    {
+                        foreach (var entry in timeoutTasks.ToArray())
+                        {
+                            //if(CheckHashSettled(entry.Key))
+                            //{
+                            //    _pendingLeaderTasks.Remove(entry.Key);
+                            //    removed = true;
+                            //}
+                            //else
+                            //    _pendingLeaderTasks[entry.Key] = DateTime.Now;
+                        }
 
-                    //        _viewChangeHandler.BeginChangeView(true, "Leader task timeout pending.");
-                    //    }
-                    //}
+                        if(timeoutTasks.Any())
+                        {
+                            _viewChangeHandler.BeginChangeView(true, "Leader task timeout pending.");
+                            if (_viewChangeHandler.IsViewChanging)
+                                _svcQueue.ResetTimestamp();
+                        }                            
+                    }
                     
-
                     if (_viewChangeHandler.CheckTimeout())
                     {
                         _log.LogInformation($"View Change with Id {_viewChangeHandler.ViewId} begin {_viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - _viewChangeHandler.TimeStarted}");
