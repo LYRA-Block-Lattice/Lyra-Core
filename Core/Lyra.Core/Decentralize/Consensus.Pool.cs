@@ -46,12 +46,12 @@ namespace Lyra.Core.Decentralize
             if (result == ConsensusResult.Yea)
             {
                 var recvBlock = block as ReceiveTransferBlock;
-                var send = await _sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as TransactionBlock;
+                var send = await _sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as SendTransferBlock;
                 if (send.Tags[Block.REQSERVICETAG] == "")
                 {
                     // then create pool for it.
                     _log.LogInformation("Creating pool ...");
-                    await CreateLiquidatePoolAsync(recvBlock, send.Tags["token0"], send.Tags["token1"]);
+                    await CreateLiquidatePoolAsync(send, recvBlock, send.Tags["token0"], send.Tags["token1"]);
                     //if (poolCreateResult == ConsensusResult.Yea)
                     //    _log.LogInformation($"Pool created successfully.");
                     //else
@@ -121,7 +121,7 @@ namespace Lyra.Core.Decentralize
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            receiveBlock.AddTag("relhash", sendBlock.Hash);  // related hash
+            receiveBlock.AddTag("relhash", sendBlock.Hash);  // pool factory recv 
             receiveBlock.AddTag("type", actionType);       // pool factory receive
 
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
@@ -179,8 +179,8 @@ namespace Lyra.Core.Decentralize
             };
 
             swapInBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            swapInBlock.AddTag("relhash", sendBlock.Hash);  // related hash
-            swapInBlock.AddTag("type", "plswaprecv");       // pool swap in
+            swapInBlock.AddTag("relhash", sendBlock.Hash);  // pool swap in
+            swapInBlock.AddTag("type", "plswapin");       // pool swap in
 
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -246,8 +246,11 @@ namespace Lyra.Core.Decentralize
                 RelatedTx = swapInBlock.Hash
             };
 
+            var sendBlock = await _sys.Storage.FindBlockByHashAsync(swapInBlock.SourceHash) as SendTransferBlock;
+
             swapOutBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            swapOutBlock.AddTag("relhash", swapInBlock.Hash);  // related hash
+            swapOutBlock.AddTag("relhash", sendBlock.Hash);  // pool swap out action
+            swapOutBlock.AddTag("type", "plswapout");       // pool swap in
 
             var poolGenesisBlock = await _sys.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
             var poolLatestBlock = await _sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
@@ -289,8 +292,8 @@ namespace Lyra.Core.Decentralize
             };
 
             depositBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            depositBlock.AddTag("relhash", sendBlock.Hash);  // related hash
-            depositBlock.AddTag("type", "pladd");       // pool add liquidate
+            depositBlock.AddTag("relhash", sendBlock.Hash);  // pool deposit
+            depositBlock.AddTag("type", "pladdin");       // pool add liquidate
 
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -369,8 +372,11 @@ namespace Lyra.Core.Decentralize
                 RelatedTx = recvBlock.Hash
             };
 
+            var sendBlock = await _sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as SendTransferBlock;
+
             withdrawBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            withdrawBlock.AddTag("relhash", recvBlock.Hash);  // related hash
+            withdrawBlock.AddTag("relhash", sendBlock.Hash);  // pool withdraw action
+            withdrawBlock.AddTag("type", "plrmout");       // pool remove liquidate
 
             var poolGenesisBlock = await _sys.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
             var poolLatestBlock = await _sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
@@ -413,7 +419,7 @@ namespace Lyra.Core.Decentralize
         /// <param name="token0"></param>
         /// <param name="token1"></param>
         /// <returns></returns>
-        private async Task CreateLiquidatePoolAsync(ReceiveTransferBlock recvBlock, string token0, string token1)
+        private async Task CreateLiquidatePoolAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock, string token0, string token1)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
             var pf = await _sys.Storage.GetPoolFactoryAsync();
@@ -452,7 +458,8 @@ namespace Lyra.Core.Decentralize
             };
 
             poolGenesis.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            
+            poolGenesis.AddTag("relhash", send.Hash);  // pool withdraw action
+            poolGenesis.AddTag("type", "pfcreat");       // pool remove liquidate
 
             // pool blocks are service block so all service block signed by leader node
             poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);

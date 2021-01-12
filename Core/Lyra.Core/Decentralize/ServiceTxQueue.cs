@@ -7,30 +7,53 @@ using System.Text;
 
 namespace Lyra.Core.Decentralize
 {
+    public delegate void ServiceTxFinished(ServiceTx tx);
     public class ServiceTxQueue
     {
+        public event ServiceTxFinished OnTxFinished;
         // pool ID, tx mem pool (queue)
-        private Dictionary<string, ConcurrentQueue<ServiceTx>> _poolFifoQueue = new Dictionary<string, ConcurrentQueue<ServiceTx>>();
+        private Dictionary<string, List<ServiceTx>> _poolFifoQueue = new Dictionary<string, List<ServiceTx>>();
 
         public bool CanAdd(string poolId)
         {
-            return !(_poolFifoQueue.ContainsKey(poolId) && _poolFifoQueue[poolId].ToArray().Any(x => x.IsExclusive));
+            return !(_poolFifoQueue.ContainsKey(poolId) && _poolFifoQueue[poolId].Any(x => x.IsExclusive));
         }
 
         public void Add(string poolId, string sendHash)
         {
             if (!_poolFifoQueue.ContainsKey(poolId))
-                _poolFifoQueue.Add(poolId, new ConcurrentQueue<ServiceTx>());
+                _poolFifoQueue.Add(poolId, new List<ServiceTx>());
 
-            _poolFifoQueue[poolId].Enqueue(new ServiceTx(sendHash));
+            _poolFifoQueue[poolId].Add(new ServiceTx(sendHash));
         }
 
         public void Add(string poolId, ServiceTx tx)
         {
             if (!_poolFifoQueue.ContainsKey(poolId))
-                _poolFifoQueue.Add(poolId, new ConcurrentQueue<ServiceTx>());
+                _poolFifoQueue.Add(poolId, new List<ServiceTx>());
 
-            _poolFifoQueue[poolId].Enqueue(tx);
+            _poolFifoQueue[poolId].Add(tx);
+        }
+
+        public void Finish(string poolId, string relHash, string recvHash, string actionHash)
+        {
+            if (!_poolFifoQueue.ContainsKey(poolId))
+                throw new ArgumentException("Pool not found!", poolId);
+
+            var poolTx = _poolFifoQueue[poolId];
+            var tx = poolTx.First(x => x.ReqRecvHash == relHash);
+
+            if (!string.IsNullOrEmpty(recvHash))
+                tx.FinishRecv(recvHash);
+
+            if (!string.IsNullOrEmpty(actionHash))
+                tx.FinishAction(actionHash);
+
+            if(tx.IsTxCompleted)
+            {
+                _poolFifoQueue.Remove(poolId);
+                OnTxFinished?.Invoke(tx);
+            }
         }
     }
 
@@ -64,6 +87,16 @@ namespace Lyra.Core.Decentralize
         {
             ReqSendHash = reqSendHash;
         }
+
+        public void FinishRecv(string recvHash)
+        {
+            ReqRecvHash = recvHash;
+        }
+
+        public virtual void FinishAction (string actionHash)
+        {
+            throw new Exception("Must override FinishAction");
+        }
     }
 
     public class ServiceWithActionTx : ServiceTx
@@ -80,6 +113,11 @@ namespace Lyra.Core.Decentralize
         public ServiceWithActionTx(string reqSendHash) : base(reqSendHash)
         {
 
+        }
+
+        public override void FinishAction(string actionHash)
+        {
+            ReplyActionHash = actionHash;
         }
     }
 }

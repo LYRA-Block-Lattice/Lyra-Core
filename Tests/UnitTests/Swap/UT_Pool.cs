@@ -19,7 +19,7 @@ namespace UnitTests.Swap
     {
         string networkId = "devnet";
         ILyraAPI client;
-        private string testTokenA = "unittest/PoolCoinB5";
+        private string testTokenA = "unittest/PoolCoinC";  // change name when chain crupt
         private string testTokenB = "unittest/PoolCoinX";
 
         // send 1M

@@ -1415,23 +1415,50 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
+                if(!block.ContainsTag("relhash"))
+                {
+                    _log.LogWarning("A MANAGEDTAG block not have related hash.");
+                    return;
+                }
+
+                var blockRelHash = block.Tags["relhash"];
+                var blockType = block.Tags["type"];
+                var poolBlock = block as TransactionBlock;
+
                 _ = Task.Run(async () =>
                 {
-                    var poolBlock = block as TransactionBlock;
+                    
                     //_svcQueue[poolBlock.AccountID].
                     switch (block.Tags["type"])
                     {
                         case "pfrecv":      // pool factory receive
+                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
+
                             await PoolFactoryRecvAction(block, result);
                             break;
-                        case "plswaprecv":
-                            await PoolRecvSwapInConsensusAction(block, result);
-                            break;
-                        case "poolwithdraw":
+                        case "pfwithdraw":    // pool factory receive
+                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
+
                             var send = await _sys.Storage.FindBlockByHashAsync((poolBlock as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
                             var poolId = send.Tags["poolid"];
                             _log.LogInformation($"Withdraw from pool {poolId}...");
                             await SendWithdrawFunds(block as ReceiveTransferBlock, poolId, send.AccountID);
+                            break;
+
+                        case "pladdin":  // pool deposition
+                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
+
+                            break;
+                        case "plswapin":  // pool swapin
+                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
+
+                            await PoolRecvSwapInConsensusAction(block, result);
+                            break;
+
+                        case "pfcreat":
+                        case "plswapout":
+                        case "plrmout":
+                            _svcQueue.Finish(poolBlock.AccountID, blockRelHash, null, poolBlock.Hash);
                             break;
                         default:
                             _log.LogWarning($"MANAGEDTAG Unsupported type: {block.Tags["type"]}");
@@ -1457,7 +1484,7 @@ namespace Lyra.Core.Decentralize
                                         await ReceivePoolFactoryFeeAsync(send, "pfrecv");
                                         break;
                                     case "poolwithdraw":
-                                        await ReceivePoolFactoryFeeAsync(send, "poolwithdraw");
+                                        await ReceivePoolFactoryFeeAsync(send, "pfwithdraw");
                                         break;
                                     default:
                                         _log.LogError("pool factory not allow such action: " + block.Tags[Block.REQSERVICETAG]);
