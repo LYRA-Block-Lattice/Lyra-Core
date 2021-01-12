@@ -17,7 +17,7 @@ namespace UnitTests
             var tx1 = new ServiceTx("aaa");
             Assert.IsFalse(tx1.IsTxCompleted);
             Assert.IsTrue(queue.CanAdd(poolId));
-            queue.Add(poolId, tx1);
+            queue.Add(poolId, tx1.ReqSendHash);
             Assert.IsFalse(queue.CanAdd(poolId));
 
             tx1.ReqRecvHash = "bbbbb";
@@ -32,7 +32,7 @@ namespace UnitTests
             var tx1 = new ServiceWithActionTx("aaa");
             Assert.IsFalse(tx1.IsTxCompleted);
             Assert.IsTrue(queue.CanAdd(poolId));
-            queue.Add(poolId, tx1);
+            queue.Add(poolId, tx1.ReqSendHash);
             Assert.IsFalse(queue.CanAdd(poolId));
 
             tx1.ReqRecvHash = "bbbbb";

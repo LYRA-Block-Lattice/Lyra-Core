@@ -27,17 +27,8 @@ namespace Lyra.Core.Decentralize
             if (!_poolFifoQueue.ContainsKey(poolId))
                 _poolFifoQueue.Add(poolId, new List<ServiceTx>());
 
-            _poolFifoQueue[poolId].Add(new ServiceTx(sendHash));
-        }
-
-        public void Add(string poolId, ServiceTx tx)
-        {
-            if (!CanAdd(poolId))
-                throw new InvalidOperationException("Cannot add to svc queue!");
-
-            if (!_poolFifoQueue.ContainsKey(poolId))
-                _poolFifoQueue.Add(poolId, new List<ServiceTx>());
-
+            var tx = new ServiceTx(sendHash);
+            tx.PoolId = poolId;
             _poolFifoQueue[poolId].Add(tx);
         }
 

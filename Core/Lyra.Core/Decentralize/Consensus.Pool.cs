@@ -22,8 +22,6 @@ namespace Lyra.Core.Decentralize
             if (block == null || tx == null)
                 throw new ArgumentNullException();
 
-            _svcQueue.Add(tx.PoolId, tx);
-
             if(IsThisNodeLeader)
             {
                 await SendBlockToConsensusAndWaitResultAsync(block);
