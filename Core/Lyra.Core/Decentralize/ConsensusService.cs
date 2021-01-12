@@ -1452,6 +1452,9 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
+            if (result != ConsensusResult.Yea)
+                return;
+
             // node block require additional works
             if(block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
             {
