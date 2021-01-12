@@ -1440,8 +1440,8 @@ namespace Lyra.Core.Decentralize
                             }
                             else if((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
                             {
-                                var recvBlock = await _sys.Storage.FindBlockByHashAsync(actx.ReqRecvHash) as ReceiveTransferBlock;
-                                ProcessRecvBlock(block as ReceiveTransferBlock, ConsensusResult.Yea);
+                                var block = await _sys.Storage.FindBlockByHashAsync(actx.ReqRecvHash);
+                                ProcessRecvBlock(block, ConsensusResult.Yea);
                             }
                             else
                             {
