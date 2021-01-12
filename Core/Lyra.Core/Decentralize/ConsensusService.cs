@@ -1427,24 +1427,43 @@ namespace Lyra.Core.Decentralize
                             // get all unsettled send to pools
 
                             var allLeaderTasks = _svcQueue.AllTx.OrderBy(x => x.TimeStamp).ToList();
+                            _log.LogInformation($"This new leader is processing {allLeaderTasks.Count} leader tasks.");
                             foreach (var entry in allLeaderTasks)
                             {
                                 if (entry.ReqRecvHash == null)
                                 {
                                     // do receive
                                     var send = await _sys.Storage.FindBlockByHashAsync(entry.ReqSendHash) as SendTransferBlock;
-                                    ProcessSendBlock(send);
-                                }
-                                else if ((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
-                                {
-                                    var block = await _sys.Storage.FindBlockByHashAsync(actx.ReqRecvHash);
-                                    ProcessManagedBlock(block, ConsensusResult.Yea);
-                                }
-                                else
-                                {
-                                    _log.LogWarning($"Should not happen: svcqueue finished but in queue.");
+                                    var recv = await _sys.Storage.FindBlockBySourceHashAsync(entry.ReqSendHash) as ReceiveTransferBlock;
+                                    if (recv == null)
+                                    {
+                                        _log.LogInformation($"One receive not finished for send {send.Hash}. processing...");
+                                        ProcessSendBlock(send);
+                                    }                                        
+                                    else
+                                    {
+                                        entry.FinishRecv(recv.Hash);
+
+                                        if ((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
+                                        {
+                                            var block = await _sys.Storage.FindBlockByRelatedTxAsync(recv.Hash);
+                                            if(block == null)
+                                            {
+                                                _log.LogInformation($"One action not finished for recv {recv.Hash}. processing...");
+                                                ProcessManagedBlock(block, ConsensusResult.Yea);
+                                            }    
+                                            else
+                                            {
+                                                entry.FinishAction(block.Hash);
+                                            }
+                                        }
+                                    }                                        
                                 }
                             }
+
+                            _svcQueue.Clean();
+                            allLeaderTasks = _svcQueue.AllTx.OrderBy(x => x.TimeStamp).ToList();
+                            _log.LogInformation($"This new leader still have {allLeaderTasks.Count} leader tasks in queue.");
                         });
                     }
                 }
