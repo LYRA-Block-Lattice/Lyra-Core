@@ -1415,40 +1415,41 @@ namespace Lyra.Core.Decentralize
             }
             else if (block is ServiceBlock serviceBlock)
             {
-                if(result == ConsensusResult.Yea)
+                if (result == ConsensusResult.Yea)
                 {
                     ServiceBlockCreated(serviceBlock);
-                }                    
 
-                if(!localIsGood)
-                    LocalServiceBlockFailed(serviceBlock.Hash);
-                else if (IsThisNodeLeader)
-                {
-                    // new leader. clean all the unfinished swap operations
-                    _ = Task.Run(async () => {
-                        // get all unsettled send to pool factory
-                        // get all unsettled send to pools
-
-                        var allLeaderTasks = _svcQueue.AllTx.OrderBy(x => x.TimeStamp).ToList();
-                        foreach(var entry in allLeaderTasks)
+                    if (!localIsGood)
+                        LocalServiceBlockFailed(serviceBlock.Hash);
+                    else if (IsThisNodeLeader)
+                    {
+                        // new leader. clean all the unfinished swap operations
+                        _ = Task.Run(async () =>
                         {
-                            if(entry.ReqRecvHash == null)
+                            // get all unsettled send to pool factory
+                            // get all unsettled send to pools
+
+                            var allLeaderTasks = _svcQueue.AllTx.OrderBy(x => x.TimeStamp).ToList();
+                            foreach (var entry in allLeaderTasks)
                             {
-                                // do receive
-                                var send = await _sys.Storage.FindBlockByHashAsync(entry.ReqSendHash) as SendTransferBlock;
-                                ProcessSendBlock(send);
+                                if (entry.ReqRecvHash == null)
+                                {
+                                    // do receive
+                                    var send = await _sys.Storage.FindBlockByHashAsync(entry.ReqSendHash) as SendTransferBlock;
+                                    ProcessSendBlock(send);
+                                }
+                                else if ((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
+                                {
+                                    var block = await _sys.Storage.FindBlockByHashAsync(actx.ReqRecvHash);
+                                    ProcessRecvBlock(block, ConsensusResult.Yea);
+                                }
+                                else
+                                {
+                                    _log.LogWarning($"Should not happen: svcqueue finished but in queue.");
+                                }
                             }
-                            else if((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
-                            {
-                                var block = await _sys.Storage.FindBlockByHashAsync(actx.ReqRecvHash);
-                                ProcessRecvBlock(block, ConsensusResult.Yea);
-                            }
-                            else
-                            {
-                                _log.LogWarning($"Should not happen: svcqueue finished but in queue.");
-                            }
-                        }
-                    });
+                        });
+                    }
                 }
 
                 return;
