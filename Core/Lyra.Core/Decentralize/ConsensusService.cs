@@ -818,6 +818,7 @@ namespace Lyra.Core.Decentralize
         {
             Board.UpdatePrimary(sb.Authorizers.Keys.ToList());
             Board.CurrentLeader = sb.Leader;
+            _log.LogInformation($"Shit View Id to {sb.Height + 1}");
             _viewChangeHandler.ShiftView(sb.Height + 1);
         }
 
