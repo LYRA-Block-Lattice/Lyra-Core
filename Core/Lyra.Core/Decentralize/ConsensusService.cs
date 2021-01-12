@@ -1380,7 +1380,7 @@ namespace Lyra.Core.Decentralize
 
         public APIResultCodes AddSvcQueue(SendTransferBlock send)
         {
-            if (!_svcQueue.CanAdd(send.AccountID))
+            if (!_svcQueue.CanAdd(send.DestinationAccountId))
                 return APIResultCodes.ReQuotaNeeded;
 
             _svcQueue.Add(send.DestinationAccountId, send.Hash);
