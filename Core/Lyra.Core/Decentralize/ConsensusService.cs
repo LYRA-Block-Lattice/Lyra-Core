@@ -118,7 +118,7 @@ namespace Lyra.Core.Decentralize
                     var sb = await _sys.Storage.GetLastServiceBlockAsync();
                     if (sb.Height < viewId)
                     {
-                        _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. redo election.");
+                        _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. {sb.Height} vs {viewId} redo election.");
                         // the new leader failed.
 
                         if (CurrentState == BlockChainState.Almighty)
