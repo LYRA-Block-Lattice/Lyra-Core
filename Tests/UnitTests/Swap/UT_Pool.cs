@@ -228,7 +228,12 @@ namespace UnitTests.Swap
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {testTokenA}: {result.ResultCode}");
                 await Task.Delay(3000);
 
-                var amountToGet = Math.Round(swapRito * amount, 8);
+                var originalAmount = amount;
+                var poolFee = Math.Round(originalAmount * 0.001m, 8);
+                var transFee = Math.Round(originalAmount * 0.001m, 8);
+                var swapInAmount = Math.Round(originalAmount * 0.998m, 8);
+
+                var amountToGet = Math.Round(swapRito * swapInAmount, 8);
                 await w1.Sync(client);
 
                 var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
@@ -267,11 +272,20 @@ namespace UnitTests.Swap
                 swapRito = long.Parse(swapRito.ToRitoLong().ToString()).ToRitoDecimal();
 
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
+
                 var result = await w1.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, amount, swapRito, 0m);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {LyraGlobal.OFFICIALTICKERCODE}: {result.ResultCode}");
                 await Task.Delay(3000);
 
-                var amountToGet = Math.Round(amount / swapRito, 8);
+                var originalAmount = amount;
+                var poolFee = Math.Round(originalAmount * 0.001m, 8);
+                var transFee = Math.Round(originalAmount * 0.001m, 8);
+                var swapInAmount = Math.Round(originalAmount * 0.998m, 8);
+
+                var amountToGet = Math.Round(swapInAmount / swapRito, 8);
+
+
+
                 await w1.Sync(client);
 
                 var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
@@ -411,7 +425,12 @@ namespace UnitTests.Swap
 
                 await Task.Delay(3000);
 
-                var amountToGet = Math.Round(amount / swapRito, 8);
+                var originalAmount = amount;
+                var poolFee = Math.Round(originalAmount * 0.001m, 8);
+                var transFee = Math.Round(originalAmount * 0.001m, 8);
+                var swapInAmount = Math.Round(originalAmount * 0.998m, 8);
+
+                var amountToGet = Math.Round(swapInAmount / swapRito, 8);
                 await w1.Sync(client);
 
                 var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
