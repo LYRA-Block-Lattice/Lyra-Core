@@ -1457,7 +1457,7 @@ namespace Lyra.Core.Decentralize
             // node block require additional works
             if(block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
             {
-                ProcessRecvBlock(block as ReceiveTransferBlock, result);
+                ProcessRecvBlock(block, result);
             }
             // client block require service
             else if (block.ContainsTag(Block.REQSERVICETAG))

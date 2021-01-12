@@ -543,34 +543,34 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void ProcessRecvBlock(ReceiveTransferBlock recvBlock, ConsensusResult? result)
+        private void ProcessRecvBlock(Block block, ConsensusResult? result)
         {
-            if (!recvBlock.ContainsTag("type"))
+            if (!block.ContainsTag("type"))
             {
                 _log.LogWarning("A MANAGEDTAG block not have type.");
                 return;
             }
 
-            if (!recvBlock.ContainsTag("relhash"))
+            if (!block.ContainsTag("relhash"))
             {
                 _log.LogWarning("A MANAGEDTAG block not have related hash.");
                 return;
             }
 
-            var blockRelHash = recvBlock.Tags["relhash"];
-            var blockType = recvBlock.Tags["type"];
-            var poolBlock = recvBlock as TransactionBlock;
+            var blockRelHash = block.Tags["relhash"];
+            var blockType = block.Tags["type"];
+            var poolBlock = block as TransactionBlock;
 
             _ = Task.Run(async () =>
             {
 
                 //_svcQueue[poolBlock.AccountID].
-                switch (recvBlock.Tags["type"])
+                switch (blockType)
                 {
                     case "pfrecv":      // pool factory receive
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
 
-                        await PoolFactoryRecvAction(recvBlock, result);
+                        await PoolFactoryRecvAction(block as ReceiveTransferBlock, result);
                         break;
                     case "pfwithdraw":    // pool factory receive
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
@@ -578,7 +578,7 @@ namespace Lyra.Core.Decentralize
                         var send = await _sys.Storage.FindBlockByHashAsync((poolBlock as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
                         var poolId = send.Tags["poolid"];
                         _log.LogInformation($"Withdraw from pool {poolId}...");
-                        await SendWithdrawFunds(recvBlock, poolId, send.AccountID);
+                        await SendWithdrawFunds(block as ReceiveTransferBlock, poolId, send.AccountID);
                         break;
 
                     case "pladdin":  // pool deposition
@@ -588,7 +588,7 @@ namespace Lyra.Core.Decentralize
                     case "plswapin":  // pool swapin
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
 
-                        await PoolRecvSwapInConsensusAction(recvBlock, result);
+                        await PoolRecvSwapInConsensusAction(block as ReceiveTransferBlock, result);
                         break;
 
                     case "pfcreat":
@@ -597,7 +597,7 @@ namespace Lyra.Core.Decentralize
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, null, poolBlock.Hash);
                         break;
                     default:
-                        _log.LogWarning($"MANAGEDTAG Unsupported type: {recvBlock.Tags["type"]}");
+                        _log.LogWarning($"MANAGEDTAG Unsupported type: {block.Tags["type"]}");
                         break;
                 }
             });
