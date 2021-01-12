@@ -28,8 +28,8 @@ namespace Lyra.Core.Authorizers
             if (swapOutBlock == null)
                 return APIResultCodes.InvalidBlockType;
 
-            var relatedTransactions = await sys.Storage.FindBlockInRelation(swapOutBlock.RelatedTx);
-            if (relatedTransactions.Any())
+            var relatedTransactions = await sys.Storage.FindBlockByRelatedTxAsync(swapOutBlock.RelatedTx);
+            if (relatedTransactions != null)
                 return APIResultCodes.PoolOperationAlreadyCompleted;
 
             var poolId = (block as PoolSwapOutBlock).AccountID;

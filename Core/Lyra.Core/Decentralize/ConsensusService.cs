@@ -265,25 +265,52 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     // leader monitor. check if all items in _pendingLeaderTasks is finished. if not, change view to remove the leader.
+                    _svcQueue.Clean();
                     var timeoutTasks = _svcQueue.TimeoutTxes;
                     if (timeoutTasks.Any())
                     {
                         foreach (var entry in timeoutTasks.ToArray())
                         {
-                            //if(CheckHashSettled(entry.Key))
-                            //{
-                            //    _pendingLeaderTasks.Remove(entry.Key);
-                            //    removed = true;
-                            //}
-                            //else
-                            //    _pendingLeaderTasks[entry.Key] = DateTime.Now;
+                            var recvx = await _sys.Storage.FindBlockBySourceHashAsync(entry.ReqSendHash);
+                            if (recvx != null)
+                            {
+                                entry.FinishRecv(recvx.Hash);
+                            }
+                            if (entry.IsTxCompleted)
+                            {
+                                timeoutTasks.Remove(entry);
+                                continue;
+                            }                                
+
+                            if(entry is ServiceWithActionTx satx)
+                            {
+                                // RelatedTx always point to recvblock 
+                                var actionBlock = await _sys.Storage.FindBlockByRelatedTxAsync(entry.ReqRecvHash);
+                                if(actionBlock != null)
+                                {
+                                    entry.FinishAction(actionBlock.Hash);
+                                }
+
+                                if (entry.IsTxCompleted)
+                                {
+                                    timeoutTasks.Remove(entry);
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                _log.LogError("should not happend: etnry not ServiceWithActionTx: " + entry.ToString());
+                            }
                         }
 
                         if(timeoutTasks.Any())
                         {
                             _viewChangeHandler.BeginChangeView(true, "Leader task timeout pending.");
                             if (_viewChangeHandler.IsViewChanging)
+                            {
+                                _svcQueue.Clean();
                                 _svcQueue.ResetTimestamp();
+                            }                                
                         }                            
                     }
                     

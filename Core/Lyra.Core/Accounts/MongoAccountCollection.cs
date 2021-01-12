@@ -549,6 +549,20 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
+        public async Task<Block> FindBlockByRelatedTxAsync(string hash)
+        {
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 1,
+            };
+            var builder = new FilterDefinitionBuilder<Block>();
+            var filterDefinition = builder.Eq("RelatedTx", hash);
+
+            var result = await _blocks
+                .FindAsync(filterDefinition, options);
+
+            return await result.FirstOrDefaultAsync();
+        }
 
         public async Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index)
         {
@@ -1363,15 +1377,6 @@ namespace Lyra.Core.Accounts
                 .FirstOrDefaultAsync();
 
             return pool;
-        }
-
-        public async Task<List<Block>> FindBlockInRelation(string relatedToHash)
-        {
-            var filter = Builders<Block>.Filter;
-            var filterDefination = filter.Eq("RelatedTx", relatedToHash);
-
-            var finds = await _blocks.FindAsync(filterDefination);
-            return finds.ToList();
         }
     }
     public static class MyExtensions

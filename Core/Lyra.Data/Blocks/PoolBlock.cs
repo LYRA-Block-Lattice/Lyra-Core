@@ -148,6 +148,7 @@ namespace Lyra.Core.Blocks
     {
         public string Token0 { get; set; }
         public string Token1 { get; set; }
+        public string RelatedTx { get; set; }
 
         public override BlockTypes GetBlockType()
         {
@@ -161,6 +162,7 @@ namespace Lyra.Core.Blocks
             string extraData = base.GetExtraData();
             extraData += Token0 + "|";
             extraData += Token1 + "|";
+            extraData += RelatedTx + "|";
             extraData += AccountType + "|";
             return extraData;
         }
@@ -170,6 +172,7 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"Token0: {Token0}\n";
             result += $"Token1: {Token1}\n";
+            result += $"RelatedTx: {RelatedTx}\n";
             result += $"AccountType: {AccountType}\n";
             return result;
         }

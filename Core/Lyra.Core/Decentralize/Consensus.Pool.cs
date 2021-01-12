@@ -22,7 +22,7 @@ namespace Lyra.Core.Decentralize
             if (block == null || tx == null)
                 throw new ArgumentNullException();
 
-            _svcQueue.Add(block.AccountID, tx);
+            _svcQueue.Add(tx.PoolId, tx);
 
             if(IsThisNodeLeader)
             {
@@ -127,14 +127,14 @@ namespace Lyra.Core.Decentralize
             TransactionBlock prevSend = await _sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
 
-            TransactionBlock latestBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
+            TransactionBlock latestPoolBlock = await _sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
             // ignore any token but LYR. keep the block clean.
             if (!txInfo.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
                 return;
 
-            var latestBalances = latestBlock.Balances.ToDecimalDict();
-            var recvBalances = latestBlock.Balances.ToDecimalDict();
+            var latestBalances = latestPoolBlock.Balances.ToDecimalDict();
+            var recvBalances = latestPoolBlock.Balances.ToDecimalDict();
             foreach (var chg in txInfo.Changes)
             {
                 if (chg.Key != LyraGlobal.OFFICIALTICKERCODE)
@@ -148,9 +148,10 @@ namespace Lyra.Core.Decentralize
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
-            receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
+            receiveBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
             var tx = new ServiceWithActionTx(sendBlock.Hash);
+            tx.PoolId = latestPoolBlock.AccountID;
             await QueueBlockForPool(receiveBlock, tx);  // create pool / withdraw
         }
 
@@ -219,6 +220,7 @@ namespace Lyra.Core.Decentralize
             swapInBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
             var tx = new ServiceWithActionTx(sendBlock.Hash);
+            tx.PoolId = latestPoolBlock.AccountID;
             await QueueBlockForPool(swapInBlock, tx);   // pool swap in
         }
 
@@ -347,6 +349,7 @@ namespace Lyra.Core.Decentralize
             depositBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
             var tx = new ServiceTx(sendBlock.Hash);
+            tx.PoolId = latestPoolBlock.AccountID;
             await QueueBlockForPool(depositBlock, tx);  // pool deposition
         }
 
@@ -454,7 +457,8 @@ namespace Lyra.Core.Decentralize
 
                 // pool specified config
                 Token0 = arrStr[0],
-                Token1 = arrStr[1]
+                Token1 = arrStr[1],
+                RelatedTx = recvBlock.Hash
             };
 
             poolGenesis.AddTag(Block.MANAGEDTAG, "");   // value is always ignored

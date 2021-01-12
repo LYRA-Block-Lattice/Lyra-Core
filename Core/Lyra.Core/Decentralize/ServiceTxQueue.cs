@@ -37,11 +37,21 @@ namespace Lyra.Core.Decentralize
 
         public List<ServiceTx> AllTx => _poolFifoQueue.SelectMany(x => x.Value).ToList();
 
-        public List<ServiceTx> TimeoutTxes => _poolFifoQueue.SelectMany(x => x.Value).Where(x => x.CountDownTimeStamp < DateTime.UtcNow.AddSeconds(-30)).ToList();
+        public List<ServiceTx> TimeoutTxes => _poolFifoQueue.SelectMany(x => x.Value).Where(x => !x.IsTxCompleted && x.CountDownTimeStamp < DateTime.UtcNow.AddSeconds(-30)).ToList();
         public void ResetTimestamp()
         {
             foreach (var tx in _poolFifoQueue.SelectMany(x => x.Value))
                 tx.CountDownTimeStamp = DateTime.UtcNow;
+        }
+
+        public void Clean()
+        {
+            foreach(var entry in AllTx.Where(x => x.IsTxCompleted))
+            {
+                _poolFifoQueue[entry.PoolId].Remove(entry);
+                if (_poolFifoQueue[entry.PoolId].Count == 0)
+                    _poolFifoQueue.Remove(entry.PoolId);
+            }
         }
 
         public void Finish(string poolId, string relHash, string recvHash, string actionHash)
@@ -73,6 +83,7 @@ namespace Lyra.Core.Decentralize
     public class ServiceTx
     {
         public DateTime TimeStamp { get; set; }
+        public string PoolId { get; set; }
         public DateTime CountDownTimeStamp { get; set; }
         /// <summary>
         /// wether the tx can existing with others
