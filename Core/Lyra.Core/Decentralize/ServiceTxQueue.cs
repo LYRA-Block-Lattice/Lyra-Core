@@ -38,10 +38,12 @@ namespace Lyra.Core.Decentralize
         public void Finish(string poolId, string relHash, string recvHash, string actionHash)
         {
             if (!_poolFifoQueue.ContainsKey(poolId))
-                throw new ArgumentException("Pool not found!", poolId);
+                return;// throw new ArgumentException("Pool not found!", poolId);
 
             var poolTx = _poolFifoQueue[poolId];
-            var tx = poolTx.First(x => x.ReqSendHash == relHash);
+            var tx = poolTx.FirstOrDefault(x => x.ReqSendHash == relHash);
+            if (tx == null)
+                return;
 
             if (!string.IsNullOrEmpty(recvHash))
                 tx.FinishRecv(recvHash);

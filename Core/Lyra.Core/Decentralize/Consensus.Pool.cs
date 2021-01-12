@@ -151,7 +151,7 @@ namespace Lyra.Core.Decentralize
             receiveBlock.InitializeBlock(latestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
             var tx = new ServiceWithActionTx(sendBlock.Hash);
-            await QueueBlockForPool(receiveBlock, tx);  // create pool
+            await QueueBlockForPool(receiveBlock, tx);  // create pool / withdraw
         }
 
         /// <summary>
