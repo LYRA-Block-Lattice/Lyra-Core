@@ -98,7 +98,8 @@ namespace UnitTests
                 Assert.IsTrue(b1Before > 100000m && b1Before < 10000000m);
 
                 Assert.IsTrue(APIResultCodes.Success == await w2.ReceiveAsync());
-                var b2Before = (await w2.GetBalanceAsync())[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                var b2Balances = await w2.GetBalanceAsync();
+                var b2Before = b2Balances?.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) == true ? b2Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() : 0m;
 
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.03) * 1000), 8);
                 var amounts = new Dictionary<string, decimal>();
@@ -142,7 +143,7 @@ namespace UnitTests
                 Assert.IsTrue(APIResultCodes.Success == await w2.ReceiveAsync());
                 var b2Before = (await w2.GetBalanceAsync())[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
                 var b2Balance = await w2.GetBalanceAsync();
-                var b2Before2 = b2Balance.ContainsKey(testToken) ? b2Balance[testToken].ToBalanceDecimal() : 0m;
+                var b2Before2 = b2Balance?.ContainsKey(testToken) == true ? b2Balance[testToken].ToBalanceDecimal() : 0m;
 
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.03) * 1000), 8);
                 var amount2 = Math.Round((decimal)((new Random().NextDouble() + 0.03) * 1000), 8);
