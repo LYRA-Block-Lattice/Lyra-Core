@@ -67,7 +67,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidPoolOperation;
 
             var currentOutChgs = swapOutBlock.GetBalanceChanges(previousBlock as TransactionBlock);
-            if(currentOutChgs.Changes.Count != 2)   //plus the fee
+            if(currentOutChgs.Changes.Count != 1)   //plus the fee: no, fee pay by standard and is not included here
                 return APIResultCodes.InvalidPoolSwapOutToken;
             if(currentOutChgs.Changes.First().Key != cfg.swapOutToken
                 || currentOutChgs.Changes.First().Value != cfg.swapOutAmount)
