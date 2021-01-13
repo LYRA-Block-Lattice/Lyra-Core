@@ -321,12 +321,15 @@ namespace UnitTests.Swap
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {testTokenA}: {result.ResultCode}");
                 await Task.Delay(3000);
 
-                var originalAmount = amount;
-                var poolFee = Math.Round(originalAmount * 0.001m, 8);
-                var transFee = Math.Round(originalAmount * 0.001m, 8);
-                var swapInAmount = Math.Round(originalAmount * 0.998m, 8);
+                var poolGenesisResult = await client.GetBlockByIndex(poolLatestBlock.AccountID, 1);
+                var block = poolGenesisResult.GetBlock();
+                var poolGenesis = block as PoolGenesisBlock;
+                Assert.IsTrue(poolGenesisResult.ResultCode == APIResultCodes.Success, $"get gensis returns {poolGenesisResult.ResultCode}");
+                Assert.IsNotNull(poolGenesis, "Can't get pool genesis block.");
+                var sc = new SwapCalculator(testTokenA, amount, poolGenesis, swapRito);
 
-                var amountToGet = Math.Round(swapRito * swapInAmount, 8);
+                var amountToGet = sc.swapOutAmount;
+
                 await w1.Sync(client);
 
                 var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
@@ -518,12 +521,15 @@ namespace UnitTests.Swap
 
                 await Task.Delay(3000);
 
-                var originalAmount = amount;
-                var poolFee = Math.Round(originalAmount * 0.001m, 8);
-                var transFee = Math.Round(originalAmount * 0.001m, 8);
-                var swapInAmount = Math.Round(originalAmount * 0.998m, 8);
+                var poolGenesisResult = await client.GetBlockByIndex(poolLatestBlock.AccountID, 1);
+                var block = poolGenesisResult.GetBlock();
+                var poolGenesis = block as PoolGenesisBlock;
+                Assert.IsTrue(poolGenesisResult.ResultCode == APIResultCodes.Success, $"get gensis returns {poolGenesisResult.ResultCode}");
+                Assert.IsNotNull(poolGenesis, "Can't get pool genesis block.");
+                var sc = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, amount, poolGenesis, swapRito);
 
-                var amountToGet = Math.Round(swapInAmount / swapRito, 8);
+                var amountToGet = sc.swapOutAmount;
+
                 await w1.Sync(client);
 
                 var testTokenBalance2 = w1.GetLatestBlock().Balances[testTokenA].ToBalanceDecimal();
