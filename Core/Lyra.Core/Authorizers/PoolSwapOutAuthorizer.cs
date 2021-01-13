@@ -10,13 +10,14 @@ namespace Lyra.Core.Authorizers
 {
     public class PoolSwapOutAuthorizer : SendTransferAuthorizer
     {
+        private SwapCalculator _calculator;
         protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
         {
             APIResultCodes result = APIResultCodes.Success;
-            if (block.FeeType != AuthorizationFeeTypes.NoFee)
+            if (block.FeeType != AuthorizationFeeTypes.Regular)
                 result = APIResultCodes.InvalidFeeAmount;
 
-            if (block.Fee != 0)
+            if (block.Fee != _calculator.protocolFee)
                 result = APIResultCodes.InvalidFeeAmount;
 
             return result;
@@ -101,6 +102,7 @@ namespace Lyra.Core.Authorizers
                 .SequenceEqual(outShares.OrderBy(a => a.Key)))
                 return APIResultCodes.InvalidPoolSwapOutShare;
 
+            _calculator = cfg;
             return await base.VerifyBlockAsync(sys, block, previousBlock);
         }
     }
