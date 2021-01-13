@@ -105,6 +105,7 @@ namespace Lyra.Core.Decentralize
                 SourceHash = sendBlock.Hash,
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee
             };
 
@@ -164,6 +165,7 @@ namespace Lyra.Core.Decentralize
                 SourceHash = sendBlock.Hash,
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee
             };
 
@@ -232,6 +234,7 @@ namespace Lyra.Core.Decentralize
                 Balances = new Dictionary<string, long>(),
                 Tags = null,
                 Fee = cfg.protocolFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.Regular,
                 RelatedTx = swapInBlock.Hash
             };
@@ -291,6 +294,7 @@ namespace Lyra.Core.Decentralize
                 SourceHash = sendBlock.Hash,
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee
             };
 
@@ -372,6 +376,7 @@ namespace Lyra.Core.Decentralize
                 Balances = new Dictionary<string, long>(),
                 Tags = null,
                 Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,
                 RelatedTx = recvBlock.Hash
             };
@@ -454,6 +459,7 @@ namespace Lyra.Core.Decentralize
                 PreviousHash = sb.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // pool specified config
