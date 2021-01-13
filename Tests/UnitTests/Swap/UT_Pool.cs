@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
+using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
@@ -106,6 +107,98 @@ namespace UnitTests.Swap
             var pool = await client.GetPool(testTokenA, LyraGlobal.OFFICIALTICKERCODE);
             Assert.IsNotNull(pool.PoolAccountId);
             pool.PoolAccountId.Should().StartWith("L");
+        }
+
+        [TestMethod]
+        public void CalculatorForSwap1()
+        {
+            var poolGenesis = new PoolGenesisBlock { Token0 = "LYR", Token1 = "ZZZ" };
+
+            var sc = new SwapCalculator("LYR", 100m, poolGenesis, 1m);
+            Assert.AreEqual(sc.swapOutToken, "ZZZ");
+            Assert.AreEqual(sc.poolFee, 0.1m);
+            Assert.AreEqual(sc.protocolFee, 0.1m);
+            Assert.AreEqual(sc.swapOutAmount, 99.8m, $"swap out is {sc.swapOutAmount}");
+
+            var sc1 = new SwapCalculator("ZZZ", 100m, poolGenesis, 1m);
+            Assert.AreEqual(sc1.swapOutToken, "LYR");
+            Assert.AreEqual(sc1.poolFee, 0.1m);
+            Assert.AreEqual(sc1.protocolFee, 0.1m);
+            Assert.AreEqual(sc1.swapOutAmount, 99.8m);
+
+            // 10 LYR = 1 ZZZ
+            var sc2 = new SwapCalculator("ZZZ", 100m, poolGenesis, 10m);
+            Assert.AreEqual(sc2.swapOutToken, "LYR");
+            Assert.AreEqual(1m, sc2.poolFee);
+            Assert.AreEqual(1m, sc2.protocolFee);
+            Assert.AreEqual(998m, sc2.swapOutAmount);
+
+            // 1 LYR = 10 ZZZ
+            var sc3 = new SwapCalculator("ZZZ", 100m, poolGenesis, 0.1m);
+            Assert.AreEqual(sc3.swapOutToken, "LYR");
+            Assert.AreEqual(0.01m, sc3.poolFee);
+            Assert.AreEqual(0.01m, sc3.protocolFee);
+            Assert.AreEqual(9.98m, sc3.swapOutAmount);
+
+            // 10 LYR = 1 ZZZ
+            var sc4 = new SwapCalculator("LYR", 100m, poolGenesis, 10m);
+            Assert.AreEqual("ZZZ", sc4.swapOutToken);
+            Assert.AreEqual(0.1m, sc4.poolFee);
+            Assert.AreEqual(0.1m, sc4.protocolFee);
+            Assert.AreEqual(9.98m, sc4.swapOutAmount);
+
+            // 1 LYR = 10 ZZZ
+            var sc5 = new SwapCalculator("LYR", 100m, poolGenesis, 0.1m);
+            Assert.AreEqual("ZZZ", sc5.swapOutToken);
+            Assert.AreEqual(0.1m, sc5.poolFee);
+            Assert.AreEqual(0.1m, sc5.protocolFee);
+            Assert.AreEqual(998m, sc5.swapOutAmount);
+        }
+
+        [TestMethod]
+        public void CalculatorForSwap2()
+        {
+            var poolGenesis = new PoolGenesisBlock { Token0 = "AAA", Token1 = "LYR" };
+
+            var sc = new SwapCalculator("LYR", 100m, poolGenesis, 1m);
+            Assert.AreEqual(sc.swapOutToken, "AAA");
+            Assert.AreEqual(sc.poolFee, 0.1m);
+            Assert.AreEqual(sc.protocolFee, 0.1m);
+            Assert.AreEqual(sc.swapOutAmount, 99.8m, $"swap out is {sc.swapOutAmount}");
+
+            var sc1 = new SwapCalculator("AAA", 100m, poolGenesis, 1m);
+            Assert.AreEqual(sc1.swapOutToken, "LYR");
+            Assert.AreEqual(sc1.poolFee, 0.1m);
+            Assert.AreEqual(sc1.protocolFee, 0.1m);
+            Assert.AreEqual(sc1.swapOutAmount, 99.8m);
+
+            // 1 LYR = 10 AAA
+            var sc2 = new SwapCalculator("AAA", 100m, poolGenesis, 10m);
+            Assert.AreEqual(sc2.swapOutToken, "LYR");
+            Assert.AreEqual(0.01m, sc2.poolFee);
+            Assert.AreEqual(0.01m, sc2.protocolFee);
+            Assert.AreEqual(9.98m, sc2.swapOutAmount);
+
+            // 10 LYR = 1 AAA
+            var sc3 = new SwapCalculator("AAA", 100m, poolGenesis, 0.1m);
+            Assert.AreEqual(sc3.swapOutToken, "LYR");
+            Assert.AreEqual(1m, sc3.poolFee);
+            Assert.AreEqual(1m, sc3.protocolFee);
+            Assert.AreEqual(998m, sc3.swapOutAmount);
+
+            // 1 LYR = 10 AAA
+            var sc4 = new SwapCalculator("LYR", 100m, poolGenesis, 10m);
+            Assert.AreEqual("AAA", sc4.swapOutToken);
+            Assert.AreEqual(0.1m, sc4.poolFee);
+            Assert.AreEqual(0.1m, sc4.protocolFee);
+            Assert.AreEqual(998m, sc4.swapOutAmount);
+
+            // 10 LYR = 1 AAA
+            var sc5 = new SwapCalculator("LYR", 100m, poolGenesis, 0.1m);
+            Assert.AreEqual("AAA", sc5.swapOutToken);
+            Assert.AreEqual(0.1m, sc5.poolFee);
+            Assert.AreEqual(0.1m, sc5.protocolFee);
+            Assert.AreEqual(9.98m, sc5.swapOutAmount);
         }
 
         [TestMethod]
