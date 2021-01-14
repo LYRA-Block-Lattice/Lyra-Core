@@ -11,7 +11,7 @@ namespace UnitTests
     [TestClass]
     public class UT_ApiAggregator
     {
-        private string networkId = "devnet";
+        private string networkId = TestConfig.networkId;
 
         [TestMethod]
         public async Task TestGetServiceBlockAsync()

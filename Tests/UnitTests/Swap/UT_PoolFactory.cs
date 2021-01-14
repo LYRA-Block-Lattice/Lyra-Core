@@ -15,7 +15,7 @@ namespace UnitTests.Swap
     [TestClass]
     public class UT_PoolFactory
     {
-        static string networkId = "devnet";
+        static string networkId = TestConfig.networkId;
         LyraRestClient client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
         private string testTokenA = "unittest/UCoinA";
         private string testTokenB = "UCoinB";

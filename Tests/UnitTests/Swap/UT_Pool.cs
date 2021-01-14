@@ -18,7 +18,7 @@ namespace UnitTests.Swap
     [TestClass]
     public class UT_Pool
     {
-        string networkId = "devnet";
+        string networkId = TestConfig.networkId;
         ILyraAPI client;
         private string testTokenA = "unittest/PoolCoinC1";  // change name when chain crupt
         private string testTokenB = "unittest/PoolCoinX";

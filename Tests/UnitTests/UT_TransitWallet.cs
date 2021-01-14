@@ -29,14 +29,14 @@ namespace UnitTests
 
         private string testToken = "unittest/trans";
 
-        LyraRestClient client = LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0");
+        LyraRestClient client = LyraRestClient.Create(TestConfig.networkId, "Windows", "UnitTest", "1.0");
 
         private SemaphoreSlim semaphore = new SemaphoreSlim(1);      // we need to run tests in serial
 
         public static TransitWallet Restore(string privateKey)
         {
             var accountId = Signatures.GetAccountIdFromPrivateKey(privateKey);
-            return new TransitWallet(accountId, privateKey, LyraRestClient.Create("devnet", "Windows", "UnitTest", "1.0"));
+            return new TransitWallet(accountId, privateKey, LyraRestClient.Create(TestConfig.networkId, "Windows", "UnitTest", "1.0"));
         }
 
         private async Task<string> SignAPIAsync()
@@ -49,13 +49,13 @@ namespace UnitTests
         public async Task UT_TransitWallet_SetupAsync()
         {
             var memStor = new AccountInMemoryStorage();
-            Wallet.Create(memStor, "tmpAcct", "", "devnet", PRIVATE_KEY_1);
+            Wallet.Create(memStor, "tmpAcct", "", TestConfig.networkId, PRIVATE_KEY_1);
             var w1 = Wallet.Open(memStor, "tmpAcct", "");
 
             await w1.Sync(client);
 
             var balances = w1.GetLatestBlock().Balances;
-            Assert.IsTrue(balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() > 100000m, "Insufficient funds: LYR");
+            Assert.IsTrue(balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() > 50000m, "Insufficient funds: LYR");
 
             // make sure we have 2 test token
             var genResult = await client.GetTokenGenesisBlock(ADDRESS_ID_1, testToken, await SignAPIAsync());
@@ -141,8 +141,8 @@ namespace UnitTests
                 Assert.IsTrue(b1Before > 100000m && b1Before < 10000000m);
 
                 Assert.IsTrue(APIResultCodes.Success == await w2.ReceiveAsync());
-                var b2Before = (await w2.GetBalanceAsync())[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
                 var b2Balance = await w2.GetBalanceAsync();
+                var b2Before = b2Balance?.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) == true ? b2Balance[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() : 0;
                 var b2Before2 = b2Balance?.ContainsKey(testToken) == true ? b2Balance[testToken].ToBalanceDecimal() : 0m;
 
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.03) * 1000), 8);

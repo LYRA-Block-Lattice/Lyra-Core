@@ -25,7 +25,7 @@ namespace UnitTests
             var memStor = new AccountInMemoryStorage();
             try
             {
-                Wallet.Create(memStor, "tmpAcct", "", "devnet", privateKey);
+                Wallet.Create(memStor, "tmpAcct", "", TestConfig.networkId, privateKey);
                 return Wallet.Open(memStor, "tmpAcct", "");
             }
             catch (Exception)
