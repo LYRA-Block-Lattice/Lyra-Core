@@ -125,31 +125,31 @@ namespace UnitTests.Swap
                 await w1.Sync(client);
 
                 var result = await w1.CreateLiquidatePoolAsync("", "");
-                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+                Assert.AreEqual(APIResultCodes.TokenGenesisBlockNotFound, result.ResultCode);
 
                 result = await w1.CreateLiquidatePoolAsync("lyr", "");
-                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+                Assert.AreEqual(APIResultCodes.TokenGenesisBlockNotFound, result.ResultCode);
 
                 result = await w1.CreateLiquidatePoolAsync("", "lyr");
-                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+                Assert.AreEqual(APIResultCodes.TokenGenesisBlockNotFound, result.ResultCode);
 
                 result = await w1.CreateLiquidatePoolAsync("", "LYR");
-                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+                Assert.AreEqual(APIResultCodes.TokenGenesisBlockNotFound, result.ResultCode);
 
                 result = await w1.CreateLiquidatePoolAsync("*", "LYR");
-                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+                Assert.AreEqual(APIResultCodes.TokenGenesisBlockNotFound, result.ResultCode);
 
                 result = await w1.CreateLiquidatePoolAsync(".*", "LYR");
-                Assert.AreEqual(result.ResultCode, APIResultCodes.TokenGenesisBlockNotFound);
+                Assert.AreEqual(APIResultCodes.TokenGenesisBlockNotFound, result.ResultCode);
 
                 result = await w1.CreateLiquidatePoolAsync("unittest/UCoinA", "LYR");
-                Assert.AreEqual(result.ResultCode, APIResultCodes.PoolAlreadyExists);
+                Assert.AreEqual(APIResultCodes.PoolAlreadyExists, result.ResultCode);
 
                 result = await w1.CreateLiquidatePoolAsync("UniTTest/uCoinA", "lYR");
-                Assert.AreEqual(result.ResultCode, APIResultCodes.PoolAlreadyExists);
+                Assert.AreEqual(APIResultCodes.PoolAlreadyExists, result.ResultCode);
 
                 result = await w1.CreateLiquidatePoolAsync("lYR", "UniTTest/uCoinA");
-                Assert.AreEqual(result.ResultCode, APIResultCodes.PoolAlreadyExists);
+                Assert.AreEqual(APIResultCodes.PoolAlreadyExists, result.ResultCode);
             }
             finally
             {

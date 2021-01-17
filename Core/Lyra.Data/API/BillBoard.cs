@@ -17,10 +17,10 @@ namespace Lyra.Data.API
     // if the node is dead for a long time (> 45 seconds), it will be put into freezing pool
     public class BillBoard
     {
-        public ConcurrentDictionary<string, string> NodeAddresses { get; }
+        public ConcurrentDictionary<string, string> NodeAddresses { get; set; }
 
         // with heartbeat, we know who is alive.
-        public List<ActiveNode> ActiveNodes { get; }
+        public List<ActiveNode> ActiveNodes { get; set; }
 
         // for service block, validate from all voters
         public List<string> AllVoters { get; set; }

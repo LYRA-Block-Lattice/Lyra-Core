@@ -704,7 +704,7 @@ namespace Lyra.Core.Decentralize
                     //await Task.Delay(35000);    // wait for enough heartbeat
                     //RefreshAllNodesVotes();
                 }))
-                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.StaticSync)
+                .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)         // make a quick recovery
                 .Permit(BlockChainTrigger.LocalNodeMissingBlock, BlockChainState.Engaging);
 
             _stateMachine.OnTransitioned(t =>
@@ -735,7 +735,7 @@ namespace Lyra.Core.Decentralize
         {
             // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
-                .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance)
+                .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && a.State == BlockChainState.Almighty)
                 .OrderByDescending(a => a.Votes)
                 .ThenBy(a => a.AccountID)
                 .ToList();

@@ -24,6 +24,19 @@ namespace Lyra.Data.API
             this._networkId = networkId;
         }
 
+        // update it from node's json
+        public static string[] GetSeedNodes(string networkId)
+        {
+            string[] seedNodes;
+            if (networkId == "devnet")
+                seedNodes = new[] { "seed.devnet", "seed2.devnet", "seed3.devnet" };
+            else if (networkId == "testnet")
+                seedNodes = new[] { "seed.testnet.lyra.live", "seed2.testnet.lyra.live", "seed3.testnet.lyra.live", "seed4.testnet.lyra.live" };
+            else
+                seedNodes = new[] { "seed1.mainnet.lyra.live", "seed2.mainnet.lyra.live", "seed3.mainnet.lyra.live", "seed4.mainnet.lyra.live" };
+            return seedNodes;
+        }
+
         public async Task InitAsync()
         {
             var platform = Environment.OSVersion.Platform.ToString();
@@ -34,15 +47,8 @@ namespace Lyra.Data.API
             if (_networkId == "mainnet")
                 peerPort = 5504;
 
-            string[] seedNodes;
-            if (_networkId == "devnet")
-                seedNodes = new[] { "seed.devnet", "seed2.devnet", "seed3.devnet" };
-            else if (_networkId == "testnet")
-                seedNodes = new[] { "seed.testnet.lyra.live", "seed2.testnet.lyra.live", "seed3.testnet.lyra.live", "seed4.testnet.lyra.live" };
-            else
-                seedNodes = new[] { "seed1.mainnet.lyra.live", "seed2.mainnet.lyra.live", "seed3.mainnet.lyra.live", "seed4.mainnet.lyra.live" };
-
             // get nodes list (from billboard)
+            var seedNodes = GetSeedNodes(_networkId);
             var seeds = seedNodes.Select(a => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{a}:{peerPort}/api/Node/")).ToList();
 
             BillBoard currentBillBoard = null;

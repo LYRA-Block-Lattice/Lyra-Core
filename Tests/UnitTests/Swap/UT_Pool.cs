@@ -419,7 +419,9 @@ namespace UnitTests.Swap
 
                 // ops, someone swapped
                 var w2 = Restore(otherAccountPrivateKey);
-                await w2.Sync(client);
+                var w2result = await w2.Sync(client);
+                Assert.IsTrue(w2result == APIResultCodes.Success, $"W2 sync failed: {w2result}");
+
                 var otherAmount = Math.Round((decimal)((new Random().NextDouble() + 0.07) * 1000), 8);
                 var otherResult = await w2.SwapToken(LyraGlobal.OFFICIALTICKERCODE, testTokenA, LyraGlobal.OFFICIALTICKERCODE, otherAmount, swapRito, 0m);
                 Assert.IsTrue(otherResult.ResultCode == APIResultCodes.Success, $"Failed to swap other account {LyraGlobal.OFFICIALTICKERCODE}: {otherResult.ResultCode}");
