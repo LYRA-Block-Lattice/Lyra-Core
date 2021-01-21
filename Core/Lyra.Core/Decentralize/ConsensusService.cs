@@ -658,26 +658,7 @@ namespace Lyra.Core.Decentralize
                 .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Almighty);
 
             _stateMachine.Configure(BlockChainState.Engaging)
-                .OnEntryFrom(_engageTriggerStart, (blockCount) => Task.Run(async () =>
-                {
-                    try
-                    {
-                        if (blockCount > 2)
-                        {
-                            // sync cons and uncons
-                            await EngagingSyncAsync();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _log.LogError($"In Engaging: {e}");
-                    }
-                    finally
-                    {
-                        _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
-                    }
-                }))
-                .OnEntryFrom(BlockChainTrigger.LocalNodeMissingBlock, () =>
+                .OnEntry(() =>
                     {
                         _ = Task.Run(async () =>
                         {
@@ -815,7 +796,7 @@ namespace Lyra.Core.Decentralize
         {
             Board.UpdatePrimary(sb.Authorizers.Keys.ToList());
             Board.CurrentLeader = sb.Leader;
-            _log.LogInformation($"Shit View Id to {sb.Height + 1}");
+            _log.LogInformation($"Shift View Id to {sb.Height + 1}");
             _viewChangeHandler.ShiftView(sb.Height + 1);
         }
 
