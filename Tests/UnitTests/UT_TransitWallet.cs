@@ -52,7 +52,8 @@ namespace UnitTests
             Wallet.Create(memStor, "tmpAcct", "", TestConfig.networkId, PRIVATE_KEY_1);
             var w1 = Wallet.Open(memStor, "tmpAcct", "");
 
-            await w1.Sync(client);
+            var syncResult = await w1.Sync(client);
+            Assert.AreEqual(APIResultCodes.Success, syncResult, $"Error Sycn: {syncResult}");
 
             var balances = w1.GetLatestBlock().Balances;
             Assert.IsTrue(balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() > 50000m, "Insufficient funds: LYR");
