@@ -929,6 +929,13 @@ namespace Lyra.Core.Decentralize
                 System.Net.IPAddress addr;
                 if (System.Net.IPAddress.TryParse(ip, out addr))
                 {
+                    // one IP, one account id
+                    var safeIp = addr.ToString();
+                    if(_board.NodeAddresses.Any(x => x.Value == safeIp && x.Key != accountId ))     // multi homed
+                    {
+
+                    }
+
                     _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
 
                     // backslash. will do this later

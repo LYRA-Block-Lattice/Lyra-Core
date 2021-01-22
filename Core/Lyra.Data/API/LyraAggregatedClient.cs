@@ -17,7 +17,7 @@ namespace Lyra.Data.API
 
         private Dictionary<string, LyraRestClient> _primaryClients;
 
-        public LyraRestClient SeedClient => _primaryClients?.First().Value;
+        public LyraRestClient SeedClient => LyraRestClient.Create(_networkId, Environment.OSVersion.Platform.ToString(), "LyraAggregatedClient", "1.0");
 
         public LyraAggregatedClient(string networkId)
         {
