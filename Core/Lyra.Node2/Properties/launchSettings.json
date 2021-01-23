@@ -17,6 +17,15 @@
       },
       "applicationUrl": "https://0.0.0.0:4504;http://0.0.0.0:4505"
     },
+    "Lyra.Node Mainnet": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "http://*:5505;https://*:5504",
+        "ASPNETCORE_HTTPS_PORT": "5504",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://0.0.0.0:5504;http://0.0.0.0:5505"
+    },
     "WSL 2": {
       "commandName": "WSL2",
       "launchBrowser": true,
