@@ -731,7 +731,9 @@ namespace Lyra.Core.Decentralize
         {
             _log.LogInformation("UpdateVoters begin...");
             RefreshAllNodesVotes();
-            Board.AllVoters = LookforVoters();
+            var list = LookforVoters();
+            if (list.Count >= 4)        // simple check. but real condition is complex.
+                Board.AllVoters = list;
             _log.LogInformation("UpdateVoters ended.");
         }
 
