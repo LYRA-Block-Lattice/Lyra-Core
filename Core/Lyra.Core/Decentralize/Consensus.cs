@@ -473,7 +473,10 @@ namespace Lyra.Core.Decentralize
                     var svcBlock = new ServiceBlock
                     {
                         NetworkId = prevSvcBlock.NetworkId,
-                        Height = prevSvcBlock.Height + 1,
+
+                        // HACK: always fault! for debug
+                        //Height = prevSvcBlock.Height + 1,
+                        Height = prevSvcBlock.Height + 10,
                         FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
                         ServiceHash = prevSvcBlock.Hash,
                         Leader = _sys.PosWallet.AccountId,
