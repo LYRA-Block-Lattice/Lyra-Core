@@ -40,9 +40,9 @@ namespace Lyra.Shared
         }
 
         public static SortedList<TKey, TValue> ToSortedList<TSource, TKey, TValue>
-    (this IEnumerable<TSource> source,
-     Func<TSource, TKey> keySelector,
-     Func<TSource, TValue> valueSelector)
+                (this IEnumerable<TSource> source,
+                 Func<TSource, TKey> keySelector,
+                 Func<TSource, TValue> valueSelector)
         {
             // TODO: Argument validation
             var ret = new SortedList<TKey, TValue>();
