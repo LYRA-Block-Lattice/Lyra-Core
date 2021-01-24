@@ -3,6 +3,7 @@ using Lyra.Core.Blocks;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -23,7 +24,20 @@ namespace Lyra.Data.API
         public List<ActiveNode> ActiveNodes { get; set; }
 
         // for service block, validate from all voters
-        public List<string> AllVoters { get; set; }
+        private List<string> _avs;
+        public List<string> AllVoters 
+        { 
+            get
+            {
+                return _avs;
+            } 
+            set
+            {
+                _avs = value;
+                if (_avs == null || _avs.Count < 4)
+                    Debugger.Break();
+            } 
+        }
 
         // for other block, validate from primary authorizers.
         public List<string> PrimaryAuthorizers { get; set; }

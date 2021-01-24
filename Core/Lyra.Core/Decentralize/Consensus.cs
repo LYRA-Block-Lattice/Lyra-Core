@@ -516,8 +516,6 @@ namespace Lyra.Core.Decentralize
                             break;
                     }
 
-                    svcBlock.Authorizers.Clear(); // HACK, need to gen error
-
                     // fees aggregation
                     _log.LogInformation($"Fee aggregating...");
                     var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
