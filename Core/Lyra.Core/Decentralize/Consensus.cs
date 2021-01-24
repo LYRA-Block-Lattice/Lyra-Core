@@ -473,10 +473,7 @@ namespace Lyra.Core.Decentralize
                     var svcBlock = new ServiceBlock
                     {
                         NetworkId = prevSvcBlock.NetworkId,
-
-                        // HACK: always fault! for debug
-                        //Height = prevSvcBlock.Height + 1,
-                        Height = prevSvcBlock.Height + 10,
+                        Height = prevSvcBlock.Height + 1,
                         FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
                         ServiceHash = prevSvcBlock.Hash,
                         Leader = _sys.PosWallet.AccountId,
@@ -518,6 +515,8 @@ namespace Lyra.Core.Decentralize
                         if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
                             break;
                     }
+
+                    svcBlock.Authorizers.Clear(); // HACK, need to gen error
 
                     // fees aggregation
                     _log.LogInformation($"Fee aggregating...");
