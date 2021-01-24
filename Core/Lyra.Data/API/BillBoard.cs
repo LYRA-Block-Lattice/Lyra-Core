@@ -34,7 +34,7 @@ namespace Lyra.Data.API
             set
             {
                 _avs = value;
-                if (_avs == null || _avs.Count < 4)
+                if (_avs == null || (_avs.Count < 4 && _avs.Count > 0))
                     Debugger.Break();
             } 
         }
