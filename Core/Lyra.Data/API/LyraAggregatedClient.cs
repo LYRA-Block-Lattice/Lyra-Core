@@ -54,50 +54,62 @@ namespace Lyra.Data.API
             BillBoard currentBillBoard = null;
             do
             {
-                Console.WriteLine("LyraAggregatedClient.InitAsync");
-                var bbtasks = seeds.Select(client => client.GetBillBoardAsync()).ToList();
                 try
                 {
-                    await Task.WhenAll(bbtasks);
-                }
-                catch (Exception)
-                {
-                }
-                var goodbb = bbtasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result != null).Select(a => a.Result).ToList();
-                // pickup best result
-                var best = goodbb
-                        .GroupBy(b => b.CurrentLeader)
-                        .Select(g => new
-                        {
-                            Data = g.Key,
-                            Count = g.Count()
-                        })
-                        .OrderByDescending(x => x.Count)
-                        .First();
+                    Console.WriteLine("LyraAggregatedClient.InitAsync");
+                    var bbtasks = seeds.Select(client => client.GetBillBoardAsync()).ToList();
+                    try
+                    {
+                        await Task.WhenAll(bbtasks);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    var goodbb = bbtasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result != null).Select(a => a.Result).ToList();
 
-                if (best.Count >= seedNodes.Length - 2 && !string.IsNullOrWhiteSpace(best.Data))
-                {
-                    currentBillBoard = goodbb.First(a => a.CurrentLeader == best.Data);
+                    if (goodbb.Count == 0)
+                        continue;
+
+                    // pickup best result
+                    var best = goodbb
+                            .GroupBy(b => b.CurrentLeader)
+                            .Select(g => new
+                            {
+                                Data = g.Key,
+                                Count = g.Count()
+                            })
+                            .OrderByDescending(x => x.Count)
+                            .First();
+
+                    if (best.Count >= seedNodes.Length - 2 && !string.IsNullOrWhiteSpace(best.Data))
+                    {
+                        currentBillBoard = goodbb.First(a => a.CurrentLeader == best.Data);
+                    }
+                    else
+                    {
+                        await Task.Delay(2000);
+                        continue;
+                    }
+
+                    // create clients for primary nodes
+                    _primaryClients = currentBillBoard.NodeAddresses
+                        .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
+                        .Select(c => new
+                        {
+                            c.Key,
+                            Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/")
+                        })
+                        .ToDictionary(p => p.Key, p => p.Value);
+
+                    if (_primaryClients.Count < 3)      // billboard not harvest address enough
+                        await Task.Delay(2000);
                 }
-                else
+                catch(Exception exx)
                 {
-                    await Task.Delay(2000);
+                    Console.WriteLine("Error init LyraAggregatedClient. Error: " + exx.ToString());
+                    await Task.Delay(1000);
                     continue;
                 }
-
-                // create clients for primary nodes
-                _primaryClients = currentBillBoard.NodeAddresses
-                    .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
-                    .Select(c => new
-                    {
-                        c.Key,
-                        Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/")
-                    })
-                    .ToDictionary(p => p.Key, p => p.Value);
-
-                if (_primaryClients.Count < 3)      // billboard not harvest address enough
-                    await Task.Delay(2000);
-
             } while (currentBillBoard == null || _primaryClients.Count < 3);
         }
 
