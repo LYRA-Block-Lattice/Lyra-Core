@@ -82,9 +82,10 @@ namespace Lyra.Core.Decentralize
 
                 var swapRito = Math.Round(recvBlockPrev.Balances[poolGenesis.Token0].ToBalanceDecimal() / recvBlockPrev.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
 
-                var cfg = new SwapCalculator(kvp.Key, kvp.Value, poolGenesis, swapRito);
+                var cfg = new SwapCalculator(poolGenesis.Token0, poolGenesis.Token1, swapInBlock,
+                    kvp.Key, kvp.Value, 0);
 
-                _log.LogInformation($"Sending swap out {cfg.swapOutAmount} {cfg.swapOutToken}");
+                _log.LogInformation($"Sending swap out {cfg.SwapOutAmount} {cfg.SwapOutToken}");
                 await SendPoolSwapOutToken(swapInBlock, send.AccountID, cfg);
             }
         }
@@ -233,7 +234,7 @@ namespace Lyra.Core.Decentralize
                 DestinationAccountId = targetAccountId,
                 Balances = new Dictionary<string, long>(),
                 Tags = null,
-                Fee = cfg.protocolFee,
+                Fee = cfg.PayToAuthorizer,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.Regular,
                 RelatedTx = swapInBlock.Hash
@@ -251,19 +252,19 @@ namespace Lyra.Core.Decentralize
             var curBalance = poolLatestBlock.Balances.ToDecimalDict();
             var nextBalance = poolLatestBlock.Balances.ToDecimalDict();
 
-            var tokenOut = cfg.swapOutToken;
-            var tokenIn = cfg.swapInToken;
+            var tokenOut = cfg.SwapOutToken;
+            var tokenIn = cfg.SwapInToken;
             if (tokenIn == LyraGlobal.OFFICIALTICKERCODE)
             {
                 // tokenIn == LYR
-                nextBalance[tokenIn] = curBalance[tokenIn] - cfg.protocolFee;  // pool fee leave in the pool
-                nextBalance[tokenOut] = curBalance[tokenOut] - cfg.swapOutAmount;
+                nextBalance[tokenIn] = curBalance[tokenIn] - cfg.PayToAuthorizer;  // pool fee leave in the pool
+                nextBalance[tokenOut] = curBalance[tokenOut] - cfg.SwapOutAmount;
             }
             else
             {
                 // tokenOut == LYR
                 nextBalance[tokenIn] = curBalance[tokenIn];  // pool fee leave in the pool
-                nextBalance[tokenOut] = curBalance[tokenOut] - cfg.swapOutAmount - cfg.protocolFee;
+                nextBalance[tokenOut] = curBalance[tokenOut] - cfg.SwapOutAmount - cfg.PayToAuthorizer;
             }
 
             swapOutBlock.Balances = nextBalance.ToLongDict();
