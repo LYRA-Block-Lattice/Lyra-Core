@@ -281,6 +281,17 @@ namespace UnitTests.Swap
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Failed to swap {LyraGlobal.OFFICIALTICKERCODE}: {result.ResultCode}");
                 await Task.Delay(3000);
 
+                // then the pool should receive the funds
+                var poolInResult = await client.GetBlockByIndex(pool.PoolAccountId, poolLatestBlock.Height + 1);
+                Assert.IsTrue(poolInResult.ResultCode == APIResultCodes.Success, "failed to get pool in block. " + poolInResult.ResultCode);
+                var poolIn = poolInResult.GetBlock() as PoolSwapInBlock;
+                Assert.IsNotNull(poolIn);
+
+                var chgs = poolIn.GetBalanceChanges(poolLatestBlock);
+                Assert.AreEqual(1, chgs.Changes.Count);
+                Assert.AreEqual(LyraGlobal.OFFICIALTICKERCODE, chgs.Changes.First().Key);
+                Assert.AreEqual(amount, chgs.Changes.First().Value);
+
                 var poolGenesisResult = await client.GetBlockByIndex(poolLatestBlock.AccountID, 1);
                 var block = poolGenesisResult.GetBlock();
                 var poolGenesis = block as PoolGenesisBlock;

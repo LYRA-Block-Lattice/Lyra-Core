@@ -82,7 +82,7 @@ namespace Lyra.Core.Decentralize
 
                 var swapRito = Math.Round(recvBlockPrev.Balances[poolGenesis.Token0].ToBalanceDecimal() / recvBlockPrev.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
 
-                var cfg = new SwapCalculator(poolGenesis.Token0, poolGenesis.Token1, swapInBlock,
+                var cfg = new SwapCalculator(poolGenesis.Token0, poolGenesis.Token1, recvBlockPrev,
                     kvp.Key, kvp.Value, 0);
 
                 _log.LogInformation($"Sending swap out {cfg.SwapOutAmount} {cfg.SwapOutToken}");
