@@ -322,15 +322,16 @@ namespace Lyra.Client.CLI
                 if (poolLatestBlock.Balances.ContainsKey(lp.Token0) && !poolLatestBlock.Balances.Any(a => a.Value == 0))
                     poolRito = poolLatestBlock.Balances[lp.Token0].ToBalanceDecimal() / poolLatestBlock.Balances[lp.Token1].ToBalanceDecimal();
 
-                var swapCal0 = new SwapCalculator(token0, token1, poolLatestBlock, token0, 1m, 0);
-                var swapCal1 = new SwapCalculator(token0, token1, poolLatestBlock, token1, 1m, 0);
-
                 Console.WriteLine($"Liquidate pool for {token0} and {token1}: \n Pool account ID is {lp.PoolAccountId}\n");
                 if (poolRito > 0)
                 {
                     Console.WriteLine($" Pool liquidate of {token0}: {poolLatestBlock.Balances[token0].ToBalanceDecimal()}");
                     Console.WriteLine($" Pool liquidate of {token1}: {poolLatestBlock.Balances[token1].ToBalanceDecimal()}");
                     Console.WriteLine($" Swap rito is {Math.Round(poolRito, LyraGlobal.RITOPRECISION)} (estimated. depends on swapping amount).");
+
+                    var swapCal0 = new SwapCalculator(token0, token1, poolLatestBlock, token0, 1m, 0);
+                    var swapCal1 = new SwapCalculator(token0, token1, poolLatestBlock, token1, 1m, 0);
+
                     Console.WriteLine($"\n 1 {token0} = {swapCal0.SwapOutAmount} {token1}\n 1 {token1} = {swapCal1.SwapOutAmount} {token0}\n");
                 }
                 else
@@ -423,14 +424,21 @@ namespace Lyra.Client.CLI
                         Console.Write($"How many {token0} do you want to swap: ");
                         var token0ToSwap = decimal.Parse(Console.ReadLine());
 
-                        var swapCalToken0 = new SwapCalculator(token0, token1, poolLatestBlock, token0, token0ToSwap, 0);
+                        var slippage = 0.001m;
+                        Console.Write($"Slippage tolerance (Default 0.1%): ");
+                        var slipStr = Console.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(slipStr))
+                            slippage = decimal.Parse(slipStr) / 100;    // convert it
+
+                        var swapCalToken0 = new SwapCalculator(token0, token1, poolLatestBlock, token0, token0ToSwap, slippage);
 
                         Console.WriteLine($"Do you want to swap {token0ToSwap} {token0} to {swapCalToken0.SwapOutAmount} {token1} by the pool?");
+                        Console.WriteLine($"With slippage {slippage * 100:n} % minimum received is {swapCalToken0.MinimumReceived} {swapCalToken0.SwapOutToken}");
                         Console.Write("Y/n? ");
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
-                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token0, token0ToSwap, swapCalToken0.SwapOutAmount, 0m);
+                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token0, token0ToSwap, swapCalToken0.MinimumReceived);
                             if (swapToken0Result.Successful())
                             {
                                 await Task.Delay(3000);     // wait for the withdraw block to generate
@@ -442,15 +450,22 @@ namespace Lyra.Client.CLI
                         Console.Write($"How many {token1} do you want to swap: ");
                         var token1ToSwap = decimal.Parse(Console.ReadLine());
 
-                        var swapCalToken1 = new SwapCalculator(token0, token1, poolLatestBlock, token1, token1ToSwap, 0);
+                        var slippage1 = 0.001m;
+                        Console.Write($"Slippage tolerance (Default 0.1%): ");
+                        var slipStr1 = Console.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(slipStr1))
+                            slippage1 = decimal.Parse(slipStr1) / 100;    // convert it
+
+                        var swapCalToken1 = new SwapCalculator(token0, token1, poolLatestBlock, token1, token1ToSwap, slippage1);
 
                         var token0ToGet = swapCalToken1.SwapOutAmount;
                         Console.WriteLine($"Do you want to swap {token1ToSwap} {token1} to {token0ToGet} {token0} by the pool?");
+                        Console.WriteLine($"With slippage {slippage1 * 100:n} % minimum received is {swapCalToken1.MinimumReceived} {swapCalToken1.SwapOutToken}");
                         Console.Write("Y/n? ");
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
-                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token1, token1ToSwap, token0ToGet, 0m);
+                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token1, token1ToSwap, token0ToGet);
                             if (swapToken0Result.Successful())
                             {
                                 await Task.Delay(3000);     // wait for the withdraw block to generate

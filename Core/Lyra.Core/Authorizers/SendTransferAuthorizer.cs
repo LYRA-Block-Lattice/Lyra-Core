@@ -206,17 +206,16 @@ namespace Lyra.Core.Authorizers
                             if (kvp.Value > poolLatest.Balances[tokenToSwap].ToBalanceDecimal() / 2)
                                 return APIResultCodes.TooManyTokensToSwap;
 
-                            if(block.Tags.ContainsKey("toget") && block.Tags.ContainsKey("slippage"))
+                            if(block.Tags.ContainsKey("minrecv"))
                             {
-                                long toGetLong, slippageLong;
+                                long toGetLong;
 
-                                if (!long.TryParse(block.Tags["toget"], out toGetLong) || !long.TryParse(block.Tags["slippage"], out slippageLong))
+                                if (!long.TryParse(block.Tags["minrecv"], out toGetLong))
                                     return APIResultCodes.InvalidSwapSlippage;
 
                                 decimal toGet = toGetLong.ToBalanceDecimal();
-                                decimal slippage = slippageLong.ToRitoDecimal();
 
-                                if(toGet <= 0 || slippage < 0)
+                                if(toGet <= 0)
                                     return APIResultCodes.InvalidSwapSlippage;
 
                                 if (poolLatest.Balances.Any(a => a.Value == 0))
@@ -226,17 +225,11 @@ namespace Lyra.Core.Authorizers
                                 }
 
                                 var cal = new SwapCalculator(poolGenesis.Token0, poolGenesis.Token1, poolLatest,
-                                    chgs.Changes.First().Key, chgs.Changes.First().Value, slippage);
-
-                                // expected rito. if changed, fail requota
-                                if(slippage == 0 && cal.SwapOutAmount != toGet)
-                                    return APIResultCodes.PoolSwapRitoChanged;
+                                    chgs.Changes.First().Key, chgs.Changes.First().Value, 0);
                                 
-                                if(slippage != 0)
+                                if(cal.SwapOutAmount < toGet)
                                 {
-                                    // calculate the slippage
-                                    if (cal.MinimumReceived >= toGet)
-                                        return APIResultCodes.SwapSlippageExcceeded;
+                                    return APIResultCodes.SwapSlippageExcceeded;
                                 }
                             }
                         }

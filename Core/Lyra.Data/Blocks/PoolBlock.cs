@@ -197,14 +197,14 @@ namespace Lyra.Core.Blocks
 
         public SwapCalculator(string token0, string token1, TransactionBlock pool, string fromToken, decimal fromAmount, decimal slippage)
         {
-            if (token0 == null || token1 == null || pool == null)
+            if (token0 == null || token1 == null || pool == null || !pool.Balances.ContainsKey(token0) || !pool.Balances.ContainsKey(token1))
                 throw new ArgumentException();
 
             SwapInAmount = fromAmount;
             SwapInToken = fromToken;
 
-            var X = pool.Balances[token0].ToBalanceDecimal();
-            var Y = pool.Balances[token1].ToBalanceDecimal();
+            var X = pool.Balances.ContainsKey(token0) ? pool.Balances[token0].ToBalanceDecimal() : 0m;
+            var Y = pool.Balances.ContainsKey(token1) ? pool.Balances[token1].ToBalanceDecimal() : 0m;
 
             decimal fromFeeRito, toFeeRito;
             if (fromToken == LyraGlobal.OFFICIALTICKERCODE)

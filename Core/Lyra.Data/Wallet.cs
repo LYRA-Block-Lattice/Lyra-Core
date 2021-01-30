@@ -1827,7 +1827,7 @@ namespace Lyra.Core.Accounts
             return poolWithdrawResult;
         }
 
-        public async Task<APIResult> SwapToken(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet, decimal slippage)
+        public async Task<APIResult> SwapToken(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
         {
             var pool = await _rpcClient.GetPool(token0, token1);
             if (pool.PoolAccountId == null)
@@ -1838,8 +1838,7 @@ namespace Lyra.Core.Accounts
             tags.Add("poolid", pool.PoolAccountId);
             tags.Add("token0", pool.Token0);
             tags.Add("token1", pool.Token1);
-            tags.Add("toget", $"{amountToGet.ToBalanceLong()}");
-            tags.Add("slippage", $"{slippage.ToRitoLong()}");
+            tags.Add("minrecv", $"{amountToGet.ToBalanceLong()}");
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(tokenToSwap, amountToSwap);
             var swapTokenResult = await SendEx(pool.PoolAccountId, amounts, tags);
