@@ -72,7 +72,10 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidPoolSwapOutToken;
             if(currentOutChgs.Changes.First().Key != cfg.SwapOutToken
                 || currentOutChgs.Changes.First().Value != cfg.SwapOutAmount)
+            {
+                Console.WriteLine($"Swap out: {currentOutChgs.Changes.First().Value} should be: {cfg.SwapOutAmount}");
                 return APIResultCodes.InvalidPoolSwapOutAmount;
+            }                
 
             // balance & share
             var curBalance = poolLatestBlock.Balances.ToDecimalDict();
