@@ -286,10 +286,8 @@ namespace UnitTests.Swap
                 var poolGenesis = block as PoolGenesisBlock;
                 Assert.IsTrue(poolGenesisResult.ResultCode == APIResultCodes.Success, $"get gensis returns {poolGenesisResult.ResultCode}");
                 Assert.IsNotNull(poolGenesis, "Can't get pool genesis block.");
-                var sc = new SwapCalculator(poolGenesis.Token0, poolGenesis.Token1, poolLatestBlock,
-                    testTokenA, amount, 0);
 
-                var amountToGet = sc.SwapOutAmount;
+                var amountToGet = cal1.SwapOutAmount;
 
                 await w1.Sync(client);
 

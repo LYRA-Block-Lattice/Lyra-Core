@@ -228,7 +228,7 @@ namespace Lyra.Core.Blocks
 
                 PriceImpact = Math.Round(SwapOutAmount / X, 8);
 
-                Price = Math.Round(SwapOutAmount / fromAmount, 10);
+                Price = Math.Round(SwapOutAmount / fromAmount, 16);
 
                 MinimumReceived = SwapOutAmount * (1 - slippage);
             }
@@ -241,19 +241,19 @@ namespace Lyra.Core.Blocks
 
                 PriceImpact = Math.Round(SwapOutAmount / Y, 8);
 
-                Price = Math.Round(SwapOutAmount / fromAmount, 10);
+                Price = Math.Round(SwapOutAmount / fromAmount, 16);     // only for display
 
-                MinimumReceived = SwapOutAmount * (1 - slippage);
+                MinimumReceived = Math.Round(SwapOutAmount * (1 - slippage));
             }
 
-            PayToProvider = fromAmount * LiquidateProviderFee;
+            PayToProvider = Math.Round(fromAmount * LiquidateProviderFee, 8);
             if (fromToken == LyraGlobal.OFFICIALTICKERCODE)
             {
-                PayToAuthorizer = fromAmount * ProtocolFee;
+                PayToAuthorizer = Math.Round(fromAmount * ProtocolFee, 8);
             }
             else
             {
-                PayToAuthorizer = pureTo * ProtocolFee;
+                PayToAuthorizer = Math.Round(pureTo * ProtocolFee, 8);
             }
 
             //Console.WriteLine($"Price {price} Got {to} X, Price Impact: {chg * 100:n} %");
