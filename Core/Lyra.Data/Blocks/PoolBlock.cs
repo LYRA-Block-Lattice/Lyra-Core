@@ -230,7 +230,7 @@ namespace Lyra.Core.Blocks
 
                 Price = Math.Round(SwapOutAmount / fromAmount, 16);
 
-                MinimumReceived = SwapOutAmount * (1 - slippage);
+                MinimumReceived = Math.Round(SwapOutAmount * (1m - slippage), 8);
             }
             else // fromToken == token0
             {
@@ -243,7 +243,7 @@ namespace Lyra.Core.Blocks
 
                 Price = Math.Round(SwapOutAmount / fromAmount, 16);     // only for display
 
-                MinimumReceived = Math.Round(SwapOutAmount * (1 - slippage));
+                MinimumReceived = Math.Round(SwapOutAmount * (1m - slippage), 8);
             }
 
             PayToProvider = Math.Round(fromAmount * LiquidateProviderFee, 8);
