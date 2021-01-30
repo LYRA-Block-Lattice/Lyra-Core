@@ -48,8 +48,8 @@ namespace Lyra.Core.Authorizers
             if (originalSendBlock.Tags == null || originalSendBlock.Tags[Block.REQSERVICETAG] != "swaptoken")
                 return APIResultCodes.InvalidPoolOperation;
 
-            var OriginalSendBlockPrevBlock = await sys.Storage.FindBlockByHashAsync(originalSendBlock.PreviousHash) as TransactionBlock;
-            var chgs = originalSendBlock.GetBalanceChanges(OriginalSendBlockPrevBlock);
+            var prevPrevBlock = await sys.Storage.FindBlockByHashAsync(previousBlock.PreviousHash) as TransactionBlock;
+            var chgs = (previousBlock as TransactionBlock).GetBalanceChanges(prevPrevBlock);
 
             // calculate rito by prevBlock.prevBlock
             var prevprevBlock = await sys.Storage.FindBlockByHashAsync(previousBlock.PreviousHash) as TransactionBlock;
