@@ -80,8 +80,6 @@ namespace Lyra.Core.Decentralize
                 var send = await _sys.Storage.FindBlockByHashAsync(swapInBlock.SourceHash) as TransactionBlock;
                 //_log.LogInformation($"Got swap in token amount: {kvp.Value} Result: {swapInResult}");
 
-                var swapRito = Math.Round(recvBlockPrev.Balances[poolGenesis.Token0].ToBalanceDecimal() / recvBlockPrev.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
-
                 var cfg = new SwapCalculator(poolGenesis.Token0, poolGenesis.Token1, recvBlockPrev,
                     kvp.Key, kvp.Value, 0);
 
@@ -270,6 +268,13 @@ namespace Lyra.Core.Decentralize
             swapOutBlock.Balances = nextBalance.ToLongDict();
             swapOutBlock.Shares = (poolLatestBlock as IPool).Shares;
             swapOutBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
+
+            // verify 
+            var chgs = swapOutBlock.GetBalanceChanges(poolLatestBlock);
+            if (chgs.Changes[cfg.SwapOutToken] != cfg.SwapOutAmount)
+                _log.LogError($"In swap out block gen: Swap out should be {cfg.SwapOutAmount} {cfg.SwapOutToken} but {chgs.Changes[cfg.SwapOutToken]}");
+            if(chgs.FeeAmount != cfg.PayToAuthorizer)
+                _log.LogError($"In swap out block gen: Fee should be {cfg.PayToAuthorizer} but {chgs.FeeAmount} ");
 
             await QueueTxActionBlock(swapOutBlock);
         }
