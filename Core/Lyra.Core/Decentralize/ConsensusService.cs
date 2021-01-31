@@ -961,7 +961,8 @@ namespace Lyra.Core.Decentralize
                     // one IP, one account id
                     var safeIp = addr.ToString();
 
-                    if(_verifiedIP.ContainsKey(safeIp))
+                    // temp code. make it compatible.
+                    if(true)//_verifiedIP.ContainsKey(safeIp))
                     {
                         var existingIP = _board.NodeAddresses.Where(x => x.Value == safeIp).ToList();
                         foreach(var exip in existingIP)
