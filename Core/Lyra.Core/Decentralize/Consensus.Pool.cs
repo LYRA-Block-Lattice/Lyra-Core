@@ -531,7 +531,6 @@ namespace Lyra.Core.Decentralize
                         var poolGenesis = await _sys.Storage.FindFirstBlockAsync(send.DestinationAccountId) as PoolGenesisBlock;
                         if (send.Tags[Block.REQSERVICETAG] == "swaptoken")
                         {
-                            var swapRito = Math.Round(pool.Balances[poolGenesis.Token0].ToBalanceDecimal() / pool.Balances[poolGenesis.Token1].ToBalanceDecimal(), LyraGlobal.RITOPRECISION);
                             await ReceivePoolSwapInAsync(send);
                         }
                         else
