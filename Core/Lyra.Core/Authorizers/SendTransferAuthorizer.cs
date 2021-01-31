@@ -203,8 +203,9 @@ namespace Lyra.Core.Authorizers
 
                             // check amount
                             var poolLatest = await sys.Storage.FindLatestBlockAsync(block.DestinationAccountId) as TransactionBlock;
-                            if (kvp.Value > poolLatest.Balances[tokenToSwap].ToBalanceDecimal() / 2)
-                                return APIResultCodes.TooManyTokensToSwap;
+                            //if (kvp.Value > poolLatest.Balances[tokenToSwap].ToBalanceDecimal() / 2)
+                            //    return APIResultCodes.TooManyTokensToSwap;
+                            // uniswap AMM don't mind how many token want to swap
 
                             if(block.Tags.ContainsKey("minrecv"))
                             {
