@@ -68,7 +68,7 @@ namespace Lyra.Core.Decentralize
 
         public BillBoard Board { get => _board; }
         private Queue<string> _unVerifiedIP;    // new IP found (from heartbeat etc.) put into queue
-        private Dictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
+        private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
 
         public List<TransStats> Stats { get => _stats; }
 
@@ -96,7 +96,7 @@ namespace Lyra.Core.Decentralize
 
             _board = new BillBoard();
             _unVerifiedIP = new Queue<string>();
-            _verifiedIP = new Dictionary<string, DateTime>();
+            _verifiedIP = new ConcurrentDictionary<string, DateTime>();
 
             _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) =>
             {
@@ -949,7 +949,7 @@ namespace Lyra.Core.Decentralize
                         .ToList();
 
                     foreach (var od in outDated)
-                        _verifiedIP.Remove(od);
+                        _verifiedIP.TryRemove(od, out _);
 
                     if(_verifiedIP.ContainsKey(safeIp))
                     {
@@ -980,7 +980,7 @@ namespace Lyra.Core.Decentralize
                                 var thumb = client.ServerThumbPrint;
                                 var node = _board.ActiveNodes.FirstOrDefault(x => x.AccountID == accountId);
                                 if (thumb == node?.ThumbPrint)
-                                    _verifiedIP.Add(safeIp, DateTime.UtcNow);
+                                    _verifiedIP.TryAdd(safeIp, DateTime.UtcNow);
                             }
                             catch(Exception ex)
                             {
