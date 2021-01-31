@@ -726,6 +726,7 @@ namespace Lyra.Core.Decentralize
         {
             // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
+                .Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
                 .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && a.State == BlockChainState.Almighty)
                 .OrderByDescending(a => a.Votes)
                 .ThenBy(a => a.AccountID)
@@ -961,8 +962,11 @@ namespace Lyra.Core.Decentralize
 
                         _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
                     }
-                    else
+
+                    if(thumbPrint != null || !_verifiedIP.ContainsKey(safeIp))
                     {
+                        // if thumbPrint != null means its a node up signal.
+                        // this will help make the voters list consistent across all nodes.
                         _ = Task.Run(async () => { 
                             try
                             {
