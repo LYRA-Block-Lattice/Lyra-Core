@@ -67,6 +67,9 @@ namespace Lyra.Core.Decentralize
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
 
         public BillBoard Board { get => _board; }
+        private Queue<string> _unVerifiedIP;    // new IP found (from heartbeat etc.) put into queue
+        private Dictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
+
         public List<TransStats> Stats { get => _stats; }
 
         private ViewChangeHandler _viewChangeHandler;
@@ -92,6 +95,8 @@ namespace Lyra.Core.Decentralize
             _stats = new List<TransStats>();
 
             _board = new BillBoard();
+            _unVerifiedIP = new Queue<string>();
+            _verifiedIP = new Dictionary<string, DateTime>();
 
             _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) =>
             {
@@ -390,6 +395,11 @@ namespace Lyra.Core.Decentralize
                         if (count > 4 * 5)     // 5 minutes
                         {
                             count = 0;
+                        }
+
+                        if( count > 4 * 60)     // one hour
+                        {
+                            await DeclareConsensusNodeAsync();
                         }
                     }
                     catch (Exception ex)
@@ -933,12 +943,51 @@ namespace Lyra.Core.Decentralize
                 {
                     // one IP, one account id
                     var safeIp = addr.ToString();
-                    if(_board.NodeAddresses.Any(x => x.Value == safeIp && x.Key != accountId ))     // multi homed
+
+                    var outDated = _verifiedIP.Where(x => x.Value < DateTime.UtcNow.AddDays(-1))
+                        .Select(x => x.Key)
+                        .ToList();
+
+                    foreach (var od in outDated)
+                        _verifiedIP.Remove(od);
+
+                    if(_verifiedIP.ContainsKey(safeIp))
                     {
+                        var existingIP = _board.NodeAddresses.Where(x => x.Value == safeIp).ToList();
+                        foreach(var exip in existingIP)
+                        {
+                            _board.NodeAddresses.TryRemove(exip.Key, out _);
+                        }
 
+                        _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
                     }
+                    else
+                    {
+                        _ = Task.Run(async () => { 
+                            try
+                            {
+                                // just send it to the leader
+                                var platform = Environment.OSVersion.Platform.ToString();
+                                var appName = "LyraNode";
+                                var appVer = "1.0";
+                                var networkId = Settings.Default.LyraNode.Lyra.NetworkId;
+                                ushort peerPort = 4504;
+                                if (networkId == "mainnet")
+                                    peerPort = 5504;
 
-                    _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
+                                var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{safeIp}:{peerPort}/api/Node/");
+                                await client.GetVersion(1, appName, appVer);
+                                var thumb = client.ServerThumbPrint;
+                                var node = _board.ActiveNodes.FirstOrDefault(x => x.AccountID == accountId);
+                                if (thumb == node?.ThumbPrint)
+                                    _verifiedIP.Add(safeIp, DateTime.UtcNow);
+                            }
+                            catch(Exception ex)
+                            {
+                                _log.LogInformation($"Failure in get node thumbprint: {ex.Message}");
+                            }
+                        });
+                    }
 
                     // backslash. will do this later
                     //var platform = Environment.OSVersion.Platform.ToString();

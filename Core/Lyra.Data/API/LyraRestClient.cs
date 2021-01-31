@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace Lyra.Core.API
 {
     public class LyraRestClient : ILyraAPI
     {
+        public string ServerThumbPrint { get; private set; }
         private string _appName;
         private string _appVersion;
         private string _url;
@@ -41,26 +43,14 @@ namespace Lyra.Core.API
             }
 
             var httpClientHandler = new HttpClientHandler();
-            // Return `true` to allow certificates that are untrusted/invalid
-
-            if(platform == "Android" || platform == "Windows" || platform == "Win32NT")
+            try
             {
-                try
+                httpClientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, error) =>
                 {
-                    httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
-                }
-                catch { }
-            }
-
-            try
-            {
-                System.Net.ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true;
-            }
-            catch { }
-
-            try
-            {
-                httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
+                    var cert2 = new X509Certificate2(cert.GetRawCertData());
+                    ServerThumbPrint = cert2.Thumbprint;
+                    return true;
+                };
             }
             catch { }            
 

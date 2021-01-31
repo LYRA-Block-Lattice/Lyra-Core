@@ -172,7 +172,13 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         _log.LogError($"Error get database status. Please wait for retry...");
+
                         await Task.Delay(10 * 1000);
+
+                        _log.LogInformation("Recreate aggregated client...");
+                        _networkClient = new LyraClientForNode(_sys);
+                        _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+                        
                         continue;
                     }
 
