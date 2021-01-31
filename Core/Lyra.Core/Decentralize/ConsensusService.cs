@@ -980,7 +980,7 @@ namespace Lyra.Core.Decentralize
                                 var thumb = client.ServerThumbPrint;
                                 var node = _board.ActiveNodes.FirstOrDefault(x => x.AccountID == accountId);
                                 if (thumb == node?.ThumbPrint)
-                                    _verifiedIP.TryAdd(safeIp, DateTime.UtcNow);
+                                    _verifiedIP.AddOrUpdate(safeIp, DateTime.UtcNow, (key, oldValue) => DateTime.UtcNow);
                             }
                             catch(Exception ex)
                             {
