@@ -124,6 +124,16 @@ namespace Lyra.Core.Decentralize
                     {
                         _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. {sb.Height} vs {viewId} redo election.");
                         // the new leader failed.
+                        
+                        // limit the count of failed leader to 4.
+                        // so we can avoid fatal error like blockchain fork.
+
+                        if(_failedLeaders.Count >= 4)
+                        {
+                            var kvp = _failedLeaders.OrderBy(x => x.Value).First();
+                            _failedLeaders.TryRemove(kvp.Key, out _);
+                        }
+                        
                         _failedLeaders.AddOrUpdate(leader, DateTime.UtcNow, (k, v) => v = DateTime.UtcNow);
 
                         if (CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging)
