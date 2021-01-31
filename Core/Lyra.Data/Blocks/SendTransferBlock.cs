@@ -78,17 +78,24 @@ namespace Lyra.Core.Blocks
         {
             var bc = new BalanceChanges();
             // transfer unchanged token balances from the previous block
-            foreach (var balance in previousBlock.Balances)
+            foreach (var prevKvp in previousBlock.Balances)
             {
-                if (balance.Value > Balances[balance.Key])
+                decimal amount;
+                if(Balances.ContainsKey(prevKvp.Key))
                 {
-                    var amount = (balance.Value - Balances[balance.Key]).ToBalanceDecimal();
-                    if (balance.Key == FeeCode)
-                        amount -= Fee;
-
-                    if(amount != 0)
-                        bc.Changes.Add(balance.Key, amount );
+                    amount = (prevKvp.Value - Balances[prevKvp.Key]).ToBalanceDecimal();
                 }
+                else
+                {
+                    // all spent. zero. ommit
+                    amount = prevKvp.Value.ToBalanceDecimal();
+                }
+
+                if (prevKvp.Key == FeeCode)
+                    amount -= Fee;
+
+                if (amount != 0)
+                    bc.Changes.Add(prevKvp.Key, amount);
             }
             bc.FeeCode = this.FeeCode;
             bc.FeeAmount = this.Fee;
@@ -137,27 +144,6 @@ namespace Lyra.Core.Blocks
             result += $"DestinationAccountId: {DestinationAccountId}\n";
             return result;
         }
-
-        //public override bool ValidateTransaction(TransactionBlock previousBlock)
-        //{
-        //    if (!base.ValidateTransaction(previousBlock))
-        //        return false;
-
-        //    var trs = CalculateTransaction(previousBlock);
-
-        //    long TransferAmount = Transaction.Amount;
-        //    //if (Transaction.TokenCode == FeeCode)
-        //        //TransferAmount += Fee;
-
-        //    if (trs.Amount != TransferAmount)
-        //        return false;
-
-        //    return true;
-        //}
-
-
-
-
 
     }
 }

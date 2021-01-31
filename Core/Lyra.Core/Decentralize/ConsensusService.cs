@@ -973,7 +973,7 @@ namespace Lyra.Core.Decentralize
                         _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
                     }
 
-                    if(thumbPrint != null || !_verifiedIP.ContainsKey(safeIp))
+                    if(thumbPrint != null)// || !_verifiedIP.ContainsKey(safeIp))
                     {
                         // if thumbPrint != null means its a node up signal.
                         // this will help make the voters list consistent across all nodes.

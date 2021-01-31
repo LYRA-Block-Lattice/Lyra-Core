@@ -78,6 +78,9 @@ namespace Lyra.Core.API
     {
         public static long ToBalanceLong(this decimal currency)
         {
+            if (currency > long.MaxValue / LyraGlobal.TOKENSTORAGERITO)
+                throw new OverflowException();
+
             return (long)Math.Round(currency * LyraGlobal.TOKENSTORAGERITO);
         }
 
