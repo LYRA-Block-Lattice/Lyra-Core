@@ -386,6 +386,7 @@ namespace Lyra.Core.API
         public string NodeVersion { get; set; }
         public bool UpgradeNeeded { get; set; }
         public bool MustUpgradeToConnect { get; set; }
+        public string PosAccountId { get; set; }
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), ApiVersion, NodeVersion, UpgradeNeeded, MustUpgradeToConnect);
     }

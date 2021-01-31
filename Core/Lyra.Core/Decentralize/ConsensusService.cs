@@ -726,7 +726,7 @@ namespace Lyra.Core.Decentralize
         {
             // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
-                .Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
+                //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
                 .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && a.State == BlockChainState.Almighty)
                 .OrderByDescending(a => a.Votes)
                 .ThenBy(a => a.AccountID)
@@ -911,9 +911,10 @@ namespace Lyra.Core.Decentralize
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
 
+            ActiveNode node;
             if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == accountId))
             {
-                var node = _board.ActiveNodes.First(a => a.AccountID == accountId);
+                node = _board.ActiveNodes.First(a => a.AccountID == accountId);
                 node.LastActive = DateTime.Now;
                 node.State = state;
                 node.AuthorizerSignature = authSign;
@@ -923,7 +924,7 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                var node = new ActiveNode
+                node = new ActiveNode
                 {
                     AccountID = accountId,
                     State = state,
@@ -945,13 +946,6 @@ namespace Lyra.Core.Decentralize
                     // one IP, one account id
                     var safeIp = addr.ToString();
 
-                    var outDated = _verifiedIP.Where(x => x.Value < DateTime.UtcNow.AddDays(-1))
-                        .Select(x => x.Key)
-                        .ToList();
-
-                    foreach (var od in outDated)
-                        _verifiedIP.TryRemove(od, out _);
-
                     if(_verifiedIP.ContainsKey(safeIp))
                     {
                         var existingIP = _board.NodeAddresses.Where(x => x.Value == safeIp).ToList();
@@ -967,9 +961,17 @@ namespace Lyra.Core.Decentralize
                     {
                         // if thumbPrint != null means its a node up signal.
                         // this will help make the voters list consistent across all nodes.
-                        _ = Task.Run(async () => { 
+                        _ = Task.Run(async () =>
+                        {
                             try
                             {
+                                var outDated = _verifiedIP.Where(x => x.Value < DateTime.UtcNow.AddDays(-1))
+                                    .Select(x => x.Key)
+                                    .ToList();
+
+                                foreach (var od in outDated)
+                                    _verifiedIP.TryRemove(od, out _);
+
                                 // just send it to the leader
                                 var platform = Environment.OSVersion.Platform.ToString();
                                 var appName = "LyraNode";
@@ -980,13 +982,14 @@ namespace Lyra.Core.Decentralize
                                     peerPort = 5504;
 
                                 var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{safeIp}:{peerPort}/api/Node/");
-                                await client.GetVersion(1, appName, appVer);
-                                var thumb = client.ServerThumbPrint;
-                                var node = _board.ActiveNodes.FirstOrDefault(x => x.AccountID == accountId);
-                                if (thumb == node?.ThumbPrint)
-                                    _verifiedIP.AddOrUpdate(safeIp, DateTime.UtcNow, (key, oldValue) => DateTime.UtcNow);
+
+                                var ver = await client.GetVersion(1, appName, appVer);
+                                if (ver.PosAccountId == node.AccountID 
+                                    && client.ServerThumbPrint != null
+                                    && client.ServerThumbPrint == node.ThumbPrint)
+                                    _verifiedIP.AddOrUpdate(safeIp, DateTime.UtcNow, (key, oldValue) => DateTime.UtcNow);                                
                             }
-                            catch(Exception ex)
+                            catch (Exception ex)
                             {
                                 _log.LogInformation($"Failure in get node thumbprint: {ex.Message}");
                             }

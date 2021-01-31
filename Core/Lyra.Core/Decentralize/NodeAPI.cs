@@ -103,7 +103,8 @@ namespace Lyra.Core.Decentralize
                 ApiVersion = LyraGlobal.ProtocolVersion,
                 NodeVersion = LyraGlobal.NodeAppName,
                 UpgradeNeeded = false,
-                MustUpgradeToConnect = apiVersion < LyraGlobal.ProtocolVersion
+                MustUpgradeToConnect = apiVersion < LyraGlobal.ProtocolVersion,
+                PosAccountId = NodeService.Dag.PosWallet.AccountId
             };
             return Task.FromResult(result);
         }
