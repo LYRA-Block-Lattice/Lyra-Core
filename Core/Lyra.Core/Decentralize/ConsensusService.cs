@@ -67,9 +67,8 @@ namespace Lyra.Core.Decentralize
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
 
         public BillBoard Board { get => _board; }
-        private Queue<string> _unVerifiedIP;    // new IP found (from heartbeat etc.) put into queue
         private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
-
+        private ConcurrentDictionary<string, DateTime> _failedLeaders; // when a leader fail, add it. expire after 1 hour.
         public List<TransStats> Stats { get => _stats; }
 
         private ViewChangeHandler _viewChangeHandler;
@@ -95,8 +94,8 @@ namespace Lyra.Core.Decentralize
             _stats = new List<TransStats>();
 
             _board = new BillBoard();
-            _unVerifiedIP = new Queue<string>();
             _verifiedIP = new ConcurrentDictionary<string, DateTime>();
+            _failedLeaders = new ConcurrentDictionary<string, DateTime>();
 
             _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) =>
             {
@@ -125,8 +124,9 @@ namespace Lyra.Core.Decentralize
                     {
                         _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. {sb.Height} vs {viewId} redo election.");
                         // the new leader failed.
+                        _failedLeaders.AddOrUpdate(leader, DateTime.UtcNow, (k, v) => v = DateTime.UtcNow);
 
-                        if (CurrentState == BlockChainState.Almighty)
+                        if (CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging)
                         {
                             // redo view change
                             _viewChangeHandler.BeginChangeView(false, $"The new leader {leader.Shorten()} failed to generate service block.");
@@ -724,9 +724,14 @@ namespace Lyra.Core.Decentralize
 
         public List<string> LookforVoters()
         {
+            var outDated = _failedLeaders.Where(x => x.Value < DateTime.UtcNow.AddHours(-1)).ToList();
+            foreach (var od in outDated)
+                _failedLeaders.TryRemove(od.Key, out _);
+
             // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
                 //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
+                .Where(x => !_failedLeaders.Keys.Contains(x.AccountID))    // exclude failed leaders
                 .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && a.State == BlockChainState.Almighty)
                 .OrderByDescending(a => a.Votes)
                 .ThenBy(a => a.AccountID)
