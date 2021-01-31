@@ -1007,7 +1007,7 @@ namespace Lyra.Core.Decentralize
                             }
                             catch (Exception ex)
                             {
-                                _log.LogInformation($"Failure in get node thumbprint: {ex.Message}");
+                                _log.LogInformation($"Failure in get node thumbprint: {ex.Message} for {safeIp}");
                             }
                         });
                     }
