@@ -83,7 +83,9 @@ namespace Lyra.Data.API
 
                     if (best.Count >= seedNodes.Length - 2 && !string.IsNullOrWhiteSpace(best.Data))
                     {
-                        currentBillBoard = goodbb.First(a => a.CurrentLeader == best.Data);
+                        var r = new Random();
+                        currentBillBoard = goodbb.ElementAt(r.Next(0, goodbb.Count()));
+                        //currentBillBoard = goodbb.First(a => a.CurrentLeader == best.Data);
                     }
                     else
                     {
