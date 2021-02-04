@@ -706,7 +706,8 @@ namespace Lyra.Core.Accounts
             while (true)
             {
                 result = await SendOnce(Amount, DestinationAccountId, ticker, null);
-                if (result.ResultCode == APIResultCodes.ConsensusTimeout)
+                if (result.ResultCode == APIResultCodes.ConsensusTimeout
+                    || result.ResultCode == APIResultCodes.ServiceBlockNotFound)
                 {                    
                     bool viewChanged = false;
                     for (int i = 0; i < 30; i++)       // wait 30 seconds for consensus network to recovery

@@ -228,7 +228,7 @@ namespace Lyra.Core.Blocks
 
                 PriceImpact = Math.Round(SwapOutAmount / X, 8);
 
-                Price = Math.Round(SwapOutAmount / fromAmount, 16);
+                Price = Math.Round(fromAmount / SwapOutAmount, 16);
 
                 MinimumReceived = Math.Round(SwapOutAmount * (1m - slippage), 8);
             }
@@ -241,7 +241,7 @@ namespace Lyra.Core.Blocks
 
                 PriceImpact = Math.Round(SwapOutAmount / Y, 8);
 
-                Price = Math.Round(SwapOutAmount / fromAmount, 16);     // only for display
+                Price = Math.Round(fromAmount / SwapOutAmount, 16);     // only for display
 
                 MinimumReceived = Math.Round(SwapOutAmount * (1m - slippage), 8);
             }
