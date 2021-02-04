@@ -60,7 +60,21 @@ namespace Lyra.Core.Decentralize
         {
             var consensusClient = _networkClient;
 
-            var seedSvcGen = await consensusClient.GetServiceGenesisBlock();
+            BlockAPIResult seedSvcGen;
+            while (true)
+            {
+                seedSvcGen = await consensusClient.GetServiceGenesisBlock();
+                if (seedSvcGen.ResultCode == APIResultCodes.Success)
+                    break;
+
+                await Task.Delay(10 * 1000);
+
+                _log.LogInformation("Recreate aggregated client...");
+                _networkClient = new LyraClientForNode(_sys);
+                _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+            }
+            
+
             var localDbState = await GetNodeStatusAsync();
             if (localDbState.totalBlockCount == 0)
             {
