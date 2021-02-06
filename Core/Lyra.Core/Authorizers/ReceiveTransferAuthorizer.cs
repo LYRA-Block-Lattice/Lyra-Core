@@ -31,6 +31,9 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as ReceiveTransferBlock;
 
+            if (block.AccountID.Equals(LyraGlobal.BURNINGACCOUNTID))
+                return APIResultCodes.InvalidAccountId;
+
             // 1. check if the account already exists
             if (!await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;

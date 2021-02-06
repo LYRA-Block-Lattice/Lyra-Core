@@ -174,5 +174,26 @@ namespace UnitTests
                 semaphore.Release();
             }
         }
+
+        [TestMethod]
+        public async Task BurningToken()
+        {
+            await semaphore.WaitAsync();
+            var w1 = Restore(PRIVATE_KEY_1);
+            var syncResult = await w1.ReceiveAsync();
+            Assert.AreEqual(syncResult, APIResultCodes.Success);
+            var b1 = await w1.GetBalanceAsync();
+            var b1Before = b1[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+
+            var amount = Math.Round((decimal)((new Random().NextDouble() + 0.03) * 1000), 8);
+            var amounts = new Dictionary<string, decimal>();
+            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, amount);
+            var sendResult = await w1.SendAsync(amounts, LyraGlobal.BURNINGACCOUNTID);
+            Assert.IsTrue(sendResult == APIResultCodes.Success, "Failed to send token.");
+
+            var b1After = (await w1.GetBalanceAsync())[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+
+            Assert.AreEqual(b1Before - 1m - amount, b1After);
+        }
     }
 }

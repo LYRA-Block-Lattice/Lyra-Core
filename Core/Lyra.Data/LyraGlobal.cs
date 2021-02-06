@@ -33,6 +33,8 @@ namespace Lyra.Core.API
         public const int MinimalAuthorizerBalance = 1000000;
         public const decimal OFFICIALGENESISAMOUNT = 10000000000;
 
+        public const string BURNINGACCOUNTID = "L11111111111111111111111111111111111111111111111111111111111111116oUsJe";
+
 #if DEBUG
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
             "devnet"
