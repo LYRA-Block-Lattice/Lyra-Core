@@ -163,7 +163,8 @@ namespace Lyra.Core.Blocks
             string extraData = base.GetExtraData();
             extraData += Token0 + "|";
             extraData += Token1 + "|";
-            extraData += RelatedTx + "|";
+            if(RelatedTx != null)
+                extraData += RelatedTx + "|";       // for compatible
             extraData += AccountType + "|";
             return extraData;
         }
