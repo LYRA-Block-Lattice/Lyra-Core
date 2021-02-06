@@ -67,7 +67,7 @@ namespace Lyra.Core.Decentralize
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
 
         public BillBoard Board { get => _board; }
-        private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
+        //private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
         private ConcurrentDictionary<string, DateTime> _failedLeaders; // when a leader fail, add it. expire after 1 hour.
         public List<TransStats> Stats { get => _stats; }
 
@@ -94,7 +94,7 @@ namespace Lyra.Core.Decentralize
             _stats = new List<TransStats>();
 
             _board = new BillBoard();
-            _verifiedIP = new ConcurrentDictionary<string, DateTime>();
+            //_verifiedIP = new ConcurrentDictionary<string, DateTime>();
             _failedLeaders = new ConcurrentDictionary<string, DateTime>();
 
             _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) =>
@@ -973,44 +973,44 @@ namespace Lyra.Core.Decentralize
                         _board.NodeAddresses.AddOrUpdate(accountId, ip, (key, oldValue) => ip);
                     }
 
-                    if(thumbPrint != null)// || !_verifiedIP.ContainsKey(safeIp))
-                    {
-                        // if thumbPrint != null means its a node up signal.
-                        // this will help make the voters list consistent across all nodes.
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                var outDated = _verifiedIP.Where(x => x.Value < DateTime.UtcNow.AddDays(-1))
-                                    .Select(x => x.Key)
-                                    .ToList();
+                    //if(thumbPrint != null)// || !_verifiedIP.ContainsKey(safeIp))
+                    //{
+                    //    // if thumbPrint != null means its a node up signal.
+                    //    // this will help make the voters list consistent across all nodes.
+                    //    _ = Task.Run(async () =>
+                    //    {
+                    //        try
+                    //        {
+                    //            var outDated = _verifiedIP.Where(x => x.Value < DateTime.UtcNow.AddDays(-1))
+                    //                .Select(x => x.Key)
+                    //                .ToList();
 
-                                foreach (var od in outDated)
-                                    _verifiedIP.TryRemove(od, out _);
+                    //            foreach (var od in outDated)
+                    //                _verifiedIP.TryRemove(od, out _);
 
-                                // just send it to the leader
-                                var platform = Environment.OSVersion.Platform.ToString();
-                                var appName = "LyraNode";
-                                var appVer = "1.0";
-                                var networkId = Settings.Default.LyraNode.Lyra.NetworkId;
-                                ushort peerPort = 4504;
-                                if (networkId == "mainnet")
-                                    peerPort = 5504;
+                    //            // just send it to the leader
+                    //            var platform = Environment.OSVersion.Platform.ToString();
+                    //            var appName = "LyraNode";
+                    //            var appVer = "1.0";
+                    //            var networkId = Settings.Default.LyraNode.Lyra.NetworkId;
+                    //            ushort peerPort = 4504;
+                    //            if (networkId == "mainnet")
+                    //                peerPort = 5504;
 
-                                var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{safeIp}:{peerPort}/api/Node/");
+                    //            var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{safeIp}:{peerPort}/api/Node/");
 
-                                var ver = await client.GetVersion(1, appName, appVer);
-                                if (ver.PosAccountId == node.AccountID 
-                                    && client.ServerThumbPrint != null
-                                    && client.ServerThumbPrint == node.ThumbPrint)
-                                    _verifiedIP.AddOrUpdate(safeIp, DateTime.UtcNow, (key, oldValue) => DateTime.UtcNow);                                
-                            }
-                            catch (Exception ex)
-                            {
-                                _log.LogInformation($"Failure in get node thumbprint: {ex.Message} for {safeIp}");
-                            }
-                        });
-                    }
+                    //            var ver = await client.GetVersion(1, appName, appVer);
+                    //            if (ver.PosAccountId == node.AccountID 
+                    //                && client.ServerThumbPrint != null
+                    //                && client.ServerThumbPrint == node.ThumbPrint)
+                    //                _verifiedIP.AddOrUpdate(safeIp, DateTime.UtcNow, (key, oldValue) => DateTime.UtcNow);                                
+                    //        }
+                    //        catch (Exception ex)
+                    //        {
+                    //            _log.LogInformation($"Failure in get node thumbprint: {ex.Message} for {safeIp}");
+                    //        }
+                    //    });
+                    //}
 
                     // backslash. will do this later
                     //var platform = Environment.OSVersion.Platform.ToString();
