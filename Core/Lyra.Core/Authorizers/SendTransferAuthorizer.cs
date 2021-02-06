@@ -36,6 +36,9 @@ namespace Lyra.Core.Authorizers
             if (block.AccountID.Equals(block.DestinationAccountId))
                 return APIResultCodes.CannotSendToSelf;
 
+            if (block.AccountID.Equals(LyraGlobal.BURNINGACCOUNTID))
+                return APIResultCodes.InvalidAccountId;
+
             //// 1. check if the account already exists
             //if (!await sys.Storage.AccountExists(block.AccountID))
             //    return APIResultCodes.AccountDoesNotExist;
