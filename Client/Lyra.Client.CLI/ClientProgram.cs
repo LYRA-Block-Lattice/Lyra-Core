@@ -37,16 +37,6 @@ namespace Lyra.Client.CLI
 
         static async Task<int> Main(string[] args)
         {
-            Console.WriteLine(LyraGlobal.PRODUCTNAME + " Command Line Client");
-            Console.WriteLine("Version: " + LyraGlobal.NODE_VERSION);
-
-            Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
-            Console.WriteLine("");
-            Console.WriteLine("Banking: Store, transfer, and receive interest on multiple digital assets");
-            Console.WriteLine("Payments: Make or accept instant payments using various currencies, online and in store");
-            Console.WriteLine("Digital Asset Management: Issue your own tokens within seconds");
-            Console.WriteLine("");
-
             return await new HostBuilder()
                 .ConfigureLogging((context, builder) =>
                 {
@@ -63,6 +53,17 @@ namespace Lyra.Client.CLI
 
         private async Task OnExecuteAsync()
         {
+            Console.WriteLine(LyraGlobal.PRODUCTNAME + " Command Line Client");
+            Console.WriteLine("Version: " + LyraGlobal.NODE_VERSION);
+
+            Console.WriteLine("");
+
+            Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
+            Console.WriteLine("Banking: Store, transfer, and receive interest on multiple digital assets");
+            Console.WriteLine("Payments: Make or accept instant payments using various currencies, online and in store");
+            Console.WriteLine("Digital Asset Management: Issue your own tokens within seconds");
+            Console.WriteLine("");
+
             var mgr = new WalletManager();
             await mgr.RunWallet(this);
         }

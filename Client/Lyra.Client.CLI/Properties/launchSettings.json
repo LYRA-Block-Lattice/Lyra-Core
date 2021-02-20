@@ -2,7 +2,7 @@
   "profiles": {
     "Lyra.Client.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "-n devnet -p webapi -g some"
+      "commandLineArgs": "-n devnet"
     }
   }
 }
