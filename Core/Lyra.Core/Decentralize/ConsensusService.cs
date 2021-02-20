@@ -275,7 +275,7 @@ namespace Lyra.Core.Decentralize
             CreateStateMachine();
 
             var timr = new System.Timers.Timer(200);
-            timr.Elapsed += async (s, o) =>
+            timr.Elapsed += (s, o) =>
             {
                 try
                 {
@@ -325,7 +325,7 @@ namespace Lyra.Core.Decentralize
                             _svcQueue.ResetTimestamp();
                         }
                     }
-                    
+
                     if (_viewChangeHandler.CheckTimeout())
                     {
                         _log.LogInformation($"View Change with Id {_viewChangeHandler.ViewId} begin {_viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - _viewChangeHandler.TimeStarted}");
@@ -354,7 +354,7 @@ namespace Lyra.Core.Decentralize
                                 }
                             }
 
-                            if(result == ConsensusResult.Yea)
+                            if (result == ConsensusResult.Yea)
                             {
                                 _log.LogError("A Yea is removed. this should not happen.");
                             }

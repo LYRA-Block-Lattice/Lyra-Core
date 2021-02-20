@@ -22,8 +22,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Lyra.Core\Core.csproj" />
-    <ProjectReference Include="..\CommandLine\CommandLine.csproj" />
-    <ProjectReference Include="..\Lyra.Client.Lib\Client.Lib.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="appsettings.Development.json" />
@@ -687,6 +685,8 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.1.0" />
+    <PackageReference Include="McMaster.Extensions.Hosting.CommandLine" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.3" />
   </ItemGroup>

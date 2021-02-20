@@ -16,15 +16,8 @@ namespace Lyra.Client.CLI
 {
     public class WalletManager
     {
-        public async Task<int> RunWallet(Options options)
+        public async Task<int> RunWallet(ClientProgram options)
         {
-            Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
-            Console.WriteLine("");
-            Console.WriteLine("Banking: Store, transfer, and receive interest on multiple digital assets");
-            Console.WriteLine("Payments: Make or accept instant payments using various currencies, online and in store");
-            Console.WriteLine("Digital Asset Management: Issue your own tokens within seconds");
-            Console.WriteLine("");
-
             string network_id = options.NetworkId;
 
             bool INMEMORY = options.Database == Options.INMEMORY_DATABASE;
