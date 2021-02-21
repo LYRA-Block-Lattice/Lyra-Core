@@ -16,6 +16,7 @@ using McMaster.Extensions.CommandLineUtils;
 using System.ComponentModel.DataAnnotations;
 using Client.CLI;
 using System.Threading;
+using AustinHarris.JsonRpc;
 
 namespace Lyra.Client.CLI
 {
@@ -74,11 +75,6 @@ namespace Lyra.Client.CLI
 
         private async Task OnExecuteAsync()
         {
-            Console.WriteLine($"{LyraGlobal.PRODUCTNAME} Command Line Client");
-            Console.WriteLine("Version: " + LyraGlobal.NODE_VERSION);
-
-            Console.WriteLine($"\nCurrent networkd ID: {NetworkId}\n");
-
             //Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
             //Console.WriteLine("Banking: Store, transfer, and receive interest on multiple digital assets");
             //Console.WriteLine("Payments: Make or accept instant payments using various currencies, online and in store");
@@ -89,10 +85,27 @@ namespace Lyra.Client.CLI
             {
                 new WalletServer();
                 new RPCServer(ServerBinding);
-            }
 
-            var mgr = new WalletManager();
-            await mgr.RunWallet(this);
+                while(true)
+                {
+                    var json = Console.ReadLine();
+                    if (json == "exit")
+                        break;
+
+                    var rep = await JsonRpcProcessor.Process(json);
+                    Console.WriteLine(rep);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"{LyraGlobal.PRODUCTNAME} Command Line Client");
+                Console.WriteLine("Version: " + LyraGlobal.NODE_VERSION);
+
+                Console.WriteLine($"\nCurrent networkd ID: {NetworkId}\n");
+
+                var mgr = new WalletManager();
+                await mgr.RunWallet(this);
+            }
         }
     }
     
