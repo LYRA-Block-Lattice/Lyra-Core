@@ -39,6 +39,12 @@ namespace Lyra.Client.CLI
         [Option("-w|--wallet", Description = "Wallet Name")]
         public string WalletName { get; set; }
 
+        [Option("-s|--rpcserver", Description = "Run JsonRPC Server")]
+        public bool RunJsonRPCServer { get; set; }
+
+        [Option("-b|--binding", Description = "JsonRPC Server Binding Address [http://localhost:3373/]")]
+        public string ServerBinding { get; set; }
+
         public CancellationTokenSource cancellation { get; set; }
 
         public ClientProgram()
@@ -78,6 +84,12 @@ namespace Lyra.Client.CLI
             //Console.WriteLine("Payments: Make or accept instant payments using various currencies, online and in store");
             //Console.WriteLine("Digital Asset Management: Issue your own tokens within seconds");
             //Console.WriteLine("");
+
+            if(RunJsonRPCServer)
+            {
+                new WalletServer();
+                new RPCServer(ServerBinding);
+            }
 
             var mgr = new WalletManager();
             await mgr.RunWallet(this);

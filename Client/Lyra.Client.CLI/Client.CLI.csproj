@@ -691,6 +691,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.3" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="AustinHarris.JsonRpc">
+      <HintPath>..\..\..\JSON-RPC.NET\Json-Rpc\bin\Debug\netcoreapp3.1\AustinHarris.JsonRpc.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Repl">
       <HintPath>..\..\..\HttpRepl\artifacts\bin\Microsoft.Repl\Release\netstandard2.0\Microsoft.Repl.dll</HintPath>
     </Reference>
