@@ -19,9 +19,8 @@ namespace Lyra.Client.CLI
 {
     public class ClientProgram
     {
-        [Required(ErrorMessage = "You must specify the Network Id")]
         [Option("-n|--networkid", Description = "Network Id")]
-        public string NetworkId { get; set; }
+        public string NetworkId { get; set; } = "mainnet";
 
         [Option("-d|--database", Description = "Local data storage type")]
         public string Database { get; set; }
@@ -34,6 +33,9 @@ namespace Lyra.Client.CLI
 
         [Option("-g|--genwallet", Description = "Generate Wallet Only")]
         public string GenWalletName { get; set; }
+
+        [Option("-w|--wallet", Description = "Wallet Name")]
+        public string WalletName { get; set; }
 
         static async Task<int> Main(string[] args)
         {
@@ -53,16 +55,16 @@ namespace Lyra.Client.CLI
 
         private async Task OnExecuteAsync()
         {
-            Console.WriteLine(LyraGlobal.PRODUCTNAME + " Command Line Client");
+            Console.WriteLine($"{LyraGlobal.PRODUCTNAME} Command Line Client");
             Console.WriteLine("Version: " + LyraGlobal.NODE_VERSION);
 
-            Console.WriteLine("");
+            Console.WriteLine($"\nCurrent networkd ID: {NetworkId}\n");
 
-            Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
-            Console.WriteLine("Banking: Store, transfer, and receive interest on multiple digital assets");
-            Console.WriteLine("Payments: Make or accept instant payments using various currencies, online and in store");
-            Console.WriteLine("Digital Asset Management: Issue your own tokens within seconds");
-            Console.WriteLine("");
+            //Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
+            //Console.WriteLine("Banking: Store, transfer, and receive interest on multiple digital assets");
+            //Console.WriteLine("Payments: Make or accept instant payments using various currencies, online and in store");
+            //Console.WriteLine("Digital Asset Management: Issue your own tokens within seconds");
+            //Console.WriteLine("");
 
             var mgr = new WalletManager();
             await mgr.RunWallet(this);
