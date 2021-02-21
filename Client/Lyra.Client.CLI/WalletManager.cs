@@ -122,23 +122,16 @@ namespace Lyra.Client.CLI
                                 continue;
                             }                            
                         }
-
-                        //if (INMEMORY)
-                        //{
-                        //    System.IO.File.WriteAllText(fileName, wallet.PrivateKey);
-                        //}
-                    }
-                    else
-                    {
-                        walletPassword = Prompt.GetPassword($"Please input the password to open wallet {walletName}:",
-                            promptColor: ConsoleColor.Red,
-                            promptBgColor: ConsoleColor.Black);               
                     }
                 }
 
                 Wallet wallet;
                 try
                 {
+                    walletPassword ??= Prompt.GetPassword($"Please input the password to open wallet {walletName}:",
+                        promptColor: ConsoleColor.Red,
+                        promptBgColor: ConsoleColor.Black);
+
                     wallet = Wallet.Open(storage, walletName, walletPassword);
                     Console.WriteLine("Wallet opened.");
                 }
@@ -184,7 +177,7 @@ namespace Lyra.Client.CLI
                 while (cmdInput != CommandProcessor.COMMAND_STOP)
                 {
                     var result = await command.Execute(wallet, cmdInput);
-                    Console.Write(string.Format("{0}> ", wallet.AccountName));
+                    Console.Write(string.Format("\n{0}> ", wallet.AccountName));
                     //Console.Write
                     cmdInput = Console.ReadLine();
                 }
