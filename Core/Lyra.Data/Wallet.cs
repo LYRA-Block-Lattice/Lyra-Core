@@ -12,6 +12,7 @@ using Lyra.Data;
 using System.Data;
 using Lyra.Data.API;
 using Lyra.Data.Utils;
+using System.Threading;
 
 namespace Lyra.Core.Accounts
 {
@@ -31,6 +32,7 @@ namespace Lyra.Core.Accounts
 
         private bool _noConsole;
 
+        private CancellationToken _cancel;
         // to do 
         // 1) move rpcclient to CLI
         // 2) create interface and reference rpcclient by interface here, use the same interface in server and REST API client (Shopify app)  
@@ -129,8 +131,15 @@ namespace Lyra.Core.Accounts
         // one-time "manual" sync up with the node 
         public async Task<APIResultCodes> Sync(ILyraAPI RPCClient)
         {
+            return await Sync(RPCClient, CancellationToken.None);
+        }
+        public async Task<APIResultCodes> Sync(ILyraAPI RPCClient, CancellationToken cancel)
+        {
             if (RPCClient != null)
                 _rpcClient = RPCClient;
+
+            if (cancel != CancellationToken.None)
+                _cancel = cancel;
 
             if (_rpcClient != null)
             {
@@ -196,7 +205,7 @@ namespace Lyra.Core.Accounts
         {
             try
             {
-                while (true)
+                while (!_cancel.IsCancellationRequested)
                 {
                     var result = await _rpcClient.GetSyncHeight();
                     if (result.ResultCode != APIResultCodes.Success)
@@ -242,7 +251,7 @@ namespace Lyra.Core.Accounts
                 var lookup_result = await _rpcClient.LookForNewTransfer2(AccountId, SignAPICallAsync());
                 int max_counter = 0;
 
-                while (lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
+                while (!_cancel.IsCancellationRequested && lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
                 {
                     max_counter++;
 
@@ -277,7 +286,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<APIResultCodes> SyncNodeFees()
         {
-            while (true)
+            while (!_cancel.IsCancellationRequested)
             {
                 var fbsResult = await _rpcClient.LookForNewFees(AccountId, SignAPICallAsync());
                 if (fbsResult.ResultCode != APIResultCodes.Success || fbsResult.pendingFees == null)
@@ -346,6 +355,8 @@ namespace Lyra.Core.Accounts
                 //PrintCon(string.Format("{0}> ", AccountName));
                 return result.ResultCode;
             }
+
+            return APIResultCodes.UnknownError;
         }
 
         public async Task<PoolInfoAPIResult> GetLiquidatePoolAsync(string token0, string token1)

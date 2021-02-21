@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using Lyra.Shared;
 using System.Data;
+using System.Threading;
 
 namespace Lyra.Client.CLI
 {
@@ -71,7 +72,7 @@ namespace Lyra.Client.CLI
 
         }
 
-        public async Task<int> Execute(Wallet wallet, string command)
+        public async Task<int> Execute(Wallet wallet, string command, CancellationToken cancel)
         {
             _wallet = wallet;
             try

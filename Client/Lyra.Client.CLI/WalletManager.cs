@@ -154,7 +154,7 @@ namespace Lyra.Client.CLI
                 try
                 {
                     Console.WriteLine("Try syncing wallet with Lyra blockchain...");
-                    await wallet.Sync(rpcClient);
+                    await wallet.Sync(rpcClient, options.cancellation.Token);
                     Console.WriteLine("Wallet is synced.");
                 }
                 catch(Exception)
@@ -168,15 +168,14 @@ namespace Lyra.Client.CLI
                 Console.WriteLine(string.Format("Token Generation Fee: {0} ", lastServiceBlock.TokenGenerationFee));
                 Console.WriteLine(string.Format("Trade Fee: {0} ", lastServiceBlock.TradeFee));
 
-
                 Console.WriteLine("\nType 'help' to see the list of available commands");
                 Console.WriteLine("");
 
                 var cmdInput = CommandProcessor.COMMAND_STATUS;
 
-                while (cmdInput != CommandProcessor.COMMAND_STOP)
+                while (!options.cancellation.IsCancellationRequested && cmdInput != CommandProcessor.COMMAND_STOP)
                 {
-                    var result = await command.Execute(wallet, cmdInput);
+                    var result = await command.Execute(wallet, cmdInput, options.cancellation.Token);
                     Console.Write(string.Format("\n{0}> ", wallet.AccountName));
                     //Console.Write
                     cmdInput = Console.ReadLine();

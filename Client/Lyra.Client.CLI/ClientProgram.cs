@@ -14,6 +14,8 @@ using System.IO;
 using Lyra.Core.Utils;
 using McMaster.Extensions.CommandLineUtils;
 using System.ComponentModel.DataAnnotations;
+using Client.CLI;
+using System.Threading;
 
 namespace Lyra.Client.CLI
 {
@@ -37,6 +39,17 @@ namespace Lyra.Client.CLI
         [Option("-w|--wallet", Description = "Wallet Name")]
         public string WalletName { get; set; }
 
+        public CancellationTokenSource cancellation { get; set; }
+
+        public ClientProgram()
+        {
+            cancellation = new CancellationTokenSource();
+
+            new CtrlC().AddHandler((s) => {
+                cancellation.Cancel();
+                Environment.Exit(1);
+            });
+        }
         static async Task<int> Main(string[] args)
         {
             return await new HostBuilder()
