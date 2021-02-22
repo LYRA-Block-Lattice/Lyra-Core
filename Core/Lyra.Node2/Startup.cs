@@ -163,6 +163,8 @@ namespace Lyra.Node2
 
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseAuthorization();
+            app.UseWebSockets();
 
             app.UseEndpoints(endpoints =>
             {
