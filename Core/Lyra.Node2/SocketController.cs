@@ -7,7 +7,7 @@ using StreamJsonRpc;
 namespace Lyra.Node
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class SocketController : Controller
     {
         public async Task<IActionResult> Index()
