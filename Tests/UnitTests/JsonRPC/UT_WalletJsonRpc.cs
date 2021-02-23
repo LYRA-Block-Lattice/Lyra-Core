@@ -69,13 +69,11 @@ namespace UnitTests.JsonRPC
 
                 // monitor the wallet
                 _notified = false;
-                Assert.IsNull(await jsonRpc.InvokeWithCancellationAsync<JObject>("Monitor", new object[] { _accountId }, cancellationToken));
+                await jsonRpc.NotifyWithParameterObjectAsync("Monitor", new object[] { _accountId });
 
                 // we send 10 LYR to it
                 var sendResult = await w1.Send(10, _accountId);
                 Assert.IsTrue(sendResult.Successful());
-
-                Assert.IsTrue(_notified);
 
                 var result2 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Balance", new object[] { _accountId }, cancellationToken);
                 Assert.IsNotNull(result2);
@@ -100,12 +98,14 @@ namespace UnitTests.JsonRPC
                 var balance4 = result4["balance"].ToObject<Dictionary<string, decimal>>();
                 Assert.IsNotNull(balance4);
                 Assert.AreEqual(4, balance4["LYR"]);
+
+                Assert.IsTrue(_notified);
             }).ConfigureAwait(true);
         }
 
         protected override void RecvNotify(JObject notifyObj)
         {
-            base.RecvNotify(notifyObj);
+            _notified = true;
         }
 
         protected override string SignMessage(string message)
