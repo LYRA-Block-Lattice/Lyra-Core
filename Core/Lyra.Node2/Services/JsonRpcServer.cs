@@ -44,19 +44,19 @@ namespace Lyra.Node
         public async Task<BalanceResult> Balance(string accountId)
         {
             var blockResult = await _node.GetLastBlock(accountId);
-            if(blockResult.Successful())
+            var anySendResult = await _node.LookForNewTransfer2(accountId, null);
+            if (blockResult.Successful())
             {
-                var block = blockResult.GetBlock() as TransactionBlock;
+                var block = blockResult.GetBlock() as TransactionBlock;                               
 
                 return new BalanceResult
                 {
-                    balance = block.Balances.ToDecimalDict()
+                    balance = block.Balances.ToDecimalDict(),
+                    unreceived = anySendResult.Successful()
                 };
             }
-            else
-            {
-                throw new Exception("Can't get latest block for account.");
-            }
+
+            throw new Exception("Can't get latest block for account.");
         }
         public void Receive(List<string> unreceiveTx)
         {
@@ -126,7 +126,7 @@ namespace Lyra.Node
     public class BalanceResult
     {
         public Dictionary<string, decimal> balance { get; set; }
-        public List<string> unreceivedTx { get; set; }
+        public bool unreceived { get; set; }
     }
     public class ApiStatus
     {

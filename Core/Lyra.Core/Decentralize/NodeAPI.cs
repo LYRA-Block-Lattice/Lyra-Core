@@ -757,11 +757,11 @@ namespace Lyra.Core.Decentralize
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
             NewTransferAPIResult transfer_info = new NewTransferAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                transfer_info.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return transfer_info;
-            }
+            //if (!await VerifyClientAsync(AccountId, Signature))
+            //{
+            //    transfer_info.ResultCode = APIResultCodes.APISignatureValidationFailed;
+            //    return transfer_info;
+            //}
             try
             {
                 if (await NodeService.Dag.Storage.WasAccountImportedAsync(AccountId))
@@ -798,11 +798,11 @@ namespace Lyra.Core.Decentralize
         public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
         {
             NewTransferAPIResult2 transfer_info = new NewTransferAPIResult2();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                transfer_info.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return transfer_info;
-            }
+            //if (!await VerifyClientAsync(AccountId, Signature))
+            //{
+            //    transfer_info.ResultCode = APIResultCodes.APISignatureValidationFailed;
+            //    return transfer_info;
+            //}
             try
             {
                 if (await NodeService.Dag.Storage.WasAccountImportedAsync(AccountId))
