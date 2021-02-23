@@ -17,7 +17,7 @@ namespace UnitTests
         const string PRIVATE_KEY_1 = "2gbESTeBHsgt8um1aNN2dC9jajEDk3CoEupwmN6TRJQckyRbHa"; // merchant
         const string PRIVATE_KEY_2 = "KufWHKVUxqCjBVunJXqqpPBkajdxb4mKLbYZYFnxDNXhUsnCT"; // customer
 
-        const string ADDRESS_ID_1 = "LUTkgGP9tb4iAFAFXv7i83N4GreEUakWbaDrUbUFnKHpPp46n9KF1QzCtvUwZRBCQz6yqerkWvvGXtCTkz4knzeKRmqid";
+        public const string ADDRESS_ID_1 = "LUTkgGP9tb4iAFAFXv7i83N4GreEUakWbaDrUbUFnKHpPp46n9KF1QzCtvUwZRBCQz6yqerkWvvGXtCTkz4knzeKRmqid";
         const string ADDRESS_ID_2 = "LUTDSh9xEn21ZDjgGQ9g9g1zd9JxhY2rEoqH9kh8E3EwHk76jP6x24iYaT64HG3zEznZqptK88Y6nM1zz9NbxRWt45XdBx";
 
         public static Wallet Restore(string privateKey)
