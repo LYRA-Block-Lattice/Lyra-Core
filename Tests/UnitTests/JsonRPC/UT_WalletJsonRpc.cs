@@ -24,6 +24,7 @@ namespace UnitTests.JsonRPC
         public UT_WalletJsonRpc()
         {
             (_privateKey, _accountId) = Signatures.GenerateWallet();
+            NetworkId = TestConfig.networkId;
         }
 
         [TestMethod]

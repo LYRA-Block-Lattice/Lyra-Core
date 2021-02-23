@@ -11,12 +11,11 @@ namespace Lyra.Core.API
 {
     public class LyraJsonRPCClient : JsonRpcClientBase
     {
-        string _networkId;
         SignHandler _signr;
 
         public LyraJsonRPCClient(string networkId, SignHandler signr)
         {
-            _networkId = networkId;
+            NetworkId = networkId;
             _signr = signr;
         }
 

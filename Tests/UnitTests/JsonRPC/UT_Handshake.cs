@@ -16,6 +16,10 @@ namespace UnitTests.JsonRPC
     [TestClass]
     public class UT_Handshake : JsonRpcClientBase
     {
+        public UT_Handshake()
+        {
+            NetworkId = TestConfig.networkId;
+        }
         [TestMethod]
         public async Task VersionAsync()
         {

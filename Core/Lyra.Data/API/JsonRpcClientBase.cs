@@ -39,6 +39,7 @@ namespace Lyra.Core.API
     public delegate void ReceivingEventHandler(Receiving recvMsg);
     public class JsonRpcClientBase
     {
+        protected string NetworkId;
         public event ReceivingEventHandler OnReceiving;
         protected virtual void RecvNotify(JObject notifyObj)
         {
@@ -55,7 +56,11 @@ namespace Lyra.Core.API
             using (var socket = new ClientWebSocket())
             {
                 socket.Options.RemoteCertificateValidationCallback = (a, b, c, d) => true;
-                await socket.ConnectAsync(new Uri("wss://api.devnet:4504/api/v1/socket"), cancellationToken);
+
+                var uri = new Uri(LyraGlobal.SelectNode(NetworkId));
+                var wssUrl = $"wss://{uri.Host}:{uri.Port}/api/v1/socket";
+
+                await socket.ConnectAsync(new Uri(wssUrl), cancellationToken);
 
                 using (var jsonRpc = new JsonRpc(new WebSocketMessageHandler(socket)))
                 {
