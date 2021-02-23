@@ -164,7 +164,7 @@ namespace Lyra.Node
                 throw new Exception(hists.ResultCode.ToString());
         }
         // group pool
-        public async Task<PoolInfo> PoolAsync(string token0, string token1)
+        public async Task<PoolInfo> Pool(string token0, string token1)
         {
             var poolResult = await _node.GetPool(token0, token1);
             if(poolResult.Successful())
@@ -179,13 +179,23 @@ namespace Lyra.Node
 
             throw new Exception("Failed to get pool");
         }
-        public async Task<BalanceResult> AddLiquidatyAsync(string accountId, string token0, decimal token0Amount, string token1, decimal token1Amount)
+        public async Task<SwapCalculator> PoolCalculate(string poolId, string swapFrom, decimal amount, decimal slippage)
         {
-            var klWallet = new KeylessWallet(accountId, (msg) =>
+            var poolLatest = await NodeService.Dag.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
+            var poolGenesis = await NodeService.Dag.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
+            
+            if (poolLatest != null && poolGenesis != null && poolLatest.Hash != poolGenesis.Hash)
             {
-                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
-                return result3.GetAwaiter().GetResult();
-            }, _node, _trans);
+                var cal = new SwapCalculator(poolGenesis.Token0, poolGenesis.Token1,
+                    poolLatest, swapFrom, amount, slippage);
+                return cal;
+            }
+
+            throw new Exception("Failed to get pool");
+        }
+        public async Task<BalanceResult> AddLiquidaty(string accountId, string token0, decimal token0Amount, string token1, decimal token1Amount)
+        {
+            var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.AddLiquidateToPoolAsync(token0, token0Amount, token1, token1Amount);
             if (result.ResultCode == APIResultCodes.Success)
@@ -199,11 +209,7 @@ namespace Lyra.Node
         }
         public async Task<BalanceResult> RemoveLiquidaty(string accountId, string token0, string token1)
         {
-            var klWallet = new KeylessWallet(accountId, (msg) =>
-            {
-                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
-                return result3.GetAwaiter().GetResult();
-            }, _node, _trans);
+            var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.RemoveLiquidateFromPoolAsync(token0, token1);
             if (result.ResultCode == APIResultCodes.Success)
@@ -217,11 +223,7 @@ namespace Lyra.Node
         }
         public async Task<BalanceResult> Swap(string accountId, string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
         {
-            var klWallet = new KeylessWallet(accountId, (msg) =>
-            {
-                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
-                return result3.GetAwaiter().GetResult();
-            }, _node, _trans);
+            var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.SwapToken(token0, token1, tokenToSwap, amountToSwap, amountToGet);
             if (result.ResultCode == APIResultCodes.Success)
@@ -233,6 +235,7 @@ namespace Lyra.Node
                 throw new Exception(result.ToString());
             }
         }
+
         // group notification
         public event EventHandler<Receiving> Notify;
 
