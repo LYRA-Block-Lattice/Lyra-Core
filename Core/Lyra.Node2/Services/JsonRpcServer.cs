@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Noded.Services;
+using StreamJsonRpc;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,8 +20,12 @@ namespace Lyra.Node
      */
     public class JsonRpcServer
     {
+        public JsonRpc RPC { get; set; }
         INodeAPI _node;
         INodeTransactionAPI _trans;
+
+        string _signature;
+        ManualResetEvent _signed = new ManualResetEvent(false);
         public JsonRpcServer(INodeAPI node, INodeTransactionAPI trans)
         {
             _node = node;
@@ -75,7 +80,8 @@ namespace Lyra.Node
         {
             var klWallet = new KeylessWallet(accountId, (msg) =>
             {
-                return Sign.Invoke(msg);
+                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
+                return result3.Result;
             }, _node, _trans);
 
             var result = await klWallet.ReceiveAsync();
@@ -114,8 +120,6 @@ namespace Lyra.Node
 
         }
         // group notification
-        // server request to sign hash
-        public event Func<string, string> Sign;
         public event EventHandler<Receiving> Notify;
 
         // group cli

@@ -23,8 +23,10 @@ namespace Lyra.Node
             if (this.HttpContext.WebSockets.IsWebSocketRequest)
             {
                 var socket = await this.HttpContext.WebSockets.AcceptWebSocketAsync();
-                using (var jsonRpc = new JsonRpc(new WebSocketMessageHandler(socket), new JsonRpcServer(_node, _trans)))
+                var svr = new JsonRpcServer(_node, _trans);
+                using (var jsonRpc = new JsonRpc(new WebSocketMessageHandler(socket), svr))
                 {
+                    svr.RPC = jsonRpc;
                     jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
                     jsonRpc.StartListening();
                     try
