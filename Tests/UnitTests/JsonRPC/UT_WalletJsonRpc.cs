@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace UnitTests.JsonRPC
 {
     [TestClass]
-    public class UT_WalletJsonRpc : JsonRpcTestBase
+    public class UT_WalletJsonRpc : JsonRpcClientBase
     {
         // used as test account
         string _privateKey;

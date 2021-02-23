@@ -8,19 +8,47 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace UnitTests.JsonRPC
+namespace Lyra.Core.API
 {
-    public class JsonRpcTestBase
+    public class PoolInfo
     {
+        public string poolId { get; set; }
+        public string token0 { get; set; }
+        public string token1 { get; set; }
+
+        public Dictionary<string, decimal> balance { get; set; }
+    }
+    public class BalanceResult
+    {
+        public Dictionary<string, decimal> balance { get; set; }
+        public bool unreceived { get; set; }
+    }
+    public class ApiStatus
+    {
+        public string version { get; set; }
+        public string networkid { get; set; }
+        public bool synced { get; set; }
+    }
+    public class Receiving
+    {
+        public string from { get; set; }
+        public string sendHash { get; set; }
+        public Dictionary<string, decimal> funds { get; set; }
+    }
+
+    public delegate void ReceivingEventHandler(Receiving recvMsg);
+    public class JsonRpcClientBase
+    {
+        public event ReceivingEventHandler OnReceiving;
         protected virtual void RecvNotify(JObject notifyObj)
         {
-
+            OnReceiving?.Invoke(notifyObj.ToObject<Receiving>());
         }
         protected virtual string SignMessage(string message)
         {
             throw new Exception("SignMessage Must be override.");
         }
-        public async Task TestProcAsync(Func<JsonRpc, CancellationToken, Task> testFunc)
+        public async Task TestProcAsync(Func<JsonRpc, CancellationToken, Task> mainFunc)
         {
             var cancellationTokenSrc = new CancellationTokenSource();
             var cancellationToken = cancellationTokenSrc.Token;
@@ -49,7 +77,7 @@ namespace UnitTests.JsonRPC
 
                         jsonRpc.StartListening();
 
-                        await testFunc(jsonRpc, cancellationToken);
+                        await mainFunc(jsonRpc, cancellationToken);
 
                         cancellationTokenSrc.Cancel();
                         await jsonRpc.Completion.WithCancellation(cancellationToken);

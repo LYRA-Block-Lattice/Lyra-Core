@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 namespace UnitTests.JsonRPC
 {
     [TestClass]
-    public class UT_Handshake : JsonRpcTestBase
+    public class UT_Handshake : JsonRpcClientBase
     {
         [TestMethod]
         public async Task VersionAsync()

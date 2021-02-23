@@ -242,30 +242,4 @@ namespace Lyra.Node
             NodeService.Dag.OnNewBlock -= NewBlockMonitor;
         }
     }
-
-    public class PoolInfo
-    {
-        public string poolId { get; set; }
-        public string token0 { get; set; }
-        public string token1 { get; set; }
-
-        public Dictionary<string, decimal> balance { get; set; }
-    }
-    public class BalanceResult
-    {
-        public Dictionary<string, decimal> balance { get; set; }
-        public bool unreceived { get; set; }
-    }
-    public class ApiStatus
-    {
-        public string version { get; set; }
-        public string networkid { get; set; }
-        public bool synced { get; set; }
-    }
-    public class Receiving
-    {
-        public string from { get; set; }
-        public string sendHash { get; set; }
-        public Dictionary<string, decimal> funds { get; set; }
-    }
 }
