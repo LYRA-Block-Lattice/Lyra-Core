@@ -113,6 +113,14 @@ namespace Lyra.Client.CLI
         }
     }
 
+    /*
+     * 
+     * 
+Content-Length: 69
+
+{"jsonrpc":"2.0","id":2,"method":"ImportWallet","params":["aaaa",""]}
+     * 
+     */
     internal class Server
     {
         ClientProgram _prog;
