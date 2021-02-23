@@ -46,6 +46,7 @@ namespace Lyra.Node
         {
             var blockResult = await _node.GetLastBlock(accountId);
             var anySendResult = await _node.LookForNewTransfer2(accountId, null);
+            
             if (blockResult.Successful())
             {
                 var block = blockResult.GetBlock() as TransactionBlock;                               
@@ -53,6 +54,14 @@ namespace Lyra.Node
                 return new BalanceResult
                 {
                     balance = block.Balances.ToDecimalDict(),
+                    unreceived = anySendResult.Successful()
+                };
+            }
+            else if(blockResult.ResultCode == APIResultCodes.BlockNotFound)
+            {
+                return new BalanceResult
+                {
+                    balance = null,
                     unreceived = anySendResult.Successful()
                 };
             }

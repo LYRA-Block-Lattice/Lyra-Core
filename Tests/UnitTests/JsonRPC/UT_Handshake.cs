@@ -35,7 +35,7 @@ namespace UnitTests.JsonRPC
         {
             await TestProcAsync(async (jsonRpc, cancellationToken) =>
             {
-                var result = await jsonRpc.InvokeWithCancellationAsync<JObject>("Status", new object[] { "1.0.0.0" }, cancellationToken);
+                var result = await jsonRpc.InvokeWithCancellationAsync<JObject>("Status", new object[] { "1.0.0.0", TestConfig.networkId }, cancellationToken);
                 Assert.Fail();
             }).ConfigureAwait(true);
         }
