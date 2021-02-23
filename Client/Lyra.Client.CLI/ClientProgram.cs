@@ -1,6 +1,3 @@
-//#define WEB
-//#define INMEMORY
-
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
@@ -16,7 +13,9 @@ using McMaster.Extensions.CommandLineUtils;
 using System.ComponentModel.DataAnnotations;
 using Client.CLI;
 using System.Threading;
-using AustinHarris.JsonRpc;
+using StreamJsonRpc;
+using Lyra.Core.Accounts;
+using Nerdbank.Streams;
 
 namespace Lyra.Client.CLI
 {
@@ -83,18 +82,14 @@ namespace Lyra.Client.CLI
 
             if(RunJsonRPCServer)
             {
-                new WalletServer();
-                new RPCServer(ServerBinding);
-
-                while(true)
-                {
-                    var json = Console.ReadLine();
-                    if (json == "exit")
-                        break;
-
-                    var rep = await JsonRpcProcessor.Process(json);
-                    Console.WriteLine(rep);
-                }
+                //while(true)
+                //{
+                //    var s = Console.ReadLine();
+                //    if (s == null)
+                //        break;
+                //    File.AppendAllText("c:\\tmp\\input.txt", s + "\n");
+                //}
+                await RespondToRpcRequestsAsync(FullDuplexStream.Splice(Console.OpenStandardInput(), Console.OpenStandardOutput()), 0);
             }
             else
             {
@@ -107,8 +102,33 @@ namespace Lyra.Client.CLI
                 await mgr.RunWallet(this);
             }
         }
+
+        private async Task RespondToRpcRequestsAsync(Stream stream, int clientId)
+        {
+            await Console.Error.WriteLineAsync($"Connection request #{clientId} received. Spinning off an async Task to cater to requests.");
+            var jsonRpc = JsonRpc.Attach(stream, new Server(this));
+            await Console.Error.WriteLineAsync($"JSON-RPC listener attached to #{clientId}. Waiting for requests...");
+            await jsonRpc.Completion;
+            await Console.Error.WriteLineAsync($"Connection #{clientId} terminated.");
+        }
     }
-    
+
+    internal class Server
+    {
+        ClientProgram _prog;
+        public Server(ClientProgram prog)
+        {
+            _prog = prog;
+        }
+        public string ImportWallet(string name, string password)
+        {
+            string lyra_folder = Wallet.GetFullFolderName(_prog.NetworkId, "wallets");
+            var storage = new SecuredWalletStore(lyra_folder);
+            var wallet = Wallet.Open(storage, name, password);
+            return wallet.PrivateKey;
+        }
+    }
+
     public class Options
     {
         public const string LOCAL_NETWORK = "local";
