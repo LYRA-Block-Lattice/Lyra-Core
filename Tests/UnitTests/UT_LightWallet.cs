@@ -20,7 +20,7 @@ namespace UnitTests
     /// Note: send at least 1M LYR to account 1. create a token named "unittest/trans" in account 1.
     /// </summary>
     [TestClass]
-    public class UT_LightWalletJsonRPC
+    public class UT_LightWallet
     {
         public const string PRIVATE_KEY_1 = "dkrwRdqNjEEshpLuEPPqc6zM1HM3nzGjsYts39zzA1iUypcpj";
         const string PRIVATE_KEY_2 = "Hc3XcZgZ1d2jRxhNojN1gnKHv5SBs15mR8K2SdkBbycrgAjPr";
@@ -53,7 +53,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public async Task SendTestAsync()
+        public async Task SendReceiveTestAsync()
         {
             try
             {

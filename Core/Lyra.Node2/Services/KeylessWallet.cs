@@ -346,6 +346,90 @@ namespace Noded.Services
 
             return result;
         }
+
+        public async Task<AuthorizationAPIResult> CreateTokenAsync(
+            string tokenName,
+            string domainName,
+            string description,
+            sbyte precision,
+            decimal supply,
+            bool isFinalSupply,
+            string owner, // shop name
+            string address, // shop URL
+            string currency, // USD
+            ContractTypes contractType, // reward or discount or custom
+            Dictionary<string, string> tags)
+        {
+            if (string.IsNullOrWhiteSpace(domainName))
+                domainName = "Custom";
+
+            string ticker = domainName + "/" + tokenName;
+
+            var blockresult = await _rpcClient.GetLastServiceBlock();
+
+            if (blockresult.ResultCode != APIResultCodes.Success)
+                return new AuthorizationAPIResult() { ResultCode = blockresult.ResultCode };
+
+            ServiceBlock lastServiceBlock = blockresult.GetBlock() as ServiceBlock;
+
+            TransactionBlock latestBlock = await GetLatestBlockAsync();
+            if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < lastServiceBlock.TokenGenerationFee.ToBalanceLong())
+            {
+                //throw new ApplicationException("Insufficent funds");
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
+            }
+
+            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            if (svcBlockResult.ResultCode != APIResultCodes.Success)
+            {
+                throw new Exception("Unable to get latest service block.");
+            }
+
+            // initiate test coins
+            TokenGenesisBlock tokenBlock = new TokenGenesisBlock
+            {
+                Ticker = ticker,
+                DomainName = domainName,
+                Description = description,
+                Precision = precision,
+                IsFinalSupply = isFinalSupply,
+                //CustomFee = 0,
+                //CustomFeeAccountId = string.Empty,
+                AccountID = AccountId,
+                Balances = new Dictionary<string, long>(),
+                ServiceHash = svcBlockResult.GetBlock().Hash,
+                Fee = lastServiceBlock.TokenGenerationFee,
+                FeeType = AuthorizationFeeTypes.Regular,
+                Owner = owner,
+                Address = address,
+                Currency = currency,
+                Tags = tags,
+                RenewalDate = DateTime.UtcNow.Add(TimeSpan.FromDays(3650)),
+                ContractType = contractType,
+                VoteFor = null
+            };
+            // TO DO - set service hash
+
+            //var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply * (long)Math.Pow(10, precision) };
+            var transaction = new TransactionInfo() { TokenCode = ticker, Amount = supply };
+
+            tokenBlock.Balances.Add(transaction.TokenCode, transaction.Amount.ToBalanceLong()); // This is current supply in atomic units (1,000,000.00)
+            tokenBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] - lastServiceBlock.TokenGenerationFee.ToBalanceLong());
+            //tokenBlock.Transaction = transaction;
+            // transfer unchanged token balances from the previous block
+            foreach (var balance in latestBlock.Balances)
+                if (!(tokenBlock.Balances.ContainsKey(balance.Key)))
+                    tokenBlock.Balances.Add(balance.Key, balance.Value);
+
+            tokenBlock.InitializeBlock(latestBlock, _signer);
+
+            //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
+
+            var result = await _trans.CreateToken(tokenBlock);
+
+            return result;
+        }
+
         private async Task<string[]> GetProperTokenNameAsync(string[] tokenNames)
         {
             var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlock(AccountId, a, null));

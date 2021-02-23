@@ -51,6 +51,16 @@ namespace Lyra.Node
             }
         }
 
+        private KeylessWallet CreateWallet(string accountId)
+        {
+            var klWallet = new KeylessWallet(accountId, (msg) =>
+            {
+                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
+                return result3.GetAwaiter().GetResult();
+            }, _node, _trans);
+            return klWallet;
+        }
+
         // group hand shake
         public async Task<ApiStatus> Status(string version, string networkid)
         {
@@ -98,11 +108,7 @@ namespace Lyra.Node
         }
         public async Task<BalanceResult> Receive(string accountId)
         {
-            var klWallet = new KeylessWallet(accountId, (msg) =>
-            {
-                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
-                return result3.GetAwaiter().GetResult();
-            }, _node, _trans);
+            var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.ReceiveAsync();
             if(result == APIResultCodes.Success)
@@ -116,11 +122,7 @@ namespace Lyra.Node
         }
         public async Task<BalanceResult> Send(string accountId, decimal amount, string destAccount, string ticker)
         {
-            var klWallet = new KeylessWallet(accountId, (msg) =>
-            {
-                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
-                return result3.GetAwaiter().GetResult();
-            }, _node, _trans);
+            var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.SendAsync(amount, destAccount, ticker);
             if (result == APIResultCodes.Success)
@@ -132,6 +134,23 @@ namespace Lyra.Node
                 throw new Exception(result.ToString());
             }
         }
+
+        public async Task<BalanceResult> Token(string accountId, string name, string domain, decimal supply)
+        {
+            var klWallet = CreateWallet(accountId);
+
+            var result = await klWallet.CreateTokenAsync(name, domain,
+                "", 8, supply, true, "", "", "", ContractTypes.Custom, null);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return await Balance(accountId);
+            }
+            else
+            {
+                throw new Exception(result.ToString());
+            }
+        }
+
         public void Monitor(string accountId)
         {
             _monitorAccountId = accountId;
