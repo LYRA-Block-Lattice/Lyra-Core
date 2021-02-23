@@ -140,7 +140,7 @@ namespace Lyra.Node
             var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.CreateTokenAsync(name, domain,
-                "", 8, supply, true, "", "", "", ContractTypes.Custom, null);
+                "", 8, supply, true, "", "", "", ContractTypes.Cryptocurrency, null);
             if (result.ResultCode == APIResultCodes.Success)
             {
                 return await Balance(accountId);

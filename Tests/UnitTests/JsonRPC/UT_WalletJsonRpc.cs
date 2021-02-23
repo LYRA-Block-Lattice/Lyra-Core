@@ -103,6 +103,23 @@ namespace UnitTests.JsonRPC
             }).ConfigureAwait(true);
         }
 
+        [TestMethod]
+        public async Task CreateTokenAsync()
+        {
+            await TestProcAsync(async (jsonRpc, cancellationToken) =>
+            {
+                var rand = new Random();
+                var name = $"rpc-{rand.Next(10000, 100000000)}";
+                var domain = "unittest";
+                var supply = 100000000;
+                var result = await jsonRpc.InvokeWithCancellationAsync<JObject>("Token", new object[] { UT_TransitWallet.ADDRESS_ID_1, name, domain, supply }, cancellationToken);
+                Assert.IsNotNull(result);
+                var balance = result["balance"].ToObject<Dictionary<string, decimal>>();
+                Assert.IsNotNull(balance);
+                Assert.AreEqual(supply, balance[$"{domain}/{name}"]);
+            }).ConfigureAwait(true);
+        }
+
         protected override void RecvNotify(JObject notifyObj)
         {
             _notified = true;
