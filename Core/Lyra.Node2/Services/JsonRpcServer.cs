@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Noded.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,9 +20,11 @@ namespace Lyra.Node
     public class JsonRpcServer
     {
         INodeAPI _node;
-        public JsonRpcServer(INodeAPI node)
+        INodeTransactionAPI _trans;
+        public JsonRpcServer(INodeAPI node, INodeTransactionAPI trans)
         {
             _node = node;
+            _trans = trans;
         }
         // group hand shake
         public async Task<ApiStatus> Status(string version, string networkid)
@@ -68,9 +71,18 @@ namespace Lyra.Node
 
             throw new Exception("Can't get latest block for account.");
         }
-        public void Receive(List<string> unreceiveTx)
+        public async Task Receive(string accountId)
         {
-            throw new NotImplementedException();
+            var klWallet = new KeylessWallet(accountId, (msg) =>
+            {
+                return Sign.Invoke(msg);
+            }, _node, _trans);
+
+            var result = await klWallet.ReceiveAsync();
+            if(result != APIResultCodes.Success)
+            {
+                throw new Exception(result.ToString());
+            }
         }
         public void Send()
         {
@@ -103,7 +115,7 @@ namespace Lyra.Node
         }
         // group notification
         // server request to sign hash
-        public event EventHandler<string> Sign;
+        public event Func<string, string> Sign;
         public event EventHandler<Receiving> Notify;
 
         // group cli

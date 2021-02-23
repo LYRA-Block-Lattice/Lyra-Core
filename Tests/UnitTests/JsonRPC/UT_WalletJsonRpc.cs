@@ -44,7 +44,7 @@ namespace UnitTests.JsonRPC
             await TestProcAsync(async (jsonRpc, cancellationToken) =>
             {
                 var result = await jsonRpc.InvokeWithCancellationAsync<JObject>("Balance", new object[] { accoutId }, cancellationToken);
-                Assert.IsNull(result["balance"].ToObject<Dictionary<string, decimal>>());
+                Assert.IsNull(result["balance"]);
             }).ConfigureAwait(true);
         }
 
@@ -60,10 +60,30 @@ namespace UnitTests.JsonRPC
 
             await TestProcAsync(async (jsonRpc, cancellationToken) =>
             {
+                // at first, wallet is empty
                 var result = await jsonRpc.InvokeWithCancellationAsync<JObject>("Balance", new object[] { _accountId }, cancellationToken);
                 Assert.IsNotNull(result);
-                var balance = result["balance"].ToObject<Dictionary<string, decimal>>();
+                Assert.IsNull(result["balance"]);
+                Assert.AreEqual(false, result["unreceived"].Value<bool>());
+
+                // we send 10 LYR to it
+                var sendResult = await w1.Send(10, _accountId);
+                Assert.IsTrue(sendResult.Successful());
+
+                var result2 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Balance", new object[] { _accountId }, cancellationToken);
+                Assert.IsNotNull(result2);
+                Assert.IsNull(result2["balance"]);
+                Assert.AreEqual(true, result2["unreceived"].Value<bool>());
+
+                // do receive, have 10 LYR
+                var result3 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Receive", new object[] { }, cancellationToken);
+                Assert.IsNotNull(result3);
+                Assert.IsNotNull(result3["balance"]);
+                Assert.AreEqual(false, result3["unreceived"].Value<bool>());
+
+                var balance = result3["balance"].ToObject<Dictionary<string, decimal>>();
                 Assert.IsNotNull(balance);
+                Assert.AreEqual(10, balance["LYR"]);
             }).ConfigureAwait(true);
         }
 

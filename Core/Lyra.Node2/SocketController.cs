@@ -12,16 +12,18 @@ namespace Lyra.Node
     public class SocketController : Controller
     {
         INodeAPI _node;
-        public SocketController(INodeAPI node)
+        INodeTransactionAPI _trans;
+        public SocketController(INodeAPI node, INodeTransactionAPI trans)
         {
             _node = node;
+            _trans = trans;
         }
         public async Task<IActionResult> Index()
         {
             if (this.HttpContext.WebSockets.IsWebSocketRequest)
             {
                 var socket = await this.HttpContext.WebSockets.AcceptWebSocketAsync();
-                using (var jsonRpc = new JsonRpc(new WebSocketMessageHandler(socket), new JsonRpcServer(_node)))
+                using (var jsonRpc = new JsonRpc(new WebSocketMessageHandler(socket), new JsonRpcServer(_node, _trans)))
                 {
                     jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
                     jsonRpc.StartListening();
