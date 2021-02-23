@@ -147,7 +147,7 @@ namespace Lyra.Node
             }
             else
             {
-                throw new Exception(result.ToString());
+                throw new Exception(result.ResultCode.ToString());
             }
         }
 

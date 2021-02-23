@@ -72,7 +72,7 @@ namespace UnitTests.JsonRPC
                 await jsonRpc.NotifyWithParameterObjectAsync("Monitor", new object[] { _accountId });
 
                 // we send 10 LYR to it
-                var sendResult = await w1.Send(10, _accountId);
+                var sendResult = await w1.Send(10100, _accountId);
                 Assert.IsTrue(sendResult.Successful());
 
                 var result2 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Balance", new object[] { _accountId }, cancellationToken);
@@ -88,7 +88,7 @@ namespace UnitTests.JsonRPC
 
                 var balance = result3["balance"].ToObject<Dictionary<string, decimal>>();
                 Assert.IsNotNull(balance);
-                Assert.AreEqual(10, balance["LYR"]);
+                Assert.AreEqual(10100, balance["LYR"]);
 
                 // send 5 back
                 var result4 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Send", new object[] { _accountId, 5, UT_TransitWallet.ADDRESS_ID_1, LyraGlobal.OFFICIALTICKERCODE }, cancellationToken);
@@ -97,26 +97,20 @@ namespace UnitTests.JsonRPC
                 Assert.AreEqual(false, result4["unreceived"].Value<bool>());
                 var balance4 = result4["balance"].ToObject<Dictionary<string, decimal>>();
                 Assert.IsNotNull(balance4);
-                Assert.AreEqual(4, balance4["LYR"]);
+                Assert.AreEqual(10094, balance4["LYR"]);
 
-                Assert.IsTrue(_notified);
-            }).ConfigureAwait(true);
-        }
-
-        [TestMethod]
-        public async Task CreateTokenAsync()
-        {
-            await TestProcAsync(async (jsonRpc, cancellationToken) =>
-            {
+                // create a token
                 var rand = new Random();
                 var name = $"rpc-{rand.Next(10000, 100000000)}";
                 var domain = "unittest";
                 var supply = 100000000;
-                var result = await jsonRpc.InvokeWithCancellationAsync<JObject>("Token", new object[] { UT_TransitWallet.ADDRESS_ID_1, name, domain, supply }, cancellationToken);
-                Assert.IsNotNull(result);
-                var balance = result["balance"].ToObject<Dictionary<string, decimal>>();
-                Assert.IsNotNull(balance);
-                Assert.AreEqual(supply, balance[$"{domain}/{name}"]);
+                var result8 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Token", new object[] { _accountId, name, domain, supply }, cancellationToken);
+                Assert.IsNotNull(result8);
+                var balance8 = result8["balance"].ToObject<Dictionary<string, decimal>>();
+                Assert.IsNotNull(balance8);
+                Assert.AreEqual(supply, balance8[$"{domain}/{name}"]);
+
+                Assert.IsTrue(_notified);
             }).ConfigureAwait(true);
         }
 
@@ -127,6 +121,7 @@ namespace UnitTests.JsonRPC
 
         protected override string SignMessage(string message)
         {
+            Console.WriteLine($"Signing: {message}");
             return Signatures.GetSignature(_privateKey, message, _accountId);
         }
     }
