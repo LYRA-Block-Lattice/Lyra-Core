@@ -58,7 +58,7 @@ namespace Noded.Services
 
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTransfer(_accountId, _signer(lastServiceBlock.Hash));
+                var lookup_result = await _rpcClient.LookForNewTransfer2(AccountId, null);
                 int max_counter = 0;
 
                 while (lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
@@ -71,7 +71,7 @@ namespace Noded.Services
                     if (!receive_result.Successful())
                         return receive_result.ResultCode;
 
-                    lookup_result = await _rpcClient.LookForNewTransfer(_accountId, _signer(lastServiceBlock.Hash));
+                    lookup_result = await _rpcClient.LookForNewTransfer2(AccountId, null);
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -194,8 +194,13 @@ namespace Noded.Services
             return result.ResultCode;
         }
 
-        private async Task<AuthorizationAPIResult> ReceiveTransfer(NewTransferAPIResult new_transfer_info)
+        private async Task<AuthorizationAPIResult> ReceiveTransfer(NewTransferAPIResult2 new_transfer_info)
         {
+
+            // *** Slava - July 19, 2020 - I am not sure if we need this call anymore? 
+            //await FindTokenPrecision(new_transfer_info.Transfer.TokenCode);
+            // ***
+
             if (await GetLocalAccountHeightAsync() == 0) // if this is new account with no blocks
                 return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
 
@@ -219,17 +224,17 @@ namespace Noded.Services
 
             TransactionBlock latestBlock = await GetLatestBlockAsync();
 
-            var newBalance = new_transfer_info.Transfer.Amount;
-            // if the recipient's account has this token already, add the transaction amount to the existing balance
-            if (latestBlock.Balances.ContainsKey(new_transfer_info.Transfer.TokenCode))
-                newBalance += latestBlock.Balances[new_transfer_info.Transfer.TokenCode].ToBalanceDecimal();
+            var latestBalances = latestBlock.Balances.ToDecimalDict();
+            var recvBalances = latestBlock.Balances.ToDecimalDict();
+            foreach (var chg in new_transfer_info.Transfer.Changes)
+            {
+                if (recvBalances.ContainsKey(chg.Key))
+                    recvBalances[chg.Key] += chg.Value;
+                else
+                    recvBalances.Add(chg.Key, chg.Value);
+            }
 
-            receiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, newBalance.ToBalanceLong());
-
-            // transfer unchanged token balances from the previous block
-            foreach (var balance in latestBlock.Balances)
-                if (!(receiveBlock.Balances.ContainsKey(balance.Key)))
-                    receiveBlock.Balances.Add(balance.Key, balance.Value);
+            receiveBlock.Balances = recvBalances.ToLongDict();
 
             receiveBlock.InitializeBlock(latestBlock, _signer);
 
@@ -243,7 +248,7 @@ namespace Noded.Services
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult new_transfer_info)
+        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult2 new_transfer_info)
         {
             var svcBlockResult = await _rpcClient.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
@@ -264,7 +269,10 @@ namespace Noded.Services
                 VoteFor = null
             };
 
-            openReceiveBlock.Balances.Add(new_transfer_info.Transfer.TokenCode, new_transfer_info.Transfer.Amount.ToBalanceLong());
+            foreach (var chg in new_transfer_info.Transfer.Changes)
+            {
+                openReceiveBlock.Balances.Add(chg.Key, chg.Value.ToBalanceLong());
+            }
             openReceiveBlock.InitializeBlock(null, _signer);
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
