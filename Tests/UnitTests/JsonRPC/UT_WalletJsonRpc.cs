@@ -76,7 +76,7 @@ namespace UnitTests.JsonRPC
                 Assert.AreEqual(true, result2["unreceived"].Value<bool>());
 
                 // do receive, have 10 LYR
-                var result3 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Receive", new object[] { }, cancellationToken);
+                var result3 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Receive", new object[] { _accountId }, cancellationToken);
                 Assert.IsNotNull(result3);
                 Assert.IsNotNull(result3["balance"]);
                 Assert.AreEqual(false, result3["unreceived"].Value<bool>());

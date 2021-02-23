@@ -76,7 +76,7 @@ namespace Lyra.Node
 
             throw new Exception("Can't get latest block for account.");
         }
-        public async Task Receive(string accountId)
+        public async Task<BalanceResult> Receive(string accountId)
         {
             var klWallet = new KeylessWallet(accountId, (msg) =>
             {
@@ -85,7 +85,11 @@ namespace Lyra.Node
             }, _node, _trans);
 
             var result = await klWallet.ReceiveAsync();
-            if(result != APIResultCodes.Success)
+            if(result == APIResultCodes.Success)
+            {
+                return await Balance(accountId);
+            }
+            else
             {
                 throw new Exception(result.ToString());
             }
