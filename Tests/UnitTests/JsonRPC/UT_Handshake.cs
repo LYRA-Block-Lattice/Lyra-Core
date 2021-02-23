@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Lyra.Core.API;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Threading;
 using StreamJsonRpc;
 using System;
@@ -13,6 +14,51 @@ namespace UnitTests.JsonRPC
     [TestClass]
     public class UT_Handshake
     {
+        [TestMethod]
+        public async Task VersionAsync()
+        {
+            await TestProcAsync(async (jsonRpc, cancellationToken) =>
+            {
+                int result = await jsonRpc.InvokeWithCancellationAsync<int>("Status", new object[] { LyraGlobal.NODE_VERSION }, cancellationToken);
+                Console.WriteLine($"JSON-RPC server says 1 + 2 = {result}");
+                Assert.AreEqual(3, result);
+            }).ConfigureAwait(true);
+        }
+
+        public async Task TestProcAsync(Func<JsonRpc, CancellationToken, Task> testFunc)
+        {
+            var cancellationTokenSrc = new CancellationTokenSource();
+            var cancellationToken = cancellationTokenSrc.Token;
+            using (var socket = new ClientWebSocket())
+            {
+                socket.Options.RemoteCertificateValidationCallback = (a, b, c, d) => true;
+                await socket.ConnectAsync(new Uri("wss://api.devnet:4504/api/v1/socket"), cancellationToken);
+
+                using (var jsonRpc = new JsonRpc(new WebSocketMessageHandler(socket)))
+                {
+                    try
+                    {
+                        jsonRpc.StartListening();
+
+                        await testFunc(jsonRpc, cancellationToken);
+
+                        cancellationTokenSrc.Cancel();
+                        await jsonRpc.Completion.WithCancellation(cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Closing is initiated by Ctrl+C on the client.
+                        // Close the web socket gracefully -- before JsonRpc is disposed to avoid the socket going into an aborted state.
+                        await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", CancellationToken.None);
+                        //throw;
+                    }
+                    catch
+                    {
+                        throw;
+                    }
+                }
+            }
+        }
 
         [TestMethod]
         public async Task HelloToNodeAsync()
@@ -23,7 +69,7 @@ namespace UnitTests.JsonRPC
             {
                 socket.Options.RemoteCertificateValidationCallback = (a, b, c, d) => true;
 
-                await socket.ConnectAsync(new Uri("wss://api.devnet:4504/api/socket"), cancellationToken);
+                await socket.ConnectAsync(new Uri("wss://api.devnet:4504/api/v1/socket"), cancellationToken);
                 Console.WriteLine("Connected to web socket. Establishing JSON-RPC protocol...");
                 using (var jsonRpc = new JsonRpc(new WebSocketMessageHandler(socket)))
                 {

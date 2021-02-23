@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Lyra.Core.API;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,10 +17,22 @@ namespace Lyra.Node
      */
     public class JsonRpcServer
     {
-        // group hand shake
-        public ApiStatus Status(string version)
+        INodeAPI _node;
+        public JsonRpcServer(INodeAPI node)
         {
-            throw new NotImplementedException();
+            _node = node;
+        }
+        // group hand shake
+        public async Task<ApiStatus> Status(string version)
+        {
+            var syncState = await _node.GetSyncState();
+
+            return new ApiStatus
+            {
+                version = LyraGlobal.NODE_VERSION.ToString(),
+                synced = syncState.Status.state == Data.API.BlockChainState.Almighty
+                    || syncState.Status.state == Data.API.BlockChainState.Engaging
+            };
         }
 
         // group wallet
