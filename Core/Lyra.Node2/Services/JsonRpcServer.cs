@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using Noded.Services;
 using StreamJsonRpc;
 using System;
@@ -18,19 +19,37 @@ namespace Lyra.Node
     private key if have password. all wallet should use the new jsonrpc api provided by node. 
     the Lyra Broker project can be abandoned, for exchange, using the  same api is enough.
      */
-    public class JsonRpcServer
+    public class JsonRpcServer : IDisposable
     {
         public JsonRpc RPC { get; set; }
         INodeAPI _node;
         INodeTransactionAPI _trans;
 
-        string _signature;
-        ManualResetEvent _signed = new ManualResetEvent(false);
+        string _monitorAccountId;
+
         public JsonRpcServer(INodeAPI node, INodeTransactionAPI trans)
         {
             _node = node;
             _trans = trans;
+
+            NodeService.Dag.OnNewBlock += NewBlockMonitor;
         }
+
+        public void NewBlockMonitor(Block block, Block prevBlock)
+        {
+            if(block is SendTransferBlock send && send.DestinationAccountId == _monitorAccountId)
+            {
+                var chgs = send.GetBalanceChanges(prevBlock as TransactionBlock);
+                var recvInfo = new Receiving
+                {
+                    sendHash = send.Hash,
+                    from = send.AccountID,
+                    funds = chgs.Changes
+                };
+                Notify?.Invoke(this, recvInfo);
+            }
+        }
+
         // group hand shake
         public async Task<ApiStatus> Status(string version, string networkid)
         {
@@ -114,7 +133,7 @@ namespace Lyra.Node
         }
         public void Monitor(string accountId)
         {
-
+            _monitorAccountId = accountId;
         }
         public void History(string accountId, long startTime, long endTime, int count)
         {
@@ -159,6 +178,11 @@ namespace Lyra.Node
                 this.Tick?.Invoke(this, ++tickNumber);
             }
         }
+
+        public void Dispose()
+        {
+            NodeService.Dag.OnNewBlock -= NewBlockMonitor;
+        }
     }
 
     public class TxInfo
@@ -182,5 +206,6 @@ namespace Lyra.Node
     {
         public string from { get; set; }
         public string sendHash { get; set; }
+        public Dictionary<string, decimal> funds { get; set; }
     }
 }

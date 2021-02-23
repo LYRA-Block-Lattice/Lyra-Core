@@ -19,6 +19,7 @@ namespace UnitTests.JsonRPC
         string _privateKey;
         string _accountId;
         LyraRestClient client = LyraRestClient.Create(TestConfig.networkId, "Windows", "UnitTest", "1.0");
+        bool _notified;
 
         public UT_WalletJsonRpc()
         {
@@ -49,7 +50,7 @@ namespace UnitTests.JsonRPC
         }
 
         [TestMethod]
-        public async Task ReceiveTestAsync()
+        public async Task SendReceiveTestAsync()
         {
             var memStor = new AccountInMemoryStorage();
             Wallet.Create(memStor, "tmpAcct", "", TestConfig.networkId, UT_TransitWallet.PRIVATE_KEY_1);
@@ -66,9 +67,15 @@ namespace UnitTests.JsonRPC
                 Assert.IsNull(result["balance"]);
                 Assert.AreEqual(false, result["unreceived"].Value<bool>());
 
+                // monitor the wallet
+                _notified = false;
+                Assert.IsNull(await jsonRpc.InvokeWithCancellationAsync<JObject>("Monitor", new object[] { _accountId }, cancellationToken));
+
                 // we send 10 LYR to it
                 var sendResult = await w1.Send(10, _accountId);
                 Assert.IsTrue(sendResult.Successful());
+
+                Assert.IsTrue(_notified);
 
                 var result2 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Balance", new object[] { _accountId }, cancellationToken);
                 Assert.IsNotNull(result2);
@@ -92,9 +99,13 @@ namespace UnitTests.JsonRPC
                 Assert.AreEqual(false, result4["unreceived"].Value<bool>());
                 var balance4 = result4["balance"].ToObject<Dictionary<string, decimal>>();
                 Assert.IsNotNull(balance4);
-                Assert.AreEqual(4, balance["LYR"]);
-
+                Assert.AreEqual(4, balance4["LYR"]);
             }).ConfigureAwait(true);
+        }
+
+        protected override void RecvNotify(JObject notifyObj)
+        {
+            base.RecvNotify(notifyObj);
         }
 
         protected override string SignMessage(string message)

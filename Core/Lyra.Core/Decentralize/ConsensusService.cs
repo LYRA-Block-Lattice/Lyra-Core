@@ -1455,6 +1455,9 @@ namespace Lyra.Core.Decentralize
             _activeConsensus.TryRemove(block.Hash, out _);
             _log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count}");
 
+            if (result == ConsensusResult.Yea)
+                _sys.NewBlockGenerated(block);
+
             // just save the block in queue
             // non-leader will wait. if leader failed, the block can be send immediatelly
             // the saved block can be used to verify/authenticate

@@ -391,6 +391,17 @@ namespace Lyra.Core.Accounts
             return (result as ImportAccountBlock).AccountID == AccountId;
         }
 
+        public Block FindBlockByHash(string hash)
+        {
+            if (string.IsNullOrEmpty(hash))
+                return null;
+
+            var filter = Builders<Block>.Filter.Eq("Hash", hash);
+
+            var block = _blocks.Find(filter).FirstOrDefault();
+            return block;
+        }
+
         public async Task<Block> FindBlockByHashAsync(string hash)
         {
             if (string.IsNullOrEmpty(hash))

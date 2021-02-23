@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,10 @@ namespace UnitTests.JsonRPC
 {
     public class JsonRpcTestBase
     {
+        protected virtual void RecvNotify(JObject notifyObj)
+        {
+
+        }
         protected virtual string SignMessage(string message)
         {
             throw new Exception("SignMessage Must be override.");
@@ -32,6 +37,13 @@ namespace UnitTests.JsonRPC
                             (msg) =>
                             {
                                 return SignMessage(msg);
+                            }
+                        ));
+
+                        jsonRpc.AddLocalRpcMethod("Notify", new Action<JObject>(
+                            (recving) =>
+                            {
+                                RecvNotify(recving);
                             }
                         ));
 
