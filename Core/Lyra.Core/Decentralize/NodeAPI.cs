@@ -459,11 +459,11 @@ namespace Lyra.Core.Decentralize
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
             var result = new BlockAPIResult();
-            if (!await VerifyClientAsync(AccountId, Signature))
-            {
-                result.ResultCode = APIResultCodes.APISignatureValidationFailed;
-                return result;
-            }
+            //if (!await VerifyClientAsync(AccountId, Signature))
+            //{
+            //    result.ResultCode = APIResultCodes.APISignatureValidationFailed;
+            //    return result;
+            //}
 
             try
             {

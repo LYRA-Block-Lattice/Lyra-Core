@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Lyra.Data.Utils;
 
 namespace Noded.Services
 {
@@ -272,6 +273,166 @@ namespace Noded.Services
 
             //PrintCon(string.Format("{0}> ", AccountName));
             return result;
+        }
+
+        public async Task<AuthorizationAPIResult> SendEx(string DestinationAccountId, Dictionary<string, decimal> Amounts, Dictionary<string, string> tags)
+        {
+            if (Amounts.Any(a => a.Value <= 0m))
+                throw new Exception("Amount must > 0");
+
+            TransactionBlock previousBlock = await GetLatestBlockAsync();
+            if (previousBlock == null)
+            {
+                //throw new ApplicationException("Previous block not found");
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
+            }
+
+            // check tokens exists
+            if (Amounts.Keys.Any(a => !previousBlock.Balances.ContainsKey(a)))
+            {
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
+            }
+
+            var blockresult = await _rpcClient.GetLastServiceBlock();
+
+            if (blockresult.ResultCode != APIResultCodes.Success)
+                return new AuthorizationAPIResult() { ResultCode = blockresult.ResultCode };
+
+            ServiceBlock lastServiceBlock = blockresult.GetBlock() as ServiceBlock;
+
+            var fee = lastServiceBlock.TransferFee;
+
+            SendTransferBlock sendBlock = new SendTransferBlock()
+            {
+                AccountID = AccountId,
+                VoteFor = null,
+                ServiceHash = lastServiceBlock.Hash,
+                DestinationAccountId = DestinationAccountId,
+                Balances = new Dictionary<string, long>(),
+                Tags = tags,
+                Fee = fee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = fee == 0m ? AuthorizationFeeTypes.NoFee : AuthorizationFeeTypes.Regular
+            };
+
+            // transfer unchanged token balances from the previous block
+            foreach (var balance in previousBlock.Balances)
+            {
+                if (Amounts.ContainsKey(balance.Key))
+                {
+                    sendBlock.Balances.Add(balance.Key, (balance.Value.ToBalanceDecimal() - Amounts[balance.Key]).ToBalanceLong());
+                }
+                else
+                {
+                    sendBlock.Balances.Add(balance.Key, balance.Value);
+                }
+            }
+            // substract the fee
+            // for customer tokens, we pay fee in LYR (unless they are accepted by authorizers as a fee - TO DO)
+            sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] = (sendBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() - fee).ToBalanceLong();
+
+            sendBlock.InitializeBlock(previousBlock, _signer);
+
+            if (!sendBlock.ValidateTransaction(previousBlock))
+            {
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
+                //throw new ApplicationException("ValidateTransaction failed");
+            }
+
+            //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
+            AuthorizationAPIResult result;
+            //var stopwatch = Stopwatch.StartNew();
+            result = await _trans.SendTransfer(sendBlock);
+
+            return result;
+        }
+        private async Task<string[]> GetProperTokenNameAsync(string[] tokenNames)
+        {
+            var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlock(AccountId, a, null));
+            return result.Select(a => a.GetBlock() as TokenGenesisBlock)
+                .Select(b => b?.Ticker)
+                .OrderBy(a => a)
+                .ToArray();
+        }
+
+        public async Task<PoolInfoAPIResult> GetLiquidatePoolAsync(string token0, string token1)
+        {
+            var result = await _rpcClient.GetPool(token0, token1);
+            return result;
+        }
+
+        public async Task<APIResult> CreateLiquidatePoolAsync(string token0, string token1)
+        {
+            var tokenNames = await GetProperTokenNameAsync(new[] { token0, token1 });
+
+            if (tokenNames.Any(a => a == null))
+                return new APIResult { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
+
+            var pool = await _rpcClient.GetPool(tokenNames[0], tokenNames[1]);
+            if (pool.PoolAccountId != null)
+                return new APIResult { ResultCode = APIResultCodes.PoolAlreadyExists };
+
+            var tags = new Dictionary<string, string>();
+            tags.Add("token0", tokenNames[0]);
+            tags.Add("token1", tokenNames[1]);
+            tags.Add(Block.REQSERVICETAG, "");
+            var amounts = new Dictionary<string, decimal>();
+            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+            return await SendEx(pool.PoolFactoryAccountId, amounts, tags);
+        }
+
+        public async Task<APIResult> AddLiquidateToPoolAsync(string token0, decimal token0Amount, string token1, decimal token1Amount)
+        {
+            var pool = await _rpcClient.GetPool(token0, token1);
+            if (pool.PoolAccountId == null)
+                return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
+
+            var amountsDeposit = new Dictionary<string, decimal>();
+            amountsDeposit.Add(token0, token0Amount);
+            amountsDeposit.Add(token1, token1Amount);
+
+            var tags = new Dictionary<string, string>();
+            tags.Add("token0", pool.Token0);
+            tags.Add("token1", pool.Token1);
+            tags.Add(Block.REQSERVICETAG, "");
+
+            var poolDepositResult = await SendEx(pool.PoolAccountId, amountsDeposit, tags);
+            return poolDepositResult;
+        }
+
+        public async Task<APIResult> RemoveLiquidateFromPoolAsync(string token0, string token1)
+        {
+            var pool = await _rpcClient.GetPool(token0, token1);
+            if (pool.PoolAccountId == null)
+                return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
+
+            var tags = new Dictionary<string, string>();
+            tags.Add(Block.REQSERVICETAG, "poolwithdraw");
+            tags.Add("poolid", pool.PoolAccountId);
+            tags.Add("token0", pool.Token0);
+            tags.Add("token1", pool.Token1);
+            var amounts = new Dictionary<string, decimal>();
+            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
+            var poolWithdrawResult = await SendEx(pool.PoolFactoryAccountId, amounts, tags);
+            return poolWithdrawResult;
+        }
+
+        public async Task<APIResult> SwapToken(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
+        {
+            var pool = await _rpcClient.GetPool(token0, token1);
+            if (pool.PoolAccountId == null)
+                return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
+
+            var tags = new Dictionary<string, string>();
+            tags.Add(Block.REQSERVICETAG, "swaptoken");
+            tags.Add("poolid", pool.PoolAccountId);
+            tags.Add("token0", pool.Token0);
+            tags.Add("token1", pool.Token1);
+            tags.Add("minrecv", $"{amountToGet.ToBalanceLong()}");
+            var amounts = new Dictionary<string, decimal>();
+            amounts.Add(tokenToSwap, amountToSwap);
+            var swapTokenResult = await SendEx(pool.PoolAccountId, amounts, tags);
+            return swapTokenResult;
         }
 
         public async Task<long> GetLocalAccountHeightAsync()

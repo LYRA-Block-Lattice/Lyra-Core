@@ -23,7 +23,7 @@ namespace Lyra.Node
             if (this.HttpContext.WebSockets.IsWebSocketRequest)
             {
                 var socket = await this.HttpContext.WebSockets.AcceptWebSocketAsync();
-                var svr = new JsonRpcServer(_node, _trans);
+                using (var svr = new JsonRpcServer(_node, _trans))
                 using (var jsonRpc = new JsonRpc(new WebSocketMessageHandler(socket), svr))
                 {
                     svr.RPC = jsonRpc;

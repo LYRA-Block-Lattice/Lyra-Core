@@ -359,12 +359,6 @@ namespace Lyra.Core.Accounts
             return APIResultCodes.UnknownError;
         }
 
-        public async Task<PoolInfoAPIResult> GetLiquidatePoolAsync(string token0, string token1)
-        {
-            var result = await _rpcClient.GetPool(token0, token1);
-            return result;
-        }
-
         #region Reward Trade Processing
 
         public async Task<TradeAPIResult> LookForNewTrade(string BuyTokenCode, string SellTokenCode)
@@ -1781,6 +1775,12 @@ namespace Lyra.Core.Accounts
                 .Select(b => b?.Ticker)
                 .OrderBy(a => a)
                 .ToArray();
+        }
+
+        public async Task<PoolInfoAPIResult> GetLiquidatePoolAsync(string token0, string token1)
+        {
+            var result = await _rpcClient.GetPool(token0, token1);
+            return result;
         }
 
         public async Task<APIResult> CreateLiquidatePoolAsync(string token0, string token1)

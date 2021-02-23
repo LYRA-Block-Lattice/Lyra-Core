@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
+using Lyra.Data.API;
 using Noded.Services;
 using StreamJsonRpc;
 using System;
@@ -135,26 +136,83 @@ namespace Lyra.Node
         {
             _monitorAccountId = accountId;
         }
-        public void History(string accountId, long startTime, long endTime, int count)
+        public async Task<List<TransactionDescription>> History(string accountId, long startTime, long endTime, int count)
         {
-
+            var hists = await _node.SearchTransactions(accountId, startTime, endTime, count);
+            if (hists.Successful())
+                return hists.Transactions;
+            else
+                throw new Exception(hists.ResultCode.ToString());
         }
         // group pool
-        public void Pool(string token0, string token1)
+        public async Task<PoolInfo> PoolAsync(string token0, string token1)
         {
+            var poolResult = await _node.GetPool(token0, token1);
+            if(poolResult.Successful())
+            {
+                return new PoolInfo
+                {
+                    token0 = poolResult.Token0,
+                    token1 = poolResult.Token1,
+                    balance = (poolResult.GetBlock() as TransactionBlock).Balances.ToDecimalDict()
+                };
+            }
 
+            throw new Exception("Failed to get pool");
         }
-        public void AddLiquidaty(string poolId)
+        public async Task<BalanceResult> AddLiquidatyAsync(string accountId, string token0, decimal token0Amount, string token1, decimal token1Amount)
         {
+            var klWallet = new KeylessWallet(accountId, (msg) =>
+            {
+                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
+                return result3.GetAwaiter().GetResult();
+            }, _node, _trans);
 
+            var result = await klWallet.AddLiquidateToPoolAsync(token0, token0Amount, token1, token1Amount);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return await Balance(accountId);
+            }
+            else
+            {
+                throw new Exception(result.ToString());
+            }
         }
-        public void RemoveLiquidaty(string poolId)
+        public async Task<BalanceResult> RemoveLiquidaty(string accountId, string token0, string token1)
         {
+            var klWallet = new KeylessWallet(accountId, (msg) =>
+            {
+                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
+                return result3.GetAwaiter().GetResult();
+            }, _node, _trans);
 
+            var result = await klWallet.RemoveLiquidateFromPoolAsync(token0, token1);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return await Balance(accountId);
+            }
+            else
+            {
+                throw new Exception(result.ToString());
+            }
         }
-        public void Swap(string poolId, string fromToken, long amountLong)  // need convert to decimal
+        public async Task<BalanceResult> Swap(string accountId, string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
         {
+            var klWallet = new KeylessWallet(accountId, (msg) =>
+            {
+                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
+                return result3.GetAwaiter().GetResult();
+            }, _node, _trans);
 
+            var result = await klWallet.SwapToken(token0, token1, tokenToSwap, amountToSwap, amountToGet);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return await Balance(accountId);
+            }
+            else
+            {
+                throw new Exception(result.ToString());
+            }
         }
         // group notification
         public event EventHandler<Receiving> Notify;
@@ -185,11 +243,13 @@ namespace Lyra.Node
         }
     }
 
-    public class TxInfo
+    public class PoolInfo
     {
-        public string from { get; set; }
-        public string to { get; set; }
-        public Dictionary<string, decimal> changes { get; set; }
+        public string poolId { get; set; }
+        public string token0 { get; set; }
+        public string token1 { get; set; }
+
+        public Dictionary<string, decimal> balance { get; set; }
     }
     public class BalanceResult
     {
