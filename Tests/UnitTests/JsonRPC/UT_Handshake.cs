@@ -21,9 +21,10 @@ namespace UnitTests.JsonRPC
         {
             await TestProcAsync(async (jsonRpc, cancellationToken) =>
             {
-                var result = await jsonRpc.InvokeWithCancellationAsync<JObject>("Status", new object[] { LyraGlobal.NODE_VERSION }, cancellationToken);
+                var result = await jsonRpc.InvokeWithCancellationAsync<JObject>("Status", new object[] { LyraGlobal.NODE_VERSION, TestConfig.networkId }, cancellationToken);
                 Assert.IsNotNull(result);
                 Assert.AreEqual(true, result["synced"].Value<bool>());
+                Assert.AreEqual(TestConfig.networkId, result["networkid"].Value<string>());
             }).ConfigureAwait(true);
         }
 
@@ -64,7 +65,7 @@ namespace UnitTests.JsonRPC
                         await jsonRpc.NotifyAsync("SendTicksAsync");
 
                         _ = Task.Run(async () => {
-                            await Task.Delay(5000);
+                            await Task.Delay(3000);
                             cancellationTokenSrc.Cancel();
                         });
                         await jsonRpc.Completion.WithCancellation(cancellationToken);

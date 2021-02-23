@@ -12,6 +12,15 @@ namespace UnitTests.JsonRPC
     [TestClass]
     public class UT_WalletJsonRpc : JsonRpcTestBase
     {
+        // used as test account
+        string _privateKey;
+        string _accountId;
+
+        public UT_WalletJsonRpc()
+        {
+            (_privateKey, _accountId) = Signatures.GenerateWallet();
+        }
+
         [TestMethod]
         public async Task BalanceAsync()
         {
@@ -37,5 +46,15 @@ namespace UnitTests.JsonRPC
             }).ConfigureAwait(true);
         }
 
+        [TestMethod]
+        public async Task ReceiveTestAsync()
+        {
+
+        }
+
+        protected override string SignMessage(string message)
+        {
+            return Signatures.GetSignature(_privateKey, message, _accountId);
+        }
     }
 }

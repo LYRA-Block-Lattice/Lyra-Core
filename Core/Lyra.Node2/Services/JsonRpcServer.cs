@@ -24,7 +24,7 @@ namespace Lyra.Node
             _node = node;
         }
         // group hand shake
-        public async Task<ApiStatus> Status(string version)
+        public async Task<ApiStatus> Status(string version, string networkid)
         {
             var clientVer = new Version(version);
             if (LyraGlobal.NODE_VERSION > clientVer)
@@ -35,6 +35,7 @@ namespace Lyra.Node
             return new ApiStatus
             {
                 version = LyraGlobal.NODE_VERSION.ToString(),
+                networkid = syncState.NetworkID,
                 synced = syncState.Status.state == Data.API.BlockChainState.Almighty
                     || syncState.Status.state == Data.API.BlockChainState.Engaging
             };
@@ -131,6 +132,7 @@ namespace Lyra.Node
     public class ApiStatus
     {
         public string version { get; set; }
+        public string networkid { get; set; }
         public bool synced { get; set; }
     }
     public class Receiving
