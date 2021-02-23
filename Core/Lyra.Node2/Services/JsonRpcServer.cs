@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -25,6 +26,10 @@ namespace Lyra.Node
         // group hand shake
         public async Task<ApiStatus> Status(string version)
         {
+            var clientVer = new Version(version);
+            if (LyraGlobal.NODE_VERSION > clientVer)
+                throw new Exception("Client version too low. Need upgrade.");
+
             var syncState = await _node.GetSyncState();
 
             return new ApiStatus
@@ -36,9 +41,22 @@ namespace Lyra.Node
         }
 
         // group wallet
-        public BalanceResult Balance(string accountId)
+        public async Task<BalanceResult> Balance(string accountId)
         {
-            throw new NotImplementedException();
+            var blockResult = await _node.GetLastBlock(accountId);
+            if(blockResult.Successful())
+            {
+                var block = blockResult.GetBlock() as TransactionBlock;
+
+                return new BalanceResult
+                {
+                    balance = block.Balances.ToDecimalDict()
+                };
+            }
+            else
+            {
+                throw new Exception("Can't get latest block for account.");
+            }
         }
         public void Receive(List<string> unreceiveTx)
         {
