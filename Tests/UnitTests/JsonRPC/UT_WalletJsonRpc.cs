@@ -84,6 +84,16 @@ namespace UnitTests.JsonRPC
                 var balance = result3["balance"].ToObject<Dictionary<string, decimal>>();
                 Assert.IsNotNull(balance);
                 Assert.AreEqual(10, balance["LYR"]);
+
+                // send 5 back
+                var result4 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Send", new object[] { _accountId, 5, UT_TransitWallet.ADDRESS_ID_1, LyraGlobal.OFFICIALTICKERCODE }, cancellationToken);
+                Assert.IsNotNull(result4);
+                Assert.IsNotNull(result4["balance"]);
+                Assert.AreEqual(false, result4["unreceived"].Value<bool>());
+                var balance4 = result4["balance"].ToObject<Dictionary<string, decimal>>();
+                Assert.IsNotNull(balance4);
+                Assert.AreEqual(4, balance["LYR"]);
+
             }).ConfigureAwait(true);
         }
 

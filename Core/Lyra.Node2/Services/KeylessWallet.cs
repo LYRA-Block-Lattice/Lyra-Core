@@ -16,21 +16,12 @@ namespace Noded.Services
         private INodeAPI _rpcClient;
         INodeTransactionAPI _trans;
 
-        // for signature handler
-        public ConcurrentBag<string> SignQueue { get; private set; }
-        public ConcurrentBag<string> Signatures { get; private set; }
-        public ManualResetEvent GotSign { get; private set; }
-
         public string AccountId => _accountId;
 
         public KeylessWallet(string accountId, SignHandler signer, INodeAPI client, INodeTransactionAPI trans)
         {
             _accountId = accountId;
             _signer = signer;
-
-            SignQueue = new ConcurrentBag<string>();
-            Signatures = new ConcurrentBag<string>();
-            GotSign = new ManualResetEvent(false);
 
             _rpcClient = client;
             _trans = trans;

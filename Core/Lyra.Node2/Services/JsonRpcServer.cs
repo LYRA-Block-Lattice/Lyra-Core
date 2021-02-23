@@ -94,9 +94,23 @@ namespace Lyra.Node
                 throw new Exception(result.ToString());
             }
         }
-        public void Send()
+        public async Task<BalanceResult> Send(string accountId, decimal amount, string destAccount, string ticker)
         {
+            var klWallet = new KeylessWallet(accountId, (msg) =>
+            {
+                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
+                return result3.GetAwaiter().GetResult();
+            }, _node, _trans);
 
+            var result = await klWallet.SendAsync(amount, destAccount, ticker);
+            if (result == APIResultCodes.Success)
+            {
+                return await Balance(accountId);
+            }
+            else
+            {
+                throw new Exception(result.ToString());
+            }
         }
         public void Monitor(string accountId)
         {
