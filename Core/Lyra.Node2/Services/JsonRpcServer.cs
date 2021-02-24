@@ -174,7 +174,7 @@ namespace Lyra.Node
         public async Task<PoolInfo> Pool(string token0, string token1)
         {
             var poolResult = await _node.GetPool(token0, token1);
-            if(poolResult.Successful())
+            if(poolResult.Successful() && poolResult.PoolAccountId != null)
             {
                 return new PoolInfo
                 {
@@ -185,6 +185,20 @@ namespace Lyra.Node
             }
 
             throw new Exception("Failed to get pool");
+        }
+        public async Task<PoolInfo> CreatePool(string accountId, string token0, string token1)
+        {
+            var klWallet = CreateWallet(accountId);
+
+            var result = await klWallet.CreateLiquidatePoolAsync(token0, token1);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return await Pool(token0, token1);
+            }
+            else
+            {
+                throw new Exception(result.ToString());
+            }
         }
         public async Task<SwapCalculator> PoolCalculate(string poolId, string swapFrom, decimal amount, decimal slippage)
         {
