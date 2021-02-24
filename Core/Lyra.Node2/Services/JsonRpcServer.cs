@@ -179,11 +179,14 @@ namespace Lyra.Node
                 var poolLatest = await _node.GetLastBlock(poolResult.PoolAccountId);
                 if(poolLatest.Successful())
                 {
+                    var latestBlock = poolLatest.GetBlock() as TransactionBlock;
                     return new PoolInfo
                     {
+                        poolId = poolResult.PoolAccountId,
+                        height = latestBlock.Height,
                         token0 = poolResult.Token0,
                         token1 = poolResult.Token1,
-                        balance = (poolLatest.GetBlock() as TransactionBlock).Balances.ToDecimalDict()
+                        balance = latestBlock.Balances.ToDecimalDict()
                     };
                 }
             }
@@ -231,10 +234,24 @@ namespace Lyra.Node
         {
             var klWallet = CreateWallet(accountId);
 
+            var oldPool = await Pool(token0, token1);
             var result = await klWallet.AddLiquidateToPoolAsync(token0, token0Amount, token1, token1Amount);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return await Pool(token0, token1);
+                for (int i = 0; i < 30; i++)
+                {
+                    await Task.Delay(500);     // wait for the pool to be liquidated
+                    try
+                    {
+                        var latestPool = await Pool(token0, token1);
+                        if (oldPool.height == latestPool.height)
+                            continue;
+                        else
+                            return latestPool;
+                    }
+                    catch { }
+                }
+                throw new Exception("Add liquidaty failed.");
             }
             else
             {
@@ -245,10 +262,26 @@ namespace Lyra.Node
         {
             var klWallet = CreateWallet(accountId);
 
+            var oldPool = await Pool(token0, token1);
             var result = await klWallet.RemoveLiquidateFromPoolAsync(token0, token1);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return await Balance(accountId);
+                for (int i = 0; i < 30; i++)
+                {
+                    await Task.Delay(500);     // wait for the liquidaty to be removed
+                    try
+                    {
+                        var latestPool = await Pool(token0, token1);
+                        if (oldPool.height == latestPool.height)
+                            continue;
+                        else
+                        {
+                            return await Receive(accountId);
+                        }
+                    }
+                    catch { }
+                }
+                throw new Exception("Remove liquidaty failed.");
             }
             else
             {
@@ -259,10 +292,26 @@ namespace Lyra.Node
         {
             var klWallet = CreateWallet(accountId);
 
+            var oldPool = await Pool(token0, token1);
             var result = await klWallet.SwapToken(token0, token1, tokenToSwap, amountToSwap, amountToGet);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return await Balance(accountId);
+                for (int i = 0; i < 30; i++)
+                {
+                    await Task.Delay(500);     // wait for the swap to be finished
+                    try
+                    {
+                        var latestPool = await Pool(token0, token1);
+                        if (oldPool.height == latestPool.height)
+                            continue;
+                        else
+                        {
+                            return await Receive(accountId);
+                        }                            
+                    }
+                    catch { }
+                }
+                throw new Exception("Token swap failed.");                
             }
             else
             {

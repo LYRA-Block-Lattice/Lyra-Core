@@ -13,6 +13,7 @@ namespace Lyra.Core.API
     public class PoolInfo
     {
         public string poolId { get; set; }
+        public long height { get; set; }
         public string token0 { get; set; }
         public string token1 { get; set; }
 
