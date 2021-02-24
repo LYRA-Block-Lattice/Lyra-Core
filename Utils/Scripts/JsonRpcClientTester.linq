@@ -132,8 +132,7 @@ public class JsWallet : LyraJsonRPCClient
 	
 	public void GetPool(string token0, string token1)
 	{
-		(var result, var error) = CallRPC("Pool", new string[] { token0, token1 });
-		
+		(var result, var error) = CallRPC("Pool", new string[] { token0, token1 });		
 	}
 }
 
@@ -247,7 +246,7 @@ public abstract class LyraJsonRPCClient
 			{
 				var msg = data.@params[0].Value;
 				Console.WriteLine($"  Signing message: {msg}");
-				var sign = Sign(msg);
+				var sign = new[] { "p1393", Sign(msg) };
 				CallRPC(new {
 					jsonrpc = "2.0",
 					id = data.id,
