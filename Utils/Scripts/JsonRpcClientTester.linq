@@ -1,24 +1,23 @@
 <Query Kind="Program">
-  <NuGetReference>Lyra.Data</NuGetReference>
   <NuGetReference>Newtonsoft.Json</NuGetReference>
   <NuGetReference>WebSocket4Net</NuGetReference>
+  <NuGetReference>Lyra.Data</NuGetReference>
+  <Namespace>Lyra.Core.Accounts</Namespace>
+  <Namespace>Lyra.Core.API</Namespace>
+  <Namespace>Lyra.Data.Crypto</Namespace>
   <Namespace>Newtonsoft.Json</Namespace>
   <Namespace>Newtonsoft.Json.Linq</Namespace>
-  <Namespace>System</Namespace>
   <Namespace>System.Security.Authentication</Namespace>
   <Namespace>System.Threading.Tasks</Namespace>
   <Namespace>WebSocket4Net</Namespace>
-  <Namespace>Lyra.Data.Crypto</Namespace>
-  <Namespace>Lyra.Core.Accounts</Namespace>
-  <Namespace>Lyra.Core.API</Namespace>
 </Query>
 
 async static Task Main(string[] args)
 {
-	var networkId = "testnet";
-	var url = "wss://testnet.lyra.live/api/v1/socket";
-	//var networkId = "devnet";
-	//var url = "wss://api.devnet:4504/api/v1/socket";
+	//var networkId = "testnet";
+	//var url = "wss://testnet.lyra.live/api/v1/socket";
+	var networkId = "devnet";
+	var url = "wss://api.devnet:4504/api/v1/socket";
 	//var url = "wss://localhost:4504/api/v1/socket";
 
 	var cancel = new CancellationTokenSource();
@@ -139,6 +138,7 @@ public class Tester
 	{
 		var store = new AccountInMemoryStorage();
 		var wallet = Wallet.Create(store, "rich", "", _networkId, _richPrivateKey);
+		wallet.NoConsole = true;
 		var client = LyraRestClient.Create(_networkId, "Windows", "UnitTest", "1.0");
 		await wallet.Sync(client);
 		return wallet;
