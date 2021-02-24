@@ -2,12 +2,14 @@
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.Crypto;
 using Noded.Services;
 using StreamJsonRpc;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Lyra.Data.Utils;
 
 namespace Lyra.Node
 {
@@ -55,10 +57,22 @@ namespace Lyra.Node
         {
             var klWallet = new KeylessWallet(accountId, (msg) =>
             {
-                var result3 = RPC.InvokeAsync<string>("Sign", new object[] { msg });
+                var result3 = RPC.InvokeAsync<string[]>("Sign", new object[] { msg });
                 try
                 {
-                    return result3.GetAwaiter().GetResult();
+                    var signaturs = result3.GetAwaiter().GetResult();
+                    if (signaturs[0] == "p1393")
+                        return signaturs[1];
+                    else if(signaturs[0] == "der") // der, bouncycastle compatible
+                    {
+                        var dotnetsignBuff = SignatureHelper.ConvertDerToP1393(signaturs[1].StringToByteArray());
+                        var dotnetsign = Base58Encoding.Encode(dotnetsignBuff);
+                        return dotnetsign;
+                    }
+                    else
+                    {
+                        return null;
+                    }
                 }
                 catch
                 {
