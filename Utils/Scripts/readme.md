@@ -1,0 +1,1 @@
+Download LinqPad from https://www.linqpad.net/ and run it.
