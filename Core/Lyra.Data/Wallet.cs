@@ -61,6 +61,8 @@ namespace Lyra.Core.Accounts
             }
         }
 
+        public bool NoConsole { get => _noConsole; set => _noConsole = value; }
+
         private Wallet(IAccountDatabase storage, string name, ILyraAPI rpcClient = null)
         {
             _store = storage;
@@ -69,21 +71,21 @@ namespace Lyra.Core.Accounts
 
             var platform = Environment.OSVersion.Platform.ToString();
             if (platform == "Android" || platform == "iOS")
-                _noConsole = true;
+                NoConsole = true;
             else
-                _noConsole = false;
+                NoConsole = false;
         }
 
         private void PrintConLine(string s)
         {
-            if (_noConsole)
+            if (NoConsole)
                 return;
 
             Console.WriteLine(s);
         }
         private void PrintCon(string s1, string s2 = null)
         {
-            if (_noConsole)
+            if (NoConsole)
                 return;
 
             if (s2 == null)
