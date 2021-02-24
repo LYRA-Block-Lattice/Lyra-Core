@@ -197,7 +197,16 @@ namespace Lyra.Node
             var result = await klWallet.CreateLiquidatePoolAsync(token0, token1);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return await Pool(token0, token1);
+                for(int i = 0; i < 30; i++)
+                {
+                    await Task.Delay(500);     // wait for the pool to be created.
+                    try
+                    {
+                        return await Pool(token0, token1);
+                    }
+                    catch { }
+                }
+                throw new Exception("Pool was not created properly.");
             }
             else
             {
