@@ -176,12 +176,16 @@ namespace Lyra.Node
             var poolResult = await _node.GetPool(token0, token1);
             if(poolResult.Successful() && poolResult.PoolAccountId != null)
             {
-                return new PoolInfo
+                var poolLatest = await _node.GetLastBlock(poolResult.PoolAccountId);
+                if(poolLatest.Successful())
                 {
-                    token0 = poolResult.Token0,
-                    token1 = poolResult.Token1,
-                    balance = (poolResult.GetBlock() as TransactionBlock).Balances.ToDecimalDict()
-                };
+                    return new PoolInfo
+                    {
+                        token0 = poolResult.Token0,
+                        token1 = poolResult.Token1,
+                        balance = (poolLatest.GetBlock() as TransactionBlock).Balances.ToDecimalDict()
+                    };
+                }
             }
 
             throw new Exception("Failed to get pool");
@@ -214,18 +218,18 @@ namespace Lyra.Node
 
             throw new Exception("Failed to get pool");
         }
-        public async Task<BalanceResult> AddLiquidaty(string accountId, string token0, decimal token0Amount, string token1, decimal token1Amount)
+        public async Task<PoolInfo> AddLiquidaty(string accountId, string token0, decimal token0Amount, string token1, decimal token1Amount)
         {
             var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.AddLiquidateToPoolAsync(token0, token0Amount, token1, token1Amount);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return await Balance(accountId);
+                return await Pool(token0, token1);
             }
             else
             {
-                throw new Exception(result.ToString());
+                throw new Exception(result.ResultCode.ToString());
             }
         }
         public async Task<BalanceResult> RemoveLiquidaty(string accountId, string token0, string token1)
