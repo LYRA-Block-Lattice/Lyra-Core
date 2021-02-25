@@ -138,7 +138,7 @@ namespace Lyra.Node
             }
             else
             {
-                throw new Exception(result.ToString());
+                throw new Exception($"{result}");
             }
         }
         public async Task<BalanceResult> Send(string accountId, decimal amount, string destAccount, string ticker)
@@ -168,7 +168,7 @@ namespace Lyra.Node
             }
             else
             {
-                throw new Exception(result.ResultCode.ToString());
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
             }
         }
 
@@ -182,7 +182,7 @@ namespace Lyra.Node
             if (hists.Successful())
                 return hists.Transactions;
             else
-                throw new Exception(hists.ResultCode.ToString());
+                throw new Exception($"{hists.ResultCode}: {hists.ResultMessage}");
         }
         // group pool
         public async Task<PoolInfo> Pool(string token0, string token1)
@@ -269,7 +269,7 @@ namespace Lyra.Node
             }
             else
             {
-                throw new Exception(result.ResultCode.ToString());
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
             }
         }
         public async Task<BalanceResult> RemoveLiquidaty(string accountId, string token0, string token1)
