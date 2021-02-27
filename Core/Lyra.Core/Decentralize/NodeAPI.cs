@@ -659,7 +659,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in GetBlocksByTimeRange: " + e.ToString());
+                Console.WriteLine("Exception in SearchTransactions: " + e.ToString());
                 result.ResultCode = APIResultCodes.UnknownError;
                 result.ResultMessage = e.ToString();
             }

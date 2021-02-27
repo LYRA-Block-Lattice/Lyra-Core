@@ -67,10 +67,10 @@ namespace Lyra.Core.API
                 {
                     try
                     {
-                        jsonRpc.AddLocalRpcMethod("Sign", new Func<string, string[]>(
-                            (msg) =>
+                        jsonRpc.AddLocalRpcMethod("Sign", new Func<string[], string[]>(
+                            (msgs) =>
                             {
-                                return new string[] { "p1393", SignMessage(msg) };
+                                return new string[] { "p1393", SignMessage(msgs[1]) };
                             }
                         ));
 

@@ -1168,7 +1168,14 @@ namespace Lyra.Core.Accounts
                     else
                     {
                         var from = await FindBlockByHashAsync(rb.SourceHash);
-                        tx.SendAccountId = (from as TransactionBlock).AccountID;
+                        if(from is TransactionBlock txs)
+                        {
+                            tx.SendAccountId = txs.AccountID;
+                        }
+                        else
+                        {
+                            tx.SendAccountId = from.BlockType.ToString();
+                        }
                         tx.SendHash = from.Hash;
                     }
                 }
