@@ -244,6 +244,9 @@ public abstract class LyraJsonRPCClient
 			dynamic data = JObject.Parse(e.Message);
 			if (data.method == "Sign")
 			{
+				// string[] Sign (string type, string message)
+				// for now type is always 'hash'.
+				// in future maybe raw msg and need to hash it locally.
 				var msg = data.@params[1].Value;
 				Console.WriteLine($"  Signing message: {msg}");
 				var sign = new[] { "p1393", Sign(msg) };
