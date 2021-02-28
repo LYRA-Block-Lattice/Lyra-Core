@@ -14,7 +14,8 @@ namespace Noded.Services
     {
         private string _accountId;
         private SignHandler _signer;
-        private INodeAPI _rpcClient;
+
+        INodeAPI _node;
         INodeTransactionAPI _trans;
 
         public string AccountId => _accountId;
@@ -24,7 +25,7 @@ namespace Noded.Services
             _accountId = accountId;
             _signer = signer;
 
-            _rpcClient = client;
+            _node = client;
             _trans = trans;
         }
 
@@ -38,19 +39,9 @@ namespace Noded.Services
 
         public async Task<APIResultCodes> ReceiveAsync()
         {
-            var blockresult = await _rpcClient.GetLastServiceBlock();
-
-            if (blockresult.ResultCode != APIResultCodes.Success)
-                return blockresult.ResultCode;
-
-            ServiceBlock lastServiceBlock = blockresult.GetBlock() as ServiceBlock;
-            //TransferFee = lastServiceBlock.TransferFee;
-            //TokenGenerationFee = lastServiceBlock.TokenGenerationFee;
-            //TradeFee = lastServiceBlock.TradeFee;
-
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTransfer2(AccountId, null);
+                var lookup_result = await _node.LookForNewTransfer2(AccountId, null);
                 int max_counter = 0;
 
                 while (lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
@@ -63,7 +54,7 @@ namespace Noded.Services
                     if (!receive_result.Successful())
                         return receive_result.ResultCode;
 
-                    lookup_result = await _rpcClient.LookForNewTransfer2(AccountId, null);
+                    lookup_result = await _node.LookForNewTransfer2(AccountId, null);
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -97,19 +88,12 @@ namespace Noded.Services
                 throw new Exception("No balance");
             }
 
-            var blockresult = await _rpcClient.GetLastServiceBlock();
+            var blockresult = await _node.GetLastServiceBlock();
 
             if (blockresult.ResultCode != APIResultCodes.Success)
                 return blockresult.ResultCode;
 
             ServiceBlock lastServiceBlock = blockresult.GetBlock() as ServiceBlock;
-
-            //int precision = await FindTokenPrecision(ticker);
-            //if (precision < 0)
-            //{
-
-            //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
-            //}
 
             //long atomicamount = (long)(Amount * (decimal)Math.Pow(10, precision));
             var balance_change = Amount;
@@ -136,17 +120,11 @@ namespace Noded.Services
                     return APIResultCodes.InsufficientFunds;
                 }
 
-            //var svcBlockResult = await _rpcClient.GetLastServiceBlock(AccountId, SignAPICallAsync());
-            //if (svcBlockResult.ResultCode != APIResultCodes.Success)
-            //{
-            //    throw new Exception("Unable to get latest service block.");
-            //}
-
             SendTransferBlock sendBlock;
             sendBlock = new SendTransferBlock()
             {
                 AccountID = _accountId,
-                VoteFor = null,
+                VoteFor = previousBlock.VoteFor,
                 ServiceHash = lastServiceBlock.Hash,
                 DestinationAccountId = destAccount,
                 Balances = new Dictionary<string, long>(),
@@ -181,7 +159,7 @@ namespace Noded.Services
             //var stopwatch = Stopwatch.StartNew();
             result = await _trans.SendTransfer(sendBlock);
             //stopwatch.Stop();
-            //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
+            //PrintConLine($"_node.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
 
             return result.ResultCode;
         }
@@ -196,16 +174,18 @@ namespace Noded.Services
             if (await GetLocalAccountHeightAsync() == 0) // if this is new account with no blocks
                 return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _node.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
             }
 
+            TransactionBlock latestBlock = await GetLatestBlockAsync();
+
             var receiveBlock = new ReceiveTransferBlock
             {
                 AccountID = _accountId,
-                VoteFor = null,
+                VoteFor = latestBlock.VoteFor,
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 SourceHash = new_transfer_info.SourceHash,
                 Balances = new Dictionary<string, long>(),
@@ -213,8 +193,6 @@ namespace Noded.Services
                 FeeType = AuthorizationFeeTypes.NoFee,
                 NonFungibleToken = new_transfer_info.NonFungibleToken
             };
-
-            TransactionBlock latestBlock = await GetLatestBlockAsync();
 
             var latestBalances = latestBlock.Balances.ToDecimalDict();
             var recvBalances = latestBlock.Balances.ToDecimalDict();
@@ -242,7 +220,7 @@ namespace Noded.Services
 
         private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult2 new_transfer_info)
         {
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _node.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -293,7 +271,7 @@ namespace Noded.Services
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
             }
 
-            var blockresult = await _rpcClient.GetLastServiceBlock();
+            var blockresult = await _node.GetLastServiceBlock();
 
             if (blockresult.ResultCode != APIResultCodes.Success)
                 return new AuthorizationAPIResult() { ResultCode = blockresult.ResultCode };
@@ -305,7 +283,7 @@ namespace Noded.Services
             SendTransferBlock sendBlock = new SendTransferBlock()
             {
                 AccountID = AccountId,
-                VoteFor = null,
+                VoteFor = previousBlock.VoteFor,
                 ServiceHash = lastServiceBlock.Hash,
                 DestinationAccountId = DestinationAccountId,
                 Balances = new Dictionary<string, long>(),
@@ -365,7 +343,7 @@ namespace Noded.Services
 
             string ticker = domainName + "/" + tokenName;
 
-            var blockresult = await _rpcClient.GetLastServiceBlock();
+            var blockresult = await _node.GetLastServiceBlock();
 
             if (blockresult.ResultCode != APIResultCodes.Success)
                 return new AuthorizationAPIResult() { ResultCode = blockresult.ResultCode };
@@ -379,7 +357,7 @@ namespace Noded.Services
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
             }
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _node.GetLastServiceBlock();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -406,7 +384,7 @@ namespace Noded.Services
                 Tags = tags,
                 RenewalDate = DateTime.UtcNow.Add(TimeSpan.FromDays(3650)),
                 ContractType = contractType,
-                VoteFor = null
+                VoteFor = latestBlock.VoteFor
             };
             // TO DO - set service hash
 
@@ -432,7 +410,7 @@ namespace Noded.Services
 
         private async Task<string[]> GetProperTokenNameAsync(string[] tokenNames)
         {
-            var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlock(AccountId, a, null));
+            var result = await tokenNames.SelectAsync(async a => await _node.GetTokenGenesisBlock(AccountId, a, null));
             return result.Select(a => a.GetBlock() as TokenGenesisBlock)
                 .Select(b => b?.Ticker)
                 .OrderBy(a => a)
@@ -441,7 +419,7 @@ namespace Noded.Services
 
         public async Task<PoolInfoAPIResult> GetLiquidatePoolAsync(string token0, string token1)
         {
-            var result = await _rpcClient.GetPool(token0, token1);
+            var result = await _node.GetPool(token0, token1);
             return result;
         }
 
@@ -452,7 +430,7 @@ namespace Noded.Services
             if (tokenNames.Any(a => a == null))
                 return new APIResult { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
 
-            var pool = await _rpcClient.GetPool(tokenNames[0], tokenNames[1]);
+            var pool = await _node.GetPool(tokenNames[0], tokenNames[1]);
             if (pool.PoolAccountId != null)
                 return new APIResult { ResultCode = APIResultCodes.PoolAlreadyExists };
 
@@ -467,7 +445,7 @@ namespace Noded.Services
 
         public async Task<APIResult> AddLiquidateToPoolAsync(string token0, decimal token0Amount, string token1, decimal token1Amount)
         {
-            var pool = await _rpcClient.GetPool(token0, token1);
+            var pool = await _node.GetPool(token0, token1);
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
@@ -486,7 +464,7 @@ namespace Noded.Services
 
         public async Task<APIResult> RemoveLiquidateFromPoolAsync(string token0, string token1)
         {
-            var pool = await _rpcClient.GetPool(token0, token1);
+            var pool = await _node.GetPool(token0, token1);
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
@@ -503,7 +481,7 @@ namespace Noded.Services
 
         public async Task<APIResult> SwapToken(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
         {
-            var pool = await _rpcClient.GetPool(token0, token1);
+            var pool = await _node.GetPool(token0, token1);
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
@@ -530,7 +508,7 @@ namespace Noded.Services
 
         private async Task<TransactionBlock> GetLatestBlockAsync()
         {
-            var blockResult = await _rpcClient.GetLastBlock(_accountId);
+            var blockResult = await _node.GetLastBlock(_accountId);
             if (blockResult.ResultCode == APIResultCodes.Success)
             {
                 return blockResult.GetBlock() as TransactionBlock;
