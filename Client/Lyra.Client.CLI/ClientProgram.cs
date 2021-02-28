@@ -51,11 +51,19 @@ namespace Lyra.Client.CLI
         {
             cancellation = new CancellationTokenSource();
 
-            new CtrlC().AddHandler((s) => {
-                cancellation.Cancel();
-                Environment.Exit(1);
-            });
+            if(Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                new CtrlC().AddHandler((s) => {
+                    cancellation.Cancel();
+                    Environment.Exit(1);
+                });
+            }
+            else
+            {
+                AppDomain.CurrentDomain.ProcessExit += (a, b) => cancellation.Cancel();
+            }
         }
+
         static async Task<int> Main(string[] args)
         {
             return await new HostBuilder()
