@@ -244,7 +244,7 @@ public abstract class LyraJsonRPCClient
 			dynamic data = JObject.Parse(e.Message);
 			if (data.method == "Sign")
 			{
-				var msg = data.@params[0].Value;
+				var msg = data.@params[1].Value;
 				Console.WriteLine($"  Signing message: {msg}");
 				var sign = new[] { "p1393", Sign(msg) };
 				CallRPC(new {
