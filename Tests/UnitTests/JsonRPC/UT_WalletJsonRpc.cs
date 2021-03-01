@@ -76,6 +76,8 @@ namespace UnitTests.JsonRPC
                 var sendResult = await w1.Send(10100, _accountId);
                 Assert.IsTrue(sendResult.Successful());
 
+                await Task.Delay(10000000); // test notify.
+
                 var result2 = await jsonRpc.InvokeWithCancellationAsync<JObject>("Balance", new object[] { _accountId }, cancellationToken);
                 Assert.IsNotNull(result2);
                 Assert.IsNull(result2["balance"]);

@@ -30,6 +30,12 @@ namespace Lyra.Core.API
         public string networkid { get; set; }
         public bool synced { get; set; }
     }
+
+    public class News
+    {
+        public string catalog { get; set; }
+        public object content { get; set; }
+    }
     public class Receiving
     {
         public string from { get; set; }
@@ -75,9 +81,11 @@ namespace Lyra.Core.API
                         ));
 
                         jsonRpc.AddLocalRpcMethod("Notify", new Action<JObject>(
-                            (recving) =>
+                            (newsObj) =>
                             {
-                                RecvNotify(recving);
+                                var news = newsObj.ToObject<News>();
+                                if (news.catalog == "Receiving")
+                                    RecvNotify(news.content as JObject);
                             }
                         ));
 

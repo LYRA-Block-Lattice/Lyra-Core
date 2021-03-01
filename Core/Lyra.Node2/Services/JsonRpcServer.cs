@@ -49,7 +49,7 @@ namespace Lyra.Node
                     from = send.AccountID,
                     funds = chgs.Changes
                 };
-                Notify?.Invoke(this, recvInfo);
+                Notify?.Invoke(this, new News { catalog = "Receiving", content = recvInfo });
             }
         }
 
@@ -104,6 +104,12 @@ namespace Lyra.Node
         // group wallet
         public async Task<BalanceResult> Balance(string accountId)
         {
+            if (string.IsNullOrWhiteSpace(accountId))
+                throw new ArgumentNullException("accountId can't be null");
+
+            if(!Signatures.ValidateAccountId(accountId))
+                throw new Exception("accountId is not a valid Lyra address");
+
             var blockResult = await _node.GetLastBlock(accountId);
             var anySendResult = await _node.LookForNewTransfer2(accountId, null);
             
@@ -335,7 +341,7 @@ namespace Lyra.Node
         }
 
         // group notification
-        public event EventHandler<Receiving> Notify;
+        public event EventHandler<News> Notify;
 
         // group cli
         // on cli only
