@@ -194,6 +194,9 @@ namespace Lyra.Client.CLI
 
         private void GenerateWallet(string path, string networkId, string walletName)
         {
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
             var secureFile = new SecuredWalletStore(path);
 
             if (secureFile.Exists(walletName))
