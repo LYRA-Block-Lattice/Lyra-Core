@@ -105,27 +105,6 @@ namespace Lyra.Node2
 
             LyraNodeConfig.Init(networkId);
 
-            var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
-            loggerFactory.AddFile(logPath + "noded-{Date}.txt");
-
-            SimpleLogger.Factory = loggerFactory;
-
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-                    ForwardedHeaders.XForwardedProto
-            });
-
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
-            app.UseSwagger();
-
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
-            // specifying the Swagger JSON endpoint.
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{LyraGlobal.PRODUCTNAME} API V1");
-            });
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -160,6 +139,27 @@ namespace Lyra.Node2
                 });
                 app.UseHsts();
             }
+
+            var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
+            loggerFactory.AddFile(logPath + "noded-{Date}.txt");
+
+            SimpleLogger.Factory = loggerFactory;
+
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                    ForwardedHeaders.XForwardedProto
+            });
+
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{LyraGlobal.PRODUCTNAME} API V1");
+            });
 
             app.UseHttpsRedirection();
             app.UseRouting();
