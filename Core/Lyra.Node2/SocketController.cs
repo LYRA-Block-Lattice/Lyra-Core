@@ -9,6 +9,7 @@ namespace Lyra.Node
 {
     [ApiController]
     [Route("api/v1/[controller]")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class SocketController : Controller
     {
         INodeAPI _node;

@@ -111,32 +111,33 @@ namespace Lyra.Node2
             }
             else
             {
-                app.UseExceptionHandler(errorApp =>
-                {
-                    errorApp.Run(async context =>
-                    {
-                        var error = context.Features.Get<IExceptionHandlerFeature>();
-                        if (error != null && error.Error.Message == "System Not Ready.")
-                        {
-                            context.Response.StatusCode = 500; // or another Status accordingly to Exception Type
-                            context.Response.ContentType = "application/json";
+                app.UseExceptionHandler("/error");
+                //app.UseExceptionHandler(errorApp =>
+                //{
+                //    errorApp.Run(async context =>
+                //    {
+                //        var error = context.Features.Get<IExceptionHandlerFeature>();
+                //        if (error != null && error.Error.Message == "System Not Ready.")
+                //        {
+                //            context.Response.StatusCode = 500; // or another Status accordingly to Exception Type
+                //            context.Response.ContentType = "application/json";
 
-                            var ex = error.Error;
-                            var result = new APIResult()
-                            {
-                                ResultCode = Core.Blocks.APIResultCodes.SystemNotReadyToServe
-                            };
-                            var str = JsonConvert.SerializeObject(result);
-                            await context.Response.WriteAsync(str, Encoding.UTF8);
-                        }
-                        else
-                        {
-                            context.Response.StatusCode = 500; // or another Status accordingly to Exception Type
-                            context.Response.ContentType = "text/html";
-                            await context.Response.WriteAsync("<html>Internal Error</html>", Encoding.UTF8);
-                        }
-                    });
-                });
+                //            var ex = error.Error;
+                //            var result = new APIResult()
+                //            {
+                //                ResultCode = Core.Blocks.APIResultCodes.SystemNotReadyToServe
+                //            };
+                //            var str = JsonConvert.SerializeObject(result);
+                //            await context.Response.WriteAsync(str, Encoding.UTF8);
+                //        }
+                //        else
+                //        {
+                //            context.Response.StatusCode = 500; // or another Status accordingly to Exception Type
+                //            context.Response.ContentType = "text/html";
+                //            await context.Response.WriteAsync("<html>Internal Error</html>", Encoding.UTF8);
+                //        }
+                //    });
+                //});
                 app.UseHsts();
             }
 
