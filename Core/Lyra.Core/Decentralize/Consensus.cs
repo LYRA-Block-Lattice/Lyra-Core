@@ -104,6 +104,9 @@ namespace Lyra.Core.Decentralize
             }
 
             var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
+            if (lastCons == null)
+                return false;
+
             bool IsSuccess = true;
             var _authorizers = new AuthorizersFactory();
             while (true)
