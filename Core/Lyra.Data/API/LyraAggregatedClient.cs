@@ -140,7 +140,7 @@ namespace Lyra.Data.API
 
                     if (compeletedCount >= expectedCount)
                     {
-                        var best = tasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted)
+                        var coll = tasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted)
                             .Select(a => a.Result)
                             .GroupBy(b => b)
                             .Select(g => new
@@ -148,8 +148,9 @@ namespace Lyra.Data.API
                                 Data = g.Key,
                                 Count = g.Count()
                             })
-                            .OrderByDescending(x => x.Count)
-                            .First();
+                            .OrderByDescending(x => x.Count);
+
+                        var best = coll.First();
 
                         if (best.Count >= expectedCount)
                         {

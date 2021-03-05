@@ -142,10 +142,21 @@ namespace Lyra.Core.Decentralize
                             break;
                         }
                     }
+                    else if(remoteConsQuery.ResultCode == APIResultCodes.APIRouteFailed)
+                    {
+                        _log.LogWarning("Got inconsistant result from network. retry later.");
+                        throw new Exception("Failed to sync. reason: " + remoteConsQuery.ResultCode);
+                    }
+                    else
+                    {
+                        _log.LogWarning($"Unexpected error {remoteConsQuery.ResultCode}: {remoteConsQuery.ResultMessage}. retry later.");
+                        throw new Exception($"Failed to sync. reason: {remoteConsQuery.ResultCode}: {remoteConsQuery.ResultMessage}");
+                    }
                 }
                 catch (Exception ex)
                 {
                     _log.LogWarning("SyncDatabase Exception: " + ex.Message);
+                    await Task.Delay(30000);
                     IsSuccess = false;
                     break;
                 }
