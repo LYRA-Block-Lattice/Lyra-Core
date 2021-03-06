@@ -440,7 +440,8 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.NULL)
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Initializing);
 
-            _stateMachine.Configure(BlockChainState.Initializing)
+            _ = _stateMachine.Configure(BlockChainState.Initializing)
+#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
                 .OnEntry(async () =>
                 {
                     do
@@ -467,6 +468,7 @@ namespace Lyra.Core.Decentralize
                             _networkClient = new LyraClientForNode(_sys);
                             _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
 
+                            // DBCC
                             _log.LogInformation($"Database consistent check... It may take a while.");
 
                             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
@@ -494,13 +496,24 @@ namespace Lyra.Core.Decentralize
                                         _log.LogCritical($"DBCC: missing consolidation block: {lastCons.Height - 1} {lastCons.blockHashes[0]}");
                                         missingBlock = true;
                                     }
+                                    else
+                                    {
+                                        var allBlocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(nextCons.TimeStamp, lastCons.TimeStamp);
+                                        foreach(var extraHash in allBlocksInTimeRange.Where(a => !lastCons.blockHashes.Contains(a)))
+                                        {
+                                            _log.LogCritical($"Found extra block {extraHash} in cons range {nextCons.Height} to {lastCons.Height}");
+                                            await _sys.Storage.RemoveBlockAsync(extraHash);
+                                            _log.LogInformation("Extra block removed.");
+                                            i++;
+                                        }
+                                    }
                                 }
 
                                 if (missingBlock)
                                 {
                                     _log.LogInformation($"DBCC: Fixing database...");
                                     var consSyncResult = await SyncAndVerifyConsolidationBlock(authorizers, _networkClient, lastCons);
-                                    if(consSyncResult)
+                                    if (consSyncResult)
                                         i++;
                                     else
                                     {
@@ -518,7 +531,7 @@ namespace Lyra.Core.Decentralize
                                 }
                             }
 
-                            if(shouldReset)
+                            if (shouldReset)
                             {
                                 _log.LogInformation($"Database consistent check has problem syncing database. Redo... ");
                                 continue;
@@ -580,6 +593,7 @@ namespace Lyra.Core.Decentralize
                         }
                     } while (true);
                 })
+#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
                 .Permit(BlockChainTrigger.DatabaseSync, BlockChainState.StaticSync);
 
             _stateMachine.Configure(BlockChainState.StaticSync)
