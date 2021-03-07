@@ -499,12 +499,19 @@ namespace Lyra.Core.Decentralize
                                     else
                                     {
                                         var allBlocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(nextCons.TimeStamp, lastCons.TimeStamp);
-                                        foreach(var extraHash in allBlocksInTimeRange.Where(a => !lastCons.blockHashes.Contains(a)))
+                                        var extras = allBlocksInTimeRange.Where(a => !lastCons.blockHashes.Contains(a));
+                                        if(extras.Any())
                                         {
-                                            _log.LogCritical($"Found extra block {extraHash} in cons range {nextCons.Height} to {lastCons.Height}");
-                                            await _sys.Storage.RemoveBlockAsync(extraHash);
-                                            _log.LogInformation("Extra block removed.");
+                                            _log.LogCritical($"Found extra blocks in cons range {nextCons.Height} to {lastCons.Height}");
+
+                                            foreach (var extraHash in extras)
+                                            {
+                                                _log.LogCritical($"Found extra block {extraHash} in cons range {nextCons.Height} to {lastCons.Height}");
+                                                await _sys.Storage.RemoveBlockAsync(extraHash);
+                                                _log.LogInformation("Extra block removed.");
+                                            }
                                             i++;
+                                            continue;
                                         }
                                     }
                                 }
