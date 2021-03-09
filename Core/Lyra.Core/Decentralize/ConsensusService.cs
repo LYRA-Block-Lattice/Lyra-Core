@@ -1275,8 +1275,8 @@ namespace Lyra.Core.Decentralize
                     }
                     if (allNodeSyncd)
                     {
-                        // consolidate time from lastcons to now - 10s
-                        var timeStamp = DateTime.UtcNow.AddSeconds(-10);
+                        // consolidate time from lastcons to now - 18s
+                        var timeStamp = DateTime.UtcNow.AddSeconds(-18);
                         var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
 
                         // if 1 it must be previous consolidation block.

@@ -453,7 +453,7 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation("genesis block string:\n" + tokenGen.GetHashInput());
             await SendBlockToConsensusAndWaitResultAsync(tokenGen);
 
-            await Task.Delay(15000);        // because cons block has a time shift.
+            await Task.Delay(25000);        // because cons block has a time shift.
 
             var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen);
             await SendBlockToConsensusAndWaitResultAsync(consGen);
@@ -583,7 +583,7 @@ namespace Lyra.Core.Decentralize
                 },
                 totalBlockCount = 2     // not including self
             };
-            consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(-10);
+            consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(-18);
 
             var mt = new MerkleTree();
             mt.AppendLeaf(MerkleHash.Create(svcGen.Hash));

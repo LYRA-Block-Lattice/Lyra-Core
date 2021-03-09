@@ -72,7 +72,7 @@ namespace Lyra.Core.Authorizers
 
                 if (sys.ConsensusState != BlockChainState.StaticSync)
                 {
-                    if (block.TimeStamp < uniNow.AddSeconds(-8) || block.TimeStamp > uniNow.AddSeconds(3))
+                    if (block.TimeStamp < uniNow.AddSeconds(-18) || block.TimeStamp > uniNow.AddSeconds(3))
                     {
                         _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
                         return APIResultCodes.InvalidBlockTimeStamp;
@@ -117,7 +117,7 @@ namespace Lyra.Core.Authorizers
 
                 if (sys.ConsensusState != BlockChainState.StaticSync)
                 {
-                    if (block.TimeStamp < uniNow.AddSeconds(-8) || block.TimeStamp > uniNow.AddSeconds(3))
+                    if (block.TimeStamp < uniNow.AddSeconds(-18) || block.TimeStamp > uniNow.AddSeconds(3))
                     {
                         _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
                         return APIResultCodes.InvalidBlockTimeStamp;
@@ -129,7 +129,7 @@ namespace Lyra.Core.Authorizers
                 if (sys.ConsensusState != BlockChainState.StaticSync)
                 {
                     // time shift 10 seconds.
-                    if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(-7))
+                    if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(-17))
                     {
                         _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
                         return APIResultCodes.InvalidBlockTimeStamp;
