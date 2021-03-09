@@ -272,11 +272,16 @@ namespace Lyra.Core.Decentralize
             var localAuthResult = await LocalAuthorizingAsync(msg);
             State.LocalResult = localAuthResult;
             //_log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
-            await _context.Send2P2pNetworkAsync(localAuthResult);
 
-            var ok = _state.AddAuthResult(localAuthResult);
-            if(!ok)
-                _log.LogError($"AuthorizeAsync: result not added ok.");
+            // we still need local authorizer to make sure database is synced (via consolidation block)
+            if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
+            {
+                await _context.Send2P2pNetworkAsync(localAuthResult);
+
+                var ok = _state.AddAuthResult(localAuthResult);
+                if (!ok)
+                    _log.LogError($"AuthorizeAsync: result not added ok.");
+            }
 
             await CheckAuthorizedAllOkAsync(_context.GetDagSystem().PosWallet.AccountId);
         }

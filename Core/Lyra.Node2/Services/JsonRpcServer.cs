@@ -35,7 +35,8 @@ namespace Lyra.Node
             _node = node;
             _trans = trans;
 
-            NodeService.Dag.OnNewBlock += NewBlockMonitor;
+            if(NodeService.Dag != null)
+                NodeService.Dag.OnNewBlock += NewBlockMonitor;
         }
 
         public void NewBlockMonitor(Block block, Block prevBlock)
