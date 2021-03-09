@@ -27,6 +27,7 @@ using System.Net;
 using Shared;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
+using System.Diagnostics;
 
 namespace Lyra.Core.Decentralize
 {
@@ -912,6 +913,8 @@ namespace Lyra.Core.Decentralize
         {
             item.Sign(_sys.PosWallet.PrivateKey, item.From);
             //_log.LogInformation($"Sending message type {item.MsgType} Hash {(item as BlockConsensusMessage)?.BlockHash}");
+            //if (item.MsgType == ChatMessageType.HeartBeat || item.MsgType == ChatMessageType.NodeUp)
+            //    Debugger.Break();
             //_localNode.Tell(item);
             await CriticalRelayAsync(item, null);
         }

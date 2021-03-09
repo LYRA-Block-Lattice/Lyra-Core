@@ -275,6 +275,9 @@ set config.*.json:
 ```
 Mode can be 'Normal' or 'App'.
 
+Add as environment variable:
+set LYRA_ApplicationConfiguration__LyraNode__Lyra__Mode=App
+
 When node run in app mode, it just listen to the messages but not send any out.
 * Will not send node up and heartbeat messages.
 * Will not try to authorizer block.
