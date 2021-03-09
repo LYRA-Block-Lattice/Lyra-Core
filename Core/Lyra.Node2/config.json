@@ -12,7 +12,7 @@
           "Name": "poswallet",
           "Password":  ""
         },
-        "Mode": "app"
+        "Mode": ""
       }
     },
     "Storage": {
