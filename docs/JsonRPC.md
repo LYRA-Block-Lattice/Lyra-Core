@@ -119,36 +119,6 @@ Server reply:
 }
 ```
 
-Unsupported: {"jsonrpc":"2.0","id":4,"result":null}
-rich guy is sending you token...
-Client send:
-```
-{
-  "jsonrpc": "2.0",
-  "method": "Send",
-  "id": 1,
-  "params": [
-    "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy",
-    13000.0,
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
-    "LYR"
-  ]
-}
-```
-
-Server reply:
-```
-{
-  "jsonrpc": "2.0",
-  "id": 2,
-  "method": "Sign",
-  "params": [
-    "hash",
-    "Avtvc7Ey57t18UP2SoGjxSTouL64ESZrrRXtsyzCLeBx"
-  ]
-}
-```
-
 ## Signing message: Avtvc7Ey57t18UP2SoGjxSTouL64ESZrrRXtsyzCLeBx
 
 Client send:
