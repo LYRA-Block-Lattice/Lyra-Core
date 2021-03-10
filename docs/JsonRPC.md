@@ -119,56 +119,6 @@ Server reply:
 }
 ```
 
-## Signing message: Avtvc7Ey57t18UP2SoGjxSTouL64ESZrrRXtsyzCLeBx
-
-Client send:
-```
-{
-  "jsonrpc": "2.0",
-  "id": 2,
-  "result": [
-    "p1393",
-    "Ffx7nph4FLe23eeU3hbpkBfZiWqStWrXKb9a9qX5XefpDNpVPENLnvoRdrYT47YnTwohYgJrSfbuzQmuPggtwAq"
-  ]
-}
-```
-
-Server reply:
-```
-{
-  "jsonrpc": "2.0",
-  "method": "Notify",
-  "params": [
-    {
-      "catalog": "Receiving",
-      "content": {
-        "from": "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy",
-        "sendHash": "Avtvc7Ey57t18UP2SoGjxSTouL64ESZrrRXtsyzCLeBx",
-        "funds": {
-          "LYR": 13000.0
-        }
-      }
-    }
-  ]
-}
-```
-
-Server reply:
-```
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "balance": {
-      "LYR": 4985273.97171312,
-      "unittest/trans": 49999991914.67101
-    },
-    "unreceived": true
-  }
-}
-```
-
-
 # API: BalanceResult Balance(string accountId)
 /* balance shows unreceived */
 
