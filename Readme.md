@@ -8,6 +8,8 @@
 
 [Run noded as Windows service](#run-noded-as-windows-service)
 
+[JsonRPC API Specification](docs/JsonRPC.md)
+
 # What's New
 
 [LYRA Documentation Site](https://docs.lyra.live) - 
