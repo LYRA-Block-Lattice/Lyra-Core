@@ -21,8 +21,8 @@ async static Task Main(string[] args)
 	//var networkId = "testnet";
 	//var url = "wss://testnet.lyra.live/api/v1/socket";
 	var networkId = "devnet";
-	var url = "wss://api.devnet:4504/api/v1/socket";
-	//var url = "wss://localhost:4504/api/v1/socket";
+	//var url = "wss://api.devnet:4504/api/v1/socket";
+	var url = "wss://localhost:4504/api/v1/socket";
 
 	var cancel = new CancellationTokenSource();
 
@@ -52,11 +52,11 @@ public class Tester
 		tester.CallRPC("get status with error", "ApiStatus Status(string version, string networkid) with error", "Status", new string[] { "2.0", networkId });
 
 		tester.CallRPC("wallet get balance", "BalanceResult Balance(string accountId)", "Balance", new string[] { tester.AccountId });
-		tester.CallRPC("monitor receiving", "void Monitor(string accountId)", "Monitor", new string[] { tester.AccountId }, false);
+		tester.CallRPC("monitor receiving", "void Monitor(string accountId)", "Monitor", new string[] { tester.AccountId });
 
 		// someone send to this wallet
 		await Task.Delay(2000);
-		Console.WriteLine("rich guy is sending you token...");
+		Console.WriteLine("\n> rich guy is sending you token...\n");
 		richGuy.Send(tester.AccountId, "LYR", 13000);
 		await Task.Delay(2000);
 
@@ -66,7 +66,10 @@ public class Tester
 
 		var r = new Random(); var tokenName = $"json-{r.Next(10000, 10000000)}";
 		tester.CallRPC("create a token", "BalanceResult Token(string accountId, string name, string domain, decimal supply)", "Token", new string[] { tester.AccountId, tokenName, "testit", "10000000" });
-		tester.CallRPC("show all transaction history", "List<TransactionDescription> History(string accountId, long startTime, long endTime, int count)", "History", new string[] { tester.AccountId, "0", DateTime.UtcNow.Ticks.ToString(), "100" });
+		var jsonTime = (long) Math.Round(DateTime.UtcNow
+			   .Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+			   .TotalMilliseconds);
+		tester.CallRPC("show all transaction history", "List<TransactionDescription> History(string accountId, long startTime, long endTime, int count)", "History", new string[] { tester.AccountId, "0", jsonTime.ToString(), "100" });
 
 		// doing pool stuff
 		var ticker = $"testit/{tokenName}";
@@ -188,9 +191,10 @@ public abstract class LyraJsonRPCClient
 	
 	public void WriteJson(string json, bool wait = true)
 	{
-		Console.WriteLine($"-->: ");
+		Console.WriteLine($"Client send:\n```");
 		WriteFancy(json);
 		_socket.Send(json);
+		Console.WriteLine("```\n");
 		if(wait)
 			WaitReply();
 	}
@@ -212,7 +216,7 @@ public abstract class LyraJsonRPCClient
 		_error = null;
 		
 		if(desc != null)
-			Console.WriteLine($"* {desc}. API: {apiName}");
+			Console.WriteLine($"# API: {apiName}\n/* {desc} */\n");
 		CallRPC(new
 		{
 			jsonrpc = "2.0",
@@ -239,8 +243,9 @@ public abstract class LyraJsonRPCClient
 		};
 		_socket.MessageReceived += (sender, e) =>
 		{
-			Console.WriteLine($"<--: ");
+			Console.WriteLine($"Server reply:\n```");
 			WriteFancy(e.Message);
+			Console.WriteLine("```\n");
 			dynamic data = JObject.Parse(e.Message);
 			if (data.method == "Sign")
 			{
@@ -248,7 +253,7 @@ public abstract class LyraJsonRPCClient
 				// for now type is always 'hash'.
 				// in future maybe raw msg and need to hash it locally.
 				var msg = data.@params[1].Value;
-				Console.WriteLine($"  Signing message: {msg}");
+				Console.WriteLine($"## Signing message: {msg}\n");
 				var sign = new[] { "p1393", Sign(msg) };
 				CallRPC(new {
 					jsonrpc = "2.0",
@@ -258,19 +263,23 @@ public abstract class LyraJsonRPCClient
 			}
 			else if(data.method == "Notify")
 			{
-				
+				Console.WriteLine("> Notify from server: " + e.Message);
 			}
-			else if(data.result != null)
-			{
-				Done(JObject.Parse(e.Message), null);
-			}
-			else if(data.error != null)
+			else if (data.error != null)
 			{
 				Done(null, JObject.Parse(e.Message));
 			}
 			else
 			{
-				Console.WriteLine("Unsupported: " + e.Message);
+				try
+				{
+					var result = data.result;
+					Done(JObject.Parse(e.Message), null);
+				}
+				catch(Exception)
+				{
+					Console.WriteLine("Unsupported: " + e.Message);
+				}
 			}
 		};
 
