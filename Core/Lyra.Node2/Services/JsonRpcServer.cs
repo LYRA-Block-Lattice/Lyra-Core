@@ -186,7 +186,10 @@ namespace Lyra.Node
         }
         public async Task<List<TransactionDescription>> History(string accountId, long startTime, long endTime, int count)
         {
-            var hists = await _node.SearchTransactions(accountId, startTime, endTime, count);
+            // json time. convert it to dotnet time
+            var dtStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc) + new TimeSpan(startTime * 10000);
+            var dtEnd = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc) + new TimeSpan(endTime * 10000);
+            var hists = await _node.SearchTransactions(accountId, dtStart.Ticks, dtEnd.Ticks, count);
             if (hists.Successful())
                 return hists.Transactions;
             else
