@@ -1,8 +1,10 @@
-﻿using Microsoft.VisualStudio.Threading;
+﻿using Lyra.Data.API;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -41,6 +43,34 @@ namespace Lyra.Core.API
         public string from { get; set; }
         public string sendHash { get; set; }
         public Dictionary<string, decimal> funds { get; set; }
+    }
+
+    public class TxDesc
+    {
+        public long Height { get; set; }
+        public bool IsReceive { get; set; }
+        public long TimeStamp { get; set; }
+        public string SendAccountId { get; set; }
+        public string SendHash { get; set; }
+        public string RecvAccountId { get; set; }
+        public string RecvHash { get; set; }
+        public Dictionary<string, string> Changes { get; set; }
+        public Dictionary<string, string> Balances { get; set; }
+
+        public TxDesc(TransactionDescription tx)
+        {
+            Height = tx.Height;
+            IsReceive = tx.IsReceive;
+            TimeStamp = (long)Math.Round(tx.TimeStamp
+               .Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
+               .TotalMilliseconds);
+            SendAccountId = tx.SendAccountId;
+            SendHash = tx.SendHash;
+            RecvAccountId = tx.RecvAccountId;
+            RecvHash = tx.RecvHash;
+            Changes = tx.Changes.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal().ToString());
+            Balances = tx.Balances.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal().ToString());
+        }
     }
 
     public delegate void ReceivingEventHandler(Receiving recvMsg);

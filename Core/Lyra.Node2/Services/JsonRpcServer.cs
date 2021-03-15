@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Lyra.Data.Utils;
+using System.Linq;
 
 namespace Lyra.Node
 {
@@ -184,14 +185,14 @@ namespace Lyra.Node
         {
             _monitorAccountId = accountId;
         }
-        public async Task<List<TransactionDescription>> History(string accountId, long startTime, long endTime, int count)
+        public async Task<List<TxDesc>> History(string accountId, long startTime, long endTime, int count)
         {
             // json time. convert it to dotnet time
             var dtStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc) + new TimeSpan(startTime * 10000);
             var dtEnd = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc) + new TimeSpan(endTime * 10000);
             var hists = await _node.SearchTransactions(accountId, dtStart.Ticks, dtEnd.Ticks, count);
             if (hists.Successful())
-                return hists.Transactions;
+                return hists.Transactions.Select(x => new TxDesc(x)).ToList();
             else
                 throw new Exception($"{hists.ResultCode}: {hists.ResultMessage}");
         }

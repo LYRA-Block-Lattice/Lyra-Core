@@ -1,6 +1,4 @@
-
 # API: ApiStatus Status(string version, string networkid)
-
 /* get status */
 
 Client send:
@@ -11,7 +9,7 @@ Client send:
   "id": 1,
   "params": [
     "2.2",
-    "testnet"
+    "devnet"
   ]
 }
 ```
@@ -23,7 +21,7 @@ Server reply:
   "id": 1,
   "result": {
     "version": "2.1.0.18",
-    "networkid": "testnet",
+    "networkid": "devnet",
     "synced": true
   }
 }
@@ -31,7 +29,6 @@ Server reply:
 
 
 # API: ApiStatus Status(string version, string networkid) with error
-
 /* get status with error */
 
 Client send:
@@ -42,7 +39,7 @@ Client send:
   "id": 2,
   "params": [
     "2.0",
-    "testnet"
+    "devnet"
   ]
 }
 ```
@@ -56,7 +53,7 @@ Server reply:
     "data": {
       "type": "System.Exception",
       "message": "Client version too low. Need upgrade.",
-      "stack": "   at Lyra.Node.JsonRpcServer.Status(String version, String networkid) in C:\\Users\\Wizard\\source\\repos\\LyraNetwork\\Core\\Lyra.Node2\\Services\\JsonRpcServer.cs:line 103",
+      "stack": "   at Lyra.Node.JsonRpcServer.Status(String version, String networkid) in C:\\Users\\Wizard\\source\\repos\\LyraNetwork\\Core\\Lyra.Node2\\Services\\JsonRpcServer.cs:line 95",
       "code": -2146233088,
       "inner": null
     },
@@ -77,7 +74,7 @@ Client send:
   "method": "Balance",
   "id": 3,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1"
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3"
   ]
 }
 ```
@@ -104,11 +101,10 @@ Client send:
   "method": "Monitor",
   "id": 4,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1"
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3"
   ]
 }
 ```
-
 
 Server reply:
 ```
@@ -118,6 +114,90 @@ Server reply:
   "result": null
 }
 ```
+
+
+
+> rich guy is sending you token...
+
+Client send:
+```
+{
+  "jsonrpc": "2.0",
+  "method": "Send",
+  "id": 1,
+  "params": [
+    "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy",
+    13000.0,
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
+    "LYR"
+  ]
+}
+```
+
+Server reply:
+```
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "Sign",
+  "params": [
+    "hash",
+    "9tm36U6qwvHZweTGwDny7RxSxLXYb7uzzNiWsLDtmV1Y"
+  ]
+}
+```
+
+## Signing message: 9tm36U6qwvHZweTGwDny7RxSxLXYb7uzzNiWsLDtmV1Y
+
+Client send:
+```
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": [
+    "p1393",
+    "4YPfKhaugsMhyoGY73X6VYKUnLRkboAtGfohf1oKpqWZov5dNpmBkwqRgdhx7CnCmauUEKNgcAzoR911qQEL5gfX"
+  ]
+}
+```
+
+Server reply:
+```
+{
+  "jsonrpc": "2.0",
+  "method": "Notify",
+  "params": [
+    {
+      "catalog": "Receiving",
+      "content": {
+        "from": "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy",
+        "sendHash": "9tm36U6qwvHZweTGwDny7RxSxLXYb7uzzNiWsLDtmV1Y",
+        "funds": {
+          "LYR": 13000.0
+        }
+      }
+    }
+  ]
+}
+```
+
+> Notify from server: {"jsonrpc":"2.0","method":"Notify","params":[{"catalog":"Receiving","content":{"from":"LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy","sendHash":"9tm36U6qwvHZweTGwDny7RxSxLXYb7uzzNiWsLDtmV1Y","funds":{"LYR":13000.0}}}]}
+Server reply:
+```
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "balance": {
+      "LYR": 124677.46319139,
+      "testit/json-5963500": 3000000.0,
+      "unittest/trans": 49999991619.64198
+    },
+    "unreceived": true
+  }
+}
+```
+
 
 # API: BalanceResult Balance(string accountId)
 /* balance shows unreceived */
@@ -129,7 +209,7 @@ Client send:
   "method": "Balance",
   "id": 5,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1"
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3"
   ]
 }
 ```
@@ -156,7 +236,7 @@ Client send:
   "method": "Receive",
   "id": 6,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1"
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3"
   ]
 }
 ```
@@ -169,12 +249,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "3Rq1X62A8Jz5DAzp4ougE16A5sBmCEfF4h3S4i532ibW"
+    "12KPxpakmRG7WH49iGDdzXbXjfBSmYmheG66v5SGb2mk"
   ]
 }
 ```
 
-## Signing message: 3Rq1X62A8Jz5DAzp4ougE16A5sBmCEfF4h3S4i532ibW
+## Signing message: 12KPxpakmRG7WH49iGDdzXbXjfBSmYmheG66v5SGb2mk
 
 Client send:
 ```
@@ -183,7 +263,7 @@ Client send:
   "id": 2,
   "result": [
     "p1393",
-    "Bj24ewG6eMhRqhBXSMbUhDuSQV3UPcuQNdpSRXqXpUGxfuVsKa143s2mk4whdwB4BFnU6BveHtqu3pFVsxM6MAH"
+    "4Hc5KmZjGZNnGpxFy4t58G2XKD17ZWJa32eTi6aG1j4W8cSt6QU5ArQNopRk2pt3RzasZ1KUwZn1Z8jBC1Tup96x"
   ]
 }
 ```
@@ -213,7 +293,7 @@ Client send:
   "method": "Send",
   "id": 7,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
     "10",
     "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy",
     "LYR"
@@ -229,12 +309,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "DuQ6oPPc8cCrCoGUBGCpSjmLKCnY2rFR16MYwPQD7z6Y"
+    "Hz4k1JBoHCpqAf82qKNaUrdu28yj1Ne5UDwATn8eVLqf"
   ]
 }
 ```
 
-## Signing message: DuQ6oPPc8cCrCoGUBGCpSjmLKCnY2rFR16MYwPQD7z6Y
+## Signing message: Hz4k1JBoHCpqAf82qKNaUrdu28yj1Ne5UDwATn8eVLqf
 
 Client send:
 ```
@@ -243,7 +323,7 @@ Client send:
   "id": 3,
   "result": [
     "p1393",
-    "4CNfXARdEo9youJL4MjSgy48rKba6wa548dsVq2wAdHGtBsPqJsXkpsXBF9yoWWSw1kDqqjyr29JpegRnMdrBsbr"
+    "Wzi4rdaRK1KnfXmYENiLwz1HC1144WUt4jqbFy8zXeSp6THNbG8w2XUfD7zgvfF72ikqCAy359WFboAAJ7PMD8F"
   ]
 }
 ```
@@ -273,8 +353,8 @@ Client send:
   "method": "Token",
   "id": 8,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
-    "json-7827429",
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
+    "json-1031181",
     "testit",
     "10000000"
   ]
@@ -289,12 +369,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "cu11QyGi6SeXQvCUKeiJQuQC4PprJQXej1tSNudy3p9"
+    "6UMgMd8Sm6T2YveniiQPE3eY9NWf25VBD6TBAoQQboyc"
   ]
 }
 ```
 
-## Signing message: cu11QyGi6SeXQvCUKeiJQuQC4PprJQXej1tSNudy3p9
+## Signing message: 6UMgMd8Sm6T2YveniiQPE3eY9NWf25VBD6TBAoQQboyc
 
 Client send:
 ```
@@ -303,7 +383,7 @@ Client send:
   "id": 4,
   "result": [
     "p1393",
-    "2Dwcm3p7QSsxSkoDhw9MSqrk99gc3J4Bqzr1uXxudDUMrhagKMnJZFPgse5bPbFCEKsLvTMQiPw8jXiDcNe8wSvS"
+    "R2VFtg9pBntEnn8er71mGmJXC1SR2Jd8P98aPwpD281mke5t7EyhJttQ7itYcmP4Punjs4rh7Qk84nP8xsQMi8k"
   ]
 }
 ```
@@ -315,7 +395,7 @@ Server reply:
   "id": 8,
   "result": {
     "balance": {
-      "testit/json-7827429": 10000000.0,
+      "testit/json-1031181": 10000000.0,
       "LYR": 2989.0
     },
     "unreceived": false
@@ -334,9 +414,9 @@ Client send:
   "method": "History",
   "id": 9,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
     "0",
-    "637509924365598712",
+    "1615833727282",
     "100"
   ]
 }
@@ -351,45 +431,45 @@ Server reply:
     {
       "Height": 1,
       "IsReceive": true,
-      "TimeStamp": "2021-03-10T17:00:30.955182Z",
+      "TimeStamp": 1615833726585,
       "SendAccountId": "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy",
-      "SendHash": "Avtvc7Ey57t18UP2SoGjxSTouL64ESZrrRXtsyzCLeBx",
-      "RecvAccountId": "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
-      "RecvHash": "3Rq1X62A8Jz5DAzp4ougE16A5sBmCEfF4h3S4i532ibW",
+      "SendHash": "9tm36U6qwvHZweTGwDny7RxSxLXYb7uzzNiWsLDtmV1Y",
+      "RecvAccountId": "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
+      "RecvHash": "12KPxpakmRG7WH49iGDdzXbXjfBSmYmheG66v5SGb2mk",
       "Changes": {
-        "LYR": 1300000000000
+        "LYR": "13000"
       },
       "Balances": {
-        "LYR": 1300000000000
+        "LYR": "13000"
       }
     },
     {
       "Height": 2,
       "IsReceive": false,
-      "TimeStamp": "2021-03-10T17:00:32.4411241Z",
-      "SendAccountId": "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
-      "SendHash": "DuQ6oPPc8cCrCoGUBGCpSjmLKCnY2rFR16MYwPQD7z6Y",
+      "TimeStamp": 1615833726847,
+      "SendAccountId": "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
+      "SendHash": "Hz4k1JBoHCpqAf82qKNaUrdu28yj1Ne5UDwATn8eVLqf",
       "RecvAccountId": "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy",
       "Changes": {
-        "LYR": -1100000000
+        "LYR": "-11"
       },
       "Balances": {
-        "LYR": 1298900000000
+        "LYR": "12989"
       }
     },
     {
       "Height": 3,
       "IsReceive": true,
-      "TimeStamp": "2021-03-10T17:00:35.6386147Z",
-      "RecvAccountId": "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
-      "RecvHash": "cu11QyGi6SeXQvCUKeiJQuQC4PprJQXej1tSNudy3p9",
+      "TimeStamp": 1615833727057,
+      "RecvAccountId": "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
+      "RecvHash": "6UMgMd8Sm6T2YveniiQPE3eY9NWf25VBD6TBAoQQboyc",
       "Changes": {
-        "testit/json-7827429": 1000000000000000,
-        "LYR": -1000000000000
+        "testit/json-1031181": "10000000",
+        "LYR": "-10000"
       },
       "Balances": {
-        "testit/json-7827429": 1000000000000000,
-        "LYR": 298900000000
+        "testit/json-1031181": "10000000",
+        "LYR": "2989"
       }
     }
   ]
@@ -408,7 +488,7 @@ Client send:
   "id": 10,
   "params": [
     "LYR",
-    "testit/json-7827429"
+    "testit/json-1031181"
   ]
 }
 ```
@@ -422,7 +502,7 @@ Server reply:
     "data": {
       "type": "System.Exception",
       "message": "Failed to get pool",
-      "stack": "   at Lyra.Node.JsonRpcServer.Pool(String token0, String token1) in C:\\Users\\Wizard\\source\\repos\\LyraNetwork\\Core\\Lyra.Node2\\Services\\JsonRpcServer.cs:line 217",
+      "stack": "   at Lyra.Node.JsonRpcServer.Pool(String token0, String token1) in C:\\Users\\Wizard\\source\\repos\\LyraNetwork\\Core\\Lyra.Node2\\Services\\JsonRpcServer.cs:line 220",
       "code": -2146233088,
       "inner": null
     },
@@ -443,9 +523,9 @@ Client send:
   "method": "CreatePool",
   "id": 11,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
     "LYR",
-    "testit/json-7827429"
+    "testit/json-1031181"
   ]
 }
 ```
@@ -458,12 +538,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "EDwDrGd9EiYaxUVRAvkEscN8ZCiDNQRmHJGVZvNqAC61"
+    "owMmZcfnQS1LDT16FNtBdpAA8KWghg5j4DjCJjrTgqw"
   ]
 }
 ```
 
-## Signing message: EDwDrGd9EiYaxUVRAvkEscN8ZCiDNQRmHJGVZvNqAC61
+## Signing message: owMmZcfnQS1LDT16FNtBdpAA8KWghg5j4DjCJjrTgqw
 
 Client send:
 ```
@@ -472,7 +552,7 @@ Client send:
   "id": 5,
   "result": [
     "p1393",
-    "C49Fu6h4HY1QyK6NmNQsGemY9uv9u3riUpwEbXdfDeCPYNRai9jjRL4rD2h3NrNJRdH8tjv9oHqkWyxSJwmuqab"
+    "u99F9fTvx5yaynPqXSZ1WEsQD3AUtBpsawFEyQ2TqYvA7RWmUj6Jph8Dy7nURTeM2j5u9P3b9oaCyuYFRA5MMbi"
   ]
 }
 ```
@@ -483,10 +563,10 @@ Server reply:
   "jsonrpc": "2.0",
   "id": 11,
   "result": {
-    "poolId": "LEAdNJTwzXdp88yQZpgVP1CrySSjpyT9qMpo4PMdJ2M2G1wmBNzUEenYGefkj4rYucsq4hhaoNhqsdPCs3FGyEzUM4CFcR",
+    "poolId": "LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT",
     "height": 1,
     "token0": "LYR",
-    "token1": "testit/json-7827429",
+    "token1": "testit/json-1031181",
     "balance": {}
   }
 }
@@ -503,10 +583,10 @@ Client send:
   "method": "AddLiquidaty",
   "id": 12,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
     "LYR",
     "1000",
-    "testit/json-7827429",
+    "testit/json-1031181",
     "5000000"
   ]
 }
@@ -520,12 +600,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "9d1Yxrg9pTigRthA8ooUTG6FSbqnbTPYV7aNjKTFR7Hw"
+    "BR7mLz9sWL9L54yuxWxpyEcJCVgSWazsHpSMYegBEwbo"
   ]
 }
 ```
 
-## Signing message: 9d1Yxrg9pTigRthA8ooUTG6FSbqnbTPYV7aNjKTFR7Hw
+## Signing message: BR7mLz9sWL9L54yuxWxpyEcJCVgSWazsHpSMYegBEwbo
 
 Client send:
 ```
@@ -534,7 +614,7 @@ Client send:
   "id": 6,
   "result": [
     "p1393",
-    "4rG7iMYFAmjbVCerRFcXoC5zhSJNdBRoMag2zyMVor6QkCQV9PpjNc7xcp8FdwDbLidyj74v9w5HqTwidWbnkDjt"
+    "46QTv6Kgg4XypvuGaT1k2amtpSbinNNXsswtWGQbxBCZbxCRMh9ztj1Fm16QjvvT2yP1mG2pGatSJoMa4GF4PwLc"
   ]
 }
 ```
@@ -545,12 +625,12 @@ Server reply:
   "jsonrpc": "2.0",
   "id": 12,
   "result": {
-    "poolId": "LEAdNJTwzXdp88yQZpgVP1CrySSjpyT9qMpo4PMdJ2M2G1wmBNzUEenYGefkj4rYucsq4hhaoNhqsdPCs3FGyEzUM4CFcR",
+    "poolId": "LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT",
     "height": 2,
     "token0": "LYR",
-    "token1": "testit/json-7827429",
+    "token1": "testit/json-1031181",
     "balance": {
-      "testit/json-7827429": 5000000.0,
+      "testit/json-1031181": 5000000.0,
       "LYR": 1000.0
     }
   }
@@ -568,7 +648,7 @@ Client send:
   "method": "PoolCalculate",
   "id": 13,
   "params": [
-    "LEAdNJTwzXdp88yQZpgVP1CrySSjpyT9qMpo4PMdJ2M2G1wmBNzUEenYGefkj4rYucsq4hhaoNhqsdPCs3FGyEzUM4CFcR",
+    "LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT",
     "LYR",
     "100",
     "0.0001"
@@ -586,7 +666,7 @@ Server reply:
     "ProtocolFee": 0.001,
     "SwapInToken": "LYR",
     "SwapInAmount": 100.0,
-    "SwapOutToken": "testit/json-7827429",
+    "SwapOutToken": "testit/json-1031181",
     "SwapOutAmount": 452891.96071299,
     "Price": 0.0002208032128514,
     "PriceImpact": 0.09057839,
@@ -608,9 +688,9 @@ Client send:
   "method": "Swap",
   "id": 14,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
     "LYR",
-    "testit/json-7827429",
+    "testit/json-1031181",
     "LYR",
     100,
     452846.67151692
@@ -626,12 +706,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "35ub33jpkoAR1KS1V8SRvtb3HfmkXji12Kg1rrm1ZHsC"
+    "H1ybjtKhCk4rd33wfA53HH5SbtEkEUdJSqRTiEsqbHtZ"
   ]
 }
 ```
 
-## Signing message: 35ub33jpkoAR1KS1V8SRvtb3HfmkXji12Kg1rrm1ZHsC
+## Signing message: H1ybjtKhCk4rd33wfA53HH5SbtEkEUdJSqRTiEsqbHtZ
 
 Client send:
 ```
@@ -640,7 +720,7 @@ Client send:
   "id": 7,
   "result": [
     "p1393",
-    "5XrT7D5u4wgVaUSH6K6FDXSczUwyegBuFQrnmLQ5BYChM7q3knstF7GzavhcTAnaRdS11z1wxLiB4ngrPsxdeU1v"
+    "JSkteh5nK49rydkj65TCmFmQBdkb8wqJBc1cuLn4V4zLJSyyGcYiXcpdLfGJFD5HRo4UMYYQcce8hHJRP1WnNyx"
   ]
 }
 ```
@@ -652,7 +732,7 @@ Server reply:
   "id": 14,
   "result": {
     "balance": {
-      "testit/json-7827429": 5000000.0,
+      "testit/json-1031181": 5000000.0,
       "LYR": 886.0
     },
     "unreceived": false
@@ -671,9 +751,9 @@ Client send:
   "method": "RemoveLiquidaty",
   "id": 15,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
     "LYR",
-    "testit/json-7827429"
+    "testit/json-1031181"
   ]
 }
 ```
@@ -687,10 +767,10 @@ Server reply:
     {
       "catalog": "Receiving",
       "content": {
-        "from": "LEAdNJTwzXdp88yQZpgVP1CrySSjpyT9qMpo4PMdJ2M2G1wmBNzUEenYGefkj4rYucsq4hhaoNhqsdPCs3FGyEzUM4CFcR",
-        "sendHash": "2TYhy39nD52ziefLvmN8gNffQsEhz1G7hfidKatq6XpQ",
+        "from": "LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT",
+        "sendHash": "GsRV5gLjjCGXcj8DrQrLrEDPtrCbpDEukNwE9xFVeySz",
         "funds": {
-          "testit/json-7827429": 452891.96071299
+          "testit/json-1031181": 452891.96071299
         }
       }
     }
@@ -698,6 +778,7 @@ Server reply:
 }
 ```
 
+> Notify from server: {"jsonrpc":"2.0","method":"Notify","params":[{"catalog":"Receiving","content":{"from":"LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT","sendHash":"GsRV5gLjjCGXcj8DrQrLrEDPtrCbpDEukNwE9xFVeySz","funds":{"testit/json-1031181":452891.96071299}}}]}
 Server reply:
 ```
 {
@@ -706,12 +787,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "Bh5r9Uco1EWabLf4i4s3znmMB3PJgSLXuWZSzLwcUX5q"
+    "DThnDSZ1nN5vXFMK5uoXhZue8VB3vi9RXdCHkKTWYC4L"
   ]
 }
 ```
 
-## Signing message: Bh5r9Uco1EWabLf4i4s3znmMB3PJgSLXuWZSzLwcUX5q
+## Signing message: DThnDSZ1nN5vXFMK5uoXhZue8VB3vi9RXdCHkKTWYC4L
 
 Client send:
 ```
@@ -720,7 +801,7 @@ Client send:
   "id": 8,
   "result": [
     "p1393",
-    "RCWYg3sk7s9Ph17NgDuFJQk7wk3czFhnPqPyWygxYYS8CHdbxy8VKqnXcLmQ6q5tdTU5DJLuECbbgpMkQzQrGxi"
+    "5Ctwmh6ZCZmz5cfX1BTwrBuhpafWzMymgte52x1ZKV4Jp5HH5zFndEX64vdN3ykrn1F2ZxQtKciaexGzTStnQt1m"
   ]
 }
 ```
@@ -734,10 +815,10 @@ Server reply:
     {
       "catalog": "Receiving",
       "content": {
-        "from": "LEAdNJTwzXdp88yQZpgVP1CrySSjpyT9qMpo4PMdJ2M2G1wmBNzUEenYGefkj4rYucsq4hhaoNhqsdPCs3FGyEzUM4CFcR",
-        "sendHash": "ALUCiEqDUPjiPUjCpjnsJNuaBeFqBYKGdyDhTmhqd4iT",
+        "from": "LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT",
+        "sendHash": "Lh95pkeCHAq3X4utRzXA4fmhothExoWDQCeGcmUW5Wy",
         "funds": {
-          "testit/json-7827429": 4547108.03928701,
+          "testit/json-1031181": 4547108.03928701,
           "LYR": 1099.9
         }
       }
@@ -746,6 +827,7 @@ Server reply:
 }
 ```
 
+> Notify from server: {"jsonrpc":"2.0","method":"Notify","params":[{"catalog":"Receiving","content":{"from":"LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT","sendHash":"Lh95pkeCHAq3X4utRzXA4fmhothExoWDQCeGcmUW5Wy","funds":{"testit/json-1031181":4547108.03928701,"LYR":1099.9}}}]}
 Server reply:
 ```
 {
@@ -754,12 +836,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "9rLJLamfR3EZzANBjoiGGzKSUR2KHXSGySiqhTcs9EjE"
+    "9ANTSQnYAsJyuXW5zQMPy5DkjAnq6sPbtwCwK9Tc9a4Q"
   ]
 }
 ```
 
-## Signing message: 9rLJLamfR3EZzANBjoiGGzKSUR2KHXSGySiqhTcs9EjE
+## Signing message: 9ANTSQnYAsJyuXW5zQMPy5DkjAnq6sPbtwCwK9Tc9a4Q
 
 Client send:
 ```
@@ -768,7 +850,7 @@ Client send:
   "id": 9,
   "result": [
     "p1393",
-    "5irbYP1FVxdmDt8XmEGJB4L7rjnfFHugxSj7bdUFBAyXhsNkZEsf1wiGZmwKwSLVo1h6XajVxvjw3mB4SsQVgiup"
+    "5FsVS2LLZ8QXXmYdLKAPR6j8wTNNd4jaAASAf11frzrRig6iX1JwtArxSDefw4JsuGpj5Znai4GALsxj3m9YfvAJ"
   ]
 }
 ```
@@ -781,12 +863,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "3NV4x49S9PvgdnkZM7AHGpgDWJxGZaYRAzPqQNJ7y72a"
+    "FvhmvxJs7FA2GvHLk6vfwe8ygxkEXnftsch9aki9xsGE"
   ]
 }
 ```
 
-## Signing message: 3NV4x49S9PvgdnkZM7AHGpgDWJxGZaYRAzPqQNJ7y72a
+## Signing message: FvhmvxJs7FA2GvHLk6vfwe8ygxkEXnftsch9aki9xsGE
 
 Client send:
 ```
@@ -795,7 +877,7 @@ Client send:
   "id": 10,
   "result": [
     "p1393",
-    "4ZazXsYAX1APTCtxaP4i616VaacAsvwB9njMD1uUib15FcgmrzsKyhSgqH9RtdvvnvuT1minXsiLgXafxAWq9X9c"
+    "4MkMqGNptjcB5FVRCdBajGFweHoR3LVewtH2JiDjEEf8AkFriuETHi9JdmA2euPLhC9BrLbGwsxeHHJJPg2nCiDv"
   ]
 }
 ```
@@ -807,7 +889,7 @@ Server reply:
   "id": 15,
   "result": {
     "balance": {
-      "testit/json-7827429": 10000000.0,
+      "testit/json-1031181": 10000000.0,
       "LYR": 1983.9
     },
     "unreceived": false
@@ -827,7 +909,7 @@ Client send:
   "id": 16,
   "params": [
     "LYR",
-    "testit/json-7827429"
+    "testit/json-1031181"
   ]
 }
 ```
@@ -838,12 +920,12 @@ Server reply:
   "jsonrpc": "2.0",
   "id": 16,
   "result": {
-    "poolId": "LEAdNJTwzXdp88yQZpgVP1CrySSjpyT9qMpo4PMdJ2M2G1wmBNzUEenYGefkj4rYucsq4hhaoNhqsdPCs3FGyEzUM4CFcR",
+    "poolId": "LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT",
     "height": 5,
     "token0": "LYR",
-    "token1": "testit/json-7827429",
+    "token1": "testit/json-1031181",
     "balance": {
-      "testit/json-7827429": 0.0,
+      "testit/json-1031181": 0.0,
       "LYR": 0.0
     }
   }
@@ -861,10 +943,10 @@ Client send:
   "method": "AddLiquidaty",
   "id": 17,
   "params": [
-    "LELjYgcrNjC9C1bw1shU8iy7gUmL43N5v5EQMc8coQKFsSGNa9oMiXtXMPZ8sHqP5FV86ui6yrfxUvXLZmm74CNmN3fAe1",
+    "LMCDi9rJ5xMWZb8vgW68e9zvwrkWqBZw9JUcDCPA8JxotLZNxfGUPHHeDGmjUPg1nkVmiX4VfXKcctBdmH5avXs4ohWKe3",
     "LYR",
     "300",
-    "testit/json-7827429",
+    "testit/json-1031181",
     "7000000"
   ]
 }
@@ -878,12 +960,12 @@ Server reply:
   "method": "Sign",
   "params": [
     "hash",
-    "6Jc7nWiawNwm2jJXX6JKUqz6ezACUim9BXzRT4XY7G2g"
+    "o9EWLDx2MUG9zwuUvxcKoyiCJ9MwP63VjVnHfXsugd2"
   ]
 }
 ```
 
-## Signing message: 6Jc7nWiawNwm2jJXX6JKUqz6ezACUim9BXzRT4XY7G2g
+## Signing message: o9EWLDx2MUG9zwuUvxcKoyiCJ9MwP63VjVnHfXsugd2
 
 Client send:
 ```
@@ -892,7 +974,7 @@ Client send:
   "id": 11,
   "result": [
     "p1393",
-    "2bwaqbRcRp852iniLY2255ay923wj38SEuptS2i8S3xETwU86xMNYXnDahCq6rp5f6L7P9pL3RuQSQ8iECMpoiyp"
+    "3SdMfGzFWU3vUopKV9DbUxDQ6p81f7jEDLhzWvZkDXCniRv2jT9DEyqQF9eN4hxz3TJgbfknkaxiYQQUmBMzRhzU"
   ]
 }
 ```
@@ -903,12 +985,12 @@ Server reply:
   "jsonrpc": "2.0",
   "id": 17,
   "result": {
-    "poolId": "LEAdNJTwzXdp88yQZpgVP1CrySSjpyT9qMpo4PMdJ2M2G1wmBNzUEenYGefkj4rYucsq4hhaoNhqsdPCs3FGyEzUM4CFcR",
+    "poolId": "LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT",
     "height": 6,
     "token0": "LYR",
-    "token1": "testit/json-7827429",
+    "token1": "testit/json-1031181",
     "balance": {
-      "testit/json-7827429": 7000000.0,
+      "testit/json-1031181": 7000000.0,
       "LYR": 300.0
     }
   }
@@ -927,7 +1009,7 @@ Client send:
   "id": 18,
   "params": [
     "LYR",
-    "testit/json-7827429"
+    "testit/json-1031181"
   ]
 }
 ```
@@ -938,12 +1020,12 @@ Server reply:
   "jsonrpc": "2.0",
   "id": 18,
   "result": {
-    "poolId": "LEAdNJTwzXdp88yQZpgVP1CrySSjpyT9qMpo4PMdJ2M2G1wmBNzUEenYGefkj4rYucsq4hhaoNhqsdPCs3FGyEzUM4CFcR",
+    "poolId": "LDFj4M5QwzQMg7rsHQuLFcgnMXgiatsBCu7wvhJWBnhWnxQA3F3r1PY8vromAGxLvKwQPtszAcWPMp4KCnPhBjRzDMkyhT",
     "height": 6,
     "token0": "LYR",
-    "token1": "testit/json-7827429",
+    "token1": "testit/json-1031181",
     "balance": {
-      "testit/json-7827429": 7000000.0,
+      "testit/json-1031181": 7000000.0,
       "LYR": 300.0
     }
   }
