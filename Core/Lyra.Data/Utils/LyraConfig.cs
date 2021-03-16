@@ -5,6 +5,7 @@ using System.Text;
 
 namespace Lyra.Data.Utils
 {
+    public enum NodeMode { Normal, App }
     public class LyraConfig
     {
         public LyraNodeConfig Lyra { get; }
@@ -27,13 +28,20 @@ namespace Lyra.Data.Utils
         public string NetworkId => _networkId;
         public LyraDatabaseConfig Database { get; }
         public LyraWalletConfig Wallet { get; }
-        public string FeeAccountId { get; }
+        public NodeMode Mode { get; }
 
         public LyraNodeConfig(IConfigurationSection section)
         {
             Database = new LyraDatabaseConfig(section.GetSection("Database"));
             Wallet = new LyraWalletConfig(section.GetSection("Wallet"));
-            FeeAccountId = section.GetSection("FeeAccountId").Value;
+            try
+            {
+                Mode = (NodeMode)Enum.Parse(typeof(NodeMode), section.GetSection("Mode").Value, true);
+            }
+            catch
+            {
+                Mode = NodeMode.Normal;
+            }
         }
     }
 

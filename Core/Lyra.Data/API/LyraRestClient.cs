@@ -21,7 +21,7 @@ namespace Lyra.Core.API
         private string _appName;
         private string _appVersion;
         private string _url;
-        private HttpClient _client;
+
         public string Host { get; private set; }
         private CancellationTokenSource _cancel;
         public LyraRestClient(string platform, string appName, string appVersion, string url)
@@ -40,30 +40,34 @@ namespace Lyra.Core.API
                         return true;
                     return sslPolicyErrors == System.Net.Security.SslPolicyErrors.None;
                 };
-            }
+            }         
+        }
 
-            var httpClientHandler = new HttpClientHandler();
+        private HttpClient CreateClient()
+        {
+            var handler = new HttpClientHandler();
             try
             {
-                httpClientHandler.ServerCertificateCustomValidationCallback = (sender, cert, chain, error) =>
+                handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, error) =>
                 {
                     var cert2 = new X509Certificate2(cert.GetRawCertData());
                     ServerThumbPrint = cert2.Thumbprint;
                     return true;
                 };
             }
-            catch { }            
+            catch { }
 
-            _client = new HttpClient(httpClientHandler);
-            _client.BaseAddress = new Uri(url);
+            var client = new HttpClient(handler);
+            client.BaseAddress = new Uri(_url);
             //_client.DefaultRequestHeaders.Accept.Clear();
             //_client.DefaultRequestHeaders.Accept.Add(
             //    new MediaTypeWithQualityHeaderValue("application/json"));
-//#if DEBUG
-//            _client.Timeout = new TimeSpan(0, 0, 30);
-//#else
-            _client.Timeout = new TimeSpan(0, 0, 15);
-//#endif
+            //#if DEBUG
+            //            _client.Timeout = new TimeSpan(0, 0, 30);
+            //#else
+            client.Timeout = new TimeSpan(0, 0, 15);
+            //#endif
+            return client;
         }
 
         public static LyraRestClient Create(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
@@ -92,16 +96,19 @@ namespace Lyra.Core.API
 
         private async Task<T> PostBlock<T>(string action, object obj)
         {
-            HttpResponseMessage response = await _client.PostAsJsonAsync(
-                    action, obj, _cancel.Token).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<T>();
-                return result;
+                HttpResponseMessage response = await client.PostAsJsonAsync(
+                    action, obj, _cancel.Token).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<T>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         private async Task<T> Get<T>(string action, Dictionary<string, string> args)
@@ -110,14 +117,48 @@ namespace Lyra.Core.API
                           (sb, kvp) => sb.AppendFormat("{0}{1}={2}",
                                        sb.Length > 0 ? "&" : "", kvp.Key, kvp.Value),
                           sb => sb.ToString());
-            HttpResponseMessage response = await _client.GetAsync(url, _cancel.Token);
-            if (response.IsSuccessStatusCode)
+
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<T>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<T>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
+        }
+
+        private async Task<BlockAPIResult> GetBlockByUrl(string url)
+        {
+            using (var client = CreateClient())
+            {
+                HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
+            }
+        }
+
+        private async Task<MultiBlockAPIResult> GetMultiBlockByUrl(string url)
+        {
+            using (var client = CreateClient())
+            {
+                HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
+            }
         }
 
         private async Task<bool> CheckApiVersion()
@@ -146,27 +187,33 @@ namespace Lyra.Core.API
 
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
-            HttpResponseMessage response = await _client.GetAsync("GetSyncState", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<GetSyncStateAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync("GetSyncState", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<GetSyncStateAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
         {
-            var api_call = $"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}";
-            HttpResponseMessage response = await _client.GetAsync(api_call, _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<GetVersionAPIResult>();
-                return result;
+                var api_call = $"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}";
+                HttpResponseMessage response = await client.GetAsync(api_call, _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<GetVersionAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
@@ -176,14 +223,17 @@ namespace Lyra.Core.API
 
         public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetAccountHeight/?AccountId={AccountId}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync($"GetAccountHeight/?AccountId={AccountId}", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         #region All reward trade methods
@@ -212,16 +262,18 @@ namespace Lyra.Core.API
         public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock tradeOrderBlock)
         {
             //return await PostBlock("TradeOrder", tradeOrderBlock);
-
-            HttpResponseMessage response = await _client.PostAsJsonAsync("TradeOrder", tradeOrderBlock).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<TradeOrderAuthorizationAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.PostAsJsonAsync("TradeOrder", tradeOrderBlock).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<TradeOrderAuthorizationAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
@@ -243,110 +295,47 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
         }
 
         public async Task<BlockAPIResult> GetBlock(string Hash)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlock/?Hash={Hash}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetBlock/?Hash={Hash}");
         }
 
         public async Task<BlockAPIResult> GetBlockBySourceHash(string Hash)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockBySourceHash/?Hash={Hash}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetBlockBySourceHash/?Hash={Hash}");
         }
 
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByIndex/?AccountId={AccountId}&Index={Index}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetBlockByIndex/?AccountId={AccountId}&Index={Index}");
         }
 
         public async Task<BlockAPIResult> GetLastBlock(string AccountId)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLastBlock/?AccountId={AccountId}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetLastBlock/?AccountId={AccountId}");
         }
 
         public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetServiceBlockByIndex/?blockType={blockType}&Index={Index}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetServiceBlockByIndex/?blockType={blockType}&Index={Index}");
         }
 
         public async Task<BlockAPIResult> GetLastServiceBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLastServiceBlock", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetLastServiceBlock");
         }
 
         public async Task<BlockAPIResult> GetLastConsolidationBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLastConsolidationBlock", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetLastConsolidationBlock");
         }
 
         public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlocksByConsolidation/?AccountId={AccountId}&Signature={Signature}&consolidationHash={consolidationHash}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetMultiBlockByUrl($"GetBlocksByConsolidation/?AccountId={AccountId}&Signature={Signature}&consolidationHash={consolidationHash}");
         }
 
         public async Task<MultiBlockAPIResult> GetBlockByTimeRange(DateTime startTime, DateTime endTime)
@@ -361,38 +350,27 @@ namespace Lyra.Core.API
 
         public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetMultiBlockByUrl($"GetBlockByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
         }
 
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetBlockHashesByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync($"GetBlockHashesByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetConsolidationBlocks/?AccountId={AccountId}&Signature={Signature}&startHeight={startHeight}&count={count}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetMultiBlockByUrl($"GetConsolidationBlocks/?AccountId={AccountId}&Signature={Signature}&startHeight={startHeight}&count={count}");
         }
 
         //public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
@@ -409,50 +387,52 @@ namespace Lyra.Core.API
 
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetNonFungibleTokens/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<NonFungibleListAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync($"GetNonFungibleTokens/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<NonFungibleListAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<AccountHeightAPIResult> GetSyncHeight()
         {
-            HttpResponseMessage response = await _client.GetAsync("GetSyncHeight", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync("GetSyncHeight", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetTokenGenesisBlock/?AccountId={AccountId}&TokenTicker={TokenTicker}&Signature={Signature}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetTokenGenesisBlock/?AccountId={AccountId}&TokenTicker={TokenTicker}&Signature={Signature}");
         }
 
         public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetTokenNames/?AccountId={AccountId}&Signature={Signature}&keyword={keyword}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync($"GetTokenNames/?AccountId={AccountId}&Signature={Signature}&keyword={keyword}", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
@@ -462,38 +442,47 @@ namespace Lyra.Core.API
 
         public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"LookForNewTransfer/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<NewTransferAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync($"LookForNewTransfer/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<NewTransferAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"LookForNewTransfer2/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<NewTransferAPIResult2>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync($"LookForNewTransfer2/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<NewTransferAPIResult2>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
         {
-            HttpResponseMessage response = await _client.GetAsync($"LookForNewFees/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<NewFeesAPIResult>();
-                return result;
+                HttpResponseMessage response = await client.GetAsync($"LookForNewFees/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<NewFeesAPIResult>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
@@ -528,54 +517,46 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetServiceGenesisBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetServiceGenesisBlock", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetServiceGenesisBlock");
         }
 
         public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
         {
-            HttpResponseMessage response = await _client.GetAsync($"GetLyraTokenGenesisBlock", _cancel.Token);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                return result;
-            }
-            else
-                throw new Exception("Web Api Failed.");
+            return await GetBlockByUrl($"GetLyraTokenGenesisBlock");
         }
 
         public async Task<List<Voter>> GetVotersAsync(VoteQueryModel model)
         {
-            HttpResponseMessage response = await _client.PostAsJsonAsync(
-                    "GetVoters", model, _cancel.Token).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<List<Voter>>();
-                return result;
+                HttpResponseMessage response = await client.PostAsJsonAsync(
+                            "GetVoters", model, _cancel.Token).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<List<Voter>>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<List<Vote>> FindVotesAsync(VoteQueryModel model)
         {
-            HttpResponseMessage response = await _client.PostAsJsonAsync(
-                    "FindVotes", model, _cancel.Token).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            if (response.IsSuccessStatusCode)
+            using (var client = CreateClient())
             {
-                var result = await response.Content.ReadAsAsync<List<Vote>>();
-                return result;
+                HttpResponseMessage response = await client.PostAsJsonAsync(
+                            "FindVotes", model, _cancel.Token).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsAsync<List<Vote>>();
+                    return result;
+                }
+                else
+                    throw new Exception("Web Api Failed.");
             }
-            else
-                throw new Exception("Web Api Failed.");
         }
 
         public async Task<FeeStats> GetFeeStatsAsync()

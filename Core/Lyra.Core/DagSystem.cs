@@ -18,9 +18,11 @@ using Settings = Neo.Settings;
 using Lyra.Core.Authorizers;
 using Lyra.Data.API;
 using Lyra.Core.API;
+using Lyra.Core.Blocks;
 
 namespace Lyra
 {
+    public delegate void BlockGeneratedEventHandler(Block block, Block prevBlock);
     public class DagSystem
     {
         public static ActorSystem ActorSystem { get; } = ActorSystem.Create(nameof(DagSystem),
@@ -34,6 +36,8 @@ namespace Lyra
         public IActorRef LocalNode { get; }
         internal IActorRef TaskManager { get; }
         public IActorRef Consensus { get; private set; }
+
+        public event BlockGeneratedEventHandler OnNewBlock;
 
         public bool FullStarted { get; private set; }
         public Wallet PosWallet { get; private set; }
@@ -120,6 +124,21 @@ namespace Lyra
             {
                 LocalNode.Tell(start_message);
                 start_message = null;
+            }
+        }
+
+        public void NewBlockGenerated(Block block)
+        {
+            try
+            {
+                Block prevBlock = null;
+                if (block.PreviousHash != null)
+                    prevBlock = Storage.FindBlockByHash(block.PreviousHash);
+                OnNewBlock?.Invoke(block, prevBlock);
+            }
+            catch(Exception e)
+            {
+                _log.LogError($"In NewBlockGenerated: {e}");
             }
         }
     }

@@ -1,9 +1,4 @@
-//#define WEB
-//#define INMEMORY
-
 using System;
-using CommandLine;
-using CommandLine.Text;
 using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,79 +9,142 @@ using Lyra.Core.API;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using Lyra.Core.Utils;
+using McMaster.Extensions.CommandLineUtils;
+using System.ComponentModel.DataAnnotations;
+using Client.CLI;
+using System.Threading;
+using StreamJsonRpc;
+using Lyra.Core.Accounts;
+using Nerdbank.Streams;
 
 namespace Lyra.Client.CLI
-
 {
-    class ClientProgram
+    public class ClientProgram
     {
-        static void Main(string[] args)
+        [Option("-n|--networkid", Description = "Network Id")]
+        public string NetworkId { get; set; } = "mainnet";
+
+        [Option("-d|--database", Description = "Local data storage type")]
+        public string Database { get; set; }
+
+        [Option("-p|--protocol", Description = "Communication protocol with the node")]
+        public string Protocol { get; set; }
+
+        [Option("-u|--node", Description = "Node API URL")]
+        public string Node { get; set; }
+
+        [Option("-g|--genwallet", Description = "Generate Wallet Only")]
+        public string GenWalletName { get; set; }
+
+        [Option("-w|--wallet", Description = "Wallet Name")]
+        public string WalletName { get; set; }
+
+        [Option("-s|--rpcserver", Description = "Run JsonRPC Server")]
+        public bool RunJsonRPCServer { get; set; }
+
+        [Option("-b|--binding", Description = "JsonRPC Server Binding Address [http://localhost:3373/]")]
+        public string ServerBinding { get; set; }
+
+        public CancellationTokenSource cancellation { get; set; }
+
+        public ClientProgram()
         {
-            Console.WriteLine(LyraGlobal.PRODUCTNAME + " Command Line Client");
-            Console.WriteLine("Version: " + "1.5.0");
+            cancellation = new CancellationTokenSource();
 
-            ParserResult<Options> result = Parser.Default.ParseArguments<Options>(args);
-
-            using (var host = CreateHost())
+            if(Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
-                host.Start();
-
-                var client = host.Services.GetService<IHostedService>();
-
-
-                // activate api serivce grain
-                // debug test
-                var c = client;
-
-                //var gf = host.Services.GetService<IGrainFactory>();
-                //var nodeApi = c.Node;
-
-                var wm = new WalletManager();
-                int mapresult = result.MapResult((Options options) => wm.RunWallet(options).Result, _ => CommandLineError());
-
-                if (mapresult != 0)
-                {
-                    if (mapresult == -2)
-                        Console.WriteLine("Unsupported parameters");
-                }
+                new CtrlC().AddHandler((s) => {
+                    cancellation.Cancel();
+                    Environment.Exit(1);
+                });
+            }
+            else
+            {
+                AppDomain.CurrentDomain.ProcessExit += (a, b) => cancellation.Cancel();
             }
         }
 
-        static int CommandLineError()
+        static async Task<int> Main(string[] args)
         {
-            Console.WriteLine("Unknown parameters");
-            return -1;
-        }
-
-        private static IHost CreateHost()
-        {
-            return new HostBuilder()
-                .ConfigureServices(services =>
-                {
-                    //// build config
-                    //var Configuration = new ConfigurationBuilder()
-                    //    .SetBasePath(Directory.GetCurrentDirectory())
-                    //    .AddJsonFile("appsettings.json", false)
-                    //    .AddEnvironmentVariables()
-                    //    .Build();
-
-                    //services.Configure<OrleansConfig>(Configuration.GetSection("Orleans"));
-
-                    services.Configure<ConsoleLifetimeOptions>(options =>
-                    {
-                        options.SuppressStatusMessages = true;
-                    });
-                })
-                .ConfigureLogging(builder =>
+            return await new HostBuilder()
+                .ConfigureLogging((context, builder) =>
                 {
                     builder.AddConsole();
                     SimpleLogger.Factory = new LoggerFactory();
                 })
-                .Build();
+                .ConfigureServices((context, services) =>
+                {
+                    //services.AddSingleton<IGreeter, Greeter>()
+                    //    .AddSingleton<IConsole>(PhysicalConsole.Singleton);
+                })
+                .RunCommandLineApplicationAsync<ClientProgram>(args);
         }
 
+        private async Task OnExecuteAsync()
+        {
+            //Console.WriteLine("Personal and Business Banking, Payments, and Digital Asset Management");
+            //Console.WriteLine("Banking: Store, transfer, and receive interest on multiple digital assets");
+            //Console.WriteLine("Payments: Make or accept instant payments using various currencies, online and in store");
+            //Console.WriteLine("Digital Asset Management: Issue your own tokens within seconds");
+            //Console.WriteLine("");
+
+            if(RunJsonRPCServer)
+            {
+                //while(true)
+                //{
+                //    var s = Console.ReadLine();
+                //    if (s == null)
+                //        break;
+                //    File.AppendAllText("c:\\tmp\\input.txt", s + "\n");
+                //}
+                await RespondToRpcRequestsAsync(FullDuplexStream.Splice(Console.OpenStandardInput(), Console.OpenStandardOutput()), 0);
+            }
+            else
+            {
+                Console.WriteLine($"{LyraGlobal.PRODUCTNAME} Command Line Client");
+                Console.WriteLine("Version: " + LyraGlobal.NODE_VERSION);
+
+                Console.WriteLine($"\nCurrent networkd ID: {NetworkId}\n");
+
+                var mgr = new WalletManager();
+                await mgr.RunWallet(this);
+            }
+        }
+
+        private async Task RespondToRpcRequestsAsync(Stream stream, int clientId)
+        {
+            await Console.Error.WriteLineAsync($"Connection request #{clientId} received. Spinning off an async Task to cater to requests.");
+            var jsonRpc = JsonRpc.Attach(stream, new Server(this));
+            await Console.Error.WriteLineAsync($"JSON-RPC listener attached to #{clientId}. Waiting for requests...");
+            await jsonRpc.Completion;
+            await Console.Error.WriteLineAsync($"Connection #{clientId} terminated.");
+        }
     }
-    
+
+    /*
+     * 
+     * 
+Content-Length: 69
+
+{"jsonrpc":"2.0","id":2,"method":"ImportWallet","params":["aaaa",""]}
+     * 
+     */
+    internal class Server
+    {
+        ClientProgram _prog;
+        public Server(ClientProgram prog)
+        {
+            _prog = prog;
+        }
+        public string ImportWallet(string name, string password)
+        {
+            string lyra_folder = Wallet.GetFullFolderName(_prog.NetworkId, "wallets");
+            var storage = new SecuredWalletStore(lyra_folder);
+            var wallet = Wallet.Open(storage, name, password);
+            return wallet.PrivateKey;
+        }
+    }
+
     public class Options
     {
         public const string LOCAL_NETWORK = "local";
@@ -103,48 +161,5 @@ namespace Lyra.Client.CLI
 
         public const string INMEMORY_DATABASE = "inmemory";
         public const string LITEDB_DATABASE = "litedb";
-        
-        [Option('n', "networkid", HelpText = "Network Id", Required = true)]
-        public string NetworkId { get; set; }
-
-        [Option('d', "database", HelpText = "Local data storage type", Required = false)]
-        public string Database { get; set; }
-
-        [Option('p', "protocol", HelpText = "Communication protocol with the node", Required = false)]
-        public string Protocol { get; set; }
-
-        [Option('u', "node", HelpText = "Node API URL", Required = false)]
-        public string Node { get; set; }
-
-        [Option('g', "genwallet", HelpText = "Generate Wallet Only", Required = false)]
-        public string GenWalletName { get; set; }
-
-        public IHost Host { get; set; }
-
-        [Usage(ApplicationAlias = "dotnet lyracli.dll")]
-        public static IEnumerable<Example> Examples
-        {
-            get
-            {
-                //return new List<Example>() {
-                //new Example("Connect to mainnet", new Options { Testnet = false }),
-                //new Example("Connect to testnet", new Options { Testnet = true }),
-                //new Example("Connect to another local testnet node", new Options { Testnet = true, Seed = "127.0.0.1:7901" }),
-                //new Example("Create a local single-node testnet", new Options { Testnet = true, Seed = "self" }),
-                //new Example("read more lines", new[] { UnParserSettings.WithGroupSwitchesOnly() }, new Options { Testnet = true })
-                //};
-                //yield return new Example("Connect to mainnet", new Options { Testnet = false });
-                //yield return new Example("Connect to testnet", new Options { Testnet = true });
-                //                yield return new Example("Connect to another local testnet node", new Options { Testnet = true, Seed = "127.0.0.1:7901" });
-                //              yield return new Example("Create a local single-node development testnet", new Options { Testnet = true, Seed = SEED_SELF, NetworkId = DEV_NETWORK });
-                yield return new Example("Connect to local devnet node", new Options { NetworkId = LOCAL_NETWORK, Database = LITEDB_DATABASE, Protocol = RPC_PROTOCOL });
-                yield return new Example("Connect to public devnet", new Options { NetworkId = DEV_NETWORK, Database = LITEDB_DATABASE, Protocol = WEBAPI_PROTOCOL });
-                //yield return new Example("Specify account id to collect authorization fees", 
-                //new Options { Testnet = true, Seed = SEED_SELF, Auth_Account= "PiLj1DpQxMPSs6r7RwCBXBzCESoFGnFJN3qV1TcRaiYCaCtgB8kER714mc3pJu2M8JNosQ4o8RB5wenMEbHkHG7P" });
-
-            }
-        }
-
     }
-
 }

@@ -167,5 +167,17 @@ namespace UnitTests
 
             Assert.AreEqual<string>(message, decryptedMessage);
         }
+
+        [TestMethod]
+        public void TestBurningAddress()
+        {
+            var buff = new byte[64];
+            for (int i = 0; i < 64; i++)
+                buff[i] = 0;
+
+            var addr = Base58Encoding.EncodeAccountId(buff);
+            Assert.IsTrue(Signatures.ValidateAccountId(addr));
+            Assert.AreEqual(LyraGlobal.BURNINGACCOUNTID, addr);
+        }
     }
 }

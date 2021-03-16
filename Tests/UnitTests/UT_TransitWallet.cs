@@ -21,10 +21,10 @@ namespace UnitTests
     [TestClass]
     public class UT_TransitWallet
     {
-        const string PRIVATE_KEY_1 = "dkrwRdqNjEEshpLuEPPqc6zM1HM3nzGjsYts39zzA1iUypcpj";
+        public const string PRIVATE_KEY_1 = "dkrwRdqNjEEshpLuEPPqc6zM1HM3nzGjsYts39zzA1iUypcpj";
         const string PRIVATE_KEY_2 = "Hc3XcZgZ1d2jRxhNojN1gnKHv5SBs15mR8K2SdkBbycrgAjPr";
 
-        const string ADDRESS_ID_1 = "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy";
+        public const string ADDRESS_ID_1 = "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy";
         const string ADDRESS_ID_2 = "LUTAq9MFf4vaqbEEDHsRj8SUbLWoKptndaUqXSnYbi7mC1cXajts6fWXhQUuwR4ZX7DnvERkUMpwXKf4XKk4NjVMxqYvmn";
 
         private string testToken = "unittest/trans";
@@ -173,6 +173,27 @@ namespace UnitTests
             {
                 semaphore.Release();
             }
+        }
+
+        [TestMethod]
+        public async Task BurningToken()
+        {
+            await semaphore.WaitAsync();
+            var w1 = Restore(PRIVATE_KEY_1);
+            var syncResult = await w1.ReceiveAsync();
+            Assert.AreEqual(syncResult, APIResultCodes.Success);
+            var b1 = await w1.GetBalanceAsync();
+            var b1Before = b1[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+
+            var amount = Math.Round((decimal)((new Random().NextDouble() + 0.03) * 1000), 8);
+            var amounts = new Dictionary<string, decimal>();
+            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, amount);
+            var sendResult = await w1.SendAsync(amounts, LyraGlobal.BURNINGACCOUNTID);
+            Assert.IsTrue(sendResult == APIResultCodes.Success, "Failed to send token.");
+
+            var b1After = (await w1.GetBalanceAsync())[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+
+            Assert.AreEqual(b1Before - 1m - amount, b1After);
         }
     }
 }

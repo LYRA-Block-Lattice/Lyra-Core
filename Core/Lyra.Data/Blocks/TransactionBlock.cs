@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Lyra.Core.API;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using Newtonsoft.Json;
@@ -136,6 +137,9 @@ namespace Lyra.Core.Blocks
 
         public virtual bool ValidateTransaction(TransactionBlock previousBlock)
         {
+            if (Balances.Any(x => x.Value < 0))
+                return false;
+
             var trs = GetBalanceChanges(previousBlock);
 
             //if (trs.Amount == 0)

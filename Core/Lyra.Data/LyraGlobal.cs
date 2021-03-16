@@ -33,6 +33,8 @@ namespace Lyra.Core.API
         public const int MinimalAuthorizerBalance = 1000000;
         public const decimal OFFICIALGENESISAMOUNT = 10000000000;
 
+        public const string BURNINGACCOUNTID = "L11111111111111111111111111111111111111111111111111111111111111116oUsJe";
+
 #if DEBUG
         public static readonly IList<string> Networks = new[] { "mainnet", "testnet",
             "devnet"
@@ -78,6 +80,9 @@ namespace Lyra.Core.API
     {
         public static long ToBalanceLong(this decimal currency)
         {
+            if (currency > long.MaxValue / LyraGlobal.TOKENSTORAGERITO)
+                throw new OverflowException();
+
             return (long)Math.Round(currency * LyraGlobal.TOKENSTORAGERITO);
         }
 

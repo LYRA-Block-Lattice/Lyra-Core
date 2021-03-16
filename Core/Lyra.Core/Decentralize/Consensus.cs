@@ -60,7 +60,21 @@ namespace Lyra.Core.Decentralize
         {
             var consensusClient = _networkClient;
 
-            var seedSvcGen = await consensusClient.GetServiceGenesisBlock();
+            BlockAPIResult seedSvcGen;
+            while (true)
+            {
+                seedSvcGen = await consensusClient.GetServiceGenesisBlock();
+                if (seedSvcGen.ResultCode == APIResultCodes.Success)
+                    break;
+
+                await Task.Delay(10 * 1000);
+
+                _log.LogInformation("Recreate aggregated client...");
+                _networkClient = new LyraClientForNode(_sys);
+                _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+            }
+            
+
             var localDbState = await GetNodeStatusAsync();
             if (localDbState.totalBlockCount == 0)
             {
@@ -90,6 +104,9 @@ namespace Lyra.Core.Decentralize
             }
 
             var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
+            if (lastCons == null)
+                return false;
+
             bool IsSuccess = true;
             var _authorizers = new AuthorizersFactory();
             while (true)
@@ -125,10 +142,21 @@ namespace Lyra.Core.Decentralize
                             break;
                         }
                     }
+                    else if(remoteConsQuery.ResultCode == APIResultCodes.APIRouteFailed)
+                    {
+                        _log.LogWarning("Got inconsistant result from network. retry later.");
+                        throw new Exception("Failed to sync. reason: " + remoteConsQuery.ResultCode);
+                    }
+                    else
+                    {
+                        _log.LogWarning($"Unexpected error {remoteConsQuery.ResultCode}: {remoteConsQuery.ResultMessage}. retry later.");
+                        throw new Exception($"Failed to sync. reason: {remoteConsQuery.ResultCode}: {remoteConsQuery.ResultMessage}");
+                    }
                 }
                 catch (Exception ex)
                 {
                     _log.LogWarning("SyncDatabase Exception: " + ex.Message);
+                    await Task.Delay(30000);
                     IsSuccess = false;
                     break;
                 }
@@ -425,7 +453,7 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation("genesis block string:\n" + tokenGen.GetHashInput());
             await SendBlockToConsensusAndWaitResultAsync(tokenGen);
 
-            await Task.Delay(15000);        // because cons block has a time shift.
+            await Task.Delay(25000);        // because cons block has a time shift.
 
             var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen);
             await SendBlockToConsensusAndWaitResultAsync(consGen);
@@ -555,7 +583,7 @@ namespace Lyra.Core.Decentralize
                 },
                 totalBlockCount = 2     // not including self
             };
-            consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(-10);
+            consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(-18);
 
             var mt = new MerkleTree();
             mt.AppendLeaf(MerkleHash.Create(svcGen.Hash));

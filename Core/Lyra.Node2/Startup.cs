@@ -105,6 +105,42 @@ namespace Lyra.Node2
 
             LyraNodeConfig.Init(networkId);
 
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/error");
+                //app.UseExceptionHandler(errorApp =>
+                //{
+                //    errorApp.Run(async context =>
+                //    {
+                //        var error = context.Features.Get<IExceptionHandlerFeature>();
+                //        if (error != null && error.Error.Message == "System Not Ready.")
+                //        {
+                //            context.Response.StatusCode = 500; // or another Status accordingly to Exception Type
+                //            context.Response.ContentType = "application/json";
+
+                //            var ex = error.Error;
+                //            var result = new APIResult()
+                //            {
+                //                ResultCode = Core.Blocks.APIResultCodes.SystemNotReadyToServe
+                //            };
+                //            var str = JsonConvert.SerializeObject(result);
+                //            await context.Response.WriteAsync(str, Encoding.UTF8);
+                //        }
+                //        else
+                //        {
+                //            context.Response.StatusCode = 500; // or another Status accordingly to Exception Type
+                //            context.Response.ContentType = "text/html";
+                //            await context.Response.WriteAsync("<html>Internal Error</html>", Encoding.UTF8);
+                //        }
+                //    });
+                //});
+                app.UseHsts();
+            }
+
             var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
             loggerFactory.AddFile(logPath + "noded-{Date}.txt");
 
@@ -126,43 +162,10 @@ namespace Lyra.Node2
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{LyraGlobal.PRODUCTNAME} API V1");
             });
 
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler(errorApp =>
-                {
-                    errorApp.Run(async context =>
-                    {
-                        var error = context.Features.Get<IExceptionHandlerFeature>();
-                        if (error != null && error.Error.Message == "System Not Ready.")
-                        {
-                            context.Response.StatusCode = 500; // or another Status accordingly to Exception Type
-                            context.Response.ContentType = "application/json";
-
-                            var ex = error.Error;
-                            var result = new APIResult()
-                            {
-                                ResultCode = Core.Blocks.APIResultCodes.SystemNotReadyToServe
-                            };
-                            var str = JsonConvert.SerializeObject(result);
-                            await context.Response.WriteAsync(str, Encoding.UTF8);
-                        }
-                        else
-                        {
-                            context.Response.StatusCode = 500; // or another Status accordingly to Exception Type
-                            context.Response.ContentType = "text/html";
-                            await context.Response.WriteAsync("<html>Internal Error</html>", Encoding.UTF8);
-                        }
-                    });
-                });
-                app.UseHsts();
-            }
-
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseAuthorization();
+            app.UseWebSockets();
 
             app.UseEndpoints(endpoints =>
             {

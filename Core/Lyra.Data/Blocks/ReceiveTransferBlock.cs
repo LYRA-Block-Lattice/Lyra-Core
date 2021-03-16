@@ -123,21 +123,6 @@ namespace Lyra.Core.Blocks
             return result;
         }
 
-        //public override bool ValidateTransaction(TransactionBlock previousBlock)
-        //{
-        //    if (!base.ValidateTransaction(previousBlock))
-        //        return false;
-
-        //    var trs = CalculateTransaction(previousBlock);
-
-        //    if (trs.Amount != Transaction.Amount)
-        //        return false;
-
-        //    return true;
-        //}
-
-
-
     }
 
     [BsonIgnoreExtraElements]

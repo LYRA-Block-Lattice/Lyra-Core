@@ -48,7 +48,7 @@ namespace Lyra.Core.Decentralize
             {
                 var networkId = LyraNodeConfig.GetNetworkId();
 
-                _log.LogInformation($"NodeService: Starting node for {networkId}.");
+                _log.LogInformation($"{LyraGlobal.PRODUCTNAME} {LyraGlobal.NODE_VERSION} Mode: {Neo.Settings.Default.LyraNode.Lyra.Mode}: Starting node daemon for {networkId}.");
 
                 // something must be initialized first
                 new AuthorizersFactory().Init();

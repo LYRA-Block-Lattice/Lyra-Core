@@ -12,7 +12,7 @@
           "Name": "poswallet",
           "Password":  ""
         },
-        "FeeAccountId": ""
+        "Mode": ""
       }
     },
     "Storage": {
