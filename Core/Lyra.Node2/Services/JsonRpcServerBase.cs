@@ -18,7 +18,7 @@ namespace Lyra.Node
         protected INodeAPI _node;
         protected INodeTransactionAPI _trans;
 
-        static ConcurrentQueue<Receiving> _queue;
+        static ConcurrentQueue<object> _queue;
         static EventWaitHandle _haveBlock;
         static ConcurrentDictionary<int, JsonRpcServerBase> _instances;
 
@@ -34,7 +34,7 @@ namespace Lyra.Node
 
             if(_queue == null && NodeService.Dag != null)
             {
-                _queue = new ConcurrentQueue<Receiving>();
+                _queue = new ConcurrentQueue<object>();
                 _haveBlock = new EventWaitHandle(false, EventResetMode.ManualReset);
                 _instances = new ConcurrentDictionary<int, JsonRpcServerBase>();
 
@@ -46,14 +46,14 @@ namespace Lyra.Node
                         await _haveBlock.AsTask();
                         _haveBlock.Reset();
 
-                        Receiving recvInfo;
-                        while(_queue.TryDequeue(out recvInfo))
+                        object info;
+                        while(_queue.TryDequeue(out info))
                         {
                             foreach (var inst in _instances.Values)
                             {
                                 try
                                 {
-                                    inst.Notify?.Invoke(this, new News { catalog = "Receiving", content = recvInfo });
+                                    inst.Notify?.Invoke(this, new News { catalog = info.GetType().Name, content = info });
                                 }
                                 catch(Exception ex)
                                 {
@@ -65,7 +65,7 @@ namespace Lyra.Node
                 });
             }
 
-            _instances.TryAdd(this.GetHashCode(), this);
+            _instances?.TryAdd(this.GetHashCode(), this);
         }
 
         private static void NewBlockMonitor(Block block, Block prevBlock)
@@ -83,11 +83,25 @@ namespace Lyra.Node
                 _queue.Enqueue(recvInfo);
                 _haveBlock.Set();
             }
+            else if(block is ReceiveTransferBlock recv)
+            {
+                var chgs = recv.GetBalanceChanges(prevBlock as TransactionBlock);
+                var setInfo = new Settlement
+                {
+                    sendHash = recv.SourceHash,
+                    recvHash = recv.Hash,
+                    //from = send.AccountID,
+                    to = recv.AccountID,
+                    funds = chgs.Changes
+                };
+                _queue.Enqueue(setInfo);
+                _haveBlock.Set();
+            }
         }
 
         public void Dispose()
         {
-            _instances.TryRemove(this.GetHashCode(), out _);
+            _instances?.TryRemove(this.GetHashCode(), out _);
         }
     }
 }

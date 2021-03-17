@@ -46,6 +46,11 @@ namespace Lyra.Core.API
         public Dictionary<string, decimal> funds { get; set; }
     }
 
+    public class Settlement : Receiving
+    {
+        public string recvHash { get; set; }
+    }
+
     public class TxDesc
     {
         public long Height { get; set; }
