@@ -23,6 +23,8 @@ using Noded.Services;
 using Microsoft.AspNetCore.Diagnostics;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 
 namespace Lyra.Node2
 {
@@ -83,6 +85,13 @@ namespace Lyra.Node2
             services.AddControllers();
 
             services.AddGrpc();
+
+            services.AddApiVersioning(options => {
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ReportApiVersions = true;
+                options.ApiVersionReader = new UrlSegmentApiVersionReader();
+            });
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>

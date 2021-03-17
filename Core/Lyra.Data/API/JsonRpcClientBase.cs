@@ -41,6 +41,7 @@ namespace Lyra.Core.API
     public class Receiving
     {
         public string from { get; set; }
+        public string to { get; set; }
         public string sendHash { get; set; }
         public Dictionary<string, decimal> funds { get; set; }
     }

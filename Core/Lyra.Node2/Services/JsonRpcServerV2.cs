@@ -23,9 +23,12 @@ namespace Lyra.Node
     private key if have password. all wallet should use the new jsonrpc api provided by node. 
     the Lyra Broker project can be abandoned, for exchange, using the  same api is enough.
      */
-    public class JsonRpcServer : JsonRpcServerBase
+
+
+
+    public class JsonRpcServerV2 : JsonRpcServerBase
     {
-        public JsonRpcServer(INodeAPI node, INodeTransactionAPI trans) : base(node, trans)
+        public JsonRpcServerV2(INodeAPI node, INodeTransactionAPI trans) : base(node, trans)
         {
 
         }
@@ -64,7 +67,7 @@ namespace Lyra.Node
         public async Task<ApiStatus> Status(string version, string networkid)
         {
             var clientVer = new Version(version);
-            if (LyraGlobal.NODE_VERSION.Major > clientVer.Major)
+            if (LyraGlobal.NODE_VERSION > clientVer)
                 throw new Exception("Client version too low. Need upgrade.");
 
             var syncState = await _node.GetSyncState();
@@ -156,12 +159,18 @@ namespace Lyra.Node
             }
         }
 
-        public void Monitor(string accountId)
+        public bool Monitor(string accountId)
         {
-            if (Signatures.ValidateAccountId(accountId))
+            if(Signatures.ValidateAccountId(accountId) || (accountId == "*" && Neo.Settings.Default.LyraNode.Lyra.Mode == NodeMode.App))
+            {
                 _monitorAccountId = accountId;
+                return true;
+            }
             else
+            {
                 _monitorAccountId = null;
+                return false;
+            }
         }
         public async Task<List<TxDesc>> History(string accountId, long startTime, long endTime, int count)
         {
@@ -322,5 +331,8 @@ namespace Lyra.Node
                 throw new Exception(result.ToString());
             }
         }
+
+        // group cli
+        // on cli only
     }
 }
