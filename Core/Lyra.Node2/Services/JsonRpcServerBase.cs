@@ -3,8 +3,12 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using StreamJsonRpc;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Lyra.Shared;
 
 namespace Lyra.Node
 {
@@ -13,6 +17,10 @@ namespace Lyra.Node
         public JsonRpc RPC { get; set; }
         protected INodeAPI _node;
         protected INodeTransactionAPI _trans;
+
+        static ConcurrentQueue<Receiving> _queue;
+        static EventWaitHandle _haveBlock;
+        static ConcurrentDictionary<int, JsonRpcServerBase> _instances;
 
         protected string _monitorAccountId;
 
@@ -24,13 +32,45 @@ namespace Lyra.Node
             _node = node;
             _trans = trans;
 
-            if (NodeService.Dag != null)
+            if(_queue == null && NodeService.Dag != null)
+            {
+                _queue = new ConcurrentQueue<Receiving>();
+                _haveBlock = new EventWaitHandle(false, EventResetMode.ManualReset);
+                _instances = new ConcurrentDictionary<int, JsonRpcServerBase>();
+
                 NodeService.Dag.OnNewBlock += NewBlockMonitor;
+
+                _ = Task.Run(async () => { 
+                    while(true)
+                    {
+                        await _haveBlock.AsTask();
+                        _haveBlock.Reset();
+
+                        Receiving recvInfo;
+                        while(_queue.TryDequeue(out recvInfo))
+                        {
+                            foreach (var inst in _instances.Values)
+                            {
+                                try
+                                {
+                                    inst.Notify?.Invoke(this, new News { catalog = "Receiving", content = recvInfo });
+                                }
+                                catch(Exception ex)
+                                {
+                                    
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            _instances.TryAdd(this.GetHashCode(), this);
         }
 
-        public void NewBlockMonitor(Block block, Block prevBlock)
+        private static void NewBlockMonitor(Block block, Block prevBlock)
         {
-            if (block is SendTransferBlock send && (send.DestinationAccountId == _monitorAccountId || _monitorAccountId == "*"))
+            if (block is SendTransferBlock send)
             {
                 var chgs = send.GetBalanceChanges(prevBlock as TransactionBlock);
                 var recvInfo = new Receiving
@@ -40,13 +80,14 @@ namespace Lyra.Node
                     to = send.DestinationAccountId,
                     funds = chgs.Changes
                 };
-                Notify?.Invoke(this, new News { catalog = "Receiving", content = recvInfo });
+                _queue.Enqueue(recvInfo);
+                _haveBlock.Set();
             }
         }
 
         public void Dispose()
         {
-            NodeService.Dag.OnNewBlock -= NewBlockMonitor;
+            _instances.TryRemove(this.GetHashCode(), out _);
         }
     }
 }
