@@ -237,7 +237,7 @@ namespace Lyra.Node
             }
             else
             {
-                throw new Exception(result.ToString());
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
             }
         }
         public async Task<SwapCalculator> PoolCalculate(string poolId, string swapFrom, decimal amount, decimal slippage)
@@ -309,7 +309,7 @@ namespace Lyra.Node
             }
             else
             {
-                throw new Exception(result.ToString());
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
             }
         }
         public async Task<BalanceResult> Swap(string accountId, string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
@@ -339,7 +339,7 @@ namespace Lyra.Node
             }
             else
             {
-                throw new Exception(result.ToString());
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
             }
         }
     }
