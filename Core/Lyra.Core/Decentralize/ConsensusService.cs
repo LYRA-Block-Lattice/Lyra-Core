@@ -775,7 +775,7 @@ namespace Lyra.Core.Decentralize
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
                 //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
                 .Where(x => !_failedLeaders.Keys.Contains(x.AccountID))    // exclude failed leaders
-                .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && a.State == BlockChainState.Almighty)
+                .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && (a.State == BlockChainState.Engaging || a.State == BlockChainState.Almighty))
                 .OrderByDescending(a => a.Votes)
                 .ThenBy(a => a.AccountID)
                 .ToList();
