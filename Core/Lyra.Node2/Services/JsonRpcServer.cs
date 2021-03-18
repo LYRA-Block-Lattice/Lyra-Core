@@ -64,7 +64,7 @@ namespace Lyra.Node
         public async Task<ApiStatus> Status(string version, string networkid)
         {
             var clientVer = new Version(version);
-            if (LyraGlobal.NODE_VERSION.Major > clientVer.Major)
+            if (LyraGlobal.NODE_VERSION > clientVer)
                 throw new Exception("Client version too low. Need upgrade.");
 
             var syncState = await _node.GetSyncState();
@@ -156,13 +156,22 @@ namespace Lyra.Node
             }
         }
 
+        protected override bool GetIfInterested(string addr)
+        {
+            return addr == _monitorAccountId || (_monitorAccountId == "*" && Neo.Settings.Default.LyraNode.Lyra.Mode == NodeMode.App);
+        }
         public void Monitor(string accountId)
         {
-            if (Signatures.ValidateAccountId(accountId))
+            if (Signatures.ValidateAccountId(accountId) || (accountId == "*" && Neo.Settings.Default.LyraNode.Lyra.Mode == NodeMode.App))
+            {
                 _monitorAccountId = accountId;
+            }
             else
+            {
                 _monitorAccountId = null;
+            }
         }
+
         public async Task<List<TxDesc>> History(string accountId, long startTime, long endTime, int count)
         {
             // json time. convert it to dotnet time

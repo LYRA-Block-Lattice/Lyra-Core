@@ -38,15 +38,19 @@ namespace Lyra.Core.API
         public string catalog { get; set; }
         public object content { get; set; }
     }
-    public class Receiving
+
+    public class TxInfoBase
     {
-        public string from { get; set; }
         public string to { get; set; }
         public string sendHash { get; set; }
         public Dictionary<string, decimal> funds { get; set; }
     }
+    public class Receiving : TxInfoBase
+    {
+        public string from { get; set; }
+    }
 
-    public class Settlement : Receiving
+    public class Settlement : TxInfoBase
     {
         public string recvHash { get; set; }
     }

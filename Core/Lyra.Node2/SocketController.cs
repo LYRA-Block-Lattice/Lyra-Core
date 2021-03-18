@@ -11,7 +11,7 @@ namespace Lyra.Node
     /* versioning: https://exceptionnotfound.net/overview-of-api-versioning-in-asp-net-core-3-0/
      */
     [ApiVersion("1")]
-    [ApiVersion("2")]
+    //[ApiVersion("2")]
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiExplorerSettings(IgnoreApi = true)]

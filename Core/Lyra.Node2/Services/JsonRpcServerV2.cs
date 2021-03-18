@@ -159,6 +159,10 @@ namespace Lyra.Node
             }
         }
 
+        protected override bool GetIfInterested(string addr)
+        {
+            return addr == _monitorAccountId || (_monitorAccountId == "*" && Neo.Settings.Default.LyraNode.Lyra.Mode == NodeMode.App);
+        }
         public bool Monitor(string accountId)
         {
             if(Signatures.ValidateAccountId(accountId) || (accountId == "*" && Neo.Settings.Default.LyraNode.Lyra.Mode == NodeMode.App))
@@ -331,8 +335,5 @@ namespace Lyra.Node
                 throw new Exception(result.ToString());
             }
         }
-
-        // group cli
-        // on cli only
     }
 }

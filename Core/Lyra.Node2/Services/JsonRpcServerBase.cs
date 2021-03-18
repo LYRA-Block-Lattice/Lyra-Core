@@ -18,7 +18,7 @@ namespace Lyra.Node
         protected INodeAPI _node;
         protected INodeTransactionAPI _trans;
 
-        static ConcurrentQueue<object> _queue;
+        static ConcurrentQueue<TxInfoBase> _queue;
         static EventWaitHandle _haveBlock;
         static ConcurrentDictionary<int, JsonRpcServerBase> _instances;
 
@@ -34,7 +34,7 @@ namespace Lyra.Node
 
             if(_queue == null && NodeService.Dag != null)
             {
-                _queue = new ConcurrentQueue<object>();
+                _queue = new ConcurrentQueue<TxInfoBase>();
                 _haveBlock = new EventWaitHandle(false, EventResetMode.ManualReset);
                 _instances = new ConcurrentDictionary<int, JsonRpcServerBase>();
 
@@ -46,14 +46,15 @@ namespace Lyra.Node
                         await _haveBlock.AsTask();
                         _haveBlock.Reset();
 
-                        object info;
+                        TxInfoBase info;
                         while(_queue.TryDequeue(out info))
                         {
                             foreach (var inst in _instances.Values)
                             {
                                 try
                                 {
-                                    inst.Notify?.Invoke(this, new News { catalog = info.GetType().Name, content = info });
+                                    if(inst.GetIfInterested(info.to))
+                                        inst.Notify?.Invoke(this, new News { catalog = info.GetType().Name, content = info });
                                 }
                                 catch(Exception ex)
                                 {
@@ -66,6 +67,11 @@ namespace Lyra.Node
             }
 
             _instances?.TryAdd(this.GetHashCode(), this);
+        }
+
+        protected virtual bool GetIfInterested(string addr)
+        {
+            return false;
         }
 
         private static void NewBlockMonitor(Block block, Block prevBlock)
