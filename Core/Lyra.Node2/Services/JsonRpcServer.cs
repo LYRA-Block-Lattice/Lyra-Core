@@ -64,9 +64,11 @@ namespace Lyra.Node
         {
             // LYRA Block Lattice 2.1.0.0
             // ommit smallest one
-            var s1 = v1.ToString();
-            var s2 = v2.ToString();
-            return string.Compare(s1.Substring(0, s1.Length - 2), s2.Substring(0, s2.Length - 2));
+            var s1 = v1.Major * 100 + v1.Minor;
+            var s2 = v2.Major * 100 + v2.Minor;
+            if (s1 > s2) return 1;
+            if (s1 == s2) return 0;
+            return -1;
         }
 
         // group hand shake
