@@ -60,11 +60,20 @@ namespace Lyra.Node
             return klWallet;
         }
 
+        private int CompareVersion(Version v1, Version v2)
+        {
+            // LYRA Block Lattice 2.1.0.0
+            // ommit smallest one
+            var s1 = v1.ToString();
+            var s2 = v2.ToString();
+            return string.Compare(s1.Substring(0, s1.Length - 2), s2.Substring(0, s2.Length - 2));
+        }
+
         // group hand shake
         public async Task<ApiStatus> Status(string version, string networkid)
         {
             var clientVer = new Version(version);
-            if (LyraGlobal.NODE_VERSION > clientVer)
+            if (CompareVersion(LyraGlobal.NODE_VERSION, clientVer) > 0)
                 throw new Exception("Client version too low. Need upgrade.");
 
             var syncState = await _node.GetSyncState();

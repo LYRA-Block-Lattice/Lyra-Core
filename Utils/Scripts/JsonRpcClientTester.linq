@@ -20,9 +20,11 @@ async static Task Main(string[] args)
 {
 	//var networkId = "testnet";
 	//var url = "wss://testnet.lyra.live/api/v1/socket";
+	
 	var networkId = "devnet";
 	//var url = "wss://api.devnet:4504/api/v1/socket";
 	var url = "wss://localhost:4504/api/v1/socket";
+	//var url = "wss://localhost:4504/api/v2/socket";
 
 	var cancel = new CancellationTokenSource();
 
@@ -48,7 +50,7 @@ public class Tester
 		while(!tester.IsReady)
 			await Task.Delay(1000);
 
-		tester.CallRPC("get status", "ApiStatus Status(string version, string networkid)", "Status", new string[] { "2.2", networkId });
+		tester.CallRPC("get status", "ApiStatus Status(string version, string networkid)", "Status", new string[] { "2.2.0.0", networkId });
 		tester.CallRPC("get status with error", "ApiStatus Status(string version, string networkid) with error", "Status", new string[] { "2.0", networkId });
 
 		tester.CallRPC("wallet get balance", "BalanceResult Balance(string accountId)", "Balance", new string[] { tester.AccountId });
