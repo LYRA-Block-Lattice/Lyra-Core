@@ -484,7 +484,8 @@ namespace Lyra.Core.Decentralize
 
                             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                             var shouldReset = false;
-                            for (long i = lastCons == null ? 0 : lastCons.Height; i > 0; i--)
+                            var localSafeCons = LocalDbSyncState.Load().lastVerifiedConsHeight;
+                            for (long i = lastCons == null ? 0 : lastCons.Height; i >= localSafeCons; i--)
                             {
                                 bool missingBlock = false;
 
@@ -927,6 +928,8 @@ namespace Lyra.Core.Decentralize
             me.ThumbPrint = _hostEnv.GetThumbPrint();
             _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId);
             me.IPAddress = $"{_myIpAddress}";
+
+            _log.LogInformation("Declare node up to network. my IP is {_myIpAddress}");
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
