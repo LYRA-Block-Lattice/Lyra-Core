@@ -929,7 +929,7 @@ namespace Lyra.Core.Decentralize
             _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId);
             me.IPAddress = $"{_myIpAddress}";
 
-            _log.LogInformation("Declare node up to network. my IP is {_myIpAddress}");
+            _log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
