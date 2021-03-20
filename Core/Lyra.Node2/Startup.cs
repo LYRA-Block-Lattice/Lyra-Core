@@ -27,6 +27,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Serilog;
+using Serilog.Events;
 
 namespace Lyra.Node2
 {
@@ -40,6 +42,17 @@ namespace Lyra.Node2
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
+            //loggerFactory.AddFile(logPath + "noded-{Date}.txt");
+
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Error)
+                .MinimumLevel.Override("System", LogEventLevel.Error)
+                .Enrich.FromLogContext()
+                .WriteTo.File(logPath + "noded-{Date}.txt", rollingInterval: RollingInterval.Day)
+            .CreateLogger();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -165,8 +178,9 @@ namespace Lyra.Node2
                 //app.UseHsts();
             }
 
-            var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
-            loggerFactory.AddFile(logPath + "noded-{Date}.txt");
+            //var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
+            //loggerFactory.AddFile(logPath + "noded-{Date}.txt");
+            loggerFactory.AddSerilog();
 
             SimpleLogger.Factory = loggerFactory;
 
