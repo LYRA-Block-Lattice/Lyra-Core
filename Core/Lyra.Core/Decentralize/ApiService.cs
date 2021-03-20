@@ -98,7 +98,7 @@ namespace Lyra.Core.Decentralize
             {
                 result.ResultCode = state.GetMajorErrorCode();
             }
-            else if (consensusResult == ConsensusResult.Uncertain)
+            else if (consensusResult == null || consensusResult == ConsensusResult.Uncertain)
             {
                 result.ResultCode = APIResultCodes.ConsensusTimeout;
             }
