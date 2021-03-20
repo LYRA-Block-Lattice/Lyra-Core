@@ -352,7 +352,7 @@ namespace Lyra.Core.Decentralize
 
                             _activeConsensus.TryRemove(worker.Hash, out _);
 
-                            if (result.HasValue && result.Value == ConsensusResult.Uncertain && CurrentState == BlockChainState.Almighty)
+                            if ((result == null || result == ConsensusResult.Uncertain) && CurrentState == BlockChainState.Almighty)
                             {
                                 _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
                                 if (CurrentState == BlockChainState.Almighty)
