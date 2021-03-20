@@ -256,8 +256,10 @@ namespace Lyra.Core.Decentralize
                 localResultGood = true;
             else if (CommitConsensus == ConsensusResult.Nay && LocalResult.Result != APIResultCodes.Success)
                 localResultGood = true;
-            else// if (CommitConsensus == ConsensusResult.Uncertain)
+            else if (CommitConsensus == ConsensusResult.Uncertain)
                 localResultGood = true;
+
+            // if commitconsensus is null, means a view change is necessary. (by local result not good)
 
             OnConsensusSuccess?.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
         }

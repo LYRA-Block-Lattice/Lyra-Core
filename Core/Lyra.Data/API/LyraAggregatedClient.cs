@@ -57,41 +57,44 @@ namespace Lyra.Data.API
                 try
                 {
                     Console.WriteLine("LyraAggregatedClient.InitAsync");
-                    var bbtasks = seeds.Select(client => client.GetBillBoardAsync()).ToList();
-                    try
-                    {
-                        await Task.WhenAll(bbtasks);
-                    }
-                    catch (Exception)
-                    {
-                    }
-                    var goodbb = bbtasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result != null).Select(a => a.Result).ToList();
+                    var apiClient = LyraRestClient.Create(_networkId, platform, appName, appVer);
+                    currentBillBoard = await apiClient.GetBillBoardAsync();
+                    //var bbtasks = seeds.Select(client => client.GetBillBoardAsync()).ToList();
+                    //try
+                    //{
+                    //    await Task.WhenAll(bbtasks);
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    Console.WriteLine($"In LyraAggregatedClient.InitAsync: " + ex.Message);
+                    //}
+                    //var goodbb = bbtasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result != null).Select(a => a.Result).ToList();
 
-                    if (goodbb.Count == 0)
-                        continue;
+                    //if (goodbb.Count == 0)
+                    //    continue;
 
-                    // pickup best result
-                    var best = goodbb
-                            .GroupBy(b => b.CurrentLeader)
-                            .Select(g => new
-                            {
-                                Data = g.Key,
-                                Count = g.Count()
-                            })
-                            .OrderByDescending(x => x.Count)
-                            .First();
+                    //// pickup best result
+                    //var best = goodbb
+                    //        .GroupBy(b => b.CurrentLeader)
+                    //        .Select(g => new
+                    //        {
+                    //            Data = g.Key,
+                    //            Count = g.Count()
+                    //        })
+                    //        .OrderByDescending(x => x.Count)
+                    //        .First();
 
-                    if (best.Count >= seedNodes.Length - 2 && !string.IsNullOrWhiteSpace(best.Data))
-                    {
-                        var r = new Random();
-                        currentBillBoard = goodbb.ElementAt(r.Next(0, goodbb.Count()));
-                        //currentBillBoard = goodbb.First(a => a.CurrentLeader == best.Data);
-                    }
-                    else
-                    {
-                        await Task.Delay(2000);
-                        continue;
-                    }
+                    //if (best.Count >= seedNodes.Length - 2 && !string.IsNullOrWhiteSpace(best.Data))
+                    //{
+                    //    var r = new Random();
+                    //    currentBillBoard = goodbb.ElementAt(r.Next(0, goodbb.Count()));
+                    //    //currentBillBoard = goodbb.First(a => a.CurrentLeader == best.Data);
+                    //}
+                    //else
+                    //{
+                    //    await Task.Delay(2000);
+                    //    continue;
+                    //}
 
                     // create clients for primary nodes
                     _primaryClients = currentBillBoard.NodeAddresses

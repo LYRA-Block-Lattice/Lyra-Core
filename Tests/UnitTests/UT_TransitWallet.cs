@@ -189,7 +189,7 @@ namespace UnitTests
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(LyraGlobal.OFFICIALTICKERCODE, amount);
             var sendResult = await w1.SendAsync(amounts, LyraGlobal.BURNINGACCOUNTID);
-            Assert.IsTrue(sendResult == APIResultCodes.Success, "Failed to send token.");
+            Assert.IsTrue(sendResult == APIResultCodes.Success, $"Failed to send token: {sendResult}");
 
             var b1After = (await w1.GetBalanceAsync())[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
 

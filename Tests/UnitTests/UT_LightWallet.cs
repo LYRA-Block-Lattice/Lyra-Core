@@ -41,6 +41,7 @@ namespace UnitTests
         public async Task UT_LightWallet_SetupAsync()
         {
             var w1 = Restore(PRIVATE_KEY_1);
+            await w1.ReceiveAsync();
             var balances = await w1.GetBalanceAsync();
             Assert.IsTrue(balances.balance[LyraGlobal.OFFICIALTICKERCODE] > 50000m, "Insufficient funds: LYR");
         }
@@ -70,7 +71,7 @@ namespace UnitTests
                 var b1 = s1.balance;
 
                 var b1Before = b1[LyraGlobal.OFFICIALTICKERCODE];
-                Assert.IsTrue(b1Before > 100000m && b1Before < 10000000m);
+                Assert.IsTrue(b1Before > 100000m && b1Before < 30000000m);
 
                 var b2Balances = s2.balance;
                 var b2Before = b2Balances?.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) == true ? b2Balances[LyraGlobal.OFFICIALTICKERCODE] : 0m;
