@@ -16,6 +16,7 @@ using System.Threading;
 using StreamJsonRpc;
 using Lyra.Core.Accounts;
 using Nerdbank.Streams;
+using System.Net;
 
 namespace Lyra.Client.CLI
 {
@@ -49,6 +50,8 @@ namespace Lyra.Client.CLI
 
         public ClientProgram()
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
             cancellation = new CancellationTokenSource();
 
             if(Environment.OSVersion.Platform == PlatformID.Win32NT)

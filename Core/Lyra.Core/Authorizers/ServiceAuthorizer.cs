@@ -64,9 +64,9 @@ namespace Lyra.Core.Authorizers
                     //|| block.Authorizers.Count < (prevBlock as ServiceBlock).Authorizers.Count)
                     return APIResultCodes.InvalidAuthorizerCount;
 
-                // authorizer count should be at least 90% of all voters.
+                // authorizer count should be at least total - 1 of all voters.
                 var validAuthorizersList = GetValidVoters(board, prevBlock);
-                if (block.Authorizers.Count < 0.9 * validAuthorizersList.Count())
+                if (block.Authorizers.Count < validAuthorizersList.Count() - 1)
                     return APIResultCodes.InvalidAuthorizerCount;
             }
             else

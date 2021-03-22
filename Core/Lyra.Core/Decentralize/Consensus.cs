@@ -338,7 +338,10 @@ namespace Lyra.Core.Decentralize
             var merkelTreeHash = mt.BuildTree().ToString();
 
             if (consBlock.MerkelTreeHash != merkelTreeHash)
+            {
+                _log.LogWarning($"SyncAndVerifyConsolidationBlock: consMerkelTree: {consBlock.MerkelTreeHash} mine: {merkelTreeHash}");
                 return false;
+            }                
 
             // make sure no extra blocks here
             if (consBlock.Height > 1)
@@ -346,11 +349,17 @@ namespace Lyra.Core.Decentralize
                 var prevConsHash = consBlock.blockHashes.First();
                 var prevConsResult = await client.GetBlockByHash(prevConsHash);
                 if (prevConsResult.ResultCode != APIResultCodes.Success)
+                {
+                    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
                     return false;
+                }                    
 
                 var prevConsBlock = prevConsResult.GetBlock() as ConsolidationBlock;
                 if (prevConsBlock == null)
+                {
+                    _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsBlock: null");
                     return false;
+                }
 
                 var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(prevConsBlock.TimeStamp, consBlock.TimeStamp);
                 var q = blocksInTimeRange.Where(a => !consBlock.blockHashes.Contains(a));
@@ -432,10 +441,18 @@ namespace Lyra.Core.Decentralize
                 if (block != null && block.VerifyHash())
                     return await _sys.Storage.AddBlockAsync(block);
                 else
+                {
+                    _log.LogWarning($"Error SyncOneBlockAsync: block null? {block is null}");
+                    if(!(block is null))
+                        _log.LogWarning($"Error SyncOneBlockAsync: block VerifyHash? {block.VerifyHash()}");
                     return false;
+                }                    
             }
             else
+            {
+                _log.LogWarning($"Error SyncOneBlockAsync: remote return: {remoteBlock.ResultCode}");
                 return false;
+            }                
         }
 
         private async Task GenesisAsync()
