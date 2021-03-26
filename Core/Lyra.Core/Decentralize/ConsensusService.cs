@@ -460,9 +460,6 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogInformation($"Consensus Service Startup... ");
 
-                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
-                            await client.InitAsync();
-
                             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                             if (lsb == null)
                             {
@@ -478,6 +475,9 @@ namespace Lyra.Core.Decentralize
                             }
 
                             var authorizers = new AuthorizersFactory();
+
+                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
+                            await client.InitAsync();
 
                             // DBCC
                             _log.LogInformation($"Database consistent check... It may take a while.");
