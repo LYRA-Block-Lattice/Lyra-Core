@@ -166,7 +166,7 @@ namespace Lyra.Node2
             }
 
             var logPath = $"{Utilities.GetLyraDataDir(Neo.Settings.Default.LyraNode.Lyra.NetworkId, LyraGlobal.OFFICIALDOMAIN)}/logs/";
-            //loggerFactory.AddFile(logPath + "noded-{Date}.txt");
+            loggerFactory.AddFile(logPath + "noded-{Date}.txt");
 
             SimpleLogger.Factory = loggerFactory;
 
