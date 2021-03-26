@@ -31,7 +31,7 @@ namespace Lyra.Data.API
         {
             string[] seedNodes;
             if (_networkId == "devnet")
-                seedNodes = new[] { "seed.devnet", "seed2.devnet", "seed3.devnet" };
+                seedNodes = new[] { "seed.devnet", "seed2.devnet", "seed3.devnet", "seed4.devnet" };
             else if (_networkId == "testnet")
                 seedNodes = new[] { "seed.testnet.lyra.live", "seed2.testnet.lyra.live", "seed3.testnet.lyra.live", "seed4.testnet.lyra.live" };
             else
