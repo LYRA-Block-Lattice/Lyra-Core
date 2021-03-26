@@ -77,8 +77,8 @@ namespace UnitTests
                 var b2Before = b2Balances?.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) == true ? b2Balances[LyraGlobal.OFFICIALTICKERCODE] : 0m;
 
                 var amount = Math.Round((decimal)((new Random().NextDouble() + 0.03) * 1000), 8);
-                var amounts = new Dictionary<string, decimal>();
-                amounts.Add(LyraGlobal.OFFICIALTICKERCODE, amount);
+                //var amounts = new Dictionary<string, decimal>();
+                //amounts.Add(LyraGlobal.OFFICIALTICKERCODE, amount);
                 var sendResult = await w1.SendAsync(amount, w2.AccountId, LyraGlobal.OFFICIALTICKERCODE);
                 await w2.ReceiveAsync();
 

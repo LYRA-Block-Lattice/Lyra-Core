@@ -96,7 +96,7 @@ namespace UnitTests
                 var b1 = await w1.GetBalanceAsync();
 
                 var b1Before = b1[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
-                Assert.IsTrue(b1Before > 100000m && b1Before < 10000000m);
+                Assert.IsTrue(b1Before > 100000m && b1Before < 50000000m);
 
                 Assert.IsTrue(APIResultCodes.Success == await w2.ReceiveAsync());
                 var b2Balances = await w2.GetBalanceAsync();
@@ -139,7 +139,7 @@ namespace UnitTests
                 var b1Before = b1[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
                 var b1Before2 = b1[testToken].ToBalanceDecimal();
 
-                Assert.IsTrue(b1Before > 100000m && b1Before < 10000000m);
+                Assert.IsTrue(b1Before > 100000m && b1Before < 50000000m);
 
                 Assert.IsTrue(APIResultCodes.Success == await w2.ReceiveAsync());
                 var b2Balance = await w2.GetBalanceAsync();
