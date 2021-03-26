@@ -1545,6 +1545,13 @@ namespace Lyra.Core.Decentralize
                                 {
                                     // do receive
                                     var send = await _sys.Storage.FindBlockByHashAsync(entry.ReqSendHash) as SendTransferBlock;
+
+                                    if(send == null)
+                                    {
+                                        // not valid?
+                                        entry.FinishAction(entry.ReqSendHash);
+                                    }
+
                                     var recv = await _sys.Storage.FindBlockBySourceHashAsync(entry.ReqSendHash) as ReceiveTransferBlock;
                                     if (recv == null)
                                     {
