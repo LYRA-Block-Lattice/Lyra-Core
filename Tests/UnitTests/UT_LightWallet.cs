@@ -85,8 +85,9 @@ namespace UnitTests
                 var b1After = (await w1.GetBalanceAsync()).balance[LyraGlobal.OFFICIALTICKERCODE];
                 var b2After = (await w2.GetBalanceAsync()).balance[LyraGlobal.OFFICIALTICKERCODE];
 
-                Assert.AreEqual(b1Before - 1m - amount, b1After);
-                Assert.AreEqual(b2Before + amount, b2After);
+                // the shit deciml deserialize bug. https://stackoverflow.com/questions/24051206/handling-decimal-values-in-newtonsoft-json
+                Assert.AreEqual(Math.Round(b1Before - 1m - amount, 7), Math.Round(b1After, 7));
+                Assert.AreEqual(Math.Round(b2Before + amount, 7), Math.Round(b2After, 7));
             }
             finally
             {
