@@ -177,6 +177,10 @@ namespace Lyra.Data.API
                             var x = tasks.First(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result == best.Data);
                             return x.Result;
                         }
+                        else
+                        {
+                            Console.WriteLine($"Result count: {best.Count} / {expectedCount}");
+                        }
                     }
                 }
                 catch(Exception)

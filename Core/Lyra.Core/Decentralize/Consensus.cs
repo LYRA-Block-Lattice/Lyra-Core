@@ -170,6 +170,7 @@ namespace Lyra.Core.Decentralize
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
             var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
+            await client.InitAsync();
             while (true)
             {
                 try
@@ -198,7 +199,7 @@ namespace Lyra.Core.Decentralize
                     }
                     else
                     {
-                        _log.LogError($"Error get database status. Please wait for retry...");
+                        _log.LogError($"Error get database status: {lastConsOfSeed.ResultCode}. Please wait for retry...");
 
                         await Task.Delay(10 * 1000);
 
@@ -485,6 +486,7 @@ namespace Lyra.Core.Decentralize
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
                 var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
+                await client.InitAsync();
                 await gensWallet.Sync(client);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.Send(amount, accId);
