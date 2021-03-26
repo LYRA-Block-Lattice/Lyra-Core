@@ -19,37 +19,12 @@ namespace Lyra.Core.Decentralize
     {
         DagSystem _sys;
         private LyraAggregatedClient _client;
-        private AccountHeightAPIResult _syncInfo;
 
         public LyraAggregatedClient Client { get => _client; set => _client = value; }
 
         public LyraClientForNode(DagSystem sys)
         {
             _sys = sys;
-        }
-
-        public async Task<string> SignAPICallAsync()
-        {
-            try
-            {
-                if(_client == null)
-                {
-                    _client = await FindValidSeedForSyncAsync();                    
-                }
-                    
-                return Signatures.GetSignature(_sys.PosWallet.PrivateKey, _syncInfo.SyncHash, _sys.PosWallet.AccountId);
-            }
-            catch(Exception ex)
-            {
-                if (ex is TaskCanceledException || ex is HttpRequestException || ex.Message == "Web Api Failed.")
-                {
-                    // retry
-                    _client = await FindValidSeedForSyncAsync();
-                    return await SignAPICallAsync();
-                }
-                else
-                    throw ex;
-            }
         }
 
         internal async Task<BlockAPIResult> GetLastConsolidationBlockAsync()
@@ -82,11 +57,9 @@ namespace Lyra.Core.Decentralize
                 if (_client == null)
                     _client = await FindValidSeedForSyncAsync();
 
-                var result = await _client.GetBlocksByConsolidation(_sys.PosWallet.AccountId, await SignAPICallAsync(), consolidationHash);
+                var result = await _client.GetBlocksByConsolidation(_sys.PosWallet.AccountId, null, consolidationHash);
                 if (result.ResultCode == APIResultCodes.APISignatureValidationFailed)
                 {
-                    _syncInfo = await _client.GetSyncHeight();
-
                     return await GetBlocksByConsolidation(consolidationHash);
                 }
                 else
@@ -113,11 +86,9 @@ namespace Lyra.Core.Decentralize
                 if (_client == null)
                     _client = await FindValidSeedForSyncAsync();
 
-                var result = await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, await SignAPICallAsync(), startConsHeight, 10);
+                var result = await _client.GetConsolidationBlocks(_sys.PosWallet.AccountId, null, startConsHeight, 10);
                 if (result.ResultCode == APIResultCodes.APISignatureValidationFailed)
                 {
-                    _syncInfo = await _client.GetSyncHeight();
-
                     return await GetConsolidationBlocks(startConsHeight);
                 }
                 else
@@ -272,7 +243,6 @@ namespace Lyra.Core.Decentralize
         {
             var client = new LyraAggregatedClient(Neo.Settings.Default.LyraNode.Lyra.NetworkId);
             await client.InitAsync();
-            _syncInfo = await client.GetSyncHeight();
             return client;
         }
     }

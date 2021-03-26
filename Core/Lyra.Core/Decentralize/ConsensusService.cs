@@ -80,7 +80,6 @@ namespace Lyra.Core.Decentralize
         // authorizer snapshot
         private DagSystem _sys;
         public DagSystem GetDagSystem() => _sys;
-        private LyraClientForNode _networkClient;
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
@@ -461,6 +460,9 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogInformation($"Consensus Service Startup... ");
 
+                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
+                            await client.InitAsync();
+
                             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                             if (lsb == null)
                             {
@@ -476,8 +478,6 @@ namespace Lyra.Core.Decentralize
                             }
 
                             var authorizers = new AuthorizersFactory();
-                            _networkClient = new LyraClientForNode(_sys);
-                            _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
 
                             // DBCC
                             _log.LogInformation($"Database consistent check... It may take a while.");
@@ -531,7 +531,7 @@ namespace Lyra.Core.Decentralize
                                 if (missingBlock)
                                 {
                                     _log.LogInformation($"DBCC: Fixing database...");
-                                    var consSyncResult = await SyncAndVerifyConsolidationBlock(authorizers, _networkClient, lastCons);
+                                    var consSyncResult = await SyncAndVerifyConsolidationBlock(authorizers, client, lastCons);
                                     if (consSyncResult)
                                         i++;
                                     else
@@ -562,7 +562,6 @@ namespace Lyra.Core.Decentralize
                             {
                                 try
                                 {
-                                    var client = _networkClient;
                                     var result = await client.GetLastServiceBlock();
                                     if (result.ResultCode == APIResultCodes.Success)
                                     {
@@ -570,8 +569,7 @@ namespace Lyra.Core.Decentralize
                                     }
                                     else if (result.ResultCode == APIResultCodes.APIRouteFailed)
                                     {
-                                        _networkClient = new LyraClientForNode(_sys);
-                                        _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+                                        await client.InitAsync();
                                         continue;
                                     }
                                     else if (result.ResultCode != APIResultCodes.ServiceBlockNotFound)
@@ -622,12 +620,12 @@ namespace Lyra.Core.Decentralize
                     {
                         try
                         {
+                            // when static sync, only query the seed nodes.
+                            // three seeds are enough for database sync.
                             _log.LogInformation($"Querying Lyra Network Status... ");
 
-                            _networkClient = new LyraClientForNode(_sys);
-                            _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
-
-                            var client = _networkClient;
+                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
+                            await client.InitAsync();
                             var networkStatus = await client.GetSyncState();
                             if (networkStatus.ResultCode != APIResultCodes.Success)
                             {
@@ -653,7 +651,7 @@ namespace Lyra.Core.Decentralize
                                 {
                                     _log.LogInformation($"local height {myStatus.totalBlockCount} not equal to majority {majorHeight}, do database sync.");
                                     // verify local database
-                                    while (!await SyncDatabase())
+                                    while (!await SyncDatabase(client))
                                     {
                                         //fatal error. should not run program
                                         _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");

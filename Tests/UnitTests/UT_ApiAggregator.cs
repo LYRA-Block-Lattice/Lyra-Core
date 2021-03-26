@@ -18,7 +18,7 @@ namespace UnitTests
         {
             var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-            var aggClient = new LyraAggregatedClient(networkId);
+            var aggClient = new LyraAggregatedClient(networkId, false);
             await aggClient.InitAsync();
 
             var svcBlock1 = await client.GetLastServiceBlock();
@@ -32,7 +32,7 @@ namespace UnitTests
         {
             var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-            var aggClient = new LyraAggregatedClient(networkId);
+            var aggClient = new LyraAggregatedClient(networkId, false);
             await aggClient.InitAsync();
 
             var accountId = "LT8din6wm6SyfnqmmJN7jSnyrQjqAaRmixe2kKtTY4xpDBRtTxBmuHkJU9iMru5yqcNyL3Q21KDvHK45rkUS4f8tkXBBS3";
@@ -47,7 +47,7 @@ namespace UnitTests
         {
             var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-            var aggClient = new LyraAggregatedClient(networkId);
+            var aggClient = new LyraAggregatedClient(networkId, false);
             await aggClient.InitAsync();
 
             var svcBlock1 = await client.GetFeeStatsAsync();

@@ -56,9 +56,9 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
-        private async Task<bool> SyncDatabase()
+        private async Task<bool> SyncDatabase(LyraAggregatedClient client)
         {
-            var consensusClient = _networkClient;
+            var consensusClient = client;
 
             BlockAPIResult seedSvcGen;
             while (true)
@@ -70,8 +70,7 @@ namespace Lyra.Core.Decentralize
                 await Task.Delay(10 * 1000);
 
                 _log.LogInformation("Recreate aggregated client...");
-                _networkClient = new LyraClientForNode(_sys);
-                _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+                await client.InitAsync();
             }
             
 
@@ -103,7 +102,7 @@ namespace Lyra.Core.Decentralize
                 localState.databaseVersion = LyraGlobal.DatabaseVersion;
             }
 
-            var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
+            var lastCons = (await consensusClient.GetLastConsolidationBlock()).GetBlock() as ConsolidationBlock;
             if (lastCons == null)
                 return false;
 
@@ -113,7 +112,7 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
-                    var remoteConsQuery = await consensusClient.GetConsolidationBlocks(localState.lastVerifiedConsHeight + 1);
+                    var remoteConsQuery = await consensusClient.GetConsolidationBlocks(_sys.PosWallet.AccountId, null, localState.lastVerifiedConsHeight + 1, 1);
                     if(remoteConsQuery.ResultCode == APIResultCodes.Success)
                     {
                         var remoteConsBlocks = remoteConsQuery.GetBlocks();
@@ -170,7 +169,7 @@ namespace Lyra.Core.Decentralize
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
-            LyraClientForNode client = _networkClient;
+            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
             while (true)
             {
                 try
@@ -181,14 +180,14 @@ namespace Lyra.Core.Decentralize
 
                     var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
-                    var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
+                    var lastConsOfSeed = await client.GetLastConsolidationBlock();
                     if (lastConsOfSeed.ResultCode == APIResultCodes.Success)
                     {
                         var lastConsBlockOfSeed = lastConsOfSeed.GetBlock();
                         if (myLastCons == null || myLastCons.Height < lastConsBlockOfSeed.Height)
                         {
                             _log.LogInformation($"Engaging: new consolidation block {lastConsBlockOfSeed.Height}");
-                            if (!await SyncDatabase())
+                            if (!await SyncDatabase(client))
                             {
                                 _log.LogError($"Error sync database. wait 5 minutes and retry...");
                                 await Task.Delay(5 * 60 * 1000);
@@ -204,8 +203,7 @@ namespace Lyra.Core.Decentralize
                         await Task.Delay(10 * 1000);
 
                         _log.LogInformation("Recreate aggregated client...");
-                        _networkClient = new LyraClientForNode(_sys);
-                        _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+                        await client.InitAsync();
                         
                         continue;
                     }
@@ -238,7 +236,7 @@ namespace Lyra.Core.Decentralize
                             if (localBlock != null)
                                 continue;
 
-                            var blockResult = await client.GetBlockByHash(hash);
+                            var blockResult = await client.GetBlockByHash(_sys.PosWallet.AccountId, hash, null);
                             if (blockResult.ResultCode == APIResultCodes.Success)
                             {
                                 await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
@@ -258,8 +256,7 @@ namespace Lyra.Core.Decentralize
                     else if (unConsHashResult.ResultCode == APIResultCodes.APIRouteFailed)
                     {
                         _log.LogInformation("Recreate aggregated client...");
-                        _networkClient = new LyraClientForNode(_sys);
-                        _networkClient.Client = await _networkClient.FindValidSeedForSyncAsync();
+                        await client.InitAsync();
                         continue;
                     }
                     else
@@ -317,7 +314,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<bool> SyncAndVerifyConsolidationBlock(AuthorizersFactory factory, LyraClientForNode client, ConsolidationBlock consBlock)
+        private async Task<bool> SyncAndVerifyConsolidationBlock(AuthorizersFactory factory, LyraAggregatedClient client, ConsolidationBlock consBlock)
         {
             _log.LogInformation($"Sync and verify consolidation block height {consBlock.Height}");
 
@@ -347,7 +344,7 @@ namespace Lyra.Core.Decentralize
             if (consBlock.Height > 1)
             {
                 var prevConsHash = consBlock.blockHashes.First();
-                var prevConsResult = await client.GetBlockByHash(prevConsHash);
+                var prevConsResult = await client.GetBlockByHash(_sys.PosWallet.AccountId, prevConsHash, null);
                 if (prevConsResult.ResultCode != APIResultCodes.Success)
                 {
                     _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
@@ -372,55 +369,55 @@ namespace Lyra.Core.Decentralize
             return await _sys.Storage.AddBlockAsync(consBlock);
         }
 
-        private async Task SyncManyBlocksAsync(LyraClientForNode client, ConsolidationBlock consBlock)
-        {
-            _log.LogInformation($"Syncing Consolidations {consBlock.Height} / {consBlock.Hash.Shorten()} ");
+        //private async Task SyncManyBlocksAsync(LyraClientForNode client, ConsolidationBlock consBlock)
+        //{
+        //    _log.LogInformation($"Syncing Consolidations {consBlock.Height} / {consBlock.Hash.Shorten()} ");
 
-            var blocksResult = await client.GetBlocksByConsolidation(consBlock.Hash);
-            if (blocksResult.ResultCode == APIResultCodes.Success)
-            {
-                foreach (var block in blocksResult.GetBlocks())
-                {
-                    var localBlock = await _sys.Storage.FindBlockByHashAsync(block.Hash);
-                    if (localBlock != null)
-                        await _sys.Storage.RemoveBlockAsync(block.Hash);
+        //    var blocksResult = await client.GetBlocksByConsolidation(consBlock.Hash);
+        //    if (blocksResult.ResultCode == APIResultCodes.Success)
+        //    {
+        //        foreach (var block in blocksResult.GetBlocks())
+        //        {
+        //            var localBlock = await _sys.Storage.FindBlockByHashAsync(block.Hash);
+        //            if (localBlock != null)
+        //                await _sys.Storage.RemoveBlockAsync(block.Hash);
 
-                    await _sys.Storage.AddBlockAsync(block);
-                }
+        //            await _sys.Storage.AddBlockAsync(block);
+        //        }
 
-                // save cons block itself
-                var localCons = await _sys.Storage.FindBlockByHashAsync(consBlock.Hash);
-                if (localCons != null)
-                    await _sys.Storage.RemoveBlockAsync(consBlock.Hash);
+        //        // save cons block itself
+        //        var localCons = await _sys.Storage.FindBlockByHashAsync(consBlock.Hash);
+        //        if (localCons != null)
+        //            await _sys.Storage.RemoveBlockAsync(consBlock.Hash);
 
-                await _sys.Storage.AddBlockAsync(consBlock);
-            }
-        }
+        //        await _sys.Storage.AddBlockAsync(consBlock);
+        //    }
+        //}
 
-        private async Task SyncManyBlocksAsync(LyraClientForNode client, List<string> hashes)
-        {
-            _log.LogInformation($"Syncing {hashes.Count()} blocks...");
+        //private async Task SyncManyBlocksAsync(LyraClientForNode client, List<string> hashes)
+        //{
+        //    _log.LogInformation($"Syncing {hashes.Count()} blocks...");
 
-            foreach (var hash in hashes)
-            {
-                var blockResult = await client.GetBlockByHash(hash);
-                if (blockResult.ResultCode == APIResultCodes.Success)
-                {
-                    var localBlock = await _sys.Storage.FindBlockByHashAsync(hash);
-                    if (localBlock != null)
-                        await _sys.Storage.RemoveBlockAsync(hash);
+        //    foreach (var hash in hashes)
+        //    {
+        //        var blockResult = await client.GetBlockByHash(hash);
+        //        if (blockResult.ResultCode == APIResultCodes.Success)
+        //        {
+        //            var localBlock = await _sys.Storage.FindBlockByHashAsync(hash);
+        //            if (localBlock != null)
+        //                await _sys.Storage.RemoveBlockAsync(hash);
 
-                    await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
-                }
-            }
-        }
+        //            await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
+        //        }
+        //    }
+        //}
 
-        private async Task<bool> SyncOneBlockAsync(AuthorizersFactory factory, LyraClientForNode client, string hash)
+        private async Task<bool> SyncOneBlockAsync(AuthorizersFactory factory, LyraAggregatedClient client, string hash)
         {
             if(null != await _sys.Storage.FindBlockByHashAsync(hash))
                 await _sys.Storage.RemoveBlockAsync(hash);
 
-            var remoteBlock = await client.GetBlockByHash(hash);
+            var remoteBlock = await client.GetBlockByHash(_sys.PosWallet.AccountId, hash, null);
             if (remoteBlock.ResultCode == APIResultCodes.Success)
             {
                 var block = remoteBlock.GetBlock();
@@ -487,7 +484,8 @@ namespace Lyra.Core.Decentralize
             var gensWallet = Wallet.Open(memStore, "tmp", "");
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                await gensWallet.Sync(_networkClient.Client.SeedClient);
+                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
+                await gensWallet.Sync(client);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
                 var sendResult = await gensWallet.Send(amount, accId);
                 if (sendResult.ResultCode == APIResultCodes.Success)

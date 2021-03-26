@@ -14,23 +14,25 @@ namespace Lyra.Data.API
     public class LyraAggregatedClient : ILyraAPI
     {
         private string _networkId;
+        private bool _seedsOnly;
 
         private Dictionary<string, LyraRestClient> _primaryClients;
 
         public LyraRestClient SeedClient => LyraRestClient.Create(_networkId, Environment.OSVersion.Platform.ToString(), "LyraAggregatedClient", "1.0");
 
-        public LyraAggregatedClient(string networkId)
+        public LyraAggregatedClient(string networkId, bool seedsOnly)
         {
-            this._networkId = networkId;
+            _networkId = networkId;
+            _seedsOnly = seedsOnly;
         }
 
         // update it from node's json
-        public static string[] GetSeedNodes(string networkId)
+        private string[] GetSeedNodes()
         {
             string[] seedNodes;
-            if (networkId == "devnet")
+            if (_networkId == "devnet")
                 seedNodes = new[] { "seed.devnet", "seed2.devnet", "seed3.devnet" };
-            else if (networkId == "testnet")
+            else if (_networkId == "testnet")
                 seedNodes = new[] { "seed.testnet.lyra.live", "seed2.testnet.lyra.live", "seed3.testnet.lyra.live", "seed4.testnet.lyra.live" };
             else
                 seedNodes = new[] { "seed1.mainnet.lyra.live", "seed2.mainnet.lyra.live", "seed3.mainnet.lyra.live", "seed4.mainnet.lyra.live" };
@@ -48,7 +50,7 @@ namespace Lyra.Data.API
                 peerPort = 5504;
 
             // get nodes list (from billboard)
-            var seedNodes = GetSeedNodes(_networkId);
+            var seedNodes = GetSeedNodes();
             var seeds = seedNodes.Select(a => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{a}:{peerPort}/api/Node/")).ToList();
 
             BillBoard currentBillBoard = null;
@@ -96,15 +98,29 @@ namespace Lyra.Data.API
                     //    continue;
                     //}
 
-                    // create clients for primary nodes
-                    _primaryClients = currentBillBoard.NodeAddresses
-                        .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
-                        .Select(c => new
-                        {
-                            c.Key,
-                            Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/")
-                        })
-                        .ToDictionary(p => p.Key, p => p.Value);
+                    if(_seedsOnly)
+                    {
+                        // create clients for primary nodes
+                        _primaryClients = seedNodes
+                            .Select(c => new
+                            {
+                                Kye = c,
+                                Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c}:{peerPort}/api/Node/")
+                            })
+                            .ToDictionary(p => p.Kye, p => p.Value);
+                    }
+                    else
+                    {
+                        // create clients for primary nodes
+                        _primaryClients = currentBillBoard.NodeAddresses
+                            .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
+                            .Select(c => new
+                            {
+                                c.Key,
+                                Value = LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/")
+                            })
+                            .ToDictionary(p => p.Key, p => p.Value);
+                    }
 
                     if (_primaryClients.Count < 3)      // billboard not harvest address enough
                         await Task.Delay(2000);
@@ -118,7 +134,7 @@ namespace Lyra.Data.API
             } while (currentBillBoard == null || _primaryClients.Count < 3);
         }
 
-        public async Task<T> CheckResultAsync<T>(List<Task<T>> tasks) where T: APIResult, new()
+        public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> tasks) where T: APIResult, new()
         {
             var expectedCount = LyraGlobal.GetMajority(tasks.Count);
 
@@ -140,6 +156,7 @@ namespace Lyra.Data.API
                         activeTasks.Remove(t);
 
                     var compeletedCount = tasks.Count(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted);
+                    Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
 
                     if (compeletedCount >= expectedCount)
                     {
@@ -190,7 +207,7 @@ namespace Lyra.Data.API
         {
             var tasks = _primaryClients.Select(client => client.Value.GetAccountHeight(AccountId)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetAccountHeight", tasks);
         }
 
         public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
@@ -207,70 +224,70 @@ namespace Lyra.Data.API
         {
             var tasks = _primaryClients.Select(client => client.Value.GetBlock(Hash)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetBlock", tasks);
         }
 
         public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetBlockByHash(AccountId, Hash, Signature)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetBlockByHash", tasks);
         }
 
         public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetBlockByIndex(AccountId, Index)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetBlockByIndex", tasks);
         }
 
         public async Task<BlockAPIResult> GetBlockBySourceHash(string sourceHash)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetBlockBySourceHash(sourceHash)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetBlockBySourceHash", tasks);
         }
 
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetBlockHashesByTimeRange(startTime, endTime)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetBlockHashesByTimeRange", tasks);
         }
 
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetBlockHashesByTimeRange(startTimeTicks, endTimeTicks)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetBlockHashesByTimeRange", tasks);
         }
 
         public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetBlocksByConsolidation(AccountId, Signature, consolidationHash)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetBlocksByConsolidation", tasks);
         }
 
         public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetBlocksByTimeRange(startTime, endTime)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetBlocksByTimeRange", tasks);
         }
 
         public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetBlocksByTimeRange(startTimeTicks, endTimeTicks)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetBlocksByTimeRange", tasks);
         }
 
         public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetConsolidationBlocks(AccountId, Signature, startHeight, count)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetConsolidationBlocks", tasks);
         }
 
         public async Task<string> GetDbStats()
@@ -282,77 +299,77 @@ namespace Lyra.Data.API
         {
             var tasks = _primaryClients.Select(client => client.Value.GetLastBlock(AccountId)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetLastBlock", tasks);
         }
 
         public async Task<BlockAPIResult> GetLastConsolidationBlock()
         {
             var tasks = _primaryClients.Select(client => client.Value.GetLastConsolidationBlock()).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetLastConsolidationBlock", tasks);
         }
 
         public async Task<BlockAPIResult> GetLastServiceBlock()
         {
             var tasks = _primaryClients.Select(client => client.Value.GetLastServiceBlock()).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetLastServiceBlock", tasks);
         }
 
         public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
         {
             var tasks = _primaryClients.Select(client => client.Value.GetLyraTokenGenesisBlock()).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetLyraTokenGenesisBlock", tasks);
         }
 
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetNonFungibleTokens(AccountId, Signature)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetNonFungibleTokens", tasks);
         }
 
         public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetServiceBlockByIndex(blockType, Index)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetServiceBlockByIndex", tasks);
         }
 
         public async Task<BlockAPIResult> GetServiceGenesisBlock()
         {
             var tasks = _primaryClients.Select(client => client.Value.GetServiceGenesisBlock()).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetServiceGenesisBlock", tasks);
         }
 
         public async Task<AccountHeightAPIResult> GetSyncHeight()
         {
             var tasks = _primaryClients.Select(client => client.Value.GetSyncHeight()).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetSyncHeight", tasks);
         }
 
         public async Task<GetSyncStateAPIResult> GetSyncState()
         {
             var tasks = _primaryClients.Select(client => client.Value.GetSyncState()).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetSyncState", tasks);
         }
 
         public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetTokenGenesisBlock(AccountId, TokenTicker, Signature)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetTokenGenesisBlock", tasks);
         }
 
         public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
         {
             var tasks = _primaryClients.Select(client => client.Value.GetTokenNames(AccountId, Signature, keyword)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetTokenNames", tasks);
         }
 
         public async Task<List<TransStats>> GetTransStatsAsync()
@@ -364,7 +381,7 @@ namespace Lyra.Data.API
         {
             var tasks = _primaryClients.Select(client => client.Value.GetVersion(apiVersion, appName, appVersion)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("GetVersion", tasks);
         }
 
         public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
@@ -465,7 +482,7 @@ namespace Lyra.Data.API
         {
             var tasks = _primaryClients.Select(client => client.Value.GetPool(token0, token1)).ToList();
 
-            return await CheckResultAsync(tasks);
+            return await CheckResultAsync("", tasks);
         }
     }
 }

@@ -5,6 +5,7 @@ using Lyra.Node2.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using System;
@@ -42,6 +43,9 @@ namespace Lyra.Node2
         // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                //.ConfigureLogging(config => {
+                //    config.ClearProviders();
+                //})
                 .UseSystemd()   // https://swimburger.net/blog/dotnet/how-to-run-aspnet-core-as-a-service-on-linux
                 .UseWindowsService()  // https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/windows-service?view=aspnetcore-3.1&tabs=visual-studio
                 .ConfigureWebHostDefaults(webBuilder =>

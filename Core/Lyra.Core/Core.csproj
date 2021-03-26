@@ -57,6 +57,7 @@
     <Compile Remove="BaseAccount %281%29.cs" />
     <Compile Remove="BaseAccount %281%29.cs" />
     <Compile Remove="API\AuthenticationInfo.cs" />
+    <Compile Remove="Decentralize\LyraClientForNode.cs" />
     <Compile Remove="Exchange\DealEngine.cs" />
     <Compile Remove="Exchange\FreeLeXRequest.cs" />
     <Compile Remove="Exchange\LyraToken.cs" />
