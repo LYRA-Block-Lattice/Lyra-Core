@@ -156,7 +156,7 @@ namespace Lyra.Data.API
                         activeTasks.Remove(t);
 
                     var compeletedCount = tasks.Count(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted);
-                    Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
+                    //Console.WriteLine($"Name: {name}, Completed: {compeletedCount} Expected: {expectedCount}");
 
                     if (compeletedCount >= expectedCount)
                     {
@@ -179,7 +179,7 @@ namespace Lyra.Data.API
                         }
                         else
                         {
-                            Console.WriteLine($"Result count: {best.Count} / {expectedCount}");
+                            //Console.WriteLine($"Result count: {best.Count} / {expectedCount}");
                         }
                     }
                 }
