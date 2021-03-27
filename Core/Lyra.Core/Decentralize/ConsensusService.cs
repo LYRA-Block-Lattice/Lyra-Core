@@ -354,7 +354,7 @@ namespace Lyra.Core.Decentralize
                             if ((result == null || result == ConsensusResult.Uncertain) && CurrentState == BlockChainState.Almighty)
                             {
                                 _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
-                                if (CurrentState == BlockChainState.Almighty)
+                                if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
                                 {
                                     _viewChangeHandler?.BeginChangeView(false, "Consensus failed timeout uncertain.");
                                 }
@@ -386,7 +386,7 @@ namespace Lyra.Core.Decentralize
                 {
                     try
                     {
-                        if (_stateMachine.State == BlockChainState.Almighty
+                        if (_stateMachine.State == BlockChainState.Engaging || _stateMachine.State == BlockChainState.Almighty
                                 || _stateMachine.State == BlockChainState.Genesis)
                         {
                             var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
@@ -436,7 +436,7 @@ namespace Lyra.Core.Decentralize
             if (_viewChangeHandler == null)
                 return;
 
-            if (CurrentState == BlockChainState.Almighty)
+            if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
             {
                 _log.LogWarning($"GotViewChangeRequest from other nodes for {viewId} count {requestCount}");
                 _viewChangeHandler.BeginChangeView(true, $"GotViewChangeRequest from other nodes for {viewId} count {requestCount}");
@@ -841,7 +841,7 @@ namespace Lyra.Core.Decentralize
 
                 if(_viewChangeHandler != null)
                 {
-                    if (CurrentState == BlockChainState.Almighty)
+                    if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
                     {
                         _log.LogInformation($"We have new player(s). Change view...");
                         // should change view for new member
@@ -1103,7 +1103,7 @@ namespace Lyra.Core.Decentralize
 
             if (tickSeedId != null)
             {
-                if (CurrentState == BlockChainState.Almighty && accountId == tickSeedId)
+                if ((CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && accountId == tickSeedId)
                 {
                     // check leader generate consolidation block properly
                     bool leaderConsFailed = false;
@@ -1642,7 +1642,7 @@ namespace Lyra.Core.Decentralize
             if (item is ViewChangeMessage vcm && _viewChangeHandler != null)
             {
                 // need to listen to any view change event.
-                if (/*_viewChangeHandler.IsViewChanging && */CurrentState == BlockChainState.Almighty && Board.ActiveNodes.Any(a => a.AccountID == vcm.From))
+                if (/*_viewChangeHandler.IsViewChanging && */(CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && Board.ActiveNodes.Any(a => a.AccountID == vcm.From))
                 {
                     await _viewChangeHandler.ProcessMessage(vcm);
                 }
