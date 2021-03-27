@@ -108,7 +108,8 @@ namespace Lyra.Node
                 return new BalanceResult
                 {
                     balance = block.Balances.ToDecimalDict(),
-                    unreceived = anySendResult.Successful()
+                    unreceived = anySendResult.Successful(),
+                    height = block.Height
                 };
             }
             else if(blockResult.ResultCode == APIResultCodes.BlockNotFound)
