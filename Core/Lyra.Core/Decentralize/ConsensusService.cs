@@ -136,7 +136,9 @@ namespace Lyra.Core.Decentralize
                                 _failedLeaders.TryRemove(kvp.Key, out _);
                             }
 
-                            _failedLeaders.AddOrUpdate(leader, DateTime.UtcNow, (k, v) => v = DateTime.UtcNow);
+                            // never add seeds
+                            if(!ProtocolSettings.Default.StandbyValidators.Contains(leader)) 
+                                _failedLeaders.AddOrUpdate(leader, DateTime.UtcNow, (k, v) => v = DateTime.UtcNow);
 
                             if (CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging)
                             {
