@@ -89,8 +89,11 @@ namespace Lyra.Node
             };
         }
 
-        public async Task<BalanceResult> BlockBalance(TransactionBlock tx)
+        public async Task<BalanceResult> BlockBalance(string accountId, TransactionBlock tx)
         {
+            if (tx == null)
+                return await Balance(accountId);
+
             var anySendResult = await _node.LookForNewTransfer2(tx.AccountID, null);
             return new BalanceResult
             {
@@ -141,7 +144,7 @@ namespace Lyra.Node
             var result = await klWallet.ReceiveAsync();
             if(result == APIResultCodes.Success)
             {
-                return await BlockBalance(klWallet.LastBlock);
+                return await BlockBalance(accountId, klWallet.LastBlock);
             }
             else
             {
@@ -155,7 +158,7 @@ namespace Lyra.Node
             var result = await klWallet.SendAsync(amount, destAccount, ticker);
             if (result == APIResultCodes.Success)
             {
-                return await BlockBalance(klWallet.LastBlock);
+                return await BlockBalance(accountId, klWallet.LastBlock);
             }
             else
             {
@@ -171,7 +174,7 @@ namespace Lyra.Node
                 "", 8, supply, true, "", "", "", ContractTypes.Cryptocurrency, null);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return await BlockBalance(klWallet.LastBlock);
+                return await BlockBalance(accountId, klWallet.LastBlock);
             }
             else
             {

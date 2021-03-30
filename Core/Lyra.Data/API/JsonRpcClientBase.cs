@@ -114,8 +114,8 @@ namespace Lyra.Core.API
                 {
                     try
                     {
-                        jsonRpc.AddLocalRpcMethod("Sign", new Func<string, string, string[]>(
-                            (type, msg) =>
+                        jsonRpc.AddLocalRpcMethod("Sign", new Func<string, string, string, string[]>(
+                            (type, msg, accountId) =>
                             {
                                 return new string[] { "p1393", SignMessage(msg) };
                             }
