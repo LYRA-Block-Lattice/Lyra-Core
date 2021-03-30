@@ -34,8 +34,8 @@ namespace Lyra.Node
         {
             var klWallet = new KeylessWallet(accountId, (msg) =>
             {
-                // [type, signature] = Sign ([ type, message ])
-                var result3 = RPC.InvokeAsync<string[]>("Sign", new object[] { "hash", msg });
+                // [type, signature] = Sign ([ type, message, accountId ])
+                var result3 = RPC.InvokeAsync<string[]>("Sign", new object[] { "hash", msg, accountId });
                 try
                 {
                     var signaturs = result3.GetAwaiter().GetResult();
