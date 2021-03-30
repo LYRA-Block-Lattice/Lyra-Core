@@ -20,6 +20,8 @@ namespace Noded.Services
 
         public string AccountId => _accountId;
 
+        public TransactionBlock LastBlock { get; private set; }
+
         public KeylessWallet(string accountId, SignHandler signer, INodeAPI client, INodeTransactionAPI trans)
         {
             _accountId = accountId;
@@ -161,6 +163,10 @@ namespace Noded.Services
             //stopwatch.Stop();
             //PrintConLine($"_node.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
 
+            if (result.ResultCode == APIResultCodes.Success)
+                LastBlock = sendBlock;
+            else
+                LastBlock = null;
             return result.ResultCode;
         }
 
@@ -215,6 +221,10 @@ namespace Noded.Services
 
             var result = await _trans.ReceiveTransfer(receiveBlock);
 
+            if (result.ResultCode == APIResultCodes.Success)
+                LastBlock = receiveBlock;
+            else
+                LastBlock = null;
             return result;
         }
 
@@ -249,7 +259,10 @@ namespace Noded.Services
 
             var result = await _trans.ReceiveTransferAndOpenAccount(openReceiveBlock);
 
-            //PrintCon(string.Format("{0}> ", AccountName));
+            if (result.ResultCode == APIResultCodes.Success)
+                LastBlock = openReceiveBlock;
+            else
+                LastBlock = null;
             return result;
         }
 
@@ -321,6 +334,11 @@ namespace Noded.Services
             AuthorizationAPIResult result;
             //var stopwatch = Stopwatch.StartNew();
             result = await _trans.SendTransfer(sendBlock);
+
+            if (result.ResultCode == APIResultCodes.Success)
+                LastBlock = sendBlock;
+            else
+                LastBlock = null;
 
             return result;
         }
@@ -404,6 +422,11 @@ namespace Noded.Services
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
 
             var result = await _trans.CreateToken(tokenBlock);
+
+            if (result.ResultCode == APIResultCodes.Success)
+                LastBlock = tokenBlock;
+            else
+                LastBlock = null;
 
             return result;
         }
