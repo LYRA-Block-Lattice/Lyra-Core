@@ -105,6 +105,57 @@ namespace Lyra.Node
             }
         }
 
+        public async Task<SimpleJsonAPIResult> Authorize(string blockType, string jsonBlock)
+        {
+            BlockTypes types;
+            try
+            {
+                types = (BlockTypes)Enum.Parse(typeof(BlockTypes), blockType);
+            }
+            catch (Exception)
+            {
+                return new SimpleJsonAPIResult { ResultCode = APIResultCodes.InvalidBlockType };
+            }
+
+            var br = new BlockAPIResult
+            {
+                BlockData = jsonBlock,
+                ResultBlockType = types
+            };
+
+            var block = br.GetBlock();
+            if (block == null)
+            {
+                return new SimpleJsonAPIResult { ResultCode = APIResultCodes.InvalidBlockData };
+            }
+
+            // block is valid. send it to consensus network
+            AuthorizationAPIResult result;
+            switch(types)
+            {
+                case BlockTypes.SendTransfer:
+                    result = await _trans.SendTransfer(block as SendTransferBlock);
+                    break;
+                case BlockTypes.ReceiveTransfer:
+                    result = await _trans.ReceiveTransfer(block as ReceiveTransferBlock);
+                    break;
+                case BlockTypes.OpenAccountWithReceiveTransfer:
+                    result = await _trans.ReceiveTransferAndOpenAccount(block as OpenWithReceiveTransferBlock);
+                    break;
+                case BlockTypes.TokenGenesis:
+                    result = await _trans.CreateToken(block as TokenGenesisBlock);
+                    break;
+                default:
+                    result = null;
+                    break;                
+            }
+            
+            if(result == null)
+                return new SimpleJsonAPIResult { ResultCode = APIResultCodes.UnsupportedBlockType };
+
+            return new SimpleJsonAPIResult { ResultCode = result.ResultCode };
+        }
+
         public void Dispose()
         {
             _instances?.TryRemove(this.GetHashCode(), out _);
