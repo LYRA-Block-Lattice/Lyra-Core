@@ -355,11 +355,19 @@ namespace Lyra.Core.Decentralize
 
                             if ((result == null || result == ConsensusResult.Uncertain) && CurrentState == BlockChainState.Almighty)
                             {
-                                _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
-                                if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
+                                // only if the last view is old enough
+                                _sys.Storage.GetLastServiceBlockAsync().ContinueWith(t =>
                                 {
-                                    _viewChangeHandler?.BeginChangeView(false, "Consensus failed timeout uncertain.");
-                                }
+                                    var block = t.Result;
+                                    if(block?.TimeStamp < DateTime.UtcNow.AddHours(-1))
+                                    {
+                                        _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
+                                        if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
+                                        {
+                                            _viewChangeHandler?.BeginChangeView(false, "Consensus failed timeout uncertain.");
+                                        }
+                                    }
+                                });
                             }
 
                             if (result == ConsensusResult.Yea)
