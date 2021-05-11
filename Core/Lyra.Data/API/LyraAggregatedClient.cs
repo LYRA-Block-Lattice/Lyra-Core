@@ -137,6 +137,8 @@ namespace Lyra.Data.API
         public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> tasks) where T: APIResult, new()
         {
             var expectedCount = LyraGlobal.GetMajority(tasks.Count);
+            if (tasks.Count == 4)    // seed stage
+                expectedCount = 2;
 
             ISet<Task<T>> activeTasks = new HashSet<Task<T>>(tasks);
             while (activeTasks.Count > 0)
