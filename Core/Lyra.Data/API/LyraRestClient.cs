@@ -127,7 +127,7 @@ namespace Lyra.Core.API
                     return result;
                 }
                 else
-                    throw new Exception("Web Api Failed.");
+                    throw new Exception($"Web Api Failed for {_url}");
             }
         }
 
