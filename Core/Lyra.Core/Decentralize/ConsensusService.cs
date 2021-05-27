@@ -66,6 +66,7 @@ namespace Lyra.Core.Decentralize
         private System.Net.IPAddress _myIpAddress;
 
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
+        public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
 
         public BillBoard Board { get => _board; }
         //private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
@@ -579,6 +580,13 @@ namespace Lyra.Core.Decentralize
                                     }
                                     else if (result.ResultCode == APIResultCodes.APIRouteFailed)
                                     {
+                                        // if seed, sync to the highest seed.
+                                        //if(IsThisNodeSeed)
+                                        //{
+                                            await client.ReBaseAsync(true);
+                                            break;
+                                        //}
+
                                         await client.InitAsync();
                                         continue;
                                     }
@@ -605,7 +613,7 @@ namespace Lyra.Core.Decentralize
                                 }
                                 catch (Exception ex)
                                 {
-                                    _log.LogInformation($"Consensus Service Startup Exception: {ex.Message}");
+                                    _log.LogInformation($"Consensus Service Startup Exception: {ex}");
                                 }
                             }
 
@@ -626,6 +634,8 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.StaticSync)
                 .OnEntry(() => Task.Run(async () =>
                 {
+                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
+                    await client.InitAsync();
                     while (true)
                     {
                         try
@@ -634,9 +644,14 @@ namespace Lyra.Core.Decentralize
                             // three seeds are enough for database sync.
                             _log.LogInformation($"Querying Lyra Network Status... ");
 
-                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
-                            await client.InitAsync();
                             var networkStatus = await client.GetSyncState();
+
+                            if(networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
+                            {
+                                await client.ReBaseAsync(true);
+                                continue;
+                            }
+
                             if (networkStatus.ResultCode != APIResultCodes.Success)
                             {
                                 await Task.Delay(2000);

@@ -256,8 +256,9 @@ namespace Lyra.Core.Decentralize
                     }
                     else if (unConsHashResult.ResultCode == APIResultCodes.APIRouteFailed)
                     {
-                        _log.LogInformation("Recreate aggregated client...");
-                        await client.InitAsync();
+                        //_log.LogInformation("Recreate aggregated client...");
+                        //await client.InitAsync();
+                        await client.ReBaseAsync(true);
                         continue;
                     }
                     else

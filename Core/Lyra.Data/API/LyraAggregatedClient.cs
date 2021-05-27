@@ -18,6 +18,9 @@ namespace Lyra.Data.API
 
         private Dictionary<string, LyraRestClient> _primaryClients;
 
+        private int _baseIndex;
+        private LyraRestClient _baseClient;
+
         public LyraRestClient SeedClient => LyraRestClient.Create(_networkId, Environment.OSVersion.Platform.ToString(), "LyraAggregatedClient", "1.0");
 
         public LyraAggregatedClient(string networkId, bool seedsOnly)
@@ -27,7 +30,7 @@ namespace Lyra.Data.API
         }
 
         // update it from node's json
-        private string[] GetSeedNodes()
+        public string[] GetSeedNodes()
         {
             string[] seedNodes;
             if (_networkId == "devnet")
@@ -131,7 +134,34 @@ namespace Lyra.Data.API
                     await Task.Delay(1000);
                     continue;
                 }
-            } while (currentBillBoard == null || _primaryClients.Count < 3);
+            } while (currentBillBoard == null || _primaryClients.Count < 2);
+        }
+
+        public async Task ReBaseAsync(bool toSeedOnly)
+        {
+            // find the highest chain from seeds
+            var tasks = _primaryClients.Select(client => client.Value.GetSyncState()).ToList();
+            try
+            {
+                await Task.WhenAll(tasks);
+            }
+            catch { }
+            
+            var highest = tasks.Where(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted)
+                .Select(x => x.Result)
+                .OrderByDescending(o => o.Status.totalBlockCount)
+                .First();
+
+            for(int i = 0; i < tasks.Count; i++)
+            {
+                if(tasks[i].IsCompleted && tasks[i].Result.Status.totalBlockCount == highest.Status.totalBlockCount)
+                {
+                    _baseIndex = i;
+                    _baseClient = _primaryClients.ToArray()[i].Value;
+                    break;
+                }
+            }
+            //
         }
 
         public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> tasks) where T: APIResult, new()
@@ -189,6 +219,11 @@ namespace Lyra.Data.API
                 {
 
                 }
+            }
+
+            if(_baseClient != null)
+            {
+                return tasks[_baseIndex].Result;
             }
             // No successful tasks
             return new T { ResultCode = APIResultCodes.APIRouteFailed };

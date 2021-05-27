@@ -33,22 +33,23 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as SendTransferBlock;
 
-            // temperory lock down address
-            //try
-            //{
-            //    var addrs = new List<string>();
-            //    addrs.Add("LVFhxi6f89bzoa7vGM5aizhGWutLXYu3YqaxtfeYpvBbLQvfSJLokxiumt5ryHZWrWWgQXHXLjt6HTZDj7F4PU9vtgNwhJ");
-            //    addrs.Add("L4BsJXEb7zB7PMd1tg3VV594y2KwksrbooaghiqbWQ5hFFcy5gLiDbsH1Htvc8KxiXhH6soxAUubGQiWgeAgfgDkH2VJy2");
+            // Diego SCAM contract temperory lock down address
+            // should be removed if token back
+            try
+            {
+                var addrs = new List<string>();
+                addrs.Add("LVFhxi6f89bzoa7vGM5aizhGWutLXYu3YqaxtfeYpvBbLQvfSJLokxiumt5ryHZWrWWgQXHXLjt6HTZDj7F4PU9vtgNwhJ");
+                addrs.Add("L4BsJXEb7zB7PMd1tg3VV594y2KwksrbooaghiqbWQ5hFFcy5gLiDbsH1Htvc8KxiXhH6soxAUubGQiWgeAgfgDkH2VJy2");
 
-            //    // Lyra team's address
-            //    var target = "L5ViiZbSmLJJpXppwBCNPuCzRds2VMkydvfcENp3SxqAfLNuqk5JuuDrshmJNCjTo6oKgXRagCnTrVXseyxn2q74vXmYcG";
+                // Lyra team's address
+                var target = "L5ViiZbSmLJJpXppwBCNPuCzRds2VMkydvfcENp3SxqAfLNuqk5JuuDrshmJNCjTo6oKgXRagCnTrVXseyxn2q74vXmYcG";
 
-            //    if (addrs.Contains(block.AccountID) && block.DestinationAccountId != target)
-            //    {
-            //        return APIResultCodes.AccountLockDown;
-            //    }
-            //}
-            //catch (Exception) { }
+                if (addrs.Contains(block.AccountID) && block.DestinationAccountId != target)
+                {
+                    return APIResultCodes.AccountLockDown;
+                }
+            }
+            catch (Exception) { }
             // end
 
             if (block.AccountID.Equals(block.DestinationAccountId))
