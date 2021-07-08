@@ -12,11 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{9CF1BE
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{01785374-9D29-481F-BAD4-E2137CAC8057}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Lyra.Core\Core.csproj", "{E5802ED3-A69A-49C0-B797-886D3D051D17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Lyra.Core\Core.csproj", "{E5802ED3-A69A-49C0-B797-886D3D051D17}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client.CLI", "Client\Lyra.Client.CLI\Client.CLI.csproj", "{6DA15DA4-C47A-4496-A73F-0868BCCF9B76}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client.CLI", "Client\Lyra.Client.CLI\Client.CLI.csproj", "{6DA15DA4-C47A-4496-A73F-0868BCCF9B76}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Noded", "Core\Lyra.Node2\Noded.csproj", "{A2B9EC05-8836-43FE-A619-E34578DD920D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Noded", "Core\Lyra.Node2\Noded.csproj", "{A2B9EC05-8836-43FE-A619-E34578DD920D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{BA763D78-4D84-4FC0-BF6D-AA811E0DF2D2}"
 EndProject
@@ -30,7 +30,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTests", "Tests\UnitTest
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StressTest", "Tests\StressTest\StressTest.csproj", "{30E926E8-0113-4400-9822-E360E47CFF34}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lyra.Data", "Core\Lyra.Data\Lyra.Data.csproj", "{E928C992-2D83-4F7F-BC11-395C75ADC894}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lyra.Data", "Core\Lyra.Data\Lyra.Data.csproj", "{E928C992-2D83-4F7F-BC11-395C75ADC894}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -258,7 +258,7 @@ Global
 		SolutionGuid = {A0ACEE4A-2985-4B4A-BD25-73DB7B8102AC}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		version = 0.5.1
+		version = 2.2.5
 		outputpath = Bin
 		Policies = $0
 		$0.DotNetNamingPolicy = $1
