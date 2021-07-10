@@ -86,7 +86,7 @@ namespace Lyra.Node2
             services.AddMvc();
             services.AddControllers();
 
-            services.AddGrpc();
+            //services.AddGrpc();
 
             services.AddApiVersioning(options => {
                 options.DefaultApiVersion = new ApiVersion(1, 0);
