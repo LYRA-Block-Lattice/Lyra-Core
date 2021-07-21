@@ -229,8 +229,8 @@ namespace Lyra.Data.API
 
                 }
             }
-            
-            return tasks[_baseIndex].Result;
+
+            return new T { ResultCode = APIResultCodes.APIRouteFailed };
         }
 
         public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)

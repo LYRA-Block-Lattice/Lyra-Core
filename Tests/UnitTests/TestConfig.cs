@@ -6,6 +6,6 @@ namespace UnitTests
 {
     public class TestConfig
     {
-        public static string networkId = "mainnet";
+        public static string networkId = "devnet";
     }
 }
