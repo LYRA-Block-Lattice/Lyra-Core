@@ -583,7 +583,7 @@ namespace Lyra.Core.Decentralize
                                         // if seed, sync to the highest seed.
                                         //if(IsThisNodeSeed)
                                         //{
-                                            await client.ReBaseAsync(true);
+                                            client.ReBase(true);
                                             break;
                                         //}
 
@@ -648,7 +648,7 @@ namespace Lyra.Core.Decentralize
 
                             if(networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
                             {
-                                await client.ReBaseAsync(true);
+                                client.ReBase(true);
                                 continue;
                             }
 

@@ -258,7 +258,7 @@ namespace Lyra.Core.Decentralize
                     {
                         //_log.LogInformation("Recreate aggregated client...");
                         //await client.InitAsync();
-                        await client.ReBaseAsync(true);
+                        client.ReBase(true);
                         continue;
                     }
                     else
