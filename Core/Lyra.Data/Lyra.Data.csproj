@@ -9,11 +9,13 @@
     <Product>LYRA Block Lattice</Product>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://lyra.live/</PackageProjectUrl>
-    <PackageIcon>lyraicon50x50.png</PackageIcon>
+    <PackageIcon>lyra_50x50.png</PackageIcon>
     <RepositoryUrl>https://github.com/LYRA-Block-Lattice/Lyra-Core</RepositoryUrl>
     <Configurations>Release;Debug</Configurations>
     <ReleaseVersion>2.2.5</ReleaseVersion>
     <AssemblyVersion>2.2.4.1</AssemblyVersion>
+    <PackageIconUrl />
+    <Copyright>Lyra Live Inc.</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -39,7 +41,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="lyraicon50x50.png">
+    <None Include="..\..\..\..\..\OneDrive\dev\lyra\Graphics\lyra_50x50.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="lyra_50x50.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
