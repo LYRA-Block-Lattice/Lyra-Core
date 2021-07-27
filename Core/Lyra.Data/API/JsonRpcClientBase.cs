@@ -79,7 +79,7 @@ namespace Lyra.Core.API
             SendHash = tx.SendHash;
             RecvAccountId = tx.RecvAccountId;
             RecvHash = tx.RecvHash;
-            Changes = tx.Changes.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal().ToString());
+            Changes = tx.Changes?.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal().ToString());
             Balances = tx.Balances.ToDictionary(k => k.Key, k => k.Value.ToBalanceDecimal().ToString());
         }
     }
