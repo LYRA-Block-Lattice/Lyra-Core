@@ -18,8 +18,8 @@ services:
   noded:
     image: wizdy/lyranoded:0.0.5
     environment:
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/${CERT_NAME}.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${HTTPS_CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/${HTTPS_CERT_NAME}.pfx
     volumes:
       - ~/.aspnet/https:/https:ro
     depends_on:
