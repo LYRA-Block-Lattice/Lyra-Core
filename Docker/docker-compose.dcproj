@@ -8,9 +8,6 @@
   <ItemGroup>
     <None Include=".env.mainnet-example" />
     <None Include=".env.testnet-example" />
-    <None Include="docker-compose.override.yml">
-      <DependentUpon>docker-compose.yml</DependentUpon>
-    </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
     <None Include="init-mongo.sh" />

@@ -1,24 +1,29 @@
-version: '3.4'
+version: '3'
 
 services:
   mongo:
     image: mongo
-    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-      MONGO_INITDB_USERNAME: $LYRA_DB_USER
-      MONGO_INITDB_PASSWORD_FILE: $LYRA_DB_PASSWORD
-      MONGO_INITDB_DATABASE: $LYRA_DB_NAME
+      MONGO_INITDB_ROOT_PASSWORD: root
+
+      MONGO_USER: $LYRA_DB_USER
+      MONGO_DB: $LYRA_DB_NAME
+      MONGO_PASSWORD: $LYRA_DB_PASSWORD
+    networks:
+      - app
     volumes:
+      - db:/data/db
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
-  lyra: 
-    image: ${DOCKER_REGISTRY-}lyra
-    build:
-       context: .
-       dockerfile: Client/Client.CLI/Dockerfile
-  noded:
-    image: ${DOCKER_REGISTRY-}noded
-    build:
-      context: .
-      dockerfile: Core/Lyra.Node2/Dockerfile
+
+  bash:
+    image: bash
+    entrypoint: sleep 100000000
+    networks:
+      - app
+
+networks:
+  app:
+
+volumes:
+  db:
