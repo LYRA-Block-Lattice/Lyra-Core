@@ -12,14 +12,14 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - ~/lyradb:/data/db
+      - ~/.lyra/db:/data/db
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
 
   noded:
     image: wizdy/lyranoded:0.0.7
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
-      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/${HTTPS_CERT_NAME}.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Path: ~/.lyra/https/${HTTPS_CERT_NAME}.pfx
       LYRA_POS_WALLET_NAME: ${LYRA_POS_WALLET_NAME}
       LYRA_POS_WALLET_PASSWORD: ${LYRA_POS_WALLET_PASSWORD}
       LYRA_NETWORK: ${LYRA_NETWORK}
@@ -39,7 +39,7 @@ services:
       - 5505:5505
       - 5504:5504
     volumes:
-      - ~/.aspnet/https:/https:ro
+      - ~/.lyra:~/.lyra
     depends_on:
       - mongo
 

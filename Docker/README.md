@@ -27,9 +27,9 @@ echo "run \"newgrp docker\" to finish."
 ```
 
 # create a self-signed certificate
-mkdir ~/.aspnet
-mkdir ~/.aspnet/https
-cd ~/.aspnet/https
+mkdir ~/.lyra
+mkdir ~/.lyra/https
+cd ~/.lyra/https
 
 # run openssl commands separately.
 openssl req -x509 -days 3650 -newkey rsa:2048 -keyout cert.pem -out cert.pem
@@ -37,7 +37,7 @@ openssl pkcs12 -export -in cert.pem -inkey cert.pem -out cert.pfx
 
 # get docker compose config
 cd ~/
-mkdir lyradb
+mkdir ~/.lyra/db
 git clone https://github.com/LYRA-Block-Lattice/Lyra-Core
 cd Lyra-Core/Docker
 # review .env.*-example and change it
@@ -61,8 +61,19 @@ docker logs docker_noded_1	# or other names
 # docker rmi $(docker images -a -q)
 # docker system prune -a
 # docker-compose down -v
-# rm -rf ~/lyradb
-# rm -rf ~/.aspnet
+# rm -rf ~/.lyra/db
+
+```
+
+# Update Lyra container
+
+```
+cd ~/Lyra-Core/Docker
+git pull
+cd Lyra-Core/Docker
+# !!! don't do this if you have other containers!
+docker stop $(docker ps -a -q)  && docker rm $(docker ps -a -q) && docker volume prune && docker rmi $(docker images -a -q) && docker system prune -a && docker-compose down -v
+docker-compose --env-file .env up -d
 
 ```
 
