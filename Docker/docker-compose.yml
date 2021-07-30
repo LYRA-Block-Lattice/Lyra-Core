@@ -15,8 +15,8 @@ services:
   lyra: 
     image: ${DOCKER_REGISTRY-}lyra
     build:
-        context: .
-        dockerfile: Client/Client.CLI/Dockerfile
+       context: .
+       dockerfile: Client/Client.CLI/Dockerfile
   noded:
     image: ${DOCKER_REGISTRY-}noded
     build:
