@@ -1,4 +1,4 @@
-# Prerequest
+# Prerequirement
 
 Ubuntu 20.04
 
@@ -80,6 +80,7 @@ docker ps
 docker logs docker_noded_1	# or other names
 
 # Done!
+# Your staking wallet is located ~/.lyra/mainnet/wallets
 
 # on rare condition you may need to reset docker and redo
 # docker stop $(docker ps -a -q)
@@ -104,3 +105,8 @@ docker-compose --env-file .env up -d
 
 ```
 
+# Build your own docker image
+```
+~/Lyra-Core/Core/Lyra.Node2/Dockerfile
+~/Lyra-Core/Client/Lyra.Client.CLI/Dockfile
+```
