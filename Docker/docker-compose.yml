@@ -15,5 +15,10 @@ services:
       - db:/data/db
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
 
+  noded:
+    image: wizdy/lyranoded:0.0.4
+    depends_on:
+      - mongo
+
 volumes:
   db:

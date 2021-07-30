@@ -28,6 +28,8 @@ ENV LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name ${LYRA_POS_WALLE
 ENV LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password ${LYRA_POS_WALLET_PASSWORD}
 
 WORKDIR /app
+EXPOSE ${LYRA_P2P_PORT}
+EXPOSE ${LYRA_API_PORT}
 
 FROM mcr.microsoft.com/dotnet/sdk:3.1 AS build
 WORKDIR /src
