@@ -6,10 +6,11 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
-
       MONGO_USER: $LYRA_DB_USER
       MONGO_DB: $LYRA_DB_NAME
       MONGO_PASSWORD: $LYRA_DB_PASSWORD
+    ports:
+      - 27017:27017
     volumes:
       - db:/data/db
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
