@@ -124,32 +124,42 @@ namespace Lyra.Core.Accounts
                 }
             }
 
-            _log.LogWarning("ensure mongodb index...");
+            _ = Task.Run(async () =>
+            {
+                _log.LogWarning("ensure mongodb index...");
 
-            CreateIndexes("_t", false).Wait();
-            CreateIndexes("Hash", true).Wait();
-            CreateIndexes("TimeStamp", false).Wait();
-            CreateIndexes("TimeStamp.Ticks", false).Wait();
-            CreateIndexes("PreviousHash", false).Wait();
-            CreateIndexes("AccountID", false).Wait();
-            CreateNoneStringIndex("Height", false).Wait();
-            CreateNoneStringIndex("BlockType", false).Wait();
+                try
+                {
+                    await CreateIndexes("_t", false);
+                    await CreateIndexes("Hash", true);
+                    await CreateIndexes("TimeStamp", false);
+                    await CreateIndexes("TimeStamp.Ticks", false);
+                    await CreateIndexes("PreviousHash", false);
+                    await CreateIndexes("AccountID", false);
+                    await CreateNoneStringIndex("Height", false);
+                    await CreateNoneStringIndex("BlockType", false);
 
-            CreateIndexes("SourceHash", false).Wait();
-            CreateIndexes("DestinationAccountId", false).Wait();
-            CreateIndexes("Ticker", false).Wait();
-            CreateIndexes("VoteFor", false).Wait();
+                    await CreateIndexes("SourceHash", false);
+                    await CreateIndexes("DestinationAccountId", false);
+                    await CreateIndexes("Ticker", false);
+                    await CreateIndexes("VoteFor", false);
 
-            CreateNoneStringIndex("OrderType", false).Wait();
-            CreateIndexes("SellTokenCode", false).Wait();
-            CreateIndexes("BuyTokenCode", false).Wait();
-            CreateIndexes("TradeOrderId", false).Wait();
+                    await CreateNoneStringIndex("OrderType", false);
+                    await CreateIndexes("SellTokenCode", false);
+                    await CreateIndexes("BuyTokenCode", false);
+                    await CreateIndexes("TradeOrderId", false);
 
-            CreateIndexes("ImportedAccountId", false).Wait();
+                    await CreateIndexes("ImportedAccountId", false);
 
-            CreateIndexes("Token0", false).Wait();
-            CreateIndexes("Token1", false).Wait();
-            CreateIndexes("RelatedTx", false).Wait();
+                    await CreateIndexes("Token0", false);
+                    await CreateIndexes("Token1", false);
+                    await CreateIndexes("RelatedTx", false);
+                }
+                catch(Exception e)
+                {
+                    _log.LogError("In create index: " + e.ToString());
+                }
+            });
         }
 
         /// <summary>
