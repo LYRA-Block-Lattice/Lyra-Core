@@ -49,7 +49,20 @@ vi .env
 docker-compose --env-file .env up -d
 
 # check if the daemon runs well
+docker ps
 docker logs docker_noded_1	# or other names
+
+# Done!
+
+# on rare condition you may need to reset docker and redo
+# docker stop $(docker ps -a -q)
+# docker rm $(docker ps -a -q)
+# docker volume prune
+# docker rmi $(docker images -a -q)
+# docker system prune -a
+# docker-compose down -v
+# rm -rf ~/lyradb
+# rm -rf ~/.aspnet
 
 ```
 
