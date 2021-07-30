@@ -12,6 +12,8 @@ using Neo;
 using System.Linq;
 using Lyra.Data.Utils;
 using Lyra.Data.API;
+using System.IO;
+using Lyra.Data.Crypto;
 
 namespace Lyra.Core.Decentralize
 {
@@ -53,30 +55,29 @@ namespace Lyra.Core.Decentralize
                 // something must be initialized first
                 new AuthorizersFactory().Init();
 
-                string lyrawalletfolder = Wallet.GetFullFolderName(networkId, "wallets");
-                var walletStore = new SecuredWalletStore(lyrawalletfolder);
-                var tmpWallet = Wallet.Open(walletStore, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, Neo.Settings.Default.LyraNode.Lyra.Wallet.Password);
-
                 Wallet PosWallet;
-                if(true)//ProtocolSettings.Default.StandbyValidators[0] == tmpWallet.AccountId)
-                {
-                    // not update balance for seed nodes.
-                    PosWallet = tmpWallet;
-                }
-                else
-                {
-                    //// create wallet and update balance
-                    //var memStor = new AccountInMemoryStorage();
-                    //Wallet.Create(memStor, "tmpAcct", "", networkId, tmpWallet.PrivateKey);
-                    //var acctWallet = Wallet.Open(memStor, "tmpAcct", "");
-                    //acctWallet.VoteFor = tmpWallet.VoteFor;
 
-                    //Console.WriteLine("Sync wallet for " + acctWallet.AccountId);
-                    //var rpcClient = LyraRestClient.Create(networkId, Environment.OSVersion.Platform.ToString(), $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
-                    //await acctWallet.Sync(rpcClient);
+                string lyrawalletfolder = Wallet.GetFullFolderName(networkId, "wallets");
 
-                    //PosWallet = acctWallet;
+                if (!Directory.Exists(lyrawalletfolder))
+                    Directory.CreateDirectory(lyrawalletfolder);
+
+                var walletStore = new SecuredWalletStore(lyrawalletfolder);
+                if (!walletStore.Exists(Neo.Settings.Default.LyraNode.Lyra.Wallet.Name))
+                {
+                    _log.LogInformation($"Creating wallet for {networkId}.");
+
+                    (var privateKey, var publicKey) = Signatures.GenerateWallet();
+
+                    _log.LogInformation($"The new wallet {Neo.Settings.Default.LyraNode.Lyra.Wallet.Name} for {networkId} was created.");
+                    //Console.WriteLine($"Private Key: {privateKey}");
+                    _log.LogInformation($"Account ID: {publicKey}");
+
+                    walletStore.Create(Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, Neo.Settings.Default.LyraNode.Lyra.Wallet.Password, networkId, privateKey, publicKey, "");
+                    _log.LogInformation($"Wallet saved to: {lyrawalletfolder}{Neo.Settings.Default.LyraNode.Lyra.Wallet.Name}.lyrawallet");
                 }
+
+                PosWallet = Wallet.Open(walletStore, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, Neo.Settings.Default.LyraNode.Lyra.Wallet.Password);
 
                 var store = new MongoAccountCollection();
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());

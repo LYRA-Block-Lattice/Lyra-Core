@@ -43,8 +43,7 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.14" />
-    <PackageReference Include="Nerdbank.Streams" Version="2.7.74" />
+    <PackageReference Include="Nerdbank.Streams" Version="2.8.46" />
     <PackageReference Include="StreamJsonRpc" Version="2.8.21" />
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
     <PackageReference Include="System.IO.Pipelines" Version="5.0.1" />
