@@ -5,7 +5,7 @@ Ubuntu 20.04
 # dotenv file specification
 
 ```
-#certificate used by Lyra API
+#certificate used by Lyra API. it should be cert.pfx or so.
 HTTPS_CERT_NAME=cert
 HTTPS_CERT_PASSWORD=P@ssW0rd
 
@@ -16,6 +16,7 @@ LYRA_DB_NAME=lyra
 LYRA_DB_USER=dbuser
 LYRA_DB_PASSWORD=alongpassword
 
+# which network
 LYRA_NETWORK=mainnet
 # Normal for normal staking node, App for app mode.
 LYRA_NODE_MODE=Normal
@@ -23,6 +24,7 @@ LYRA_NODE_MODE=Normal
 # the staking wallet. auto create if not exists ~/.lyra/mainnet/wallets
 LYRA_POS_WALLET_NAME=poswallet
 LYRA_POS_WALLET_PASSWORD=VeryStrongP@ssW0rd
+# testnet ports: 4505 & 4504
 LYRA_P2P_PORT=5505
 LYRA_API_PORT=5504
 ```
