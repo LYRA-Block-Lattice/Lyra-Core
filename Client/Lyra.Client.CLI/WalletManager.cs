@@ -235,7 +235,7 @@ namespace Lyra.Client.CLI
             Console.WriteLine($"Account ID: {publicKey}");
 
             secureFile.Create(walletName, walletPass, networkId, privateKey, publicKey, "");
-            Console.WriteLine($"Wallet saved to: {path}/{walletName}");
+            Console.WriteLine($"Wallet saved to: {path}{walletName}");
         }
     }
 }
