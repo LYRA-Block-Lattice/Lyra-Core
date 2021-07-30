@@ -7,6 +7,6 @@ mongo -- "$MONGO_DB" <<EOF
     admin.auth(rootUser, rootPassword);
 
     var user = '$MONGO_USER';
-    var passwd = '${MONGO_PASSWORD}' || user;
+    var passwd = '${MONGO_PASSWORD}';
     db.createUser({user: user, pwd: passwd, roles: ["readWrite"]});
 EOF
