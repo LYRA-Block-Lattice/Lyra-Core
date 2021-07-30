@@ -90,10 +90,10 @@ docker logs docker_noded_1	# or other names
 
 ```
 
-# Update Lyra container
+# Upgrade Lyra container
 
 ```
-cd ~/Lyra-Core/Docker
+cd ~/Lyra-Core
 git pull
 cd Lyra-Core/Docker
 # !!! don't do this if you have other containers!
