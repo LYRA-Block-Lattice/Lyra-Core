@@ -31,6 +31,8 @@ ENV LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name ${LYRA_POS_WALLE
 ENV LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password ${LYRA_POS_WALLET_PASSWORD}
 
 WORKDIR /src
+RUN ls -l
+
 COPY ["Client/Client.CLI/Client.CLI.csproj", "Client/Client.CLI/"]
 COPY ["Core/Lyra.Node2/Noded.csproj", "Core/Lyra.Node2/"]
 COPY ["Core/Lyra.Core/Core.csproj", "Core/Lyra.Core/"]

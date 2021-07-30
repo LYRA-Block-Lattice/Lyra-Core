@@ -52,6 +52,7 @@
     <PackageReference Include="System.Reactive.Core" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Client\Lyra.Client.CLI\Client.CLI.csproj" />
     <ProjectReference Include="..\Lyra.Core\Core.csproj" />
   </ItemGroup>
   <ItemGroup>
