@@ -37,6 +37,9 @@ namespace Lyra.Client.CLI
         [Option("-g|--genwallet", Description = "Generate Wallet Only")]
         public string GenWalletName { get; set; }
 
+        [Option("--password", Description = "Wallet Password")]
+        public string WalletPassword { get; set; }
+
         [Option("-w|--wallet", Description = "Wallet Name")]
         public string WalletName { get; set; }
 

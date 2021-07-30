@@ -3,6 +3,9 @@
     "Lyra.Client.CLI": {
       "commandName": "Project",
       "commandLineArgs": "--networkid mainnet"
+    },
+    "Docker": {
+      "commandName": "Docker"
     }
   }
 }

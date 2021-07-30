@@ -27,7 +27,7 @@ namespace Lyra.Client.CLI
 
             if (options.GenWalletName != null)
             {
-                GenerateWallet(lyra_folder, network_id, options.GenWalletName);
+                GenerateWallet(lyra_folder, network_id, options.GenWalletName, options.WalletPassword);
                 return 0;
             }
 
@@ -192,7 +192,7 @@ namespace Lyra.Client.CLI
             return 0;
         }
 
-        private void GenerateWallet(string path, string networkId, string walletName)
+        private void GenerateWallet(string path, string networkId, string walletName, string password)
         {
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
@@ -207,19 +207,26 @@ namespace Lyra.Client.CLI
 
             Console.WriteLine($"Creating wallet for {networkId}.");
 
-            var password = Prompt.GetPassword("Please specify a strong password for your wallet:",
-                promptColor: ConsoleColor.Red,
-                promptBgColor: ConsoleColor.Black);
-
-            var password2 = Prompt.GetPassword("Repeat your password:",
-                promptColor: ConsoleColor.Red,
-                promptBgColor: ConsoleColor.Black);
-
-            if (password != password2)
+            var walletPass = password;
+            if(string.IsNullOrEmpty(password))
             {
-                Console.WriteLine("Passwords not match.");
-                return;
+                var password1 = Prompt.GetPassword("Please specify a strong password for your wallet:",
+    promptColor: ConsoleColor.Red,
+    promptBgColor: ConsoleColor.Black);
+
+                var password2 = Prompt.GetPassword("Repeat your password:",
+                    promptColor: ConsoleColor.Red,
+                    promptBgColor: ConsoleColor.Black);
+
+                if (password1 != password2)
+                {
+                    Console.WriteLine("Passwords not match.");
+                    return;
+                }
+
+                walletPass = password1;
             }
+
 
             (var privateKey, var publicKey) = Signatures.GenerateWallet();
 
@@ -227,8 +234,8 @@ namespace Lyra.Client.CLI
             //Console.WriteLine($"Private Key: {privateKey}");
             Console.WriteLine($"Account ID: {publicKey}");
 
-            secureFile.Create(walletName, password, networkId, privateKey, publicKey, "");
-            Console.WriteLine($"Wallet saved to: {path}");
+            secureFile.Create(walletName, walletPass, networkId, privateKey, publicKey, "");
+            Console.WriteLine($"Wallet saved to: {path}/{walletName}");
         }
     }
 }
