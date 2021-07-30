@@ -16,7 +16,7 @@ services:
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
 
   noded:
-    image: wizdy/lyranoded:0.0.7
+    image: wizdy/lyranoded:0.0.8
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
       ASPNETCORE_Kestrel__Certificates__Default__Path: ~/.lyra/https/${HTTPS_CERT_NAME}.pfx
@@ -30,6 +30,7 @@ services:
       LYRA_API_PORT: ${LYRA_API_PORT}
       ASPNETCORE_URLS: http://*:${LYRA_P2P_PORT};https://*:${LYRA_API_PORT}
       ASPNETCORE_HTTPS_PORT: ${LYRA_API_PORT}
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__Mode: $LYRA_NODE_MODE
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect: mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@mongo/${LYRA_DB_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name: ${LYRA_POS_WALLET_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password: ${LYRA_POS_WALLET_PASSWORD}
