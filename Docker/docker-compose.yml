@@ -40,7 +40,7 @@ services:
       - 5505:5505
       - 5504:5504
     volumes:
-      - ~/.lyra:~/.lyra
+      - ~/.lyra:/root/.lyra
     depends_on:
       - mongo
 
