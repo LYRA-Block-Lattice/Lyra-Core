@@ -35,6 +35,8 @@ Please reference [LyraCodeExamples](https://github.com/LYRA-Block-Lattice/LyraCo
 
 # LYRA Node Setup
 
+The best way to setup Lyra node is by Docker/Container. [For detailed Docker setup guide click here](https://github.com/LYRA-Block-Lattice/Lyra-Core/tree/master/Docker).
+
 Notes:
 * You don’t need to run Lyra node in order to use the Lyra network. Simply install CLI wallet by following [How to run Lyra CLI wallet on testnet](https://github.com/LYRA-Block-Lattice/LYRA-Docs/blob/master/How%20to%20run%20Lyra%20CLI%20Wallet%20on%20testnet.md) guide and start exploring the network by making transfers or even creating your own tokens! Mobile wallets are coming soon as well.
 * [Lyra Testnet Node Windows Setup Guide](https://github.com/LYRA-Block-Lattice/LYRA-Docs/blob/master/Lyra%20Testnet%20Node%20%20Windows%20Setup%20Guide.md)
