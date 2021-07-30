@@ -11,6 +11,7 @@ openssl pkcs12 -export -in cert.pem -inkey cert.pem -out cert.pfx
 
 # get docker compose config
 cd ~/
+mkdir lyradb
 git clone https://github.com/LYRA-Block-Lattice/Lyra-Core
 cd Lyra-Core/Docker
 # review .env.*-example and change it

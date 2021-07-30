@@ -12,7 +12,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - db:/data/db
+      - ~/lyradb:/data/db
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
 
   noded:
