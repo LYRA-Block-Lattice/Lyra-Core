@@ -16,7 +16,7 @@ services:
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
 
   noded:
-    image: wizdy/lyranoded:0.0.6
+    image: wizdy/lyranoded:0.0.7
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
       ASPNETCORE_Kestrel__Certificates__Default__Path: /https/${HTTPS_CERT_NAME}.pfx

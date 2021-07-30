@@ -500,13 +500,16 @@ namespace Lyra.Core.Decentralize
                             {
                                 bool missingBlock = false;
 
-                                for (int k = i == 1 ? 0 : 1; k < lastCons.blockHashes.Count; k++)
+                                if(lastCons != null)
                                 {
-                                    var b = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[k]);
-                                    if (b == null)
+                                    for (int k = i == 1 ? 0 : 1; k < lastCons.blockHashes.Count; k++)
                                     {
-                                        _log.LogCritical($"DBCC: missing block: {lastCons.blockHashes[k]}");
-                                        missingBlock = true;
+                                        var b = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[k]);
+                                        if (b == null)
+                                        {
+                                            _log.LogCritical($"DBCC: missing block: {lastCons.blockHashes[k]}");
+                                            missingBlock = true;
+                                        }
                                     }
                                 }
 
