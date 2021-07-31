@@ -29,7 +29,7 @@ LYRA_P2P_PORT=5505
 LYRA_API_PORT=5504
 
 # if you want to listen to extra port other than standart port. (seeds for example, use ";https://*:443")
-LYRA_EXTRA_URL=
+LYRA_API_EXTRA_URL=
 ```
 
 # Setup Docker
