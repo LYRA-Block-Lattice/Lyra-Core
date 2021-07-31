@@ -59,9 +59,10 @@ echo "run \"newgrp docker\" to finish."
 # create a self-signed certificate
 mkdir ~/.lyra
 mkdir ~/.lyra/https
-cd ~/.lyra/https
 
+# store your own https certification in ~/.lyra/https. or generate self-signed certificate by openssl as bellow:
 # run openssl commands separately.
+cd ~/.lyra/https
 openssl req -x509 -days 3650 -newkey rsa:2048 -keyout cert.pem -out cert.pem
 openssl pkcs12 -export -in cert.pem -inkey cert.pem -out cert.pfx
 
@@ -71,7 +72,7 @@ mkdir ~/.lyra/db
 git clone https://github.com/LYRA-Block-Lattice/Lyra-Core
 cd Lyra-Core/Docker
 # review .env.*-example and change it
-# change the HTTPS_CERT_PASSWORD to yours.
+# change the HTTPS_CERT_PASSWORD to yours .pfx file
 cp .env.mainnet-example .env
 vi .env
 
