@@ -487,7 +487,7 @@ namespace Lyra.Core.Decentralize
 
                             var authorizers = new AuthorizersFactory();
 
-                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
+                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
                             await client.InitAsync();
 
                             // DBCC
@@ -637,7 +637,7 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.StaticSync)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
+                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
                     await client.InitAsync();
                     while (true)
                     {
