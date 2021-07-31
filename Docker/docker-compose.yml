@@ -35,10 +35,10 @@ services:
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name: ${LYRA_POS_WALLET_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password: ${LYRA_POS_WALLET_PASSWORD}
     ports:
+      - 4503:4503
       - 4505:4505
-      - 4504:4504
+      - 5503:5503
       - 5505:5505
-      - 5504:5504
     volumes:
       - ~/.lyra:/root/.lyra
     depends_on:
