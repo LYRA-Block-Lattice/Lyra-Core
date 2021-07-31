@@ -28,8 +28,7 @@ services:
       LYRA_DB_PASSWORD: ${LYRA_DB_PASSWORD}
       LYRA_P2P_PORT: ${LYRA_P2P_PORT}
       LYRA_API_PORT: ${LYRA_API_PORT}
-      ASPNETCORE_URLS: http://*:${LYRA_P2P_PORT};https://*:${LYRA_API_PORT}${LYRA_API_EXTRA_URL}
-      ASPNETCORE_HTTPS_PORT: ${LYRA_API_PORT}
+      ASPNETCORE_URLS: https://*:${LYRA_API_PORT};https://*:443
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Mode: $LYRA_NODE_MODE
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect: mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@mongo/${LYRA_DB_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name: ${LYRA_POS_WALLET_NAME}
@@ -39,6 +38,7 @@ services:
       - 4505:4505
       - 5503:5503
       - 5505:5505
+      - 443:443
     volumes:
       - ~/.lyra:/root/.lyra
     depends_on:
