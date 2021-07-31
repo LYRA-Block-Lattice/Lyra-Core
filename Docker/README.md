@@ -1,4 +1,4 @@
-# Prerequirement
+# Pre-requisites
 
 Ubuntu 20.04
 
@@ -24,9 +24,9 @@ LYRA_NODE_MODE=Normal
 # the staking wallet. auto create if not exists ~/.lyra/mainnet/wallets
 LYRA_POS_WALLET_NAME=poswallet
 LYRA_POS_WALLET_PASSWORD=VeryStrongP@ssW0rd
-# testnet ports: 4505 & 4504
-LYRA_P2P_PORT=5505
-LYRA_API_PORT=5504
+# testnet ports: 4503 & 4505
+LYRA_P2P_PORT=5503
+LYRA_API_PORT=5505
 
 # if you want to listen to extra port other than standart port. (seeds for example, use ";https://*:443")
 LYRA_API_EXTRA_URL=
@@ -93,7 +93,7 @@ docker logs docker_noded_1	# or other names
 # docker rmi $(docker images -a -q)
 # docker system prune -a
 # docker-compose down -v
-# rm -rf ~/.lyra/db
+# rm -rf ~/.lyra/db/*
 
 ```
 
