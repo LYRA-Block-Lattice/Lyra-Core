@@ -27,25 +27,28 @@ LYRA_POS_WALLET_PASSWORD=VeryStrongP@ssW0rd
 # testnet ports: 4505 & 4504
 LYRA_P2P_PORT=5505
 LYRA_API_PORT=5504
+
+# if you want to listen to extra port other than standart port. (seeds for example, use ";https://*:443")
+LYRA_EXTRA_URL=
 ```
 
 # Setup Docker
 
 ```
 # install prerequisities
-apt-get update
-apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release software-properties-common
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release software-properties-common
 
 # install docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
 
 # make docker runs as normal user
-groupadd docker
-usermod -aG docker $USER
+sudo groupadd docker
+sudo usermod -aG docker $USER
 
 echo "run \"newgrp docker\" to finish."
 ```
