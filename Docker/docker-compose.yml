@@ -35,10 +35,8 @@ services:
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name: ${LYRA_POS_WALLET_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password: ${LYRA_POS_WALLET_PASSWORD}
     ports:
-      - 4503:4503
-      - 4504:4504
-      - 5503:5503
-      - 5504:5504
+      - ${LYRA_P2P_PORT}:${LYRA_P2P_PORT}
+      - ${LYRA_API_PORT}:${LYRA_API_PORT}
       - 443:${LYRA_API_PORT}
     volumes:
       - ~/.lyra:/root/.lyra
@@ -46,4 +44,4 @@ services:
       - mongo
 
 volumes:
-  db:
+  .lyra:
