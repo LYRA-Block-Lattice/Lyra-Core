@@ -120,6 +120,12 @@ namespace Lyra.Data.API
                             .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c}:{peerPort}/api/Node/"))
                             .ToList();
                     }
+                    else if(currentBillBoard == null)
+                    {
+                        Console.WriteLine("Error init LyraAggregatedClient. Billboard is null.");
+                        await Task.Delay(1000);
+                        continue;
+                    }
                     else
                     {
                         // create clients for primary nodes
