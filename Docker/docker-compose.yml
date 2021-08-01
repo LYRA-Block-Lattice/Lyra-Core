@@ -3,6 +3,7 @@ version: '3'
 services:
   mongo:
     image: mongo
+    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: $MONGO_ROOT_NAME
       MONGO_INITDB_ROOT_PASSWORD: $MONGO_ROOT_PASSWORD
@@ -17,6 +18,7 @@ services:
 
   noded:
     image: wizdy/lyranoded:0.1.0
+    restart: always
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
       ASPNETCORE_Kestrel__Certificates__Default__Path: /root/.lyra/https/${HTTPS_CERT_NAME}.pfx
