@@ -78,6 +78,7 @@ namespace Lyra.Core.Decentralize
                 }
 
                 PosWallet = Wallet.Open(walletStore, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, Neo.Settings.Default.LyraNode.Lyra.Wallet.Password);
+                _log.LogInformation($"Staking wallet: {PosWallet.AccountId}");
 
                 var store = new MongoAccountCollection();
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());

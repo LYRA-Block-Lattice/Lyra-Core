@@ -1,6 +1,6 @@
 # Pre-requisites
 
-Ubuntu 20.04
+Ubuntu 20.04 LTS X86_64
 
 # dotenv file specification
 
@@ -47,7 +47,6 @@ sudo apt-get update
 sudo apt-get -y install -y docker-ce docker-ce-cli containerd.io docker-compose
 
 # make docker runs as normal user
-sudo groupadd docker
 sudo usermod -aG docker $USER
 newgrp docker
 ```
