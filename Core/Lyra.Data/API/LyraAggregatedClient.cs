@@ -126,6 +126,7 @@ namespace Lyra.Data.API
                         _primaryClients = currentBillBoard.NodeAddresses
                             .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
                             .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/"))
+                            .Take(7)    // don't spam the whole network
                             .ToList();
                     }
 

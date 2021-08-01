@@ -49,8 +49,7 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose
 # make docker runs as normal user
 sudo groupadd docker
 sudo usermod -aG docker $USER
-
-echo "run \"newgrp docker\" to finish."
+newgrp docker
 ```
 
 # Setup Lyra Node Daemon Container
