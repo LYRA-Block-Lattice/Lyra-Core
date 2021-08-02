@@ -35,9 +35,9 @@ LYRA_NODE_MODE=Normal
 # the staking wallet. auto create if not exists ~/.lyra/mainnet/wallets
 LYRA_POS_WALLET_NAME=poswallet
 LYRA_POS_WALLET_PASSWORD=VeryStrongP@ssW0rd
-# testnet ports: 4503 & 4505
+# testnet ports: 4503 & 4504
 LYRA_P2P_PORT=5503
-LYRA_API_PORT=5505
+LYRA_API_PORT=5504
 
 ```
 
