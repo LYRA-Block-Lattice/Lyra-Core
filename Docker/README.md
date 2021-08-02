@@ -1,4 +1,5 @@
-Run Lyra Node by Docker
+<img src="lyradocker.png"/>
+
 - [Pre-requisites](#pre-requisites)
 - [dotenv file specification](#dotenv-file-specification)
 - [Setup Docker](#setup-docker)
