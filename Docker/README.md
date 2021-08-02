@@ -28,8 +28,6 @@ LYRA_POS_WALLET_PASSWORD=VeryStrongP@ssW0rd
 LYRA_P2P_PORT=5503
 LYRA_API_PORT=5505
 
-# if you want to listen to extra port other than standart port. (seeds for example, use ";https://*:443")
-LYRA_API_EXTRA_URL=
 ```
 
 # Setup Docker
@@ -106,6 +104,24 @@ docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(d
 docker-compose --env-file .env up -d
 
 ```
+
+# Migrate leagcy lyra node to Docker
+
+* keep leagcy lyra node untouched, setup a complete new Docker node and let it do database sync.
+* wait for the database sync done. (monitor by Nebula https://nebula.lyra.live/showbb)
+* stop leagcy lyra node. 
+* stop and destroy docker containers, buy leave the mongodb there
+```
+cd Lyra-Core/Docker
+docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker images -a -q) && docker-compose down -v
+```
+* copy poswallet.lyrawallet from leagcy node to docker node's new location: ~/.lyra/mainnet/wallets
+* modify dotenv file, change the wallet's password, and recreate the containers
+```
+cd Lyra-Core/Docker
+docker-compose --env-file .env up -d
+```
+
 
 # Build your own docker image
 ```
