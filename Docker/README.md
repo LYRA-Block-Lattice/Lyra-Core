@@ -106,20 +106,22 @@ docker logs docker_noded_1	# or other names
 # Upgrade Lyra container
 
 ```
-cd ~/Lyra-Core
-git pull
-cd Lyra-Core/Docker
+cd ~/Lyra-Core/Docker
 # !!! don't do this if you have other containers!
 docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker images -a -q) && docker-compose down -v
+
+cd ~/Lyra-Core
+git pull
+cd Docker
 docker-compose --env-file .env up -d
 
 ```
 
 # Migrate from legacy Lyra node to Docker
 
-* keep legacy lyra node untouched, setup a complete new Docker node and let it do database sync.
+* keep legacy Lyra node untouched, setup a complete new Docker node and let it do database sync.
 * wait for the database sync done. (monitor by Nebula https://nebula.lyra.live/showbb)
-* stop legacy lyra node. 
+* stop legacy Lyra node. 
 * stop and destroy docker containers, buy leave the mongodb there
 ```
 cd Lyra-Core/Docker
