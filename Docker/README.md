@@ -11,6 +11,7 @@
 # Pre-requisites
 
 Ubuntu 20.04 LTS X86_64
+Debian 10 X86_64
 
 # dotenv file specification
 
@@ -41,6 +42,9 @@ LYRA_API_PORT=5505
 ```
 
 # Setup Docker
+
+* Setup Docker and Docker Compose
+* Ubuntu 20.04 X86_64 specifed. Other OS please follow Docker official documents https://docs.docker.com/engine/install/
 
 ```
 # install prerequisities
