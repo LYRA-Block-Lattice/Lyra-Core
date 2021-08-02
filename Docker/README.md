@@ -5,7 +5,7 @@
 - [Setup Docker](#setup-docker)
 - [Setup Lyra Node Daemon Container](#setup-lyra-node-daemon-container)
 - [Upgrade Lyra container](#upgrade-lyra-container)
-- [Migrate legacy lyra node to Docker](#migrate-legacy-lyra-node-to-docker)
+- [Migrate from legacy Lyra node to Docker](#migrate-from-legacy-lyra-node-to-docker)
 - [Build your own docker image](#build-your-own-docker-image)
 
 # Pre-requisites
@@ -115,7 +115,7 @@ docker-compose --env-file .env up -d
 
 ```
 
-# Migrate legacy lyra node to Docker
+# Migrate from legacy Lyra node to Docker
 
 * keep legacy lyra node untouched, setup a complete new Docker node and let it do database sync.
 * wait for the database sync done. (monitor by Nebula https://nebula.lyra.live/showbb)
