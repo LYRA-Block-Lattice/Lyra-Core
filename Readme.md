@@ -1,3 +1,5 @@
+<img src="docs/lyra_logo_glowing.png"/>
+
 # Index
 
 [LYRA Node Setup](#lyra-node-setup)
