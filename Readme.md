@@ -32,26 +32,3 @@ Please reference [LyraCodeExamples](https://github.com/LYRA-Block-Lattice/LyraCo
 * The best way to setup Lyra node is by Docker/Container. [For detailed Docker setup guide click here](https://github.com/LYRA-Block-Lattice/Lyra-Core/tree/master/Docker).
 * [Native Setup Guide (Not Recommended)](docs/SetupNative.md)
 
-# Run node damon in App mode
-
-set config.*.json:
-```
-{
-  "ApplicationConfiguration": {
-    "LyraNode": {
-      "Lyra": {
-        "Mode": ""
-      }
-    }
-  }
-}
-```
-Mode can be 'Normal' or 'App'.
-
-Add as environment variable:
-set LYRA_ApplicationConfiguration__LyraNode__Lyra__Mode=App
-
-When node run in app mode, it just listen to the messages but not send any out.
-* Will not send node up and heartbeat messages.
-* Will not try to authorizer block.
-* Will not paticipant in view change.

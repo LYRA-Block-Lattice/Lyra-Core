@@ -231,3 +231,28 @@ use "votefor" command in wallet cli.
 	```
 
 [Detailed Guide from Microsoft](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/windows-service?view=aspnetcore-3.1&tabs=visual-studio#log-on-as-a-service-rights)
+
+
+# Run node damon in App mode
+
+set config.*.json:
+```
+{
+  "ApplicationConfiguration": {
+    "LyraNode": {
+      "Lyra": {
+        "Mode": ""
+      }
+    }
+  }
+}
+```
+Mode can be 'Normal' or 'App'.
+
+Add as environment variable:
+set LYRA_ApplicationConfiguration__LyraNode__Lyra__Mode=App
+
+When node run in app mode, it just listen to the messages but not send any out.
+* Will not send node up and heartbeat messages.
+* Will not try to authorizer block.
+* Will not paticipant in view change.
