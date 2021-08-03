@@ -6,6 +6,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		docs\JsonRPC.md = docs\JsonRPC.md
 		Readme.md = Readme.md
+		docs\SetupNative.md = docs\SetupNative.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{9CF1BE73-6CB1-4EDB-9A3D-A4BF5335EE4F}"
