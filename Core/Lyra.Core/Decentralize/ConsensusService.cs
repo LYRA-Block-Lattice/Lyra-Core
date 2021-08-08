@@ -645,14 +645,26 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.StaticSync)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    var n = new Random().Next(1, 4).ToString();
-                    var client = new LyraRestClient("", "", "", $"https://seed{n}.mainnet.lyra.live/api/Node/");  
-                    //var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
-                    //await client.InitAsync();
                     while (true)
                     {
                         try
                         {
+                            var n = new Random().Next(1, 4).ToString();
+                            var host = $"seed{n}.mainnet.lyra.live";
+
+                            var he = await Dns.GetHostEntryAsync(host);
+                            var myip = GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId);
+                            if(he.AddressList.Any() && he.AddressList.First().Equals(myip))
+                            {
+                                // self
+                                await Task.Delay(1000);
+                                continue;
+                            }
+
+                            var client = new LyraRestClient("", "", "", $"https://{host}/api/Node/");
+                            //var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
+                            //await client.InitAsync();
+
                             // when static sync, only query the seed nodes.
                             // three seeds are enough for database sync.
                             _log.LogInformation($"Querying Lyra Network Status... ");
@@ -708,6 +720,7 @@ namespace Lyra.Core.Decentralize
                         catch (Exception ex)
                         {
                             _log.LogCritical("In BlockChainState.Startup: " + ex.ToString());
+                            await Task.Delay(5000);
                         }
                     }
                 }))
