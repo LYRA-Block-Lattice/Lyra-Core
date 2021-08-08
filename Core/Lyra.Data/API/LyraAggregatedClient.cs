@@ -35,9 +35,9 @@ namespace Lyra.Data.API
         {
             string[] seedNodes;
             if (_networkId == "devnet")
-                seedNodes = new[] { "seed.devnet", "seed2.devnet", "seed3.devnet", "seed4.devnet" };
+                seedNodes = new[] { "seed1.devnet", "seed2.devnet", "seed3.devnet", "seed4.devnet" };
             else if (_networkId == "testnet")
-                seedNodes = new[] { "seed.testnet.lyra.live", "seed2.testnet.lyra.live", "seed3.testnet.lyra.live", "seed4.testnet.lyra.live" };
+                seedNodes = new[] { "seed1.testnet.lyra.live", "seed2.testnet.lyra.live", "seed3.testnet.lyra.live", "seed4.testnet.lyra.live" };
             else
                 seedNodes = new[] { "seed1.mainnet.lyra.live", "seed2.mainnet.lyra.live", "seed3.mainnet.lyra.live", "seed4.mainnet.lyra.live" };
             return seedNodes;

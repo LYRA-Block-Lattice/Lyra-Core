@@ -650,7 +650,7 @@ namespace Lyra.Core.Decentralize
                         try
                         {
                             var n = new Random().Next(1, 4).ToString();
-                            var host = $"seed{n}.mainnet.lyra.live";
+                            var host = $"seed{n}.{Settings.Default.LyraNode.Lyra.NetworkId}.lyra.live";
 
                             var he = await Dns.GetHostEntryAsync(host);
                             var myip = GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId);
