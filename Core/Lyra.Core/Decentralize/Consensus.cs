@@ -56,7 +56,7 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
-        private async Task<bool> SyncDatabase(LyraAggregatedClient client)
+        private async Task<bool> SyncDatabase(ILyraAPI client)
         {
             var consensusClient = client;
 
@@ -70,7 +70,7 @@ namespace Lyra.Core.Decentralize
                 await Task.Delay(10 * 1000);
 
                 _log.LogInformation("Recreate aggregated client...");
-                await client.InitAsync();
+                //await client.InitAsync();
             }
             
 
@@ -316,7 +316,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<bool> SyncAndVerifyConsolidationBlock(AuthorizersFactory factory, LyraAggregatedClient client, ConsolidationBlock consBlock)
+        private async Task<bool> SyncAndVerifyConsolidationBlock(AuthorizersFactory factory, ILyraAPI client, ConsolidationBlock consBlock)
         {
             _log.LogInformation($"Sync and verify consolidation block height {consBlock.Height}");
 
@@ -414,7 +414,7 @@ namespace Lyra.Core.Decentralize
         //    }
         //}
 
-        private async Task<bool> SyncOneBlockAsync(AuthorizersFactory factory, LyraAggregatedClient client, string hash)
+        private async Task<bool> SyncOneBlockAsync(AuthorizersFactory factory, ILyraAPI client, string hash)
         {
             if(null != await _sys.Storage.FindBlockByHashAsync(hash))
                 await _sys.Storage.RemoveBlockAsync(hash);

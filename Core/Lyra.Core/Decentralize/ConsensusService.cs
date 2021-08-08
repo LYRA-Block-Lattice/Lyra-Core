@@ -495,6 +495,14 @@ namespace Lyra.Core.Decentralize
 
                             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                             var shouldReset = false;
+
+                            var lastSave = LocalDbSyncState.Load();
+                            if(lastSave.lastVerifiedConsHeight == 10405)
+                            {
+                                lastSave.lastVerifiedConsHeight = 10380;
+                                LocalDbSyncState.Save(lastSave);
+                            }
+
                             var localSafeCons = LocalDbSyncState.Load().lastVerifiedConsHeight;
                             for (long i = lastCons == null ? 0 : lastCons.Height; i >= localSafeCons; i--)
                             {
@@ -637,8 +645,10 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.StaticSync)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
-                    await client.InitAsync();
+                    var n = new Random().Next(1, 4).ToString();
+                    var client = new LyraRestClient("", "", "", $"https://seed{n}.mainnet.lyra.live/api/Node/");  
+                    //var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
+                    //await client.InitAsync();
                     while (true)
                     {
                         try
@@ -651,7 +661,7 @@ namespace Lyra.Core.Decentralize
 
                             if(networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
                             {
-                                client.ReBase(true);
+                                //client.ReBase(true);
                                 continue;
                             }
 

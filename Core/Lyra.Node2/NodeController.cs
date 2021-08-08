@@ -440,8 +440,9 @@ namespace LyraLexWeb2
         [HttpPost]
         public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock receiveBlock)
         {
-            if (! CheckServiceStatus()) return null;
-            return await _trans.ReceiveFee(receiveBlock);
+            return null;
+            //if (! CheckServiceStatus()) return null;
+            //return await _trans.ReceiveFee(receiveBlock);
         }
 
         [Route("ImportAccount")]
