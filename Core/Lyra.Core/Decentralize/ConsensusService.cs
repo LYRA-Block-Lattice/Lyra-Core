@@ -661,7 +661,11 @@ namespace Lyra.Core.Decentralize
                                 continue;
                             }
 
-                            var client = new LyraRestClient("", "", "", $"https://{host}/api/Node/");
+                            ushort peerPort = 4504;
+                            if (Settings.Default.LyraNode.Lyra.NetworkId == "mainnet")
+                                peerPort = 5504;
+
+                            var client = new LyraRestClient("", "", "", $"https://{host}:{peerPort}/api/Node/");
                             //var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
                             //await client.InitAsync();
 
@@ -975,7 +979,7 @@ namespace Lyra.Core.Decentralize
             PosNode me = new PosNode(_sys.PosWallet.AccountId);
             me.NodeVersion = LyraGlobal.NODE_VERSION.ToString();
             me.ThumbPrint = _hostEnv.GetThumbPrint();
-            _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId);
+            _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync();
             me.IPAddress = $"{_myIpAddress}";
 
             _log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");
