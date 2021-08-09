@@ -48,6 +48,7 @@ namespace Lyra.Data.API
 
             // get nodes list (from billboard)
             var seedNodes = GetSeedNodes();
+
             var seeds = seedNodes.Select(a => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{a}:{peerPort}/api/Node/")).ToList();
 
             BillBoard currentBillBoard = null;

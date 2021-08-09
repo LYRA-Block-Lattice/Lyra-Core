@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -12,40 +13,49 @@ namespace Lyra.Shared
     public class GetPublicIPAddress
     {
         static string url = "https://api.ipify.org";
-        static IPAddress _myIp;
 
-        public static async Task<IPAddress> PublicIPAddressAsync(string networkId)
+        public static async Task<bool> IsThisHostMeAsync(string host)
         {
-            if (_myIp == null)  // no hammer on get ip service.
+            var he = await Dns.GetHostEntryAsync(host);
+            var myip = await PublicIPAddressAsync();
+            if (he.AddressList.Any() && he.AddressList.First().Equals(myip))
             {
-                int retry = 10;
-                while (retry-- > 0)
+                // self
+                return true;
+            }
+            else
+                return false;
+        }
+
+        public static async Task<IPAddress> PublicIPAddressAsync()
+        {
+            int retry = 10;
+            IPAddress myIp = null;
+            while (retry-- > 0)
+            {
+                try
                 {
-                    try
+                    if (Environment.GetEnvironmentVariable("LYRA_NETWORK") == "devnet")
                     {
-                        var env = networkId;
-                        if (string.IsNullOrWhiteSpace(env) || env == "devnet")
-                        {
-                            _myIp = Utilities.LocalIPAddress(false);
-                        }
-                        else
-                        {
-                            var wc = new HttpClient();
-                            var json = await wc.GetStringAsync(url);
-                            _myIp = IPAddress.Parse(json);
-                            break;
-                        }
+                        myIp = Utilities.LocalIPAddress(false);
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Console.WriteLine($"In getting IP: {ex.Message}");
-                        _myIp = Utilities.LocalIPAddress(false);
-                        await Task.Delay(5000);
+                        var wc = new HttpClient();
+                        var json = await wc.GetStringAsync(url);
+                        myIp = IPAddress.Parse(json);
+                        break;
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"In getting IP: {ex.Message}");
+                    myIp = Utilities.LocalIPAddress(false);
+                    await Task.Delay(5000);
                 }
             }
 
-            return _myIp;
+            return myIp;
         }
     }
 

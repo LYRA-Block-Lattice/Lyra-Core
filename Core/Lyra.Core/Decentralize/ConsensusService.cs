@@ -654,9 +654,7 @@ namespace Lyra.Core.Decentralize
                             var n = new Random().Next(1, 4).ToString();
                             var host = $"seed{n}.{Settings.Default.LyraNode.Lyra.NetworkId}.lyra.live";
 
-                            var he = await Dns.GetHostEntryAsync(host);
-                            var myip = GetPublicIPAddress.PublicIPAddressAsync(Settings.Default.LyraNode.Lyra.NetworkId);
-                            if(he.AddressList.Any() && he.AddressList.First().Equals(myip))
+                            if(await Shared.GetPublicIPAddress.IsThisHostMeAsync(host))
                             {
                                 // self
                                 await Task.Delay(1000);
