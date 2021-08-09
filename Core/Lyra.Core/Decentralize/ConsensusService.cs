@@ -496,9 +496,11 @@ namespace Lyra.Core.Decentralize
                             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                             var shouldReset = false;
 
-                            var lastSave = LocalDbSyncState.Load();
-                            if(lastSave.lastVerifiedConsHeight == 10405)
+                            var view = await _sys.Storage.FindBlockByHashAsync("AJBpBx1EJ1XFtKEqd8EXGF3RRmjdLQojrZY5SThvYrvm");
+                            if(view != null)
                             {
+                                await _sys.Storage.RemoveBlockAsync("AJBpBx1EJ1XFtKEqd8EXGF3RRmjdLQojrZY5SThvYrvm");
+                                var lastSave = LocalDbSyncState.Load();
                                 lastSave.lastVerifiedConsHeight = 10380;
                                 LocalDbSyncState.Save(lastSave);
                             }

@@ -33,14 +33,7 @@ namespace Lyra.Data.API
         // update it from node's json
         public string[] GetSeedNodes()
         {
-            string[] seedNodes;
-            if (_networkId == "devnet")
-                seedNodes = new[] { "seed1.devnet", "seed2.devnet", "seed3.devnet", "seed4.devnet" };
-            else if (_networkId == "testnet")
-                seedNodes = new[] { "seed1.testnet.lyra.live", "seed2.testnet.lyra.live", "seed3.testnet.lyra.live", "seed4.testnet.lyra.live" };
-            else
-                seedNodes = new[] { "seed1.mainnet.lyra.live", "seed2.mainnet.lyra.live", "seed3.mainnet.lyra.live", "seed4.mainnet.lyra.live" };
-            return seedNodes;
+            return Enumerable.Range(1, 4).Select(a => $"seed{a}.{_networkId}.lyra.live").ToArray();
         }
 
         public async Task InitAsync()
