@@ -63,7 +63,7 @@ namespace Lyra.Core.API
                 case "devnet":
                     //return "http://192.168.3.73:4505/api/";
                     //return "http://10.211.55.5:4505/api/";
-                    return $"https://api.devnet:4504/api/";       // better set static hosts entry
+                    return $"https://devnet.lyra.live:4504/api/";       // better set static hosts entry
                 case "testnet":
                     //return $"http://api.testnet.lyra.live:{port}/api/";
                     return $"https://testnet.lyra.live/api/";
