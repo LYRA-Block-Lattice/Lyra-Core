@@ -10,10 +10,10 @@
       "LFvA4NFnVYHvh5g2aQxEFUJVgv7vb7jY2WixpBm7jQrEpD6pcU1pgUBGbXSFX3vvBGhXsrYF36UqNgEcfCW1AxLftJBrm8"
     ],
     "SeedList": [
-      "seed.devnet:4503",
-      "seed2.devnet:4503",
-      "seed3.devnet:4503",
-      "seed4.devnet:4503"
+      "seed1.devnet.lyra.live:4503",
+      "seed2.devnet.lyra.live:4503",
+      "seed3.devnet.lyra.live:4503",
+      "seed4.devnet.lyra.live:4503"
     ],
     "StartupValidators": [
       "LMXwpzKcvkf5jccVADe9zfa97KDjQVG4bZuZqxYQaDMKUsjz2BGtdA6tJgc5uUo36d7hjYfpXUtqi3uFx1PcdSsBEjJ4nX",
