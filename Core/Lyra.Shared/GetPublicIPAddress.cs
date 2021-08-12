@@ -35,7 +35,8 @@ namespace Lyra.Shared
             {
                 try
                 {
-                    if (Environment.GetEnvironmentVariable("LYRA_NETWORK") == "devnet")
+                    var netid = Environment.GetEnvironmentVariable("LYRA_NETWORK");
+                    if (netid != "mainnet" && netid != "testnet")
                     {
                         myIp = Utilities.LocalIPAddress(false);
                     }

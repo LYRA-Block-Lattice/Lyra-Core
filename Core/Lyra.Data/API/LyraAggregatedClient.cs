@@ -130,7 +130,7 @@ namespace Lyra.Data.API
                             .ToList();
                     }
 
-                    if (_primaryClients.Count < 3)      // billboard not harvest address enough
+                    if (_primaryClients.Count < 2)      // billboard not harvest address enough
                         await Task.Delay(2000);
                 }
                 catch(Exception exx)
