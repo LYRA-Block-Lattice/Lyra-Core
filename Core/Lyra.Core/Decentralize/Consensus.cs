@@ -60,8 +60,8 @@ namespace Lyra.Core.Decentralize
         {
             var consensusClient = client;
 
-            BlockAPIResult seedSvcGen;
-            while (true)
+            BlockAPIResult seedSvcGen = null;
+            for (int i = 0; i < 10; i++)
             {
                 seedSvcGen = await consensusClient.GetServiceGenesisBlock();
                 if (seedSvcGen.ResultCode == APIResultCodes.Success)
@@ -159,6 +159,11 @@ namespace Lyra.Core.Decentralize
                     IsSuccess = false;
                     break;
                 }
+                finally
+                {
+                    _log.LogInformation("In finally syncdb");
+                    await Task.Delay(2000);
+                }
             }
 
             return IsSuccess;
@@ -171,7 +176,7 @@ namespace Lyra.Core.Decentralize
             var emptySyncTimes = 0;
             var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
             await client.InitAsync();
-            while (true)
+            for(int ii = 0; ii < 15; ii++)
             {
                 try
                 {

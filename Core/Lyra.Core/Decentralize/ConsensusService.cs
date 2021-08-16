@@ -628,6 +628,11 @@ namespace Lyra.Core.Decentralize
                                 {
                                     _log.LogInformation($"Consensus Service Startup Exception: {ex}");
                                 }
+                                finally
+                                {
+                                    _log.LogInformation("In finally init sync");
+                                    await Task.Delay(10000);
+                                }
                             }
 
                             // swith mode
@@ -638,6 +643,11 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogError("Error In startup: " + ex.ToString());
                             await Task.Delay(10000);
+                        }
+                        finally
+                        {
+                            _log.LogInformation("In finally state machine init");
+                            await Task.Delay(2000);
                         }
                     } while (true);
                 })
@@ -725,6 +735,11 @@ namespace Lyra.Core.Decentralize
                         {
                             _log.LogCritical("In BlockChainState.Startup: " + ex.ToString());
                             await Task.Delay(5000);
+                        }
+                        finally
+                        {
+                            _log.LogInformation("In finally static sync");
+                            await Task.Delay(2000);
                         }
                     }
                 }))
