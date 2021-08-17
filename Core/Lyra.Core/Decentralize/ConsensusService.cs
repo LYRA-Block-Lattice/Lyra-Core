@@ -1522,16 +1522,16 @@ namespace Lyra.Core.Decentralize
 
             if (block is TransactionBlock tx)
             {
-                var sameChainBlocks = _activeConsensus.Values
-                    .Select(x => x.State?.InputMsg.Block as TransactionBlock)
-                    .Where(a => a?.AccountID == tx.AccountID);
+                //var sameChainBlocks = _activeConsensus.Values
+                //    .Select(x => x.State?.InputMsg.Block as TransactionBlock)
+                //    .Where(a => a?.AccountID == tx.AccountID);
 
-                // make strict check to ensure all account operations are in serial.
-                if (sameChainBlocks.Any())
-                {
-                    _log.LogInformation("Force single account ops in serial");
-                    return true;
-                }
+                //// make strict check to ensure all account operations are in serial.
+                //if (sameChainBlocks.Any())
+                //{
+                //    _log.LogInformation("Force single account ops in serial");
+                //    return true;
+                //}
 
                 // bellow not necessary
                 //var sameHeight = sameChainBlocks.Any(y => y.Height == tx.Height);

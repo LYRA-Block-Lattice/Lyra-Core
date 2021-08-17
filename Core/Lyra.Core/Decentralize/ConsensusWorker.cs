@@ -283,6 +283,7 @@ namespace Lyra.Core.Decentralize
                 await _context.Send2P2pNetworkAsync(localAuthResult);
             }
             await CheckAuthorizedAllOkAsync(myAccountId);
+            await CheckCommitedOKAsync();
         }
 
         private async Task CheckAuthorizedAllOkAsync(string from)
