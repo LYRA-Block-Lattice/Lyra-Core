@@ -67,7 +67,6 @@ namespace Lyra.Core.Decentralize
 
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
-        private Semaphore _leaderChecker = new Semaphore(0, 1);
 
         public BillBoard Board { get => _board; }
         //private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
@@ -431,6 +430,8 @@ namespace Lyra.Core.Decentralize
                         {
                             await DeclareConsensusNodeAsync();
                         }
+
+                        await CheckLeaderHealthAsync();
                     }
                     catch (Exception ex)
                     {
@@ -1152,93 +1153,90 @@ namespace Lyra.Core.Decentralize
             foreach (var n in deadList)
                 _board.NodeAddresses.TryRemove(n.AccountID, out _);
             _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
+        }
 
+        private async Task CheckLeaderHealthAsync()
+        {
             if (_viewChangeHandler == null)
                 return;
 
             if (_viewChangeHandler.IsViewChanging)
                 return;
 
-            if (!_leaderChecker.WaitOne(1))
-                return;
-
-            _ = Task.Run(async () =>
+            /// check if leader is online. otherwise call view-change.
+            /// the uniq tick: seed0's heartbeat.
+            /// if seed0 not active, then seed2,seed3, etc.
+            /// if all seeds are offline, what the...
+            try
             {
-                /// check if leader is online. otherwise call view-change.
-                /// the uniq tick: seed0's heartbeat.
-                /// if seed0 not active, then seed2,seed3, etc.
-                /// if all seeds are offline, what the...
-                try
+                string tickSeedId = null;
+                for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
                 {
-                    string tickSeedId = null;
-                    for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
+                    if (Board.ActiveNodes.Any(a => a.AccountID == ProtocolSettings.Default.StandbyValidators[i]))
                     {
-                        if (Board.ActiveNodes.Any(a => a.AccountID == ProtocolSettings.Default.StandbyValidators[i]))
-                        {
-                            tickSeedId = ProtocolSettings.Default.StandbyValidators[i];
-                            break;
-                        }
+                        tickSeedId = ProtocolSettings.Default.StandbyValidators[i];
+                        break;
                     }
+                }
 
-                    if (tickSeedId != null)
+                if (tickSeedId != null)
+                {
+                    if ((CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty))
                     {
-                        if ((CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && accountId == tickSeedId)
+                        // check leader generate consolidation block properly
+                        bool leaderConsFailed = false;
+                        var lastSb2 = await _sys.Storage.GetLastServiceBlockAsync();
+                        var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                        if (lastCons != null) // wait for genesis
                         {
-                            // check leader generate consolidation block properly
-                            bool leaderConsFailed = false;
-                            var lastSb2 = await _sys.Storage.GetLastServiceBlockAsync();
-                            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                            if (lastCons != null) // wait for genesis
+                            // consolidate time from lastcons to now - 10s
+                            var timeStamp = DateTime.UtcNow.AddSeconds(-10);
+                            var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
+
+                            // if 1 it must be previous consolidation block.
+                            if ((unConsList.Count() >= 100 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(1))
+                                || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(15)))
                             {
-                                // consolidate time from lastcons to now - 10s
-                                var timeStamp = DateTime.UtcNow.AddSeconds(-10);
-                                var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
-
-                                // if 1 it must be previous consolidation block.
-                                if ((unConsList.Count() >= 100 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(1))
-                                    || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(15)))
-                                {
-                                    leaderConsFailed = true;
-                                    _log.LogWarning($"Leader {lastSb2.Leader} failed to do consolidate.");
-                                }
+                                leaderConsFailed = true;
+                                _log.LogWarning($"Leader {lastSb2.Leader} failed to do consolidate.");
                             }
+                        }
 
-                            // check leader offline
-                            bool leaderOffline = false;
-                            if (_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb2.Leader))
-                            {
-                                // leader is offline. we need chose one new
-                                _log.LogWarning($"Leader {lastSb2.Leader} is offline.");
-                                leaderOffline = true;
-                            }
+                        // check leader offline
+                        bool leaderOffline = false;
+                        if (_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb2.Leader))
+                        {
+                            // leader is offline. we need chose one new
+                            _log.LogWarning($"Leader {lastSb2.Leader} is offline.");
+                            leaderOffline = true;
+                        }
 
-                            if (leaderConsFailed || leaderOffline)
-                            {
-                                var lastLeader = lastSb2.Leader;
+                        if (leaderConsFailed || leaderOffline)
+                        {
+                            var lastLeader = lastSb2.Leader;
 
 
-                                UpdateVoters();
+                            UpdateVoters();
 
-                                // remove defunc leader. don't let it be elected leader again.
-                                if (Board.AllVoters.Contains(lastLeader))
-                                    Board.AllVoters.Remove(lastLeader);
+                            // remove defunc leader. don't let it be elected leader again.
+                            if (Board.AllVoters.Contains(lastLeader))
+                                Board.AllVoters.Remove(lastLeader);
 
-                                // should change view for new member
-                                _viewChangeHandler.BeginChangeView(false, $"Current leader {lastLeader.Shorten()} do no consolidation or offline.");
+                            // should change view for new member
+                            _viewChangeHandler.BeginChangeView(false, $"Current leader {lastLeader.Shorten()} do no consolidation or offline.");
 
-                            }
                         }
                     }
                 }
-                catch(Exception ex)
-                {
-                    _log.LogError($"In leader checker: {ex}");
-                }
-                finally
-                {
-                    _leaderChecker.Release();
-                }
-            });
+            }
+            catch (Exception ex)
+            {
+                _log.LogError($"In leader checker: {ex}");
+            }
+            finally
+            {
+
+            }
         }
 
         private async Task HeartBeatAsync()
