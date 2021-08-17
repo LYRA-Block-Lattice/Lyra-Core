@@ -100,7 +100,12 @@ namespace Lyra.Core.Decentralize
 
             if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
             {
-                _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) =>
+                _viewChangeHandler = new ViewChangeHandler(_sys, this,
+                    (leaderCandidate) =>
+                    {
+                        _board.LeaderCandidate = leaderCandidate;
+                    },
+                    (sender, viewId, leader, votes, voters) =>
                 {
                     _log.LogInformation($"New leader selected: {leader} with votes {votes}");
                     _board.LeaderCandidate = leader;

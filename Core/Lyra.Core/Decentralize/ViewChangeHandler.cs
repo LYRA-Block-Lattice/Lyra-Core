@@ -12,10 +12,12 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
+    public delegate void LeaderCandidateSelected(string candidate);
     public delegate void LeaderSelectedHandler(ViewChangeHandler sender, long _ViewId, string NewLeader, int Votes, List<string> Voters);
 
     public class ViewChangeHandler : ConsensusHandlerBase
     {
+        private LeaderCandidateSelected _candidateSelected;
         private LeaderSelectedHandler _leaderSelected;
 
         private class VCReqWithTime
@@ -61,10 +63,11 @@ namespace Lyra.Core.Decentralize
         public bool IsViewChanging =>  TimeStarted != DateTime.MinValue && DateTime.Now - TimeStarted < TimeSpan.FromSeconds(20); 
 
         DagSystem _sys;
-        public ViewChangeHandler(DagSystem sys, ConsensusService context, LeaderSelectedHandler leaderSelected) : base(context)
+        public ViewChangeHandler(DagSystem sys, ConsensusService context, LeaderCandidateSelected candidateSelected, LeaderSelectedHandler leaderSelected) : base(context)
         {
             _sys = sys;
 
+            _candidateSelected = candidateSelected;
             _leaderSelected = leaderSelected;
 
             TimeStarted = DateTime.MinValue;
@@ -189,6 +192,7 @@ namespace Lyra.Core.Decentralize
 
                 nextLeader = _context.Board.AllVoters[leaderIndex];
                 _log.LogInformation($"CheckAllStats, By ReqMsgs, next leader will be {nextLeader}");
+                _candidateSelected(nextLeader);
 
                 var reply = new ViewChangeReplyMessage
                 {
