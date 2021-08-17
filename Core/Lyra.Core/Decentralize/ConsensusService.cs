@@ -67,7 +67,7 @@ namespace Lyra.Core.Decentralize
 
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
-        private Mutex _leaderChecker = new Mutex(false);
+        private AutoResetEvent _leaderChecker = new AutoResetEvent(false);
 
         public BillBoard Board { get => _board; }
         //private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
@@ -1159,17 +1159,19 @@ namespace Lyra.Core.Decentralize
             if (_viewChangeHandler.IsViewChanging)
                 return;
 
+            if (!_leaderChecker.WaitOne(1))
+                return;
+
             _ = Task.Run(async () =>
             {
-                if (!_leaderChecker.WaitOne(1))
-                    return;
-
                 /// check if leader is online. otherwise call view-change.
                 /// the uniq tick: seed0's heartbeat.
                 /// if seed0 not active, then seed2,seed3, etc.
                 /// if all seeds are offline, what the...
                 try
                 {
+                    _leaderChecker.Set();
+
                     string tickSeedId = null;
                     for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
                     {
@@ -1236,7 +1238,7 @@ namespace Lyra.Core.Decentralize
                 }
                 finally
                 {
-                    _leaderChecker.ReleaseMutex();
+                    _leaderChecker.Reset();
                 }
             });
         }
