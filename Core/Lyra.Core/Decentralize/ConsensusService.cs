@@ -67,6 +67,7 @@ namespace Lyra.Core.Decentralize
 
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
+        private Mutex _leaderChecker = new Mutex(false);
 
         public BillBoard Board { get => _board; }
         //private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
@@ -98,7 +99,7 @@ namespace Lyra.Core.Decentralize
             //_verifiedIP = new ConcurrentDictionary<string, DateTime>();
             _failedLeaders = new ConcurrentDictionary<string, DateTime>();
 
-            if(Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
+            if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
             {
                 _viewChangeHandler = new ViewChangeHandler(_sys, this, (sender, viewId, leader, votes, voters) =>
                 {
@@ -138,7 +139,7 @@ namespace Lyra.Core.Decentralize
                             }
 
                             // never add seeds
-                            if(!ProtocolSettings.Default.StandbyValidators.Contains(leader)) 
+                            if (!ProtocolSettings.Default.StandbyValidators.Contains(leader))
                                 _failedLeaders.AddOrUpdate(leader, DateTime.UtcNow, (k, v) => v = DateTime.UtcNow);
 
                             if (CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging)
@@ -169,7 +170,8 @@ namespace Lyra.Core.Decentralize
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
 
             // consensus, replace authstate
-            ReceiveAsync<AuthState>(async (state) => {
+            ReceiveAsync<AuthState>(async (state) =>
+            {
                 await SubmitToConsensusAsync(state);
             });
             Receive<AskForConsensusState>((askReq) =>
@@ -324,7 +326,7 @@ namespace Lyra.Core.Decentralize
                         //    }
                         //}
 
-                        if(_viewChangeHandler != null)
+                        if (_viewChangeHandler != null)
                         {
                             _viewChangeHandler.BeginChangeView(true, $"Leader task timeout, {timeoutTasks.Count} pending.");
                             if (_viewChangeHandler.IsViewChanging)
@@ -360,7 +362,7 @@ namespace Lyra.Core.Decentralize
                                 _sys.Storage.GetLastServiceBlockAsync().ContinueWith(t =>
                                 {
                                     var block = t.Result;
-                                    if(block?.TimeStamp < DateTime.UtcNow.AddHours(-1))
+                                    if (block?.TimeStamp < DateTime.UtcNow.AddHours(-1))
                                     {
                                         _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
                                         if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
@@ -410,7 +412,7 @@ namespace Lyra.Core.Decentralize
                             }
                         }
 
-                        if(Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
+                        if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
                             await HeartBeatAsync();
 
                         if (_stateMachine.State == BlockChainState.Almighty)
@@ -425,7 +427,7 @@ namespace Lyra.Core.Decentralize
                             count = 0;
                         }
 
-                        if( count > 4 * 60 && Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)     // one hour
+                        if (count > 4 * 60 && Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)     // one hour
                         {
                             await DeclareConsensusNodeAsync();
                         }
@@ -497,7 +499,7 @@ namespace Lyra.Core.Decentralize
                             var shouldReset = false;
 
                             var view = await _sys.Storage.FindBlockByHashAsync("AJBpBx1EJ1XFtKEqd8EXGF3RRmjdLQojrZY5SThvYrvm");
-                            if(view != null)
+                            if (view != null)
                             {
                                 await _sys.Storage.RemoveBlockAsync("AJBpBx1EJ1XFtKEqd8EXGF3RRmjdLQojrZY5SThvYrvm");
                                 var lastSave = LocalDbSyncState.Load();
@@ -510,7 +512,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 bool missingBlock = false;
 
-                                if(lastCons != null)
+                                if (lastCons != null)
                                 {
                                     for (int k = i == 1 ? 0 : 1; k < lastCons.blockHashes.Count; k++)
                                     {
@@ -536,7 +538,7 @@ namespace Lyra.Core.Decentralize
                                     {
                                         var allBlocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(nextCons.TimeStamp, lastCons.TimeStamp);
                                         var extras = allBlocksInTimeRange.Where(a => !lastCons.blockHashes.Contains(a));
-                                        if(extras.Any())
+                                        if (extras.Any())
                                         {
                                             _log.LogCritical($"Found extra blocks in cons range {nextCons.Height} to {lastCons.Height}");
 
@@ -596,8 +598,8 @@ namespace Lyra.Core.Decentralize
                                         // if seed, sync to the highest seed.
                                         //if(IsThisNodeSeed)
                                         //{
-                                            client.ReBase(true);
-                                            break;
+                                        client.ReBase(true);
+                                        break;
                                         //}
 
                                         await client.InitAsync();
@@ -664,7 +666,7 @@ namespace Lyra.Core.Decentralize
                             var n = new Random().Next(1, 4).ToString();
                             var host = $"seed{n}.{Settings.Default.LyraNode.Lyra.NetworkId}.lyra.live";
 
-                            if(await Shared.GetPublicIPAddress.IsThisHostMeAsync(host))
+                            if (await Shared.GetPublicIPAddress.IsThisHostMeAsync(host))
                             {
                                 // self
                                 await Task.Delay(1000);
@@ -685,7 +687,7 @@ namespace Lyra.Core.Decentralize
 
                             var networkStatus = await client.GetSyncState();
 
-                            if(networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
+                            if (networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
                             {
                                 //client.ReBase(true);
                                 continue;
@@ -802,7 +804,7 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    if(Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
+                    if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
                         await DeclareConsensusNodeAsync();
                     //await Task.Delay(35000);    // wait for enough heartbeat
                     //RefreshAllNodesVotes();
@@ -842,7 +844,7 @@ namespace Lyra.Core.Decentralize
 
             // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
-                //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
+                                                    //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
                 .Where(x => !_failedLeaders.Keys.Contains(x.AccountID))    // exclude failed leaders
                 .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && (a.State == BlockChainState.Engaging || a.State == BlockChainState.Almighty))
                 .OrderByDescending(a => a.Votes)
@@ -909,7 +911,7 @@ namespace Lyra.Core.Decentralize
                     return;
                 }
 
-                if(_viewChangeHandler != null)
+                if (_viewChangeHandler != null)
                 {
                     if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
                     {
@@ -930,7 +932,7 @@ namespace Lyra.Core.Decentralize
             Board.UpdatePrimary(sb.Authorizers.Keys.ToList());
             Board.CurrentLeader = sb.Leader;
 
-            if(_viewChangeHandler != null)
+            if (_viewChangeHandler != null)
             {
                 _log.LogInformation($"Shift View Id to {sb.Height + 1}");
                 _viewChangeHandler.ShiftView(sb.Height + 1);
@@ -1075,10 +1077,10 @@ namespace Lyra.Core.Decentralize
                     var safeIp = addr.ToString();
 
                     // temp code. make it compatible.
-                    if(true)//_verifiedIP.ContainsKey(safeIp))
+                    if (true)//_verifiedIP.ContainsKey(safeIp))
                     {
                         var existingIP = _board.NodeAddresses.Where(x => x.Value == safeIp).ToList();
-                        foreach(var exip in existingIP)
+                        foreach (var exip in existingIP)
                         {
                             _board.NodeAddresses.TryRemove(exip.Key, out _);
                         }
@@ -1157,67 +1159,86 @@ namespace Lyra.Core.Decentralize
             if (_viewChangeHandler.IsViewChanging)
                 return;
 
-            /// check if leader is online. otherwise call view-change.
-            /// the uniq tick: seed0's heartbeat.
-            /// if seed0 not active, then seed2,seed3, etc.
-            /// if all seeds are offline, what the...
-            string tickSeedId = null;
-            for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
-            {
-                if (Board.ActiveNodes.Any(a => a.AccountID == ProtocolSettings.Default.StandbyValidators[i]))
-                {
-                    tickSeedId = ProtocolSettings.Default.StandbyValidators[i];
-                    break;
-                }
-            }
+            if (!_leaderChecker.WaitOne(1))
+                return;
 
-            if (tickSeedId != null)
+            _ = Task.Run(async () =>
             {
-                if ((CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && accountId == tickSeedId)
+                /// check if leader is online. otherwise call view-change.
+                /// the uniq tick: seed0's heartbeat.
+                /// if seed0 not active, then seed2,seed3, etc.
+                /// if all seeds are offline, what the...
+                try
                 {
-                    // check leader generate consolidation block properly
-                    bool leaderConsFailed = false;
-                    var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                    if (lastCons != null) // wait for genesis
+                    string tickSeedId = null;
+                    for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
                     {
-                        // consolidate time from lastcons to now - 10s
-                        var timeStamp = DateTime.UtcNow.AddSeconds(-10);
-                        var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
-
-                        // if 1 it must be previous consolidation block.
-                        if ((unConsList.Count() >= 100 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(1))
-                            || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(15)))
+                        if (Board.ActiveNodes.Any(a => a.AccountID == ProtocolSettings.Default.StandbyValidators[i]))
                         {
-                            leaderConsFailed = true;
+                            tickSeedId = ProtocolSettings.Default.StandbyValidators[i];
+                            break;
                         }
                     }
 
-                    // check leader offline
-                    bool leaderOffline = false;
-                    if (_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb.Leader))
+                    if (tickSeedId != null)
                     {
-                        // leader is offline. we need chose one new
-                        leaderOffline = true;
-                    }
-
-                    if (leaderConsFailed || leaderOffline)
-                    {
-                        var lastLeader = lastSb.Leader;
-
-                        _ = Task.Run(() =>
+                        if ((CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && accountId == tickSeedId)
                         {
-                            UpdateVoters();
+                            // check leader generate consolidation block properly
+                            bool leaderConsFailed = false;
+                            var lastSb2 = await _sys.Storage.GetLastServiceBlockAsync();
+                            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                            if (lastCons != null) // wait for genesis
+                            {
+                                // consolidate time from lastcons to now - 10s
+                                var timeStamp = DateTime.UtcNow.AddSeconds(-10);
+                                var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
 
-                            // remove defunc leader. don't let it be elected leader again.
-                            if (Board.AllVoters.Contains(lastLeader))
-                                Board.AllVoters.Remove(lastLeader);
+                                // if 1 it must be previous consolidation block.
+                                if ((unConsList.Count() >= 100 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(1))
+                                    || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(15)))
+                                {
+                                    leaderConsFailed = true;
+                                    _log.LogWarning($"Leader {lastSb2.Leader} failed to do consolidate.");
+                                }
+                            }
 
-                            // should change view for new member
-                            _viewChangeHandler.BeginChangeView(false, $"Current leader {lastLeader.Shorten()} do no consolidation or offline.");
-                        });
+                            // check leader offline
+                            bool leaderOffline = false;
+                            if (_viewChangeHandler.TimeStarted == DateTime.MinValue && !Board.ActiveNodes.Any(a => a.AccountID == lastSb2.Leader))
+                            {
+                                // leader is offline. we need chose one new
+                                _log.LogWarning($"Leader {lastSb2.Leader} is offline.");
+                                leaderOffline = true;
+                            }
+
+                            if (leaderConsFailed || leaderOffline)
+                            {
+                                var lastLeader = lastSb2.Leader;
+
+
+                                UpdateVoters();
+
+                                // remove defunc leader. don't let it be elected leader again.
+                                if (Board.AllVoters.Contains(lastLeader))
+                                    Board.AllVoters.Remove(lastLeader);
+
+                                // should change view for new member
+                                _viewChangeHandler.BeginChangeView(false, $"Current leader {lastLeader.Shorten()} do no consolidation or offline.");
+
+                            }
+                        }
                     }
                 }
-            }
+                catch(Exception ex)
+                {
+                    _log.LogError($"In leader checker: {ex}");
+                }
+                finally
+                {
+                    _leaderChecker.ReleaseMutex();
+                }
+            });
         }
 
         private async Task HeartBeatAsync()
@@ -1495,7 +1516,7 @@ namespace Lyra.Core.Decentralize
                 {
                     _log.LogInformation("Force single account ops in serial");
                     return true;
-                }                    
+                }
 
                 // bellow not necessary
                 //var sameHeight = sameChainBlocks.Any(y => y.Height == tx.Height);
@@ -1517,7 +1538,7 @@ namespace Lyra.Core.Decentralize
             {
                 state.Close();      // fail immediatelly
                 return;
-            }                
+            }
 
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
             if (worker != null)
@@ -1583,10 +1604,10 @@ namespace Lyra.Core.Decentralize
 
             if (block is ConsolidationBlock cons)
             {
-                if(result == ConsensusResult.Yea)
+                if (result == ConsensusResult.Yea)
                     ConsolidationSucceed(cons);
 
-                if(!localIsGood)
+                if (!localIsGood)
                     LocalConsolidationFailed(block.Hash);
 
                 return;
@@ -1616,7 +1637,7 @@ namespace Lyra.Core.Decentralize
                                     // do receive
                                     var send = await _sys.Storage.FindBlockByHashAsync(entry.ReqSendHash) as SendTransferBlock;
 
-                                    if(send == null)
+                                    if (send == null)
                                     {
                                         // not valid?
                                         continue;
@@ -1627,7 +1648,7 @@ namespace Lyra.Core.Decentralize
                                     {
                                         _log.LogInformation($"One receive not finished for send {send.Hash}. processing...");
                                         ProcessSendBlock(send);
-                                    }                                        
+                                    }
                                     else
                                     {
                                         entry.FinishRecv(recv.Hash);
@@ -1635,17 +1656,17 @@ namespace Lyra.Core.Decentralize
                                         if ((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
                                         {
                                             var block = await _sys.Storage.FindBlockByRelatedTxAsync(recv.Hash);
-                                            if(block == null)
+                                            if (block == null)
                                             {
                                                 _log.LogInformation($"One action not finished for recv {recv.Hash}. processing...");
                                                 ProcessManagedBlock(block, ConsensusResult.Yea);
-                                            }    
+                                            }
                                             else
                                             {
                                                 entry.FinishAction(block.Hash);
                                             }
                                         }
-                                    }                                        
+                                    }
                                 }
                             }
 
@@ -1663,7 +1684,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             // node block require additional works
-            if(block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
+            if (block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
             {
                 ProcessManagedBlock(block, result);
             }
@@ -1729,7 +1750,7 @@ namespace Lyra.Core.Decentralize
                         // need to send message indicate that a requota is needed
 
                         return;
-                    }                        
+                    }
                 }
 
                 if (item is BlockConsensusMessage cm)
