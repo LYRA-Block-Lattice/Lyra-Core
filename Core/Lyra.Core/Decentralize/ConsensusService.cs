@@ -350,6 +350,7 @@ namespace Lyra.Core.Decentralize
 
                             if (worker.State != null)
                             {
+                                _log.LogInformation("close state for timout reason.");
                                 worker.State.Close();
                             }
 
@@ -372,10 +373,10 @@ namespace Lyra.Core.Decentralize
                                 });
                             }
 
-                            if (result == ConsensusResult.Yea)
-                            {
-                                _log.LogError("A Yea is removed. this should not happen.");
-                            }
+                            //if (result == ConsensusResult.Yea)
+                            //{
+                            //    _log.LogError("A Yea is removed. this should not happen.");
+                            //}
                         }
                     }
                 }
@@ -1534,6 +1535,7 @@ namespace Lyra.Core.Decentralize
         {
             if (IsBlockInQueue(state.InputMsg?.Block))
             {
+                _log.LogInformation("close state for block in queue");
                 state.Close();      // fail immediatelly
                 return;
             }

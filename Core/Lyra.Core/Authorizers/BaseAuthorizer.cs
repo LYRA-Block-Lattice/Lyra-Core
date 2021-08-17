@@ -59,7 +59,7 @@ namespace Lyra.Core.Authorizers
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                 if (board.LeaderCandidate != bsb.Leader)
                 {
-                    _log.LogWarning($"Invalid leader. was {bsb.Leader.Shorten()} should be {board.CurrentLeader.Shorten()}");
+                    _log.LogWarning($"Invalid leader. was {bsb.Leader.Shorten()} should be {board.LeaderCandidate.Shorten()}");
                     return APIResultCodes.InvalidLeaderInServiceBlock;
                 }
 

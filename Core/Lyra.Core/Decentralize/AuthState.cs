@@ -33,7 +33,19 @@ namespace Lyra.Core.Decentralize
         public DateTime T5 { get; set; }
         // end
 
-        public AuthorizedMsg LocalResult { get; set; }
+        AuthorizedMsg _localResult;
+        public AuthorizedMsg LocalResult
+        {
+            get
+            {
+                return _localResult;
+            }
+            set
+            {
+                _localResult = value;
+                OutputMsgs.Add(value);
+            }
+        }
 
         public AuthorizingMsg InputMsg { get; set; }
 
@@ -247,9 +259,9 @@ namespace Lyra.Core.Decentralize
             }
 
             var localResultGood = false;
-            if (LocalResult == null)
+            if (LocalResult == null)        // far node not receive authorizing msg but the final commit msg
             {
-                _log.LogWarning("State.LocalResult is null.");
+                _log.LogWarning("State.LocalResult is null. wait it.");
                 localResultGood = false;
             }                
             else if (CommitConsensus == ConsensusResult.Yea && LocalResult.Result == APIResultCodes.Success)

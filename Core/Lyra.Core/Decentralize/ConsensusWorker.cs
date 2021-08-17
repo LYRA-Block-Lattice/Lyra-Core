@@ -270,20 +270,19 @@ namespace Lyra.Core.Decentralize
         protected virtual async Task AuthorizeAsync(AuthorizingMsg msg)
         {
             var localAuthResult = await LocalAuthorizingAsync(msg);
+            // check if state has already closed. 
             State.LocalResult = localAuthResult;
             //_log.LogInformation($"AuthorizeAsync: done auth. _state is null? {_state == null}");
 
+            var myAccountId = _context.GetDagSystem().PosWallet.AccountId;
             // we still need local authorizer to make sure database is synced (via consolidation block)
-            if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
+            if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal
+                && State.CheckSenderValid(myAccountId)
+                )
             {
                 await _context.Send2P2pNetworkAsync(localAuthResult);
-
-                var ok = _state.AddAuthResult(localAuthResult);
-                if (!ok)
-                    _log.LogError($"AuthorizeAsync: result not added ok.");
             }
-
-            await CheckAuthorizedAllOkAsync(_context.GetDagSystem().PosWallet.AccountId);
+            await CheckAuthorizedAllOkAsync(myAccountId);
         }
 
         private async Task CheckAuthorizedAllOkAsync(string from)
@@ -292,6 +291,9 @@ namespace Lyra.Core.Decentralize
             // check state
             // debug: show all states
             _log.LogInformation($"Consensus Result: {_state.OutputMsgs.Count}/{_state.WinNumber} from {from.Shorten()}");
+
+            if (_state.LocalResult == null)
+                return;     // we always wait for local result.
 
             if (_state.OutputMsgs.Count < _state.WinNumber)
             {
@@ -367,6 +369,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckCommitedOKAsync()
         {
+            if (_state.LocalResult == null)
+                return;
+
             var block = _state.InputMsg?.Block;
             if (block == null)
             // debug 
@@ -415,6 +420,7 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
+            _log.LogInformation("consensus commited. state close.");
             _state.Close();
         }
     }
