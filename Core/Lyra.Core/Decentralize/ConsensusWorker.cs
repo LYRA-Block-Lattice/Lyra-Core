@@ -297,9 +297,10 @@ namespace Lyra.Core.Decentralize
             {
                 return;
             }
-            await _state.Semaphore.WaitAsync();
             try
             {
+                await _state.Semaphore.WaitAsync();
+
                 var sb = new StringBuilder();
                 sb.AppendLine();
                 sb.AppendLine($"* Transaction From Node {_state.InputMsg.From.Shorten()} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
