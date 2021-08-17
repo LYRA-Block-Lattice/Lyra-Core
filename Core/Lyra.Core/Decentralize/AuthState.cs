@@ -23,6 +23,12 @@ namespace Lyra.Core.Decentralize
     public delegate void SuccessConsensusHandler(Block block, ConsensusResult? result, bool localOk);
     public class AuthState : ConsensusState
     {
+        private bool _saved = false;
+        public bool IsSaved => _saved;
+        public void SetSaved()
+        {
+            _saved = true;
+        }
         private bool _closed = false;
         public bool IsClosed => _closed;
         public event SuccessConsensusHandler OnConsensusSuccess;

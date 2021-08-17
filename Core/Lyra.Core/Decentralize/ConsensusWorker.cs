@@ -28,7 +28,7 @@ namespace Lyra.Core.Decentralize
         public string Hash { get; }
         public AuthState State { get => _state as AuthState; set => _state = value; }
 
-        public ConsensusWorker(ConsensusService context, string hash) : base (context)
+        public ConsensusWorker(ConsensusService context, string hash) : base(context)
         {
             _authorizers = new AuthorizersFactory();
             TimeStarted = DateTime.Now;
@@ -48,7 +48,7 @@ namespace Lyra.Core.Decentralize
         protected override async Task InternalProcessMessage(ConsensusMessage msg)
         {
             bool sourceValid = true;
-            if(msg is BlockConsensusMessage bmsg)
+            if (msg is BlockConsensusMessage bmsg)
             {
                 if (bmsg is AuthorizingMsg svcB && svcB.Block.BlockType == BlockTypes.Service) // service block must come from the new elected leader
                 {
@@ -65,21 +65,21 @@ namespace Lyra.Core.Decentralize
                         _log.LogWarning($"Service block auth msg not from AllVoters but from {bmsg.From.Shorten()}");
                         sourceValid = false;
                     }
-                }                
-                else if(bmsg is AuthorizingMsg am && am.Block.BlockType == BlockTypes.Consolidation)
+                }
+                else if (bmsg is AuthorizingMsg am && am.Block.BlockType == BlockTypes.Consolidation)
                 {
                     if (_context.Board.CurrentLeader != bmsg.From)
                     {
                         _log.LogWarning($"Consolidation block not from current leader {_context.Board.CurrentLeader.Shorten()} but from {bmsg.From.Shorten()}");
                         sourceValid = false;
                     }
-                }                
+                }
                 else if (!(bmsg is AuthorizingMsg))     // allow authorizingmsg from anywhere
                 {
-                    if(!_context.Board.PrimaryAuthorizers.Contains(bmsg.From))
+                    if (!_context.Board.PrimaryAuthorizers.Contains(bmsg.From))
                     {
                         return;
-                    }                    
+                    }
                 }
             }
 
@@ -117,7 +117,7 @@ namespace Lyra.Core.Decentralize
 
             // if source is invalid, we just listen to the network. 
             // we need to detect whether this node is out of sync now.
-            if(sourceValid)
+            if (sourceValid)
             {
                 _ = Task.Run(async () =>
                 {
@@ -181,7 +181,7 @@ namespace Lyra.Core.Decentralize
         {
             var errCode = APIResultCodes.Success;
 
-            if(State is ServiceBlockAuthState sbas)
+            if (State is ServiceBlockAuthState sbas)
             {
                 // if no leader elected, this will fail.
                 int waited = 0;
@@ -193,7 +193,7 @@ namespace Lyra.Core.Decentralize
                 _log.LogInformation($"After waiting, LeaderCandidate is {_context.Board.LeaderCandidate?.Shorten()}");
             }
 
-            if(errCode != APIResultCodes.Success)
+            if (errCode != APIResultCodes.Success)
             {
                 var result0 = new AuthorizedMsg
                 {
@@ -215,7 +215,7 @@ namespace Lyra.Core.Decentralize
                 var (localAuthResult, localAuthSign) = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
 
                 // process service required send
-                if(localAuthResult == APIResultCodes.Success
+                if (localAuthResult == APIResultCodes.Success
                     && item.Block is SendTransferBlock send
                     && send.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
                 {
@@ -384,15 +384,19 @@ namespace Lyra.Core.Decentralize
 
             if (_state.CommitConsensus == ConsensusResult.Yea)
             {
-                if (!await _context.GetDagSystem().Storage.AddBlockAsync(block))
-                    _log.LogWarning($"Block Save Failed Index: {block.Height}");
-                else
+                if (!_state.IsSaved)
                 {
-                    _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
+                    if (!await _context.GetDagSystem().Storage.AddBlockAsync(block))
+                        _log.LogWarning($"Block Save Failed Index: {block.Height}");
+                    else
+                    {
+                        _state.SetSaved();
+                        _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
 
-                    // event hooks
-                    var sys = _context.GetDagSystem();
-                    sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
+                        // event hooks
+                        var sys = _context.GetDagSystem();
+                        sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
+                    }
                 }
             }
             else if (_state.CommitConsensus == ConsensusResult.Nay)
