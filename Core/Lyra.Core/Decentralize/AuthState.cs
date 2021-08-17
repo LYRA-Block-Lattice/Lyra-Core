@@ -23,6 +23,8 @@ namespace Lyra.Core.Decentralize
     public delegate void SuccessConsensusHandler(Block block, ConsensusResult? result, bool localOk);
     public class AuthState : ConsensusState
     {
+        private bool _closed = false;
+        public bool IsClosed => _closed;
         public event SuccessConsensusHandler OnConsensusSuccess;
 
         // for debug profiling only
@@ -241,22 +243,16 @@ namespace Lyra.Core.Decentralize
 
         public void Close()
         {
-            if (Semaphore != null)
-                Semaphore.Dispose();
-            if (Done != null)
+            if (_closed)
+                return;
+
+            _closed = true;
+
+            try
             {
-                try
-                {
-                    Done.Set();
-                }
-                catch { }
-                try
-                {
-                    Done.Dispose();
-                }
-                catch { }
-                Done = null;
+                Done.Set();
             }
+            catch { }
 
             var localResultGood = false;
             if (LocalResult == null)        // far node not receive authorizing msg but the final commit msg
@@ -274,6 +270,13 @@ namespace Lyra.Core.Decentralize
             // if commitconsensus is null, means a view change is necessary. (by local result not good)
 
             OnConsensusSuccess?.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
+            if (Semaphore != null)
+                Semaphore.Dispose();
+            try
+            {
+                Done.Dispose();
+            }
+            catch { }
         }
     }
 }

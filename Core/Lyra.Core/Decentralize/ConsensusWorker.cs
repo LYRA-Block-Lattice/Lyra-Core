@@ -393,22 +393,6 @@ namespace Lyra.Core.Decentralize
                     var sys = _context.GetDagSystem();
                     sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
                 }
-
-                // if self result is Nay, need (re)send commited msg here
-                var myResult = _state.OutputMsgs.FirstOrDefault(a => a.From == _context.GetDagSystem().PosWallet.AccountId);
-                if(myResult == null || myResult.Result != APIResultCodes.Success)
-                {
-                    var msg = new AuthorizerCommitMsg
-                    {
-                        IsServiceBlock = State.InputMsg.IsServiceBlock,
-                        From = _context.GetDagSystem().PosWallet.AccountId,
-                        MsgType = ChatMessageType.AuthorizerCommit,
-                        BlockHash = _state.InputMsg.Block.Hash,
-                        Consensus = _state.PrepareConsensus
-                    };
-
-                    await _context.Send2P2pNetworkAsync(msg);
-                }
             }
             else if (_state.CommitConsensus == ConsensusResult.Nay)
             {

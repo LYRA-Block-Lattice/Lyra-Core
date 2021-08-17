@@ -953,6 +953,12 @@ namespace Lyra.Core.Decentralize
                 _stateMachine.Fire(BlockChainTrigger.LocalNodeMissingBlock);
         }
 
+        internal void LocalTransactionBlockFailed(string hash)
+        {
+            if (CurrentState == BlockChainState.Almighty)
+                _stateMachine.Fire(BlockChainTrigger.LocalNodeMissingBlock);
+        }
+
         private string PrintProfileInfo()
         {
             // debug: measure time
@@ -1602,15 +1608,17 @@ namespace Lyra.Core.Decentralize
             // only current leader deals with managed blocks
             //if (Board.CurrentLeader == _sys.PosWallet.AccountId && block.ContainsTag(Block.REQSERVICETAG))
 
+            if (!localIsGood)
+            {
+                LocalConsolidationFailed(block.Hash);
+
+                return;
+            }
+
             if (block is ConsolidationBlock cons)
             {
                 if (result == ConsensusResult.Yea)
                     ConsolidationSucceed(cons);
-
-                if (!localIsGood)
-                    LocalConsolidationFailed(block.Hash);
-
-                return;
             }
             else if (block is ServiceBlock serviceBlock)
             {
@@ -1618,9 +1626,7 @@ namespace Lyra.Core.Decentralize
                 {
                     ServiceBlockCreated(serviceBlock);
 
-                    if (!localIsGood)
-                        LocalServiceBlockFailed(serviceBlock.Hash);
-                    else if (IsThisNodeLeader)
+                    if (IsThisNodeLeader)
                     {
                         // new leader. clean all the unfinished swap operations
                         _ = Task.Run(async () =>
