@@ -67,7 +67,7 @@ namespace Lyra.Core.Decentralize
 
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
-        private AutoResetEvent _leaderChecker = new AutoResetEvent(false);
+        private Semaphore _leaderChecker = new Semaphore(0, 1);
 
         public BillBoard Board { get => _board; }
         //private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
@@ -1170,8 +1170,6 @@ namespace Lyra.Core.Decentralize
                 /// if all seeds are offline, what the...
                 try
                 {
-                    _leaderChecker.Set();
-
                     string tickSeedId = null;
                     for (int i = 0; i < ProtocolSettings.Default.StandbyValidators.Length; i++)
                     {
@@ -1238,7 +1236,7 @@ namespace Lyra.Core.Decentralize
                 }
                 finally
                 {
-                    _leaderChecker.Reset();
+                    _leaderChecker.Release();
                 }
             });
         }
