@@ -1193,6 +1193,11 @@ namespace Lyra.Core.Decentralize
                         // check leader generate consolidation block properly
                         bool leaderConsFailed = false;
                         var lastSb2 = await _sys.Storage.GetLastServiceBlockAsync();
+
+                        // check if a view change is very new
+                        if (lastSb2.TimeStamp > DateTime.UtcNow.AddMinutes(-1))
+                            return;
+
                         var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                         if (lastCons != null) // wait for genesis
                         {
