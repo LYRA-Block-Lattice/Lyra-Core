@@ -1159,11 +1159,11 @@ namespace Lyra.Core.Decentralize
             if (_viewChangeHandler.IsViewChanging)
                 return;
 
-            if (!_leaderChecker.WaitOne(1))
-                return;
-
             _ = Task.Run(async () =>
             {
+                if (!_leaderChecker.WaitOne(1))
+                    return;
+
                 /// check if leader is online. otherwise call view-change.
                 /// the uniq tick: seed0's heartbeat.
                 /// if seed0 not active, then seed2,seed3, etc.
