@@ -116,38 +116,38 @@ namespace Lyra.Core.Decentralize
                         });
                     }
 
-                    _ = Task.Run(async () =>
-                    {
-                        await Task.Delay(10000);
+                    //_ = Task.Run(async () =>
+                    //{
+                    //    await Task.Delay(10000);
 
-                        _board.LeaderCandidate = null;
+                    //    _board.LeaderCandidate = null;
 
-                        var sb = await _sys.Storage.GetLastServiceBlockAsync();
-                        if (sb.Height < viewId)
-                        {
-                            _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. {sb.Height} vs {viewId} redo election.");
-                            // the new leader failed.
+                    //    var sb = await _sys.Storage.GetLastServiceBlockAsync();
+                    //    if (sb.Height < viewId)
+                    //    {
+                    //        _log.LogCritical($"The new leader {leader.Shorten()} failed to generate service block. {sb.Height} vs {viewId} redo election.");
+                    //        // the new leader failed.
 
-                            // limit the count of failed leader to 4.
-                            // so we can avoid fatal error like blockchain fork.
+                    //        // limit the count of failed leader to 4.
+                    //        // so we can avoid fatal error like blockchain fork.
 
-                            if (_failedLeaders.Count >= 4)
-                            {
-                                var kvp = _failedLeaders.OrderBy(x => x.Value).First();
-                                _failedLeaders.TryRemove(kvp.Key, out _);
-                            }
+                    //        if (_failedLeaders.Count >= 4)
+                    //        {
+                    //            var kvp = _failedLeaders.OrderBy(x => x.Value).First();
+                    //            _failedLeaders.TryRemove(kvp.Key, out _);
+                    //        }
 
-                            // never add seeds
-                            if (!ProtocolSettings.Default.StandbyValidators.Contains(leader))
-                                _failedLeaders.AddOrUpdate(leader, DateTime.UtcNow, (k, v) => v = DateTime.UtcNow);
+                    //        // never add seeds
+                    //        if (!ProtocolSettings.Default.StandbyValidators.Contains(leader))
+                    //            _failedLeaders.AddOrUpdate(leader, DateTime.UtcNow, (k, v) => v = DateTime.UtcNow);
 
-                            if (CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging)
-                            {
-                                // redo view change
-                                _viewChangeHandler.BeginChangeView(false, $"The new leader {leader.Shorten()} failed to generate service block.");
-                            }
-                        }
-                    });
+                    //        if (CurrentState == BlockChainState.Almighty || CurrentState == BlockChainState.Engaging)
+                    //        {
+                    //            // redo view change
+                    //            _viewChangeHandler.BeginChangeView(false, $"The new leader {leader.Shorten()} failed to generate service block.");
+                    //        }
+                    //    }
+                    //});
                     //_viewChangeHandler.Reset(); // wait for svc block generated
                 });
             }
