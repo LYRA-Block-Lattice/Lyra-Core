@@ -74,7 +74,7 @@ namespace Lyra.Core.Authorizers
                 {
                     if (block.TimeStamp < uniNow.AddSeconds(-18) || block.TimeStamp > uniNow.AddSeconds(3))
                     {
-                        _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
+                        _log.LogInformation($"TimeStamp 1: {block.TimeStamp} Universal Time Now: {uniNow}");
                         return APIResultCodes.InvalidBlockTimeStamp;
                     }
                 }
@@ -119,7 +119,7 @@ namespace Lyra.Core.Authorizers
                 {
                     if (block.TimeStamp < uniNow.AddSeconds(-18) || block.TimeStamp > uniNow.AddSeconds(3))
                     {
-                        _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
+                        _log.LogInformation($"TimeStamp 2: {block.TimeStamp} Universal Time Now: {uniNow}");
                         return APIResultCodes.InvalidBlockTimeStamp;
                     }
                 }
@@ -131,7 +131,7 @@ namespace Lyra.Core.Authorizers
                     // time shift 10 seconds.
                     if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(-17))
                     {
-                        _log.LogInformation($"TimeStamp: {block.TimeStamp} Universal Time Now: {uniNow}");
+                        _log.LogInformation($"TimeStamp 3: {block.TimeStamp} Universal Time Now: {uniNow}");
                         return APIResultCodes.InvalidBlockTimeStamp;
                     }
                 }
