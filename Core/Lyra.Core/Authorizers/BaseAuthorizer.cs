@@ -129,7 +129,7 @@ namespace Lyra.Core.Authorizers
                 if (sys.ConsensusState != BlockChainState.StaticSync)
                 {
                     // time shift 10 seconds.
-                    if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(-17))
+                    if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(3))
                     {
                         _log.LogInformation($"TimeStamp 3: {block.TimeStamp} Universal Time Now: {uniNow}");
                         return APIResultCodes.InvalidBlockTimeStamp;
