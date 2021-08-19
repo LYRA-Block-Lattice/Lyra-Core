@@ -176,7 +176,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public async Task BurningToken()
+        public async Task BurningTokenAsync()
         {
             await semaphore.WaitAsync();
             var w1 = Restore(PRIVATE_KEY_1);

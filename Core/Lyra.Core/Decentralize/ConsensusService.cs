@@ -180,17 +180,23 @@ namespace Lyra.Core.Decentralize
             });
             Receive<AskForConsensusState>((askReq) =>
             {
-
-                AuthorizingMsg msg = new AuthorizingMsg
+                try
                 {
-                    From = _sys.PosWallet.AccountId,
-                    Block = askReq.block,
-                    BlockHash = askReq.block.Hash,
-                    MsgType = ChatMessageType.AuthorizerPrePrepare
-                };
+                    AuthorizingMsg msg = new AuthorizingMsg
+                    {
+                        From = _sys.PosWallet.AccountId,
+                        Block = askReq.block,
+                        BlockHash = askReq.block.Hash,
+                        MsgType = ChatMessageType.AuthorizerPrePrepare
+                    };
 
-                var state = CreateAuthringState(msg, true);
-                Sender.Tell(state);
+                    var state = CreateAuthringState(msg, true);
+                    Sender.Tell(state);
+                }
+                catch(Exception ex)
+                {
+                    _log.LogError("When reply AskForConsensusState: " + ex.ToString());
+                }
             });
 
             Receive<ReqCreatePoolFactory>((_) => CreatePoolFactory());
