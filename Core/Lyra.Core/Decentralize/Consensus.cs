@@ -56,7 +56,7 @@ namespace Lyra.Core.Decentralize
             return mt.BuildTree().ToString();
         }
 
-        private async Task<bool> SyncDatabase(ILyraAPI client)
+        private async Task<bool> SyncDatabaseAsync(ILyraAPI client)
         {
             var consensusClient = client;
 
@@ -122,7 +122,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 var consTarget = block as ConsolidationBlock;
                                 _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget.Height} of total {lastCons.Height}.");
-                                if (await SyncAndVerifyConsolidationBlock(_authorizers, consensusClient, consTarget))
+                                if (await SyncAndVerifyConsolidationBlockAsync(_authorizers, consensusClient, consTarget))
                                 {
                                     _log.LogInformation($"Consolidation block {consTarget.Height} is OK.");
 
@@ -193,7 +193,7 @@ namespace Lyra.Core.Decentralize
                         if (myLastCons == null || myLastCons.Height < lastConsBlockOfSeed.Height)
                         {
                             _log.LogInformation($"Engaging: new consolidation block {lastConsBlockOfSeed.Height}");
-                            if (!await SyncDatabase(client))
+                            if (!await SyncDatabaseAsync(client))
                             {
                                 _log.LogError($"Error sync database. wait 5 minutes and retry...");
                                 await Task.Delay(5 * 60 * 1000);
@@ -321,7 +321,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<bool> SyncAndVerifyConsolidationBlock(AuthorizersFactory factory, ILyraAPI client, ConsolidationBlock consBlock)
+        private async Task<bool> SyncAndVerifyConsolidationBlockAsync(AuthorizersFactory factory, ILyraAPI client, ConsolidationBlock consBlock)
         {
             _log.LogInformation($"Sync and verify consolidation block height {consBlock.Height}");
 
@@ -508,7 +508,7 @@ namespace Lyra.Core.Decentralize
 
             await Task.Delay(15000);
 
-            await CreateConsolidationBlock();
+            await CreateConsolidationBlockAsync();
 
             await Task.Delay(3000);
         }
@@ -689,7 +689,7 @@ namespace Lyra.Core.Decentralize
             return svcGenesis;
         }
 
-        private async void CreatePoolFactory()
+        private async Task CreatePoolFactoryAsync()
         {
             var factory = await _sys.Storage.GetPoolFactoryAsync();
             if (factory != null)

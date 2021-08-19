@@ -199,7 +199,18 @@ namespace Lyra.Core.Decentralize
                 }
             });
 
-            Receive<ReqCreatePoolFactory>((_) => CreatePoolFactory());
+            ReceiveAsync<ReqCreatePoolFactory>(async (_) =>
+                {
+                    try
+                    {
+                        await CreatePoolFactoryAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.LogError("Error in CreatePoolFactoryAsync: " + ex.ToString());
+                    }
+                }
+            );
 
             ReceiveAsync<SignedMessageRelay>(async relayMsg =>
             {
@@ -399,62 +410,62 @@ namespace Lyra.Core.Decentralize
             timr.AutoReset = true;
             timr.Enabled = true;
 
-            Task.Run(async () =>
-            {
-                int count = 0;
+            _ = Task.Run(async () =>
+              {
+                  int count = 0;
 
                 // give other routine time to work/start/init
                 await Task.Delay(30000).ConfigureAwait(false);
 
-                while (true)
-                {
-                    try
-                    {
-                        if (_stateMachine.State == BlockChainState.Engaging || _stateMachine.State == BlockChainState.Almighty
-                                || _stateMachine.State == BlockChainState.Genesis)
+                  while (true)
+                  {
+                      try
+                      {
+                          if (_stateMachine.State == BlockChainState.Engaging || _stateMachine.State == BlockChainState.Almighty
+                                  || _stateMachine.State == BlockChainState.Genesis)
+                          {
+                              var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
+                                      .Select(b => b.Key)
+                                      .ToList();
+
+                              foreach (var hb in oldList)
+                              {
+                                  _criticalMsgCache.TryRemove(hb, out _);
+                              }
+                          }
+
+                          if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
+                              await HeartBeatAsync();
+
+                          if (_stateMachine.State == BlockChainState.Almighty)
+                          {
+                              await CreateConsolidationBlockAsync();
+                          }
+
+                          count++;
+
+                          if (count > 4 * 5)     // 5 minutes
                         {
-                            var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
-                                    .Select(b => b.Key)
-                                    .ToList();
+                              count = 0;
+                          }
 
-                            foreach (var hb in oldList)
-                            {
-                                _criticalMsgCache.TryRemove(hb, out _);
-                            }
-                        }
-
-                        if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
-                            await HeartBeatAsync();
-
-                        if (_stateMachine.State == BlockChainState.Almighty)
+                          if (count > 4 * 60 && Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)     // one hour
                         {
-                            await CreateConsolidationBlock();
-                        }
+                              await DeclareConsensusNodeAsync();
+                          }
 
-                        count++;
-
-                        if (count > 4 * 5)     // 5 minutes
-                        {
-                            count = 0;
-                        }
-
-                        if (count > 4 * 60 && Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)     // one hour
-                        {
-                            await DeclareConsensusNodeAsync();
-                        }
-
-                        await CheckLeaderHealthAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.LogWarning("In maintaince loop: " + ex.ToString());
-                    }
-                    finally
-                    {
-                        await Task.Delay(15000).ConfigureAwait(false);
-                    }
-                }
-            });
+                          await CheckLeaderHealthAsync();
+                      }
+                      catch (Exception ex)
+                      {
+                          _log.LogWarning("In maintaince loop: " + ex.ToString());
+                      }
+                      finally
+                      {
+                          await Task.Delay(15000).ConfigureAwait(false);
+                      }
+                  }
+              });
         }
 
         internal void GotViewChangeRequest(long viewId, int requestCount)
@@ -570,7 +581,7 @@ namespace Lyra.Core.Decentralize
                                 if (missingBlock)
                                 {
                                     _log.LogInformation($"DBCC: Fixing database...");
-                                    var consSyncResult = await SyncAndVerifyConsolidationBlock(authorizers, client, lastCons);
+                                    var consSyncResult = await SyncAndVerifyConsolidationBlockAsync(authorizers, client, lastCons);
                                     if (consSyncResult)
                                         i++;
                                     else
@@ -615,8 +626,8 @@ namespace Lyra.Core.Decentralize
                                         break;
                                         //}
 
-                                        await client.InitAsync();
-                                        continue;
+                                        //await client.InitAsync();
+                                        //continue;
                                     }
                                     else if (result.ResultCode != APIResultCodes.ServiceBlockNotFound)
                                     {
@@ -720,7 +731,7 @@ namespace Lyra.Core.Decentralize
                             if (myStatus.totalBlockCount == 0 && majorHeight == 0)
                             {
                                 //_stateMachine.Fire(_engageTriggerStartupSync, majorHeight.Height);
-                                _stateMachine.Fire(BlockChainTrigger.ConsensusBlockChainEmpty);
+                                await _stateMachine.FireAsync(BlockChainTrigger.ConsensusBlockChainEmpty);
                                 break;
                             }
                             else if (majorHeight >= 2)
@@ -730,7 +741,7 @@ namespace Lyra.Core.Decentralize
                                 {
                                     _log.LogInformation($"local height {myStatus.totalBlockCount} not equal to majority {majorHeight}, do database sync.");
                                     // verify local database
-                                    while (!await SyncDatabase(client))
+                                    while (!await SyncDatabaseAsync(client))
                                     {
                                         //fatal error. should not run program
                                         _log.LogCritical($"Unable to sync blockchain database. Will retry in 1 minute.");
@@ -808,7 +819,7 @@ namespace Lyra.Core.Decentralize
                             }
                             finally
                             {
-                                _stateMachine.Fire(BlockChainTrigger.LocalNodeFullySynced);
+                                await _stateMachine.FireAsync(BlockChainTrigger.LocalNodeFullySynced);
                             }
                         });
                     })
@@ -873,7 +884,7 @@ namespace Lyra.Core.Decentralize
         public void UpdateVoters()
         {
             _log.LogInformation("UpdateVoters begin...");
-            RefreshAllNodesVotes();
+            RefreshAllNodesVotesAsync();
             var list = LookforVoters();
             if (list.Count >= 4)        // simple check. but real condition is complex.
                 Board.AllVoters = list;
@@ -895,7 +906,7 @@ namespace Lyra.Core.Decentralize
                     localState.lastVerifiedConsHeight = cons.Height;
                     LocalDbSyncState.Save(localState);
 
-                    _stateMachine.Fire(BlockChainTrigger.GenesisDone);
+                    await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone);
                     return;
                 }
 
@@ -1037,7 +1048,7 @@ namespace Lyra.Core.Decentralize
             }
             else
                 _board.NodeAddresses.TryAdd(me.AccountID, me.IPAddress.ToString());
-            await OnNodeActive(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint);
+            await OnNodeActiveAsync(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint);
 
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
@@ -1052,10 +1063,10 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            await OnNodeActive(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null);
+            await OnNodeActiveAsync(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null);
         }
 
-        private async Task OnNodeActive(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint)
+        private async Task OnNodeActiveAsync(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
@@ -1340,7 +1351,7 @@ namespace Lyra.Core.Decentralize
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     return;
 
-                await OnNodeActive(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync, node.IPAddress, node.ThumbPrint);
+                await OnNodeActiveAsync(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync, node.IPAddress, node.ThumbPrint);
             }
             catch (Exception ex)
             {
@@ -1357,7 +1368,7 @@ namespace Lyra.Core.Decentralize
             //    .Any(a => a.AccountID == accountId && a.Index == index && a is SendTransferBlock);
         }
 
-        private async Task CreateConsolidationBlock()
+        private async Task CreateConsolidationBlockAsync()
         {
             if (_stateMachine.State != BlockChainState.Almighty)
                 return;
@@ -1748,7 +1759,7 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation($"OnMessage: {item.MsgType} From: {item.From.Shorten()} Hash: {(item as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
             if (item is ChatMsg chatMsg)
             {
-                await OnRecvChatMsg(chatMsg);
+                await OnRecvChatMsgAsync(chatMsg);
                 return;
             }
 
@@ -1787,7 +1798,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task OnRecvChatMsg(ChatMsg chat)
+        private async Task OnRecvChatMsgAsync(ChatMsg chat)
         {
             switch (chat.MsgType)
             {
@@ -1807,7 +1818,7 @@ namespace Lyra.Core.Decentralize
         }
 
         private readonly Mutex _locker = new Mutex(false);
-        public void RefreshAllNodesVotes()
+        public async Task RefreshAllNodesVotesAsync()
         {
             try
             {

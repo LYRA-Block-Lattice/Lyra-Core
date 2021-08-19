@@ -175,7 +175,7 @@ namespace Lyra.Client.CLI
 
                 while (!options.cancellation.IsCancellationRequested && cmdInput != CommandProcessor.COMMAND_STOP)
                 {
-                    var result = await command.Execute(wallet, cmdInput, options.cancellation.Token);
+                    var result = await command.ExecuteAsync(wallet, cmdInput, options.cancellation.Token);
                     Console.Write(string.Format("\n{0}> ", wallet.AccountName));
                     //Console.Write
                     cmdInput = Console.ReadLine();

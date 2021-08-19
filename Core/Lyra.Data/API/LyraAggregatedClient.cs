@@ -502,18 +502,12 @@ namespace Lyra.Data.API
 
         public List<Voter> GetVoters(VoteQueryModel model)
         {
-            List<Voter> result = null;
-            var t = Task.Run(async () => { result = await SeedClient.GetVotersAsync(model); });
-            Task.WaitAll(t);
-            return result;
+            return SeedClient.GetVoters(model);
         }
 
         public List<Vote> FindVotes(VoteQueryModel model)
         {
-            List<Vote> result = null;
-            var t = Task.Run(async () => { result = await SeedClient.FindVotesAsync(model); });
-            Task.WaitAll(t);
-            return result;
+            return SeedClient.FindVotes(model);
         }
 
         public FeeStats GetFeeStats()

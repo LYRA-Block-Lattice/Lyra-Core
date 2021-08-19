@@ -564,12 +564,12 @@ namespace Lyra.Core.API
             return await Get<FeeStats>("GetFeeStats", null);
         }
 
-        List<Voter> INodeAPI.GetVoters(VoteQueryModel model)
+        public List<Voter> GetVoters(VoteQueryModel model)
         {
             throw new NotImplementedException();
         }
 
-        List<Vote> INodeAPI.FindVotes(VoteQueryModel model)
+        public List<Vote> FindVotes(VoteQueryModel model)
         {
             throw new NotImplementedException();
         }

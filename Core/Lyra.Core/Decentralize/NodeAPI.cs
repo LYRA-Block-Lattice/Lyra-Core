@@ -115,7 +115,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var block = await NodeService.Dag.Storage.GetServiceGenesisBlock();
+                var block = await NodeService.Dag.Storage.GetServiceGenesisBlockAsync();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -145,7 +145,7 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                var block = await NodeService.Dag.Storage.GetLyraTokenGenesisBlock();
+                var block = await NodeService.Dag.Storage.GetLyraTokenGenesisBlockAsync();
                 if (block != null)
                 {
                     result.BlockData = Json(block);
@@ -648,7 +648,7 @@ namespace Lyra.Core.Decentralize
             var result = new TransactionsAPIResult();
             try
             {
-                var blocks = await NodeService.Dag.Storage.SearchTransactions(accountId, new DateTime(startTimeTicks, DateTimeKind.Utc), new DateTime(endTimeTicks, DateTimeKind.Utc), count);
+                var blocks = await NodeService.Dag.Storage.SearchTransactionsAsync(accountId, new DateTime(startTimeTicks, DateTimeKind.Utc), new DateTime(endTimeTicks, DateTimeKind.Utc), count);
                 if (blocks != null)
                 {
                     result.Transactions = blocks;

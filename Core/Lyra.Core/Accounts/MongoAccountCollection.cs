@@ -367,6 +367,27 @@ namespace Lyra.Core.Accounts
             }
         }
 
+        private IEnumerable<String> FindAllImportedAccountID()
+        {
+            var p1 = new BsonArray
+            {
+                BlockTypes.ImportAccount,
+                BlockTypes.OpenAccountWithImport
+            };
+
+            var builder = Builders<ImportAccountBlock>.Filter;
+            var filterDefinition = builder.In("BlockType", p1);
+
+            var result = _blocks.OfType<ImportAccountBlock>()
+                .Aggregate()
+                .Match(filterDefinition)
+                .Project(x => new { x.ImportedAccountId })
+                .ToEnumerable()
+                .Select(a => a.ImportedAccountId);
+
+            return result;
+        }
+
         public async Task<bool> WasAccountImportedAsync(string ImportedAccountId)
         {
             var p1 = new BsonArray
@@ -611,7 +632,7 @@ namespace Lyra.Core.Accounts
             return await result.FirstOrDefaultAsync();
         }
 
-        private async Task<ReceiveTransferBlock> FindLastRecvBlock(string AccountId)
+        private async Task<ReceiveTransferBlock> FindLastRecvBlockAsync(string AccountId)
         {
             var options = new FindOptions<Block, Block>
             {
@@ -1095,7 +1116,7 @@ namespace Lyra.Core.Accounts
         //    return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
         //}
 
-        async Task<ServiceBlock> IAccountCollectionAsync.GetServiceGenesisBlock()
+        async Task<ServiceBlock> IAccountCollectionAsync.GetServiceGenesisBlockAsync()
         {
             var options = new FindOptions<Block, Block>
             {
@@ -1109,7 +1130,7 @@ namespace Lyra.Core.Accounts
             return await finds.FirstOrDefaultAsync() as ServiceBlock;
         }
 
-        async Task<LyraTokenGenesisBlock> IAccountCollectionAsync.GetLyraTokenGenesisBlock()
+        async Task<LyraTokenGenesisBlock> IAccountCollectionAsync.GetLyraTokenGenesisBlockAsync()
         {
             var options = new FindOptions<Block, Block>
             {
@@ -1124,7 +1145,7 @@ namespace Lyra.Core.Accounts
         }
 
         // >= startTime <= endTime, count max 1000
-        public async Task<List<TransactionDescription>> SearchTransactions(string accountId, DateTime startTime, DateTime endTime, int count)
+        public async Task<List<TransactionDescription>> SearchTransactionsAsync(string accountId, DateTime startTime, DateTime endTime, int count)
         {
             var options = new FindOptions<TransactionBlock, TransactionBlock>
             {
@@ -1268,49 +1289,59 @@ namespace Lyra.Core.Accounts
 
         public List<Voter> GetVoters(List<string> posAccountIds, DateTime endTime)
         {
-            var builder = Builders<TransactionBlock>.Filter;
-            var projection = Builders<TransactionBlock>.Projection;
+            var importedAccounts = FindAllImportedAccountID();
 
-            var txFilter = builder.And(builder.Lt("TimeStamp", endTime));
+            // find last one tx block
+            var perAtrVotes = _blocks.OfType<TransactionBlock>()//atrVotes
+                .AsQueryable()
 
-            var atrVotes = _blocks.OfType<TransactionBlock>()
-                .Aggregate()
-                .Match(txFilter)
-                .Project(projection.Include(a => a.Balances)
-                    .Include(a => a.AccountID)
-                    .Include(a => a.VoteFor)
-                    .Include(a => a.Height)
-                    .Exclude("_id"))
-                .ToList();
-
-            var perAtrVotes = atrVotes
-                .Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
+                //.Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
                 .OrderByDescending(a => a.Height)
                 .GroupBy(a => a.AccountID)      // this time select the latest block of account
                 .Select(g => new Voter
                 {
                     AccountId = g.Key,
-                    Balance = g.First().Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] : 0,
+                    //Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE],
+                    Balance2 = g.First().Balances,//.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] : 0,
                     VoteFor = g.First().VoteFor
-                });
-                
-            var votersForSb = perAtrVotes
-                .Where(a => !string.IsNullOrEmpty(a.VoteFor) && posAccountIds.Contains(a.VoteFor))
+                })
+                .Where(x => posAccountIds.Contains(x.VoteFor))
+                .Where(x => !importedAccounts.Contains(x.AccountId))
+
                 .ToList();
 
-            return votersForSb;
+            return perAtrVotes;
         }
 
         public List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime)
         {
-            var voters = GetVoters(posAccountIds, endTime);
+            var importedAccounts = FindAllImportedAccountID();
 
-            var votes = voters
+            // find last one tx block
+            var perAtrVotes = _blocks.OfType<TransactionBlock>()//atrVotes
+                .AsQueryable()
+
+                //.Select(a => BsonSerializer.Deserialize<VoteInfo>(a))
+                .OrderByDescending(a => a.Height)
+                .GroupBy(a => a.AccountID)      // this time select the latest block of account
+                .Select(g => new Voter
+                {
+                    AccountId = g.Key,
+                    //Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE],
+                    Balance2 = g.First().Balances,//.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] : 0,
+                    VoteFor = g.First().VoteFor
+                })
+                .Where(x => posAccountIds.Contains(x.VoteFor))
+                .Where(x => !importedAccounts.Contains(x.AccountId))
+                .AsEnumerable()
                 .GroupBy(a => a.VoteFor)        // this time aggregate the total votes
-                .Select(g => new Vote { AccountId = g.Key, Amount = g.Sum(a => a.Balance) / LyraGlobal.TOKENSTORAGERITO })
+                .Select(g => new Vote { AccountId = g.Key, Amount = g.Sum(a => a.LYR) / LyraGlobal.TOKENSTORAGERITO })
+                //.Select(g => new Vote { AccountId = g.Key, Amount = g.Sum(a => a.Balance) / LyraGlobal.TOKENSTORAGERITO })
+                .OrderByDescending(a => a.Amount)
                 .ToList();
 
-            return votes;
+
+            return perAtrVotes;
         }
 
         public FeeStats GetFeeStats()

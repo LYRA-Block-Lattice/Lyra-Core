@@ -72,7 +72,7 @@ namespace Lyra.Client.CLI
 
         }
 
-        public async Task<int> Execute(Wallet wallet, string command, CancellationToken cancel)
+        public async Task<int> ExecuteAsync(Wallet wallet, string command, CancellationToken cancel)
         {
             _wallet = wallet;
             try
@@ -205,7 +205,7 @@ namespace Lyra.Client.CLI
                     //    ProcessTradeOrder();
                    //     break;
                     case COMMAND_REDEEM_REWARDS:
-                        ProcessRedeemRewardsTradeOrder();
+                        await ProcessRedeemRewardsTradeOrderAsync();
                         break;
                     case COMMAND_IMPORT_ACCOUNT:
                         Console.WriteLine("Please enter private key of the account to import: ");
@@ -578,7 +578,7 @@ namespace Lyra.Client.CLI
                     //Console.Write(string.Format("{0}> ", _wallet.AccountName));
                 }
          */
-        void ProcessRedeemRewardsTradeOrder()
+        async Task ProcessRedeemRewardsTradeOrderAsync()
         {
             decimal discount_amount;
             string reward_token_code;
@@ -590,7 +590,7 @@ namespace Lyra.Client.CLI
             string amountstr = Console.ReadLine();
             decimal.TryParse(amountstr, out discount_amount);
 
-            var result = _wallet.RedeemRewards(reward_token_code, discount_amount).Result;
+            var result = await _wallet.RedeemRewards(reward_token_code, discount_amount);
 
             if (result.ResultCode == APIResultCodes.Success)
             {
@@ -733,7 +733,7 @@ namespace Lyra.Client.CLI
             //string ticker = domainname + "." + tokenname;
 
 
-            var result = _wallet.CreateToken(tokenname, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, ContractTypes.Custom, tags).Result;
+            var result = await _wallet.CreateToken(tokenname, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, ContractTypes.Custom, tags);
 
             if (result.ResultCode != APIResultCodes.Success)
             {
@@ -795,7 +795,7 @@ namespace Lyra.Client.CLI
                 tags.Add(tag_key, tag_value);
             }
 
-            var result = _wallet.CreateNFT(tokenname, domainname, desc, Convert.ToDecimal(supply), isFinalSupply, owner, address, icon, image, tags).Result;
+            var result = await _wallet.CreateNFT(tokenname, domainname, desc, Convert.ToDecimal(supply), isFinalSupply, owner, address, icon, image, tags);
 
             if (result.ResultCode != APIResultCodes.Success)
             {
