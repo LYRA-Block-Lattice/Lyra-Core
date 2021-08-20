@@ -50,7 +50,7 @@ namespace UnitTests
             var aggClient = new LyraAggregatedClient(networkId, false);
             await aggClient.InitAsync();
 
-            var svcBlock1 = client.GetFeeStats();
+            var svcBlock1 = await client.GetFeeStatsAsync();
             var svcBlock2 = aggClient.GetFeeStats();
 
             Assert.AreEqual(svcBlock1, svcBlock2);

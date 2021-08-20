@@ -533,10 +533,10 @@ namespace Lyra.Core.API
                 throw new Exception("Web Api Failed.");
         }
 
-        //public FeeStats GetFeeStats()
-        //{
-        //    return await GetAsync<FeeStats>("GetFeeStats", null);
-        //}
+        public async Task<FeeStats> GetFeeStatsAsync()
+        {
+            return await GetAsync<FeeStats>("GetFeeStats", null);
+        }
 
         public List<Voter> GetVoters(VoteQueryModel model)
         {

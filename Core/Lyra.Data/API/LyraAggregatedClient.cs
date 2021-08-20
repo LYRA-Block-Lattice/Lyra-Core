@@ -512,7 +512,10 @@ namespace Lyra.Data.API
 
         public FeeStats GetFeeStats()
         {
-            return SeedClient.GetFeeStats();
+            FeeStats result = null;
+            var t = Task.Run(async () => { result = await SeedClient.GetFeeStatsAsync(); });
+            Task.WaitAll(t);
+            return result;
         }
 
         public async Task<PoolInfoAPIResult> GetPoolAsync(string token0, string token1)
