@@ -215,7 +215,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var signedMsg = relayMsg.signedMessage;
 
-                    //_log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
+                    _log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
 
                     if (signedMsg.TimeStamp < DateTime.UtcNow.AddSeconds(3) &&
                         signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-18) &&
@@ -228,7 +228,7 @@ namespace Lyra.Core.Decentralize
                     }
                     else
                     {
-                        //_log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
+                        _log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
                     }
                 }
                 catch (Exception ex)
