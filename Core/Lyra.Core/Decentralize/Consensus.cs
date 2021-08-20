@@ -159,11 +159,6 @@ namespace Lyra.Core.Decentralize
                     IsSuccess = false;
                     break;
                 }
-                finally
-                {
-                    _log.LogInformation("In finally syncdb");
-                    await Task.Delay(2000);
-                }
             }
 
             return IsSuccess;
