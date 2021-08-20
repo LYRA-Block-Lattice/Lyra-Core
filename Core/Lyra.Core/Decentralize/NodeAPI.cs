@@ -72,7 +72,7 @@ namespace Lyra.Core.Decentralize
             return Signatures.VerifyAccountSignature(lastSvcBlock.Hash, accountId, signature);
         }
 
-        public async Task<GetSyncStateAPIResult> GetSyncState()
+        public async Task<GetSyncStateAPIResult> GetSyncStateAsync()
         {
             if (NodeService.Dag == null || NodeService.Dag.Storage == null || !NodeService.Dag.FullStarted)
             {
@@ -95,7 +95,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
+        public Task<GetVersionAPIResult> GetVersionAsync(int apiVersion, string appName, string appVersion)
         {
             var result = new GetVersionAPIResult()
             {
@@ -135,11 +135,11 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        public async Task<BlockAPIResult> GetServiceGenesisBlockAsync()
         {
             return await InternalGetServiceGenesisBlockAsync();
         }
-        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlockAsync()
         {
             var result = new BlockAPIResult();
 
@@ -165,7 +165,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<AccountHeightAPIResult> GetSyncHeight()
+        public async Task<AccountHeightAPIResult> GetSyncHeightAsync()
         {
             var result = new AccountHeightAPIResult();
             try
@@ -192,7 +192,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string Signature, string keyword)
         {
             var result = new GetListStringAPIResult();
             if(!await VerifyClientAsync(AccountId, Signature))
@@ -225,7 +225,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
+        public async Task<AccountHeightAPIResult> GetAccountHeightAsync(string AccountId)
         {
             var result = new AccountHeightAPIResult();
 
@@ -251,7 +251,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetLastBlock(string AccountId)
+        public async Task<BlockAPIResult> GetLastBlockAsync(string AccountId)
         {
             var result = new BlockAPIResult();
 
@@ -277,7 +277,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
+        public async Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, long Index)
         {
             var result = new BlockAPIResult();
 
@@ -308,7 +308,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
+        public async Task<BlockAPIResult> GetServiceBlockByIndexAsync(string blockType, long Index)
         {
             var result = new BlockAPIResult();
 
@@ -346,7 +346,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
         {
             var result = new BlockAPIResult();
 
@@ -382,7 +382,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetBlock(string Hash)
+        public async Task<BlockAPIResult> GetBlockAsync(string Hash)
         {
             var result = new BlockAPIResult();
 
@@ -408,7 +408,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetBlockBySourceHash(string Hash)
+        public async Task<BlockAPIResult> GetBlockBySourceHashAsync(string Hash)
         {
             var result = new BlockAPIResult();
 
@@ -434,7 +434,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature)
         {
             var result = new NonFungibleListAPIResult();
             if (!await VerifyClientAsync(AccountId, Signature))
@@ -467,7 +467,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature)
         {
             var result = new BlockAPIResult();
             //if (!await VerifyClientAsync(AccountId, Signature))
@@ -501,7 +501,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetLastServiceBlock()
+        public async Task<BlockAPIResult> GetLastServiceBlockAsync()
         {
             var result = new BlockAPIResult();
 
@@ -530,7 +530,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetLastConsolidationBlock()
+        public async Task<BlockAPIResult> GetLastConsolidationBlockAsync()
         {
             var result = new BlockAPIResult();
 
@@ -556,7 +556,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
+        public async Task<MultiBlockAPIResult> GetBlocksByConsolidationAsync(string AccountId, string Signature, string consolidationHash)
         {
             var result = new MultiBlockAPIResult();
             //if (!await VerifyClientAsync(AccountId, Signature))
@@ -595,12 +595,12 @@ namespace Lyra.Core.Decentralize
             }            
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             var result = new MultiBlockAPIResult();
             try
             {
-                var blocks = await NodeService.Dag.Storage.GetBlocksByTimeRange(startTime, endTime);
+                var blocks = await NodeService.Dag.Storage.GetBlocksByTimeRangeAsync(startTime, endTime);
                 if (blocks != null)
                 {
                     result.SetBlocks(blocks.ToArray());
@@ -619,12 +619,12 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             var result = new GetListStringAPIResult();
             try
             {
-                var blocks = await NodeService.Dag.Storage.GetBlockHashesByTimeRange(startTime, endTime);
+                var blocks = await NodeService.Dag.Storage.GetBlockHashesByTimeRangeAsync(startTime, endTime);
                 if (blocks != null)
                 {
                     result.Entities = blocks.ToList();
@@ -643,7 +643,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
+        public async Task<TransactionsAPIResult> SearchTransactionsAsync(string accountId, long startTimeTicks, long endTimeTicks, int count)
         {
             var result = new TransactionsAPIResult();
             try
@@ -667,12 +667,12 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRangeAsync(long startTimeTicks, long endTimeTicks)
         {
             var result = new MultiBlockAPIResult();
             try
             {
-                var blocks = await NodeService.Dag.Storage.GetBlocksByTimeRange(new DateTime(startTimeTicks, DateTimeKind.Utc), new DateTime(endTimeTicks, DateTimeKind.Utc));
+                var blocks = await NodeService.Dag.Storage.GetBlocksByTimeRangeAsync(new DateTime(startTimeTicks, DateTimeKind.Utc), new DateTime(endTimeTicks, DateTimeKind.Utc));
                 if (blocks != null)
                 {
                     result.SetBlocks(blocks.ToArray());
@@ -691,12 +691,12 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRangeAsync(long startTimeTicks, long endTimeTicks)
         {
             var result = new GetListStringAPIResult();
             try
             {
-                var blocks = await NodeService.Dag.Storage.GetBlockHashesByTimeRange(new DateTime(startTimeTicks, DateTimeKind.Utc), new DateTime(endTimeTicks, DateTimeKind.Utc));
+                var blocks = await NodeService.Dag.Storage.GetBlockHashesByTimeRangeAsync(new DateTime(startTimeTicks, DateTimeKind.Utc), new DateTime(endTimeTicks, DateTimeKind.Utc));
                 if (blocks != null)
                 {
                     result.Entities = blocks.ToList();
@@ -715,7 +715,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string Signature, long startHeight, int count)
         {
             var result = new MultiBlockAPIResult();
             //if (!await VerifyClientAsync(AccountId, Signature))
@@ -774,7 +774,7 @@ namespace Lyra.Core.Decentralize
         //    return result;
         //}
 
-        public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult> LookForNewTransferAsync(string AccountId, string Signature)
         {
             NewTransferAPIResult transfer_info = new NewTransferAPIResult();
             //if (!await VerifyClientAsync(AccountId, Signature))
@@ -816,7 +816,7 @@ namespace Lyra.Core.Decentralize
             return transfer_info;
         }
 
-        public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature)
         {
             NewTransferAPIResult2 transfer_info = new NewTransferAPIResult2();
             //if (!await VerifyClientAsync(AccountId, Signature))
@@ -858,7 +858,7 @@ namespace Lyra.Core.Decentralize
             return transfer_info;
         }
 
-        public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
+        public async Task<NewFeesAPIResult> LookForNewFeesAsync(string AccountId, string Signature)
         {
             NewFeesAPIResult fbs = new NewFeesAPIResult();
             if (!await VerifyClientAsync(AccountId, Signature))
@@ -909,7 +909,7 @@ namespace Lyra.Core.Decentralize
 
         #region Reward trade methods
 
-        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrdersAsync(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
             var result = new ActiveTradeOrdersAPIResult();
 
@@ -924,7 +924,7 @@ namespace Lyra.Core.Decentralize
                     return result;
                 }
 
-                var list = await NodeService.Dag.TradeEngine.GetActiveTradeOrders(SellToken, BuyToken, OrderType);
+                var list = await NodeService.Dag.TradeEngine.GetActiveTradeOrdersAsync(SellToken, BuyToken, OrderType);
                 if (list != null && list.Count > 0)
                 {
                     result.SetList(list);
@@ -943,7 +943,7 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
+        public async Task<TradeAPIResult> LookForNewTradeAsync(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
             var result = new TradeAPIResult();
             try
@@ -977,7 +977,7 @@ namespace Lyra.Core.Decentralize
         #endregion
 
         #region pool
-        public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
+        public async Task<PoolInfoAPIResult> GetPoolAsync(string token0, string token1)
         {
             var result = new PoolInfoAPIResult();
             try

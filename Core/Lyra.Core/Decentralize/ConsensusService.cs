@@ -41,13 +41,12 @@ namespace Lyra.Core.Decentralize
         public class AskForState { }
         public class AskForStats { }
         public class AskForDbStats { }
-        public class AskForConsensusState { public TransactionBlock block { get; set; } }
+        public class AskForConsensusState { public TransactionBlock ReqBlock { get; set; } }
         public class QueryBlockchainStatus { }
         public class ReqCreatePoolFactory { }
 
         public class Authorized { public bool IsSuccess { get; set; } }
         private readonly IActorRef _localNode;
-        private readonly IActorRef _blockchain;
 
         private readonly StateMachine<BlockChainState, BlockChainTrigger> _stateMachine;
         private readonly StateMachine<BlockChainState, BlockChainTrigger>.TriggerWithParameters<long> _engageTriggerStart;
@@ -56,13 +55,11 @@ namespace Lyra.Core.Decentralize
 
         readonly ILogger _log;
         readonly IHostEnv _hostEnv;
-
-        ConcurrentDictionary<string, DateTime> _criticalMsgCache;
-
-        ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
+        readonly ConcurrentDictionary<string, DateTime> _criticalMsgCache;
+        readonly ConcurrentDictionary<string, ConsensusWorker> _activeConsensus;
         List<Vote> _lastVotes;
-        private BillBoard _board;
-        private List<TransStats> _stats;
+        private readonly BillBoard _board;
+        private readonly List<TransStats> _stats;
         private System.Net.IPAddress _myIpAddress;
 
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
@@ -70,23 +67,23 @@ namespace Lyra.Core.Decentralize
 
         public BillBoard Board { get => _board; }
         //private ConcurrentDictionary<string, DateTime> _verifiedIP;   // ip verify by access public api port. valid for 24 hours.
-        private ConcurrentDictionary<string, DateTime> _failedLeaders; // when a leader fail, add it. expire after 1 hour.
+        private readonly ConcurrentDictionary<string, DateTime> _failedLeaders; // when a leader fail, add it. expire after 1 hour.
         public List<TransStats> Stats { get => _stats; }
 
-        private ViewChangeHandler _viewChangeHandler;
+        private readonly ViewChangeHandler _viewChangeHandler;
 
         // how many suscess consensus did since started.
         private int _successBlockCount;
 
         // authorizer snapshot
-        private DagSystem _sys;
+        private readonly DagSystem _sys;
         public DagSystem GetDagSystem() => _sys;
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
             _hostEnv = hostEnv;
             _localNode = localNode;
-            _blockchain = blockchain;
+            //_blockchain = blockchain;
             _log = new SimpleLogger("ConsensusService").Logger;
             _successBlockCount = 0;
 
@@ -185,8 +182,8 @@ namespace Lyra.Core.Decentralize
                     AuthorizingMsg msg = new AuthorizingMsg
                     {
                         From = _sys.PosWallet.AccountId,
-                        Block = askReq.block,
-                        BlockHash = askReq.block.Hash,
+                        Block = askReq.ReqBlock,
+                        BlockHash = askReq.ReqBlock.Hash,
                         MsgType = ChatMessageType.AuthorizerPrePrepare
                     };
 
@@ -381,18 +378,18 @@ namespace Lyra.Core.Decentralize
                             if ((result == null || result == ConsensusResult.Uncertain) && CurrentState == BlockChainState.Almighty)
                             {
                                 // only if the last view is old enough
-                                _sys.Storage.GetLastServiceBlockAsync().ContinueWith(t =>
-                                {
-                                    var block = t.Result;
-                                    if (block?.TimeStamp < DateTime.UtcNow.AddHours(-1))
-                                    {
-                                        _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
-                                        if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
-                                        {
-                                            _viewChangeHandler?.BeginChangeView(false, "Consensus failed timeout uncertain.");
-                                        }
-                                    }
-                                });
+                                _ = _sys.Storage.GetLastServiceBlockAsync().ContinueWith(t =>
+                                  {
+                                      var block = t.Result;
+                                      if (block?.TimeStamp < DateTime.UtcNow.AddHours(-1))
+                                      {
+                                          _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
+                                          if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
+                                          {
+                                              _viewChangeHandler?.BeginChangeView(false, "Consensus failed timeout uncertain.");
+                                          }
+                                      }
+                                  });
                             }
 
                             //if (result == ConsensusResult.Yea)
@@ -560,7 +557,7 @@ namespace Lyra.Core.Decentralize
                                     }
                                     else
                                     {
-                                        var allBlocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(nextCons.TimeStamp, lastCons.TimeStamp);
+                                        var allBlocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRangeAsync(nextCons.TimeStamp, lastCons.TimeStamp);
                                         var extras = allBlocksInTimeRange.Where(a => !lastCons.blockHashes.Contains(a));
                                         if (extras.Any())
                                         {
@@ -612,7 +609,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 try
                                 {
-                                    var result = await client.GetLastServiceBlock();
+                                    var result = await client.GetLastServiceBlockAsync();
                                     if (result.ResultCode == APIResultCodes.Success)
                                     {
                                         lsb = result.GetBlock() as ServiceBlock;
@@ -709,7 +706,7 @@ namespace Lyra.Core.Decentralize
                             // three seeds are enough for database sync.
                             _log.LogInformation($"Querying Lyra Network Status... ");
 
-                            var networkStatus = await client.GetSyncState();
+                            var networkStatus = await client.GetSyncStateAsync();
 
                             if (networkStatus.ResultCode == APIResultCodes.APIRouteFailed)
                             {
@@ -884,7 +881,7 @@ namespace Lyra.Core.Decentralize
         public void UpdateVoters()
         {
             _log.LogInformation("UpdateVoters begin...");
-            RefreshAllNodesVotesAsync();
+            RefreshAllNodesVotes();
             var list = LookforVoters();
             if (list.Count >= 4)        // simple check. but real condition is complex.
                 Board.AllVoters = list;
@@ -1023,11 +1020,13 @@ namespace Lyra.Core.Decentralize
         private async Task<ActiveNode> DeclareConsensusNodeAsync()
         {
             // declare to the network
-            PosNode me = new PosNode(_sys.PosWallet.AccountId);
-            me.NodeVersion = LyraGlobal.NODE_VERSION.ToString();
-            me.ThumbPrint = _hostEnv.GetThumbPrint();
             _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync();
-            me.IPAddress = $"{_myIpAddress}";
+            PosNode me = new PosNode(_sys.PosWallet.AccountId)
+            {
+                NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
+                ThumbPrint = _hostEnv.GetThumbPrint(),
+                IPAddress = $"{_myIpAddress}"
+            };
 
             _log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");
 
@@ -1037,8 +1036,10 @@ namespace Lyra.Core.Decentralize
             me.AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
                     signAgainst, _sys.PosWallet.AccountId);
 
-            var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp);
-            msg.From = _sys.PosWallet.AccountId;
+            var msg = new ChatMsg(JsonConvert.SerializeObject(me), ChatMessageType.NodeUp)
+            {
+                From = _sys.PosWallet.AccountId
+            };
             await Send2P2pNetworkAsync(msg);
 
             // add self to active nodes list
@@ -1100,8 +1101,7 @@ namespace Lyra.Core.Decentralize
 
             if (!string.IsNullOrWhiteSpace(ip))
             {
-                System.Net.IPAddress addr;
-                if (System.Net.IPAddress.TryParse(ip, out addr))
+                if (System.Net.IPAddress.TryParse(ip, out System.Net.IPAddress addr))
                 {
                     // one IP, one account id
                     var safeIp = addr.ToString();
@@ -1225,7 +1225,7 @@ namespace Lyra.Core.Decentralize
                         {
                             // consolidate time from lastcons to now - 10s
                             var timeStamp = DateTime.UtcNow.AddSeconds(-10);
-                            var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
+                            var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
 
                             // if 1 it must be previous consolidation block.
                             if ((unConsList.Count() >= 100 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(1))
@@ -1355,7 +1355,7 @@ namespace Lyra.Core.Decentralize
             }
             catch (Exception ex)
             {
-                _log.LogWarning($"OnNodeUpAsync: {ex.ToString()}");
+                _log.LogWarning($"OnNodeUpAsync: {ex}");
             }
         }
 
@@ -1401,7 +1401,7 @@ namespace Lyra.Core.Decentralize
                     {
                         // consolidate time from lastcons to now - 18s
                         var timeStamp = DateTime.UtcNow.AddSeconds(-18);
-                        var unConsList = await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, timeStamp);
+                        var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
 
                         // if 1 it must be previous consolidation block.
                         if (unConsList.Count() >= 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
@@ -1576,7 +1576,7 @@ namespace Lyra.Core.Decentralize
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
             if (worker != null)
             {
-                await worker.ProcessState(state);
+                await worker.ProcessStateAsync(state);
             }
             await Send2P2pNetworkAsync(state.InputMsg);
         }
@@ -1768,7 +1768,7 @@ namespace Lyra.Core.Decentralize
                 // need to listen to any view change event.
                 if (/*_viewChangeHandler.IsViewChanging && */(CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty) && Board.ActiveNodes.Any(a => a.AccountID == vcm.From))
                 {
-                    await _viewChangeHandler.ProcessMessage(vcm);
+                    await _viewChangeHandler.ProcessMessageAsync(vcm);
                 }
                 return;
             }
@@ -1791,7 +1791,7 @@ namespace Lyra.Core.Decentralize
                     var worker = await GetWorkerAsync(cm.BlockHash, true);
                     if (worker != null)
                     {
-                        await worker.ProcessMessage(cm);
+                        await worker.ProcessMessageAsync(cm);
                     }
                     return;
                 }
@@ -1810,15 +1810,17 @@ namespace Lyra.Core.Decentralize
                     break;
                 case ChatMessageType.NodeStatusInquiry:
                     var status = await GetNodeStatusAsync();
-                    var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply);
-                    resp.From = _sys.PosWallet.AccountId;
+                    var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply)
+                    {
+                        From = _sys.PosWallet.AccountId
+                    };
                     await Send2P2pNetworkAsync(resp);
                     break;
             }
         }
 
         private readonly Mutex _locker = new Mutex(false);
-        public async Task RefreshAllNodesVotesAsync()
+        public void RefreshAllNodesVotes()
         {
             try
             {

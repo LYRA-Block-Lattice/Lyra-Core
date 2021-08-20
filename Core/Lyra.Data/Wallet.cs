@@ -37,7 +37,7 @@ namespace Lyra.Core.Accounts
         // 1) move rpcclient to CLI
         // 2) create interface and reference rpcclient by interface here, use the same interface in server and REST API client (Shopify app)  
         //private RPCClient _rpcClient = null;
-        private IAccountDatabase _store;
+        private readonly IAccountDatabase _store;
         private ILyraAPI _rpcClient = null;
 
         private long SyncHeight = -1;
@@ -83,16 +83,16 @@ namespace Lyra.Core.Accounts
 
             Console.WriteLine(s);
         }
-        private void PrintCon(string s1, string s2 = null)
-        {
-            if (NoConsole)
-                return;
+        //private void PrintCon(string s1, string s2 = null)
+        //{
+        //    if (NoConsole)
+        //        return;
 
-            if (s2 == null)
-                Console.Write(s1);
-            else
-                Console.Write(s1, s2);
-        }
+        //    if (s2 == null)
+        //        Console.Write(s1);
+        //    else
+        //        Console.Write(s1, s2);
+        //}
 
         public static string GetFullFolderName(string NetworkId, string FolderName)
         {
@@ -108,7 +108,7 @@ namespace Lyra.Core.Accounts
 
         public static void Create(IAccountDatabase store, string name, string password, string networkId)
         {
-            (var privateKey, var publicKey) = Signatures.GenerateWallet();
+            (var privateKey, _) = Signatures.GenerateWallet();
             Create(store, name, password, networkId, privateKey);
         }
 
@@ -131,11 +131,11 @@ namespace Lyra.Core.Accounts
             return wallet;
         }
         // one-time "manual" sync up with the node 
-        public async Task<APIResultCodes> Sync(ILyraAPI RPCClient)
+        public async Task<APIResultCodes> SyncAsync(ILyraAPI RPCClient)
         {
-            return await Sync(RPCClient, CancellationToken.None);
+            return await SyncAsync(RPCClient, CancellationToken.None);
         }
-        public async Task<APIResultCodes> Sync(ILyraAPI RPCClient, CancellationToken cancel)
+        public async Task<APIResultCodes> SyncAsync(ILyraAPI RPCClient, CancellationToken cancel)
         {
             if (RPCClient != null)
                 _rpcClient = RPCClient;
@@ -145,17 +145,17 @@ namespace Lyra.Core.Accounts
 
             if (_rpcClient != null)
             {
-                var result = await SyncServiceChain();
+                var result = await SyncServiceChainAsync();
                 if (result != APIResultCodes.Success)
                     return result;
 
-                var blockResult = await _rpcClient.GetLastBlock(AccountId);
+                var blockResult = await _rpcClient.GetLastBlockAsync(AccountId);
                 if (blockResult.ResultCode == APIResultCodes.Success)
                 {
                     _lastTransactionBlock = blockResult.GetBlock() as TransactionBlock;
                 }
 
-                result = await SyncIncomingTransfers();
+                result = await SyncIncomingTransfersAsync();
 
                 return result;
             }
@@ -163,7 +163,7 @@ namespace Lyra.Core.Accounts
                 return APIResultCodes.NoRPCServerConnection;
         }
 
-        public string SignAPICallAsync()
+        public string SignAPICall()
         {
             return Signatures.GetSignature(PrivateKey, SyncHash, AccountId);
         }
@@ -175,7 +175,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<TokenGenesisBlock> GetTokenGenesisBlockAsync(string TokenCode)
         {
-            var res = await _rpcClient.GetTokenGenesisBlock(AccountId, TokenCode, SignAPICallAsync());
+            var res = await _rpcClient.GetTokenGenesisBlockAsync(AccountId, TokenCode, SignAPICall());
             if (res?.ResultCode == APIResultCodes.Success)
                 return res.GetBlock() as TokenGenesisBlock;
             else
@@ -191,25 +191,25 @@ namespace Lyra.Core.Accounts
                 return 0;
         }
 
-        public async Task<List<string>> GetTokenNames(string keyword)
+        public async Task<List<string>> GetTokenNamesAsync(string keyword)
         {
             if (_rpcClient == null)
                 return new List<string>();
 
-            var result = await _rpcClient.GetTokenNames(AccountId, SignAPICallAsync(), keyword);
+            var result = await _rpcClient.GetTokenNamesAsync(AccountId, SignAPICall(), keyword);
             if (result.ResultCode == APIResultCodes.Success)
                 return result.Entities;
             else
                 throw new Exception("Error get Token names: " + result.ResultCode.ToString());
         }
 
-        private async Task<APIResultCodes> SyncServiceChain()
+        private async Task<APIResultCodes> SyncServiceChainAsync()
         {
             try
             {
                 while (!_cancel.IsCancellationRequested)
                 {
-                    var result = await _rpcClient.GetSyncHeight();
+                    var result = await _rpcClient.GetSyncHeightAsync();
                     if (result.ResultCode != APIResultCodes.Success)
                         return result.ResultCode;
 
@@ -228,7 +228,7 @@ namespace Lyra.Core.Accounts
 
                 if (TransferFee == 0 || TokenGenerationFee == 0 || TradeFee == 0)
                 {
-                    var blockresult = await _rpcClient.GetLastServiceBlock();
+                    var blockresult = await _rpcClient.GetLastServiceBlockAsync();
 
                     if (blockresult.ResultCode != APIResultCodes.Success)
                         return blockresult.ResultCode;
@@ -246,11 +246,11 @@ namespace Lyra.Core.Accounts
             }
         }
 
-        private async Task<APIResultCodes> SyncIncomingTransfers()
+        private async Task<APIResultCodes> SyncIncomingTransfersAsync()
         {
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTransfer2(AccountId, SignAPICallAsync());
+                var lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, SignAPICall());
                 int max_counter = 0;
 
                 while (!_cancel.IsCancellationRequested && lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
@@ -259,11 +259,11 @@ namespace Lyra.Core.Accounts
 
                     PrintConLine($"Received new transaction, sending request for settlement...");
 
-                    var receive_result = await ReceiveTransfer(lookup_result);
+                    var receive_result = await ReceiveTransferAsync(lookup_result);
                     if (!receive_result.Successful())
                         return receive_result.ResultCode;
 
-                    lookup_result = await _rpcClient.LookForNewTransfer2(AccountId, SignAPICallAsync());
+                    lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, SignAPICall());
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -286,15 +286,15 @@ namespace Lyra.Core.Accounts
             }
         }
 
-        public async Task<APIResultCodes> SyncNodeFees()
+        public async Task<APIResultCodes> SyncNodeFeesAsync()
         {
             while (!_cancel.IsCancellationRequested)
             {
-                var fbsResult = await _rpcClient.LookForNewFees(AccountId, SignAPICallAsync());
+                var fbsResult = await _rpcClient.LookForNewFeesAsync(AccountId, SignAPICall());
                 if (fbsResult.ResultCode != APIResultCodes.Success || fbsResult.pendingFees == null)
                     return fbsResult.ResultCode;
 
-                var feesEndSbResult = await _rpcClient.GetServiceBlockByIndex("Service", fbsResult.pendingFees.ServiceBlockEndHeight);
+                var feesEndSbResult = await _rpcClient.GetServiceBlockByIndexAsync("Service", fbsResult.pendingFees.ServiceBlockEndHeight);
                 if (feesEndSbResult.ResultCode != APIResultCodes.Success)
                     return feesEndSbResult.ResultCode;
 
@@ -305,7 +305,7 @@ namespace Lyra.Core.Accounts
                 {
                     AccountID = AccountId,
                     VoteFor = VoteFor,
-                    ServiceHash = await getLastServiceBlockHashAsync(),
+                    ServiceHash = await GetLastServiceBlockHashAsync(),
                     SourceHash = feesEndSb.Hash,
                     ServiceBlockStartHeight = fbsResult.pendingFees.ServiceBlockStartHeight,
                     ServiceBlockEndHeight = fbsResult.pendingFees.ServiceBlockEndHeight,
@@ -332,7 +332,7 @@ namespace Lyra.Core.Accounts
 
                 //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
 
-                var result = await _rpcClient.ReceiveFee(receiveBlock);
+                var result = await _rpcClient.ReceiveFeeAsync(receiveBlock);
 
                 if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
                 {
@@ -363,11 +363,11 @@ namespace Lyra.Core.Accounts
 
         #region Reward Trade Processing
 
-        public async Task<TradeAPIResult> LookForNewTrade(string BuyTokenCode, string SellTokenCode)
+        public async Task<TradeAPIResult> LookForNewTradeAsync(string BuyTokenCode, string SellTokenCode)
         {
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, SignAPICallAsync());
+                var lookup_result = await _rpcClient.LookForNewTradeAsync(AccountId, BuyTokenCode, SellTokenCode, SignAPICall());
 
                 return lookup_result;
             }
@@ -378,9 +378,9 @@ namespace Lyra.Core.Accounts
             }
         }
 
-        public async Task<AuthorizationAPIResult> RedeemRewards(string reward_token_code, decimal discount_amount)
+        public async Task<AuthorizationAPIResult> RedeemRewardsAsync(string reward_token_code, decimal discount_amount)
         {
-            var trade_orders = await GetActiveTradeOrders("*", reward_token_code, TradeOrderListTypes.SellOnly);
+            var trade_orders = await GetActiveTradeOrdersAsync("*", reward_token_code, TradeOrderListTypes.SellOnly);
             if (trade_orders.ResultCode != APIResultCodes.Success)
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound, ResultMessage = "No matching order for redemption found." };
 
@@ -401,12 +401,12 @@ namespace Lyra.Core.Accounts
                 TradeOrderId = sell_order.Hash
             };
 
-            var redeem_result = await Trade(redeem_block);
+            var redeem_result = await TradeAsync(redeem_block);
             return redeem_result;
         }
 
 
-        public async Task<AuthorizationAPIResult> ExecuteSellOrder(TradeBlock trade, TradeOrderBlock order, NonFungibleToken nonfungible_token = null)
+        public async Task<AuthorizationAPIResult> ExecuteSellOrderAsync(TradeBlock trade, TradeOrderBlock order, NonFungibleToken nonfungible_token = null)
         {
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
@@ -418,7 +418,7 @@ namespace Lyra.Core.Accounts
 
             if (order == null)
             {
-                order = await GetBlockByHash(trade.TradeOrderId) as TradeOrderBlock;
+                order = await GetBlockByHashAsync(trade.TradeOrderId) as TradeOrderBlock;
                 if (order == null)
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TradeOrderNotFound };
             }
@@ -502,7 +502,7 @@ namespace Lyra.Core.Accounts
                 execute_block.NonFungibleToken = nonfungible_token;
             }
 
-            execute_block.ServiceHash = await getLastServiceBlockHashAsync();
+            execute_block.ServiceHash = await GetLastServiceBlockHashAsync();
 
             execute_block.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
@@ -510,7 +510,7 @@ namespace Lyra.Core.Accounts
             //if (!execute_block.ValidateTransaction(previousBlock))
             //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
 
-            var result = await _rpcClient.ExecuteTradeOrder(execute_block);
+            var result = await _rpcClient.ExecuteTradeOrderAsync(execute_block);
 
             if (result.ResultCode == APIResultCodes.Success)
             {
@@ -574,7 +574,7 @@ namespace Lyra.Core.Accounts
         // returns a list of all NFT instances owned by the account
         public async Task<List<NonFungibleToken>> GetNonFungibleTokensAsync()
         {
-            var res = await _rpcClient.GetNonFungibleTokens(AccountId, SignAPICallAsync());
+            var res = await _rpcClient.GetNonFungibleTokensAsync(AccountId, SignAPICall());
             if (res != null && res.Successful())
                 return res.GetList();
             else
@@ -604,7 +604,7 @@ namespace Lyra.Core.Accounts
                     var decryptor = new ECC_DHA_AES_Encryptor();
                     string decrypted_redemption_code = decryptor.Decrypt(PrivateKey, issuer_account_id, nft.SerialNumber, nft.RedemptionCode);
                     res += $"    Shopify Discount: {nft.TokenCode} \n";
-                    res += $"    Discount Amount: {nft.Denomination.ToString("C")} \n";
+                    res += $"    Discount Amount: {nft.Denomination:C} \n";
                     res += $"    Discount Code: {decrypted_redemption_code}  \n";
                 }
             }
@@ -652,18 +652,18 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<TransactionBlock> GetBlockByIndex(long Index)
+        public async Task<TransactionBlock> GetBlockByIndexAsync(long Index)
         {
-            var blockResult = await _rpcClient.GetBlockByIndex(AccountId, Index);
+            var blockResult = await _rpcClient.GetBlockByIndexAsync(AccountId, Index);
             if (blockResult.ResultCode == APIResultCodes.Success)
                 return blockResult.GetBlock() as TransactionBlock;
             else
                 return null;
         }
 
-        public async Task<TransactionBlock> GetBlockByHash(string Hash)
+        public async Task<TransactionBlock> GetBlockByHashAsync(string Hash)
         {
-            var blockResult = await _rpcClient.GetBlockByHash(AccountId, Hash, SignAPICallAsync());
+            var blockResult = await _rpcClient.GetBlockByHashAsync(AccountId, Hash, SignAPICall());
             if (blockResult.ResultCode == APIResultCodes.Success)
                 return blockResult.GetBlock() as TransactionBlock;
             else
@@ -691,7 +691,7 @@ namespace Lyra.Core.Accounts
         //}
 
 
-        public async Task<AuthorizationAPIResult> Send(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE, bool ToExchange = false)
+        public async Task<AuthorizationAPIResult> SendAsync(decimal Amount, string DestinationAccountId, string ticker = LyraGlobal.OFFICIALTICKERCODE)
         {
             // verify input
             AuthorizationAPIResult result;
@@ -708,18 +708,18 @@ namespace Lyra.Core.Accounts
                 return result;
             }
 
-            var currentSvcBlock = await _rpcClient.GetLastServiceBlock();
+            var currentSvcBlock = await _rpcClient.GetLastServiceBlockAsync();
 
             while (true)
             {
-                result = await SendOnce(Amount, DestinationAccountId, ticker, null);
+                result = await SendOnceAsync(Amount, DestinationAccountId, ticker, null);
                 if (result.ResultCode == APIResultCodes.ConsensusTimeout
                     || result.ResultCode == APIResultCodes.ServiceBlockNotFound)
                 {                    
                     bool viewChanged = false;
                     for (int i = 0; i < 30; i++)       // wait 30 seconds for consensus network to recovery
                     {
-                        var nextSvcBlock = await _rpcClient.GetLastServiceBlock();
+                        var nextSvcBlock = await _rpcClient.GetLastServiceBlockAsync();
                         if (currentSvcBlock.ResultCode == APIResultCodes.Success &&
                             nextSvcBlock.ResultCode == APIResultCodes.Success &&
                             nextSvcBlock.GetBlock().Height > currentSvcBlock.GetBlock().Height)
@@ -741,7 +741,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> SendEx(string DestinationAccountId, Dictionary<string, decimal> Amounts, Dictionary<string, string> tags)
+        public async Task<AuthorizationAPIResult> SendExAsync(string DestinationAccountId, Dictionary<string, decimal> Amounts, Dictionary<string, string> tags)
         {
             if (Amounts.Any(a => a.Value <= 0m))
                 throw new Exception("Amount must > 0");
@@ -773,7 +773,7 @@ namespace Lyra.Core.Accounts
             {
                 AccountID = AccountId,
                 VoteFor = VoteFor,
-                ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
+                ServiceHash = await GetLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
                 DestinationAccountId = DestinationAccountId,
                 Balances = new Dictionary<string, long>(),
                 Tags = tags,
@@ -809,7 +809,7 @@ namespace Lyra.Core.Accounts
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
             AuthorizationAPIResult result;
             //var stopwatch = Stopwatch.StartNew();
-            result = await _rpcClient.SendTransfer(sendBlock);
+            result = await _rpcClient.SendTransferAsync(sendBlock);
             //stopwatch.Stop();
             //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
 
@@ -819,7 +819,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> SendOnce(decimal Amount, string DestinationAccountId, string ticker, Dictionary<string, string> tags)
+        private async Task<AuthorizationAPIResult> SendOnceAsync(decimal Amount, string DestinationAccountId, string ticker, Dictionary<string, string> tags)
         {
             Trace.Assert(Amount > 0);
             if (Amount <= 0)
@@ -874,7 +874,7 @@ namespace Lyra.Core.Accounts
             {
                 AccountID = AccountId,
                 VoteFor = VoteFor,
-                ServiceHash = await getLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
+                ServiceHash = await GetLastServiceBlockHashAsync(), //svcBlockResult.GetBlock().Hash,
                 DestinationAccountId = DestinationAccountId,
                 Balances = new Dictionary<string, long>(),
                 //PaymentID = string.Empty,
@@ -907,7 +907,7 @@ namespace Lyra.Core.Accounts
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
             AuthorizationAPIResult result;
             //var stopwatch = Stopwatch.StartNew();
-            result = await _rpcClient.SendTransfer(sendBlock);
+            result = await _rpcClient.SendTransferAsync(sendBlock);
             //stopwatch.Stop();
             //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
 
@@ -918,22 +918,24 @@ namespace Lyra.Core.Accounts
         }
 
         // issues a new instance of collectible NFT
-        public async Task<AuthorizationAPIResult> IssueNFT(string DestinationAccountId, string ticker, string SerialNumber)
+        public async Task<AuthorizationAPIResult> IssueNFTAsync(string DestinationAccountId, string ticker, string SerialNumber)
         {
             //var nft_genesis = await _rpcClient.GetTokenGenesisBlock(AccountId, ticker, SignAPICallAsync());
             //if (nft_genesis == null || nft_genesis.GetBlock() == null)
             //    return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
-            NonFungibleToken nft = new NonFungibleToken();
-            nft.SerialNumber = SerialNumber;
-            nft.TokenCode = ticker;
-            nft.Denomination = 1;
+            NonFungibleToken nft = new NonFungibleToken
+            {
+                SerialNumber = SerialNumber,
+                TokenCode = ticker,
+                Denomination = 1
+            };
             nft.Sign(PrivateKey, AccountId);
 
-            return await SendNFTInternal(DestinationAccountId, ticker, nft);
+            return await SendNFTInternalAsync(DestinationAccountId, ticker, nft);
         }
 
         // Transfers and existing instance of collectible NFT to another account
-        public async Task<AuthorizationAPIResult> SendNFT(string DestinationAccountId, string ticker, string SerialNumber)
+        public async Task<AuthorizationAPIResult> SendNFTAsync(string DestinationAccountId, string ticker, string SerialNumber)
         {
             var height = GetLocalAccountHeight();
             ReceiveTransferBlock receive_token_block = null;
@@ -942,7 +944,7 @@ namespace Lyra.Core.Accounts
             for (var index = height; index >= 0; index--)
             {
                
-                var block = await GetBlockByIndex(index);
+                var block = await GetBlockByIndexAsync(index);
                 if (!(block is ReceiveTransferBlock))
                     continue;
                 if (!block.ContainsNonFungibleToken())
@@ -958,11 +960,11 @@ namespace Lyra.Core.Accounts
             if (receive_token_block == null)
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.NFTInstanceNotFound };
 
-            return await SendNFTInternal(DestinationAccountId, ticker, receive_token_block.NonFungibleToken);
+            return await SendNFTInternalAsync(DestinationAccountId, ticker, receive_token_block.NonFungibleToken);
         }
 
         // Transfers and existing instance or issues a new instance of collectible NFT - this method can be used by either IssueNFT and SendNFT
-        private async Task<AuthorizationAPIResult> SendNFTInternal(string DestinationAccountId, string ticker, NonFungibleToken nft)
+        private async Task<AuthorizationAPIResult> SendNFTInternalAsync(string DestinationAccountId, string ticker, NonFungibleToken nft)
         {
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
@@ -986,7 +988,7 @@ namespace Lyra.Core.Accounts
                 {
                     AccountID = AccountId,
                     VoteFor = VoteFor,
-                    ServiceHash = await getLastServiceBlockHashAsync(), 
+                    ServiceHash = await GetLastServiceBlockHashAsync(), 
                     DestinationAccountId = DestinationAccountId,
                     Balances = new Dictionary<string, long>(),
                     Fee = fee,
@@ -1011,7 +1013,7 @@ namespace Lyra.Core.Accounts
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
 
             AuthorizationAPIResult result;
-                result = await _rpcClient.SendTransfer(sendBlock);
+                result = await _rpcClient.SendTransferAsync(sendBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
                 _lastTransactionBlock = sendBlock;
@@ -1019,7 +1021,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrderAsync(
             TradeOrderTypes orderType, string SellToken, string BuyToken, decimal MaxAmount, decimal MinAmount, decimal Price, bool CoverAnotherTradersFee, bool AnotherTraderWillCoverFee)
         {
             TransactionBlock previousBlock = GetLatestBlock();
@@ -1079,7 +1081,7 @@ namespace Lyra.Core.Accounts
             var tradeBlock = new TradeOrderBlock
             {
                 AccountID = AccountId,
-                ServiceHash = await getLastServiceBlockHashAsync(),
+                ServiceHash = await GetLastServiceBlockHashAsync(),
                 DestinationAccountId = string.Empty, // we are sending to nowhere
                 Balances = new Dictionary<string, long>(),
                 //PaymentID = string.Empty,
@@ -1117,7 +1119,7 @@ namespace Lyra.Core.Accounts
 
             //tradeBlock.Signature = Signatures.GetSignature(PrivateKey, tradeBlock.Hash);
 
-            var result = await _rpcClient.TradeOrder(tradeBlock);
+            var result = await _rpcClient.TradeOrderAsync(tradeBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
                 _lastTransactionBlock = tradeBlock;
@@ -1132,7 +1134,7 @@ namespace Lyra.Core.Accounts
         /// The trade order block
         /// </param>
         /// <returns></returns>
-        public async Task<AuthorizationAPIResult> Trade(TradeBlock trade)
+        public async Task<AuthorizationAPIResult> TradeAsync(TradeBlock trade)
         {
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
@@ -1150,10 +1152,10 @@ namespace Lyra.Core.Accounts
                 if (!(trade.Balances.ContainsKey(balance.Key)))
                     trade.Balances.Add(balance.Key, balance.Value);
 
-            trade.ServiceHash = await getLastServiceBlockHashAsync();
+            trade.ServiceHash = await GetLastServiceBlockHashAsync();
             trade.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
-            var trade_result = await _rpcClient.Trade(trade);
+            var trade_result = await _rpcClient.TradeAsync(trade);
 
             if (trade_result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
@@ -1178,22 +1180,22 @@ namespace Lyra.Core.Accounts
         /// Teh hash of the trade order block
         /// </param>
         /// <returns></returns>
-        public async Task<AuthorizationAPIResult> CancelTradeOrder(string OrderId)
+        public async Task<AuthorizationAPIResult> CancelTradeOrderAsync(string OrderId)
         {
-            var order = await GetBlockByHash(OrderId) as TradeOrderBlock;
+            var order = await GetBlockByHashAsync(OrderId) as TradeOrderBlock;
             if (order == null)
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.BlockNotFound };
 
             var cancelBlock = new CancelTradeOrderBlock
             {
                 AccountID = AccountId,
-                ServiceHash = await getLastServiceBlockHashAsync(),
+                ServiceHash = await GetLastServiceBlockHashAsync(),
                 Balances = new Dictionary<string, long>(),
                 FeeType = AuthorizationFeeTypes.NoFee,
                 TradeOrderId = OrderId
             };
 
-            var previous_to_order_block = await GetBlockByHash(order.PreviousHash);
+            var previous_to_order_block = await GetBlockByHashAsync(order.PreviousHash);
             if (previous_to_order_block == null)
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
 
@@ -1210,7 +1212,7 @@ namespace Lyra.Core.Accounts
 
             cancelBlock.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
-            var result = await _rpcClient.CancelTradeOrder(cancelBlock);
+            var result = await _rpcClient.CancelTradeOrderAsync(cancelBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
             {
@@ -1231,9 +1233,9 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string SellToken, string BuyToken, TradeOrderListTypes OrderType)
+        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrdersAsync(string SellToken, string BuyToken, TradeOrderListTypes OrderType)
         {
-            var result = await _rpcClient.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, SignAPICallAsync());
+            var result = await _rpcClient.GetActiveTradeOrdersAsync(AccountId, SellToken, BuyToken, OrderType, SignAPICall());
             return result;
         }
 
@@ -1287,9 +1289,9 @@ namespace Lyra.Core.Accounts
         //    return precision;
         //}
 
-        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult2 new_transfer_info)
+        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlockAsync(NewTransferAPIResult2 new_transfer_info)
         {
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _rpcClient.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -1316,7 +1318,7 @@ namespace Lyra.Core.Accounts
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 
-            var result = await _rpcClient.ReceiveTransferAndOpenAccount(openReceiveBlock);
+            var result = await _rpcClient.ReceiveTransferAndOpenAccountAsync(openReceiveBlock);
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
@@ -1342,14 +1344,14 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> OpenStandardAccountWithImport(string ImportPrivateKey, TransactionBlock last_imported_block, string imported_account_id)
+        private async Task<AuthorizationAPIResult> OpenStandardAccountWithImportAsync(string ImportPrivateKey, TransactionBlock last_imported_block, string imported_account_id)
         {
             var open_import_block = new OpenAccountWithImportBlock
             {
                 AccountType = AccountTypes.Standard,
                 AccountID = AccountId,
                 ImportedAccountId = imported_account_id,
-                ServiceHash = await getLastServiceBlockHashAsync(),
+                ServiceHash = await GetLastServiceBlockHashAsync(),
                 SourceHash = null,
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
@@ -1371,7 +1373,7 @@ namespace Lyra.Core.Accounts
 
             open_import_block.ImportedAccountSignature = Signatures.GetSignature(ImportPrivateKey, open_import_block.Hash, imported_account_id);
 
-            var result = await _rpcClient.OpenAccountWithImport(open_import_block);
+            var result = await _rpcClient.OpenAccountWithImportAsync(open_import_block);
 
             await ProcessResultAsync(result, "Import Account", open_import_block);
 
@@ -1404,16 +1406,16 @@ namespace Lyra.Core.Accounts
             
         }
 
-        public async Task<AuthorizationAPIResult> ImportAccount(string ImportPrivateKey)
+        public async Task<AuthorizationAPIResult> ImportAccountAsync(string ImportPrivateKey)
         {
             string imported_account_id = Signatures.GetAccountIdFromPrivateKey(ImportPrivateKey);
-            var imported_account_height_result = await _rpcClient.GetAccountHeight(imported_account_id);
+            var imported_account_height_result = await _rpcClient.GetAccountHeightAsync(imported_account_id);
             TransactionBlock last_imported_block = null;
             if (imported_account_height_result.Successful())
             {
                 long imported_account_height = imported_account_height_result.Height;
 
-                var last_imported_block_result = await _rpcClient.GetBlockByIndex(imported_account_id, imported_account_height);
+                var last_imported_block_result = await _rpcClient.GetBlockByIndexAsync(imported_account_id, imported_account_height);
                 if (!last_imported_block_result.Successful())
                     throw new Exception("Unable to get latest imported account block.");
 
@@ -1423,7 +1425,7 @@ namespace Lyra.Core.Accounts
             }
 
             if (GetLocalAccountHeight() == 0) // if this is new account with no blocks
-                return await OpenStandardAccountWithImport(ImportPrivateKey, last_imported_block, imported_account_id);
+                return await OpenStandardAccountWithImportAsync(ImportPrivateKey, last_imported_block, imported_account_id);
 
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
@@ -1433,7 +1435,7 @@ namespace Lyra.Core.Accounts
             {
                 AccountID = AccountId,
                 ImportedAccountId = imported_account_id,
-                ServiceHash = await getLastServiceBlockHashAsync(),
+                ServiceHash = await GetLastServiceBlockHashAsync(),
                 SourceHash = null,
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
@@ -1466,14 +1468,14 @@ namespace Lyra.Core.Accounts
 
             import_block.ImportedAccountSignature = Signatures.GetSignature(ImportPrivateKey, import_block.Hash, imported_account_id);
 
-            var result = await _rpcClient.ImportAccount(import_block);
+            var result = await _rpcClient.ImportAccountAsync(import_block);
 
             await ProcessResultAsync(result, "Import Account", import_block);
 
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> ReceiveTransfer(NewTransferAPIResult2 new_transfer_info)
+        private async Task<AuthorizationAPIResult> ReceiveTransferAsync(NewTransferAPIResult2 new_transfer_info)
         {
 
             // *** Slava - July 19, 2020 - I am not sure if we need this call anymore? 
@@ -1481,9 +1483,9 @@ namespace Lyra.Core.Accounts
             // ***
 
             if (GetLocalAccountHeight() == 0) // if this is new account with no blocks
-                return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
+                return await OpenStandardAccountWithReceiveBlockAsync(new_transfer_info);
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _rpcClient.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -1503,7 +1505,7 @@ namespace Lyra.Core.Accounts
 
             TransactionBlock latestBlock = GetLatestBlock();
 
-            var latestBalances = latestBlock.Balances.ToDecimalDict();
+            //var latestBalances = latestBlock.Balances.ToDecimalDict();
             var recvBalances = latestBlock.Balances.ToDecimalDict();
             foreach (var chg in new_transfer_info.Transfer.Changes)
             {
@@ -1522,7 +1524,7 @@ namespace Lyra.Core.Accounts
 
             //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
 
-            var result = await _rpcClient.ReceiveTransfer(receiveBlock);
+            var result = await _rpcClient.ReceiveTransferAsync(receiveBlock);
 
             await ProcessResultAsync(result, "Receive Transfer", receiveBlock);
 
@@ -1611,7 +1613,7 @@ namespace Lyra.Core.Accounts
         //}
         
 
-        public async Task<AuthorizationAPIResult> CreateToken(
+        public async Task<AuthorizationAPIResult> CreateTokenAsync(
             string tokenName,
             string domainName,
             string description,
@@ -1636,7 +1638,7 @@ namespace Lyra.Core.Accounts
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
             }
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _rpcClient.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -1682,7 +1684,7 @@ namespace Lyra.Core.Accounts
 
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
 
-            var result = await _rpcClient.CreateToken(tokenBlock);
+            var result = await _rpcClient.CreateTokenAsync(tokenBlock);
 
             if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
             {
@@ -1701,7 +1703,7 @@ namespace Lyra.Core.Accounts
         }
 
         // Creates Custom User-defined Collectible NFT
-        public async Task<AuthorizationAPIResult> CreateNFT(
+        public async Task<AuthorizationAPIResult> CreateNFTAsync(
             string tokenName,
             string domainName,
             string description,
@@ -1722,7 +1724,7 @@ namespace Lyra.Core.Accounts
             if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToBalanceLong())
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _rpcClient.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
                 throw new Exception("Unable to get latest service block.");
 
@@ -1763,7 +1765,7 @@ namespace Lyra.Core.Accounts
 
             tokenBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
 
-            var result = await _rpcClient.CreateToken(tokenBlock);
+            var result = await _rpcClient.CreateTokenAsync(tokenBlock);
 
             await ProcessResultAsync(result, "CreateNFT", tokenBlock);
 
@@ -1772,7 +1774,7 @@ namespace Lyra.Core.Accounts
 
         private async Task<string[]> GetProperTokenNameAsync(string[] tokenNames)
         {
-            var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlock(AccountId, a, SignAPICallAsync()));
+            var result = await tokenNames.SelectAsync(async a => await _rpcClient.GetTokenGenesisBlockAsync(AccountId, a, SignAPICall()));
             return result.Select(a => a.GetBlock() as TokenGenesisBlock)
                 .Select(b => b?.Ticker)
                 .OrderBy(a => a)
@@ -1781,7 +1783,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<PoolInfoAPIResult> GetLiquidatePoolAsync(string token0, string token1)
         {
-            var result = await _rpcClient.GetPool(token0, token1);
+            var result = await _rpcClient.GetPoolAsync(token0, token1);
             return result;
         }
 
@@ -1792,70 +1794,86 @@ namespace Lyra.Core.Accounts
             if(tokenNames.Any(a => a == null))
                 return new APIResult { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
 
-            var pool = await _rpcClient.GetPool(tokenNames[0], tokenNames[1]);
+            var pool = await _rpcClient.GetPoolAsync(tokenNames[0], tokenNames[1]);
             if (pool.PoolAccountId != null)
                 return new APIResult { ResultCode = APIResultCodes.PoolAlreadyExists };
 
-            var tags = new Dictionary<string, string>();
-            tags.Add("token0", tokenNames[0]);
-            tags.Add("token1", tokenNames[1]);
-            tags.Add(Block.REQSERVICETAG, "");
-            var amounts = new Dictionary<string, decimal>();
-            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
-            return await SendEx(pool.PoolFactoryAccountId, amounts, tags);
+            var tags = new Dictionary<string, string>
+            {
+                { "token0", tokenNames[0] },
+                { "token1", tokenNames[1] },
+                { Block.REQSERVICETAG, "" }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
+            };
+            return await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
         }
 
         public async Task<APIResult> AddLiquidateToPoolAsync(string token0, decimal token0Amount, string token1, decimal token1Amount)
         {
-            var pool = await _rpcClient.GetPool(token0, token1);
+            var pool = await _rpcClient.GetPoolAsync(token0, token1);
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
-            var amountsDeposit = new Dictionary<string, decimal>();
-            amountsDeposit.Add(token0, token0Amount);
-            amountsDeposit.Add(token1, token1Amount);
+            var amountsDeposit = new Dictionary<string, decimal>
+            {
+                { token0, token0Amount },
+                { token1, token1Amount }
+            };
 
-            var tags = new Dictionary<string, string>();
-            tags.Add("token0", pool.Token0);
-            tags.Add("token1", pool.Token1);
-            tags.Add(Block.REQSERVICETAG, "");
+            var tags = new Dictionary<string, string>
+            {
+                { "token0", pool.Token0 },
+                { "token1", pool.Token1 },
+                { Block.REQSERVICETAG, "" }
+            };
 
-            var poolDepositResult = await SendEx(pool.PoolAccountId, amountsDeposit, tags);
+            var poolDepositResult = await SendExAsync(pool.PoolAccountId, amountsDeposit, tags);
             return poolDepositResult;
         }
 
         public async Task<APIResult> RemoveLiquidateFromPoolAsync(string token0, string token1)
         {
-            var pool = await _rpcClient.GetPool(token0, token1);
+            var pool = await _rpcClient.GetPoolAsync(token0, token1);
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
-            var tags = new Dictionary<string, string>();
-            tags.Add(Block.REQSERVICETAG, "poolwithdraw");
-            tags.Add("poolid", pool.PoolAccountId);
-            tags.Add("token0", pool.Token0);
-            tags.Add("token1", pool.Token1);
-            var amounts = new Dictionary<string, decimal>();
-            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
-            var poolWithdrawResult = await SendEx(pool.PoolFactoryAccountId, amounts, tags);
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, "poolwithdraw" },
+                { "poolid", pool.PoolAccountId },
+                { "token0", pool.Token0 },
+                { "token1", pool.Token1 }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1m }
+            };
+            var poolWithdrawResult = await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
             return poolWithdrawResult;
         }
 
-        public async Task<APIResult> SwapToken(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
+        public async Task<APIResult> SwapTokenAsync(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
         {
-            var pool = await _rpcClient.GetPool(token0, token1);
+            var pool = await _rpcClient.GetPoolAsync(token0, token1);
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
-            var tags = new Dictionary<string, string>();
-            tags.Add(Block.REQSERVICETAG, "swaptoken");
-            tags.Add("poolid", pool.PoolAccountId);
-            tags.Add("token0", pool.Token0);
-            tags.Add("token1", pool.Token1);
-            tags.Add("minrecv", $"{amountToGet.ToBalanceLong()}");
-            var amounts = new Dictionary<string, decimal>();
-            amounts.Add(tokenToSwap, amountToSwap);
-            var swapTokenResult = await SendEx(pool.PoolAccountId, amounts, tags);
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, "swaptoken" },
+                { "poolid", pool.PoolAccountId },
+                { "token0", pool.Token0 },
+                { "token1", pool.Token1 },
+                { "minrecv", $"{amountToGet.ToBalanceLong()}" }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { tokenToSwap, amountToSwap }
+            };
+            var swapTokenResult = await SendExAsync(pool.PoolAccountId, amounts, tags);
             return swapTokenResult;
         }
 
@@ -1868,7 +1886,7 @@ namespace Lyra.Core.Accounts
             return latestBlock.Print();
         }
 
-        public string PrintBlock(string blockindex)
+        public async Task<string> PrintBlockAsync(string blockindex)
         {
             int index;
             try
@@ -1880,7 +1898,7 @@ namespace Lyra.Core.Accounts
                 return "incorrect index";
             }
 
-            var block = GetBlockByIndex(index).Result;
+            var block = await GetBlockByIndexAsync(index);
             if (block == null)
                 return "block not found";
 
@@ -1930,7 +1948,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<ServiceBlock> GetLastServiceBlockAsync()
         {
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _rpcClient.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception($"Unable to retrieve the latest service block. Result Code: {svcBlockResult.ResultCode}");
@@ -1938,7 +1956,7 @@ namespace Lyra.Core.Accounts
             return svcBlockResult.GetBlock() as ServiceBlock;
         }
 
-        private async Task<string> getLastServiceBlockHashAsync()
+        private async Task<string> GetLastServiceBlockHashAsync()
         {
             var svcBlockResult = await GetLastServiceBlockAsync();
             if (svcBlockResult == null)

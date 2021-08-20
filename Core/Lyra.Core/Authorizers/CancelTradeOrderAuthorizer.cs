@@ -45,7 +45,7 @@ namespace Lyra.Core.Authorizers
             if (original_order == null)
                 return APIResultCodes.NoTradesFound;
 
-            result = await ValidateCancellationBalance(sys, block, lastBlock, original_order);
+            result = await ValidateCancellationBalanceAsync(sys, block, lastBlock, original_order);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -56,7 +56,7 @@ namespace Lyra.Core.Authorizers
 
         // The cancellation should restore the balance that was locked by the trade order.
         // Thus, it should take the balance from the latest block and add the balamce (transactin amount) locked by the order block.
-        private async Task<APIResultCodes> ValidateCancellationBalance(DagSystem sys, CancelTradeOrderBlock block, TransactionBlock lastBlock, TradeOrderBlock original_order)
+        private async Task<APIResultCodes> ValidateCancellationBalanceAsync(DagSystem sys, CancelTradeOrderBlock block, TransactionBlock lastBlock, TradeOrderBlock original_order)
         {
             var order_previous_block = await sys.Storage.FindBlockByHashAsync(original_order.PreviousHash) as TransactionBlock;
 

@@ -43,7 +43,7 @@ namespace Lyra.Node
                 _ = Task.Run(async () => { 
                     while(true)
                     {
-                        await _haveBlock.AsTask();
+                        await _haveBlock.AsTaskAsync();
                         _haveBlock.Reset();
 
                         TxInfoBase info;
@@ -56,7 +56,7 @@ namespace Lyra.Node
                                     if(inst.GetIfInterested(info.to))
                                         inst.Notify?.Invoke(this, new News { catalog = info.GetType().Name, content = info });
                                 }
-                                catch(Exception ex)
+                                catch
                                 {
                                     
                                 }
@@ -105,7 +105,8 @@ namespace Lyra.Node
             }
         }
 
-        public async Task<SimpleJsonAPIResult> Authorize(string blockType, string jsonBlock)
+        [JsonRpcMethod("Authorize")]
+        public async Task<SimpleJsonAPIResult> AuthorizeAsync(string blockType, string jsonBlock)
         {
             BlockTypes types;
             try
@@ -134,16 +135,16 @@ namespace Lyra.Node
             switch(types)
             {
                 case BlockTypes.SendTransfer:
-                    result = await _trans.SendTransfer(block as SendTransferBlock);
+                    result = await _trans.SendTransferAsync(block as SendTransferBlock);
                     break;
                 case BlockTypes.ReceiveTransfer:
-                    result = await _trans.ReceiveTransfer(block as ReceiveTransferBlock);
+                    result = await _trans.ReceiveTransferAsync(block as ReceiveTransferBlock);
                     break;
                 case BlockTypes.OpenAccountWithReceiveTransfer:
-                    result = await _trans.ReceiveTransferAndOpenAccount(block as OpenWithReceiveTransferBlock);
+                    result = await _trans.ReceiveTransferAndOpenAccountAsync(block as OpenWithReceiveTransferBlock);
                     break;
                 case BlockTypes.TokenGenesis:
-                    result = await _trans.CreateToken(block as TokenGenesisBlock);
+                    result = await _trans.CreateTokenAsync(block as TokenGenesisBlock);
                     break;
                 default:
                     result = null;

@@ -35,17 +35,17 @@ namespace Lyra.Core.Decentralize
             Hash = hash;
         }
 
-        public async Task ProcessState(AuthState state)
+        public async Task ProcessStateAsync(AuthState state)
         {
             _state = state;
-            await ProcessMessage(state.InputMsg);
+            await ProcessMessageAsync(state.InputMsg);
         }
 
         protected override bool IsStateCreated()
         {
             return _state != null;
         }
-        protected override async Task InternalProcessMessage(ConsensusMessage msg)
+        protected override async Task InternalProcessMessageAsync(ConsensusMessage msg)
         {
             bool sourceValid = true;
             if (msg is BlockConsensusMessage bmsg)

@@ -43,11 +43,11 @@ namespace Lyra.Core.Decentralize
             switch(orphan)
             {
                 case AuthState authState:
-                    if (await IsThisBlockOrphan(authState.InputMsg.Block))
+                    if (await IsThisBlockOrphanAsync(authState.InputMsg.Block))
                         return _orphanAuthStates.TryAdd(authState.InputMsg.Block.Hash, authState);
                     return false;                    
                 case AuthorizingMsg msg1:
-                    if (await IsThisBlockOrphan(msg1.Block))                      
+                    if (await IsThisBlockOrphanAsync(msg1.Block))                      
                         return _orphanAuthorizingMsg.TryAdd(msg1.Hash, msg1);
                     return false;
                 //case AuthorizedMsg msg2:
@@ -110,7 +110,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async Task<bool> IsThisBlockOrphan(Block blockx)
+        public async Task<bool> IsThisBlockOrphanAsync(Block blockx)
         {
             var block = blockx as TransactionBlock;
             if (block == null)

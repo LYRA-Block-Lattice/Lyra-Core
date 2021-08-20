@@ -57,7 +57,7 @@ namespace UnitTests.JsonRPC
             Wallet.Create(memStor, "tmpAcct", "", TestConfig.networkId, UT_TransitWallet.PRIVATE_KEY_1);
             var w1 = Wallet.Open(memStor, "tmpAcct", "");
 
-            var syncResult = await w1.Sync(client);
+            var syncResult = await w1.SyncAsync(client);
             Assert.AreEqual(APIResultCodes.Success, syncResult, $"Error Sycn: {syncResult}");
 
             await TestProcAsync(async (jsonRpc, cancellationToken) =>
@@ -73,7 +73,7 @@ namespace UnitTests.JsonRPC
                 await jsonRpc.NotifyWithParameterObjectAsync("Monitor", new object[] { _accountId });
 
                 // we send 10 LYR to it
-                var sendResult = await w1.Send(10100, _accountId);
+                var sendResult = await w1.SendAsync(10100, _accountId);
                 Assert.IsTrue(sendResult.Successful());
 
                 //await Task.Delay(10000000); // test notify.

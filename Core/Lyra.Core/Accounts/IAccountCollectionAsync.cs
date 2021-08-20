@@ -59,16 +59,16 @@ namespace Lyra.Core.Accounts
         TradeBlock FindUnexecutedTrade(string AccountId, string BuyTokenCode, string SellTokenCode);
 
         List<TradeOrderBlock> GetTradeOrderBlocks();
-        Task<List<TradeOrderBlock>> GetSellTradeOrdersForToken(string BuyTokenCode);
-        Task<List<TradeOrderBlock>> GetSellTradeOrders(string SellTokenCode, string BuyTokenCode);
+        Task<List<TradeOrderBlock>> GetSellTradeOrdersForTokenAsync(string BuyTokenCode);
+        Task<List<TradeOrderBlock>> GetSellTradeOrdersAsync(string SellTokenCode, string BuyTokenCode);
 
         List<string> GetTradeOrderCancellations();
 
         // returns the list of hashes (order IDs) of all cancelled trade order blocks
         List<string> GetExecutedTradeOrderBlocks();
 
-        Task<CancelTradeOrderBlock> GetCancelTradeOrderBlock(string TradeOrderId);
-        Task<ExecuteTradeOrderBlock> GetExecuteTradeOrderBlock(string TradeOrderId);
+        Task<CancelTradeOrderBlock> GetCancelTradeOrderBlockAsync(string TradeOrderId);
+        Task<ExecuteTradeOrderBlock> GetExecuteTradeOrderBlockAsync(string TradeOrderId);
 
         Task<bool> AddBlockAsync(Block block);
         Task RemoveBlockAsync(string hash);
@@ -79,8 +79,8 @@ namespace Lyra.Core.Accounts
         List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime);
         FeeStats GetFeeStats();
 
-        Task<List<Block>> GetBlocksByTimeRange(DateTime startTime, DateTime endTime);
-        Task<IEnumerable<string>> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime);
+        Task<List<Block>> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime);
+        Task<IEnumerable<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime);
         /// <summary>
         /// Check if this account was ever imported to ANY other account
         /// </summary>

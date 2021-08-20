@@ -72,13 +72,14 @@ namespace Lyra.Node
         }
 
         // group hand shake
-        public async Task<ApiStatus> Status(string version, string networkid)
+        [JsonRpcMethod("Status")]
+        public async Task<ApiStatus> StatusAsync(string version, string networkid)
         {
             var clientVer = new Version(version);
             if (CompareVersion(LyraGlobal.NODE_VERSION, clientVer) > 0)
                 throw new Exception("Client version too low. Need upgrade.");
 
-            var syncState = await _node.GetSyncState();
+            var syncState = await _node.GetSyncStateAsync();
 
             return new ApiStatus
             {
@@ -89,12 +90,13 @@ namespace Lyra.Node
             };
         }
 
-        public async Task<BalanceResult> BlockBalance(string accountId, TransactionBlock tx)
+        [JsonRpcMethod("BlockBalance")]
+        public async Task<BalanceResult> BlockBalanceAsync(string accountId, TransactionBlock tx)
         {
             if (tx == null)
-                return await Balance(accountId);
+                return await BalanceAsync(accountId);
 
-            var anySendResult = await _node.LookForNewTransfer2(tx.AccountID, null);
+            var anySendResult = await _node.LookForNewTransfer2Async(tx.AccountID, null);
             return new BalanceResult
             {
                 balance = tx.Balances.ToDecimalDict(),
@@ -104,7 +106,8 @@ namespace Lyra.Node
         }
 
         // group wallet
-        public async Task<BalanceResult> Balance(string accountId)
+        [JsonRpcMethod("Balance")]
+        public async Task<BalanceResult> BalanceAsync(string accountId)
         {
             if (string.IsNullOrWhiteSpace(accountId))
                 throw new ArgumentNullException("accountId can't be null");
@@ -112,8 +115,8 @@ namespace Lyra.Node
             if(!Signatures.ValidateAccountId(accountId))
                 throw new Exception("accountId is not a valid Lyra address");
 
-            var blockResult = await _node.GetLastBlock(accountId);
-            var anySendResult = await _node.LookForNewTransfer2(accountId, null);
+            var blockResult = await _node.GetLastBlockAsync(accountId);
+            var anySendResult = await _node.LookForNewTransfer2Async(accountId, null);
             
             if (blockResult.Successful())
             {
@@ -137,28 +140,32 @@ namespace Lyra.Node
 
             throw new Exception("Can't get latest block for account.");
         }
-        public async Task<BalanceResult> Receive(string accountId)
+
+        [JsonRpcMethod("Receive")]
+        public async Task<BalanceResult> ReceiveAsync(string accountId)
         {
             var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.ReceiveAsync();
             if(result == APIResultCodes.Success)
             {
-                return await BlockBalance(accountId, klWallet.LastBlock);
+                return await BlockBalanceAsync(accountId, klWallet.LastBlock);
             }
             else
             {
                 throw new Exception($"{result}");
             }
         }
-        public async Task<BalanceResult> Send(string accountId, decimal amount, string destAccount, string ticker)
+
+        [JsonRpcMethod("Send")]
+        public async Task<BalanceResult> SendAsync(string accountId, decimal amount, string destAccount, string ticker)
         {
             var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.SendAsync(amount, destAccount, ticker);
             if (result == APIResultCodes.Success)
             {
-                return await BlockBalance(accountId, klWallet.LastBlock);
+                return await BlockBalanceAsync(accountId, klWallet.LastBlock);
             }
             else
             {
@@ -166,7 +173,8 @@ namespace Lyra.Node
             }
         }
 
-        public async Task<BalanceResult> Token(string accountId, string name, string domain, decimal supply)
+        [JsonRpcMethod("Token")]
+        public async Task<BalanceResult> TokenAsync(string accountId, string name, string domain, decimal supply)
         {
             var klWallet = CreateWallet(accountId);
 
@@ -174,7 +182,7 @@ namespace Lyra.Node
                 "", 8, supply, true, "", "", "", ContractTypes.Cryptocurrency, null);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return await BlockBalance(accountId, klWallet.LastBlock);
+                return await BlockBalanceAsync(accountId, klWallet.LastBlock);
             }
             else
             {
@@ -186,6 +194,8 @@ namespace Lyra.Node
         {
             return addr == _monitorAccountId || (_monitorAccountId == "*" && Neo.Settings.Default.LyraNode.Lyra.Mode == NodeMode.App);
         }
+
+        [JsonRpcMethod("Monitor")]
         public void Monitor(string accountId)
         {
             if (Signatures.ValidateAccountId(accountId) || (accountId == "*" && Neo.Settings.Default.LyraNode.Lyra.Mode == NodeMode.App))
@@ -198,24 +208,29 @@ namespace Lyra.Node
             }
         }
 
-        public async Task<List<TxDesc>> History(string accountId, long startTime, long endTime, int count)
+
+        [JsonRpcMethod("History")]
+        public async Task<List<TxDesc>> HistoryAsync(string accountId, long startTime, long endTime, int count)
         {
             // json time. convert it to dotnet time
             var dtStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc) + new TimeSpan(startTime * 10000);
             var dtEnd = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc) + new TimeSpan(endTime * 10000);
-            var hists = await _node.SearchTransactions(accountId, dtStart.Ticks, dtEnd.Ticks, count);
+            var hists = await _node.SearchTransactionsAsync(accountId, dtStart.Ticks, dtEnd.Ticks, count);
             if (hists.Successful())
                 return hists.Transactions.Select(x => new TxDesc(x)).ToList();
             else
                 throw new Exception($"{hists.ResultCode}: {hists.ResultMessage}");
         }
+
         // group pool
-        public async Task<PoolInfo> Pool(string token0, string token1)
+
+        [JsonRpcMethod("Pool")]
+        public async Task<PoolInfo> PoolAsync(string token0, string token1)
         {
-            var poolResult = await _node.GetPool(token0, token1);
+            var poolResult = await _node.GetPoolAsync(token0, token1);
             if(poolResult.Successful() && poolResult.PoolAccountId != null)
             {
-                var poolLatest = await _node.GetLastBlock(poolResult.PoolAccountId);
+                var poolLatest = await _node.GetLastBlockAsync(poolResult.PoolAccountId);
                 if(poolLatest.Successful())
                 {
                     var latestBlock = poolLatest.GetBlock() as TransactionBlock;
@@ -232,7 +247,9 @@ namespace Lyra.Node
 
             throw new Exception("Failed to get pool");
         }
-        public async Task<PoolInfo> CreatePool(string accountId, string token0, string token1)
+
+        [JsonRpcMethod("CreatePool")]
+        public async Task<PoolInfo> CreatePoolAsync(string accountId, string token0, string token1)
         {
             var klWallet = CreateWallet(accountId);
 
@@ -244,7 +261,7 @@ namespace Lyra.Node
                     await Task.Delay(500);     // wait for the pool to be created.
                     try
                     {
-                        return await Pool(token0, token1);
+                        return await PoolAsync(token0, token1);
                     }
                     catch { }
                 }
@@ -255,7 +272,9 @@ namespace Lyra.Node
                 throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
             }
         }
-        public async Task<SwapCalculator> PoolCalculate(string poolId, string swapFrom, decimal amount, decimal slippage)
+
+        [JsonRpcMethod("PoolCalculate")]
+        public async Task<SwapCalculator> PoolCalculateAsync(string poolId, string swapFrom, decimal amount, decimal slippage)
         {
             var poolLatest = await NodeService.Dag.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
             var poolGenesis = await NodeService.Dag.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
@@ -269,11 +288,13 @@ namespace Lyra.Node
 
             throw new Exception("Failed to get pool");
         }
-        public async Task<PoolInfo> AddLiquidaty(string accountId, string token0, decimal token0Amount, string token1, decimal token1Amount)
+
+        [JsonRpcMethod("AddLiquidaty")]
+        public async Task<PoolInfo> AddLiquidatyAsync(string accountId, string token0, decimal token0Amount, string token1, decimal token1Amount)
         {
             var klWallet = CreateWallet(accountId);
 
-            var oldPool = await Pool(token0, token1);
+            var oldPool = await PoolAsync(token0, token1);
             var result = await klWallet.AddLiquidateToPoolAsync(token0, token0Amount, token1, token1Amount);
             if (result.ResultCode == APIResultCodes.Success)
             {
@@ -282,7 +303,7 @@ namespace Lyra.Node
                     await Task.Delay(500);     // wait for the pool to be liquidated
                     try
                     {
-                        var latestPool = await Pool(token0, token1);
+                        var latestPool = await PoolAsync(token0, token1);
                         if (oldPool.height == latestPool.height)
                             continue;
                         else
@@ -297,11 +318,13 @@ namespace Lyra.Node
                 throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
             }
         }
-        public async Task<BalanceResult> RemoveLiquidaty(string accountId, string token0, string token1)
+
+        [JsonRpcMethod("RemoveLiquidaty")]
+        public async Task<BalanceResult> RemoveLiquidatyAsync(string accountId, string token0, string token1)
         {
             var klWallet = CreateWallet(accountId);
 
-            var oldPool = await Pool(token0, token1);
+            var oldPool = await PoolAsync(token0, token1);
             var result = await klWallet.RemoveLiquidateFromPoolAsync(token0, token1);
             if (result.ResultCode == APIResultCodes.Success)
             {
@@ -310,12 +333,12 @@ namespace Lyra.Node
                     await Task.Delay(500);     // wait for the liquidaty to be removed
                     try
                     {
-                        var latestPool = await Pool(token0, token1);
+                        var latestPool = await PoolAsync(token0, token1);
                         if (oldPool.height == latestPool.height)
                             continue;
                         else
                         {
-                            return await Receive(accountId);
+                            return await ReceiveAsync(accountId);
                         }
                     }
                     catch { }
@@ -327,12 +350,14 @@ namespace Lyra.Node
                 throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
             }
         }
-        public async Task<BalanceResult> Swap(string accountId, string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
+
+        [JsonRpcMethod("Swap")]
+        public async Task<BalanceResult> SwapAsync(string accountId, string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
         {
             var klWallet = CreateWallet(accountId);
 
-            var oldPool = await Pool(token0, token1);
-            var result = await klWallet.SwapToken(token0, token1, tokenToSwap, amountToSwap, amountToGet);
+            var oldPool = await PoolAsync(token0, token1);
+            var result = await klWallet.SwapTokenAsync(token0, token1, tokenToSwap, amountToSwap, amountToGet);
             if (result.ResultCode == APIResultCodes.Success)
             {
                 for (int i = 0; i < 30; i++)
@@ -340,12 +365,12 @@ namespace Lyra.Node
                     await Task.Delay(500);     // wait for the swap to be finished
                     try
                     {
-                        var latestPool = await Pool(token0, token1);
+                        var latestPool = await PoolAsync(token0, token1);
                         if (oldPool.height == latestPool.height)
                             continue;
                         else
                         {
-                            return await Receive(accountId);
+                            return await ReceiveAsync(accountId);
                         }                            
                     }
                     catch { }

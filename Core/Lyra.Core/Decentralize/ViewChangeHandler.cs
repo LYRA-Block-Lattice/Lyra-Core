@@ -17,8 +17,8 @@ namespace Lyra.Core.Decentralize
 
     public class ViewChangeHandler : ConsensusHandlerBase
     {
-        private LeaderCandidateSelected _candidateSelected;
-        private LeaderSelectedHandler _leaderSelected;
+        private readonly LeaderCandidateSelected _candidateSelected;
+        private readonly LeaderSelectedHandler _leaderSelected;
 
         private class VCReqWithTime
         {
@@ -104,7 +104,7 @@ namespace Lyra.Core.Decentralize
             return true;
         }
 
-        internal async Task ProcessMessage(ViewChangeMessage vcm)
+        internal async Task ProcessMessageAsync(ViewChangeMessage vcm)
         {
             //_log.LogInformation($"VC Msgs type: {vcm.MsgType} from: {vcm.From.Shorten()}");
             if (selectedSuccess)

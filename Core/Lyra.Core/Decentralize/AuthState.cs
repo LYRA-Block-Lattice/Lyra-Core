@@ -86,8 +86,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-
-        ILogger _log;
+        readonly ILogger _log;
 
         private IList<string> _validNodes;
 
@@ -241,10 +240,10 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public async Task WaitForClose()
+        public async Task WaitForCloseAsync()
         {
             if (Done != null)
-                await Done.AsTask();
+                await Done.AsTaskAsync();
         }
 
         public void Close()

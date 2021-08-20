@@ -48,7 +48,7 @@ namespace Neo.Network.P2P
         private void WsReceive()
         {
             byte[] buffer = new byte[512];
-            ws.ReceiveAsync(buffer, CancellationToken.None).PipeTo(Self,
+            _ = ws.ReceiveAsync(buffer, CancellationToken.None).PipeTo(Self,
                 success: p =>
                 {
                     switch (p.MessageType)
@@ -136,7 +136,7 @@ namespace Neo.Network.P2P
             else
             {
                 ArraySegment<byte> segment = new ArraySegment<byte>(data.ToArray());
-                ws.SendAsync(segment, WebSocketMessageType.Binary, true, CancellationToken.None).PipeTo(Self,
+                _ = ws.SendAsync(segment, WebSocketMessageType.Binary, true, CancellationToken.None).PipeTo(Self,
                     success: () => Ack.Instance,
                     failure: ex => new Tcp.ErrorClosed(ex.Message));
             }

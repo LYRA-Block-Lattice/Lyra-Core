@@ -186,10 +186,10 @@ namespace Lyra.Client.CLI
                     case COMMAND_PRINT_BLOCK:
                         Console.WriteLine("Please enter transaction block index: ");
                         string blockindex = Console.ReadLine();
-                        Console.WriteLine(_wallet.PrintBlock(blockindex));
+                        Console.WriteLine(await _wallet.PrintBlockAsync(blockindex));
                         break;
                     case COMMAND_SYNC:
-                        var sync_result = await _wallet.Sync(null);
+                        var sync_result = await _wallet.SyncAsync(null);
                         Console.WriteLine("Sync Result: " + sync_result.ToString());
                         break;
                     //case COMMAND_RESYNC:
@@ -197,7 +197,7 @@ namespace Lyra.Client.CLI
                     //    Console.WriteLine("Sync Result: " + sync_result2.ToString());
                     //    break;
                     case COMMAND_SYNCFEE:
-                        var sfeeResult = await _wallet.SyncNodeFees();
+                        var sfeeResult = await _wallet.SyncNodeFeesAsync();
                         Console.WriteLine($"Sync Fees Result: {sfeeResult}");
                         break;
                     //case COMMAND_TRADE_ORDER:
@@ -210,7 +210,7 @@ namespace Lyra.Client.CLI
                     case COMMAND_IMPORT_ACCOUNT:
                         Console.WriteLine("Please enter private key of the account to import: ");
                         string imported_private_key = Console.ReadLine();
-                        var import_result = await _wallet.ImportAccount(imported_private_key);
+                        var import_result = await _wallet.ImportAccountAsync(imported_private_key);
                         Console.WriteLine("Import Result: " + import_result.ResultCode.ToString());
                         break;
                     case COMMAND_CREATE_POOL:
@@ -439,7 +439,7 @@ namespace Lyra.Client.CLI
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
-                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token0, token0ToSwap, swapCalToken0.MinimumReceived);
+                            var swapToken0Result = await _wallet.SwapTokenAsync(token0, token1, token0, token0ToSwap, swapCalToken0.MinimumReceived);
                             if (swapToken0Result.Successful())
                             {
                                 await Task.Delay(3000);     // wait for the withdraw block to generate
@@ -466,7 +466,7 @@ namespace Lyra.Client.CLI
                         if (ReadYesNoAnswer())
                         {
                             Console.WriteLine($"Ok. swap token.");
-                            var swapToken0Result = await _wallet.SwapToken(token0, token1, token1, token1ToSwap, token0ToGet);
+                            var swapToken0Result = await _wallet.SwapTokenAsync(token0, token1, token1, token1ToSwap, token0ToGet);
                             if (swapToken0Result.Successful())
                             {
                                 await Task.Delay(3000);     // wait for the withdraw block to generate
@@ -580,7 +580,6 @@ namespace Lyra.Client.CLI
          */
         async Task ProcessRedeemRewardsTradeOrderAsync()
         {
-            decimal discount_amount;
             string reward_token_code;
 
             Console.WriteLine("Reward Token Code: ");
@@ -588,9 +587,9 @@ namespace Lyra.Client.CLI
 
             Console.WriteLine("Desired discount $$ Amount: ");
             string amountstr = Console.ReadLine();
-            decimal.TryParse(amountstr, out discount_amount);
+            decimal.TryParse(amountstr, out decimal discount_amount);
 
-            var result = await _wallet.RedeemRewards(reward_token_code, discount_amount);
+            var result = await _wallet.RedeemRewardsAsync(reward_token_code, discount_amount);
 
             if (result.ResultCode == APIResultCodes.Success)
             {
@@ -626,9 +625,9 @@ namespace Lyra.Client.CLI
 
             APIResultCodes send_result;
             if (string.IsNullOrEmpty(ticker))
-                send_result = (await _wallet.Send(amount, destination)).ResultCode;
+                send_result = (await _wallet.SendAsync(amount, destination)).ResultCode;
             else
-                send_result = (await _wallet.Send(amount, destination, ticker)).ResultCode;
+                send_result = (await _wallet.SendAsync(amount, destination, ticker)).ResultCode;
 
             if (send_result != APIResultCodes.Success)
             {
@@ -662,9 +661,9 @@ namespace Lyra.Client.CLI
             APIResultCodes result;
 
             if (IssueNewNFTInstance)
-                result = (await _wallet.IssueNFT(destination, ticker, serial_number)).ResultCode;
+                result = (await _wallet.IssueNFTAsync(destination, ticker, serial_number)).ResultCode;
             else
-                result = (await _wallet.SendNFT(destination, ticker, serial_number)).ResultCode;
+                result = (await _wallet.SendNFTAsync(destination, ticker, serial_number)).ResultCode;
 
             if (result != APIResultCodes.Success)
             {
@@ -733,7 +732,7 @@ namespace Lyra.Client.CLI
             //string ticker = domainname + "." + tokenname;
 
 
-            var result = await _wallet.CreateToken(tokenname, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, ContractTypes.Custom, tags);
+            var result = await _wallet.CreateTokenAsync(tokenname, domainname, desc, Convert.ToSByte(precision), Convert.ToDecimal(supply), isFinalSupply, owner, address, null, ContractTypes.Custom, tags);
 
             if (result.ResultCode != APIResultCodes.Success)
             {
@@ -795,7 +794,7 @@ namespace Lyra.Client.CLI
                 tags.Add(tag_key, tag_value);
             }
 
-            var result = await _wallet.CreateNFT(tokenname, domainname, desc, Convert.ToDecimal(supply), isFinalSupply, owner, address, icon, image, tags);
+            var result = await _wallet.CreateNFTAsync(tokenname, domainname, desc, Convert.ToDecimal(supply), isFinalSupply, owner, address, icon, image, tags);
 
             if (result.ResultCode != APIResultCodes.Success)
             {
@@ -894,7 +893,7 @@ namespace Lyra.Client.CLI
             
             if (start_height > 1) // prepare the first previous block 
             {
-                block = await _wallet.GetBlockByIndex(start_height - 1);
+                block = await _wallet.GetBlockByIndexAsync(start_height - 1);
                 blocks.Add(start_height - 1, block);
             }
 
@@ -902,7 +901,7 @@ namespace Lyra.Client.CLI
             for (long i = start_height; i <= end_height; i++)
             {
                 previous_block = block;
-                block = await _wallet.GetBlockByIndex(i);
+                block = await _wallet.GetBlockByIndexAsync(i);
                 if (block == null)
                     continue;
                 blocks.Add(i, block);

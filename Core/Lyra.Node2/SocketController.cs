@@ -47,7 +47,7 @@ namespace Lyra.Node
                         catch { }
                     }
                 }
-                catch(Exception ex)
+                catch
                 {
 
                 }

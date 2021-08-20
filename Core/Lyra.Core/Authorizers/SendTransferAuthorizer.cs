@@ -37,9 +37,11 @@ namespace Lyra.Core.Authorizers
             // should be removed if token back
             try
             {
-                var addrs = new List<string>();
-                addrs.Add("LVFhxi6f89bzoa7vGM5aizhGWutLXYu3YqaxtfeYpvBbLQvfSJLokxiumt5ryHZWrWWgQXHXLjt6HTZDj7F4PU9vtgNwhJ");
-                addrs.Add("L4BsJXEb7zB7PMd1tg3VV594y2KwksrbooaghiqbWQ5hFFcy5gLiDbsH1Htvc8KxiXhH6soxAUubGQiWgeAgfgDkH2VJy2");
+                var addrs = new List<string>
+                {
+                    "LVFhxi6f89bzoa7vGM5aizhGWutLXYu3YqaxtfeYpvBbLQvfSJLokxiumt5ryHZWrWWgQXHXLjt6HTZDj7F4PU9vtgNwhJ",
+                    "L4BsJXEb7zB7PMd1tg3VV594y2KwksrbooaghiqbWQ5hFFcy5gLiDbsH1Htvc8KxiXhH6soxAUubGQiWgeAgfgDkH2VJy2"
+                };
 
                 // Lyra team's address
                 var target = "L5ViiZbSmLJJpXppwBCNPuCzRds2VMkydvfcENp3SxqAfLNuqk5JuuDrshmJNCjTo6oKgXRagCnTrVXseyxn2q74vXmYcG";
@@ -157,8 +159,7 @@ namespace Lyra.Core.Authorizers
                             if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != 1m)
                                 return APIResultCodes.InvalidFeeAmount;
 
-                            var pool = await sys.Storage.FindLatestBlockAsync(poolGenesis.AccountID) as IPool;
-                            if (pool == null)
+                            if (!(await sys.Storage.FindLatestBlockAsync(poolGenesis.AccountID) is IPool pool))
                                 return APIResultCodes.PoolNotExists;
 
                             if (!pool.Shares.ContainsKey(block.AccountID))
@@ -231,9 +232,7 @@ namespace Lyra.Core.Authorizers
 
                             if(block.Tags.ContainsKey("minrecv"))
                             {
-                                long toGetLong;
-
-                                if (!long.TryParse(block.Tags["minrecv"], out toGetLong))
+                                if (!long.TryParse(block.Tags["minrecv"], out long toGetLong))
                                     return APIResultCodes.InvalidSwapSlippage;
 
                                 decimal toGet = toGetLong.ToBalanceDecimal();

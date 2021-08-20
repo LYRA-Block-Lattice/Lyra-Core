@@ -39,7 +39,7 @@ namespace Lyra.Core.Authorizers
         //        ActiveBuyOrders.Remove(order.Hash);
         //}
 
-        public async Task<TradeBlock> Match(TradeOrderBlock order)
+        public async Task<TradeBlock> MatchAsync(TradeOrderBlock order)
         {
             // Currently we only support nonfungible trades, with one trade per order (MaxQuantity = 1).
             // An order becomes inactive after first trade/execution.
@@ -50,7 +50,7 @@ namespace Lyra.Core.Authorizers
             if (order.OrderType == TradeOrderTypes.Sell)
                 return null;
 
-            var active_sellorders = await getActiveSellOrders(order.BuyTokenCode, order.SellTokenCode);
+            var active_sellorders = await getActiveSellOrdersAsync(order.BuyTokenCode, order.SellTokenCode);
 
             if (active_sellorders == null)
                 return null;
@@ -133,7 +133,7 @@ namespace Lyra.Core.Authorizers
         // If neither SellToken nor BuyToken is specified, and OrderType is "All", it will return the  list of all active orders in the network.
         /// </returns>
         /// </summary>
-        public async Task<List<TradeOrderBlock>> GetActiveTradeOrders(string SellTokenCode, string BuyTokenCode, TradeOrderListTypes OrderType)
+        public async Task<List<TradeOrderBlock>> GetActiveTradeOrdersAsync(string SellTokenCode, string BuyTokenCode, TradeOrderListTypes OrderType)
         {
             var result_list = new List<TradeOrderBlock>();
 
@@ -145,7 +145,7 @@ namespace Lyra.Core.Authorizers
                 throw new ApplicationException("Not supported");
 
             
-            return await getActiveSellOrders(SellTokenCode, BuyTokenCode);
+            return await getActiveSellOrdersAsync(SellTokenCode, BuyTokenCode);
 
             //if (OrderType == TradeOrderListTypes.All || OrderType == TradeOrderListTypes.SellOnly)
             //{
@@ -163,23 +163,23 @@ namespace Lyra.Core.Authorizers
             //return result_list;
         }
 
-        private async Task<List<TradeOrderBlock>> getActiveSellOrders(string SellTokenCode, string BuyTokenCode)
+        private async Task<List<TradeOrderBlock>> getActiveSellOrdersAsync(string SellTokenCode, string BuyTokenCode)
         {
             var active_sellorders = new List<TradeOrderBlock>();
             List<TradeOrderBlock> sellorders;
             if (SellTokenCode == "*")
-                sellorders = await _AccountCollection.GetSellTradeOrdersForToken(BuyTokenCode);
+                sellorders = await _AccountCollection.GetSellTradeOrdersForTokenAsync(BuyTokenCode);
             else
-                sellorders = await _AccountCollection.GetSellTradeOrders(SellTokenCode, BuyTokenCode);
+                sellorders = await _AccountCollection.GetSellTradeOrdersAsync(SellTokenCode, BuyTokenCode);
 
             // now let's filter out all inactive orders
             foreach (var order in sellorders)
             {
-                var cancel_block = await _AccountCollection.GetCancelTradeOrderBlock(order.Hash);
+                var cancel_block = await _AccountCollection.GetCancelTradeOrderBlockAsync(order.Hash);
                 if (cancel_block != null)
                     continue;
 
-                var execute_block = await _AccountCollection.GetExecuteTradeOrderBlock(order.Hash);
+                var execute_block = await _AccountCollection.GetExecuteTradeOrderBlockAsync(order.Hash);
                 if (execute_block != null)
                     continue;
                

@@ -38,12 +38,12 @@ namespace Lyra.Core.Decentralize
                 return false;
         }
 
-        public async virtual Task ProcessMessage(ConsensusMessage msg)
+        public async virtual Task ProcessMessageAsync(ConsensusMessage msg)
         {
             //_log.LogInformation($"ProcessMessage {msg.MsgType} _state is null? {!IsStateCreated()}");
             if(msg is AuthorizingMsg || msg is ViewChangeRequestMessage)
             {
-                await InternalProcessMessage(msg);
+                await InternalProcessMessageAsync(msg);
 
                 if(IsStateCreated())
                 {
@@ -56,7 +56,7 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                await InternalProcessMessage(msg);
+                await InternalProcessMessageAsync(msg);
                 await ProcessQueueAsync();
             }
         }
@@ -65,9 +65,8 @@ namespace Lyra.Core.Decentralize
         {
             while (_outOfOrderedMessages.Count > 0)
             {
-                ConsensusMessage msg1;
-                if (_outOfOrderedMessages.TryDequeue(out msg1))
-                    await InternalProcessMessage(msg1);
+                if (_outOfOrderedMessages.TryDequeue(out ConsensusMessage msg1))
+                    await InternalProcessMessageAsync(msg1);
                 else
                     await Task.Delay(10);
             }
@@ -78,7 +77,7 @@ namespace Lyra.Core.Decentralize
             return false;
         }
 
-        protected virtual Task InternalProcessMessage(ConsensusMessage msg)
+        protected virtual Task InternalProcessMessageAsync(ConsensusMessage msg)
         {
             throw new InvalidOperationException("Must override.");
         }

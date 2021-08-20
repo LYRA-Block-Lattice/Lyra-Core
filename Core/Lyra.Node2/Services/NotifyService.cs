@@ -47,7 +47,7 @@ namespace Lyra.Node2.Services
                 nc.tcs.TrySetResult(true);
             }
         }
-        public async Task<GetNotificationAPIResult> GetNotification(string AccountID, string Signature)
+        public async Task<GetNotificationAPIResult> GetNotificationAsync(string AccountID, string Signature)
         {
             //TODO verify signature here
             NotifyClient nc;

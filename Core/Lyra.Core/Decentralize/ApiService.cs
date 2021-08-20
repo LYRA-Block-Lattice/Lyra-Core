@@ -38,7 +38,7 @@ namespace Lyra.Core.Decentralize
             return await NodeService.Dag.Consensus.Ask<List<TransStats>>(new ConsensusService.AskForStats());
         }
 
-        public async Task<string> GetDbStats()
+        public async Task<string> GetDbStatsAsync()
         {
             return await NodeService.Dag.Consensus.Ask<string>(new ConsensusService.AskForDbStats());
         }
@@ -85,9 +85,9 @@ namespace Lyra.Core.Decentralize
         {
             var result = new AuthorizationAPIResult();
 
-            var state = await NodeService.Dag.Consensus.Ask<AuthState>(new ConsensusService.AskForConsensusState { block = block1 });
+            var state = await NodeService.Dag.Consensus.Ask<AuthState>(new ConsensusService.AskForConsensusState { ReqBlock = block1 });
             NodeService.Dag.Consensus.Tell(state);
-            await state.WaitForClose();
+            await state.WaitForCloseAsync();
             var consensusResult = state.CommitConsensus;
 
             if (consensusResult == ConsensusResult.Yea)
@@ -106,43 +106,43 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithGenesisAsync(LyraTokenGenesisBlock block)
         {
             return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccountAsync(OpenWithReceiveTransferBlock openReceiveBlock)
         {
             return await Pre_PrepareAsync(openReceiveBlock).ConfigureAwait(false);
         }
 
 
-        public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithImportAsync(OpenAccountWithImportBlock block)
         {
             return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
-        public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
+        public async Task<AuthorizationAPIResult> SendTransferAsync(SendTransferBlock sendBlock)
         {
             return await Pre_PrepareAsync(sendBlock).ConfigureAwait(false);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAsync(ReceiveTransferBlock receiveBlock)
         {
             return await Pre_PrepareAsync(receiveBlock).ConfigureAwait(false);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock receiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveAuthorizerFeeBlock receiveBlock)
         {
             return await Pre_PrepareAsync(receiveBlock).ConfigureAwait(false);
         }
 
-        public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
+        public async Task<AuthorizationAPIResult> ImportAccountAsync(ImportAccountBlock block)
         {
             return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
-        public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
+        public async Task<AuthorizationAPIResult> CreateTokenAsync(TokenGenesisBlock tokenBlock)
         {
             var result = new AuthorizationAPIResult();
 
@@ -250,7 +250,7 @@ namespace Lyra.Core.Decentralize
 
         #region Reward Trade Athorization Methods 
         
-        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock tradeOrderBlock)
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrderAsync(TradeOrderBlock tradeOrderBlock)
         {
             var result = new TradeOrderAuthorizationAPIResult();
 
@@ -260,7 +260,7 @@ namespace Lyra.Core.Decentralize
 
                 if (auth_result.ResultCode == APIResultCodes.TradeOrderMatchFound)
                 {
-                    var result_block = await NodeService.Dag.TradeEngine.Match(tradeOrderBlock);
+                    var result_block = await NodeService.Dag.TradeEngine.MatchAsync(tradeOrderBlock);
                     if (result_block != null)
                     {
                         result.ResultCode = APIResultCodes.TradeOrderMatchFound;
@@ -290,17 +290,17 @@ namespace Lyra.Core.Decentralize
         }
 
 
-        public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
+        public async Task<AuthorizationAPIResult> TradeAsync(TradeBlock block)
         {
             return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
-        public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> ExecuteTradeOrderAsync(ExecuteTradeOrderBlock block)
         {
              return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }
 
-        public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> CancelTradeOrderAsync(CancelTradeOrderBlock block)
         {
             return await Pre_PrepareAsync(block).ConfigureAwait(false);
         }

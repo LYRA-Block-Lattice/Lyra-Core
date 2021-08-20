@@ -113,7 +113,7 @@ namespace Lyra.Client.CLI
                 Console.WriteLine($"\nCurrent networkd ID: {NetworkId}\n");
 
                 var mgr = new WalletManager();
-                await mgr.RunWallet(this);
+                await mgr.RunWalletAsync(this);
             }
         }
 

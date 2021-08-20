@@ -12,12 +12,12 @@ namespace Lyra.Data.API
 {
     public class TransitWallet
     {
-        private string _signingPrivateKey;
-        private string _signingAccountId;
-        private string _accountId;
-        private SignHandler _signer;
+        private readonly string _signingPrivateKey;
+        private readonly string _signingAccountId;
+        private readonly string _accountId;
+        private readonly SignHandler _signer;
 
-        private LyraRestClient _rpcClient;
+        private readonly LyraRestClient _rpcClient;
 
         // for signature handler
         public string AccountId => _accountId;
@@ -46,7 +46,7 @@ namespace Lyra.Data.API
 
         public async Task<APIResultCodes> ReceiveAsync()
         {
-            var blockresult = await _rpcClient.GetLastServiceBlock();
+            var blockresult = await _rpcClient.GetLastServiceBlockAsync();
 
             if (blockresult.ResultCode != APIResultCodes.Success)
                 return blockresult.ResultCode;
@@ -54,7 +54,7 @@ namespace Lyra.Data.API
             ServiceBlock lastServiceBlock = blockresult.GetBlock() as ServiceBlock;
             try
             {
-                var lookup_result = await _rpcClient.LookForNewTransfer2(_accountId, _signer(lastServiceBlock.Hash));
+                var lookup_result = await _rpcClient.LookForNewTransfer2Async(_accountId, _signer(lastServiceBlock.Hash));
                 int max_counter = 0;
 
                 while (lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
@@ -63,11 +63,11 @@ namespace Lyra.Data.API
 
                     //PrintConLine($"Received new transaction, sending request for settlement...");
 
-                    var receive_result = await ReceiveTransfer(lookup_result);
+                    var receive_result = await ReceiveTransferAsync(lookup_result);
                     if (!receive_result.Successful())
                         return receive_result.ResultCode;
 
-                    lookup_result = await _rpcClient.LookForNewTransfer2(_accountId, _signer(lastServiceBlock.Hash));
+                    lookup_result = await _rpcClient.LookForNewTransfer2Async(_accountId, _signer(lastServiceBlock.Hash));
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -104,7 +104,7 @@ namespace Lyra.Data.API
             if (Amounts.Any(a => !previousBlock.Balances.ContainsKey(a.Key) || previousBlock.Balances[a.Key].ToBalanceDecimal() < a.Value))
                 return APIResultCodes.InsufficientFunds;
 
-            var blockresult = await _rpcClient.GetLastServiceBlock();
+            var blockresult = await _rpcClient.GetLastServiceBlockAsync();
 
             if (blockresult.ResultCode != APIResultCodes.Success)
                 return blockresult.ResultCode;
@@ -151,7 +151,7 @@ namespace Lyra.Data.API
             }
 
             AuthorizationAPIResult result;
-            result = await _rpcClient.SendTransfer(sendBlock);
+            result = await _rpcClient.SendTransferAsync(sendBlock);
             if(result.ResultCode == APIResultCodes.Success)
             {
                 LastTxHash = sendBlock.Hash;
@@ -164,12 +164,12 @@ namespace Lyra.Data.API
             return result.ResultCode;
         }
 
-        private async Task<AuthorizationAPIResult> ReceiveTransfer(NewTransferAPIResult2 new_transfer_info)
+        private async Task<AuthorizationAPIResult> ReceiveTransferAsync(NewTransferAPIResult2 new_transfer_info)
         {
             if (await GetLocalAccountHeightAsync() == 0) // if this is new account with no blocks
-                return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
+                return await OpenStandardAccountWithReceiveBlockAsync(new_transfer_info);
 
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _rpcClient.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -208,14 +208,14 @@ namespace Lyra.Data.API
 
             //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
 
-            var result = await _rpcClient.ReceiveTransfer(receiveBlock);
+            var result = await _rpcClient.ReceiveTransferAsync(receiveBlock);
 
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult2 new_transfer_info)
+        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlockAsync(NewTransferAPIResult2 new_transfer_info)
         {
-            var svcBlockResult = await _rpcClient.GetLastServiceBlock();
+            var svcBlockResult = await _rpcClient.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -242,7 +242,7 @@ namespace Lyra.Data.API
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 
-            var result = await _rpcClient.ReceiveTransferAndOpenAccount(openReceiveBlock);
+            var result = await _rpcClient.ReceiveTransferAndOpenAccountAsync(openReceiveBlock);
 
             //PrintCon(string.Format("{0}> ", AccountName));
             return result;
@@ -259,7 +259,7 @@ namespace Lyra.Data.API
 
         private async Task<TransactionBlock> GetLatestBlockAsync()
         {
-            var blockResult = await _rpcClient.GetLastBlock(_accountId);
+            var blockResult = await _rpcClient.GetLastBlockAsync(_accountId);
             if (blockResult.ResultCode == APIResultCodes.Success)
             {
                 return blockResult.GetBlock() as TransactionBlock;

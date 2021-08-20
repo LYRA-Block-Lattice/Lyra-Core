@@ -50,9 +50,9 @@ namespace StressTest
                         try
                         {
                             if (sender_wallet == null)
-                                sender_wallet = await RestoreSenderWallet();
+                                sender_wallet = await RestoreSenderWalletAsync();
 
-                            var send_result = await sender_wallet.Wallet.Send((decimal)0.000001, recipient_account_id);
+                            var send_result = await sender_wallet.Wallet.SendAsync((decimal)0.000001, recipient_account_id);
                             if (send_result.ResultCode != APIResultCodes.Success)
                             {
                                 throw new Exception(send_result.ResultCode.ToString());
@@ -79,7 +79,7 @@ namespace StressTest
 
                     for (int i = 0; i < Convert.ToInt32(Config.SendCount); i++)
                     {
-                        var receive_wallet_result = await SyncReceiveWallet(recipient_private_key, logger);
+                        var receive_wallet_result = await SyncReceiveWalletAsync(recipient_private_key, logger);
                         if (receive_wallet_result == APIResultCodes.Success)
                         {
                             log_message = $"Receive Success";
@@ -110,7 +110,7 @@ namespace StressTest
 
         }
 
-        private static async Task<APIResultCodes> SyncReceiveWallet(string recipient_private_key, ILogger logger)
+        private static async Task<APIResultCodes> SyncReceiveWalletAsync(string recipient_private_key, ILogger logger)
         {
             var result = new InMemWallet();
             var restore_result_code = await result.RestoreAsync(Config.NetworkId, Config.NodeURL, recipient_private_key);
@@ -124,7 +124,7 @@ namespace StressTest
             return restore_result_code;
         }
 
-        private static async Task<InMemWallet> RestoreSenderWallet()
+        private static async Task<InMemWallet> RestoreSenderWalletAsync()
         {
             var result = new InMemWallet();
             var restore_result_code = await result.RestoreAsync(Config.NetworkId, Config.NodeURL, Config.SenderPrivateKey);

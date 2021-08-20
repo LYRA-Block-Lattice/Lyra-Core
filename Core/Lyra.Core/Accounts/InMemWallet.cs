@@ -36,7 +36,7 @@ namespace Lyra.Core.Accounts
                 _wallet = Wallet.Create(storage, string.Empty, string.Empty, NetworkId, PrivateKey);
 
                 var rpcClient = LyraRestClient.Create(NetworkId, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a", NodeAPIURL);
-                var syncResult = await _wallet.Sync(rpcClient);
+                var syncResult = await _wallet.SyncAsync(rpcClient);
                 if (syncResult != APIResultCodes.Success)
                     _wallet = null;
                 return syncResult;

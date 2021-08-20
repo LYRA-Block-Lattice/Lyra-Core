@@ -21,8 +21,8 @@ namespace UnitTests
             var aggClient = new LyraAggregatedClient(networkId, false);
             await aggClient.InitAsync();
 
-            var svcBlock1 = await client.GetLastServiceBlock();
-            var svcBlock2 = await aggClient.GetLastServiceBlock();
+            var svcBlock1 = await client.GetLastServiceBlockAsync();
+            var svcBlock2 = await aggClient.GetLastServiceBlockAsync();
 
             Assert.AreEqual(svcBlock1, svcBlock2);
         }
@@ -36,21 +36,21 @@ namespace UnitTests
             await aggClient.InitAsync();
 
             var accountId = "LT8din6wm6SyfnqmmJN7jSnyrQjqAaRmixe2kKtTY4xpDBRtTxBmuHkJU9iMru5yqcNyL3Q21KDvHK45rkUS4f8tkXBBS3";
-            var svcBlock1 = await client.GetLastBlock(accountId);
-            var svcBlock2 = await aggClient.GetLastBlock(accountId);
+            var svcBlock1 = await client.GetLastBlockAsync(accountId);
+            var svcBlock2 = await aggClient.GetLastBlockAsync(accountId);
 
             Assert.AreEqual(svcBlock1.GetBlock().Hash, svcBlock2.GetBlock().Hash);
         }
 
         [TestMethod]
-        public async Task TestGetFee()
+        public async Task TestGetFeeAsync()
         {
             var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
             var aggClient = new LyraAggregatedClient(networkId, false);
             await aggClient.InitAsync();
 
-            var svcBlock1 = await client.GetFeeStatsAsync();
+            var svcBlock1 = client.GetFeeStats();
             var svcBlock2 = aggClient.GetFeeStats();
 
             Assert.AreEqual(svcBlock1, svcBlock2);

@@ -10,7 +10,7 @@ namespace Lyra.Shared
 {
     public class StopWatcher
     {
-        private static bool _enabled = false;
+        private static readonly bool _enabled = false;
         private static ConcurrentDictionary<string, List<StopwatcherData>> _data = new ConcurrentDictionary<string, List<StopwatcherData>>();
 
         public static ConcurrentDictionary<string, List<StopwatcherData>> Data => _data;
@@ -62,7 +62,7 @@ namespace Lyra.Shared
         //    }
         //}
 
-        public async static Task<T> Track<T>(Task<T> func, string message)
+        public async static Task<T> TrackAsync<T>(Task<T> func, string message)
         {
             if (!_enabled)
             {

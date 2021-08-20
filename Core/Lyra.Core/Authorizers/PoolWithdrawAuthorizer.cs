@@ -51,9 +51,11 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidPoolWithdrawAccountId;
 
             var usersShare = curShares[targetAccountId];
-            var amountsToSend = new Dictionary<string, decimal>();
-            amountsToSend.Add(poolGenesisBlock.Token0, curBalance[poolGenesisBlock.Token0] * usersShare);
-            amountsToSend.Add(poolGenesisBlock.Token1, curBalance[poolGenesisBlock.Token1] * usersShare);
+            var amountsToSend = new Dictionary<string, decimal>
+            {
+                { poolGenesisBlock.Token0, curBalance[poolGenesisBlock.Token0] * usersShare },
+                { poolGenesisBlock.Token1, curBalance[poolGenesisBlock.Token1] * usersShare }
+            };
 
             nextBalance[poolGenesisBlock.Token0] -= amountsToSend[poolGenesisBlock.Token0];
             nextBalance[poolGenesisBlock.Token1] -= amountsToSend[poolGenesisBlock.Token1];

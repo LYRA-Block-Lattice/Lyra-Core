@@ -18,9 +18,9 @@ namespace Lyra.Core.API
     public class LyraRestClient : ILyraAPI
     {
         public string ServerThumbPrint { get; private set; }
-        private string _appName;
-        private string _appVersion;
-        private string _url;
+        private readonly string _appName;
+        private readonly string _appVersion;
+        private readonly string _url;
 
         public string Host { get; private set; }
         private CancellationTokenSource _cancel;
@@ -57,15 +57,17 @@ namespace Lyra.Core.API
             }
             catch { }
 
-            var client = new HttpClient(handler);
-            client.BaseAddress = new Uri(_url);
-            //_client.DefaultRequestHeaders.Accept.Clear();
-            //_client.DefaultRequestHeaders.Accept.Add(
-            //    new MediaTypeWithQualityHeaderValue("application/json"));
-            //#if DEBUG
-            //            _client.Timeout = new TimeSpan(0, 0, 30);
-            //#else
-            client.Timeout = new TimeSpan(0, 0, 15);
+            var client = new HttpClient(handler)
+            {
+                BaseAddress = new Uri(_url),
+                //_client.DefaultRequestHeaders.Accept.Clear();
+                //_client.DefaultRequestHeaders.Accept.Add(
+                //    new MediaTypeWithQualityHeaderValue("application/json"));
+                //#if DEBUG
+                //            _client.Timeout = new TimeSpan(0, 0, 30);
+                //#else
+                Timeout = new TimeSpan(0, 0, 15)
+            };
             //#endif
             return client;
         }
@@ -73,9 +75,11 @@ namespace Lyra.Core.API
         public static LyraRestClient Create(string networkId, string platform, string appName, string appVersion, string apiUrl = null)
         {
             var url = apiUrl == null ? LyraGlobal.SelectNode(networkId) + "Node/" : apiUrl;
-            var uri = new Uri(url);            
-            var restClient = new LyraRestClient(platform, appName, appVersion, url);
-            restClient.Host = uri.Host;
+            var uri = new Uri(url);
+            var restClient = new LyraRestClient(platform, appName, appVersion, url)
+            {
+                Host = uri.Host
+            };
             //if (!await restClient.CheckApiVersion().ConfigureAwait(false))
             //    throw new Exception("Unable to use API. Must upgrade your App.");
             //else
@@ -89,81 +93,73 @@ namespace Lyra.Core.API
             _cancel = new CancellationTokenSource();
         }
 
-        private async Task<AuthorizationAPIResult> PostBlock(string action, Block block)
+        private async Task<AuthorizationAPIResult> PostBlockAsync(string action, Block block)
         {
-            return await PostBlock<AuthorizationAPIResult>(action, block).ConfigureAwait(false);
+            return await PostBlockAsync<AuthorizationAPIResult>(action, block).ConfigureAwait(false);
         }
 
-        private async Task<T> PostBlock<T>(string action, object obj)
+        private async Task<T> PostBlockAsync<T>(string action, object obj)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.PostAsJsonAsync(
+                action, obj, _cancel.Token).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.PostAsJsonAsync(
-                    action, obj, _cancel.Token).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<T>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<T>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        private async Task<T> Get<T>(string action, Dictionary<string, string> args)
+        private async Task<T> GetAsync<T>(string action, Dictionary<string, string> args)
         {
             var url = $"{action}/?" + args?.Aggregate(new StringBuilder(),
                           (sb, kvp) => sb.AppendFormat("{0}{1}={2}",
                                        sb.Length > 0 ? "&" : "", kvp.Key, kvp.Value),
                           sb => sb.ToString());
 
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<T>();
-                    return result;
-                }
-                else
-                    throw new Exception($"Web Api Failed for {_url}");
+                var result = await response.Content.ReadAsAsync<T>();
+                return result;
             }
+            else
+                throw new Exception($"Web Api Failed for {_url}");
         }
 
-        private async Task<BlockAPIResult> GetBlockByUrl(string url)
+        private async Task<BlockAPIResult> GetBlockByUrlAsync(string url)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<BlockAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<BlockAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        private async Task<MultiBlockAPIResult> GetMultiBlockByUrl(string url)
+        private async Task<MultiBlockAPIResult> GetMultiBlockByUrlAsync(string url)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync(url, _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<MultiBlockAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        private async Task<bool> CheckApiVersion()
+        private async Task<bool> CheckApiVersionAsync()
         {
-            var ret = await GetVersion(LyraGlobal.ProtocolVersion, _appName, _appVersion);
+            var ret = await GetVersionAsync(LyraGlobal.ProtocolVersion, _appName, _appVersion);
             if (ret.MustUpgradeToConnect)
                 return false;
             else
@@ -172,205 +168,199 @@ namespace Lyra.Core.API
 
         public Task<BillBoard> GetBillBoardAsync()
         {
-            return Get<BillBoard>("GetBillboard", null);
+            return GetAsync<BillBoard>("GetBillboard", null);
         }
 
         public Task<List<TransStats>> GetTransStatsAsync()
         {
-            return Get<List<TransStats>>("GetTransStats", null);
+            return GetAsync<List<TransStats>>("GetTransStats", null);
         }
 
-        public Task<string> GetDbStats()
+        public Task<string> GetDbStatsAsync()
         {
-            return Get<string>("GetDbStats", null);
+            return GetAsync<string>("GetDbStats", null);
         }
 
-        public async Task<GetSyncStateAPIResult> GetSyncState()
+        public async Task<GetSyncStateAPIResult> GetSyncStateAsync()
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync("GetSyncState", _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync("GetSyncState", _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<GetSyncStateAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<GetSyncStateAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
+        public async Task<GetVersionAPIResult> GetVersionAsync(int apiVersion, string appName, string appVersion)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            var api_call = $"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}";
+            HttpResponseMessage response = await client.GetAsync(api_call, _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                var api_call = $"GetVersion/?apiVersion={apiVersion}&appName={appName}&appVersion={appVersion}";
-                HttpResponseMessage response = await client.GetAsync(api_call, _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<GetVersionAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<GetVersionAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> CreateTokenAsync(TokenGenesisBlock block)
         {
-            return await PostBlock("CreateToken", block);
+            return await PostBlockAsync("CreateToken", block);
         }
 
-        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
+        public async Task<AccountHeightAPIResult> GetAccountHeightAsync(string AccountId)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync($"GetAccountHeight/?AccountId={AccountId}", _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync($"GetAccountHeight/?AccountId={AccountId}", _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
         #region All reward trade methods
 
-        public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
+        public async Task<TradeAPIResult> LookForNewTradeAsync(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
-            var args = new Dictionary<string, string>();
-            args.Add("AccountId", AccountId);
-            args.Add("BuyTokenCode", BuyTokenCode);
-            args.Add("SellTokenCode", SellTokenCode);
-            args.Add("Signature", Signature);
-            return await Get<TradeAPIResult>("LookForNewTrade", args);
+            var args = new Dictionary<string, string>
+            {
+                { "AccountId", AccountId },
+                { "BuyTokenCode", BuyTokenCode },
+                { "SellTokenCode", SellTokenCode },
+                { "Signature", Signature }
+            };
+            return await GetAsync<TradeAPIResult>("LookForNewTrade", args);
         }
 
-        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrdersAsync(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
-            var args = new Dictionary<string, string>();
-            args.Add("AccountId", AccountId);
-            args.Add("SellToken", SellToken);
-            args.Add("BuyToken", BuyToken);
-            args.Add("OrderType", OrderType.ToString());
-            args.Add("Signature", Signature);
-            return await Get<ActiveTradeOrdersAPIResult>("GetActiveTradeOrders", args);
+            var args = new Dictionary<string, string>
+            {
+                { "AccountId", AccountId },
+                { "SellToken", SellToken },
+                { "BuyToken", BuyToken },
+                { "OrderType", OrderType.ToString() },
+                { "Signature", Signature }
+            };
+            return await GetAsync<ActiveTradeOrdersAPIResult>("GetActiveTradeOrders", args);
         }
 
-        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock tradeOrderBlock)
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrderAsync(TradeOrderBlock tradeOrderBlock)
         {
             //return await PostBlock("TradeOrder", tradeOrderBlock);
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.PostAsJsonAsync("TradeOrder", tradeOrderBlock).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.PostAsJsonAsync("TradeOrder", tradeOrderBlock).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<TradeOrderAuthorizationAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<TradeOrderAuthorizationAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
+        public async Task<AuthorizationAPIResult> TradeAsync(TradeBlock block)
         {
-            return await PostBlock("Trade", block);
+            return await PostBlockAsync("Trade", block);
         }
 
-        public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> ExecuteTradeOrderAsync(ExecuteTradeOrderBlock block)
         {
-            return await PostBlock("ExecuteTradeOrder", block);
+            return await PostBlockAsync("ExecuteTradeOrder", block);
         }
 
-        public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> CancelTradeOrderAsync(CancelTradeOrderBlock block)
         {
-            return await PostBlock("CancelTradeOrder", block);
+            return await PostBlockAsync("CancelTradeOrder", block);
         }
 
         #endregion
 
-        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
         {
-            return await GetBlockByUrl($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
+            return await GetBlockByUrlAsync($"GetBlockByHash/?AccountId={AccountId}&Signature={Signature}&Hash={Hash}");
         }
 
-        public async Task<BlockAPIResult> GetBlock(string Hash)
+        public async Task<BlockAPIResult> GetBlockAsync(string Hash)
         {
-            return await GetBlockByUrl($"GetBlock/?Hash={Hash}");
+            return await GetBlockByUrlAsync($"GetBlock/?Hash={Hash}");
         }
 
-        public async Task<BlockAPIResult> GetBlockBySourceHash(string Hash)
+        public async Task<BlockAPIResult> GetBlockBySourceHashAsync(string Hash)
         {
-            return await GetBlockByUrl($"GetBlockBySourceHash/?Hash={Hash}");
+            return await GetBlockByUrlAsync($"GetBlockBySourceHash/?Hash={Hash}");
         }
 
-        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
+        public async Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, long Index)
         {
-            return await GetBlockByUrl($"GetBlockByIndex/?AccountId={AccountId}&Index={Index}");
+            return await GetBlockByUrlAsync($"GetBlockByIndex/?AccountId={AccountId}&Index={Index}");
         }
 
-        public async Task<BlockAPIResult> GetLastBlock(string AccountId)
+        public async Task<BlockAPIResult> GetLastBlockAsync(string AccountId)
         {
-            return await GetBlockByUrl($"GetLastBlock/?AccountId={AccountId}");
+            return await GetBlockByUrlAsync($"GetLastBlock/?AccountId={AccountId}");
         }
 
-        public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
+        public async Task<BlockAPIResult> GetServiceBlockByIndexAsync(string blockType, long Index)
         {
-            return await GetBlockByUrl($"GetServiceBlockByIndex/?blockType={blockType}&Index={Index}");
+            return await GetBlockByUrlAsync($"GetServiceBlockByIndex/?blockType={blockType}&Index={Index}");
         }
 
-        public async Task<BlockAPIResult> GetLastServiceBlock()
+        public async Task<BlockAPIResult> GetLastServiceBlockAsync()
         {
-            return await GetBlockByUrl($"GetLastServiceBlock");
+            return await GetBlockByUrlAsync($"GetLastServiceBlock");
         }
 
-        public async Task<BlockAPIResult> GetLastConsolidationBlock()
+        public async Task<BlockAPIResult> GetLastConsolidationBlockAsync()
         {
-            return await GetBlockByUrl($"GetLastConsolidationBlock");
+            return await GetBlockByUrlAsync($"GetLastConsolidationBlock");
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
+        public async Task<MultiBlockAPIResult> GetBlocksByConsolidationAsync(string AccountId, string Signature, string consolidationHash)
         {
-            return await GetMultiBlockByUrl($"GetBlocksByConsolidation/?AccountId={AccountId}&Signature={Signature}&consolidationHash={consolidationHash}");
+            return await GetMultiBlockByUrlAsync($"GetBlocksByConsolidation/?AccountId={AccountId}&Signature={Signature}&consolidationHash={consolidationHash}");
         }
 
-        public async Task<MultiBlockAPIResult> GetBlockByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<MultiBlockAPIResult> GetBlockByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
-            return await GetBlocksByTimeRange(startTime.Ticks, endTime.Ticks);
+            return await GetBlocksByTimeRangeAsync(startTime.Ticks, endTime.Ticks);
         }
 
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
-            return await GetBlockHashesByTimeRange(startTime.Ticks, endTime.Ticks);
+            return await GetBlockHashesByTimeRangeAsync(startTime.Ticks, endTime.Ticks);
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRangeAsync(long startTimeTicks, long endTimeTicks)
         {
-            return await GetMultiBlockByUrl($"GetBlockByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
+            return await GetMultiBlockByUrlAsync($"GetBlockByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}");
         }
 
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRangeAsync(long startTimeTicks, long endTimeTicks)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync($"GetBlockHashesByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}", _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync($"GetBlockHashesByTimeRange2/?startTimeTicks={startTimeTicks}&endTimeTicks={endTimeTicks}", _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string Signature, long startHeight, int count)
         {
-            return await GetMultiBlockByUrl($"GetConsolidationBlocks/?AccountId={AccountId}&Signature={Signature}&startHeight={startHeight}&count={count}");
+            return await GetMultiBlockByUrlAsync($"GetConsolidationBlocks/?AccountId={AccountId}&Signature={Signature}&startHeight={startHeight}&count={count}");
         }
 
         //public async Task<GetListStringAPIResult> GetUnConsolidatedBlocks(string AccountId, string Signature)
@@ -385,184 +375,168 @@ namespace Lyra.Core.API
         //        throw new Exception("Web Api Failed.");
         //}
 
-        public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync($"GetNonFungibleTokens/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync($"GetNonFungibleTokens/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<NonFungibleListAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<NonFungibleListAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<AccountHeightAPIResult> GetSyncHeight()
+        public async Task<AccountHeightAPIResult> GetSyncHeightAsync()
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync("GetSyncHeight", _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync("GetSyncHeight", _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<AccountHeightAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature)
         {
-            return await GetBlockByUrl($"GetTokenGenesisBlock/?AccountId={AccountId}&TokenTicker={TokenTicker}&Signature={Signature}");
+            return await GetBlockByUrlAsync($"GetTokenGenesisBlock/?AccountId={AccountId}&TokenTicker={TokenTicker}&Signature={Signature}");
         }
 
-        public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string Signature, string keyword)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync($"GetTokenNames/?AccountId={AccountId}&Signature={Signature}&keyword={keyword}", _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync($"GetTokenNames/?AccountId={AccountId}&Signature={Signature}&keyword={keyword}", _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<GetListStringAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
+        public async Task<AuthorizationAPIResult> ImportAccountAsync(ImportAccountBlock block)
         {
-            return await PostBlock("ImportAccount", block);
+            return await PostBlockAsync("ImportAccount", block);
         }
 
-        public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult> LookForNewTransferAsync(string AccountId, string Signature)
         {
-            using (var client = CreateClient())
+            using HttpClient client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync($"LookForNewTransfer/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync($"LookForNewTransfer/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<NewTransferAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<NewTransferAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync($"LookForNewTransfer2/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync($"LookForNewTransfer2/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<NewTransferAPIResult2>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<NewTransferAPIResult2>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
+        public async Task<NewFeesAPIResult> LookForNewFeesAsync(string AccountId, string Signature)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.GetAsync($"LookForNewFees/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.GetAsync($"LookForNewFees/?AccountId={AccountId}&Signature={Signature}", _cancel.Token);
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<NewFeesAPIResult>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<NewFeesAPIResult>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithGenesisAsync(LyraTokenGenesisBlock block)
         {
-            return await PostBlock("OpenAccountWithGenesis", block);
+            return await PostBlockAsync("OpenAccountWithGenesis", block);
         }
 
-        public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithImportAsync(OpenAccountWithImportBlock block)
         {
-            return await PostBlock("OpenAccountWithImport", block);
+            return await PostBlockAsync("OpenAccountWithImport", block);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAsync(ReceiveTransferBlock block)
         {
-            return await PostBlock("ReceiveTransfer", block);
+            return await PostBlockAsync("ReceiveTransfer", block);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveAuthorizerFeeBlock block)
         {
-            return await PostBlock("ReceiveFee", block);
+            return await PostBlockAsync("ReceiveFee", block);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccountAsync(OpenWithReceiveTransferBlock block)
         {
-            return await PostBlock("ReceiveTransferAndOpenAccount", block);
+            return await PostBlockAsync("ReceiveTransferAndOpenAccount", block);
         }
 
-        public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
+        public async Task<AuthorizationAPIResult> SendTransferAsync(SendTransferBlock block)
         {
-            return await PostBlock("SendTransfer", block);
+            return await PostBlockAsync("SendTransfer", block);
         }
 
-        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        public async Task<BlockAPIResult> GetServiceGenesisBlockAsync()
         {
-            return await GetBlockByUrl($"GetServiceGenesisBlock");
+            return await GetBlockByUrlAsync($"GetServiceGenesisBlock");
         }
 
-        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlockAsync()
         {
-            return await GetBlockByUrl($"GetLyraTokenGenesisBlock");
+            return await GetBlockByUrlAsync($"GetLyraTokenGenesisBlock");
         }
 
         public async Task<List<Voter>> GetVotersAsync(VoteQueryModel model)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.PostAsJsonAsync(
+                        "GetVoters", model, _cancel.Token).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.PostAsJsonAsync(
-                            "GetVoters", model, _cancel.Token).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<List<Voter>>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<List<Voter>>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
         public async Task<List<Vote>> FindVotesAsync(VoteQueryModel model)
         {
-            using (var client = CreateClient())
+            using var client = CreateClient();
+            HttpResponseMessage response = await client.PostAsJsonAsync(
+                        "FindVotes", model, _cancel.Token).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await client.PostAsJsonAsync(
-                            "FindVotes", model, _cancel.Token).ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadAsAsync<List<Vote>>();
-                    return result;
-                }
-                else
-                    throw new Exception("Web Api Failed.");
+                var result = await response.Content.ReadAsAsync<List<Vote>>();
+                return result;
             }
+            else
+                throw new Exception("Web Api Failed.");
         }
 
-        public async Task<FeeStats> GetFeeStatsAsync()
-        {
-            return await Get<FeeStats>("GetFeeStats", null);
-        }
+        //public FeeStats GetFeeStats()
+        //{
+        //    return await GetAsync<FeeStats>("GetFeeStats", null);
+        //}
 
         public List<Voter> GetVoters(VoteQueryModel model)
         {
@@ -574,41 +548,44 @@ namespace Lyra.Core.API
             throw new NotImplementedException();
         }
 
-        FeeStats INodeAPI.GetFeeStats()
+        public FeeStats GetFeeStats()
         {
             throw new NotImplementedException();
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
-            var args = new Dictionary<string, string>();
+            var args = new Dictionary<string, string>
+            {
+                { "startTime", startTime.ToLongTimeString() },
+                { "endTime", endTime.ToLongTimeString() }
+            };
 
-            args.Add("startTime", startTime.ToLongTimeString());
-            args.Add("endTime", endTime.ToLongTimeString());
-
-            return await Get<MultiBlockAPIResult>("GetBlocksByTimeRange", args);
+            return await GetAsync<MultiBlockAPIResult>("GetBlocksByTimeRange", args);
         }
 
-        public async Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
+        public async Task<TransactionsAPIResult> SearchTransactionsAsync(string accountId, long startTimeTicks, long endTimeTicks, int count)
         {
-            var args = new Dictionary<string, string>();
+            var args = new Dictionary<string, string>
+            {
+                { "accountId", accountId },
+                { "count", count.ToString() },
+                { "startTimeTicks", startTimeTicks.ToString() },
+                { "endTimeTicks", endTimeTicks.ToString() }
+            };
 
-            args.Add("accountId", accountId);
-            args.Add("count", count.ToString());
-            args.Add("startTimeTicks", startTimeTicks.ToString());
-            args.Add("endTimeTicks", endTimeTicks.ToString());
-
-            return await Get<TransactionsAPIResult>("SearchTransactions", args);
+            return await GetAsync<TransactionsAPIResult>("SearchTransactions", args);
         }
 
-        public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
+        public async Task<PoolInfoAPIResult> GetPoolAsync(string token0, string token1)
         {
-            var args = new Dictionary<string, string>();
+            var args = new Dictionary<string, string>
+            {
+                { "token0", token0 },
+                { "token1", token1 }
+            };
 
-            args.Add("token0", token0);
-            args.Add("token1", token1);
-
-            return await Get<PoolInfoAPIResult>("GetPool", args);
+            return await GetAsync<PoolInfoAPIResult>("GetPool", args);
         }
     }
 }

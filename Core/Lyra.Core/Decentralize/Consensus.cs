@@ -23,7 +23,7 @@ namespace Lyra.Core.Decentralize
         public async Task<NodeStatus> GetNodeStatusAsync()
         {
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-            var unCons = lastCons == null ? null : (await _sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, DateTime.MaxValue)).ToList();
+            var unCons = lastCons == null ? null : (await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, DateTime.MaxValue)).ToList();
             var status = new NodeStatus
             {
                 accountId = _sys.PosWallet.AccountId,
@@ -63,7 +63,7 @@ namespace Lyra.Core.Decentralize
             BlockAPIResult seedSvcGen = null;
             for (int i = 0; i < 10; i++)
             {
-                seedSvcGen = await consensusClient.GetServiceGenesisBlock();
+                seedSvcGen = await consensusClient.GetServiceGenesisBlockAsync();
                 if (seedSvcGen.ResultCode == APIResultCodes.Success)
                     break;
 
@@ -102,7 +102,7 @@ namespace Lyra.Core.Decentralize
                 localState.databaseVersion = LyraGlobal.DatabaseVersion;
             }
 
-            var lastCons = (await consensusClient.GetLastConsolidationBlock()).GetBlock() as ConsolidationBlock;
+            var lastCons = (await consensusClient.GetLastConsolidationBlockAsync()).GetBlock() as ConsolidationBlock;
             if (lastCons == null)
                 return false;
 
@@ -112,7 +112,7 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
-                    var remoteConsQuery = await consensusClient.GetConsolidationBlocks(_sys.PosWallet.AccountId, null, localState.lastVerifiedConsHeight + 1, 1);
+                    var remoteConsQuery = await consensusClient.GetConsolidationBlocksAsync(_sys.PosWallet.AccountId, null, localState.lastVerifiedConsHeight + 1, 1);
                     if(remoteConsQuery.ResultCode == APIResultCodes.Success)
                     {
                         var remoteConsBlocks = remoteConsQuery.GetBlocks();
@@ -181,7 +181,7 @@ namespace Lyra.Core.Decentralize
 
                     var myLastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
-                    var lastConsOfSeed = await client.GetLastConsolidationBlock();
+                    var lastConsOfSeed = await client.GetLastConsolidationBlockAsync();
                     if (lastConsOfSeed.ResultCode == APIResultCodes.Success)
                     {
                         var lastConsBlockOfSeed = lastConsOfSeed.GetBlock();
@@ -212,11 +212,11 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"Engaging: Sync all unconsolidated blocks");
                     // sync unconsolidated blocks
                     var endTime = DateTime.MaxValue;
-                    var unConsHashResult = await client.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
+                    var unConsHashResult = await client.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp, endTime);
                     if (unConsHashResult.ResultCode == APIResultCodes.Success)
                     {
                         _log.LogInformation($"Engaging: total unconsolidated blocks {unConsHashResult.Entities.Count}");
-                        var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRange(myLastCons.TimeStamp, endTime);
+                        var myUnConsHashes = await _sys.Storage.GetBlockHashesByTimeRangeAsync(myLastCons.TimeStamp, endTime);
                         foreach (var h in myUnConsHashes)
                         {
                             if (!unConsHashResult.Entities.Contains(h))
@@ -237,7 +237,7 @@ namespace Lyra.Core.Decentralize
                             if (localBlock != null)
                                 continue;
 
-                            var blockResult = await client.GetBlockByHash(_sys.PosWallet.AccountId, hash, null);
+                            var blockResult = await client.GetBlockByHashAsync(_sys.PosWallet.AccountId, hash, null);
                             if (blockResult.ResultCode == APIResultCodes.Success)
                             {
                                 await _sys.Storage.AddBlockAsync(blockResult.GetBlock());
@@ -272,7 +272,7 @@ namespace Lyra.Core.Decentralize
 
                     _log.LogInformation($"Engaging: finalizing...");
 
-                    var remoteState = await client.GetSyncState();
+                    var remoteState = await client.GetSyncStateAsync();
                     if (remoteState.ResultCode != APIResultCodes.Success)
                         continue;
 
@@ -346,7 +346,7 @@ namespace Lyra.Core.Decentralize
             if (consBlock.Height > 1)
             {
                 var prevConsHash = consBlock.blockHashes.First();
-                var prevConsResult = await client.GetBlockByHash(_sys.PosWallet.AccountId, prevConsHash, null);
+                var prevConsResult = await client.GetBlockByHashAsync(_sys.PosWallet.AccountId, prevConsHash, null);
                 if (prevConsResult.ResultCode != APIResultCodes.Success)
                 {
                     _log.LogWarning($"SyncAndVerifyConsolidationBlock: prevConsResult.ResultCode: {prevConsResult.ResultCode}");
@@ -360,7 +360,7 @@ namespace Lyra.Core.Decentralize
                     return false;
                 }
 
-                var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRange(prevConsBlock.TimeStamp, consBlock.TimeStamp);
+                var blocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRangeAsync(prevConsBlock.TimeStamp, consBlock.TimeStamp);
                 var q = blocksInTimeRange.Where(a => !consBlock.blockHashes.Contains(a));
                 foreach (var extraBlock in q)
                 {
@@ -419,7 +419,7 @@ namespace Lyra.Core.Decentralize
             if(null != await _sys.Storage.FindBlockByHashAsync(hash))
                 await _sys.Storage.RemoveBlockAsync(hash);
 
-            var remoteBlock = await client.GetBlockByHash(_sys.PosWallet.AccountId, hash, null);
+            var remoteBlock = await client.GetBlockByHashAsync(_sys.PosWallet.AccountId, hash, null);
             if (remoteBlock.ResultCode == APIResultCodes.Success)
             {
                 var block = remoteBlock.GetBlock();
@@ -488,9 +488,9 @@ namespace Lyra.Core.Decentralize
             {
                 var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
                 await client.InitAsync();
-                await gensWallet.Sync(client);
+                await gensWallet.SyncAsync(client);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;
-                var sendResult = await gensWallet.Send(amount, accId);
+                var sendResult = await gensWallet.SendAsync(amount, accId);
                 if (sendResult.ResultCode == APIResultCodes.Success)
                 {
                     _log.LogInformation($"Genesis send {amount} successfull to accountId: {accId}");
@@ -726,7 +726,7 @@ namespace Lyra.Core.Decentralize
                 if (Board.NodeAddresses.ContainsKey(Board.CurrentLeader))
                 {
                     var client = LyraRestClient.Create(networkId, platform, appName, appVer, $"https://{Board.NodeAddresses[Board.CurrentLeader]}:{peerPort}/api/Node/");
-                    _ = client.GetPool("a", "b");
+                    _ = client.GetPoolAsync("a", "b");
                 }     
             }
         }
@@ -748,7 +748,7 @@ namespace Lyra.Core.Decentralize
 
             await SubmitToConsensusAsync(state);
 
-            await state.WaitForClose();
+            await state.WaitForCloseAsync();
 
             return (state.CommitConsensus, state.GetMajorErrorCode());
         }

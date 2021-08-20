@@ -48,7 +48,7 @@ namespace Friday
                 var wt = targetAddrs[i];
                 foreach(var amount in amounts)
                 {
-                    var result = await masterWallet.Send(amount.Value, wt, amount.Key);
+                    var result = await masterWallet.SendAsync(amount.Value, wt, amount.Key);
                     Console.WriteLine($"Trans {i}: {result.ResultCode}");
                 }
             }
@@ -87,7 +87,7 @@ namespace Friday
                                     if (block.Balances.ContainsKey(amount.Key) && block.Balances[amount.Key].ToBalanceDecimal() > amount.Value)
                                     {
                                         //var stopwatch = Stopwatch.StartNew();
-                                        var result = await fromWallet.Send(amount.Value, wt, amount.Key);
+                                        var result = await fromWallet.SendAsync(amount.Value, wt, amount.Key);
                                         //stopwatch.Stop();
                                         //Console.WriteLine($"Send: {stopwatch.ElapsedMilliseconds} ms. Result: {result.ResultCode}");
 
@@ -98,7 +98,7 @@ namespace Friday
                                             break;
                                         }
 
-                                        await fromWallet.Sync(null);
+                                        await fromWallet.SyncAsync(null);
                                     }
                                     else
                                     {
@@ -132,7 +132,7 @@ namespace Friday
 
             Console.WriteLine("Sync wallet for " + wallet.AccountId);
             var rpcClient = LyraRestClient.Create(Program.network_id, "Windows", $"{LyraGlobal.PRODUCTNAME} Client Cli", "1.0a");
-            await wallet.Sync(rpcClient);
+            await wallet.SyncAsync(rpcClient);
             return wallet;
         }
 

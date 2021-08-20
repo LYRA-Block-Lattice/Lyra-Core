@@ -459,9 +459,11 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<NonFungibleToken>> GetIssuedNFTInstancesAsync(bool GetOnlySendBlocks, string AccountId, string TokenCode)
         {
-            var p1 = new BsonArray();
-            p1.Add(BlockTypes.SendTransfer);
-            p1.Add(BlockTypes.ExecuteTradeOrder);
+            var p1 = new BsonArray
+            {
+                BlockTypes.SendTransfer,
+                BlockTypes.ExecuteTradeOrder
+            };
 
             if (!GetOnlySendBlocks)
             {
@@ -632,20 +634,20 @@ namespace Lyra.Core.Accounts
             return await result.FirstOrDefaultAsync();
         }
 
-        private async Task<ReceiveTransferBlock> FindLastRecvBlockAsync(string AccountId)
-        {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Height)
-            };
-            var builder = new FilterDefinitionBuilder<Block>();
-            var filterDefinition = builder.And(builder.Eq("AccountID", AccountId),
-                    builder.Eq("BlockType", BlockTypes.ReceiveTransfer));
+        //private async Task<ReceiveTransferBlock> FindLastRecvBlockAsync(string AccountId)
+        //{
+        //    var options = new FindOptions<Block, Block>
+        //    {
+        //        Limit = 1,
+        //        Sort = Builders<Block>.Sort.Descending(o => o.Height)
+        //    };
+        //    var builder = new FilterDefinitionBuilder<Block>();
+        //    var filterDefinition = builder.And(builder.Eq("AccountID", AccountId),
+        //            builder.Eq("BlockType", BlockTypes.ReceiveTransfer));
 
-            var result = await (await _blocks.FindAsync(filterDefinition, options)).FirstOrDefaultAsync();
-            return result as ReceiveTransferBlock;
-        }
+        //    var result = await (await _blocks.FindAsync(filterDefinition, options)).FirstOrDefaultAsync();
+        //    return result as ReceiveTransferBlock;
+        //}
 
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId)
         {
@@ -939,7 +941,7 @@ namespace Lyra.Core.Accounts
             return list;
         }
 
-        public async Task<List<TradeOrderBlock>> GetSellTradeOrders(string SellTokenCode, string BuyTokenCode)
+        public async Task<List<TradeOrderBlock>> GetSellTradeOrdersAsync(string SellTokenCode, string BuyTokenCode)
         {
             var list = new List<TradeOrderBlock>();
 
@@ -961,7 +963,7 @@ namespace Lyra.Core.Accounts
             return list;
         }
 
-        public async Task<List<TradeOrderBlock>> GetSellTradeOrdersForToken(string BuyTokenCode)
+        public async Task<List<TradeOrderBlock>> GetSellTradeOrdersForTokenAsync(string BuyTokenCode)
         {
             var list = new List<TradeOrderBlock>();
 
@@ -999,7 +1001,7 @@ namespace Lyra.Core.Accounts
             return list;
         }
 
-        public async Task<CancelTradeOrderBlock> GetCancelTradeOrderBlock(string TradeOrderId)
+        public async Task<CancelTradeOrderBlock> GetCancelTradeOrderBlockAsync(string TradeOrderId)
         {
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.CancelTradeOrder), builder.Eq("TradeOrderId", TradeOrderId));
@@ -1022,7 +1024,7 @@ namespace Lyra.Core.Accounts
             return list;
         }
 
-        public async Task<ExecuteTradeOrderBlock> GetExecuteTradeOrderBlock(string TradeOrderId)
+        public async Task<ExecuteTradeOrderBlock> GetExecuteTradeOrderBlockAsync(string TradeOrderId)
         {
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.Eq("BlockType", BlockTypes.ExecuteTradeOrder), builder.Eq("TradeOrderId", TradeOrderId));
@@ -1254,7 +1256,7 @@ namespace Lyra.Core.Accounts
         }
 
         // >= startTime < endTime
-        public async Task<List<Block>> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<List<Block>> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             var options = new FindOptions<Block, Block>
             {
@@ -1266,7 +1268,7 @@ namespace Lyra.Core.Accounts
             return await result.ToListAsync();
         }
 
-        public async Task<IEnumerable<string>> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<IEnumerable<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             var options = new FindOptions<Block, BsonDocument>
             {

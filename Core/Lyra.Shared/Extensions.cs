@@ -9,12 +9,12 @@ namespace Lyra.Shared
 {
     public static class Extensions
     {
-        public static Task AsTask(this WaitHandle handle)
+        public static Task AsTaskAsync(this WaitHandle handle)
         {
-            return AsTask(handle, Timeout.InfiniteTimeSpan);
+            return AsTaskAsync(handle, Timeout.InfiniteTimeSpan);
         }
 
-        public static Task AsTask(this WaitHandle handle, TimeSpan timeout)
+        public static Task AsTaskAsync(this WaitHandle handle, TimeSpan timeout)
         {
             var tcs = new TaskCompletionSource<object>();
             var registration = ThreadPool.RegisterWaitForSingleObject(handle, (state, timedOut) =>
@@ -25,7 +25,7 @@ namespace Lyra.Shared
                 else
                     localTcs.TrySetResult(null);
             }, tcs, timeout, executeOnlyOnce: true);
-            tcs.Task.ContinueWith((_, state) => ((RegisteredWaitHandle)state).Unregister(null), registration, TaskScheduler.Default);
+            _ = tcs.Task.ContinueWith((_, state) => ((RegisteredWaitHandle)state).Unregister(null), registration, TaskScheduler.Default);
             return tcs.Task;
         }
 

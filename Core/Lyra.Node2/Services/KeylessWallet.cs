@@ -43,7 +43,7 @@ namespace Noded.Services
         {
             try
             {
-                var lookup_result = await _node.LookForNewTransfer2(AccountId, null);
+                var lookup_result = await _node.LookForNewTransfer2Async(AccountId, null);
                 int max_counter = 0;
 
                 while (lookup_result.Successful() && max_counter < 100) // we don't want to enter an endless loop...
@@ -52,11 +52,11 @@ namespace Noded.Services
 
                     //PrintConLine($"Received new transaction, sending request for settlement...");
 
-                    var receive_result = await ReceiveTransfer(lookup_result);
+                    var receive_result = await ReceiveTransferAsync(lookup_result);
                     if (!receive_result.Successful())
                         return receive_result.ResultCode;
 
-                    lookup_result = await _node.LookForNewTransfer2(AccountId, null);
+                    lookup_result = await _node.LookForNewTransfer2Async(AccountId, null);
                 }
 
                 // the fact that do one sent us any money does not mean this call failed...
@@ -72,7 +72,7 @@ namespace Noded.Services
 
                 return lookup_result.ResultCode;
             }
-            catch (Exception e)
+            catch
             {
                 //PrintConLine("Exception in SyncIncomingTransfers(): " + e.Message);
                 return APIResultCodes.UnknownError;
@@ -90,7 +90,7 @@ namespace Noded.Services
                 throw new Exception("No balance");
             }
 
-            var blockresult = await _node.GetLastServiceBlock();
+            var blockresult = await _node.GetLastServiceBlockAsync();
 
             if (blockresult.ResultCode != APIResultCodes.Success)
                 return blockresult.ResultCode;
@@ -159,7 +159,7 @@ namespace Noded.Services
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
             AuthorizationAPIResult result;
             //var stopwatch = Stopwatch.StartNew();
-            result = await _trans.SendTransfer(sendBlock);
+            result = await _trans.SendTransferAsync(sendBlock);
             //stopwatch.Stop();
             //PrintConLine($"_node.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
 
@@ -170,7 +170,7 @@ namespace Noded.Services
             return result.ResultCode;
         }
 
-        private async Task<AuthorizationAPIResult> ReceiveTransfer(NewTransferAPIResult2 new_transfer_info)
+        private async Task<AuthorizationAPIResult> ReceiveTransferAsync(NewTransferAPIResult2 new_transfer_info)
         {
 
             // *** Slava - July 19, 2020 - I am not sure if we need this call anymore? 
@@ -178,9 +178,9 @@ namespace Noded.Services
             // ***
 
             if (await GetLocalAccountHeightAsync() == 0) // if this is new account with no blocks
-                return await OpenStandardAccountWithReceiveBlock(new_transfer_info);
+                return await OpenStandardAccountWithReceiveBlockAsync(new_transfer_info);
 
-            var svcBlockResult = await _node.GetLastServiceBlock();
+            var svcBlockResult = await _node.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -219,7 +219,7 @@ namespace Noded.Services
 
             //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
 
-            var result = await _trans.ReceiveTransfer(receiveBlock);
+            var result = await _trans.ReceiveTransferAsync(receiveBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
                 LastBlock = receiveBlock;
@@ -228,9 +228,9 @@ namespace Noded.Services
             return result;
         }
 
-        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlock(NewTransferAPIResult2 new_transfer_info)
+        private async Task<AuthorizationAPIResult> OpenStandardAccountWithReceiveBlockAsync(NewTransferAPIResult2 new_transfer_info)
         {
-            var svcBlockResult = await _node.GetLastServiceBlock();
+            var svcBlockResult = await _node.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -257,7 +257,7 @@ namespace Noded.Services
 
             //openReceiveBlock.Signature = Signatures.GetSignature(PrivateKey, openReceiveBlock.Hash);
 
-            var result = await _trans.ReceiveTransferAndOpenAccount(openReceiveBlock);
+            var result = await _trans.ReceiveTransferAndOpenAccountAsync(openReceiveBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
                 LastBlock = openReceiveBlock;
@@ -266,7 +266,7 @@ namespace Noded.Services
             return result;
         }
 
-        public async Task<AuthorizationAPIResult> SendEx(string DestinationAccountId, Dictionary<string, decimal> Amounts, Dictionary<string, string> tags)
+        public async Task<AuthorizationAPIResult> SendExAsync(string DestinationAccountId, Dictionary<string, decimal> Amounts, Dictionary<string, string> tags)
         {
             if (Amounts.Any(a => a.Value <= 0m))
                 throw new Exception("Amount must > 0");
@@ -284,7 +284,7 @@ namespace Noded.Services
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
             }
 
-            var blockresult = await _node.GetLastServiceBlock();
+            var blockresult = await _node.GetLastServiceBlockAsync();
 
             if (blockresult.ResultCode != APIResultCodes.Success)
                 return new AuthorizationAPIResult() { ResultCode = blockresult.ResultCode };
@@ -333,7 +333,7 @@ namespace Noded.Services
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
             AuthorizationAPIResult result;
             //var stopwatch = Stopwatch.StartNew();
-            result = await _trans.SendTransfer(sendBlock);
+            result = await _trans.SendTransferAsync(sendBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
                 LastBlock = sendBlock;
@@ -361,7 +361,7 @@ namespace Noded.Services
 
             string ticker = domainName + "/" + tokenName;
 
-            var blockresult = await _node.GetLastServiceBlock();
+            var blockresult = await _node.GetLastServiceBlockAsync();
 
             if (blockresult.ResultCode != APIResultCodes.Success)
                 return new AuthorizationAPIResult() { ResultCode = blockresult.ResultCode };
@@ -375,7 +375,7 @@ namespace Noded.Services
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
             }
 
-            var svcBlockResult = await _node.GetLastServiceBlock();
+            var svcBlockResult = await _node.GetLastServiceBlockAsync();
             if (svcBlockResult.ResultCode != APIResultCodes.Success)
             {
                 throw new Exception("Unable to get latest service block.");
@@ -421,7 +421,7 @@ namespace Noded.Services
 
             //tokenBlock.Signature = Signatures.GetSignature(PrivateKey, tokenBlock.Hash);
 
-            var result = await _trans.CreateToken(tokenBlock);
+            var result = await _trans.CreateTokenAsync(tokenBlock);
 
             if (result.ResultCode == APIResultCodes.Success)
                 LastBlock = tokenBlock;
@@ -433,7 +433,7 @@ namespace Noded.Services
 
         private async Task<string[]> GetProperTokenNameAsync(string[] tokenNames)
         {
-            var result = await tokenNames.SelectAsync(async a => await _node.GetTokenGenesisBlock(AccountId, a, null));
+            var result = await tokenNames.SelectAsync(async a => await _node.GetTokenGenesisBlockAsync(AccountId, a, null));
             return result.Select(a => a.GetBlock() as TokenGenesisBlock)
                 .Select(b => b?.Ticker)
                 .OrderBy(a => a)
@@ -442,7 +442,7 @@ namespace Noded.Services
 
         public async Task<PoolInfoAPIResult> GetLiquidatePoolAsync(string token0, string token1)
         {
-            var result = await _node.GetPool(token0, token1);
+            var result = await _node.GetPoolAsync(token0, token1);
             return result;
         }
 
@@ -453,7 +453,7 @@ namespace Noded.Services
             if (tokenNames.Any(a => a == null))
                 return new APIResult { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
 
-            var pool = await _node.GetPool(tokenNames[0], tokenNames[1]);
+            var pool = await _node.GetPoolAsync(tokenNames[0], tokenNames[1]);
             if (pool.PoolAccountId != null)
                 return new APIResult { ResultCode = APIResultCodes.PoolAlreadyExists };
 
@@ -463,12 +463,12 @@ namespace Noded.Services
             tags.Add(Block.REQSERVICETAG, "");
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
-            return await SendEx(pool.PoolFactoryAccountId, amounts, tags);
+            return await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
         }
 
         public async Task<APIResult> AddLiquidateToPoolAsync(string token0, decimal token0Amount, string token1, decimal token1Amount)
         {
-            var pool = await _node.GetPool(token0, token1);
+            var pool = await _node.GetPoolAsync(token0, token1);
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
@@ -481,13 +481,13 @@ namespace Noded.Services
             tags.Add("token1", pool.Token1);
             tags.Add(Block.REQSERVICETAG, "");
 
-            var poolDepositResult = await SendEx(pool.PoolAccountId, amountsDeposit, tags);
+            var poolDepositResult = await SendExAsync(pool.PoolAccountId, amountsDeposit, tags);
             return poolDepositResult;
         }
 
         public async Task<APIResult> RemoveLiquidateFromPoolAsync(string token0, string token1)
         {
-            var pool = await _node.GetPool(token0, token1);
+            var pool = await _node.GetPoolAsync(token0, token1);
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
@@ -498,13 +498,13 @@ namespace Noded.Services
             tags.Add("token1", pool.Token1);
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
-            var poolWithdrawResult = await SendEx(pool.PoolFactoryAccountId, amounts, tags);
+            var poolWithdrawResult = await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
             return poolWithdrawResult;
         }
 
-        public async Task<APIResult> SwapToken(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
+        public async Task<APIResult> SwapTokenAsync(string token0, string token1, string tokenToSwap, decimal amountToSwap, decimal amountToGet)
         {
-            var pool = await _node.GetPool(token0, token1);
+            var pool = await _node.GetPoolAsync(token0, token1);
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
@@ -516,7 +516,7 @@ namespace Noded.Services
             tags.Add("minrecv", $"{amountToGet.ToBalanceLong()}");
             var amounts = new Dictionary<string, decimal>();
             amounts.Add(tokenToSwap, amountToSwap);
-            var swapTokenResult = await SendEx(pool.PoolAccountId, amounts, tags);
+            var swapTokenResult = await SendExAsync(pool.PoolAccountId, amounts, tags);
             return swapTokenResult;
         }
 
@@ -531,7 +531,7 @@ namespace Noded.Services
 
         private async Task<TransactionBlock> GetLatestBlockAsync()
         {
-            var blockResult = await _node.GetLastBlock(_accountId);
+            var blockResult = await _node.GetLastBlockAsync(_accountId);
             if (blockResult.ResultCode == APIResultCodes.Success)
             {
                 return blockResult.GetBlock() as TransactionBlock;

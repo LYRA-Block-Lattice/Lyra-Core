@@ -17,8 +17,8 @@ namespace Lyra.Core.Decentralize
 {
     public partial class ConsensusService
     {
-        private ServiceTxQueue _svcQueue = new ServiceTxQueue();
-        private async Task QueueBlockForPool(TransactionBlock block, ServiceTx tx)
+        private readonly ServiceTxQueue _svcQueue = new ServiceTxQueue();
+        private async Task QueueBlockForPoolAsync(TransactionBlock block, ServiceTx tx)
         {
             if (block == null || tx == null)
                 throw new ArgumentNullException();
@@ -29,7 +29,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task QueueTxActionBlock(TransactionBlock actionBlock)
+        private async Task QueueTxActionBlockAsync(TransactionBlock actionBlock)
         {
             if (actionBlock == null)
                 throw new ArgumentNullException();
@@ -40,7 +40,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task PoolFactoryRecvAction(Block block, ConsensusResult? result)
+        private async Task PoolFactoryRecvActionAsync(Block block, ConsensusResult? result)
         {
             if (result == ConsensusResult.Yea)
             {
@@ -67,7 +67,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task PoolRecvSwapInConsensusAction(Block block, ConsensusResult? result)
+        private async Task PoolRecvSwapInConsensusActionAsync(Block block, ConsensusResult? result)
         {
             if (result == ConsensusResult.Yea)
             {
@@ -84,7 +84,7 @@ namespace Lyra.Core.Decentralize
                     kvp.Key, kvp.Value, 0);
 
                 _log.LogInformation($"Sending swap out {cfg.SwapOutAmount} {cfg.SwapOutToken}");
-                await SendPoolSwapOutToken(swapInBlock, send.AccountID, cfg);
+                await SendPoolSwapOutTokenAsync(swapInBlock, send.AccountID, cfg);
             }
         }
 
@@ -138,9 +138,11 @@ namespace Lyra.Core.Decentralize
 
             receiveBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            var tx = new ServiceWithActionTx(sendBlock.Hash);
-            tx.PoolId = latestPoolBlock.AccountID;
-            await QueueBlockForPool(receiveBlock, tx);  // create pool / withdraw
+            var tx = new ServiceWithActionTx(sendBlock.Hash)
+            {
+                PoolId = latestPoolBlock.AccountID
+            };
+            await QueueBlockForPoolAsync(receiveBlock, tx);  // create pool / withdraw
         }
 
         /// <summary>
@@ -152,8 +154,6 @@ namespace Lyra.Core.Decentralize
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
-
-            ConsensusResult? result = null;
 
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var swapInBlock = new PoolSwapInBlock
@@ -208,9 +208,11 @@ namespace Lyra.Core.Decentralize
             swapInBlock.Shares = (latestPoolBlock as IPool).Shares;
             swapInBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            var tx = new ServiceWithActionTx(sendBlock.Hash);
-            tx.PoolId = latestPoolBlock.AccountID;
-            await QueueBlockForPool(swapInBlock, tx);   // pool swap in
+            var tx = new ServiceWithActionTx(sendBlock.Hash)
+            {
+                PoolId = latestPoolBlock.AccountID
+            };
+            await QueueBlockForPoolAsync(swapInBlock, tx);   // pool swap in
         }
 
         /// <summary>
@@ -222,7 +224,7 @@ namespace Lyra.Core.Decentralize
         /// <param name="token"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        private async Task SendPoolSwapOutToken(PoolSwapInBlock swapInBlock, string targetAccountId, SwapCalculator cfg)
+        private async Task SendPoolSwapOutTokenAsync(PoolSwapInBlock swapInBlock, string targetAccountId, SwapCalculator cfg)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var swapOutBlock = new PoolSwapOutBlock()
@@ -276,7 +278,7 @@ namespace Lyra.Core.Decentralize
             if(chgs.FeeAmount != cfg.PayToAuthorizer)
                 _log.LogError($"In swap out block gen: Fee should be {cfg.PayToAuthorizer} but {chgs.FeeAmount} ");
 
-            await QueueTxActionBlock(swapOutBlock);
+            await QueueTxActionBlockAsync(swapOutBlock);
         }
 
         /// <summary>
@@ -288,8 +290,6 @@ namespace Lyra.Core.Decentralize
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
-
-            ConsensusResult? result = null;
 
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var depositBlock = new PoolDepositBlock
@@ -359,9 +359,11 @@ namespace Lyra.Core.Decentralize
 
             depositBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            var tx = new ServiceTx(sendBlock.Hash);
-            tx.PoolId = latestPoolBlock.AccountID;
-            await QueueBlockForPool(depositBlock, tx);  // pool deposition
+            var tx = new ServiceTx(sendBlock.Hash)
+            {
+                PoolId = latestPoolBlock.AccountID
+            };
+            await QueueBlockForPoolAsync(depositBlock, tx);  // pool deposition
         }
 
         /// <summary>
@@ -371,7 +373,7 @@ namespace Lyra.Core.Decentralize
         /// <param name="poolId"></param>
         /// <param name="targetAccountId"></param>
         /// <returns></returns>
-        private async Task SendWithdrawFunds(ReceiveTransferBlock recvBlock, string poolId, string targetAccountId)
+        private async Task SendWithdrawFundsAsync(ReceiveTransferBlock recvBlock, string poolId, string targetAccountId)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             PoolWithdrawBlock withdrawBlock = new PoolWithdrawBlock()
@@ -403,9 +405,11 @@ namespace Lyra.Core.Decentralize
             var nextShares = (poolLatestBlock as IPool).Shares.ToRitoDecimalDict();
 
             var usersShare = curShares[targetAccountId];
-            var amountsToSend = new Dictionary<string, decimal>();
-            amountsToSend.Add(poolGenesisBlock.Token0, curBalance[poolGenesisBlock.Token0] * usersShare);
-            amountsToSend.Add(poolGenesisBlock.Token1, curBalance[poolGenesisBlock.Token1] * usersShare);
+            var amountsToSend = new Dictionary<string, decimal>
+            {
+                { poolGenesisBlock.Token0, curBalance[poolGenesisBlock.Token0] * usersShare },
+                { poolGenesisBlock.Token1, curBalance[poolGenesisBlock.Token1] * usersShare }
+            };
 
             nextBalance[poolGenesisBlock.Token0] -= amountsToSend[poolGenesisBlock.Token0];
             nextBalance[poolGenesisBlock.Token1] -= amountsToSend[poolGenesisBlock.Token1];
@@ -424,7 +428,7 @@ namespace Lyra.Core.Decentralize
 
             withdrawBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            await QueueTxActionBlock(withdrawBlock);
+            await QueueTxActionBlockAsync(withdrawBlock);
         }
 
         /// <summary>
@@ -454,13 +458,13 @@ namespace Lyra.Core.Decentralize
             // create a semi random account for pool.
             // it can be verified by other nodes.
             var keyStr = $"{pf.Height},{arrStr[0]},{arrStr[1]},{pf.Hash}";
-            var randAccount = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+            var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
             var poolGenesis = new PoolGenesisBlock
             {
                 Height = 1,
                 AccountType = AccountTypes.Standard,
-                AccountID = randAccount.AccountId,        // in fact we not use this account.
+                AccountID = AccountId,        // in fact we not use this account.
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = sb.Hash,
                 ServiceHash = sb.Hash,
@@ -481,7 +485,7 @@ namespace Lyra.Core.Decentralize
             // pool blocks are service block so all service block signed by leader node
             poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
-            await QueueTxActionBlock(poolGenesis);
+            await QueueTxActionBlockAsync(poolGenesis);
         }
 
         private void ProcessSendBlock(SendTransferBlock send)
@@ -582,7 +586,7 @@ namespace Lyra.Core.Decentralize
                     case "pfrecv":      // pool factory receive
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
 
-                        await PoolFactoryRecvAction(block as ReceiveTransferBlock, result);
+                        await PoolFactoryRecvActionAsync(block as ReceiveTransferBlock, result);
                         break;
                     case "pfwithdraw":    // pool factory receive
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
@@ -590,7 +594,7 @@ namespace Lyra.Core.Decentralize
                         var send = await _sys.Storage.FindBlockByHashAsync((poolBlock as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
                         var poolId = send.Tags["poolid"];
                         _log.LogInformation($"Withdraw from pool {poolId}...");
-                        await SendWithdrawFunds(block as ReceiveTransferBlock, poolId, send.AccountID);
+                        await SendWithdrawFundsAsync(block as ReceiveTransferBlock, poolId, send.AccountID);
                         break;
 
                     case "pladdin":  // pool deposition
@@ -600,7 +604,7 @@ namespace Lyra.Core.Decentralize
                     case "plswapin":  // pool swapin
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
 
-                        await PoolRecvSwapInConsensusAction(block as ReceiveTransferBlock, result);
+                        await PoolRecvSwapInConsensusActionAsync(block as ReceiveTransferBlock, result);
                         break;
 
                     case "pfcreat":

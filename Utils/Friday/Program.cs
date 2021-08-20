@@ -47,15 +47,15 @@ namespace Friday
             var secureStorage = new SecuredWalletStore(lyraFolder);
             var masterWallet = Wallet.Open(secureStorage, "My Account", "");
 
-            await masterWallet.Sync(rpcClient);
+            await masterWallet.SyncAsync(rpcClient);
 
             _ = Task.Run(async () =>
               {
                   while (true)
                   {
-                      var state = await rpcClient.GetSyncState();
+                      var state = await rpcClient.GetSyncStateAsync();
                       await Task.Delay(10000);
-                      var state2 = await rpcClient.GetSyncState();
+                      var state2 = await rpcClient.GetSyncStateAsync();
 
                       var tps = state2.Status.totalBlockCount - state.Status.totalBlockCount;
 

@@ -72,12 +72,12 @@ namespace Lyra.Core.Authorizers
             if (token == null)
                 return APIResultCodes.TradeOrderValidationFailed;
 
-            bool res = (block.OrderType == TradeOrderTypes.Sell) ? await ValidateSellOrder(sys, block, transaction) : await ValidateBuyOrder(sys, block, transaction);
+            bool res = (block.OrderType == TradeOrderTypes.Sell) ? await ValidateSellOrderAsync(sys, block, transaction) : await ValidateBuyOrderAsync(sys, block, transaction);
 
             if (!res)
                 return APIResultCodes.TradeOrderValidationFailed;
 
-            var MatchTradeBlock = await sys.TradeEngine.Match(block);
+            var MatchTradeBlock = await sys.TradeEngine.MatchAsync(block);
             if (MatchTradeBlock != null)
                 return APIResultCodes.TradeOrderMatchFound;
 
@@ -101,7 +101,7 @@ namespace Lyra.Core.Authorizers
             return await Task.FromResult(APIResultCodes.Success);
         }
 
-        private async Task<bool> ValidateSellOrder(DagSystem sys, TradeOrderBlock block, TransactionInfo transaction)
+        private async Task<bool> ValidateSellOrderAsync(DagSystem sys, TradeOrderBlock block, TransactionInfo transaction)
         {
             var serviceblock = await sys.Storage.GetLastServiceBlockAsync();
             decimal balance_change = block.TradeAmount;
@@ -121,7 +121,7 @@ namespace Lyra.Core.Authorizers
             return true;
         }
 
-        private async Task<bool> ValidateBuyOrder(DagSystem sys, TradeOrderBlock block, TransactionInfoEx transaction)
+        private async Task<bool> ValidateBuyOrderAsync(DagSystem sys, TradeOrderBlock block, TransactionInfoEx transaction)
         {
             var sell_token_genesis_block = await sys.Storage.FindTokenGenesisBlocksAsync(block.SellTokenCode);
             if (sell_token_genesis_block == null)

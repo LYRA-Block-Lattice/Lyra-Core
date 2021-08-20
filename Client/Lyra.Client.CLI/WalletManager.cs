@@ -18,7 +18,7 @@ namespace Lyra.Client.CLI
 {
     public class WalletManager
     {
-        public async Task<int> RunWallet(ClientProgram options)
+        public async Task<int> RunWalletAsync(ClientProgram options)
         {
             string network_id = options.NetworkId;
 
@@ -154,7 +154,7 @@ namespace Lyra.Client.CLI
                 try
                 {
                     Console.WriteLine("Try syncing wallet with Lyra blockchain...");
-                    await wallet.Sync(rpcClient, options.cancellation.Token);
+                    await wallet.SyncAsync(rpcClient, options.cancellation.Token);
                     Console.WriteLine("Wallet is synced.");
                 }
                 catch(Exception)

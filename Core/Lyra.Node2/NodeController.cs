@@ -27,11 +27,10 @@ namespace LyraLexWeb2
     [ApiController]
     public class NodeController : ControllerBase
     {
-        DateTime _dtStarted;
-        INodeAPI _node;
-        INodeTransactionAPI _trans;
-
-        ILogger _log;
+        private readonly DateTime _dtStarted;
+        readonly INodeAPI _node;
+        readonly INodeTransactionAPI _trans;
+        readonly ILogger _log;
         public NodeController(
             ILogger<NodeController> logger,
             INodeAPI node,
@@ -62,12 +61,12 @@ namespace LyraLexWeb2
         public async Task<AccountHeightAPIResult> GetAsync()
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetSyncHeight();
+            return await _node.GetSyncHeightAsync();
         }
 
         [Route("GetBillboard")]
         [HttpGet]
-        public async Task<BillBoard> GetBillboard()
+        public async Task<BillBoard> GetBillboardAsync()
         {
             if (!CheckServiceStatus()) return null;// return null;
             return await _trans.GetBillBoardAsync();
@@ -75,7 +74,7 @@ namespace LyraLexWeb2
 
         [Route("GetTransStats")]
         [HttpGet]
-        public async Task<List<TransStats>> GetTransStats()
+        public async Task<List<TransStats>> GetTransStatsAsync()
         {
             if (! CheckServiceStatus()) return null;
             return await _trans.GetTransStatsAsync();
@@ -83,18 +82,18 @@ namespace LyraLexWeb2
 
         [Route("GetDbStats")]
         [HttpGet]
-        public async Task<string> GetDbStats()
+        public async Task<string> GetDbStatsAsync()
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.GetDbStats();
+            return await _trans.GetDbStatsAsync();
         }
 
         [Route("GetVersion")]
         [HttpGet]
-        public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
+        public async Task<GetVersionAPIResult> GetVersionAsync(int apiVersion, string appName, string appVersion)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetVersion(apiVersion, appName, appVersion);
+            return await _node.GetVersionAsync(apiVersion, appName, appVersion);
         }
 
         //[Route("GetThumbPrint")]
@@ -117,11 +116,11 @@ namespace LyraLexWeb2
 
         [Route("GetSyncState")]
         [HttpGet]
-        public async Task<GetSyncStateAPIResult> GetSyncState()
+        public async Task<GetSyncStateAPIResult> GetSyncStateAsync()
         {
             // always response to query. nebula need this api.
             //if (! await CheckServiceStatusAsync()) return null;
-            return await _node.GetSyncState();
+            return await _node.GetSyncStateAsync();
         }
 
         [Route("GetSyncHeight")]
@@ -129,181 +128,181 @@ namespace LyraLexWeb2
         public async Task<AccountHeightAPIResult> GetSyncHeightAsync() {
             // always response to query. node bootstrap need this api.
             //if (! await CheckServiceStatusAsync()) return null;
-            return await _node.GetSyncHeight();
+            return await _node.GetSyncHeightAsync();
         }
 
         [Route("GetTokenNames")]
         [HttpGet]
-        public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string Signature, string keyword)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetTokenNames(AccountId, Signature, keyword);
+            return await _node.GetTokenNamesAsync(AccountId, Signature, keyword);
         }
 
         [Route("GetAccountHeight")]
         [HttpGet]
-        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
+        public async Task<AccountHeightAPIResult> GetAccountHeightAsync(string AccountId)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetAccountHeight(AccountId);
+            return await _node.GetAccountHeightAsync(AccountId);
         }
 
         [Route("GetLastBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetLastBlock(string AccountId)
+        public async Task<BlockAPIResult> GetLastBlockAsync(string AccountId)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetLastBlock(AccountId);
+            return await _node.GetLastBlockAsync(AccountId);
         }
 
         [Route("GetBlockByIndex")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, int Index)
+        public async Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, int Index)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetBlockByIndex(AccountId, Index);
+            return await _node.GetBlockByIndexAsync(AccountId, Index);
         }
 
         [Route("GetServiceBlockByIndex")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, int Index)
+        public async Task<BlockAPIResult> GetServiceBlockByIndexAsync(string blockType, int Index)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetServiceBlockByIndex(blockType, Index);
+            return await _node.GetServiceBlockByIndexAsync(blockType, Index);
         }
 
         [Route("GetBlockByHash")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetBlockByHash(AccountId, Hash, Signature);
+            return await _node.GetBlockByHashAsync(AccountId, Hash, Signature);
         }
 
         [Route("GetBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetBlock(string Hash)
+        public async Task<BlockAPIResult> GetBlockAsync(string Hash)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetBlock(Hash);
+            return await _node.GetBlockAsync(Hash);
         }
 
         [Route("GetBlockBySourceHash")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetBlockBySourceHash(string Hash)
+        public async Task<BlockAPIResult> GetBlockBySourceHashAsync(string Hash)
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.GetBlockBySourceHash(Hash);
+            return await _node.GetBlockBySourceHashAsync(Hash);
         }
 
         [Route("GetNonFungibleTokens")]
         [HttpGet]
-        public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetNonFungibleTokens(AccountId, Signature);
+            return await _node.GetNonFungibleTokensAsync(AccountId, Signature);
         }
 
         [Route("GetTokenGenesisBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetTokenGenesisBlock(AccountId, TokenTicker, Signature);
+            return await _node.GetTokenGenesisBlockAsync(AccountId, TokenTicker, Signature);
         }
 
         [Route("GetLastServiceBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetLastServiceBlock()
+        public async Task<BlockAPIResult> GetLastServiceBlockAsync()
         {
             // always response to query. node bootstrap need this api.
             //if (! await CheckServiceStatusAsync()) return null;
-            return await _node.GetLastServiceBlock();
+            return await _node.GetLastServiceBlockAsync();
         }
 
         [Route("GetServiceGenesisBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        public async Task<BlockAPIResult> GetServiceGenesisBlockAsync()
         {
             // always response to query. node bootstrap need this api.
             //if (! await CheckServiceStatusAsync()) return null;
-            return await _node.GetServiceGenesisBlock();
+            return await _node.GetServiceGenesisBlockAsync();
         }
 
         [Route("GetLyraTokenGenesisBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlockAsync()
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetLyraTokenGenesisBlock();
+            return await _node.GetLyraTokenGenesisBlockAsync();
         }
 
         [Route("GetLastConsolidationBlock")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetLastConsolidationBlock()
+        public async Task<BlockAPIResult> GetLastConsolidationBlockAsync()
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetLastConsolidationBlock();
+            return await _node.GetLastConsolidationBlockAsync();
         }
 
         [Route("GetBlocksByConsolidation")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
+        public async Task<MultiBlockAPIResult> GetBlocksByConsolidationAsync(string AccountId, string Signature, string consolidationHash)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetBlocksByConsolidation(AccountId, Signature, consolidationHash);
+            return await _node.GetBlocksByConsolidationAsync(AccountId, Signature, consolidationHash);
         }
 
         // this api generate too much data so add some limit later
         [Route("GetBlocksByTimeRange")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetBlocksByTimeRange(startTime, endTime);
+            return await _node.GetBlocksByTimeRangeAsync(startTime, endTime);
         }
 
         // this api generate too much data so add some limit later
         [Route("GetBlockHashesByTimeRange")]
         [HttpGet]
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetBlockHashesByTimeRange(startTime, endTime);
+            return await _node.GetBlockHashesByTimeRangeAsync(startTime, endTime);
         }
 
         [Route("SearchTransactions")]
         [HttpGet]
-        public async Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
+        public async Task<TransactionsAPIResult> SearchTransactionsAsync(string accountId, long startTimeTicks, long endTimeTicks, int count)
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.SearchTransactions(accountId, startTimeTicks, endTimeTicks, count);
+            return await _node.SearchTransactionsAsync(accountId, startTimeTicks, endTimeTicks, count);
         }
 
         // this api generate too much data so add some limit later
         [Route("GetBlocksByTimeRange2")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange2(long startTimeTicks, long endTimeTicks)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange2Async(long startTimeTicks, long endTimeTicks)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetBlocksByTimeRange(startTimeTicks, endTimeTicks);
+            return await _node.GetBlocksByTimeRangeAsync(startTimeTicks, endTimeTicks);
         }
 
         // this api generate too much data so add some limit later
         [Route("GetBlockHashesByTimeRange2")]
         [HttpGet]
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange2(long startTimeTicks, long endTimeTicks)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange2Async(long startTimeTicks, long endTimeTicks)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetBlockHashesByTimeRange(startTimeTicks, endTimeTicks);
+            return await _node.GetBlockHashesByTimeRangeAsync(startTimeTicks, endTimeTicks);
         }
 
         [Route("GetConsolidationBlocks")]
         [HttpGet]
-        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string Signature, long startHeight, int count)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetConsolidationBlocks(AccountId, Signature, startHeight, count);
+            return await _node.GetConsolidationBlocksAsync(AccountId, Signature, startHeight, count);
         }
 
         //[Route("GetUnConsolidatedBlocks")]
@@ -316,44 +315,44 @@ namespace LyraLexWeb2
 
         [Route("LookForNewTransfer")]
         [HttpGet]
-        public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult> LookForNewTransferAsync(string AccountId, string Signature)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.LookForNewTransfer(AccountId, Signature);
+            return await _node.LookForNewTransferAsync(AccountId, Signature);
         }
 
         [Route("LookForNewTransfer2")]
         [HttpGet]
-        public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature)
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.LookForNewTransfer2(AccountId, Signature);
+            return await _node.LookForNewTransfer2Async(AccountId, Signature);
         }
 
         [Route("LookForNewFees")]
         [HttpGet]
-        public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
+        public async Task<NewFeesAPIResult> LookForNewFeesAsync(string AccountId, string Signature)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.LookForNewFees(AccountId, Signature);
+            return await _node.LookForNewFeesAsync(AccountId, Signature);
         }
 
         #region Reward trade methods
 
         [Route("GetActiveTradeOrders")]
         [HttpGet]
-        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrdersAsync(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, Signature);
+            return await _node.GetActiveTradeOrdersAsync(AccountId, SellToken, BuyToken, OrderType, Signature);
         }
 
         [Route("LookForNewTrade")]
         [HttpGet] 
-        public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
+        public async Task<TradeAPIResult> LookForNewTradeAsync(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
             if (! CheckServiceStatus()) return null;
-            return await _node.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, Signature);
+            return await _node.LookForNewTradeAsync(AccountId, BuyTokenCode, SellTokenCode, Signature);
         }
 
         #endregion
@@ -362,34 +361,34 @@ namespace LyraLexWeb2
 
         [Route("TradeOrder")]
         [HttpPost] 
-        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrderAsync(TradeOrderBlock block)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.TradeOrder(block);
+            return await _trans.TradeOrderAsync(block);
         }
 
         [Route("Trade")]
         [HttpPost] 
-        public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
+        public async Task<AuthorizationAPIResult> TradeAsync(TradeBlock block)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.Trade(block);
+            return await _trans.TradeAsync(block);
         }
 
         [Route("ExecuteTradeOrder")]
         [HttpPost] 
-        public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> ExecuteTradeOrderAsync(ExecuteTradeOrderBlock block)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.ExecuteTradeOrder(block);
+            return await _trans.ExecuteTradeOrderAsync(block);
         }
 
         [Route("CancelTradeOrder")]
         [HttpPost] 
-        public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> CancelTradeOrderAsync(CancelTradeOrderBlock block)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.CancelTradeOrder(block);
+            return await _trans.CancelTradeOrderAsync(block);
         }
 
         #endregion
@@ -398,67 +397,66 @@ namespace LyraLexWeb2
 
         [Route("OpenAccountWithGenesis")]
         [HttpPost]
-        public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithGenesisAsync(LyraTokenGenesisBlock block)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.OpenAccountWithGenesis(block);
+            return await _trans.OpenAccountWithGenesisAsync(block);
         }
 
         [Route("ReceiveTransferAndOpenAccount")]
         [HttpPost]
-        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock openReceiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccountAsync(OpenWithReceiveTransferBlock openReceiveBlock)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.ReceiveTransferAndOpenAccount(openReceiveBlock);
+            return await _trans.ReceiveTransferAndOpenAccountAsync(openReceiveBlock);
         }
 
         [Route("OpenAccountWithImport")]
         [HttpPost]
-        public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithImportAsync(OpenAccountWithImportBlock block)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.OpenAccountWithImport(block);
+            return await _trans.OpenAccountWithImportAsync(block);
         }
 
         [Route("SendTransfer")]
         [HttpPost]
-        public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock sendBlock)
+        public async Task<AuthorizationAPIResult> SendTransferAsync(SendTransferBlock sendBlock)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.SendTransfer(sendBlock);
+            return await _trans.SendTransferAsync(sendBlock);
         }
 
         [Route("ReceiveTransfer")]
         [HttpPost]
-        public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock receiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAsync(ReceiveTransferBlock receiveBlock)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.ReceiveTransfer(receiveBlock);
+            return await _trans.ReceiveTransferAsync(receiveBlock);
         }
 
         [Route("ReceiveFee")]
         [HttpPost]
-        public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock receiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveAuthorizerFeeBlock receiveBlock)
         {
-            return null;
-            //if (! CheckServiceStatus()) return null;
-            //return await _trans.ReceiveFee(receiveBlock);
+            if (!CheckServiceStatus()) return null;
+            return await _trans.ReceiveFeeAsync(receiveBlock);
         }
 
         [Route("ImportAccount")]
         [HttpPost]
-        public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
+        public async Task<AuthorizationAPIResult> ImportAccountAsync(ImportAccountBlock block)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.ImportAccount(block);
+            return await _trans.ImportAccountAsync(block);
         }
 
         [Route("CreateToken")]
         [HttpPost]
-        public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock tokenBlock)
+        public async Task<AuthorizationAPIResult> CreateTokenAsync(TokenGenesisBlock tokenBlock)
         {
             if (! CheckServiceStatus()) return null;
-            return await _trans.CreateToken(tokenBlock);
+            return await _trans.CreateTokenAsync(tokenBlock);
         }
 
         //[Route("CreateExchangeAccount")]
@@ -554,10 +552,10 @@ namespace LyraLexWeb2
 
         [Route("GetPool")]
         [HttpGet]
-        public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
+        public async Task<PoolInfoAPIResult> GetPoolAsync(string token0, string token1)
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.GetPool(token0, token1);
+            return await _node.GetPoolAsync(token0, token1);
         }
 
         //[HttpPost]

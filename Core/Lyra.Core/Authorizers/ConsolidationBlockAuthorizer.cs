@@ -54,7 +54,7 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidConsolidationBlockContinuty;
                 }
 
-                var allHashes = (await sys.Storage.GetBlockHashesByTimeRange(lastCons.TimeStamp, block.TimeStamp)).ToList();
+                var allHashes = (await sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, block.TimeStamp)).ToList();
                 if (block.blockHashes.Count != allHashes.Count)
                     return APIResultCodes.InvalidConsolidationBlockCount;
 

@@ -85,7 +85,7 @@ namespace Neo.Network.P2P
                 for (int i = 0; i < ProtocolSettings.Default.SeedList.Length; i++)
                 {
                     int index = i;
-                    Task.Run(() => SeedList[index] = GetIpEndPoint(ProtocolSettings.Default.SeedList[index]));
+                    _ = Task.Run(() => SeedList[index] = GetIpEndPoint(ProtocolSettings.Default.SeedList[index]));
                 }
             }
         }

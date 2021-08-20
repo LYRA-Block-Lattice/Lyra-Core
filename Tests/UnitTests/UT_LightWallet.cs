@@ -28,7 +28,7 @@ namespace UnitTests
         public const string ADDRESS_ID_1 = "LUTG2E1mdpGk5Qtq9BUgwZDWhUeZc14Xfw2pAvAdKoacvgRBU3atwtrQeoY3evm5C7TXRz3Q5nwPEUHj9p7CBDE6kQTQMy";
         const string ADDRESS_ID_2 = "LUTAq9MFf4vaqbEEDHsRj8SUbLWoKptndaUqXSnYbi7mC1cXajts6fWXhQUuwR4ZX7DnvERkUMpwXKf4XKk4NjVMxqYvmn";
 
-        private string testToken = "unittest/trans";
+        //private string testToken = "unittest/trans";
 
         private SemaphoreSlim semaphore = new SemaphoreSlim(1);      // we need to run tests in serial
 

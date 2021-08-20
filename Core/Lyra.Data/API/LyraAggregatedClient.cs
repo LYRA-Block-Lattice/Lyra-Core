@@ -13,8 +13,8 @@ namespace Lyra.Data.API
     /// </summary>
     public class LyraAggregatedClient : ILyraAPI
     {
-        private string _networkId;
-        private bool _seedsOnly;
+        private readonly string _networkId;
+        private readonly bool _seedsOnly;
 
         private List<LyraRestClient> _primaryClients;
 
@@ -65,7 +65,7 @@ namespace Lyra.Data.API
                             currentBillBoard = await apiClient.GetBillBoardAsync();
                             break;
                         }
-                        catch (Exception e){
+                        catch {
                             
                         }
                     }
@@ -217,7 +217,7 @@ namespace Lyra.Data.API
                         if (best.Count >= expectedCount)
                         {
                             var x = tasks.First(a => !(a.IsFaulted || a.IsCanceled) && a.IsCompleted && a.Result == best.Data);
-                            return x.Result;
+                            return await x;
                         }
                         else
                         {
@@ -234,31 +234,31 @@ namespace Lyra.Data.API
             return new T { ResultCode = APIResultCodes.APIRouteFailed };
         }
 
-        public async Task<AuthorizationAPIResult> CancelTradeOrder(CancelTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> CancelTradeOrderAsync(CancelTradeOrderBlock block)
         {
-            return await SeedClient.CancelTradeOrder(block);
+            return await SeedClient.CancelTradeOrderAsync(block);
         }
 
-        public async Task<AuthorizationAPIResult> CreateToken(TokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> CreateTokenAsync(TokenGenesisBlock block)
         {
-            return await SeedClient.CreateToken(block);
+            return await SeedClient.CreateTokenAsync(block);
         }
 
-        public async Task<AuthorizationAPIResult> ExecuteTradeOrder(ExecuteTradeOrderBlock block)
+        public async Task<AuthorizationAPIResult> ExecuteTradeOrderAsync(ExecuteTradeOrderBlock block)
         {
-            return await SeedClient.ExecuteTradeOrder(block);
+            return await SeedClient.ExecuteTradeOrderAsync(block);
         }
 
-        public async Task<AccountHeightAPIResult> GetAccountHeight(string AccountId)
+        public async Task<AccountHeightAPIResult> GetAccountHeightAsync(string AccountId)
         {
-            var tasks = _primaryClients.Select(client => client.GetAccountHeight(AccountId)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetAccountHeightAsync(AccountId)).ToList();
 
             return await CheckResultAsync("GetAccountHeight", tasks);
         }
 
-        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrders(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
+        public async Task<ActiveTradeOrdersAPIResult> GetActiveTradeOrdersAsync(string AccountId, string SellToken, string BuyToken, TradeOrderListTypes OrderType, string Signature)
         {
-            return await SeedClient.GetActiveTradeOrders(AccountId, SellToken, BuyToken, OrderType, Signature);
+            return await SeedClient.GetActiveTradeOrdersAsync(AccountId, SellToken, BuyToken, OrderType, Signature);
         }
 
         public async Task<BillBoard> GetBillBoardAsync()
@@ -266,154 +266,154 @@ namespace Lyra.Data.API
             return await SeedClient.GetBillBoardAsync();
         }
 
-        public async Task<BlockAPIResult> GetBlock(string Hash)
+        public async Task<BlockAPIResult> GetBlockAsync(string Hash)
         {
-            var tasks = _primaryClients.Select(client => client.GetBlock(Hash)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetBlockAsync(Hash)).ToList();
 
             return await CheckResultAsync("GetBlock", tasks);
         }
 
-        public async Task<BlockAPIResult> GetBlockByHash(string AccountId, string Hash, string Signature)
+        public async Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature)
         {
-            var tasks = _primaryClients.Select(client => client.GetBlockByHash(AccountId, Hash, Signature)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetBlockByHashAsync(AccountId, Hash, Signature)).ToList();
 
             return await CheckResultAsync("GetBlockByHash", tasks);
         }
 
-        public async Task<BlockAPIResult> GetBlockByIndex(string AccountId, long Index)
+        public async Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, long Index)
         {
-            var tasks = _primaryClients.Select(client => client.GetBlockByIndex(AccountId, Index)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetBlockByIndexAsync(AccountId, Index)).ToList();
 
             return await CheckResultAsync("GetBlockByIndex", tasks);
         }
 
-        public async Task<BlockAPIResult> GetBlockBySourceHash(string sourceHash)
+        public async Task<BlockAPIResult> GetBlockBySourceHashAsync(string sourceHash)
         {
-            var tasks = _primaryClients.Select(client => client.GetBlockBySourceHash(sourceHash)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetBlockBySourceHashAsync(sourceHash)).ToList();
 
             return await CheckResultAsync("GetBlockBySourceHash", tasks);
         }
 
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
-            var tasks = _primaryClients.Select(client => client.GetBlockHashesByTimeRange(startTime, endTime)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetBlockHashesByTimeRangeAsync(startTime, endTime)).ToList();
 
             return await CheckResultAsync("GetBlockHashesByTimeRange", tasks);
         }
 
-        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<GetListStringAPIResult> GetBlockHashesByTimeRangeAsync(long startTimeTicks, long endTimeTicks)
         {
-            var tasks = _primaryClients.Select(client => client.GetBlockHashesByTimeRange(startTimeTicks, endTimeTicks)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetBlockHashesByTimeRangeAsync(startTimeTicks, endTimeTicks)).ToList();
 
             return await CheckResultAsync("GetBlockHashesByTimeRange", tasks);
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksByConsolidation(string AccountId, string Signature, string consolidationHash)
+        public async Task<MultiBlockAPIResult> GetBlocksByConsolidationAsync(string AccountId, string Signature, string consolidationHash)
         {
-            var tasks = _primaryClients.Select(client => client.GetBlocksByConsolidation(AccountId, Signature, consolidationHash)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetBlocksByConsolidationAsync(AccountId, Signature, consolidationHash)).ToList();
 
             return await CheckResultAsync("GetBlocksByConsolidation", tasks);
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(DateTime startTime, DateTime endTime)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
-            var tasks = _primaryClients.Select(client => client.GetBlocksByTimeRange(startTime, endTime)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetBlocksByTimeRangeAsync(startTime, endTime)).ToList();
 
             return await CheckResultAsync("GetBlocksByTimeRange", tasks);
         }
 
-        public async Task<MultiBlockAPIResult> GetBlocksByTimeRange(long startTimeTicks, long endTimeTicks)
+        public async Task<MultiBlockAPIResult> GetBlocksByTimeRangeAsync(long startTimeTicks, long endTimeTicks)
         {
-            var tasks = _primaryClients.Select(client => client.GetBlocksByTimeRange(startTimeTicks, endTimeTicks)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetBlocksByTimeRangeAsync(startTimeTicks, endTimeTicks)).ToList();
 
             return await CheckResultAsync("GetBlocksByTimeRange", tasks);
         }
 
-        public async Task<MultiBlockAPIResult> GetConsolidationBlocks(string AccountId, string Signature, long startHeight, int count)
+        public async Task<MultiBlockAPIResult> GetConsolidationBlocksAsync(string AccountId, string Signature, long startHeight, int count)
         {
-            var tasks = _primaryClients.Select(client => client.GetConsolidationBlocks(AccountId, Signature, startHeight, count)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetConsolidationBlocksAsync(AccountId, Signature, startHeight, count)).ToList();
 
             return await CheckResultAsync("GetConsolidationBlocks", tasks);
         }
 
-        public async Task<string> GetDbStats()
+        public async Task<string> GetDbStatsAsync()
         {
-            return await SeedClient.GetDbStats();
+            return await SeedClient.GetDbStatsAsync();
         }
 
-        public async Task<BlockAPIResult> GetLastBlock(string AccountId)
+        public async Task<BlockAPIResult> GetLastBlockAsync(string AccountId)
         {
-            var tasks = _primaryClients.Select(client => client.GetLastBlock(AccountId)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetLastBlockAsync(AccountId)).ToList();
 
             return await CheckResultAsync("GetLastBlock", tasks);
         }
 
-        public async Task<BlockAPIResult> GetLastConsolidationBlock()
+        public async Task<BlockAPIResult> GetLastConsolidationBlockAsync()
         {
-            var tasks = _primaryClients.Select(client => client.GetLastConsolidationBlock()).ToList();
+            var tasks = _primaryClients.Select(client => client.GetLastConsolidationBlockAsync()).ToList();
 
             return await CheckResultAsync("GetLastConsolidationBlock", tasks);
         }
 
-        public async Task<BlockAPIResult> GetLastServiceBlock()
+        public async Task<BlockAPIResult> GetLastServiceBlockAsync()
         {
-            var tasks = _primaryClients.Select(client => client.GetLastServiceBlock()).ToList();
+            var tasks = _primaryClients.Select(client => client.GetLastServiceBlockAsync()).ToList();
 
             return await CheckResultAsync("GetLastServiceBlock", tasks);
         }
 
-        public async Task<BlockAPIResult> GetLyraTokenGenesisBlock()
+        public async Task<BlockAPIResult> GetLyraTokenGenesisBlockAsync()
         {
-            var tasks = _primaryClients.Select(client => client.GetLyraTokenGenesisBlock()).ToList();
+            var tasks = _primaryClients.Select(client => client.GetLyraTokenGenesisBlockAsync()).ToList();
 
             return await CheckResultAsync("GetLyraTokenGenesisBlock", tasks);
         }
 
-        public async Task<NonFungibleListAPIResult> GetNonFungibleTokens(string AccountId, string Signature)
+        public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature)
         {
-            var tasks = _primaryClients.Select(client => client.GetNonFungibleTokens(AccountId, Signature)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetNonFungibleTokensAsync(AccountId, Signature)).ToList();
 
             return await CheckResultAsync("GetNonFungibleTokens", tasks);
         }
 
-        public async Task<BlockAPIResult> GetServiceBlockByIndex(string blockType, long Index)
+        public async Task<BlockAPIResult> GetServiceBlockByIndexAsync(string blockType, long Index)
         {
-            var tasks = _primaryClients.Select(client => client.GetServiceBlockByIndex(blockType, Index)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetServiceBlockByIndexAsync(blockType, Index)).ToList();
 
             return await CheckResultAsync("GetServiceBlockByIndex", tasks);
         }
 
-        public async Task<BlockAPIResult> GetServiceGenesisBlock()
+        public async Task<BlockAPIResult> GetServiceGenesisBlockAsync()
         {
-            var tasks = _primaryClients.Select(client => client.GetServiceGenesisBlock()).ToList();
+            var tasks = _primaryClients.Select(client => client.GetServiceGenesisBlockAsync()).ToList();
 
             return await CheckResultAsync("GetServiceGenesisBlock", tasks);
         }
 
-        public async Task<AccountHeightAPIResult> GetSyncHeight()
+        public async Task<AccountHeightAPIResult> GetSyncHeightAsync()
         {
-            var tasks = _primaryClients.Select(client => client.GetSyncHeight()).ToList();
+            var tasks = _primaryClients.Select(client => client.GetSyncHeightAsync()).ToList();
 
             return await CheckResultAsync("GetSyncHeight", tasks);
         }
 
-        public async Task<GetSyncStateAPIResult> GetSyncState()
+        public async Task<GetSyncStateAPIResult> GetSyncStateAsync()
         {
-            var tasks = _primaryClients.Select(client => client.GetSyncState()).ToList();
+            var tasks = _primaryClients.Select(client => client.GetSyncStateAsync()).ToList();
 
             return await CheckResultAsync("GetSyncState", tasks);
         }
 
-        public async Task<BlockAPIResult> GetTokenGenesisBlock(string AccountId, string TokenTicker, string Signature)
+        public async Task<BlockAPIResult> GetTokenGenesisBlockAsync(string AccountId, string TokenTicker, string Signature)
         {
-            var tasks = _primaryClients.Select(client => client.GetTokenGenesisBlock(AccountId, TokenTicker, Signature)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetTokenGenesisBlockAsync(AccountId, TokenTicker, Signature)).ToList();
 
             return await CheckResultAsync("GetTokenGenesisBlock", tasks);
         }
 
-        public async Task<GetListStringAPIResult> GetTokenNames(string AccountId, string Signature, string keyword)
+        public async Task<GetListStringAPIResult> GetTokenNamesAsync(string AccountId, string Signature, string keyword)
         {
-            var tasks = _primaryClients.Select(client => client.GetTokenNames(AccountId, Signature, keyword)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetTokenNamesAsync(AccountId, Signature, keyword)).ToList();
 
             return await CheckResultAsync("GetTokenNames", tasks);
         }
@@ -423,81 +423,81 @@ namespace Lyra.Data.API
             return await SeedClient.GetTransStatsAsync();
         }
 
-        public async Task<GetVersionAPIResult> GetVersion(int apiVersion, string appName, string appVersion)
+        public async Task<GetVersionAPIResult> GetVersionAsync(int apiVersion, string appName, string appVersion)
         {
-            var tasks = _primaryClients.Select(client => client.GetVersion(apiVersion, appName, appVersion)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetVersionAsync(apiVersion, appName, appVersion)).ToList();
 
             return await CheckResultAsync("GetVersion", tasks);
         }
 
-        public async Task<AuthorizationAPIResult> ImportAccount(ImportAccountBlock block)
+        public async Task<AuthorizationAPIResult> ImportAccountAsync(ImportAccountBlock block)
         {
-            return await SeedClient.ImportAccount(block);
+            return await SeedClient.ImportAccountAsync(block);
         }
 
-        public async Task<NewFeesAPIResult> LookForNewFees(string AccountId, string Signature)
+        public async Task<NewFeesAPIResult> LookForNewFeesAsync(string AccountId, string Signature)
         {
-            return await SeedClient.LookForNewFees(AccountId, Signature);
+            return await SeedClient.LookForNewFeesAsync(AccountId, Signature);
         }
 
-        public async Task<TradeAPIResult> LookForNewTrade(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
+        public async Task<TradeAPIResult> LookForNewTradeAsync(string AccountId, string BuyTokenCode, string SellTokenCode, string Signature)
         {
-            return await SeedClient.LookForNewTrade(AccountId, BuyTokenCode, SellTokenCode, Signature);
+            return await SeedClient.LookForNewTradeAsync(AccountId, BuyTokenCode, SellTokenCode, Signature);
         }
 
-        public async Task<NewTransferAPIResult> LookForNewTransfer(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult> LookForNewTransferAsync(string AccountId, string Signature)
         {
-            return await SeedClient.LookForNewTransfer(AccountId, Signature);
+            return await SeedClient.LookForNewTransferAsync(AccountId, Signature);
         }
 
-        public async Task<NewTransferAPIResult2> LookForNewTransfer2(string AccountId, string Signature)
+        public async Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature)
         {
-            return await SeedClient.LookForNewTransfer2(AccountId, Signature);
+            return await SeedClient.LookForNewTransfer2Async(AccountId, Signature);
         }
 
-        public async Task<AuthorizationAPIResult> OpenAccountWithGenesis(LyraTokenGenesisBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithGenesisAsync(LyraTokenGenesisBlock block)
         {
-            return await SeedClient.OpenAccountWithGenesis(block);
+            return await SeedClient.OpenAccountWithGenesisAsync(block);
         }
 
-        public async Task<AuthorizationAPIResult> OpenAccountWithImport(OpenAccountWithImportBlock block)
+        public async Task<AuthorizationAPIResult> OpenAccountWithImportAsync(OpenAccountWithImportBlock block)
         {
-            return await SeedClient.OpenAccountWithImport(block);
+            return await SeedClient.OpenAccountWithImportAsync(block);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveFee(ReceiveAuthorizerFeeBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveAuthorizerFeeBlock block)
         {
-            return await SeedClient.ReceiveFee(block);
+            return await SeedClient.ReceiveFeeAsync(block);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveTransfer(ReceiveTransferBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAsync(ReceiveTransferBlock block)
         {
-            return await SeedClient.ReceiveTransfer(block);
+            return await SeedClient.ReceiveTransferAsync(block);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccount(OpenWithReceiveTransferBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccountAsync(OpenWithReceiveTransferBlock block)
         {
-            return await SeedClient.ReceiveTransferAndOpenAccount(block);
+            return await SeedClient.ReceiveTransferAndOpenAccountAsync(block);
         }
 
-        public async Task<TransactionsAPIResult> SearchTransactions(string accountId, long startTimeTicks, long endTimeTicks, int count)
+        public async Task<TransactionsAPIResult> SearchTransactionsAsync(string accountId, long startTimeTicks, long endTimeTicks, int count)
         {
-            return await SeedClient.SearchTransactions(accountId, startTimeTicks, endTimeTicks, count);
+            return await SeedClient.SearchTransactionsAsync(accountId, startTimeTicks, endTimeTicks, count);
         }
 
-        public async Task<AuthorizationAPIResult> SendTransfer(SendTransferBlock block)
+        public async Task<AuthorizationAPIResult> SendTransferAsync(SendTransferBlock block)
         {
-            return await SeedClient.SendTransfer(block);
+            return await SeedClient.SendTransferAsync(block);
         }
 
-        public async Task<AuthorizationAPIResult> Trade(TradeBlock block)
+        public async Task<AuthorizationAPIResult> TradeAsync(TradeBlock block)
         {
-            return await SeedClient.Trade(block);
+            return await SeedClient.TradeAsync(block);
         }
 
-        public async Task<TradeOrderAuthorizationAPIResult> TradeOrder(TradeOrderBlock block)
+        public async Task<TradeOrderAuthorizationAPIResult> TradeOrderAsync(TradeOrderBlock block)
         {
-            return await SeedClient.TradeOrder(block);
+            return await SeedClient.TradeOrderAsync(block);
         }
 
         public List<Voter> GetVoters(VoteQueryModel model)
@@ -512,15 +512,12 @@ namespace Lyra.Data.API
 
         public FeeStats GetFeeStats()
         {
-            FeeStats result = null;
-            var t = Task.Run(async () => { result = await SeedClient.GetFeeStatsAsync(); });
-            Task.WaitAll(t);
-            return result;
+            return SeedClient.GetFeeStats();
         }
 
-        public async Task<PoolInfoAPIResult> GetPool(string token0, string token1)
+        public async Task<PoolInfoAPIResult> GetPoolAsync(string token0, string token1)
         {
-            var tasks = _primaryClients.Select(client => client.GetPool(token0, token1)).ToList();
+            var tasks = _primaryClients.Select(client => client.GetPoolAsync(token0, token1)).ToList();
 
             return await CheckResultAsync("", tasks);
         }

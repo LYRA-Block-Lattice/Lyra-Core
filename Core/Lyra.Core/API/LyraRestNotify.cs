@@ -12,8 +12,8 @@ namespace Lyra.Core.API
 {
     public class LyraRestNotify : INotifyAPI
     {
-        private string _url;
-        private HttpClient _client;
+        private readonly string _url;
+        private readonly HttpClient _client;
         public LyraRestNotify(string platform, string url)
         {
             _url = url;
@@ -24,15 +24,17 @@ namespace Lyra.Core.API
             {
                 httpClientHandler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
             }
-            _client = new HttpClient(httpClientHandler);
-            _client.Timeout = new TimeSpan(0, 5, 0);        // the api will hung. long-poll
-            _client.BaseAddress = new Uri(url);
+            _client = new HttpClient(httpClientHandler)
+            {
+                Timeout = new TimeSpan(0, 5, 0),        // the api will hung. long-poll
+                BaseAddress = new Uri(url)
+            };
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        public async Task<GetNotificationAPIResult> GetNotification(string AccountID, string Signature)
+        public async Task<GetNotificationAPIResult> GetNotificationAsync(string AccountID, string Signature)
         {
             HttpResponseMessage response = await _client.GetAsync($"?AccountID={AccountID}&Signature={Signature}");
             if (response.IsSuccessStatusCode)
