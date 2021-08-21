@@ -21,6 +21,8 @@ namespace Lyra.Core.Decentralize
 {
     public class ConsensusWorker : ConsensusHandlerBase
     {
+        private enum LocalAuthState { NotStarted, InProgress, Finished };
+        private LocalAuthState _localAuthState = LocalAuthState.NotStarted;
         private AuthorizersFactory _authorizers;
 
         AuthState _state;
@@ -119,13 +121,18 @@ namespace Lyra.Core.Decentralize
             // we need to detect whether this node is out of sync now.
             if (sourceValid)
             {
-                _ = Task.Run(async () =>
+                if(_localAuthState == LocalAuthState.NotStarted)
                 {
-                    //if (waitHandle != null)
-                    //    await waitHandle.AsTask();
+                    _localAuthState = LocalAuthState.InProgress;
+                    _ = Task.Run(async () =>
+                    {
+                        //if (waitHandle != null)
+                        //    await waitHandle.AsTask();
 
-                    await AuthorizeAsync(msg);
-                });
+                        await AuthorizeAsync(msg);
+                        _localAuthState = LocalAuthState.Finished;
+                    });
+                }
             }
         }
 
