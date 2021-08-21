@@ -311,6 +311,10 @@ namespace Lyra.Core.Decentralize
         {
             //_log.LogInformation($"CheckRequestAsync from {req.From.Shorten()} for view {req.ViewID} Signature {req.requestSignature.Shorten()}");
 
+            // make sure all request from all voters
+            if (!_context.Board.AllVoters.Contains(req.From))
+                return;
+            
             if (!reqMsgs.Values.Any(a => a.msg.From == req.From))
             {
                 var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
