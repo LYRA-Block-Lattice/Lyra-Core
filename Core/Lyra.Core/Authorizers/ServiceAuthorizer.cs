@@ -85,7 +85,9 @@ namespace Lyra.Core.Authorizers
 
                 // verify vote etc.
                 if (!board.AllVoters.Contains(kvp.Key))
+                {
                     return APIResultCodes.InvalidAuthorizerInServiceBlock;
+                }
             }
 
             // check CreateNewViewAsNewLeaderAsync in Consensus.cs
