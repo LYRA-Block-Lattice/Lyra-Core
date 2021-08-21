@@ -221,10 +221,11 @@ namespace Lyra.Core.Decentralize
                         signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-18) &&
                         signedMsg.VerifySignature(signedMsg.From))
                     {
-                        await CriticalRelayAsync(signedMsg, async (msg) =>
-                        {
-                            await OnNextConsensusMessageAsync(msg);
-                        });
+                        await OnNextConsensusMessageAsync(signedMsg);
+                        //await CriticalRelayAsync(signedMsg, async (msg) =>
+                        //{
+                        //    await OnNextConsensusMessageAsync(msg);
+                        //});
                     }
                     else
                     {
@@ -418,18 +419,18 @@ namespace Lyra.Core.Decentralize
                   {
                       try
                       {
-                          if (_stateMachine.State == BlockChainState.Engaging || _stateMachine.State == BlockChainState.Almighty
-                                  || _stateMachine.State == BlockChainState.Genesis)
-                          {
-                              var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
-                                      .Select(b => b.Key)
-                                      .ToList();
+                          //if (_stateMachine.State == BlockChainState.Engaging || _stateMachine.State == BlockChainState.Almighty
+                          //        || _stateMachine.State == BlockChainState.Genesis)
+                          //{
+                          //    var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
+                          //            .Select(b => b.Key)
+                          //            .ToList();
 
-                              foreach (var hb in oldList)
-                              {
-                                  _criticalMsgCache.TryRemove(hb, out _);
-                              }
-                          }
+                          //    foreach (var hb in oldList)
+                          //    {
+                          //        _criticalMsgCache.TryRemove(hb, out _);
+                          //    }
+                          //}
 
                           if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
                               await HeartBeatAsync();
@@ -1007,14 +1008,14 @@ namespace Lyra.Core.Decentralize
             return info;
         }
 
-        public virtual async Task Send2P2pNetworkAsync(SourceSignedMessage item)
+        public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
             item.Sign(_sys.PosWallet.PrivateKey, item.From);
             //_log.LogInformation($"Sending message type {item.MsgType} Hash {(item as BlockConsensusMessage)?.BlockHash}");
             //if (item.MsgType == ChatMessageType.HeartBeat || item.MsgType == ChatMessageType.NodeUp)
             //    Debugger.Break();
-            //_localNode.Tell(item);
-            await CriticalRelayAsync(item, null);
+            _localNode.Tell(item);
+            //await CriticalRelayAsync(item, null);
         }
 
         private async Task<ActiveNode> DeclareConsensusNodeAsync()
@@ -1040,7 +1041,7 @@ namespace Lyra.Core.Decentralize
             {
                 From = _sys.PosWallet.AccountId
             };
-            await Send2P2pNetworkAsync(msg);
+            Send2P2pNetwork(msg);
 
             // add self to active nodes list
             if (_board.NodeAddresses.ContainsKey(me.AccountID))
@@ -1320,7 +1321,7 @@ namespace Lyra.Core.Decentralize
                 AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 
-            await Send2P2pNetworkAsync(msg);
+            Send2P2pNetwork(msg);
         }
 
         private async Task OnNodeUpAsync(ChatMsg chat)
@@ -1578,7 +1579,7 @@ namespace Lyra.Core.Decentralize
             {
                 await worker.ProcessStateAsync(state);
             }
-            await Send2P2pNetworkAsync(state.InputMsg);
+            Send2P2pNetwork(state.InputMsg);
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash, bool checkState = false)
@@ -1731,28 +1732,31 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
-            where T : SourceSignedMessage, new()
-        {
-            //_log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
+        //private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
+        //    where T : SourceSignedMessage, new()
+        //{
+        //    //_log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
 
-            // seed node relay heartbeat, only once
-            // this keep the whole network one consist view of active nodes.
-            // this is important to make election.
-            if (_criticalMsgCache.TryAdd(message.Signature, DateTime.Now))
-            {
-                // try ever node forward.
-                // monitor network traffic closely.
+        //    // seed node relay heartbeat, only once
+        //    // this keep the whole network one consist view of active nodes.
+        //    // this is important to make election.
+        //    if (_criticalMsgCache.TryAdd(message.Signature, DateTime.Now))
+        //    {
+        //        // try ever node forward.
+        //        // monitor network traffic closely.
 
-                _localNode.Tell(message);     // no sign again!!!
+        //        _localNode.Tell(message);     // no sign again!!!
 
-                if (localAction != null)
-                    await localAction(message);
-                return true;
-            }
-            else
-                return false;
-        }
+        //        if (localAction != null)
+        //        {
+        //            await localAction(message);
+        //        }
+
+        //        return true;
+        //    }
+        //    else
+        //        return false;
+        //}
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {
@@ -1814,7 +1818,7 @@ namespace Lyra.Core.Decentralize
                     {
                         From = _sys.PosWallet.AccountId
                     };
-                    await Send2P2pNetworkAsync(resp);
+                    Send2P2pNetwork(resp);
                     break;
             }
         }

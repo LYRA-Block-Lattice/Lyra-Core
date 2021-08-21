@@ -202,7 +202,7 @@ namespace Lyra.Core.Decentralize
                     Candidate = nextLeader
                 };
 
-                await _context.Send2P2pNetworkAsync(reply);
+                _context.Send2P2pNetwork(reply);
 
                 replySent = true;
                 await CheckReplyAsync(reply);
@@ -250,7 +250,7 @@ namespace Lyra.Core.Decentralize
                         Consensus = ConsensusResult.Yea
                     };
 
-                    await _context.Send2P2pNetworkAsync(commit);
+                    _context.Send2P2pNetwork(commit);
                     commitSent = true;
                     await CheckCommitAsync(commit);
                 }
@@ -374,7 +374,7 @@ namespace Lyra.Core.Decentralize
 
                 if (!IsPassive)
                     await Task.Delay(1000);         // wait for the gate to open
-                await _context.Send2P2pNetworkAsync(req);
+                _context.Send2P2pNetwork(req);
                 await CheckRequestAsync(req);
             });
         }
