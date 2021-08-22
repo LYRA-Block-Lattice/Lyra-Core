@@ -4,10 +4,10 @@
     "ConsensusTimeout": 4,
     "ConsensusNumber": 2,
     "StandbyValidators": [
-      "LQqbMdksgJNzWpzYovdpMK6kqUdRwdCBhG2NBYNDA3GTWwD47b4RuL9F3aqhiYHMyU4F6MPpNKZKTUe7eGtgU8Lr4jPVk2",
+      "LFvA4NFnVYHvh5g2aQxEFUJVgv7vb7jY2WixpBm7jQrEpD6pcU1pgUBGbXSFX3vvBGhXsrYF36UqNgEcfCW1AxLftJBrm8",
       "L4mZbhb4e4kTGPLtp7Rn8dXheuNR2y8PbF2EszRRrgiGbYJcXXmRnCD35oW5qUjwmiqSatQqHvB2G52dDZsmozugfmmpbJ",
       "L6DUQsXhbK7nhRq1EGArzssBZ2MHZo5oTUBzcJHpCVUNxBGyPtmrLuZ1LQiDPjy2b6y528cCmrGrF2VEBU7u9j2nEC1652",
-      "LFvA4NFnVYHvh5g2aQxEFUJVgv7vb7jY2WixpBm7jQrEpD6pcU1pgUBGbXSFX3vvBGhXsrYF36UqNgEcfCW1AxLftJBrm8"
+      "LMXwpzKcvkf5jccVADe9zfa97KDjQVG4bZuZqxYQaDMKUsjz2BGtdA6tJgc5uUo36d7hjYfpXUtqi3uFx1PcdSsBEjJ4nX"
     ],
     "SeedList": [
       "seed1.devnet.lyra.live:4503",
@@ -16,7 +16,6 @@
       "seed4.devnet.lyra.live:4503"
     ],
     "StartupValidators": [
-      "LMXwpzKcvkf5jccVADe9zfa97KDjQVG4bZuZqxYQaDMKUsjz2BGtdA6tJgc5uUo36d7hjYfpXUtqi3uFx1PcdSsBEjJ4nX",
       "LKqshPTADX2PRDUfKDoWiUprJhZTUUvssgf3VbrP1bWNw5Voxtf4pKSPVBnxeGGCDrnqbykMe5tjjkMzUpFi8NsUD6afg6",
       "LZNorAM3itMj9NRzMCgTTSYZYpMcMwdAegyf52wAUf4T7nQwMfP72eLXXpAJ3B2AbLMsj3p1oo5CCwer4iHjapLjwrLHb6"
     ]
