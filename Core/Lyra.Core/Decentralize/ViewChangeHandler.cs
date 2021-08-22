@@ -377,7 +377,14 @@ namespace Lyra.Core.Decentralize
                 };
 
                 if (!IsPassive)
-                    await Task.Delay(1000);         // wait for the gate to open
+                {
+                    _log.LogInformation("Not passive mode. Delay 5s to make sure peers ready.");
+                    await Task.Delay(5000);         // wait for the gate to open
+                }
+                else
+                {
+                    _log.LogInformation("Passive mode. Send vc req now.");
+                }
                 _context.Send2P2pNetwork(req);
                 await CheckRequestAsync(req);
             });
