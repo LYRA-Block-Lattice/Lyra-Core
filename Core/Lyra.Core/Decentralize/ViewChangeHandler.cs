@@ -378,8 +378,8 @@ namespace Lyra.Core.Decentralize
 
                 if (!IsPassive)
                 {
-                    _log.LogInformation("Not passive mode. Delay 5s to make sure peers ready.");
-                    await Task.Delay(5000);         // wait for the gate to open
+                    _log.LogInformation("Not passive mode. Delay 3s to make sure peers ready.");
+                    await Task.Delay(3000);         // wait for the gate to open
                 }
                 else
                 {
