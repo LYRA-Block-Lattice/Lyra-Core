@@ -18,8 +18,8 @@ namespace Lyra.Core.Decentralize
 
 		NodeUp = 10,
 		NodeDown = 11,
-		NodeStatusInquiry = 12,
-		NodeStatusReply = 13,
+//		NodeStatusInquiry = 12,
+//		NodeStatusReply = 13,
 		
 		BlockConsolidation = 20,
 

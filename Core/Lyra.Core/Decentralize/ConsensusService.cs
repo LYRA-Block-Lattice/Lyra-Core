@@ -221,17 +221,17 @@ namespace Lyra.Core.Decentralize
                         signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-30) &&
                         signedMsg.VerifySignature(signedMsg.From))
                     {
-                        // seeds take resp to forward heatbeat, once
-                        if (signedMsg.MsgType == ChatMessageType.HeartBeat && IsThisNodeSeed)
-                        {
-                            await CriticalRelayAsync(signedMsg, null);
-                        }
-
                         await OnNextConsensusMessageAsync(signedMsg);
                         //await CriticalRelayAsync(signedMsg, async (msg) =>
                         //{
                         //    await OnNextConsensusMessageAsync(msg);
                         //});
+
+                        // seeds take resp to forward heatbeat, once
+                        if (signedMsg.MsgType == ChatMessageType.HeartBeat && IsThisNodeSeed)
+                        {
+                            await CriticalRelayAsync(signedMsg, null);
+                        }
                     }
                     else
                     {
@@ -1188,10 +1188,10 @@ namespace Lyra.Core.Decentralize
                 _log.LogWarning($"Hearbeat from {accountId.Shorten()} has no IP {ip}");
             }
 
-            var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-180)).ToList();
+            var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-60)).ToList();
             foreach (var n in deadList)
                 _board.NodeAddresses.TryRemove(n.AccountID, out _);
-            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-180));
+            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
         }
 
         private async Task CheckLeaderHealthAsync()
@@ -1821,13 +1821,15 @@ namespace Lyra.Core.Decentralize
                 case ChatMessageType.NodeUp:
                     await Task.Run(async () => { await OnNodeUpAsync(chat); });
                     break;
-                case ChatMessageType.NodeStatusInquiry:
-                    var status = await GetNodeStatusAsync();
-                    var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply)
-                    {
-                        From = _sys.PosWallet.AccountId
-                    };
-                    Send2P2pNetwork(resp);
+                //case ChatMessageType.NodeStatusInquiry:
+                //    var status = await GetNodeStatusAsync();
+                //    var resp = new ChatMsg(JsonConvert.SerializeObject(status), ChatMessageType.NodeStatusReply)
+                //    {
+                //        From = _sys.PosWallet.AccountId
+                //    };
+                //    Send2P2pNetwork(resp);
+                //    break;
+                default:
                     break;
             }
         }
