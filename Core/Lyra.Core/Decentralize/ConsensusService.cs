@@ -1183,11 +1183,15 @@ namespace Lyra.Core.Decentralize
                     //}                    
                 }
             }
+            else
+            {
+                _log.LogWarning($"Hearbeat from {accountId.Shorten()} has no IP {ip}");
+            }
 
-            var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-60)).ToList();
+            var deadList = _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-180)).ToList();
             foreach (var n in deadList)
                 _board.NodeAddresses.TryRemove(n.AccountID, out _);
-            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
+            _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-180));
         }
 
         private async Task CheckLeaderHealthAsync()

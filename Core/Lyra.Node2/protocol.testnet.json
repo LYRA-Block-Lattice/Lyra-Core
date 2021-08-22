@@ -4,10 +4,10 @@
     "ConsensusTimeout": 10,
     "ConsensusNumber": 6,
     "StandbyValidators": [
-      "LQdN8nrDSuqCr1S4YTmnPieX3heB93aXwmFuidN4Yiurkvm9NFqHbpvR8pcU89WQJofdJiYYvhoVJQQwAUj9oBXpLFAgh2",
-      "LK8vWAFcrsK8Re44Q54ESKT7yfW5WuWaZPgSmKgpFbBQjp5jAADa85jizRyTzjN6RxQowoKXsbiWENy1Bs6cH6xcMdJtaL",
-      "LDwYs2QzUqDFT9os9EVk71Yq1P4XmwCwMuDQTNSmbxoYvgsCo4qvq45ujEhp6Sawxu9scLNQjNWEPwqh6CF5idHh4y5MZK",
-      "LH3zYaMTh61kpufRdese6euGgaoL2UpkCHNFmrsoXgdBnU9ZtwP7t88sCmvqi2damMVJveLNnc1F8wveiNu3d7VDocf6mS"
+      "L9vS4Ry5CMrEb3S6LHfBMZtPr4rUK7d5vzgfLpotqAvKJg5PZtQdZjPEQjDNTenjzrwU1ykzkF5omuexvK4jbFC5BD1o5A",
+      "LQ9L5QvTtq1CQzxNFuu3ugqNzyWmizjgv4gJ5pnCfJAjM2v7YFMde6j9fq9inbSXJ37pzG1Ty6CHsihYgeHjq4rEqmGzpN",
+      "LAWhKiUW8BFurACRRRRDVbGBk4XkRuQixybk775G7xvqTGZNASRaYxeWr2We4KfDXUAGDJcZRK84CaimWkDChbMrDPdnD6",
+      "LQdN8nrDSuqCr1S4YTmnPieX3heB93aXwmFuidN4Yiurkvm9NFqHbpvR8pcU89WQJofdJiYYvhoVJQQwAUj9oBXpLFAgh2"
     ],
     "SeedList": [
       "seed1.testnet.lyra.live:4503",
@@ -16,15 +16,6 @@
       "seed4.testnet.lyra.live:4503"
     ],
     "StartupValidators": [
-      "LKsoWmTgfBXFKk7SDiCZskPdEc6ZpjMS2BbucK9xchfe9Nr7ymwr3XD3p83nSKP7ejJNZBkoj2ybBh1WRe3ZbinXmZii7V",
-      "LZrvdZAXQUCWyZbsp2Dj1mivK9HLKd7pVUGycwie5S2hjiqQzX73Pkpcw7VJgDfw5on6BD3Zy1Byknnvr5k56jQofBcFzC",
-      "LFJ3FvmTBjPJWfGTDdpUbPzG6sWN1tPcysUUCD9Jh9yo34m45epQ6xp2vhoxCo75c1gqGWDLzb8rWimN2JZ24UgRTejv6i",
-      "L4TSMATDVpVW4QENW9QCgZj5gFJKvGN7LVvmKiMcVHAFdk2eqAZ8YdMe82bGuWksHcZAzMNM1mFYwrK8K1xh6tzdaB2BKZ",
-      "LRsH9grrtwUNYg19RXp838MuWyWebd6Sr9yWXDMYuYZvGSA9n8mv6cFWCWDJo3RRB989LFt7VRiy8VWA6syChQSKCqVDuN",
-      "LYGy5T1LhtkvGGL7nBBDLwXjnC659iRbG5YkJfWuURK3gPM929nQZVv1grAv8tRiPbnjs7bdNqSHkCnPePS7uTEN8jsiu5",
-      "LF75ZwdKcATBtXnMR8N1XXF8YGTjCVv3zvZxGfUTj5Upyum6idYVYPs6hnAAL5pFSxwNSmwfNuAvTUDDcVZ8WtLARZ1Lfv",
-      "LNbjnWn7hkt8txic7myxhziRyQmNqhz8MuPTRBwKByGt9QgfLf9LEb81kRqwmXnL7tq34xqLwZ8sr83bf4FuKHRi4vGtvd",
-      "L97iJ9Ps6aYpKvtg9XCd3rm5rP1XDtFAuSiFW1hLihoqrdFDXofsk3fqsJjUcvZ3SxhnwnPgCbSwkcBqXdSKwPLgY8JMR8"
     ]
   }
 }

@@ -4,10 +4,10 @@
     "ConsensusTimeout": 10,
     "ConsensusNumber": 6,
     "StandbyValidators": [
-      "LWfCKyaYVogFxjDZPa4ZquhNqf38wBtoF5iBXqB56RUWWZT9FabQD1Di2oc6xBtekfUwXu66UbRggVqP89KZczNHZKicHc",
       "LTLJAT8nCPeLTy5mgSnDGEundckJGyfirc7R1jVNXG8JYqtAPaspBzzi3PCpAtfLbG4XA9pbGPXeiPGq8qM7sHjwB9qNC9",
       "LSN3mELFvo2QfMp9EiFcLtW62NBwyGMNX4MCnX2myzbDW31yqorc2chUf5YAN7fEVuUn7KjkHCPa2hE2AK5bnpLNtRLTfc",
-      "LSZwMETHGKbkBogSLxLCXcxUJbXwnD9Xsgw9RfWDXJqR1qqWZft6yQKqzNJ5FB9jFjKwmAhZoDqhP6gGi1wTK1Czxcwk5N"
+      "LSZwMETHGKbkBogSLxLCXcxUJbXwnD9Xsgw9RfWDXJqR1qqWZft6yQKqzNJ5FB9jFjKwmAhZoDqhP6gGi1wTK1Czxcwk5N",
+      "LDfC8EAorMahjGD1Ayx6u2jEwbncUbtxkASiNKUDUTXnYRcZoyZQtmNk7JagQh2jQvy7LTE3byaq7G1eNKv4oC6voZ95ec"
     ],
     "SeedList": [
       "seed1.mainnet.lyra.live:5503",
