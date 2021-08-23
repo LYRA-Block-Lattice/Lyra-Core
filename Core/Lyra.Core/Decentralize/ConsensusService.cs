@@ -995,8 +995,7 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation($"Sending message type {item.MsgType} Hash {(item as BlockConsensusMessage)?.BlockHash}");
             //if (item.MsgType == ChatMessageType.HeartBeat || item.MsgType == ChatMessageType.NodeUp)
             //    Debugger.Break();
-            //_localNode.Tell(item);
-            await CriticalRelayAsync(item, null);
+            _localNode.Tell(item);
         }
 
         private async Task<ActiveNode> DeclareConsensusNodeAsync()
