@@ -372,37 +372,16 @@ namespace Lyra.Core.Decentralize
                     {
                         if (worker.CheckTimeout())
                         {
-                            var result = worker.State?.CommitConsensus;
-
-                            if (worker.State != null)
+                            try
                             {
-                                _log.LogInformation("close state for timout reason.");
-                                worker.State.Close();
+                                worker.State?.Close();
                             }
-
+                            catch(Exception ex)     // make sure it will be removed.
+                            {
+                                _log.LogError("In close timeout state: " + ex);
+                            }
+                            
                             _activeConsensus.TryRemove(worker.Hash, out _);
-
-                            if ((result == null || result == ConsensusResult.Uncertain) && CurrentState == BlockChainState.Almighty)
-                            {
-                                // only if the last view is old enough
-                                _ = _sys.Storage.GetLastServiceBlockAsync().ContinueWith(t =>
-                                  {
-                                      var block = t.Result;
-                                      if (block?.TimeStamp < DateTime.UtcNow.AddHours(-1))
-                                      {
-                                          _log.LogInformation($"Consensus failed timeout uncertain. start view change.");
-                                          if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
-                                          {
-                                              _viewChangeHandler?.BeginChangeView(false, "Consensus failed timeout uncertain.");
-                                          }
-                                      }
-                                  });
-                            }
-
-                            //if (result == ConsensusResult.Yea)
-                            //{
-                            //    _log.LogError("A Yea is removed. this should not happen.");
-                            //}
                         }
                     }
                 }
@@ -1632,7 +1611,11 @@ namespace Lyra.Core.Decentralize
         private void Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
         {
             _successBlockCount++;
-            _activeConsensus.TryRemove(block.Hash, out _);
+
+            // no, don't remove so quick. we will still receive message related to it.
+            // should be better solution for high tps to avoid queue increase too big.
+            // tps 100 * timeout 20s = 2k buffer, sounds we can handle it.
+            //_activeConsensus.TryRemove(block.Hash, out _);
             _log.LogInformation($"Finished consensus: {_successBlockCount} Active Consensus: {_activeConsensus.Count}");
 
             if (result == ConsensusResult.Yea)
