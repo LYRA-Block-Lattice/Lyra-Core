@@ -28,7 +28,7 @@ namespace Neo.Network.P2P
         internal class SendDirectly { public IInventory Inventory = null; }
 
         public const uint ProtocolVersion = 0;
-        private const int MaxCountFromSeedList = 5;
+        private const int MaxCountFromSeedList = 15;
         private readonly IPEndPoint[] SeedList = new IPEndPoint[ProtocolSettings.Default.SeedList.Length];
 
         private static readonly object lockObj = new object();

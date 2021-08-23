@@ -228,7 +228,7 @@ namespace Lyra.Core.Decentralize
                         //});
 
                         // seeds take resp to forward heatbeat, once
-                        if (IsThisNodeSeed)
+                        if (signedMsg.MsgType == ChatMessageType.HeartBeat && IsThisNodeSeed)
                         {
                             await CriticalRelayAsync(signedMsg, null);
                         }
@@ -989,14 +989,14 @@ namespace Lyra.Core.Decentralize
             return info;
         }
 
-        public virtual void Send2P2pNetwork(SourceSignedMessage item)
+        public virtual async Task Send2P2pNetworkAsync(SourceSignedMessage item)
         {
             item.Sign(_sys.PosWallet.PrivateKey, item.From);
             //_log.LogInformation($"Sending message type {item.MsgType} Hash {(item as BlockConsensusMessage)?.BlockHash}");
             //if (item.MsgType == ChatMessageType.HeartBeat || item.MsgType == ChatMessageType.NodeUp)
             //    Debugger.Break();
-            _localNode.Tell(item);
-            //await CriticalRelayAsync(item, null);
+            //_localNode.Tell(item);
+            await CriticalRelayAsync(item, null);
         }
 
         private async Task<ActiveNode> DeclareConsensusNodeAsync()
@@ -1022,7 +1022,7 @@ namespace Lyra.Core.Decentralize
             {
                 From = _sys.PosWallet.AccountId
             };
-            Send2P2pNetwork(msg);
+            await Send2P2pNetworkAsync(msg);
 
             // add self to active nodes list
             if (_board.NodeAddresses.ContainsKey(me.AccountID))
@@ -1306,7 +1306,7 @@ namespace Lyra.Core.Decentralize
                 AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 
-            Send2P2pNetwork(msg);
+            await Send2P2pNetworkAsync(msg);
         }
 
         private async Task OnNodeUpAsync(ChatMsg chat)
@@ -1564,7 +1564,7 @@ namespace Lyra.Core.Decentralize
             {
                 await worker.ProcessStateAsync(state);
             }
-            Send2P2pNetwork(state.InputMsg);
+            await Send2P2pNetworkAsync(state.InputMsg);
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash, bool checkState = false)
@@ -1729,7 +1729,7 @@ namespace Lyra.Core.Decentralize
             // seed node relay heartbeat, only once
             // this keep the whole network one consist view of active nodes.
             // this is important to make election.
-            if (_criticalMsgCache.TryAdd(message.Signature, DateTime.Now))
+            if (_criticalMsgCache.TryAdd(message.From, DateTime.Now))
             {
                 // try ever node forward.
                 // monitor network traffic closely.

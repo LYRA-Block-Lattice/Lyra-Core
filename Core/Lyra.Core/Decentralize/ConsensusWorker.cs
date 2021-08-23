@@ -287,7 +287,7 @@ namespace Lyra.Core.Decentralize
                 && State.CheckSenderValid(myAccountId)
                 )
             {
-                _context.Send2P2pNetwork(localAuthResult);
+                await _context.Send2P2pNetworkAsync(localAuthResult);
             }
             await CheckAuthorizedAllOkAsync(myAccountId);
             await CheckCommitedOKAsync();
@@ -361,7 +361,7 @@ namespace Lyra.Core.Decentralize
                         Consensus = _state.PrepareConsensus
                     };
 
-                    _context.Send2P2pNetwork(msg);
+                    await _context.Send2P2pNetworkAsync(msg);
                     _state.AddCommitedResult(msg);
                 }
             }
