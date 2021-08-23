@@ -31,7 +31,7 @@ namespace Lyra.Core.Decentralize
         {
             if (DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT))
             {
-                _log.LogInformation($"Consensus begin {TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - TimeStarted}");
+                //_log.LogInformation($"Consensus begin {TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - TimeStarted}");
                 return true;
             }
             else
