@@ -376,15 +376,15 @@ namespace Lyra.Core.Decentralize
                         $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
                 };
 
-                if (!IsPassive)
-                {
-                    _log.LogInformation("Not passive mode. Delay 3s to make sure peers ready.");
-                    await Task.Delay(3000);         // wait for the gate to open
-                }
-                else
-                {
-                    _log.LogInformation("Passive mode. Send vc req now.");
-                }
+                //if (!IsPassive)
+                //{
+                //    _log.LogInformation("Not passive mode. Delay 3s to make sure peers ready.");
+                //    await Task.Delay(3000);         // wait for the gate to open
+                //}
+                //else
+                //{
+                //    _log.LogInformation("Passive mode. Send vc req now.");
+                //}
                 await _context.Send2P2pNetworkAsync(req);
                 await CheckRequestAsync(req);
             });
