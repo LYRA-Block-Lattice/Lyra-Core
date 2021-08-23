@@ -313,7 +313,7 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     // clean critical msg forward table
-                    var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(LyraGlobal.CONSENSUS_TIMEOUT))
+                    var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
                             .Select(b => b.Key);
 
                     foreach (var hb in oldList)
