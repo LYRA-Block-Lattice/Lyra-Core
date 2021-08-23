@@ -202,7 +202,7 @@ namespace Lyra.Core.Decentralize
                     Candidate = nextLeader
                 };
 
-                await _context.Send2P2pNetworkAsync(reply);
+                _context.Send2P2pNetwork(reply);
 
                 replySent = true;
                 await CheckReplyAsync(reply);
@@ -250,7 +250,7 @@ namespace Lyra.Core.Decentralize
                         Consensus = ConsensusResult.Yea
                     };
 
-                    await _context.Send2P2pNetworkAsync(commit);
+                    _context.Send2P2pNetwork(commit);
                     commitSent = true;
                     await CheckCommitAsync(commit);
                 }
@@ -376,16 +376,16 @@ namespace Lyra.Core.Decentralize
                         $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
                 };
 
-                //if (!IsPassive)
-                //{
-                //    _log.LogInformation("Not passive mode. Delay 3s to make sure peers ready.");
-                //    await Task.Delay(3000);         // wait for the gate to open
-                //}
-                //else
-                //{
-                //    _log.LogInformation("Passive mode. Send vc req now.");
-                //}
-                await _context.Send2P2pNetworkAsync(req);
+                if (!IsPassive)
+                {
+                    _log.LogInformation("Not passive mode. Delay 2s to make sure peers ready.");
+                    await Task.Delay(2000);         // wait for the gate to open
+                }
+                else
+                {
+                    _log.LogInformation("Passive mode. Send vc req now.");
+                }
+                _context.Send2P2pNetwork(req);
                 await CheckRequestAsync(req);
             });
         }

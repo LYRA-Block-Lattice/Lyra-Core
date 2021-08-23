@@ -989,7 +989,7 @@ namespace Lyra.Core.Decentralize
             return info;
         }
 
-        public virtual async Task Send2P2pNetworkAsync(SourceSignedMessage item)
+        public virtual void Send2P2pNetwork(SourceSignedMessage item)
         {
             item.Sign(_sys.PosWallet.PrivateKey, item.From);
             //_log.LogInformation($"Sending message type {item.MsgType} Hash {(item as BlockConsensusMessage)?.BlockHash}");
@@ -1021,7 +1021,7 @@ namespace Lyra.Core.Decentralize
             {
                 From = _sys.PosWallet.AccountId
             };
-            await Send2P2pNetworkAsync(msg);
+            Send2P2pNetwork(msg);
 
             // add self to active nodes list
             if (_board.NodeAddresses.ContainsKey(me.AccountID))
@@ -1305,7 +1305,7 @@ namespace Lyra.Core.Decentralize
                 AuthorizerSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey, signAgainst, _sys.PosWallet.AccountId)
             };
 
-            await Send2P2pNetworkAsync(msg);
+            Send2P2pNetwork(msg);
         }
 
         private async Task OnNodeUpAsync(ChatMsg chat)
@@ -1563,7 +1563,7 @@ namespace Lyra.Core.Decentralize
             {
                 await worker.ProcessStateAsync(state);
             }
-            await Send2P2pNetworkAsync(state.InputMsg);
+            Send2P2pNetwork(state.InputMsg);
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash, bool checkState = false)
