@@ -228,7 +228,7 @@ namespace Lyra.Core.Decentralize
                         //});
 
                         // seeds take resp to forward heatbeat, once
-                        if (signedMsg.MsgType == ChatMessageType.HeartBeat && IsThisNodeSeed)
+                        if (IsThisNodeSeed)
                         {
                             await CriticalRelayAsync(signedMsg, null);
                         }
@@ -312,6 +312,15 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
+                    // clean critical msg forward table
+                    var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(LyraGlobal.CONSENSUS_TIMEOUT))
+                            .Select(b => b.Key);
+
+                    foreach (var hb in oldList)
+                    {
+                        _criticalMsgCache.TryRemove(hb, out _);
+                    }
+
                     // leader monitor. check if all items in _pendingLeaderTasks is finished. if not, change view to remove the leader.
                     _svcQueue.Clean();
                     var timeoutTasks = _svcQueue.TimeoutTxes;
@@ -404,18 +413,6 @@ namespace Lyra.Core.Decentralize
                   {
                       try
                       {
-                          if (_stateMachine.State == BlockChainState.Engaging || _stateMachine.State == BlockChainState.Almighty
-                                  || _stateMachine.State == BlockChainState.Genesis)
-                          {
-                              var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
-                                      .Select(b => b.Key);
-
-                              foreach (var hb in oldList)
-                              {
-                                  _criticalMsgCache.TryRemove(hb, out _);
-                              }
-                          }
-
                           if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
                               await HeartBeatAsync();
 
@@ -1732,7 +1729,7 @@ namespace Lyra.Core.Decentralize
             // seed node relay heartbeat, only once
             // this keep the whole network one consist view of active nodes.
             // this is important to make election.
-            if (_criticalMsgCache.TryAdd(message.From, DateTime.Now))
+            if (_criticalMsgCache.TryAdd(message.Signature, DateTime.Now))
             {
                 // try ever node forward.
                 // monitor network traffic closely.
