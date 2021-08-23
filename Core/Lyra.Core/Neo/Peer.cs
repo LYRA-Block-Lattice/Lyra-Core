@@ -26,7 +26,8 @@ namespace Neo.Network.P2P
         private class Timer { }
         private class WsConnected { public WebSocket Socket; public IPEndPoint Remote; public IPEndPoint Local; }
 
-        public const int DefaultMinDesiredConnections = 21;
+        // big. we need a full connected network (at least for now.)
+        public const int DefaultMinDesiredConnections = 30;
         public const int DefaultMaxConnections = DefaultMinDesiredConnections * 4;
 
         private static readonly IActorRef tcp_manager = Context.System.Tcp();
