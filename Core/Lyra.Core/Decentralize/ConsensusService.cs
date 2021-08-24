@@ -227,11 +227,12 @@ namespace Lyra.Core.Decentralize
                         //    await OnNextConsensusMessageAsync(msg);
                         //});
 
+                        // not needed anymore
                         // seeds take resp to forward heatbeat, once
-                        if (signedMsg.MsgType == ChatMessageType.HeartBeat && IsThisNodeSeed)
-                        {
-                            await CriticalRelayAsync(signedMsg, null);
-                        }
+                        //if (signedMsg.MsgType == ChatMessageType.HeartBeat && IsThisNodeSeed)
+                        //{
+                        //    await CriticalRelayAsync(signedMsg, null);
+                        //}
                     }
                     else
                     {

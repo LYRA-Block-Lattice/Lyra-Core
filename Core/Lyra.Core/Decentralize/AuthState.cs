@@ -274,9 +274,17 @@ namespace Lyra.Core.Decentralize
 
             // if commitconsensus is null, means a view change is necessary. (by local result not good)
 
-            OnConsensusSuccess?.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
-            if (Semaphore != null)
-                Semaphore.Dispose();
+            try
+            {
+                OnConsensusSuccess?.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
+            }
+            catch(Exception exe)
+            {
+                _log.LogError("Call OnConsensusSuccess: " + exe);
+            }
+
+            Semaphore.Dispose();
+             
             try
             {
                 Done.Dispose();

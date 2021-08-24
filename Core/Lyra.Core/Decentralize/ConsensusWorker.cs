@@ -295,6 +295,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAuthorizedAllOkAsync(string from)
         {
+            if (_state.IsClosed)
+                return;
+
             await ProcessQueueAsync();
             // check state
             // debug: show all states
@@ -368,10 +371,6 @@ namespace Lyra.Core.Decentralize
             catch (Exception ex)
             {
                 _log.LogError($"CheckAuthorizedAllOkAsync: {ex.ToString()}");
-            }
-            finally
-            {
-                _state.Semaphore.Release();
             }
         }
 
