@@ -295,9 +295,6 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAuthorizedAllOkAsync(string from)
         {
-            if (_state.IsClosed)
-                return;
-
             await ProcessQueueAsync();
             // check state
             // debug: show all states
@@ -305,6 +302,9 @@ namespace Lyra.Core.Decentralize
 
             if (_state.LocalResult == null)
                 return;     // we always wait for local result.
+
+            if (_state.IsClosed)
+                return;
 
             if (_state.OutputMsgs.Count < _state.WinNumber)
             {
@@ -391,7 +391,7 @@ namespace Lyra.Core.Decentralize
             if (_state.CommitConsensus == ConsensusResult.Yea)
             {
                 if (!_state.IsSaved)
-                {
+                {  
                     if (!await _context.GetDagSystem().Storage.AddBlockAsync(block))
                         _log.LogWarning($"Block Save Failed Index: {block.Height}");
                     else
@@ -416,7 +416,7 @@ namespace Lyra.Core.Decentralize
             }
 
             _log.LogInformation("consensus commited. state close.");
-            _state.Close();
+            //_state.Close();
         }
     }
 }
