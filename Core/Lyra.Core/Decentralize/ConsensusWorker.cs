@@ -369,6 +369,10 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogError($"CheckAuthorizedAllOkAsync: {ex.ToString()}");
             }
+            finally
+            {
+                _state.Semaphore.Release();
+            }
         }
 
         private async Task CheckCommitedOKAsync()
