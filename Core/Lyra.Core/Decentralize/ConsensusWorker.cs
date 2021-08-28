@@ -416,7 +416,7 @@ namespace Lyra.Core.Decentralize
             }
 
             _log.LogInformation("consensus commited. state close.");
-            //_state.Close();
+            _state.Close();
         }
     }
 }
