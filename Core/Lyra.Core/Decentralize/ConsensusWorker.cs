@@ -303,9 +303,6 @@ namespace Lyra.Core.Decentralize
             if (_state.LocalResult == null)
                 return;     // we always wait for local result.
 
-            if (_state.IsClosed)
-                return;
-
             if (_state.OutputMsgs.Count < _state.WinNumber)
             {
                 return;
