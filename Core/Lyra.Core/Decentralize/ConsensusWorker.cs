@@ -295,9 +295,6 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAuthorizedAllOkAsync(string from)
         {
-            if (_state.IsClosed)
-                return;
-
             await ProcessQueueAsync();
             // check state
             // debug: show all states
@@ -372,6 +369,10 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogError($"CheckAuthorizedAllOkAsync: {ex.ToString()}");
             }
+            finally
+            {
+                _state.Semaphore.Release();
+            }
         }
 
         private async Task CheckCommitedOKAsync()
@@ -391,7 +392,7 @@ namespace Lyra.Core.Decentralize
             if (_state.CommitConsensus == ConsensusResult.Yea)
             {
                 if (!_state.IsSaved)
-                {
+                {  
                     if (!await _context.GetDagSystem().Storage.AddBlockAsync(block))
                         _log.LogWarning($"Block Save Failed Index: {block.Height}");
                     else
