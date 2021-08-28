@@ -949,17 +949,17 @@ namespace Lyra.Core.Decentralize
                 _stateMachine.Fire(_engageTriggerConsolidateFailed, hash);
         }
 
-        internal void LocalServiceBlockFailed(string hash)
-        {
-            if (CurrentState == BlockChainState.Almighty)
-                _stateMachine.Fire(BlockChainTrigger.LocalNodeMissingBlock);
-        }
+        //internal void LocalServiceBlockFailed(string hash)
+        //{
+        //    if (CurrentState == BlockChainState.Almighty)
+        //        _stateMachine.Fire(BlockChainTrigger.LocalNodeMissingBlock);
+        //}
 
-        internal void LocalTransactionBlockFailed(string hash)
-        {
-            if (CurrentState == BlockChainState.Almighty)
-                _stateMachine.Fire(BlockChainTrigger.LocalNodeMissingBlock);
-        }
+        //internal void LocalTransactionBlockFailed(string hash)
+        //{
+        //    if (CurrentState == BlockChainState.Almighty)
+        //        _stateMachine.Fire(BlockChainTrigger.LocalNodeMissingBlock);
+        //}
 
         private string PrintProfileInfo()
         {
