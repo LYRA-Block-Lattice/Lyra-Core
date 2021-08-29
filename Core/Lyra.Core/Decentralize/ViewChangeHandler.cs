@@ -60,7 +60,7 @@ namespace Lyra.Core.Decentralize
         private ConcurrentDictionary<string, VCCommitWithTime> commitMsgs { get; set; }
         public long ViewId { get; set; }
 
-        public bool IsViewChanging =>  TimeStarted != DateTime.MinValue && DateTime.Now - TimeStarted < TimeSpan.FromSeconds(20); 
+        public bool IsViewChanging => TimeStarted != DateTime.MinValue && DateTime.Now - TimeStarted < TimeSpan.FromSeconds(20);
 
         DagSystem _sys;
         public ViewChangeHandler(DagSystem sys, ConsensusService context, LeaderCandidateSelected candidateSelected, LeaderSelectedHandler leaderSelected) : base(context)
@@ -216,9 +216,9 @@ namespace Lyra.Core.Decentralize
                         sb.Append($"{msg.Key.Shorten()}, ");
 
                     _log.LogInformation($"too many view change request, {sb.ToString()}. force into view change mode");
-                    
+
                     // too many view change request. force into view change mode
-                    _context.GotViewChangeRequest(ViewId, reqMsgs.Count);
+                    await _context.GotViewChangeRequestAsync(ViewId, reqMsgs.Count);
 
                     // also do clean of req msgs queue
                     var unqualifiedReqs = reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
@@ -314,7 +314,7 @@ namespace Lyra.Core.Decentralize
             // make sure all request from all voters
             if (!_context.Board.AllVoters.Contains(req.From))
                 return;
-            
+
             if (!reqMsgs.Values.Any(a => a.msg.From == req.From))
             {
                 var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
@@ -335,59 +335,45 @@ namespace Lyra.Core.Decentralize
         /// 
         /// </summary>
         /// <returns></returns>
-        internal void BeginChangeView(bool IsPassive, string reason)
+        internal async Task BeginChangeViewAsync()
         {
             if (IsViewChanging)
                 return;
 
             TimeStarted = DateTime.Now;
 
-            _ = Task.Run(async () =>
+            _log.LogInformation($"AllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+
+            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+
+            if (lastSb == null)
             {
-                _log.LogWarning($"Begin Change View for reason: {reason}");
+                // genesis?
+                _log.LogCritical($"BeginChangeViewAsync has null service block. should not happend. error.");
+                return;
+            }
 
-                _log.LogInformation($"AllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+            // refresh billboard all voters
+            _context.UpdateVoters();
 
-                var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
 
-                if (lastSb == null)
-                {
-                    // genesis?
-                    _log.LogCritical($"BeginChangeViewAsync has null service block. should not happend. error.");
-                    return;
-                }
+            ViewId = lastSb.Height + 1;
+            selectedSuccess = false;
 
-                // refresh billboard all voters
-                _context.UpdateVoters();
+            _log.LogInformation($"View change begin at {TimeStarted}");
 
-                var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+            var req = new ViewChangeRequestMessage
+            {
+                From = _sys.PosWallet.AccountId,
+                ViewID = ViewId,
+                prevViewID = lastSb.Height,
+                requestSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
+                    $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
+            };
 
-                ViewId = lastSb.Height + 1;
-                selectedSuccess = false;
-
-                _log.LogInformation($"View change begin at {TimeStarted}");
-
-                var req = new ViewChangeRequestMessage
-                {
-                    From = _sys.PosWallet.AccountId,
-                    ViewID = ViewId,
-                    prevViewID = lastSb.Height,
-                    requestSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
-                        $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
-                };
-
-                if (!IsPassive)
-                {
-                    _log.LogInformation("Not passive mode. Delay 2s to make sure peers ready.");
-                    await Task.Delay(2000);         // wait for the gate to open
-                }
-                else
-                {
-                    _log.LogInformation("Passive mode. Send vc req now.");
-                }
-                _context.Send2P2pNetwork(req);
-                await CheckRequestAsync(req);
-            });
+            _context.Send2P2pNetwork(req);
+            await CheckRequestAsync(req);
         }
 
         internal void ShiftView(long v)

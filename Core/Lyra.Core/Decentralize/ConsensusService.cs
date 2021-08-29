@@ -190,7 +190,7 @@ namespace Lyra.Core.Decentralize
                     var state = CreateAuthringState(msg, true);
                     Sender.Tell(state);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _log.LogError("When reply AskForConsensusState: " + ex.ToString());
                 }
@@ -361,15 +361,9 @@ namespace Lyra.Core.Decentralize
                         //    }
                         //}
 
-                        if (_viewChangeHandler != null)
-                        {
-                            _viewChangeHandler.BeginChangeView(true, $"Leader task timeout, {timeoutTasks.Count} pending.");
-                            if (_viewChangeHandler.IsViewChanging)
-                            {
-                                _svcQueue.Clean();
-                                _svcQueue.ResetTimestamp();
-                            }
-                        }
+                        BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.FaultyLeaderNode);
+                        _svcQueue.Clean();
+                        _svcQueue.ResetTimestamp();
                     }
 
                     if (_viewChangeHandler?.CheckTimeout() == true)
@@ -396,62 +390,52 @@ namespace Lyra.Core.Decentralize
             timr.Enabled = true;
 
             _ = Task.Run(async () =>
-              {
-                  int count = 0;
-
+            {
                 // give other routine time to work/start/init
-                await Task.Delay(30000).ConfigureAwait(false);
+                await Task.Delay(30000);
+                await InitJobSchedulerAsync();
 
-                  while (true)
-                  {
-                      try
-                      {
-                          if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
-                              await HeartBeatAsync();
-
-                          if (_stateMachine.State == BlockChainState.Almighty)
-                          {
-                              await CreateConsolidationBlockAsync();
-                          }
-
-                          count++;
-
-                          if (count > 4 * 5)     // 5 minutes
-                        {
-                              count = 0;
-                          }
-
-                          if (count > 4 * 60 && Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)     // one hour
-                        {
-                              await DeclareConsensusNodeAsync();
-                          }
-
-                          await CheckLeaderHealthAsync();
-                      }
-                      catch (Exception ex)
-                      {
-                          _log.LogWarning("In maintaince loop: " + ex.ToString());
-                      }
-                      finally
-                      {
-                          await Task.Delay(15000).ConfigureAwait(false);
-                      }
-                  }
-              });
+                //if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)     // one hour
+                //{
+                //    await DeclareConsensusNodeAsync();
+                //}
+            });
         }
 
-        internal void GotViewChangeRequest(long viewId, int requestCount)
+        enum ViewChangeReason
         {
+            ConsensusTimeout,
+            ViewChangeTimeout,
+            FaultyLeaderNode,
+            TooManyViewChangeRquests,
+            NewPlayerJoinIn
+        };
+        private async Task BeginChangeViewAsync(string sender, ViewChangeReason reason)
+        {
+            _log.LogWarning($"Get View Change Request from {sender} for Reason: {reason}");
+
             if (_viewChangeHandler == null)
+            {
+                _log.LogInformation("Can't change view because _viewChangeHandler is null");
                 return;
+            }
 
             if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
             {
-                _log.LogWarning($"GotViewChangeRequest from other nodes for {viewId} count {requestCount}");
-                _viewChangeHandler.BeginChangeView(true, $"GotViewChangeRequest from other nodes for {viewId} count {requestCount}");
+                await _viewChangeHandler.BeginChangeViewAsync();
             }
             else
                 _log.LogWarning($"GotViewChangeRequest for CurrentState: {CurrentState}");
+        }
+
+        internal async Task GotViewChangeRequestAsync(long viewId, int requestCount)
+        {
+            // temp disable
+            // stop endless view change
+            // let view change request only from consensus service.
+
+            _log.LogWarning($"GotViewChangeRequest from other nodes for {viewId} count {requestCount}");
+            await BeginChangeViewAsync("consensus network", ViewChangeReason.TooManyViewChangeRquests);
         }
 
         private void CreateStateMachine()
@@ -913,7 +897,7 @@ namespace Lyra.Core.Decentralize
                     {
                         _log.LogInformation($"We have new player(s). Change view...");
                         // should change view for new member
-                        _viewChangeHandler.BeginChangeView(false, "We have new player(s).");
+                        await BeginChangeViewAsync("Cons monitor", ViewChangeReason.NewPlayerJoinIn);
                     }
                     else
                     {
@@ -1235,8 +1219,7 @@ namespace Lyra.Core.Decentralize
                                 Board.AllVoters.Remove(lastLeader);
 
                             // should change view for new member
-                            _viewChangeHandler.BeginChangeView(false, $"Current leader {lastLeader.Shorten()} do no consolidation or offline.");
-
+                            await BeginChangeViewAsync("Leader health monitor", ViewChangeReason.FaultyLeaderNode);
                         }
                     }
                 }
