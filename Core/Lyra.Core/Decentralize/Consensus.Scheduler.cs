@@ -21,7 +21,7 @@ namespace Lyra.Core.Decentralize
         // Init the scheduler
         private async Task InitJobSchedulerAsync()
         {
-            Quartz.Logging.LogContext.SetCurrentLogProvider(SimpleLogger.Factory);
+            //Quartz.Logging.LogContext.SetCurrentLogProvider(SimpleLogger.Factory);
 
             // First we must get a reference to a scheduler
             ISchedulerFactory sf = new StdSchedulerFactory();
@@ -37,8 +37,8 @@ namespace Lyra.Core.Decentralize
             // Tell quartz to schedule the job using our trigger
             await CreateJob(typeof(HeartBeater), "Heart Beat", jobGroup, TimeSpan.FromSeconds(28));
             await CreateJob(typeof(BlockAuthorizationMonitor), "Block Monitor", jobGroup, TimeSpan.FromMilliseconds(100));
-            await CreateJob(typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup, "0/2 * * * * *");
-            await CreateJob(typeof(NewPlayerMonitor), "Leader Monitor", jobGroup, "* 0/10 * * * *");
+            await CreateJob(typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup, "0/2 * * * * ?");
+            await CreateJob(typeof(NewPlayerMonitor), "Player Monitor", jobGroup, "* 0/10 * * * ?");
 
             // Start up the scheduler (nothing can actually run until the
             // scheduler has been started)
@@ -96,7 +96,8 @@ namespace Lyra.Core.Decentralize
                 {
                     if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
                     {
-                        await (context.Get("cs") as ConsensusService).DeclareConsensusNodeAsync();
+                        var x = context.Scheduler.Context.Get("cs");
+                        await (x as ConsensusService).DeclareConsensusNodeAsync();
                     }
                 }
                 catch(Exception)
@@ -113,7 +114,7 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
-                    throw new NotImplementedException();
+                    //throw new NotImplementedException();
                 }
                 catch (Exception)
                 {
@@ -131,7 +132,7 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
-                    throw new NotImplementedException();
+                    //throw new NotImplementedException();
                 }
                 catch (Exception)
                 {
@@ -149,7 +150,7 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
-                    throw new NotImplementedException();
+                    //throw new NotImplementedException();
                 }
                 catch (Exception)
                 {
