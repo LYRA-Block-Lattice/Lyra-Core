@@ -21,8 +21,12 @@ namespace Lyra.Core.Decentralize
         public DateTime Created { get; set; } = DateTime.Now;
     }
     public delegate void SuccessConsensusHandler(Block block, ConsensusResult? result, bool localOk);
-    public class AuthState : ConsensusState
+    public class AuthState : ConsensusState, IDisposable
     {
+        private bool _commited = false;
+        // To detect redundant calls
+        private bool _disposed = false;
+
         private bool _saved = false;
         public bool IsSaved => _saved;
         public void SetSaved()
@@ -246,12 +250,10 @@ namespace Lyra.Core.Decentralize
                 await Done.AsTaskAsync();
         }
 
-        public void Close()
+        public void Commit()
         {
-            if (_closed)
+            if (_commited)
                 return;
-
-            _closed = true;
 
             try
             {
@@ -259,37 +261,49 @@ namespace Lyra.Core.Decentralize
             }
             catch { }
 
-            var localResultGood = false;
-            if (LocalResult == null)        // far node not receive authorizing msg but the final commit msg
-            {
-                _log.LogWarning("State.LocalResult is null. wait it.");
-                localResultGood = false;
-            }                
-            else if (CommitConsensus == ConsensusResult.Yea && LocalResult.Result == APIResultCodes.Success)
-                localResultGood = true;
-            else if (CommitConsensus == ConsensusResult.Nay && LocalResult.Result != APIResultCodes.Success)
-                localResultGood = true;
-            else if (CommitConsensus == null || CommitConsensus == ConsensusResult.Uncertain)
-                localResultGood = true;
-
-            // if commitconsensus is null, means a view change is necessary. (by local result not good)
-
             try
             {
+                var localResultGood = false;
+                if (LocalResult == null)        // far node not receive authorizing msg but the final commit msg
+                {
+                    _log.LogWarning("State.LocalResult is null. wait it.");
+                    localResultGood = false;
+                }
+                else if (CommitConsensus == ConsensusResult.Yea && LocalResult.Result == APIResultCodes.Success)
+                    localResultGood = true;
+                else if (CommitConsensus == ConsensusResult.Nay && LocalResult.Result != APIResultCodes.Success)
+                    localResultGood = true;
+                else if (CommitConsensus == null || CommitConsensus == ConsensusResult.Uncertain)
+                    localResultGood = true;
+
                 OnConsensusSuccess?.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
+
+                _commited = true;
             }
-            catch(Exception exe)
+            catch (Exception exe)
             {
                 _log.LogError("Call OnConsensusSuccess: " + exe);
             }
+        }
 
-            Semaphore.Dispose();
-             
-            try
+        // Public implementation of Dispose pattern callable by consumers.
+        public void Dispose() => Dispose(true);
+
+        // Protected implementation of Dispose pattern.
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
             {
-                Done.Dispose();
+                return;
             }
-            catch { }
+
+            if (disposing)
+            {
+                // Dispose managed state (managed objects).
+                Semaphore?.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }

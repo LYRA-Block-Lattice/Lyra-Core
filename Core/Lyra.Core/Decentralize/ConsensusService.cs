@@ -229,10 +229,10 @@ namespace Lyra.Core.Decentralize
 
                         // not needed anymore
                         // seeds take resp to forward heatbeat, once
-                        //if (signedMsg.MsgType == ChatMessageType.HeartBeat && IsThisNodeSeed)
-                        //{
-                        //    await CriticalRelayAsync(signedMsg, null);
-                        //}
+                        if (signedMsg.MsgType == ChatMessageType.HeartBeat && IsThisNodeSeed)
+                        {
+                            await CriticalRelayAsync(signedMsg, null);
+                        }
                     }
                     else
                     {
@@ -382,15 +382,7 @@ namespace Lyra.Core.Decentralize
                     {
                         if (worker.CheckTimeout())
                         {
-                            try
-                            {
-                                worker.State?.Close();
-                            }
-                            catch(Exception ex)     // make sure it will be removed.
-                            {
-                                _log.LogError("In close timeout state: " + ex);
-                            }
-                            
+                            // no close. use dotnet's dispose.
                             _activeConsensus.TryRemove(worker.Hash, out _);
                         }
                     }
@@ -1554,9 +1546,7 @@ namespace Lyra.Core.Decentralize
         {
             if (IsBlockInQueue(state.InputMsg?.Block))
             {
-                _log.LogInformation("close state for block in queue");
-                state.Close();      // fail immediatelly
-                return;
+                throw new Exception("Block is already in queue.");
             }
 
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
@@ -1721,31 +1711,31 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        //private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
-        //    where T : SourceSignedMessage, new()
-        //{
-        //    //_log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
+        private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
+            where T : SourceSignedMessage, new()
+        {
+            //_log.LogInformation($"OnRelay: {message.MsgType} From: {message.From.Shorten()} Hash: {(message as BlockConsensusMessage)?.BlockHash} My state: {CurrentState}");
 
-        //    // seed node relay heartbeat, only once
-        //    // this keep the whole network one consist view of active nodes.
-        //    // this is important to make election.
-        //    if (_criticalMsgCache.TryAdd(message.From, DateTime.Now))
-        //    {
-        //        // try ever node forward.
-        //        // monitor network traffic closely.
+            // seed node relay heartbeat, only once
+            // this keep the whole network one consist view of active nodes.
+            // this is important to make election.
+            if (_criticalMsgCache.TryAdd(message.From, DateTime.Now))
+            {
+                // try ever node forward.
+                // monitor network traffic closely.
 
-        //        _localNode.Tell(message);     // no sign again!!!
+                _localNode.Tell(message);     // no sign again!!!
 
-        //        if (localAction != null)
-        //        {
-        //            await localAction(message);
-        //        }
+                if (localAction != null)
+                {
+                    await localAction(message);
+                }
 
-        //        return true;
-        //    }
-        //    else
-        //        return false;
-        //}
+                return true;
+            }
+            else
+                return false;
+        }
 
         async Task OnNextConsensusMessageAsync(SourceSignedMessage item)
         {

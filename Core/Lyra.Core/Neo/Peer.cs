@@ -185,19 +185,19 @@ namespace Neo.Network.P2P
             {
                 tcp_manager.Tell(new Tcp.Bind(Self, config.Tcp, options: new[] { new Inet.SO.ReuseAddress(true) }));
             }
-            if (ListenerWsPort > 0)
-            {
-                var host = "*";
+            //if (ListenerWsPort > 0)
+            //{
+            //    var host = "*";
 
-                if (!config.WebSocket.Address.GetAddressBytes().SequenceEqual(IPAddress.Any.GetAddressBytes()))
-                {
-                    // Is not for all interfaces
-                    host = config.WebSocket.Address.ToString();
-                }
+            //    if (!config.WebSocket.Address.GetAddressBytes().SequenceEqual(IPAddress.Any.GetAddressBytes()))
+            //    {
+            //        // Is not for all interfaces
+            //        host = config.WebSocket.Address.ToString();
+            //    }
 
-                ws_host = new WebHostBuilder().UseKestrel().UseUrls($"http://{host}:{ListenerWsPort}").Configure(app => app.UseWebSockets().Run(ProcessWebSocketAsync)).Build();
-                ws_host.Start();
-            }
+            //    ws_host = new WebHostBuilder().UseKestrel().UseUrls($"http://{host}:{ListenerWsPort}").Configure(app => app.UseWebSockets().Run(ProcessWebSocketAsync)).Build();
+            //    ws_host.Start();
+            //}
         }
 
         /// <summary>

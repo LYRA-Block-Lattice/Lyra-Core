@@ -19,7 +19,7 @@ using Lyra.Data.API;
 
 namespace Lyra.Core.Decentralize
 {
-    public class ConsensusWorker : ConsensusHandlerBase
+    public class ConsensusWorker : ConsensusHandlerBase, IDisposable
     {
         private enum LocalAuthState { NotStarted, InProgress, Finished };
         private LocalAuthState _localAuthState = LocalAuthState.NotStarted;
@@ -416,8 +416,32 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
+
+            _state.Commit();
             _log.LogInformation("consensus commited. state close.");
-            _state.Close();
+        }
+
+        // To detect redundant calls
+        private bool _disposed = false;
+
+        // Public implementation of Dispose pattern callable by consumers.
+        public void Dispose() => Dispose(true);
+
+        // Protected implementation of Dispose pattern.
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                // Dispose managed state (managed objects).
+                _state?.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }
