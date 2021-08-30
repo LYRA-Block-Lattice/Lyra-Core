@@ -343,7 +343,7 @@ namespace Lyra.Core.Decentralize
                 if (ConsensusResult.Uncertain != _state.PrepareConsensus)
                 {
 
-                    _log.LogInformation($"got Semaphore. is it saving? {_state.Saving}");
+                    //_log.LogInformation($"got Semaphore. is it saving? {_state.Saving}");
 
                     if (_state.Saving)
                         return;

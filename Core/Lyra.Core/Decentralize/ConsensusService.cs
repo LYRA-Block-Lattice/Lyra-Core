@@ -1290,6 +1290,13 @@ namespace Lyra.Core.Decentralize
             try
             {
                 var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                if(pendingCons.Any(x => x.State.IsSaved && x.State.InputMsg.Block.Height > lastCons.Height))
+                {
+                    _log.LogWarning($"Racing condition: pending cons height > last cons");
+                    return;
+                }
+
+
                 // consolidate time from lastcons to now - 18s
 
                 var timeShift = IsThisNodeLeader ? -18 : -22;
