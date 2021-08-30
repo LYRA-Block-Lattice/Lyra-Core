@@ -172,7 +172,7 @@ namespace Lyra.Core.Decentralize
 
             //_log.LogInformation($"committed_result: {committed_result}");
 
-            _log.LogInformation($"OnCommit: For block {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash.Shorten()}. Commit {_state.CommitMsgs.Count}/{_state.WinNumber} From {item.From.Shorten()}");
+            //_log.LogInformation($"OnCommit: For block {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash.Shorten()}. Commit {_state.CommitMsgs.Count}/{_state.WinNumber} From {item.From.Shorten()}");
 
             //_context.OnNodeActive(item.From);        // track latest activities via billboard
             //}
@@ -311,7 +311,7 @@ namespace Lyra.Core.Decentralize
             await ProcessQueueAsync();
             // check state
             // debug: show all states
-            _log.LogInformation($"Consensus Result: {_state.OutputMsgs.Count}/{_state.WinNumber} from {from.Shorten()}");
+            //_log.LogInformation($"Consensus Result: {_state.OutputMsgs.Count}/{_state.WinNumber} from {from.Shorten()}");
 
             if (_state.LocalResult == null)
                 return;     // we always wait for local result.

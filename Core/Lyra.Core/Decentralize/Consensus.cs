@@ -229,7 +229,7 @@ namespace Lyra.Core.Decentralize
                         int count = 0;
                         foreach (var hash in unConsHashResult.Entities)  // the first one is previous consolidation block
                         {
-                            _log.LogInformation($"Engaging: Syncunconsolidated block {count++}/{unConsHashResult.Entities.Count}");
+                            //_log.LogInformation($"Engaging: Syncunconsolidated block {count++}/{unConsHashResult.Entities.Count}");
                             if (hash == myLastCons.Hash)
                                 continue;       // already synced by previous steps
 
@@ -270,7 +270,7 @@ namespace Lyra.Core.Decentralize
                     var lastServiceBlock = await _sys.Storage.GetLastServiceBlockAsync();
                     ServiceBlockCreated(lastServiceBlock);
 
-                    _log.LogInformation($"Engaging: finalizing...");
+                    //_log.LogInformation($"Engaging: finalizing...");
 
                     var remoteState = await client.GetSyncStateAsync();
                     if (remoteState.ResultCode != APIResultCodes.Success)

@@ -1291,7 +1291,10 @@ namespace Lyra.Core.Decentralize
             {
                 var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
                 // consolidate time from lastcons to now - 18s
-                var timeStamp = DateTime.UtcNow.AddSeconds(-18);
+
+                var timeShift = IsThisNodeLeader ? -18 : -22;
+
+                var timeStamp = DateTime.UtcNow.AddSeconds(timeShift);
                 var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
 
                 // if 1 it must be previous consolidation block.
@@ -1306,7 +1309,7 @@ namespace Lyra.Core.Decentralize
                         else
                         {
                             // leader may be faulty
-
+                            await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.FaultyLeaderNode);
                         }
                     }
                     catch (Exception ex)
