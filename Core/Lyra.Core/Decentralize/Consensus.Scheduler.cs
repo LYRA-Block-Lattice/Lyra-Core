@@ -37,10 +37,10 @@ namespace Lyra.Core.Decentralize
             var jobGroup = "consensus service jobs";
 
             // Tell quartz to schedule the job using our trigger
-            await CreateJob(typeof(HeartBeater), "Heart Beat", jobGroup, TimeSpan.FromSeconds(28));
-            await CreateJob(typeof(BlockAuthorizationMonitor), "Block Monitor", jobGroup, TimeSpan.FromMilliseconds(100));
-            await CreateJob(typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup, "0/2 * * * * ?");
-            await CreateJob(typeof(NewPlayerMonitor), "Player Monitor", jobGroup, "* 0/10 * * * ?");
+            await CreateJobAsync(TimeSpan.FromSeconds(28), typeof(HeartBeater), "Heart Beat", jobGroup);
+            await CreateJobAsync(TimeSpan.FromMilliseconds(100), typeof(BlockAuthorizationMonitor), "Block Monitor", jobGroup);
+            await CreateJobAsync("0/2 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
+            await CreateJobAsync("0 0/3 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
 
             // Start up the scheduler (nothing can actually run until the
             // scheduler has been started)
@@ -53,7 +53,7 @@ namespace Lyra.Core.Decentralize
             await _sched.Shutdown(true);
         }
 
-        private async Task CreateJob(Type job, string name, string group, TimeSpan ts)
+        private async Task CreateJobAsync(TimeSpan ts, Type job, string name, string group)
         {
             await _sched.ScheduleJob(
                 JobBuilder
@@ -72,11 +72,11 @@ namespace Lyra.Core.Decentralize
             );
         }
 
-        private async Task CreateJob(Type job, string name, string group, string cronStr)
+        private async Task CreateJobAsync(string cronStr, Type job, string name, string group)
         {
             await _sched.ScheduleJob(
                 JobBuilder
-                .Create<LeaderTaskMonitor>()
+                .Create(job)
                 .WithIdentity(name, group)
                 .Build(),
 
@@ -99,7 +99,7 @@ namespace Lyra.Core.Decentralize
                     if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
                     {
                         var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
-                        await cs.DeclareConsensusNodeAsync();
+                        await cs.HeartBeatAsync();
                     }
                 }
                 catch(Exception)
@@ -167,7 +167,6 @@ namespace Lyra.Core.Decentralize
                     var timeoutTasks = cs._svcQueue.TimeoutTxes;
                     if (timeoutTasks.Any())
                     {
-
                         await cs.BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.FaultyLeaderNode);
                         cs._svcQueue.Clean();
                         cs._svcQueue.ResetTimestamp();
@@ -191,6 +190,13 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
+                    // announce self
+                    cs._board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
+                    await cs.DeclareConsensusNodeAsync();
+
+                    // make sure peers update its status
+                    await Task.Delay(2000);
+
                     await cs.CheckNewPlayerAsync();               
                 }
                 catch (Exception e)
