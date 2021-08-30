@@ -70,8 +70,6 @@ namespace Lyra.Core.Decentralize
             _candidateSelected = candidateSelected;
             _leaderSelected = leaderSelected;
 
-            TimeStarted = DateTime.MinValue;
-
             reqMsgs = new ConcurrentDictionary<string, VCReqWithTime>();
             replyMsgs = new ConcurrentDictionary<string, VCReplyWithTime>();
             commitMsgs = new ConcurrentDictionary<string, VCCommitWithTime>();
@@ -93,7 +91,7 @@ namespace Lyra.Core.Decentralize
             selectedSuccess = false;
             replySent = false;
             commitSent = false;
-            TimeStarted = DateTime.MinValue;
+            ResetTimer();
             reqMsgs.Clear();
             replyMsgs.Clear();
             commitMsgs.Clear();
@@ -340,7 +338,7 @@ namespace Lyra.Core.Decentralize
             if (IsViewChanging)
                 return;
 
-            TimeStarted = DateTime.Now;
+            ResetTimer();
 
             _log.LogInformation($"AllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
@@ -380,9 +378,7 @@ namespace Lyra.Core.Decentralize
         {
             Reset();
             ViewId = v;
-            TimeStarted = DateTime.MinValue;
+            ResetTimer();
         }
     }
-
-
 }

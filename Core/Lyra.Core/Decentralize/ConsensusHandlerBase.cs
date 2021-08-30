@@ -15,7 +15,7 @@ namespace Lyra.Core.Decentralize
         protected ConsensusService _context;
         protected ILogger _log;
 
-        public DateTime TimeStarted { get; set; }
+        public DateTime TimeStarted { get; private set; }
 
         protected ConcurrentQueue<ConsensusMessage> _outOfOrderedMessages;
 
@@ -23,6 +23,7 @@ namespace Lyra.Core.Decentralize
         {
             _log = new SimpleLogger("ConsensusHandlerBase").Logger;
             _context = context;
+            TimeStarted = DateTime.Now;
 
             _outOfOrderedMessages = new ConcurrentQueue<ConsensusMessage>();
         }
@@ -36,6 +37,11 @@ namespace Lyra.Core.Decentralize
             }
             else
                 return false;
+        }
+
+        protected void ResetTimer()
+        {
+            TimeStarted = DateTime.Now;
         }
 
         public async virtual Task ProcessMessageAsync(ConsensusMessage msg)

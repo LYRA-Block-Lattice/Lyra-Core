@@ -1,8 +1,10 @@
 ﻿using Lyra.Core.Utils;
+using Microsoft.Extensions.Logging;
 using Quartz;
 using Quartz.Impl;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -96,8 +98,8 @@ namespace Lyra.Core.Decentralize
                 {
                     if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
                     {
-                        var x = context.Scheduler.Context.Get("cs");
-                        await (x as ConsensusService).DeclareConsensusNodeAsync();
+                        var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
+                        await cs.DeclareConsensusNodeAsync();
                     }
                 }
                 catch(Exception)
@@ -114,7 +116,30 @@ namespace Lyra.Core.Decentralize
             {
                 try
                 {
-                    //throw new NotImplementedException();
+                    var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
+
+                    if(cs._viewChangeHandler.CheckTimeout())
+                    {
+                        // view change timeout
+                    }
+
+                    //if (cs._viewChangeHandler?.CheckTimeout() == true)
+                    //{
+                    //    cs._log.LogInformation($"View Change with Id {cs._viewChangeHandler.ViewId} begin {cs._viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - cs._viewChangeHandler.TimeStarted}");
+                    //    cs._viewChangeHandler.Reset();
+                    //}
+
+                    if (cs._viewChangeHandler.IsViewChanging)
+                        return Task.CompletedTask;
+
+                    foreach (var worker in cs._activeConsensus.Values.ToArray())
+                    {
+                        if (worker.CheckTimeout())
+                        {
+                            // no close. use dotnet's dispose.
+                            cs._activeConsensus.TryRemove(worker.Hash, out _);
+                        }
+                    }
                 }
                 catch (Exception)
                 {
@@ -128,18 +153,30 @@ namespace Lyra.Core.Decentralize
         [DisallowConcurrentExecution]
         private class LeaderTaskMonitor : IJob
         {
-            public Task Execute(IJobExecutionContext context)
+            public async Task Execute(IJobExecutionContext context)
             {
                 try
                 {
-                    //throw new NotImplementedException();
+                    // check svc tasks
+                    var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
+
+                    // leader monitor. check if all items in _pendingLeaderTasks is finished. if not, change view to remove the leader.
+                    cs._svcQueue.Clean();
+                    var timeoutTasks = cs._svcQueue.TimeoutTxes;
+                    if (timeoutTasks.Any())
+                    {
+
+                        await cs.BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.FaultyLeaderNode);
+                        cs._svcQueue.Clean();
+                        cs._svcQueue.ResetTimestamp();
+                    }
+
+                    // check consolidation block
                 }
                 catch (Exception)
                 {
 
                 }
-
-                return Task.CompletedTask;
             }
         }
 

@@ -21,6 +21,20 @@ namespace Lyra.Core.Decentralize
 {
     public class ConsensusWorker : ConsensusHandlerBase, IDisposable
     {
+        public enum ConsensusWorkerStatus
+        {
+            // init
+            Idle, 
+            /// <summary>
+            /// in progress of consensus
+            /// </summary>
+            InAuthorizing,
+            Commited,
+            WaitForViewChanging
+        }
+
+        public ConsensusWorkerStatus Status; 
+
         private enum LocalAuthState { NotStarted, InProgress, Finished };
         private LocalAuthState _localAuthState = LocalAuthState.NotStarted;
         private AuthorizersFactory _authorizers;
@@ -33,7 +47,6 @@ namespace Lyra.Core.Decentralize
         public ConsensusWorker(ConsensusService context, string hash) : base(context)
         {
             _authorizers = new AuthorizersFactory();
-            TimeStarted = DateTime.Now;
             Hash = hash;
         }
 
@@ -389,8 +402,12 @@ namespace Lyra.Core.Decentralize
             }
             //
 
+            if (Status == ConsensusWorkerStatus.Commited)
+                return;
+
             if (_state.CommitConsensus == ConsensusResult.Yea)
             {
+                Status = ConsensusWorkerStatus.Commited;
                 if (!_state.IsSaved)
                 {  
                     if (!await _context.GetDagSystem().Storage.AddBlockAsync(block))

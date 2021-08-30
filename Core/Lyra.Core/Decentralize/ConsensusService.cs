@@ -321,65 +321,6 @@ namespace Lyra.Core.Decentralize
                     {
                         _criticalMsgCache.TryRemove(hb, out _);
                     }
-
-                    // leader monitor. check if all items in _pendingLeaderTasks is finished. if not, change view to remove the leader.
-                    _svcQueue.Clean();
-                    var timeoutTasks = _svcQueue.TimeoutTxes;
-                    if (timeoutTasks.Any())
-                    {
-                        //foreach (var entry in timeoutTasks.ToArray())
-                        //{
-                        //    var recvx = await _sys.Storage.FindBlockBySourceHashAsync(entry.ReqSendHash);
-                        //    if (recvx != null)
-                        //    {
-                        //        entry.FinishRecv(recvx.Hash);
-                        //    }
-                        //    if (entry.IsTxCompleted)
-                        //    {
-                        //        timeoutTasks.Remove(entry);
-                        //        continue;
-                        //    }                                
-
-                        //    if(entry is ServiceWithActionTx satx)
-                        //    {
-                        //        // RelatedTx always point to recvblock 
-                        //        var actionBlock = await _sys.Storage.FindBlockByRelatedTxAsync(entry.ReqRecvHash);
-                        //        if(actionBlock != null)
-                        //        {
-                        //            entry.FinishAction(actionBlock.Hash);
-                        //        }
-
-                        //        if (entry.IsTxCompleted)
-                        //        {
-                        //            timeoutTasks.Remove(entry);
-                        //            continue;
-                        //        }
-                        //    }
-                        //    else
-                        //    {
-                        //        _log.LogError("should not happend: etnry not ServiceWithActionTx: " + entry.ToString());
-                        //    }
-                        //}
-
-                        BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.FaultyLeaderNode);
-                        _svcQueue.Clean();
-                        _svcQueue.ResetTimestamp();
-                    }
-
-                    if (_viewChangeHandler?.CheckTimeout() == true)
-                    {
-                        _log.LogInformation($"View Change with Id {_viewChangeHandler.ViewId} begin {_viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - _viewChangeHandler.TimeStarted}");
-                        _viewChangeHandler.Reset();
-                    }
-
-                    foreach (var worker in _activeConsensus.Values.ToArray())
-                    {
-                        if (worker.CheckTimeout())
-                        {
-                            // no close. use dotnet's dispose.
-                            _activeConsensus.TryRemove(worker.Hash, out _);
-                        }
-                    }
                 }
                 catch (Exception e)
                 {
@@ -389,16 +330,12 @@ namespace Lyra.Core.Decentralize
             timr.AutoReset = true;
             timr.Enabled = true;
 
+            // init
             _ = Task.Run(async () =>
             {
                 // give other routine time to work/start/init
                 await Task.Delay(30000);
                 await InitJobSchedulerAsync();
-
-                //if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)     // one hour
-                //{
-                //    await DeclareConsensusNodeAsync();
-                //}
             });
         }
 
@@ -986,7 +923,7 @@ namespace Lyra.Core.Decentralize
                 IPAddress = $"{_myIpAddress}"
             };
 
-            _log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");
+            //_log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
@@ -1288,7 +1225,7 @@ namespace Lyra.Core.Decentralize
         {
             // must throttle on this msg
 
-            _log.LogInformation($"OnNodeUpAsync: Node is up: {chat.From.Shorten()}");
+            //_log.LogInformation($"OnNodeUpAsync: Node is up: {chat.From.Shorten()}");
 
             try
             {
