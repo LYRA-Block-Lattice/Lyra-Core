@@ -112,41 +112,45 @@ namespace Lyra.Core.Decentralize
         [DisallowConcurrentExecution]
         private class BlockAuthorizationMonitor : IJob
         {
-            public Task Execute(IJobExecutionContext context)
+            public async Task Execute(IJobExecutionContext context)
             {
                 try
                 {
                     var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
 
-                    if(cs._viewChangeHandler.CheckTimeout())
-                    {
-                        // view change timeout
-                    }
-
-                    //if (cs._viewChangeHandler?.CheckTimeout() == true)
-                    //{
-                    //    cs._log.LogInformation($"View Change with Id {cs._viewChangeHandler.ViewId} begin {cs._viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - cs._viewChangeHandler.TimeStarted}");
-                    //    cs._viewChangeHandler.Reset();
-                    //}
-
                     if (cs._viewChangeHandler.IsViewChanging)
-                        return Task.CompletedTask;
-
-                    foreach (var worker in cs._activeConsensus.Values.ToArray())
                     {
-                        if (worker.CheckTimeout())
+                        if (cs._viewChangeHandler.CheckTimeout())
                         {
-                            // no close. use dotnet's dispose.
-                            cs._activeConsensus.TryRemove(worker.Hash, out _);
+                            // view change timeout
                         }
+
+                        //if (cs._viewChangeHandler?.CheckTimeout() == true)
+                        //{
+                        //    cs._log.LogInformation($"View Change with Id {cs._viewChangeHandler.ViewId} begin {cs._viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - cs._viewChangeHandler.TimeStarted}");
+                        //    cs._viewChangeHandler.Reset();
+                        //}
                     }
+                    else
+                    {
+                        foreach (var worker in cs._activeConsensus.Values.ToArray())
+                        {
+                            if (worker.CheckTimeout())
+                            {
+                                // no close. use dotnet's dispose.
+                                cs._activeConsensus.TryRemove(worker.Hash, out _);
+                            }
+                        }
+
+                        await cs.ConsolidateBlocksAsync();
+                    }
+
+
                 }
                 catch (Exception)
                 {
 
                 }
-
-                return Task.CompletedTask;
             }
         }
 

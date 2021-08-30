@@ -500,12 +500,6 @@ namespace Lyra.Core.Decentralize
                     _log.LogError($"Genesis send {amount} failed to accountId: {accId}");
                 }
             }
-
-            await Task.Delay(15000);
-
-            await CreateConsolidationBlockAsync();
-
-            await Task.Delay(3000);
         }
 
         private bool _creatingSvcBlock;

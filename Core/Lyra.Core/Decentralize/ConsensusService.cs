@@ -1266,58 +1266,52 @@ namespace Lyra.Core.Decentralize
             //    .Any(a => a.AccountID == accountId && a.Index == index && a is SendTransferBlock);
         }
 
-        private async Task CreateConsolidationBlockAsync()
+        private async Task ConsolidateBlocksAsync()
         {
-            if (_stateMachine.State != BlockChainState.Almighty)
+            if (_stateMachine.State != BlockChainState.Almighty
+                && _stateMachine.State != BlockChainState.Engaging)
                 return;
 
-            if (_activeConsensus.Values.Count > 0 && _activeConsensus.Values.Any(a => a.State != null && a.State.IsSourceValid && a.State.InputMsg.Block is ConsolidationBlock))
+            // check if there are pending consolidate blocks
+            var pendingCons = _activeConsensus.Values
+                .Where(a =>
+                    a.State != null
+                    && a.State.IsSourceValid
+                    && a.State.InputMsg.Block is ConsolidationBlock
+                    && a.Status != ConsensusWorker.ConsensusWorkerStatus.Commited);
+
+            if (pendingCons.Any())
                 return;
 
-            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-            if (lastCons == null)
-                return;         // wait for genesis
+            // avoid racing condition (commited but not saved)
+            if (pendingCons.Any(a => !a.State.IsSaved))
+                return;
 
             try
             {
-                if (IsThisNodeLeader && _stateMachine.State == BlockChainState.Almighty)
+                var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                // consolidate time from lastcons to now - 18s
+                var timeStamp = DateTime.UtcNow.AddSeconds(-18);
+                var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
+
+                // if 1 it must be previous consolidation block.
+                if (unConsList.Count() >= 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
-                    //// test code
-                    //var livingPosNodeIds = _board.AllNodes.Keys.ToArray();
-                    //_lastVotes = _sys.Storage.FindVotes(livingPosNodeIds);
-                    //// end test code
-                    bool allNodeSyncd = false;
                     try
                     {
-                        allNodeSyncd = true;// await CheckPrimaryNodesStatus();
+                        if (IsThisNodeLeader)
+                        {
+                            await LeaderCreateConsolidateBlockAsync(lastCons, timeStamp, unConsList);
+                        }
+                        else
+                        {
+                            // leader may be faulty
+
+                        }
                     }
                     catch (Exception ex)
                     {
-                        _log.LogWarning("Exception in CheckPrimaryNodesStatus: " + ex.ToString());
-                    }
-                    if (allNodeSyncd)
-                    {
-                        // consolidate time from lastcons to now - 18s
-                        var timeStamp = DateTime.UtcNow.AddSeconds(-18);
-                        var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
-
-                        // if 1 it must be previous consolidation block.
-                        if (unConsList.Count() >= 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
-                        {
-                            try
-                            {
-                                await CreateConsolidateBlockAsync(lastCons, timeStamp, unConsList);
-                            }
-                            catch (Exception ex)
-                            {
-                                _log.LogError($"In creating consolidation block: {ex.Message}");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // so there is inconsistant between seed0 and other nodes.
-
+                        _log.LogError($"In creating consolidation block: {ex.Message}");
                     }
                 }
             }
@@ -1372,9 +1366,9 @@ namespace Lyra.Core.Decentralize
         //    }
         //}
 
-        private async Task CreateConsolidateBlockAsync(ConsolidationBlock lastCons, DateTime timeStamp, IEnumerable<string> collection)
+        private async Task LeaderCreateConsolidateBlockAsync(ConsolidationBlock lastCons, DateTime timeStamp, IEnumerable<string> collection)
         {
-            _log.LogInformation($"Creating ConsolidationBlock... ");
+            _log.LogInformation($"Leader is creating ConsolidationBlock... ");
 
             var consBlock = new ConsolidationBlock
             {
