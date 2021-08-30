@@ -80,7 +80,8 @@ namespace Lyra.Core.Authorizers
             var oldBalance = lastBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ?
                 lastBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] : 0;
             if (
-                block.ServiceHash == lastSb.Hash &&
+                // for liveness svchash may not equal lastsb
+                //block.ServiceHash == lastSb.Hash &&
                 block.SourceHash == feesEndSb.Hash &&
                 block.ServiceBlockStartHeight == unSetFees.ServiceBlockStartHeight &&
                 block.ServiceBlockEndHeight == unSetFees.ServiceBlockEndHeight &&

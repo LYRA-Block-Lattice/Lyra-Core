@@ -39,7 +39,7 @@ namespace Lyra.Core.Decentralize
                 return false;
         }
 
-        protected void ResetTimer()
+        public void ResetTimer()
         {
             TimeStarted = DateTime.Now;
         }

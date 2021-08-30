@@ -229,7 +229,11 @@ namespace Lyra.Core.Decentralize
 
                         // not needed anymore
                         // seeds take resp to forward heatbeat, once
-                        if (signedMsg.MsgType == ChatMessageType.HeartBeat && IsThisNodeSeed)
+                        if (IsThisNodeSeed && (
+                            signedMsg.MsgType == ChatMessageType.ViewChangeRequest
+                            || signedMsg.MsgType == ChatMessageType.ViewChangeReply
+                            || signedMsg.MsgType == ChatMessageType.ViewChangeCommit
+                            || signedMsg.MsgType == ChatMessageType.HeartBeat))
                         {
                             await CriticalRelayAsync(signedMsg, null);
                         }
@@ -776,17 +780,17 @@ namespace Lyra.Core.Decentralize
 
         public void UpdateVoters()
         {
-            _log.LogInformation("UpdateVoters begin...");
+            //_log.LogInformation("UpdateVoters begin...");
             RefreshAllNodesVotes();
             var list = LookforVoters();
             if (list.Count >= 4)        // simple check. but real condition is complex.
                 Board.AllVoters = list;
-            _log.LogInformation("UpdateVoters ended.");
+            //_log.LogInformation("UpdateVoters ended.");
         }
 
         internal async Task CheckNewPlayerAsync()
         {
-            _log.LogInformation($"Checking new player(s)...");
+            //_log.LogInformation($"Checking new player(s)...");
 
             var cons = await _sys.Storage.GetLastConsolidationBlockAsync();
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
@@ -825,7 +829,7 @@ namespace Lyra.Core.Decentralize
 
             if (!firstNotSecond.Any() && !secondNotFirst.Any())
             {
-                _log.LogInformation($"voter list is same as previous one.");
+                //_log.LogInformation($"voter list is same as previous one.");
                 return;
             }
 

@@ -47,46 +47,13 @@ namespace Lyra.Core.Decentralize
             await _sched.Start();
         }
 
-        private async Task CloseJobScheduler()
-        {
-            // shut down the scheduler
-            await _sched.Shutdown(true);
-        }
+        //private async Task CloseJobScheduler()
+        //{
+        //    // shut down the scheduler
+        //    await _sched.Shutdown(true);
+        //}
 
-        private async Task CreateJobAsync(TimeSpan ts, Type job, string name, string group)
-        {
-            await _sched.ScheduleJob(
-                JobBuilder
-                .Create(job)
-                .WithIdentity(name, group)
-                .Build(),
 
-                TriggerBuilder
-                .Create()
-                .WithIdentity($"{name} trigger", group)
-                .StartNow()
-                .WithSimpleSchedule(x => x
-                    .WithInterval(ts)
-                    .RepeatForever())
-                .Build()
-            );
-        }
-
-        private async Task CreateJobAsync(string cronStr, Type job, string name, string group)
-        {
-            await _sched.ScheduleJob(
-                JobBuilder
-                .Create(job)
-                .WithIdentity(name, group)
-                .Build(),
-
-                TriggerBuilder.Create()
-                .WithIdentity($"{name} trigger", group)
-                .StartNow()
-                .WithCronSchedule(cronStr)
-                .Build()
-            );
-        }
 
         // jobs
         [DisallowConcurrentExecution]
@@ -135,10 +102,33 @@ namespace Lyra.Core.Decentralize
                     {
                         foreach (var worker in cs._activeConsensus.Values.ToArray())
                         {
+                            // check to see if anyone wait for view change
+                            if(worker.Status == ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging)
+                            {
+                                cs._log.LogWarning("View changed. recovery failed block(s)...");
+                                worker.ResetTimer();
+                                // send authorizing message
+                                var msg = worker.State.InputMsg;
+                                cs.Send2P2pNetwork(msg);
+
+                                worker.RedoBlockAuthorizing();
+                            }
+
                             if (worker.CheckTimeout())
                             {
-                                // no close. use dotnet's dispose.
-                                cs._activeConsensus.TryRemove(worker.Hash, out _);
+                                if(worker.State.IsCommited)
+                                {
+                                    // no close. use dotnet's dispose.
+                                    cs._activeConsensus.TryRemove(worker.Hash, out _);
+                                }
+                                else
+                                {
+                                    cs._log.LogWarning("Block consensus failed. do view change...");
+                                    // consensus failed. change view and redo later
+                                    worker.Status = ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging;
+
+                                    await cs.BeginChangeViewAsync("block monitor", ViewChangeReason.ConsensusTimeout);
+                                }
                             }
                         }
 
@@ -206,6 +196,41 @@ namespace Lyra.Core.Decentralize
                     cs._log.LogError($"In NewPlayerMonitor: {e}");
                 }
             }
+        }
+
+        private async Task CreateJobAsync(TimeSpan ts, Type job, string name, string group)
+        {
+            await _sched.ScheduleJob(
+                JobBuilder
+                .Create(job)
+                .WithIdentity(name, group)
+                .Build(),
+
+                TriggerBuilder
+                .Create()
+                .WithIdentity($"{name} trigger", group)
+                .StartNow()
+                .WithSimpleSchedule(x => x
+                    .WithInterval(ts)
+                    .RepeatForever())
+                .Build()
+            );
+        }
+
+        private async Task CreateJobAsync(string cronStr, Type job, string name, string group)
+        {
+            await _sched.ScheduleJob(
+                JobBuilder
+                .Create(job)
+                .WithIdentity(name, group)
+                .Build(),
+
+                TriggerBuilder.Create()
+                .WithIdentity($"{name} trigger", group)
+                .StartNow()
+                .WithCronSchedule(cronStr)
+                .Build()
+            );
         }
     }
 

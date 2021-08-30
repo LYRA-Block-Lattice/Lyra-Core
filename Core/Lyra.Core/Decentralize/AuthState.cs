@@ -24,6 +24,7 @@ namespace Lyra.Core.Decentralize
     public class AuthState : ConsensusState, IDisposable
     {
         private bool _commited = false;
+        public bool IsCommited => _commited;
         // To detect redundant calls
         private bool _disposed = false;
 

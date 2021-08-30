@@ -114,6 +114,14 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        // for liveness when block failed we do view change,
+        // after view change we need to redo the consensus process
+        public void RedoBlockAuthorizing()
+        {
+            _log.LogInformation("In RedoBlockAuthorizing");
+            OnPrePrepare(State.InputMsg, true);
+        }
+
         private void OnPrePrepare(AuthorizingMsg msg, bool sourceValid)
         {
             _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash} from {msg.From.Shorten()}");
