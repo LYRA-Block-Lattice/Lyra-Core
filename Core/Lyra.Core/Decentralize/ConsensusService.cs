@@ -1238,7 +1238,7 @@ namespace Lyra.Core.Decentralize
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     return;
 
-                await OnNodeActiveAsync(node.AccountID, node.AuthorizerSignature, BlockChainState.StaticSync, node.IPAddress, node.ThumbPrint);
+                await OnNodeActiveAsync(node.AccountID, node.AuthorizerSignature, BlockChainState.Almighty, node.IPAddress, node.ThumbPrint);
             }
             catch (Exception ex)
             {

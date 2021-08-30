@@ -192,10 +192,12 @@ namespace Lyra.Core.Decentralize
                 {
                     // announce self
                     cs._board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
+                    await Task.Delay(5000);
+
                     await cs.DeclareConsensusNodeAsync();
 
                     // make sure peers update its status
-                    await Task.Delay(2000);
+                    await Task.Delay(5000);
 
                     await cs.CheckNewPlayerAsync();               
                 }
