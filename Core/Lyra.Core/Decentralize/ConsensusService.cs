@@ -784,64 +784,54 @@ namespace Lyra.Core.Decentralize
             _log.LogInformation("UpdateVoters ended.");
         }
 
-        internal void ConsolidationSucceed(ConsolidationBlock cons)
+        internal async Task CheckNewPlayerAsync()
         {
-            _ = Task.Run(async () =>
-            {
-                _log.LogInformation($"We have a new consolidation block: {cons.Hash.Shorten()}");
-                var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+            _log.LogInformation($"Checking new player(s)...");
 
-                if (CurrentState == BlockChainState.Genesis)
+            var cons = await _sys.Storage.GetLastConsolidationBlockAsync();
+            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+
+            if (CurrentState == BlockChainState.Genesis)
+            {
+                var localState = LocalDbSyncState.Load();
+                localState.databaseVersion = LyraGlobal.DatabaseVersion;
+                localState.svcGenHash = lsb.Hash;
+                localState.lastVerifiedConsHeight = cons.Height;
+                LocalDbSyncState.Save(localState);
+
+                await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone);
+                return;
+            }
+
+            if (CurrentState == BlockChainState.Almighty
+                || CurrentState == BlockChainState.Engaging)
+            {
+                var localState = LocalDbSyncState.Load();
+                if (localState.lastVerifiedConsHeight == 0)
                 {
-                    var localState = LocalDbSyncState.Load();
                     localState.databaseVersion = LyraGlobal.DatabaseVersion;
                     localState.svcGenHash = lsb.Hash;
-                    localState.lastVerifiedConsHeight = cons.Height;
-                    LocalDbSyncState.Save(localState);
-
-                    await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone);
-                    return;
                 }
+                localState.lastVerifiedConsHeight = cons.Height;
+                LocalDbSyncState.Save(localState);
+            }
 
-                if (CurrentState == BlockChainState.Almighty)
-                {
-                    var localState = LocalDbSyncState.Load();
-                    if (localState.lastVerifiedConsHeight == 0)
-                    {
-                        localState.databaseVersion = LyraGlobal.DatabaseVersion;
-                        localState.svcGenHash = lsb.Hash;
-                    }
-                    localState.lastVerifiedConsHeight = cons.Height;
-                    LocalDbSyncState.Save(localState);
-                }
+            var list1 = lsb.Authorizers.Keys.ToList();
+            UpdateVoters();
+            var list2 = Board.AllVoters;
 
-                var list1 = lsb.Authorizers.Keys.ToList();
-                UpdateVoters();
-                var list2 = Board.AllVoters;
+            var firstNotSecond = list1.Except(list2).ToList();
+            var secondNotFirst = list2.Except(list1).ToList();
 
-                var firstNotSecond = list1.Except(list2).ToList();
-                var secondNotFirst = list2.Except(list1).ToList();
+            if (!firstNotSecond.Any() && !secondNotFirst.Any())
+            {
+                _log.LogInformation($"voter list is same as previous one.");
+                return;
+            }
 
-                if (!firstNotSecond.Any() && !secondNotFirst.Any())
-                {
-                    _log.LogInformation($"voter list is same as previous one.");
-                    return;
-                }
-
-                if (_viewChangeHandler != null)
-                {
-                    if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
-                    {
-                        _log.LogInformation($"We have new player(s). Change view...");
-                        // should change view for new member
-                        await BeginChangeViewAsync("Cons monitor", ViewChangeReason.NewPlayerJoinIn);
-                    }
-                    else
-                    {
-                        _log.LogInformation($"Current state {CurrentState} not allow to change view.");
-                    }
-                }
-            });
+            _log.LogInformation($"We have new player(s). Change view...");
+            // should change view for new member
+            await BeginChangeViewAsync("new player monitor", ViewChangeReason.NewPlayerJoinIn);
         }
 
         internal void ServiceBlockCreated(ServiceBlock sb)
@@ -1546,12 +1536,7 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            if (block is ConsolidationBlock cons)
-            {
-                if (result == ConsensusResult.Yea)
-                    ConsolidationSucceed(cons);
-            }
-            else if (block is ServiceBlock serviceBlock)
+            if (block is ServiceBlock serviceBlock)
             {
                 if (result == ConsensusResult.Yea)
                 {

@@ -114,10 +114,10 @@ namespace Lyra.Core.Decentralize
         {
             public async Task Execute(IJobExecutionContext context)
             {
+                var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
+
                 try
                 {
-                    var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
-
                     if (cs._viewChangeHandler.IsViewChanging)
                     {
                         if (cs._viewChangeHandler.CheckTimeout())
@@ -144,12 +144,10 @@ namespace Lyra.Core.Decentralize
 
                         await cs.ConsolidateBlocksAsync();
                     }
-
-
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-
+                    cs._log.LogError($"In BlockAuthorizationMonitor: {e}");
                 }
             }
         }
@@ -159,11 +157,11 @@ namespace Lyra.Core.Decentralize
         {
             public async Task Execute(IJobExecutionContext context)
             {
+                var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
+
                 try
                 {
                     // check svc tasks
-                    var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
-
                     // leader monitor. check if all items in _pendingLeaderTasks is finished. if not, change view to remove the leader.
                     cs._svcQueue.Clean();
                     var timeoutTasks = cs._svcQueue.TimeoutTxes;
@@ -177,9 +175,9 @@ namespace Lyra.Core.Decentralize
 
                     // check consolidation block
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-
+                    cs._log.LogError($"In LeaderTaskMonitor: {e}");
                 }
             }
         }
@@ -187,18 +185,18 @@ namespace Lyra.Core.Decentralize
         [DisallowConcurrentExecution]
         private class NewPlayerMonitor : IJob
         {
-            public Task Execute(IJobExecutionContext context)
+            public async Task Execute(IJobExecutionContext context)
             {
+                var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
+
                 try
                 {
-                    //throw new NotImplementedException();
+                    await cs.CheckNewPlayerAsync();               
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-
+                    cs._log.LogError($"In NewPlayerMonitor: {e}");
                 }
-
-                return Task.CompletedTask;
             }
         }
     }
