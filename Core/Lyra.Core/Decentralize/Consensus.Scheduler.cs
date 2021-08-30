@@ -40,7 +40,7 @@ namespace Lyra.Core.Decentralize
             await CreateJobAsync(TimeSpan.FromSeconds(28), typeof(HeartBeater), "Heart Beat", jobGroup);
             await CreateJobAsync(TimeSpan.FromMilliseconds(100), typeof(BlockAuthorizationMonitor), "Block Monitor", jobGroup);
             await CreateJobAsync("0/2 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
-            await CreateJobAsync("0 0/3 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
+            await CreateJobAsync("0 0/10 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
 
             // Start up the scheduler (nothing can actually run until the
             // scheduler has been started)
