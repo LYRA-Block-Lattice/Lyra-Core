@@ -314,8 +314,6 @@ namespace Lyra.Core.Decentralize
             if (IsViewChanging)
                 return;
 
-            ResetTimer();
-
             _log.LogInformation($"AllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
@@ -327,7 +325,7 @@ namespace Lyra.Core.Decentralize
                 return;
             }
             
-            ViewId = lastSb.Height + 1;
+            ShiftView(lastSb.Height + 1);
             selectedSuccess = false;
 
             _log.LogInformation($"View change for ViewId {ViewId} begin at {TimeStarted}");
