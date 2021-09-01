@@ -137,9 +137,16 @@ namespace Lyra.Core.Decentralize
         private async Task CheckAllStatsAsync()
         {
             //_log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
-
             if (selectedSuccess)
                 return;
+
+            if (nextLeader == null)
+            {
+                var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+
+                ShiftView(lastSb.Height + 1);
+                CalculateLeaderCandidate();
+            }                
 
             // remove outdated msgs
             var q1 = reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
