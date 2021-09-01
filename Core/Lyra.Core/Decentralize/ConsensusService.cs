@@ -781,6 +781,14 @@ namespace Lyra.Core.Decentralize
             foreach (var od in outDated)
                 _failedLeaders.TryRemove(od.Key, out _);
 
+            // debug only
+            foreach(var x in _failedLeaders)
+            {
+                _log.LogInformation($"LookforVoters: failed leaders: {x.Value}");
+            }
+            // end debug
+
+
             // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
                                                     //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
@@ -1741,6 +1749,12 @@ namespace Lyra.Core.Decentralize
             {
                 _locker.WaitOne();
                 // remove stalled nodes
+                // debug only
+                foreach(var x in _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-40)))
+                {
+                    _log.LogInformation($"RefreshAllNodesVotes is removing {x.AccountID}");
+                }
+                // end debug
                 _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-40)); // 2 heartbeat + 10 s
 
                 var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID).ToList();
