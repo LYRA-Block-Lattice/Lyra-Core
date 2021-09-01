@@ -110,14 +110,20 @@ namespace Lyra.Core.Authorizers
 
                 var svcBlock = await sys.Storage.GetLastServiceBlockAsync();
                 if (blockt.ServiceHash != svcBlock.Hash)
-                    return APIResultCodes.ServiceBlockNotFound;
+                {
+                    // verify svc hash exists
+                    var svc2 = await sys.Storage.FindBlockByHashAsync(blockt.ServiceHash);
+                    if(svc2 == null)
+                        return APIResultCodes.ServiceBlockNotFound;
+                }
+                    
 
                 if (!await ValidateRenewalDateAsync(sys, blockt, previousBlock as TransactionBlock))
                     return APIResultCodes.TokenExpired;
 
                 if (sys.ConsensusState != BlockChainState.StaticSync)
                 {
-                    if (block.TimeStamp < uniNow.AddSeconds(-18) || block.TimeStamp > uniNow.AddSeconds(3))
+                    if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(3))
                     {
                         _log.LogInformation($"TimeStamp 2: {block.TimeStamp} Universal Time Now: {uniNow}");
                         return APIResultCodes.InvalidBlockTimeStamp;
