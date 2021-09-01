@@ -347,7 +347,7 @@ namespace Lyra.Core.Decentralize
                 }
                 _log.LogInformation(sb.ToString());
 
-                _log.LogInformation($"_state.Consensus is {_state.PrepareConsensus}");
+                //_log.LogInformation($"_state.Consensus is {_state.PrepareConsensus}");
                 if (ConsensusResult.Uncertain != _state.PrepareConsensus)
                 {
 
@@ -360,7 +360,7 @@ namespace Lyra.Core.Decentralize
 
                     _state.T4 = DateTime.Now;
 
-                    _log.LogInformation($"Saving {_state.PrepareConsensus}: {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash}");
+                    //_log.LogInformation($"Saving {_state.PrepareConsensus}: {_state.InputMsg.Block.Height}/{_state.InputMsg.Block.Hash}");
 
                     var ts = DateTime.Now - _state.Created;
                     if (_context.Stats.Count > 10000)

@@ -168,7 +168,7 @@ namespace Lyra.Core.Decentralize
                     var timeoutTasks = cs._svcQueue.TimeoutTxes;
                     if (timeoutTasks.Any())
                     {
-                        await cs.BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.FaultyLeaderNode);
+                        await cs.BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.LeaderFailedProcessingDEX);
                         cs._svcQueue.Clean();
                         cs._svcQueue.ResetTimestamp();
                     }

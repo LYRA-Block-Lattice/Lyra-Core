@@ -345,11 +345,29 @@ namespace Lyra.Core.Decentralize
 
         enum ViewChangeReason
         {
+            // no heartbeat from leader
+            LeaderNoHeartBeat,
+
+            // no consolidate block created in time
+            LeaderFailedConsolidating,
+
+            // DEX request not processed in time
+            LeaderFailedProcessingDEX,
+
+            // user block no made consensus in time / liveness
             ConsensusTimeout,
+
+            // view change not commited in time, not enough vote
             ViewChangeTimeout,
-            FaultyLeaderNode,
+
+            // no service block created by the elected new leader in time
+            NewLeaderFailedCreatingView,
+
+            // f+1 view change request from the network
             TooManyViewChangeRquests,
-            NewPlayerJoinIn
+
+            // we have new player join / leave
+            PlayerJoinAndLeft,
         };
         private async Task BeginChangeViewAsync(string sender, ViewChangeReason reason)
         {
@@ -835,7 +853,7 @@ namespace Lyra.Core.Decentralize
 
             _log.LogInformation($"We have new player(s). Change view...");
             // should change view for new member
-            await BeginChangeViewAsync("new player monitor", ViewChangeReason.NewPlayerJoinIn);
+            await BeginChangeViewAsync("new player monitor", ViewChangeReason.PlayerJoinAndLeft);
         }
 
         internal void ServiceBlockCreated(ServiceBlock sb)
@@ -1149,7 +1167,7 @@ namespace Lyra.Core.Decentralize
                                 Board.AllVoters.Remove(lastLeader);
 
                             // should change view for new member
-                            await BeginChangeViewAsync("Leader health monitor", ViewChangeReason.FaultyLeaderNode);
+                            await BeginChangeViewAsync("Leader health monitor", ViewChangeReason.LeaderNoHeartBeat);
                         }
                     }
                 }
@@ -1309,7 +1327,7 @@ namespace Lyra.Core.Decentralize
                         else
                         {
                             // leader may be faulty
-                            await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.FaultyLeaderNode);
+                            await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
                         }
                     }
                     catch (Exception ex)
