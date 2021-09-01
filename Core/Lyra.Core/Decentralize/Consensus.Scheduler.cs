@@ -125,6 +125,12 @@ namespace Lyra.Core.Decentralize
                                 {
                                     // no close. use dotnet's dispose.
                                     cs._activeConsensus.TryRemove(worker.Hash, out _);
+                                    worker.Dispose();
+                                }
+                                else if(worker.State.InputMsg?.TimeStamp < DateTime.UtcNow.AddSeconds(-60))
+                                {                                    
+                                    cs._activeConsensus.TryRemove(worker.Hash, out _);
+                                    worker.Dispose();
                                 }
                                 else
                                 {
