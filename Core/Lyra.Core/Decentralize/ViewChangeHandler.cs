@@ -168,22 +168,6 @@ namespace Lyra.Core.Decentralize
             // request
             if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                // the new leader:
-                // 1, not the previous one;
-                // 2, viewid mod [voters count], index of _qualifiedVoters.
-                // 
-                var leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
-
-                var leader = _context.Board.AllVoters[leaderIndex];
-                if (!reqMsgs.Values.Any(a => a.msg.From == leader))     // it is offline
-                {
-                    leaderIndex = (leaderIndex + 1) % _context.Board.AllVoters.Count;
-                }
-
-                nextLeader = _context.Board.AllVoters[leaderIndex];
-                _log.LogInformation($"CheckAllStats, By ReqMsgs, next leader will be {nextLeader}");
-                _candidateSelected(nextLeader);
-
                 var reply = new ViewChangeReplyMessage
                 {
                     From = _sys.PosWallet.AccountId,
@@ -352,6 +336,22 @@ namespace Lyra.Core.Decentralize
             selectedSuccess = false;
 
             _log.LogInformation($"View change begin at {TimeStarted}");
+
+            // the new leader:
+            // 1, not the previous one;
+            // 2, viewid mod [voters count], index of _qualifiedVoters.
+            // 
+            var leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
+
+            var leader = _context.Board.AllVoters[leaderIndex];
+            if (!reqMsgs.Values.Any(a => a.msg.From == leader))     // it is offline
+            {
+                leaderIndex = (leaderIndex + 1) % _context.Board.AllVoters.Count;
+            }
+
+            nextLeader = _context.Board.AllVoters[leaderIndex];
+            _log.LogInformation($"CheckAllStats, By ReqMsgs, next leader will be {nextLeader}");
+            _candidateSelected(nextLeader);
 
             var req = new ViewChangeRequestMessage
             {
