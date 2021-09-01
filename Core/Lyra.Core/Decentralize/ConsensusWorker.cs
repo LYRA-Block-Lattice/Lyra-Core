@@ -406,52 +406,65 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckCommitedOKAsync()
         {
-            if (_state.LocalResult == null)
-                return;
-
-            var block = _state.InputMsg?.Block;
-            if (block == null)
-            // debug 
+            try
             {
-                _log.LogWarning($"Block is null");
-                return;
-            }
-            //
+                await _state.Semaphore.WaitAsync();
 
-            if (Status == ConsensusWorkerStatus.Commited)
-                return;
+                if (_state.LocalResult == null)
+                    return;
 
-            if (_state.CommitConsensus == ConsensusResult.Yea)
-            {
-                Status = ConsensusWorkerStatus.Commited;
-                if (!_state.IsSaved)
-                {  
-                    if (!await _context.GetDagSystem().Storage.AddBlockAsync(block))
-                        _log.LogWarning($"Block Save Failed Index: {block.Height}");
-                    else
+                var block = _state.InputMsg?.Block;
+                if (block == null)
+                // debug 
+                {
+                    _log.LogWarning($"Block is null");
+                    return;
+                }
+                //
+
+                if (Status == ConsensusWorkerStatus.Commited)
+                    return;
+
+                if (_state.CommitConsensus == ConsensusResult.Yea)
+                {
+                    Status = ConsensusWorkerStatus.Commited;
+                    if (!_state.IsSaved)
                     {
-                        _state.SetSaved();
-                        _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
+                        if (!await _context.GetDagSystem().Storage.AddBlockAsync(block))
+                            _log.LogWarning($"Block Save Failed Index: {block.Height}");
+                        else
+                        {
+                            _state.SetSaved();
+                            _log.LogInformation($"Block saved: {block.Height}/{block.Hash}");
 
-                        // event hooks
-                        var sys = _context.GetDagSystem();
-                        sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
+                            // event hooks
+                            var sys = _context.GetDagSystem();
+                            sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
+                        }
                     }
                 }
-            }
-            else if (_state.CommitConsensus == ConsensusResult.Nay)
-            {
-                _log.LogWarning($"Block not saved because ConsensusResult is Nay: {block.Height}");
-            }
-            else
-            {
-                //_log.LogWarning($"Block not saved because ConsensusResult is Uncertain: {block.Height}");
-                return;
-            }
+                else if (_state.CommitConsensus == ConsensusResult.Nay)
+                {
+                    _log.LogWarning($"Block not saved because ConsensusResult is Nay: {block.Height}");
+                }
+                else
+                {
+                    //_log.LogWarning($"Block not saved because ConsensusResult is Uncertain: {block.Height}");
+                    return;
+                }
 
 
-            _state.Commit();
-            _log.LogInformation("consensus commited. state close.");
+                _state.Commit();
+                _log.LogInformation("consensus commited. state close.");
+            }
+            catch(Exception ex)
+            {
+                _log.LogError($"CheckCommitedOKAsync: {ex.ToString()}");
+            }
+            finally
+            {
+                _state.Semaphore.Release();
+            }
         }
 
         // To detect redundant calls
