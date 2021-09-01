@@ -106,6 +106,9 @@ namespace Lyra.Core.Decentralize
 
                         foreach (var worker in cs._activeConsensus.Values.ToArray())
                         {
+                            if (worker.State == null)
+                                continue;
+
                             // check to see if anyone wait for view change
                             if(worker.Status == ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging)
                             {
