@@ -181,7 +181,7 @@ namespace Lyra.Core.Decentralize
                 replySent = true;
                 await CheckReplyAsync(reply);
             }
-            else if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            else if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count) + 1)
             {
                 if (!IsViewChanging)
                 {
