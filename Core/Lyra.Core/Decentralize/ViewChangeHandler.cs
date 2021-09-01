@@ -183,7 +183,7 @@ namespace Lyra.Core.Decentralize
             }
             else if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
-                if (TimeStarted == DateTime.MinValue)
+                if (!IsViewChanging)
                 {
                     var sb = new StringBuilder();
                     foreach (var msg in reqMsgs)
@@ -337,6 +337,23 @@ namespace Lyra.Core.Decentralize
 
             _log.LogInformation($"View change begin at {TimeStarted}");
 
+            CalculateLeaderCandidate();
+
+            var req = new ViewChangeRequestMessage
+            {
+                From = _sys.PosWallet.AccountId,
+                ViewID = ViewId,
+                prevViewID = lastSb.Height,
+                requestSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
+                    $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
+            };
+
+            _context.Send2P2pNetwork(req);
+            await CheckRequestAsync(req);
+        }
+
+        private void CalculateLeaderCandidate()
+        {
             // the new leader:
             // 1, not the previous one;
             // 2, viewid mod [voters count], index of _qualifiedVoters.
@@ -352,18 +369,6 @@ namespace Lyra.Core.Decentralize
             nextLeader = _context.Board.AllVoters[leaderIndex];
             _log.LogInformation($"CheckAllStats, By ReqMsgs, next leader will be {nextLeader}");
             _candidateSelected(nextLeader);
-
-            var req = new ViewChangeRequestMessage
-            {
-                From = _sys.PosWallet.AccountId,
-                ViewID = ViewId,
-                prevViewID = lastSb.Height,
-                requestSignature = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
-                    $"{lastSb.Hash}|{lastCons.Hash}", _sys.PosWallet.AccountId),
-            };
-
-            _context.Send2P2pNetwork(req);
-            await CheckRequestAsync(req);
         }
 
         internal void ShiftView(long v)
