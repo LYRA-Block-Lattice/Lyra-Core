@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Loyc.Collections;
 
 namespace Lyra.Core.Decentralize
 {
@@ -84,9 +85,14 @@ namespace Lyra.Core.Decentralize
             replySent = false;
             commitSent = false;
             ResetTimer();
-            reqMsgs.Clear();
-            replyMsgs.Clear();
-            commitMsgs.Clear();
+            var r1 = reqMsgs.Where(a => a.Value.msg.ViewID != ViewId).Select(x => x.Key);
+            r1.ForEach(x => reqMsgs.TryRemove(x, out _));
+
+            var r2 = replyMsgs.Where(a => a.Value.msg.ViewID != ViewId).Select(x => x.Key);
+            r2.ForEach(x => replyMsgs.TryRemove(x, out _));
+
+            var r3 = commitMsgs.Where(a => a.Value.msg.ViewID != ViewId).Select(x => x.Key);
+            r3.ForEach(x => commitMsgs.TryRemove(x, out _));
         }
 
         protected override bool IsStateCreated()
@@ -378,6 +384,7 @@ namespace Lyra.Core.Decentralize
 
         internal void ShiftView(long v)
         {
+            _log.LogInformation($"ShiftView to {v}");
             Reset();
             ViewId = v;
             ResetTimer();
