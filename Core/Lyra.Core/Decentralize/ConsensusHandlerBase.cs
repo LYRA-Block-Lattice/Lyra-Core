@@ -28,16 +28,7 @@ namespace Lyra.Core.Decentralize
             _outOfOrderedMessages = new ConcurrentQueue<ConsensusMessage>();
         }
 
-        public virtual bool CheckTimeout()
-        {
-            if (DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT))
-            {
-                //_log.LogInformation($"Consensus begin {TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - TimeStarted}");
-                return true;
-            }
-            else
-                return false;
-        }
+        public virtual bool IsTimeout => DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.CONSENSUS_TIMEOUT);
 
         public void ResetTimer()
         {

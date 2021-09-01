@@ -76,15 +76,7 @@ namespace Lyra.Core.Decentralize
         }
 
         // debug only. should remove after
-        public override bool CheckTimeout()
-        {
-            if (TimeStarted != DateTime.MinValue && DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT))
-            {
-                return true;
-            }
-            else
-                return false;
-        }
+        public override bool IsTimeout => DateTime.Now - TimeStarted > TimeSpan.FromSeconds(LyraGlobal.VIEWCHANGE_TIMEOUT);
 
         public void Reset()
         {

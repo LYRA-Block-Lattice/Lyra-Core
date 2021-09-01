@@ -109,14 +109,8 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.ServiceBlockNotFound;
 
                 var svcBlock = await sys.Storage.GetLastServiceBlockAsync();
-                if (blockt.ServiceHash != svcBlock.Hash && svcBlock.PreviousHash != null)
-                {
-                    // tolerent just once.
-                    svcBlock = await sys.Storage.FindBlockByHashAsync(svcBlock.PreviousHash) as ServiceBlock;
-
-                    if (blockt.ServiceHash != svcBlock.Hash)
-                        return APIResultCodes.ServiceBlockNotFound;
-                }                    
+                if (blockt.ServiceHash != svcBlock.Hash)
+                    return APIResultCodes.ServiceBlockNotFound;
 
                 if (!await ValidateRenewalDateAsync(sys, blockt, previousBlock as TransactionBlock))
                     return APIResultCodes.TokenExpired;

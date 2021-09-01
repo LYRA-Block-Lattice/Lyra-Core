@@ -1631,7 +1631,7 @@ namespace Lyra.Core.Decentralize
             // seed node relay heartbeat, only once
             // this keep the whole network one consist view of active nodes.
             // this is important to make election.
-            if (_criticalMsgCache.TryAdd(message.From, DateTime.Now))
+            if (_criticalMsgCache.TryAdd(message.Hash, DateTime.Now))
             {
                 // try ever node forward.
                 // monitor network traffic closely.

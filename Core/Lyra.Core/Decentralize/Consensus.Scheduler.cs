@@ -87,7 +87,7 @@ namespace Lyra.Core.Decentralize
                 {
                     if (cs._viewChangeHandler.IsViewChanging)
                     {
-                        if (cs._viewChangeHandler.CheckTimeout())
+                        if (cs._viewChangeHandler.IsTimeout)
                         {
                             // view change timeout
                         }
@@ -100,6 +100,16 @@ namespace Lyra.Core.Decentralize
                     }
                     else
                     {
+                        // first check if there are timeout
+                        var timeoutList = cs._activeConsensus
+                            .Where(a => a.Value.IsTimeout);
+
+                        foreach(var kvp in timeoutList)
+                        {
+
+                            cs._activeConsensus.Remove(kvp.Key, out _);
+                        }
+
                         foreach (var worker in cs._activeConsensus.Values.ToArray())
                         {
                             // check to see if anyone wait for view change
@@ -115,7 +125,7 @@ namespace Lyra.Core.Decentralize
                                 worker.RedoBlockAuthorizing();
                             }
 
-                            if (worker.CheckTimeout())
+                            if (worker.IsTimeout)
                             {
                                 if(worker.State.IsCommited)
                                 {
