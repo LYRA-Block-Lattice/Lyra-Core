@@ -85,6 +85,26 @@ namespace Lyra.Core.Accounts
 
             Cluster = GetDatabase().Client.Cluster.ToString();
 
+            async Task CreateCompoundIndex()
+            {
+                // need to seprate different block into different collections.
+                // svc, cons, tx
+                //try
+                //{
+                //    var options = new CreateIndexOptions() { Unique = true };
+                //    var field1 = new StringFieldDefinition<TransactionBlock>("AccountId");
+                //    var field2 = new StringFieldDefinition<TransactionBlock>("Height");
+                //    var indexDefinition = new IndexKeysDefinitionBuilder<TransactionBlock>()
+                //        .Ascending(field1).Ascending(field2);
+                //    var indexModel = new CreateIndexModel<TransactionBlock>(indexDefinition, options);
+                //    await _blocks.OfType<TransactionBlock>().Indexes.CreateOneAsync(indexModel);
+                //}
+                //catch(Exception ex)
+                //{
+
+                //}
+            }
+
             async Task CreateIndexes(string columnName, bool uniq)
             {
                 try
@@ -130,6 +150,8 @@ namespace Lyra.Core.Accounts
 
                 try
                 {
+                    //await CreateCompoundIndex();
+
                     await CreateIndexes("_t", false);
                     await CreateIndexes("Hash", true);
                     await CreateIndexes("TimeStamp", false);
