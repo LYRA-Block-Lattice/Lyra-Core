@@ -1310,7 +1310,7 @@ namespace Lyra.Core.Decentralize
 
                 // consolidate time from lastcons to now - 18s
 
-                var timeShift = IsThisNodeLeader ? -18 : -22;
+                var timeShift = IsThisNodeLeader ? -18 : -27;
 
                 var timeStamp = DateTime.UtcNow.AddSeconds(timeShift);
                 var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
