@@ -104,12 +104,6 @@ namespace Lyra.Core.Decentralize
                         var timeoutList = cs._activeConsensus
                             .Where(a => a.Value.IsTimeout);
 
-                        foreach(var kvp in timeoutList)
-                        {
-
-                            cs._activeConsensus.Remove(kvp.Key, out _);
-                        }
-
                         foreach (var worker in cs._activeConsensus.Values.ToArray())
                         {
                             // check to see if anyone wait for view change
@@ -117,10 +111,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 cs._log.LogWarning("View changed. recovery failed block(s)...");
                                 worker.Status = ConsensusWorker.ConsensusWorkerStatus.InAuthorizing;
-                                worker.ResetTimer();
-                                // send authorizing message
-                                var msg = worker.State.InputMsg;
-                                cs.Send2P2pNetwork(msg);
+                                worker.Reset();
 
                                 worker.RedoBlockAuthorizing();
                             }

@@ -108,6 +108,13 @@ namespace Lyra.Core.Decentralize
             Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 
+        public void Reset()
+        {
+            _localResult = null;
+            OutputMsgs.Clear();
+            CommitMsgs.Clear();
+        }
+
         public void SetView(IList<string> validNodes)
         {
             _validNodes = validNodes;

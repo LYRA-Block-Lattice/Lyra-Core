@@ -50,6 +50,14 @@ namespace Lyra.Core.Decentralize
             Hash = hash;
         }
 
+        public void Reset()
+        {
+            ResetTimer();
+            _state.Reset();
+            _state.SetView(State.InputMsg.IsServiceBlock ? _context.Board.AllVoters : _context.Board.PrimaryAuthorizers);
+            _localAuthState = LocalAuthState.NotStarted;
+        }
+
         public async Task ProcessStateAsync(AuthState state)
         {
             _state = state;
@@ -134,15 +142,15 @@ namespace Lyra.Core.Decentralize
 
             // first try auth locally
             if (_state == null)
+            {
                 _state = _context.CreateAuthringState(msg, sourceValid);
-
-            _state.SetView(msg.IsServiceBlock ? _context.Board.AllVoters : _context.Board.PrimaryAuthorizers);
+            }
 
             // if source is invalid, we just listen to the network. 
             // we need to detect whether this node is out of sync now.
             if (sourceValid)
             {
-                if(_localAuthState == LocalAuthState.NotStarted)
+                if (_localAuthState == LocalAuthState.NotStarted)
                 {
                     _localAuthState = LocalAuthState.InProgress;
                     _ = Task.Run(async () =>
