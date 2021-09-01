@@ -73,14 +73,14 @@ namespace Lyra.Core.Accounts
         Task<bool> AddBlockAsync(Block block);
         Task RemoveBlockAsync(string hash);
 
-        Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync();
+        Task<List<Block>> GetAllUnConsolidatedBlocksAsync();
 
         List<Voter> GetVoters(List<string> posAccountIds, DateTime endTime);
         List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime);
         FeeStats GetFeeStats();
 
         Task<List<Block>> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime);
-        Task<IEnumerable<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime);
+        Task<List<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime);
         /// <summary>
         /// Check if this account was ever imported to ANY other account
         /// </summary>

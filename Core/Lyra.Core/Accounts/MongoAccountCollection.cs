@@ -675,6 +675,7 @@ namespace Lyra.Core.Accounts
         }
 
         // this api will be used to implement 'virtual balance'
+        // Note: avoid use enumerable to make api atomic
         public async IAsyncEnumerable<SendTransferBlock> FindAllUnsettledSendForAsync(string AccountId)
         {
             // First, let find all send blocks:
@@ -1092,7 +1093,7 @@ namespace Lyra.Core.Accounts
         //    return result.ModifiedCount == 1;
         //}
 
-        public async Task<IEnumerable<Block>> GetAllUnConsolidatedBlocksAsync()
+        public async Task<List<Block>> GetAllUnConsolidatedBlocksAsync()
         {
             var options = new FindOptions<Block, Block>
             {
@@ -1268,7 +1269,7 @@ namespace Lyra.Core.Accounts
             return await result.ToListAsync();
         }
 
-        public async Task<IEnumerable<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
+        public async Task<List<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             var options = new FindOptions<Block, BsonDocument>
             {
@@ -1278,7 +1279,7 @@ namespace Lyra.Core.Accounts
             var builder = Builders<Block>.Filter;
             var filter = builder.And(builder.Gte("TimeStamp.Ticks", startTime.Ticks), builder.Lt("TimeStamp.Ticks", endTime.Ticks));
             var result = await _blocks.FindAsync(filter, options);
-            return (await result.ToListAsync()).Select(a => a["Hash"].AsString);
+            return (await result.ToListAsync()).Select(a => a["Hash"].AsString).ToList();
         }
 
         private class VoteInfo
