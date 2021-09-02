@@ -325,10 +325,7 @@ namespace Lyra.Core.Decentralize
         /// <returns></returns>
         internal async Task BeginChangeViewAsync()
         {
-            if (IsViewChanging)
-                return;
-
-            _log.LogInformation($"AllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+            _log.LogInformation($"BeginChangeViewAsync: VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
 
