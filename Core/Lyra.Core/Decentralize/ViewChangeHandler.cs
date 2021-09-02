@@ -154,7 +154,7 @@ namespace Lyra.Core.Decentralize
         private async Task CheckAllStatsAsync()
         {
             _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
-            if (selectedSuccess)
+            if (!IsViewChanging)
                 return;
 
             if (nextLeader == null)
@@ -163,31 +163,11 @@ namespace Lyra.Core.Decentralize
 
                 ShiftView(lastSb.Height + 1);
                 CalculateLeaderCandidate();
-            }                
+            }
 
-            // remove outdated msgs
-            var q1 = reqMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
-                .Select(b => b.Key)
-                .ToList();
-            foreach (var req in q1)
-                reqMsgs.TryRemove(req, out _);
+            RemoveOutDatedMsgs();
 
-            var q2 = replyMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
-                .Select(b => b.Key)
-                .ToList();
-            foreach (var req in q2)
-                replyMsgs.TryRemove(req, out _);
-
-            var q3 = commitMsgs.Where(a => a.Value.Time < DateTime.Now.AddSeconds(-15))
-                .Select(b => b.Key)
-                .ToList();
-            foreach (var req in q3)
-                commitMsgs.TryRemove(req, out _);
-
-            if (_context.Board.AllVoters.Count < 4)
-                return;
-
-            //_log.LogInformation($"CheckAllStats VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+            _log.LogInformation($"CheckAllStats2 VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             // request
             if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
