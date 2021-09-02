@@ -58,78 +58,38 @@ namespace Lyra.Core.Authorizers
                 if (block.FeesGenerated != feesGened)
                     return APIResultCodes.InvalidServiceBlockTotalFees;
 
-                // authorizers
-                if (block.Authorizers.Count > LyraGlobal.MAXIMUM_AUTHORIZERS
-                    || block.Authorizers.Count < LyraGlobal.MINIMUM_AUTHORIZERS)
-                    //|| block.Authorizers.Count < (prevBlock as ServiceBlock).Authorizers.Count)
+                var signAgainst = prevBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
+                if (board.AllVoters.Count != block.Authorizers.Count)
                     return APIResultCodes.InvalidAuthorizerCount;
 
-                // authorizer count should be at least total - 1 of all voters.
-                var validAuthorizersList = GetValidVoters(board, prevBlock);
-                if (block.Authorizers.Count < validAuthorizersList.Count() - 1)
-                    return APIResultCodes.InvalidAuthorizerCount;
+                foreach (var vtr in board.AllVoters)
+                {
+                    if (!block.Authorizers.ContainsKey(vtr))
+                        return APIResultCodes.InvalidAuthorizerInServiceBlock;
+
+                    if (!Signatures.VerifyAccountSignature(signAgainst, vtr, block.Authorizers[vtr]))
+                    {
+                        return APIResultCodes.InvalidAuthorizerSignatureInServiceBlock;
+                    }
+                }
             }
-            else
+            else // svc gensis
             {
                 if (block.Authorizers.Count < LyraGlobal.MINIMUM_AUTHORIZERS)
                     return APIResultCodes.InvalidAuthorizerCount;
-            }
 
-            foreach (var kvp in block.Authorizers)
-            {
-                var signAgainst = prevBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
-                if (!Signatures.VerifyAccountSignature(signAgainst, kvp.Key, kvp.Value))
+                var signAgainst = ProtocolSettings.Default.StandbyValidators[0];
+                foreach (var pn in ProtocolSettings.Default.StandbyValidators)
                 {
-                    return APIResultCodes.InvalidAuthorizerSignatureInServiceBlock;
-                }
+                    if (!board.ActiveNodes.Any(a => a.AccountID == pn))
+                        return APIResultCodes.InvalidAuthorizerInServiceBlock;
 
-                // verify vote etc.
-                if (!board.AllVoters.Contains(kvp.Key))
-                {
-                    return APIResultCodes.InvalidAuthorizerInServiceBlock;
-                }
-            }
-
-            // check CreateNewViewAsNewLeaderAsync in Consensus.cs
-            List<string> GetValidVoters(BillBoard board, Block prevSvcBlock)
-            {
-                var list = new List<string>();
-                foreach (var voter in board.AllVoters)
-                {
-                    if (board.ActiveNodes.Any(a => a.AccountID == voter))
+                    if (!Signatures.VerifyAccountSignature(signAgainst, pn, block.Authorizers[pn]))
                     {
-                        var node = board.ActiveNodes.First(a => a.AccountID == voter);
-
-                        if (Signatures.VerifyAccountSignature(prevSvcBlock.Hash, node.AccountID, node.AuthorizerSignature))
-                        {
-                            list.Add(node.AccountID);
-                        }
+                        return APIResultCodes.InvalidAuthorizerSignatureInServiceBlock;
                     }
-                    else
-                    {
-                        // impossible. viewchangehandler has already filterd all none active messages.
-                        // or just bypass it?
-                    }
-
-                    if (list.Count >= LyraGlobal.MAXIMUM_AUTHORIZERS)
-                        break;
                 }
-                return list;
             }
-
-            //if(block.Height > 1)        // no genesis block
-            //{
-            //    var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-            //    var allVoters = sys.Storage.FindVotes(board.AllVoters).OrderByDescending(a => a.Amount);
-
-            //    foreach (var authorizer in block.Authorizers) // they can be listed in different order!
-            //    {
-            //        if (!allVoters.Any(a => a.AccountId == authorizer.AccountID) ||
-            //            allVoters.First(a => a.AccountId == authorizer.AccountID).Amount < LyraGlobal.MinimalAuthorizerBalance ||
-            //            !Signatures.VerifyAccountSignature(authorizer.IPAddress, authorizer.AccountID, authorizer.Signature))
-            //            return APIResultCodes.InvalidAuthorizerInBillBoard;
-            //    }
-            //}
 
             return APIResultCodes.Success;
         }

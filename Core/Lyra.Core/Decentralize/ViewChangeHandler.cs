@@ -162,7 +162,7 @@ namespace Lyra.Core.Decentralize
                 var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
 
                 ShiftView(lastSb.Height + 1);
-                CalculateLeaderCandidate();
+                await CalculateLeaderCandidateAsync();
             }
 
             RemoveOutDatedMsgs();
@@ -338,7 +338,7 @@ namespace Lyra.Core.Decentralize
 
             _log.LogInformation($"View change for ViewId {ViewId} begin at {TimeStarted}");
 
-            CalculateLeaderCandidate();
+            await CalculateLeaderCandidateAsync();
 
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
             var req = new ViewChangeRequestMessage
@@ -354,14 +354,14 @@ namespace Lyra.Core.Decentralize
             await CheckRequestAsync(req);
         }
 
-        private void CalculateLeaderCandidate()
+        private async Task CalculateLeaderCandidateAsync()
         {
             // the new leader:
             // 1, not the previous one;
             // 2, viewid mod [voters count], index of _qualifiedVoters.
             // 
             // refresh billboard all voters
-            _context.UpdateVoters();
+            await _context.UpdateVotersAsync();
 
             var leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
 

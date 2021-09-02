@@ -773,7 +773,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public List<string> LookforVoters()
+        public async Task<List<string>> GetQualifiedVotersAsync()
         {
             var outDated = _failedLeaders.Where(x => x.Value < DateTime.UtcNow.AddHours(-1)).ToList();
             foreach (var od in outDated)
@@ -786,12 +786,14 @@ namespace Lyra.Core.Decentralize
             }
             // end debug
 
+            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
 
             // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
                                                     //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
                 .Where(x => !_failedLeaders.Keys.Contains(x.AccountID))    // exclude failed leaders
                 .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && (a.State == BlockChainState.Engaging || a.State == BlockChainState.Almighty))
+                .Where(s => Signatures.VerifyAccountSignature(lastSb.Hash, s.AccountID, s.AuthorizerSignature))
                 .OrderByDescending(a => a.Votes)
                 .ThenBy(a => a.AccountID)
                 .ToList();
@@ -802,13 +804,19 @@ namespace Lyra.Core.Decentralize
             return list2;
         }
 
-        public void UpdateVoters()
+        public async Task UpdateVotersAsync()
         {
             //_log.LogInformation("UpdateVoters begin...");
             RefreshAllNodesVotes();
-            var list = LookforVoters();
+            var list = await GetQualifiedVotersAsync();
             if (list.Count >= 4)        // simple check. but real condition is complex.
                 Board.AllVoters = list;
+            else
+            {
+                var s = "voters count < 4. should not happen.";
+                _log.LogError(s);
+                throw new InvalidOperationException(s);
+            }
             //_log.LogInformation("UpdateVoters ended.");
         }
 
@@ -845,7 +853,7 @@ namespace Lyra.Core.Decentralize
             }
 
             var list1 = lsb.Authorizers.Keys.ToList();
-            UpdateVoters();
+            await UpdateVotersAsync();
             var list2 = Board.AllVoters;
 
             var firstNotSecond = list1.Except(list2).ToList();
@@ -1167,7 +1175,7 @@ namespace Lyra.Core.Decentralize
                             var lastLeader = lastSb2.Leader;
 
 
-                            UpdateVoters();
+                            await UpdateVotersAsync();
 
                             // remove defunc leader. don't let it be elected leader again.
                             if (Board.AllVoters.Contains(lastLeader))

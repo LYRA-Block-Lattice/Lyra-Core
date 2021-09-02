@@ -531,35 +531,11 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"Adding {_board.AllVoters.Count()} voters...");
 
                     svcBlock.Authorizers = new Dictionary<string, string>();
-                    // me as the first one
                     var signAgainst = prevSvcBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
-                    var myAuthSignr = Signatures.GetSignature(_sys.PosWallet.PrivateKey,
-                            signAgainst, _sys.PosWallet.AccountId);
-
-                    // check GetValidVoters in ServiceAuthorizer.cs
-                    svcBlock.Authorizers.Add(_sys.PosWallet.AccountId, myAuthSignr);
                     foreach (var voter in _board.AllVoters)
                     {
-                        if (voter == _sys.PosWallet.AccountId)
-                            continue;
-
-                        if (_board.ActiveNodes.Any(a => a.AccountID == voter))
-                        {
-                            var node = _board.ActiveNodes.First(a => a.AccountID == voter);
-
-                            if (Signatures.VerifyAccountSignature(prevSvcBlock.Hash, node.AccountID, node.AuthorizerSignature))
-                            {
-                                svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
-                            }
-                        }
-                        else
-                        {
-                            // impossible. viewchangehandler has already filterd all none active messages.
-                            // or just bypass it?
-                        }
-
-                        if (svcBlock.Authorizers.Count() >= LyraGlobal.MAXIMUM_AUTHORIZERS)
-                            break;
+                        var node = _board.ActiveNodes.First(a => a.AccountID == voter);
+                        svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
                     }
 
                     // fees aggregation
