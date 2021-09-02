@@ -96,6 +96,18 @@ namespace Lyra.Core.Decentralize
             r3.ForEach(x => commitMsgs.TryRemove(x, out _));
         }
 
+        private void RemoveOutDatedMsgs()
+        {
+            var r1 = reqMsgs.Where(a => a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
+            r1.ForEach(x => reqMsgs.TryRemove(x, out _));
+
+            var r2 = replyMsgs.Where(a => a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
+            r2.ForEach(x => replyMsgs.TryRemove(x, out _));
+
+            var r3 = commitMsgs.Where(a => a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
+            r3.ForEach(x => commitMsgs.TryRemove(x, out _));
+        }
+
         protected override bool IsStateCreated()
         {
             return true;
@@ -103,18 +115,16 @@ namespace Lyra.Core.Decentralize
 
         internal async Task ProcessMessageAsync(ViewChangeMessage vcm)
         {
-            //_log.LogInformation($"VC Msgs type: {vcm.MsgType} from: {vcm.From.Shorten()}");
-            if (selectedSuccess)
-            {
-                //_log.LogInformation($"VC Msgs return already selected. type: {vcm.MsgType} from: {vcm.From.Shorten()}");
-                return;
-            }
-
             if (ViewId != 0 && vcm.ViewID != ViewId)
             {
                 _log.LogInformation($"VC Msgs: view ID {vcm.ViewID} not valid with {ViewId}");
                 return;
             }
+
+            if (vcm.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT))
+                return;
+
+            RemoveOutDatedMsgs();
 
             if (vcm is ViewChangeRequestMessage req)
             {
