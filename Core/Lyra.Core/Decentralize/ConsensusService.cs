@@ -230,10 +230,11 @@ namespace Lyra.Core.Decentralize
                         // not needed anymore
                         // seeds take resp to forward heatbeat, once
                         if (IsThisNodeSeed && (
-                            signedMsg.MsgType == ChatMessageType.ViewChangeRequest
-                            || signedMsg.MsgType == ChatMessageType.ViewChangeReply
-                            || signedMsg.MsgType == ChatMessageType.ViewChangeCommit
-                            || signedMsg.MsgType == ChatMessageType.HeartBeat))
+                            signedMsg.MsgType == ChatMessageType.HeartBeat
+                            //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
+                            //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
+                            //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
+                            ))
                         {
                             await CriticalRelayAsync(signedMsg, null);
                         }
