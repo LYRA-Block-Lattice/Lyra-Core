@@ -85,18 +85,10 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
-                    if (cs._viewChangeHandler.IsViewChanging)
+                    if (cs._viewChangeHandler.IsViewChanging && cs._viewChangeHandler.IsTimeout)
                     {
-                        if (cs._viewChangeHandler.IsTimeout)
-                        {
-                            // view change timeout
-                        }
-
-                        //if (cs._viewChangeHandler?.CheckTimeout() == true)
-                        //{
-                        //    cs._log.LogInformation($"View Change with Id {cs._viewChangeHandler.ViewId} begin {cs._viewChangeHandler.TimeStarted} Ends: {DateTime.Now} used: {DateTime.Now - cs._viewChangeHandler.TimeStarted}");
-                        //    cs._viewChangeHandler.Reset();
-                        //}
+                        // view change timeout
+                        await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.ViewChangeTimeout);
                     }
                     else
                     {
