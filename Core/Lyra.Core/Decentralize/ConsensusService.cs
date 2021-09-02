@@ -1328,7 +1328,9 @@ namespace Lyra.Core.Decentralize
                 {
                     try
                     {
-                        if (IsThisNodeLeader)
+                        var InCons = _activeConsensus.Any(a => a.Value.Status == ConsensusWorker.ConsensusWorkerStatus.InAuthorizing
+                                && a.Value?.State?.InputMsg?.Block?.BlockType == BlockTypes.Consolidation);
+                        if (IsThisNodeLeader && !InCons)
                         {
                             await LeaderCreateConsolidateBlockAsync(lastCons, timeStamp, unConsList);
                         }
