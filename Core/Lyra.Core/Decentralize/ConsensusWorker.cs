@@ -40,6 +40,7 @@ namespace Lyra.Core.Decentralize
         private AuthorizersFactory _authorizers;
 
         AuthState _state;
+        public SemaphoreSlim _semaphore { get; }
 
         public string Hash { get; }
         public AuthState State { get => _state as AuthState; set => _state = value; }
@@ -48,14 +49,8 @@ namespace Lyra.Core.Decentralize
         {
             _authorizers = new AuthorizersFactory();
             Hash = hash;
-        }
 
-        public void Reset()
-        {
-            ResetTimer();
-            _state.Reset();
-            _state.SetView(State.InputMsg.IsServiceBlock ? _context.Board.AllVoters : _context.Board.PrimaryAuthorizers);
-            _localAuthState = LocalAuthState.NotStarted;
+            _semaphore = new SemaphoreSlim(1, 1);
         }
 
         public async Task ProcessStateAsync(AuthState state)
@@ -127,41 +122,54 @@ namespace Lyra.Core.Decentralize
         public void RedoBlockAuthorizing()
         {
             _log.LogInformation("In RedoBlockAuthorizing");
+            ResetTimer();
+            _state.Reset();
+            _state.SetView(State.InputMsg.IsServiceBlock ? _context.Board.AllVoters : _context.Board.PrimaryAuthorizers);
+            _localAuthState = LocalAuthState.NotStarted;
             OnPrePrepare(State.InputMsg, true);
         }
 
         private void OnPrePrepare(AuthorizingMsg msg, bool sourceValid)
         {
-            _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash} from {msg.From.Shorten()}");
-            //_context.OnNodeActive(_context.GetDagSystem().PosWallet.AccountId);     // update billboard
-
-            if (msg.Version != LyraGlobal.ProtocolVersion)
+            try
             {
-                return;
-            }
+                _semaphore.Wait();
 
-            // first try auth locally
-            if (_state == null)
-            {
-                _state = _context.CreateAuthringState(msg, sourceValid);
-            }
+                _log.LogInformation($"Receive AuthorizingMsg: {msg.Block.Height}/{msg.Block.Hash} from {msg.From.Shorten()}");
+                //_context.OnNodeActive(_context.GetDagSystem().PosWallet.AccountId);     // update billboard
 
-            // if source is invalid, we just listen to the network. 
-            // we need to detect whether this node is out of sync now.
-            if (sourceValid)
-            {
-                if (_localAuthState == LocalAuthState.NotStarted)
+                if (msg.Version != LyraGlobal.ProtocolVersion)
                 {
-                    _localAuthState = LocalAuthState.InProgress;
-                    _ = Task.Run(async () =>
-                    {
-                        //if (waitHandle != null)
-                        //    await waitHandle.AsTask();
-
-                        await AuthorizeAsync(msg);
-                        _localAuthState = LocalAuthState.Finished;
-                    });
+                    return;
                 }
+
+                // first try auth locally
+                if (_state == null)
+                {
+                    _state = _context.CreateAuthringState(msg, sourceValid);
+                }
+
+                // if source is invalid, we just listen to the network. 
+                // we need to detect whether this node is out of sync now.
+                if (sourceValid)
+                {
+                    if (_localAuthState == LocalAuthState.NotStarted)
+                    {
+                        _localAuthState = LocalAuthState.InProgress;
+                        _ = Task.Run(async () =>
+                        {
+                            //if (waitHandle != null)
+                            //    await waitHandle.AsTask();
+
+                            await AuthorizeAsync(msg);
+                            _localAuthState = LocalAuthState.Finished;
+                        });
+                    }
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
             }
         }
 
@@ -338,7 +346,7 @@ namespace Lyra.Core.Decentralize
             }
             try
             {
-                await _state.Semaphore.WaitAsync();
+                await _semaphore.WaitAsync();
 
                 var sb = new StringBuilder();
                 sb.AppendLine();
@@ -400,7 +408,7 @@ namespace Lyra.Core.Decentralize
             }
             finally
             {
-                _state.Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
@@ -408,7 +416,7 @@ namespace Lyra.Core.Decentralize
         {
             try
             {
-                await _state.Semaphore.WaitAsync();
+                await _semaphore.WaitAsync();
 
                 if (_state.LocalResult == null)
                     return;
@@ -462,7 +470,7 @@ namespace Lyra.Core.Decentralize
             }
             finally
             {
-                _state.Semaphore.Release();
+                _semaphore.Release();
             }
         }
 
@@ -483,7 +491,7 @@ namespace Lyra.Core.Decentralize
             if (disposing)
             {
                 // Dispose managed state (managed objects).
-                _state?.Dispose();
+                _semaphore?.Dispose();
             }
 
             _disposed = true;

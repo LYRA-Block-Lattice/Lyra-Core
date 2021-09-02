@@ -21,7 +21,7 @@ namespace Lyra.Core.Decentralize
         public DateTime Created { get; set; } = DateTime.Now;
     }
     public delegate void SuccessConsensusHandler(Block block, ConsensusResult? result, bool localOk);
-    public class AuthState : ConsensusState, IDisposable
+    public class AuthState : ConsensusState
     {
         private bool _commited = false;
         public bool IsCommited => _commited;
@@ -67,7 +67,6 @@ namespace Lyra.Core.Decentralize
         public ConcurrentBag<AuthorizedMsg> OutputMsgs { get; set; }
         public ConcurrentBag<AuthorizerCommitMsg> CommitMsgs { get; set; }
 
-        public SemaphoreSlim Semaphore { get; }
         private EventWaitHandle Done { get; set; }
         public bool Saving { get; set; }
 
@@ -101,7 +100,6 @@ namespace Lyra.Core.Decentralize
             OutputMsgs = new ConcurrentBag<AuthorizedMsg>();
             CommitMsgs = new ConcurrentBag<AuthorizerCommitMsg>();
 
-            Semaphore = new SemaphoreSlim(1, 1);
             Done = new EventWaitHandle(false, EventResetMode.ManualReset);
         }
 
@@ -280,26 +278,6 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogError("Call OnConsensusSuccess: " + exe);
             }
-        }
-
-        // Public implementation of Dispose pattern callable by consumers.
-        public void Dispose() => Dispose(true);
-
-        // Protected implementation of Dispose pattern.
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            if (disposing)
-            {
-                // Dispose managed state (managed objects).
-                Semaphore?.Dispose();
-            }
-
-            _disposed = true;
         }
     }
 }
