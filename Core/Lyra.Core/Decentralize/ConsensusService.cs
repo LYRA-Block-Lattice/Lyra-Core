@@ -333,14 +333,6 @@ namespace Lyra.Core.Decentralize
             };
             timr.AutoReset = true;
             timr.Enabled = true;
-
-            // init
-            _ = Task.Run(async () =>
-            {
-                // give other routine time to work/start/init
-                await Task.Delay(30000);
-                await InitJobSchedulerAsync();
-            });
         }
 
         enum ViewChangeReason
@@ -747,6 +739,9 @@ namespace Lyra.Core.Decentralize
                         await DeclareConsensusNodeAsync();
                     //await Task.Delay(35000);    // wait for enough heartbeat
                     //RefreshAllNodesVotes();
+
+
+                    await InitJobSchedulerAsync();
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)         // make a quick recovery
                 .Permit(BlockChainTrigger.LocalNodeMissingBlock, BlockChainState.Engaging);

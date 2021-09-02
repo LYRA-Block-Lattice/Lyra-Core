@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Utils;
+using Lyra.Shared;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using Quartz.Impl;
@@ -23,6 +24,9 @@ namespace Lyra.Core.Decentralize
         // Init the scheduler
         private async Task InitJobSchedulerAsync()
         {
+            if (_sched != null)
+                return;
+
             //Quartz.Logging.LogContext.SetCurrentLogProvider(SimpleLogger.Factory);
 
             // First we must get a reference to a scheduler
@@ -127,7 +131,7 @@ namespace Lyra.Core.Decentralize
                                 }
                                 else
                                 {
-                                    cs._log.LogWarning("Block consensus failed. do view change...");
+                                    cs._log.LogWarning($"Block {worker.State.InputMsg.Block.Hash.Shorten()} {worker.State.InputMsg.Block.BlockType} {worker.State.InputMsg.Block.Height} failed. do view change...");
                                     // consensus failed. change view and redo later
                                     worker.Status = ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging;
 
