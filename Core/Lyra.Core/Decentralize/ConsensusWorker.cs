@@ -453,6 +453,7 @@ namespace Lyra.Core.Decentralize
                 }
                 else if (_state.CommitConsensus == ConsensusResult.Nay)
                 {
+                    Status = ConsensusWorkerStatus.Commited;
                     _log.LogWarning($"Block not saved because ConsensusResult is Nay: {block.Height}");
                 }
                 else
