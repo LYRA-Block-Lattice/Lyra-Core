@@ -303,19 +303,21 @@ namespace Lyra.Core.Decentralize
             if (!_context.Board.AllVoters.Contains(req.From))
                 return;
 
-            if (!reqMsgs.Values.Any(a => a.msg.From == req.From))
+            if (reqMsgs.Values.Any(a => a.msg.From == req.From))
             {
-                var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-                var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-
-                if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
-                {
-                    reqMsgs.TryAdd(req.From, new VCReqWithTime(req));
-                    await CheckAllStatsAsync();
-                }
-                else
-                    _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
+                reqMsgs.TryRemove(req.From, out _);
             }
+
+            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+
+            if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
+            {
+                reqMsgs.TryAdd(req.From, new VCReqWithTime(req));
+                await CheckAllStatsAsync();
+            }
+            else
+                _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
         }
 
         /// <summary>
