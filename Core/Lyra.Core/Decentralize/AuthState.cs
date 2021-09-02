@@ -244,6 +244,9 @@ namespace Lyra.Core.Decentralize
         public void Commit()
         {
             if (_commited)
+                _log.LogError("already commited. should not happen.");
+
+            if (_commited)
                 return;
 
             try

@@ -1544,7 +1544,10 @@ namespace Lyra.Core.Decentralize
 
         private void Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
         {
-            _successBlockCount++;
+            if(result != ConsensusResult.Uncertain)
+                _successBlockCount++;
+
+            _log.LogInformation($"Worker_OnConsensusSuccess {block.Hash.Shorten()} {block.BlockType} {block.Height} result: {result} local is good: {localIsGood}");
 
             // no, don't remove so quick. we will still receive message related to it.
             // should be better solution for high tps to avoid queue increase too big.
