@@ -1328,14 +1328,18 @@ namespace Lyra.Core.Decentralize
                     {
                         var InCons = _activeConsensus.Any(a => a.Value.Status == ConsensusWorker.ConsensusWorkerStatus.InAuthorizing
                                 && a.Value?.State?.InputMsg?.Block?.BlockType == BlockTypes.Consolidation);
-                        if (IsThisNodeLeader && !InCons)
+                        
+                        if(!InCons)
                         {
-                            await LeaderCreateConsolidateBlockAsync(lastCons, timeStamp, unConsList);
-                        }
-                        else
-                        {
-                            // leader may be faulty
-                            await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
+                            if (IsThisNodeLeader)
+                            {
+                                await LeaderCreateConsolidateBlockAsync(lastCons, timeStamp, unConsList);
+                            }
+                            else
+                            {
+                                // leader may be faulty
+                                await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
+                            }
                         }
                     }
                     catch (Exception ex)
