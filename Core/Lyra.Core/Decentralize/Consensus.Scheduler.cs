@@ -85,17 +85,18 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
-                    if (cs._viewChangeHandler.IsViewChanging && cs._viewChangeHandler.IsTimeout)
+                    if (cs._viewChangeHandler.IsViewChanging)
                     {
-                        // view change timeout
-                        await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.ViewChangeTimeout);
+                        // view change mode
+                        if(cs._viewChangeHandler.IsTimeout)
+                        {
+                            // view change timeout
+                            await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.ViewChangeTimeout);
+                        }
                     }
                     else
                     {
-                        // first check if there are timeout
-                        var timeoutList = cs._activeConsensus
-                            .Where(a => a.Value.IsTimeout);
-
+                        // normal 
                         foreach (var worker in cs._activeConsensus.Values.ToArray())
                         {
                             if (worker.State == null)
