@@ -1316,13 +1316,14 @@ namespace Lyra.Core.Decentralize
 
                 // consolidate time from lastcons to now - 18s
 
-                var timeShift = IsThisNodeLeader ? -18 : -27;
+                var timeShift = -18;
+                var timeNow = IsThisNodeLeader ? DateTime.UtcNow : DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.CONSENSUS_TIMEOUT);
 
-                var timeStamp = DateTime.UtcNow.AddSeconds(timeShift);
+                var timeStamp = timeNow.AddSeconds(timeShift);
                 var unConsList = await _sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, timeStamp);
 
                 // if 1 it must be previous consolidation block.
-                if (unConsList.Count() >= 10 || (unConsList.Count() > 1 && DateTime.UtcNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
+                if (unConsList.Count() >= 10 || (unConsList.Count() > 1 && timeNow - lastCons.TimeStamp > TimeSpan.FromMinutes(10)))
                 {
                     try
                     {

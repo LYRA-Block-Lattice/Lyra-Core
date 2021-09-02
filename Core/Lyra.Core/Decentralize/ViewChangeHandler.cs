@@ -167,7 +167,7 @@ namespace Lyra.Core.Decentralize
 
             RemoveOutDatedMsgs();
 
-            _log.LogInformation($"CheckAllStats2 VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+            //_log.LogInformation($"CheckAllStats2 VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             // request
             if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
@@ -238,18 +238,21 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            // commit
-            var q = from rep in commitMsgs.Values
-                    group rep by rep.msg.Candidate into g
-                    select new { Candidate = g.Key, Count = g.Count() };
-
-            var candidate = q.FirstOrDefault();
-            if (candidate?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            if(!selectedSuccess)
             {
-                //_log.LogInformation($"CheckAllStats, By CommitMsgs, leader selected {candidate.Candidate} with {candidate.Count} votes.");
+                // commit
+                var q = from rep in commitMsgs.Values
+                        group rep by rep.msg.Candidate into g
+                        select new { Candidate = g.Key, Count = g.Count() };
 
-                selectedSuccess = true;
-                _leaderSelected(this, ViewId, candidate.Candidate, candidate.Count, _context.Board.AllVoters);
+                var candidate = q.FirstOrDefault();
+                if (candidate?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+                {
+                    //_log.LogInformation($"CheckAllStats, By CommitMsgs, leader selected {candidate.Candidate} with {candidate.Count} votes.");
+
+                    selectedSuccess = true;
+                    _leaderSelected(this, ViewId, candidate.Candidate, candidate.Count, _context.Board.AllVoters);
+                }
             }
         }
 
