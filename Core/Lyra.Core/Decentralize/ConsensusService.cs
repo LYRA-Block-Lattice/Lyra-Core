@@ -403,6 +403,8 @@ namespace Lyra.Core.Decentralize
                         try
                         {
                             _log.LogInformation($"Consensus Service Startup... ");
+                            
+                            await DeclareConsensusNodeAsync();  // important for cold start
 
                             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                             if (lsb == null)
