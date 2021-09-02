@@ -253,7 +253,9 @@ namespace Lyra.Core.Decentralize
             {
                 Done.Set();
             }
-            catch { }
+            catch (Exception ex) {
+                _log.LogError($"In state {InputMsg.Block.Hash.Shorten()} Done.Set(): {ex} ");
+            }
 
             try
             {
