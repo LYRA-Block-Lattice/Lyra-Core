@@ -71,7 +71,7 @@ namespace Lyra.Core.Decentralize
         private EventWaitHandle Done { get; set; }
         public bool Saving { get; set; }
 
-        public ConsensusResult PrepareConsensus => GetPrepareConsensusSuccess();
+        public ConsensusResult PrepareConsensus => CheckAuthorizedResults();
 
         public ConsensusResult? CommitConsensus => CheckCommitedResults();
 
@@ -84,10 +84,7 @@ namespace Lyra.Core.Decentralize
                     return ProtocolSettings.Default.StandbyValidators.Length;
                 }
                 var minCount = LyraGlobal.GetMajority(_validNodes.Count());
-                if (minCount < ProtocolSettings.Default.StandbyValidators.Length)
-                    return ProtocolSettings.Default.StandbyValidators.Length;
-                else
-                    return minCount;
+                return minCount;
             }
         }
 
@@ -186,6 +183,7 @@ namespace Lyra.Core.Decentralize
             if (notok >= WinNumber)
                 return ConsensusResult.Nay;
 
+            _log.LogInformation($"msg count: {AuthMsgList.Count} Win Number: {WinNumber}");
             return ConsensusResult.Uncertain;
         }
 
@@ -219,22 +217,6 @@ namespace Lyra.Core.Decentralize
             //}
             //else
             //    return false;
-        }
-
-        private ConsensusResult GetPrepareConsensusSuccess()
-        {
-            //if (ConsensusUIndex < 0)
-            //    return ConsensusResult.Uncertain;
-
-            var authResult = CheckAuthorizedResults();
-
-            if (authResult == ConsensusResult.Yea)
-                return ConsensusResult.Yea;
-
-            if (authResult == ConsensusResult.Nay)
-                return ConsensusResult.Nay;
-
-            return ConsensusResult.Uncertain;
         }
 
         public APIResultCodes GetMajorErrorCode()
