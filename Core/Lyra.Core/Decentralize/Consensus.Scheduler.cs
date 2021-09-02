@@ -111,7 +111,6 @@ namespace Lyra.Core.Decentralize
                             {
                                 cs._log.LogWarning("View changed. recovery failed block(s)...");
                                 worker.Status = ConsensusWorker.ConsensusWorkerStatus.InAuthorizing;
-                                worker.Reset();
 
                                 worker.RedoBlockAuthorizing();
                             }
