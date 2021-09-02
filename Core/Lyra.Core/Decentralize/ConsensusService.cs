@@ -873,6 +873,7 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation($"Shift View Id to {sb.Height + 1}");
                 _viewChangeHandler.ShiftView(sb.Height + 1);
+                _viewChangeHandler.FinishViewChange();
             }
         }
 

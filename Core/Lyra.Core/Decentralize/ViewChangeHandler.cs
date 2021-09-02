@@ -61,7 +61,8 @@ namespace Lyra.Core.Decentralize
         private ConcurrentDictionary<string, VCCommitWithTime> commitMsgs { get; set; }
         public long ViewId { get; set; }
 
-        public bool IsViewChanging => TimeStarted != DateTime.MinValue && DateTime.Now - TimeStarted < TimeSpan.FromSeconds(20);
+        private bool _isViewChanging = false;
+        public bool IsViewChanging => _isViewChanging;
 
         DagSystem _sys;
         public ViewChangeHandler(DagSystem sys, ConsensusService context, LeaderCandidateSelected candidateSelected, LeaderSelectedHandler leaderSelected) : base(context)
@@ -337,6 +338,8 @@ namespace Lyra.Core.Decentralize
                 _log.LogCritical($"BeginChangeViewAsync has null service block. should not happend. error.");
                 return;
             }
+
+            _isViewChanging = true;
             
             ShiftView(lastSb.Height + 1);
             selectedSuccess = false;
@@ -388,6 +391,11 @@ namespace Lyra.Core.Decentralize
             Reset();
             ViewId = v;
             ResetTimer();
+        }
+
+        public void FinishViewChange()
+        {
+            _isViewChanging = false;
         }
     }
 }
