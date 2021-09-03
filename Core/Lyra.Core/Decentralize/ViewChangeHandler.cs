@@ -363,7 +363,7 @@ namespace Lyra.Core.Decentralize
 
             _log.LogInformation($"View change for ViewId {ViewId} begin at {TimeStarted}");
 
-            await CalculateLeaderCandidateAsync();
+            CalculateLeaderCandidate();
 
             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
             var req = new ViewChangeRequestMessage
@@ -379,14 +379,14 @@ namespace Lyra.Core.Decentralize
             await CheckRequestAsync(req);
         }
 
-        private async Task CalculateLeaderCandidateAsync()
+        private void CalculateLeaderCandidate()
         {
             // the new leader:
             // 1, not the previous one;
             // 2, viewid mod [voters count], index of _qualifiedVoters.
             // 
             // refresh billboard all voters
-            await _context.UpdateVotersAsync();
+            _context.UpdateVoters();
 
             int leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
             nextLeader = _context.Board.AllVoters[leaderIndex];

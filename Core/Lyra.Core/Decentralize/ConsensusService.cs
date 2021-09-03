@@ -348,6 +348,7 @@ namespace Lyra.Core.Decentralize
 
             if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
             {
+                await DeclareConsensusNodeAsync();
                 await _viewChangeHandler.BeginChangeViewAsync(reason);
             }
             else
@@ -770,27 +771,27 @@ namespace Lyra.Core.Decentralize
             return _failedLeaders.ContainsKey(accountId);
         }
 
-        public async Task<List<string>> GetQualifiedVotersAsync()
+        public List<string> GetQualifiedVoters()
         {
             var outDated = _failedLeaders.Where(x => x.Value < DateTime.UtcNow.AddHours(-1)).ToList();
             foreach (var od in outDated)
                 _failedLeaders.TryRemove(od.Key, out _);
 
             // debug only
-            foreach(var x in _failedLeaders)
+            foreach (var x in _failedLeaders)
             {
                 _log.LogInformation($"LookforVoters: failed leaders: {x.Value}");
             }
             // end debug
 
-            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
+            //            var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
 
             // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
                                                     //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
                 .Where(x => !_failedLeaders.Keys.Contains(x.AccountID))    // exclude failed leaders
                 .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && (a.State == BlockChainState.Engaging || a.State == BlockChainState.Almighty))
-                .Where(s => Signatures.VerifyAccountSignature(lastSb.Hash, s.AccountID, s.AuthorizerSignature))
+                //                .Where(s => Signatures.VerifyAccountSignature(lastSb.Hash, s.AccountID, s.AuthorizerSignature))
                 .OrderByDescending(a => a.Votes)
                 .ThenBy(a => a.AccountID)
                 .ToList();
@@ -801,11 +802,11 @@ namespace Lyra.Core.Decentralize
             return list2;
         }
 
-        public async Task UpdateVotersAsync()
+        public void UpdateVoters()
         {
             //_log.LogInformation("UpdateVoters begin...");
             RefreshAllNodesVotes();
-            var list = await GetQualifiedVotersAsync();
+            var list = GetQualifiedVoters();
             if (list.Count >= 4)        // simple check. but real condition is complex.
                 Board.AllVoters = list;
             else
@@ -850,7 +851,7 @@ namespace Lyra.Core.Decentralize
             }
 
             var list1 = lsb.Authorizers.Keys.ToList();
-            await UpdateVotersAsync();
+            UpdateVoters();
             var list2 = Board.AllVoters;
 
             var firstNotSecond = list1.Except(list2).ToList();
@@ -1172,7 +1173,7 @@ namespace Lyra.Core.Decentralize
                             var lastLeader = lastSb2.Leader;
 
 
-                            await UpdateVotersAsync();
+                            UpdateVoters();
 
                             // remove defunc leader. don't let it be elected leader again.
                             if (Board.AllVoters.Contains(lastLeader))
@@ -1764,12 +1765,12 @@ namespace Lyra.Core.Decentralize
                 _locker.WaitOne();
                 // remove stalled nodes
                 // debug only
-                foreach(var x in _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-40)))
+                foreach(var x in _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-60)))
                 {
                     _log.LogInformation($"RefreshAllNodesVotes is removing {x.AccountID}");
                 }
                 // end debug
-                _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-40)); // 2 heartbeat + 10 s
+                _board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
 
                 var livingPosNodeIds = _board.ActiveNodes.Select(a => a.AccountID).ToList();
                 _lastVotes = _sys.Storage.FindVotes(livingPosNodeIds, DateTime.UtcNow);
