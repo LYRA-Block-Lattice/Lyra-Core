@@ -94,8 +94,27 @@ namespace Lyra.Core.Decentralize
                         // view change mode
                         if(cs._viewChangeHandler.IsTimeout)
                         {
+                            // two reasons: consensus timeout, new leader create service block timeout.
+                            // consensus timeout we can simply redo.
+                            // for leader timeout we need put it into black list.
+                            // continue put node into black list will cause trouble if black list too many nodes.
+                            // maybe a attack vector.
+                            // so limit blacklisted number to f/2 
+                            // need to replace the bad leader with some 'random', like sha256(view id) mod total
+
                             // view change timeout
-                            await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.ViewChangeTimeout);
+                            if(cs._viewChangeHandler.selectedSuccess)
+                            {
+                                // leader failure
+                                cs.AddFailedLeader(cs._viewChangeHandler.nextLeader);
+
+                                await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.NewLeaderFailedCreatingView);
+                            }
+                            else
+                            {
+                                // view change voting failure
+                                await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.ViewChangeTimeout);
+                            }
                         }
                     }
                     else

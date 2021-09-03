@@ -336,32 +336,6 @@ namespace Lyra.Core.Decentralize
             timr.Enabled = true;
         }
 
-        enum ViewChangeReason
-        {
-            // no heartbeat from leader
-            LeaderNoHeartBeat,
-
-            // no consolidate block created in time
-            LeaderFailedConsolidating,
-
-            // DEX request not processed in time
-            LeaderFailedProcessingDEX,
-
-            // user block no made consensus in time / liveness
-            ConsensusTimeout,
-
-            // view change not commited in time, not enough vote
-            ViewChangeTimeout,
-
-            // no service block created by the elected new leader in time
-            NewLeaderFailedCreatingView,
-
-            // f+1 view change request from the network
-            TooManyViewChangeRquests,
-
-            // we have new player join / leave
-            PlayerJoinAndLeft,
-        };
         private async Task BeginChangeViewAsync(string sender, ViewChangeReason reason)
         {
             _log.LogWarning($"Get View Change Request from {sender} for Reason: {reason}");
@@ -374,7 +348,7 @@ namespace Lyra.Core.Decentralize
 
             if (CurrentState == BlockChainState.Engaging || CurrentState == BlockChainState.Almighty)
             {
-                await _viewChangeHandler.BeginChangeViewAsync();
+                await _viewChangeHandler.BeginChangeViewAsync(reason);
             }
             else
                 _log.LogWarning($"GotViewChangeRequest for CurrentState: {CurrentState}");
@@ -771,6 +745,24 @@ namespace Lyra.Core.Decentralize
             {
                 return count;
             }
+        }
+
+        public bool AddFailedLeader(string leaderPosWallet)
+        {
+            // limit failed count to f/2
+            var count = (Board.AllVoters.Count - 1) / 6;
+            if(_failedLeaders.Count > count)
+            {
+                _log.LogWarning($"too many failed leader: {_failedLeaders.Count}");
+                var oldest = _failedLeaders.OrderBy(a => a.Value).First();
+                _failedLeaders.Remove(oldest.Key, out _);
+            }
+            return _failedLeaders.TryAdd(leaderPosWallet, DateTime.Now);
+        }
+
+        public string LastFailedLeader()
+        {
+            return _failedLeaders.OrderByDescending(a => a.Value).Select(a => a.Key).FirstOrDefault();
         }
 
         public async Task<List<string>> GetQualifiedVotersAsync()

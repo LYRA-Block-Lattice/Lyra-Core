@@ -10,9 +10,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Loyc.Collections;
+using Lyra.Data;
 
 namespace Lyra.Core.Decentralize
 {
+    enum ViewChangeReason
+    {
+        // no heartbeat from leader
+        LeaderNoHeartBeat,
+
+        // no consolidate block created in time
+        LeaderFailedConsolidating,
+
+        // DEX request not processed in time
+        LeaderFailedProcessingDEX,
+
+        // user block no made consensus in time / liveness
+        ConsensusTimeout,
+
+        // view change not commited in time, not enough vote
+        ViewChangeTimeout,
+
+        // no service block created by the elected new leader in time
+        NewLeaderFailedCreatingView,
+
+        // f+1 view change request from the network
+        TooManyViewChangeRquests,
+
+        // we have new player join / leave
+        PlayerJoinAndLeft,
+    };
+
     public delegate void LeaderCandidateSelected(string candidate);
     public delegate void LeaderSelectedHandler(ViewChangeHandler sender, long _ViewId, string NewLeader, int Votes, List<string> Voters);
 
@@ -51,7 +79,7 @@ namespace Lyra.Core.Decentralize
 
         public bool selectedSuccess = false;
 
-        public string nextLeader;
+        public string nextLeader { get; private set; }
 
         public bool replySent = false;
         public bool commitSent = false;
@@ -63,6 +91,7 @@ namespace Lyra.Core.Decentralize
 
         private bool _isViewChanging = false;
         public bool IsViewChanging => _isViewChanging;
+        private ViewChangeReason _reason;
 
         DagSystem _sys;
         public ViewChangeHandler(DagSystem sys, ConsensusService context, LeaderCandidateSelected candidateSelected, LeaderSelectedHandler leaderSelected) : base(context)
@@ -246,6 +275,11 @@ namespace Lyra.Core.Decentralize
                         select new { Candidate = g.Key, Count = g.Count() };
 
                 var candidate = q.FirstOrDefault();
+                if(nextLeader != candidate.Candidate)
+                {
+                    _log.LogWarning($"Next Leader {nextLeader} not {candidate.Candidate}");
+                }
+                nextLeader = candidate.Candidate;
                 if (candidate?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
                     //_log.LogInformation($"CheckAllStats, By CommitMsgs, leader selected {candidate.Candidate} with {candidate.Count} votes.");
@@ -318,10 +352,11 @@ namespace Lyra.Core.Decentralize
         /// 
         /// </summary>
         /// <returns></returns>
-        internal async Task BeginChangeViewAsync()
+        internal async Task BeginChangeViewAsync(ViewChangeReason reason)
         {
             _log.LogInformation($"BeginChangeViewAsync: VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
+            _reason = reason;
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
 
             if (lastSb == null)
@@ -363,16 +398,18 @@ namespace Lyra.Core.Decentralize
             // refresh billboard all voters
             await _context.UpdateVotersAsync();
 
-            var leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
-
-            var leader = _context.Board.AllVoters[leaderIndex];
-            // we deal with offline leader later.
-            //if (!reqMsgs.Values.Any(a => a.msg.From == leader))     // it is offline
-            //{
-            //    leaderIndex = (leaderIndex + 1) % _context.Board.AllVoters.Count;
-            //}
+            int leaderIndex;
+            if (_reason == ViewChangeReason.NewLeaderFailedCreatingView)
+            {
+                leaderIndex = Utilities.Sha256Int($"{ViewId}-{_context.LastFailedLeader()}");
+            }
+            else
+            {
+                leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
+            }
 
             nextLeader = _context.Board.AllVoters[leaderIndex];
+
             _log.LogInformation($"CheckAllStats, By ReqMsgs, next leader will be {nextLeader}");
             _candidateSelected(nextLeader);
         }

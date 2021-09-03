@@ -93,5 +93,25 @@ namespace Lyra.Data
 
             return array;
         }
+
+        public static string Sha256(string randomString)
+        {
+            var crypt = new System.Security.Cryptography.SHA256Managed();
+            var hash = new System.Text.StringBuilder();
+            byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(randomString));
+            foreach (byte theByte in crypto)
+            {
+                hash.Append(theByte.ToString("x2"));
+            }
+            return hash.ToString();
+        }
+
+        public static int Sha256Int(string randomString)
+        {
+            var crypt = new System.Security.Cryptography.SHA256Managed();
+            var hash = new System.Text.StringBuilder();
+            byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(randomString));
+            return BitConverter.ToInt32(crypto, 0);
+        }
     }
 }
