@@ -127,13 +127,14 @@ namespace Lyra.Core.Decentralize
 
         private void RemoveOutDatedMsgs()
         {
-            var r1 = reqMsgs.Where(a => a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
+            var r1 = reqMsgs.Where(a => !_context.Board.AllVoters.Contains(a.Value.msg.From) || a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
             r1.ForEach(x => reqMsgs.TryRemove(x, out _));
+            
 
-            var r2 = replyMsgs.Where(a => a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
+            var r2 = replyMsgs.Where(a => !_context.Board.AllVoters.Contains(a.Value.msg.From) || a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
             r2.ForEach(x => replyMsgs.TryRemove(x, out _));
 
-            var r3 = commitMsgs.Where(a => a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
+            var r3 = commitMsgs.Where(a => !_context.Board.AllVoters.Contains(a.Value.msg.From) || a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
             r3.ForEach(x => commitMsgs.TryRemove(x, out _));
         }
 
@@ -182,19 +183,23 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync()
         {
-            _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
-
-            if (nextLeader == null)
-            {
-                var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
-
-                ShiftView(lastSb.Height + 1);
-                await CalculateLeaderCandidateAsync();
-            }
-
             RemoveOutDatedMsgs();
 
-            //_log.LogInformation($"CheckAllStats2 VID: {ViewId} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+            if(!IsViewChanging && reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            {
+                var sb = new StringBuilder();
+                foreach (var msg in reqMsgs)
+                    sb.Append($"{msg.Key.Shorten()}, ");
+
+                _log.LogInformation($"too many view change request, {sb.ToString()}. force into view change mode");
+
+                // too many view change request. force into view change mode
+                await _context.GotViewChangeRequestAsync(ViewId, reqMsgs.Count);
+
+                return;
+            }
+
+            _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
             // request
             if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
@@ -211,25 +216,6 @@ namespace Lyra.Core.Decentralize
 
                 replySent = true;
                 await CheckReplyAsync(reply);
-            }
-            else if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count) + 1)
-            {
-                if (!IsViewChanging)
-                {
-                    var sb = new StringBuilder();
-                    foreach (var msg in reqMsgs)
-                        sb.Append($"{msg.Key.Shorten()}, ");
-
-                    _log.LogInformation($"too many view change request, {sb.ToString()}. force into view change mode");
-
-                    // too many view change request. force into view change mode
-                    await _context.GotViewChangeRequestAsync(ViewId, reqMsgs.Count);
-
-                    // also do clean of req msgs queue
-                    var unqualifiedReqs = reqMsgs.Keys.Where(a => !_context.Board.AllVoters.Contains(a));
-                    foreach (var unq in unqualifiedReqs)
-                        reqMsgs.Remove(unq, out _);
-                }
             }
 
             if (!commitSent)
@@ -399,19 +385,17 @@ namespace Lyra.Core.Decentralize
             // refresh billboard all voters
             await _context.UpdateVotersAsync();
 
-            int leaderIndex;
-            if (_reason == ViewChangeReason.NewLeaderFailedCreatingView)
-            {
-                leaderIndex = Utilities.Sha256Int($"{ViewId}-{_context.LastFailedLeader()}");
-            }
-            else
-            {
-                leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
-            }
-
+            int leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
             nextLeader = _context.Board.AllVoters[leaderIndex];
 
-            _log.LogInformation($"CheckAllStats, By ReqMsgs, next leader will be {nextLeader}");
+            // we have already excluded the failed leader.
+            //if(_context.IsLeaderInFailureList(nextLeader))
+            //{
+            //    leaderIndex = Utilities.Sha256Int($"{ViewId}-{_context.LastFailedLeader()}");
+            //    nextLeader = _context.Board.AllVoters[leaderIndex];
+            //}
+
+            _log.LogInformation($"The Next leader will be {nextLeader}");
             _candidateSelected(nextLeader);
         }
 

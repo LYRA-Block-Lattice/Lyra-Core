@@ -765,6 +765,11 @@ namespace Lyra.Core.Decentralize
             return _failedLeaders.OrderByDescending(a => a.Value).Select(a => a.Key).FirstOrDefault();
         }
 
+        public bool IsLeaderInFailureList(string accountId)
+        {
+            return _failedLeaders.ContainsKey(accountId);
+        }
+
         public async Task<List<string>> GetQualifiedVotersAsync()
         {
             var outDated = _failedLeaders.Where(x => x.Value < DateTime.UtcNow.AddHours(-1)).ToList();
