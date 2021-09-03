@@ -183,8 +183,6 @@ namespace Lyra.Core.Decentralize
         private async Task CheckAllStatsAsync()
         {
             _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
-            if (!IsViewChanging)
-                return;
 
             if (nextLeader == null)
             {
@@ -274,18 +272,21 @@ namespace Lyra.Core.Decentralize
                         group rep by rep.msg.Candidate into g
                         select new { Candidate = g.Key, Count = g.Count() };
 
-                var candidate = q.FirstOrDefault();
-                if(nextLeader != candidate.Candidate)
+                var candidate = q.OrderByDescending(x => x.Count).FirstOrDefault();
+                if(candidate != null)
                 {
-                    _log.LogWarning($"Next Leader {nextLeader} not {candidate.Candidate}");
-                }
-                nextLeader = candidate.Candidate;
-                if (candidate?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
-                {
-                    //_log.LogInformation($"CheckAllStats, By CommitMsgs, leader selected {candidate.Candidate} with {candidate.Count} votes.");
+                    if (nextLeader != candidate.Candidate)
+                    {
+                        _log.LogWarning($"Next Leader {nextLeader} not {candidate.Candidate}");
+                    }
+                    nextLeader = candidate.Candidate;
+                    if (candidate?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+                    {
+                        _log.LogInformation($"CheckAllStats, By CommitMsgs, leader selected {candidate.Candidate} with {candidate.Count} votes.");
 
-                    selectedSuccess = true;
-                    _leaderSelected(this, ViewId, candidate.Candidate, candidate.Count, _context.Board.AllVoters);
+                        selectedSuccess = true;
+                        _leaderSelected(this, ViewId, candidate.Candidate, candidate.Count, _context.Board.AllVoters);
+                    }
                 }
             }
         }
