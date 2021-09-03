@@ -1782,7 +1782,7 @@ namespace Lyra.Core.Decentralize
                     var vote = _lastVotes.FirstOrDefault(a => a.AccountId == node.AccountID);
                     if (vote == null)
                     {
-                        _log.LogInformation($"No (zero) vote found for {node.AccountID}");
+                        //_log.LogInformation($"No (zero) vote found for {node.AccountID}");
                         node.Votes = 0;
                     }
                     else
