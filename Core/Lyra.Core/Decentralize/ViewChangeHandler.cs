@@ -183,18 +183,21 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckAllStatsAsync()
         {
-            RemoveOutDatedMsgs();
-
-            if(!IsViewChanging && reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+            if(!IsViewChanging)
             {
-                var sb = new StringBuilder();
-                foreach (var msg in reqMsgs)
-                    sb.Append($"{msg.Key.Shorten()}, ");
+                RemoveOutDatedMsgs();
 
-                _log.LogInformation($"too many view change request, {sb.ToString()}. force into view change mode");
+                if (reqMsgs.Count > _context.Board.AllVoters.Count - LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+                {
+                    var sb = new StringBuilder();
+                    foreach (var msg in reqMsgs)
+                        sb.Append($"{msg.Key.Shorten()}, ");
 
-                // too many view change request. force into view change mode
-                await _context.GotViewChangeRequestAsync(ViewId, reqMsgs.Count);
+                    _log.LogInformation($"too many view change request, {sb.ToString()}. force into view change mode");
+
+                    // too many view change request. force into view change mode
+                    await _context.GotViewChangeRequestAsync(ViewId, reqMsgs.Count);
+                }
 
                 return;
             }
