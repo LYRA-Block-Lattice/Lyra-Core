@@ -89,6 +89,12 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
+                    // routine maintains
+                    var outDated = cs._failedLeaders.Where(x => x.Value < DateTime.UtcNow.AddMinutes(-5)).ToList();
+                    foreach (var od in outDated)
+                        cs._failedLeaders.TryRemove(od.Key, out _);
+
+                    // end routine maintains
                     if (cs._viewChangeHandler.IsViewChanging)
                     {
                         // view change mode
@@ -110,10 +116,14 @@ namespace Lyra.Core.Decentralize
 
                                 await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.NewLeaderFailedCreatingView);
                             }
-                            else
+                            else if(cs._viewChangeHandler.LastViewChangeReason != ViewChangeReason.ViewChangeTimeout)
                             {
                                 // view change voting failure
                                 await cs.BeginChangeViewAsync("view change monitor", ViewChangeReason.ViewChangeTimeout);
+                            }
+                            else
+                            {
+                                cs._log.LogInformation("Stop doing endless view change.");
                             }
                         }
                     }

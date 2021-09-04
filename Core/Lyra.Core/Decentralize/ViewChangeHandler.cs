@@ -14,7 +14,7 @@ using Lyra.Data;
 
 namespace Lyra.Core.Decentralize
 {
-    enum ViewChangeReason
+    public enum ViewChangeReason
     {
         // no heartbeat from leader
         LeaderNoHeartBeat,
@@ -92,6 +92,7 @@ namespace Lyra.Core.Decentralize
         private bool _isViewChanging = false;
         public bool IsViewChanging => _isViewChanging;
         private ViewChangeReason _reason;
+        public ViewChangeReason LastViewChangeReason => _reason;
 
         DagSystem _sys;
         public ViewChangeHandler(DagSystem sys, ConsensusService context, LeaderCandidateSelected candidateSelected, LeaderSelectedHandler leaderSelected) : base(context)

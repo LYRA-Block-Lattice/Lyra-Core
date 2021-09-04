@@ -761,11 +761,6 @@ namespace Lyra.Core.Decentralize
             return _failedLeaders.TryAdd(leaderPosWallet, DateTime.Now);
         }
 
-        public string LastFailedLeader()
-        {
-            return _failedLeaders.OrderByDescending(a => a.Value).Select(a => a.Key).FirstOrDefault();
-        }
-
         public bool IsLeaderInFailureList(string accountId)
         {
             return _failedLeaders.ContainsKey(accountId);
@@ -773,14 +768,10 @@ namespace Lyra.Core.Decentralize
 
         public List<string> GetQualifiedVoters()
         {
-            var outDated = _failedLeaders.Where(x => x.Value < DateTime.UtcNow.AddHours(-1)).ToList();
-            foreach (var od in outDated)
-                _failedLeaders.TryRemove(od.Key, out _);
-
             // debug only
             foreach (var x in _failedLeaders)
             {
-                _log.LogInformation($"LookforVoters: failed leaders: {x.Value}");
+                _log.LogInformation($"LookforVoters: failed leaders: {x.Key.Shorten()} {x.Value}");
             }
             // end debug
 
