@@ -391,12 +391,12 @@ namespace Lyra.Core.Decentralize
             int leaderIndex = (int)(ViewId % _context.Board.AllVoters.Count);
             nextLeader = _context.Board.AllVoters[leaderIndex];
 
-            // we have already excluded the failed leader.
-            //if(_context.IsLeaderInFailureList(nextLeader))
-            //{
-            //    leaderIndex = Utilities.Sha256Int($"{ViewId}-{_context.LastFailedLeader()}");
-            //    nextLeader = _context.Board.AllVoters[leaderIndex];
-            //}
+            // we have already excluded the failed leader. x don't exclude. replace index with hash algo
+            if (_context.IsLeaderInFailureList(nextLeader))
+            {
+                leaderIndex = Utilities.Sha256Int($"{ViewId}");
+                nextLeader = _context.Board.AllVoters[leaderIndex];
+            }
 
             _log.LogInformation($"The Next leader will be {nextLeader}");
             _candidateSelected(nextLeader);

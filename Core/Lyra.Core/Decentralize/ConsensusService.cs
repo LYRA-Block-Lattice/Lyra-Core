@@ -751,8 +751,8 @@ namespace Lyra.Core.Decentralize
         public bool AddFailedLeader(string leaderPosWallet)
         {
             // limit failed count to f/2
-            var count = (Board.AllVoters.Count - 1) / 6;
-            if(_failedLeaders.Count > count)
+            var count = 1;// (Board.AllVoters.Count - 1) / 6;
+            if(_failedLeaders.Count >= count)
             {
                 _log.LogWarning($"too many failed leader: {_failedLeaders.Count}");
                 var oldest = _failedLeaders.OrderBy(a => a.Value).First();
