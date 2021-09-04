@@ -380,6 +380,13 @@ namespace Lyra.Core.Decentralize
             await CheckRequestAsync(req);
         }
 
+        public void StopViewChange()
+        {
+            _isViewChanging = false;
+            Reset();
+            ResetTimer();
+        }
+
         private void CalculateLeaderCandidate()
         {
             // the new leader:
@@ -395,7 +402,7 @@ namespace Lyra.Core.Decentralize
             // we have already excluded the failed leader. x don't exclude. replace index with hash algo
             if (_context.IsLeaderInFailureList(nextLeader))
             {
-                leaderIndex = Utilities.Sha256Int($"{ViewId}");
+                leaderIndex = Utilities.Sha256Int($"{ViewId}") % _context.Board.AllVoters.Count;
                 nextLeader = _context.Board.AllVoters[leaderIndex];
             }
 

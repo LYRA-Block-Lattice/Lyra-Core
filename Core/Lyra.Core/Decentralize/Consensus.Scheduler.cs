@@ -124,6 +124,7 @@ namespace Lyra.Core.Decentralize
                             else
                             {
                                 cs._log.LogInformation("Stop doing endless view change.");
+                                cs._viewChangeHandler.StopViewChange();
                             }
                         }
                     }
