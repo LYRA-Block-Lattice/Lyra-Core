@@ -789,7 +789,7 @@ namespace Lyra.Core.Decentralize
             // TODO: filter auth signatures
             var list = Board.ActiveNodes.ToList()   // make sure it not changed any more
                                                     //.Where(x => Board.NodeAddresses.Keys.Contains(x.AccountID)) // filter bad ips
-                .Where(x => !_failedLeaders.Keys.Contains(x.AccountID))    // exclude failed leaders
+                //.Where(x => !_failedLeaders.Keys.Contains(x.AccountID))    // exclude failed leaders ! no, failed leader can still vote.
                 .Where(a => a.Votes >= LyraGlobal.MinimalAuthorizerBalance && (a.State == BlockChainState.Engaging || a.State == BlockChainState.Almighty))
                 //                .Where(s => Signatures.VerifyAccountSignature(lastSb.Hash, s.AccountID, s.AuthorizerSignature))
                 .OrderByDescending(a => a.Votes)
