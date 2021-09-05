@@ -109,9 +109,8 @@ namespace Lyra.Data
         public static int Sha256Int(string randomString)
         {
             var crypt = new System.Security.Cryptography.SHA256Managed();
-            var hash = new System.Text.StringBuilder();
             byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(randomString));
-            return BitConverter.ToInt32(crypto, 0);
+            return (int)BitConverter.ToUInt16(crypto, 0);
         }
     }
 }
