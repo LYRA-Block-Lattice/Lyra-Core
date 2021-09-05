@@ -36,6 +36,14 @@
     <Compile Remove="API\APIResultCodes.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="webroot\default.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="webroot\default.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.HttpOverrides" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />

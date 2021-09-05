@@ -13,6 +13,7 @@
     <None Include="docker-compose-dualnet.yml" />
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="init-mongo-dualnet.sh" />
     <None Include="init-mongo.sh" />
     <None Include="README.md" />
   </ItemGroup>

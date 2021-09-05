@@ -12,7 +12,7 @@ services:
       MONGO_PASSWORD: $LYRA_DB_PASSWORD
     volumes:
       - ~/.lyra/db:/data/db
-      - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+      - ./init-mongo-dualnet.sh:/docker-entrypoint-initdb.d/init-mongo.sh
 
   mainnet:
     image: wizdy/lyranoded:0.5.7

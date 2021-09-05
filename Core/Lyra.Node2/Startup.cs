@@ -27,6 +27,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Microsoft.Extensions.FileProviders;
 
 namespace Lyra.Node2
 {
@@ -187,6 +188,23 @@ namespace Lyra.Node2
             });
 
             //app.UseHttpsRedirection();
+
+            // need to host database snapshot
+            //app.UseDefaultFiles();
+            //app.UseStaticFiles(new StaticFileOptions()
+            //{
+            //    ServeUnknownFileTypes = true,
+
+            //    FileProvider = new PhysicalFileProvider(
+            //         Path.Combine(env.ContentRootPath, "webroot")),
+            //    RequestPath = "/db",
+
+            //    OnPrepareResponse = context =>
+            //    {
+            //        context.Context.Response.Headers["Content-Disposition"] = "attachment";
+            //    }
+            //});
+
             app.UseRouting();
             app.UseAuthorization();
             app.UseWebSockets();

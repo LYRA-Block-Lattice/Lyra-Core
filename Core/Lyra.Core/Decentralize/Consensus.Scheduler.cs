@@ -95,7 +95,8 @@ namespace Lyra.Core.Decentralize
                         cs._failedLeaders.TryRemove(od.Key, out _);
 
                     // end routine maintains
-                    if (cs._viewChangeHandler.IsViewChanging)
+                    // app mode view change handler is null
+                    if (cs._viewChangeHandler != null && cs._viewChangeHandler.IsViewChanging)
                     {
                         // view change mode
                         if(cs._viewChangeHandler.IsTimeout)
