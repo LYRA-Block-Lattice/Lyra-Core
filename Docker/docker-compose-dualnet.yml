@@ -1,0 +1,76 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_ROOT_NAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_ROOT_PASSWORD
+      MONGO_USER: $LYRA_DB_USER
+      MONGO_DB: $LYRA_DB_NAME
+      MONGO_PASSWORD: $LYRA_DB_PASSWORD
+    volumes:
+      - ~/.lyra/db:/data/db
+      - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+
+  mainnet:
+    image: wizdy/lyranoded:0.5.7
+    restart: always
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /root/.lyra/https/${HTTPS_CERT_NAME}.pfx
+      LYRA_POS_WALLET_NAME: ${LYRA_MAINNET_POS_WALLET_NAME}
+      LYRA_POS_WALLET_PASSWORD: ${LYRA_MAINNET_POS_WALLET_PASSWORD}
+      LYRA_NETWORK: mainnet
+      LYRA_DB_NAME: ${LYRA_DB_NAME}
+      LYRA_DB_USER: ${LYRA_DB_USER}
+      LYRA_DB_PASSWORD: ${LYRA_DB_PASSWORD}
+      LYRA_P2P_PORT: ${LYRA_MAINNET_P2P_PORT}
+      LYRA_API_PORT: ${LYRA_MAINNET_API_PORT}
+      ASPNETCORE_URLS: https://*:${LYRA_API_PORT}
+      ASPNETCORE_HTTPS_PORT: ${LYRA_API_PORT}
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__Mode: $LYRA_MAINNET_NODE_MODE
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect: mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@mongo/${LYRA_DB_NAME}
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name: ${LYRA_POS_WALLET_NAME}
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password: ${LYRA_POS_WALLET_PASSWORD}
+    ports:
+      - ${LYRA_P2P_PORT}:${LYRA_P2P_PORT}
+      - ${LYRA_API_PORT}:${LYRA_API_PORT}
+      - 443:${LYRA_API_PORT}
+    volumes:
+      - ~/.lyra:/root/.lyra
+    depends_on:
+      - mongo
+
+  testnet:
+    image: wizdy/lyranoded:0.5.7
+    restart: always
+    environment:
+      ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /root/.lyra/https/${HTTPS_CERT_NAME}.pfx
+      LYRA_POS_WALLET_NAME: ${LYRA_TESTNET_POS_WALLET_NAME}
+      LYRA_POS_WALLET_PASSWORD: ${LYRA_TESTNET_POS_WALLET_PASSWORD}
+      LYRA_NETWORK: testnet
+      LYRA_DB_NAME: ${LYRA_DB_NAME}
+      LYRA_DB_USER: ${LYRA_DB_USER}
+      LYRA_DB_PASSWORD: ${LYRA_DB_PASSWORD}
+      LYRA_P2P_PORT: ${LYRA_TESTNET_P2P_PORT}
+      LYRA_API_PORT: ${LYRA_TESTNET_API_PORT}
+      ASPNETCORE_URLS: https://*:${LYRA_API_PORT}
+      ASPNETCORE_HTTPS_PORT: ${LYRA_API_PORT}
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__Mode: $LYRA_TESTNET_NODE_MODE
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect: mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@mongo/${LYRA_DB_NAME}
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name: ${LYRA_POS_WALLET_NAME}
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password: ${LYRA_POS_WALLET_PASSWORD}
+    ports:
+      - ${LYRA_P2P_PORT}:${LYRA_P2P_PORT}
+      - ${LYRA_API_PORT}:${LYRA_API_PORT}
+      - 443:${LYRA_API_PORT}
+    volumes:
+      - ~/.lyra:/root/.lyra
+    depends_on:
+      - mongo
+
+volumes:
+  .lyra:
