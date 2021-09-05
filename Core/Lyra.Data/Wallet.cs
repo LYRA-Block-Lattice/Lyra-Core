@@ -28,7 +28,12 @@ namespace Lyra.Core.Accounts
 
         public string NetworkId => _store.NetworkId;
 
-        public string VoteFor { get => _store.VoteFor; set => _store.VoteFor = value; }
+        private string _newVoteFor;
+        public void SetVoteFor(string voteTarget)
+        {
+            _newVoteFor = voteTarget;
+        }
+        public string VoteFor => _newVoteFor == null ? _lastTransactionBlock?.VoteFor : _newVoteFor;
 
         private bool _noConsole;
 

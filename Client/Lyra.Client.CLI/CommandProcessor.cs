@@ -146,12 +146,12 @@ namespace Lyra.Client.CLI
                         Console.WriteLine("Your input is: " + (string.IsNullOrEmpty(votefor) ? "(empty)" : votefor));
                         if(Signatures.ValidateAccountId(votefor))
                         {
-                            _wallet.VoteFor = votefor;
+                            _wallet.SetVoteFor(votefor);
                             Console.WriteLine($"You will vote for {votefor}. The vote will take effect after next transaction (send/receive etc.).");
                         }
                         else if(string.IsNullOrEmpty(votefor))
                         {
-                            _wallet.VoteFor = "";
+                            _wallet.SetVoteFor("");
                             Console.WriteLine($"You will not vote for any account id. This action will take effect after next transaction (send/receive etc.).");
                         }
                         else
