@@ -121,7 +121,7 @@ docker-compose --env-file .env up -d
 
 ```
 
-# Hosting dualnet
+# Hosting Dual Network
 
 After normal setup above, you may want host both testnet and mainnet nodes in the same docker for Lyra network.
 ```
