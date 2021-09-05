@@ -125,6 +125,14 @@ docker-compose --env-file .env up -d
 
 After normal setup above, you may want host dual node for Lyra network.
 ```
+# create a self-signed certificate
+mkdir ~/.lyra
+mkdir ~/.lyra/https
+cd ~/.lyra/https
+openssl req -x509 -days 3650 -newkey rsa:2048 -keyout cert.pem -out cert.pem
+openssl pkcs12 -export -in cert.pem -inkey cert.pem -out cert.pfx
+
+# create docker containers for dualnet
 cd Lyra-Core/Docker
 cp .env.dualnet-example .env-dualnet
 vi .env-dualnet
