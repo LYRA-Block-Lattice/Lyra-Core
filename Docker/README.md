@@ -121,6 +121,16 @@ docker-compose --env-file .env up -d
 
 ```
 
+# Hosting mainnet node and testnet node in the same docker
+
+After normal setup above, you may want host dual node for Lyra network.
+```
+cd Lyra-Core/Docker
+cp .env.dualnet-example .env-dualnet
+vi .env-dualnet
+docker-compose --env-file .env-dualnet -f docker-compose-dualnet.yml up -d
+```
+
 # Migrate from legacy Lyra node to Docker
 
 * keep legacy Lyra node untouched, setup a complete new Docker node and let it do database sync.
