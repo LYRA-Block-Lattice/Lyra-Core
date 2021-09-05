@@ -132,6 +132,11 @@ cd ~/.lyra/https
 openssl req -x509 -days 3650 -newkey rsa:2048 -keyout cert.pem -out cert.pem
 openssl pkcs12 -export -in cert.pem -inkey cert.pem -out cert.pfx
 
+# clone lyra project if not done already
+cd ~/
+mkdir ~/.lyra/db
+git clone https://github.com/LYRA-Block-Lattice/Lyra-Core
+
 # create docker containers for dualnet
 cd Lyra-Core/Docker
 cp .env.dualnet-example .env-dualnet
