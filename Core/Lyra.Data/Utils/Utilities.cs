@@ -110,7 +110,7 @@ namespace Lyra.Data
         {
             var crypt = new System.Security.Cryptography.SHA256Managed();
             byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(randomString));
-            return (int)BitConverter.ToUInt16(crypto, 0);
+            return BitConverter.ToUInt16(crypto, 0);
         }
     }
 }
