@@ -1188,6 +1188,14 @@ namespace Lyra.Core.Accounts
             // convert it into tx desc
             List<TransactionDescription> transactions = new List<TransactionDescription>();
             Dictionary<string, long> oldBalance = null;
+
+            // fill oldBalance if there is previous block
+            if(txes.Count > 0 && txes.First().Height > 1)
+            {
+                var prevTx = await FindBlockByHashAsync(txes.First().PreviousHash) as TransactionBlock;
+                oldBalance = prevTx.Balances;
+            }
+
             for (int i = 0; i < txes.Count; i++)
             {
                 var block = txes[i];
@@ -1241,7 +1249,9 @@ namespace Lyra.Core.Accounts
                     if (block.Height == 1)
                         tx.Changes = block.Balances;
                     else
-                        tx.Changes = null;
+                    {
+                        _log.LogError("SearchTransactionsAsync: oldBalance missing. Should not happens.");
+                    }                        
                 }
                 else
                 {

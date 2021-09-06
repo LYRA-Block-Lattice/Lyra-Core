@@ -424,6 +424,7 @@ namespace Lyra.Core.API
             return await PostBlockAsync("ImportAccount", block);
         }
 
+        [Obsolete]
         public async Task<NewTransferAPIResult> LookForNewTransferAsync(string AccountId, string Signature)
         {
             using HttpClient client = CreateClient();
