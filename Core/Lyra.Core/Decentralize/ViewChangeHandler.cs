@@ -128,14 +128,14 @@ namespace Lyra.Core.Decentralize
 
         private void RemoveOutDatedMsgs()
         {
-            var r1 = reqMsgs.Where(a => !_context.Board.AllVoters.Contains(a.Value.msg.From) || a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
+            var r1 = reqMsgs.Where(a => a.Value.msg.ViewID != ViewId || !_context.Board.AllVoters.Contains(a.Value.msg.From) || a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
             r1.ForEach(x => reqMsgs.TryRemove(x, out _));
             
 
-            var r2 = replyMsgs.Where(a => !_context.Board.AllVoters.Contains(a.Value.msg.From) || a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
+            var r2 = replyMsgs.Where(a => a.Value.msg.ViewID != ViewId || !_context.Board.AllVoters.Contains(a.Value.msg.From) || a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
             r2.ForEach(x => replyMsgs.TryRemove(x, out _));
 
-            var r3 = commitMsgs.Where(a => !_context.Board.AllVoters.Contains(a.Value.msg.From) || a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
+            var r3 = commitMsgs.Where(a => a.Value.msg.ViewID != ViewId || !_context.Board.AllVoters.Contains(a.Value.msg.From) || a.Value.msg.TimeStamp < DateTime.UtcNow.AddSeconds(-1 * LyraGlobal.VIEWCHANGE_TIMEOUT)).Select(x => x.Key);
             r3.ForEach(x => commitMsgs.TryRemove(x, out _));
         }
 
@@ -334,8 +334,8 @@ namespace Lyra.Core.Decentralize
                 reqMsgs.TryAdd(req.From, new VCReqWithTime(req));
                 await CheckAllStatsAsync();
             }
-            else
-                _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
+            //else
+            //    _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
         }
 
         /// <summary>
