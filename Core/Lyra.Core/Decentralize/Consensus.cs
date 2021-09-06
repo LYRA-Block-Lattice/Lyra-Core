@@ -546,7 +546,7 @@ namespace Lyra.Core.Decentralize
                     svcBlock.InitializeBlock(prevSvcBlock, _sys.PosWallet.PrivateKey, _sys.PosWallet.AccountId);
 
                     _log.LogInformation($"New View was created. send to network...");
-                    await SendBlockToConsensusAndWaitResultAsync(svcBlock, _board.AllVoters);
+                    await SendBlockToConsensusAndForgetAsync(svcBlock);
                 }
                 catch (Exception e)
                 {
@@ -699,6 +699,24 @@ namespace Lyra.Core.Decentralize
                     _ = client.GetPoolAsync("a", "b");
                 }     
             }
+        }
+
+        private async Task SendBlockToConsensusAndForgetAsync(Block block)
+        {
+            if (block == null)
+                throw new ArgumentNullException();
+
+            AuthorizingMsg msg = new AuthorizingMsg
+            {
+                From = _sys.PosWallet.AccountId,
+                Block = block,
+                BlockHash = block.Hash,
+                MsgType = ChatMessageType.AuthorizerPrePrepare
+            };
+
+            var state = CreateAuthringState(msg, true);
+
+            await SubmitToConsensusAsync(state);
         }
 
         private async Task<(ConsensusResult?, APIResultCodes errorCode)> SendBlockToConsensusAndWaitResultAsync(Block block, List<string> voters = null)        // default is genesus, 4 default

@@ -405,16 +405,8 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation($"Database consistent check... It may take a while.");
 
                             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                            var fixedHeight = lastCons.Height;
                             var shouldReset = false;
-
-                            var view = await _sys.Storage.FindBlockByHashAsync("AJBpBx1EJ1XFtKEqd8EXGF3RRmjdLQojrZY5SThvYrvm");
-                            if (view != null)
-                            {
-                                await _sys.Storage.RemoveBlockAsync("AJBpBx1EJ1XFtKEqd8EXGF3RRmjdLQojrZY5SThvYrvm");
-                                var lastSave = LocalDbSyncState.Load();
-                                lastSave.lastVerifiedConsHeight = 10380;
-                                LocalDbSyncState.Save(lastSave);
-                            }
 
                             var localSafeCons = LocalDbSyncState.Load().lastVerifiedConsHeight;
                             for (long i = lastCons == null ? 0 : lastCons.Height; i >= localSafeCons; i--)
@@ -492,6 +484,15 @@ namespace Lyra.Core.Decentralize
                             }
 
                             _log.LogInformation($"Database consistent check is done.");
+                            var localState = LocalDbSyncState.Load();
+                            if (localState.lastVerifiedConsHeight == 0)
+                            {
+                                localState.databaseVersion = LyraGlobal.DatabaseVersion;
+                                var svcGen = await _sys.Storage.GetServiceGenesisBlockAsync();
+                                localState.svcGenHash = svcGen.Hash;
+                            }
+                            localState.lastVerifiedConsHeight = fixedHeight;
+                            LocalDbSyncState.Save(localState);
 
                             while (true)
                             {
@@ -826,19 +827,6 @@ namespace Lyra.Core.Decentralize
 
                 await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone);
                 return;
-            }
-
-            if (CurrentState == BlockChainState.Almighty
-                || CurrentState == BlockChainState.Engaging)
-            {
-                var localState = LocalDbSyncState.Load();
-                if (localState.lastVerifiedConsHeight == 0)
-                {
-                    localState.databaseVersion = LyraGlobal.DatabaseVersion;
-                    localState.svcGenHash = lsb.Hash;
-                }
-                localState.lastVerifiedConsHeight = cons.Height;
-                LocalDbSyncState.Save(localState);
             }
 
             var list1 = lsb.Authorizers.Keys.ToList();
