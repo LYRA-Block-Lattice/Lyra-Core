@@ -89,6 +89,12 @@ vi .env
 # setup docker containers
 docker-compose --env-file .env up -d
 
+# or setup docker with database restoring and save a lot time!
+#docker-compose --env-file .env up --no-start
+#docker start docker_mongo_1
+#cat dbrestore-mainnet.sh | docker exec -i docker_mongo_1 bash
+#docker start docker_noded_1
+
 # check if the daemon runs well
 docker ps
 docker logs docker_noded_1	# or other names
