@@ -141,11 +141,15 @@ git clone https://github.com/LYRA-Block-Lattice/Lyra-Core
 cd Lyra-Core/Docker
 cp .env.dualnet-example .env-dualnet
 vi .env-dualnet
-docker-compose --env-file .env-dualnet -f docker-compose-dualnet.yml up -d
+docker-compose --env-file .env-dualnet -f docker-compose-dualnet.yml up --no-start
+docker start docker_mongo_1
+cat dbrestore.sh | docker exec -i docker_mongo_1 bash
+docker start docker_testnet_1
+docker start docker_mainnet_1
 
 # upgrade dualnet laterly
 cd ~/Lyra-Core/Docker
-docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker images -a -q) && docker-compose -f docker-compose-dualnet.yml down -v
+docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker images -a -q)
 cd ~/Lyra-Core
 git pull
 cd Docker
