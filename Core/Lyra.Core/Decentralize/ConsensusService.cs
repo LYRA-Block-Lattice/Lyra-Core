@@ -918,6 +918,9 @@ namespace Lyra.Core.Decentralize
 
         private async Task<ActiveNode> DeclareConsensusNodeAsync()
         {
+            if (Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.App)
+                return null;
+
             // declare to the network
             _myIpAddress = await GetPublicIPAddress.PublicIPAddressAsync();
             PosNode me = new PosNode(_sys.PosWallet.AccountId)
@@ -1109,7 +1112,8 @@ namespace Lyra.Core.Decentralize
             me = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == _sys.PosWallet.AccountId);
             if (me == null)
             {
-                _log.LogError("No me in billboard!!!");
+                return;     // app mode null
+                //_log.LogError("No me in billboard!!!");
             }
             else
             {
