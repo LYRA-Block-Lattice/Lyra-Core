@@ -80,7 +80,7 @@ namespace Lyra.Core.Decentralize
                 PosWallet = Wallet.Open(walletStore, 
                     Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, 
                     Neo.Settings.Default.LyraNode.Lyra.Wallet.Password,
-                    LyraRestClient.Create(networkId, "", "NodeService", "1.0", LyraGlobal.SelectNode(networkId)));
+                    LyraRestClient.Create(networkId, "", "NodeService", "1.0", LyraGlobal.SelectNode(networkId) + "Node/"));
                 _log.LogInformation($"Staking wallet: {PosWallet.AccountId}");
 
                 var store = new MongoAccountCollection();
