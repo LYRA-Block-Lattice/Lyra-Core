@@ -348,25 +348,9 @@ namespace Lyra.Core.Decentralize
             {
                 await _semaphore.WaitAsync();
 
-                var sb = new StringBuilder();
-                sb.AppendLine();
-                sb.AppendLine($"* Transaction From Node {_state.InputMsg.From.Shorten()} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
-                foreach (var msg in _state.OutputMsgs.ToList())
-                {
-                    var seed0 = msg.From == _context.Board.CurrentLeader ? "[Leader]" : "";
-                    string me = "";
-                    if (msg.From == _context.GetDagSystem().PosWallet.AccountId)
-                        me = "[me]";
-                    var voice = msg.IsSuccess ? "Yea" : "Nay";
-                    var canAuth = _state.CheckSenderValid(msg.From);// _currentView.Authorizers.Any(a => a.AccountID == msg.From);
-                    sb.AppendLine($"{voice} {msg.Result} By: {msg.From.Shorten()} CanAuth: {canAuth} {seed0}{me}");
-                }
-                _log.LogInformation(sb.ToString());
-
                 //_log.LogInformation($"_state.Consensus is {_state.PrepareConsensus}");
                 if (ConsensusResult.Uncertain != _state.PrepareConsensus)
                 {
-
                     //_log.LogInformation($"got Semaphore. is it saving? {_state.Saving}");
 
                     if (_state.Saving)
@@ -448,6 +432,21 @@ namespace Lyra.Core.Decentralize
                             // event hooks
                             var sys = _context.GetDagSystem();
                             sys.Consensus.Tell(new BlockChain.BlockAdded { NewBlock = block });
+
+                            var sb = new StringBuilder();
+                            sb.AppendLine();
+                            sb.AppendLine($"* Transaction From Node {_state.InputMsg.From.Shorten()} Type: {_state.InputMsg.Block.BlockType} Index: {_state.InputMsg.Block.Height} Hash: {_state.InputMsg.Block.Hash.Shorten()}");
+                            foreach (var msg in _state.OutputMsgs.ToList())
+                            {
+                                var seed0 = msg.From == _context.Board.CurrentLeader ? "[Leader]" : "";
+                                string me = "";
+                                if (msg.From == _context.GetDagSystem().PosWallet.AccountId)
+                                    me = "[me]";
+                                var voice = msg.IsSuccess ? "Yea" : "Nay";
+                                var canAuth = _state.CheckSenderValid(msg.From);// _currentView.Authorizers.Any(a => a.AccountID == msg.From);
+                                sb.AppendLine($"{voice} {msg.Result} By: {msg.From.Shorten()} CanAuth: {canAuth} {seed0}{me}");
+                            }
+                            _log.LogInformation(sb.ToString());
                         }
                     }
                 }

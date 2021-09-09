@@ -855,7 +855,7 @@ namespace Lyra.Core.Decentralize
 
             if (_viewChangeHandler != null)
             {
-                _log.LogInformation($"Shift View Id to {sb.Height + 1}");
+                //_log.LogInformation($"Shift View Id to {sb.Height + 1}");
                 _viewChangeHandler.ShiftView(sb.Height + 1);
                 _viewChangeHandler.FinishViewChange();
             }
