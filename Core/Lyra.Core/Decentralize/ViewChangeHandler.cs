@@ -203,11 +203,11 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
-
             // request
             if (!replySent && reqMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
             {
+                _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
+
                 var reply = new ViewChangeReplyMessage
                 {
                     From = _sys.PosWallet.AccountId,
@@ -224,34 +224,49 @@ namespace Lyra.Core.Decentralize
 
             if (!commitSent)
             {
-                // reply
-                // only if we have enough reply
-                var qr = from rep in replyMsgs.Values
-                         where rep.msg.Result == Blocks.APIResultCodes.Success
-                         group rep by rep.msg.Candidate into g
-                         select new { Candidate = g.Key, Count = g.Count() };
-
-                var candidateQR = qr.OrderByDescending(x => x.Count).FirstOrDefault();
-
-                if (candidateQR?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+                if(replyMsgs.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                 {
-                    //_log.LogInformation($"CheckAllStats, By ReplyMsgs, commit next leader {nextLeader}");
+                    _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
-                    var commit = new ViewChangeCommitMessage
+                    // reply
+                    // only if we have enough reply
+                    var decQr = from rep in replyMsgs.Values
+                             where rep.msg.Result == Blocks.APIResultCodes.Success
+                             group rep by rep.msg.Candidate into g
+                             select new { Candidate = g.Key, Count = g.Count() };
+
+                    var decisions = decQr.OrderByDescending(x => x.Count).ToList();
+
+                    var sb = new StringBuilder();
+                    sb.AppendLine($"Decisions for View ID: {ViewId}");
+                    foreach(var x in decisions)
                     {
-                        From = _sys.PosWallet.AccountId,
-                        ViewID = ViewId,
-                        Candidate = candidateQR.Candidate,
-                        Consensus = ConsensusResult.Yea
-                    };
+                        sb.AppendLine($"\t{x.Candidate.Shorten()}: {x.Count}");
+                    }
+                    _log.LogInformation(sb.ToString());
 
-                    _context.Send2P2pNetwork(commit);
-                    commitSent = true;
-                    await CheckCommitAsync(commit);
-                }
-                else
-                {
-                    //_log.LogInformation($"CheckAllStats, By ReplyMsgs, not commit, top candidate {candidateQR?.Candidate.Shorten()} has {candidateQR?.Count} votes");
+                    var candidateQR = decisions.FirstOrDefault();
+
+                    if (candidateQR?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
+                    {
+                        //_log.LogInformation($"CheckAllStats, By ReplyMsgs, commit next leader {nextLeader}");
+
+                        var commit = new ViewChangeCommitMessage
+                        {
+                            From = _sys.PosWallet.AccountId,
+                            ViewID = ViewId,
+                            Candidate = candidateQR.Candidate,
+                            Consensus = ConsensusResult.Yea
+                        };
+
+                        _context.Send2P2pNetwork(commit);
+                        commitSent = true;
+                        await CheckCommitAsync(commit);
+                    }
+                    else
+                    {
+                        //_log.LogInformation($"CheckAllStats, By ReplyMsgs, not commit, top candidate {candidateQR?.Candidate.Shorten()} has {candidateQR?.Count} votes");
+                    }
                 }
             }
 
@@ -418,9 +433,10 @@ namespace Lyra.Core.Decentralize
             ResetTimer();
         }
 
-        public void FinishViewChange()
+        public void FinishViewChange(long v)
         {
-            _isViewChanging = false;
+            if(ViewId == v)
+                _isViewChanging = false;
         }
     }
 }

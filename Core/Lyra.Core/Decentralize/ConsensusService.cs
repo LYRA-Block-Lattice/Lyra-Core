@@ -853,11 +853,11 @@ namespace Lyra.Core.Decentralize
             Board.UpdatePrimary(sb.Authorizers.Keys.ToList());
             Board.CurrentLeader = sb.Leader;
 
-            if (_viewChangeHandler != null)
+            if (_viewChangeHandler?.ViewId == sb.Height)
             {
+                _viewChangeHandler.FinishViewChange(sb.Height);
                 //_log.LogInformation($"Shift View Id to {sb.Height + 1}");
                 _viewChangeHandler.ShiftView(sb.Height + 1);
-                _viewChangeHandler.FinishViewChange();
             }
         }
 
