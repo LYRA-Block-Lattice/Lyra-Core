@@ -313,11 +313,11 @@ namespace Lyra.Core.Decentralize
             {
                 if (replyMsgs.ContainsKey(reply.From))
                 {
-                    if (replyMsgs[reply.From].msg.Candidate != reply.Candidate)
-                    {
-                        replyMsgs[reply.From] = new VCReplyWithTime(reply);
-                        await CheckAllStatsAsync();
-                    }
+                    //if (replyMsgs[reply.From].msg.Candidate != reply.Candidate)
+                    //{
+                    //    replyMsgs[reply.From] = new VCReplyWithTime(reply);
+                    //    await CheckAllStatsAsync();
+                    //}
                 }
                 else
                 {
