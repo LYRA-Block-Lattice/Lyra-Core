@@ -44,7 +44,10 @@ namespace Lyra.Core.Decentralize
             await CreateJobAsync(TimeSpan.FromSeconds(24), typeof(HeartBeater), "Heart Beat", jobGroup);
             await CreateJobAsync(TimeSpan.FromMilliseconds(100), typeof(BlockAuthorizationMonitor), "Block Monitor", jobGroup);
             await CreateJobAsync("0/2 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
-            await CreateJobAsync("0 0/10 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
+
+            // 10 min view change, 30 min fetch balance.
+            await CreateJobAsync("0 0/2 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
+            await CreateJobAsync(TimeSpan.FromMinutes(1), typeof(FetchBalance), "Fetch Balance", jobGroup);
 
             // Start up the scheduler (nothing can actually run until the
             // scheduler has been started)
@@ -233,6 +236,27 @@ namespace Lyra.Core.Decentralize
                 catch (Exception e)
                 {
                     cs._log.LogError($"In NewPlayerMonitor: {e}");
+                }
+            }
+        }
+
+        [DisallowConcurrentExecution]
+        private class FetchBalance : IJob
+        {
+            public async Task Execute(IJobExecutionContext context)
+            {
+                var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
+
+                try
+                {
+                    if (cs._sys.PosWallet.VoteFor == null)
+                        cs._sys.PosWallet.SetVoteFor(cs._sys.PosWallet.AccountId);
+
+                    await cs._sys.PosWallet.SyncAsync(null);
+                }
+                catch (Exception e)
+                {
+                    cs._log.LogError($"In FetchBalance: {e}");
                 }
             }
         }
