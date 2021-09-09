@@ -77,7 +77,10 @@ namespace Lyra.Core.Decentralize
                     _log.LogInformation($"Wallet saved to: {lyrawalletfolder}{Neo.Settings.Default.LyraNode.Lyra.Wallet.Name}.lyrawallet");
                 }
 
-                PosWallet = Wallet.Open(walletStore, Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, Neo.Settings.Default.LyraNode.Lyra.Wallet.Password);
+                PosWallet = Wallet.Open(walletStore, 
+                    Neo.Settings.Default.LyraNode.Lyra.Wallet.Name, 
+                    Neo.Settings.Default.LyraNode.Lyra.Wallet.Password,
+                    LyraRestClient.Create(networkId, "", "NodeService", "1.0", LyraGlobal.SelectNode(networkId)));
                 _log.LogInformation($"Staking wallet: {PosWallet.AccountId}");
 
                 var store = new MongoAccountCollection();
