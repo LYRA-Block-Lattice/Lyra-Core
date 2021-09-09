@@ -237,20 +237,18 @@ namespace Lyra.Core.Decentralize
 
                     var decisions = decQr.OrderByDescending(x => x.Count).ToList();
 
+                    var candidateQR = decisions.FirstOrDefault();
+
                     var sb = new StringBuilder();
                     sb.AppendLine($"Decisions for View ID: {ViewId}");
-                    foreach(var x in decisions)
+                    foreach (var x in decisions)
                     {
                         sb.AppendLine($"\t{x.Candidate.Shorten()}: {x.Count}");
                     }
                     _log.LogInformation(sb.ToString());
 
-                    var candidateQR = decisions.FirstOrDefault();
-
                     if (candidateQR?.Count >= LyraGlobal.GetMajority(_context.Board.AllVoters.Count))
                     {
-                        //_log.LogInformation($"CheckAllStats, By ReplyMsgs, commit next leader {nextLeader}");
-
                         var commit = new ViewChangeCommitMessage
                         {
                             From = _sys.PosWallet.AccountId,
@@ -298,12 +296,13 @@ namespace Lyra.Core.Decentralize
 
         private async Task CheckCommitAsync(ViewChangeCommitMessage vcm)
         {
-            var cmt = new VCCommitWithTime(vcm);
-            commitMsgs.AddOrUpdate(vcm.From, cmt, (key, oldValue) => cmt);
+            if(!commitMsgs.ContainsKey(vcm.From))
+            {
+                var cmt = new VCCommitWithTime(vcm);
+                commitMsgs.AddOrUpdate(vcm.From, cmt, (key, oldValue) => cmt);
 
-            //_log.LogInformation($"CheckCommit from {vcm.From.Shorten()} for view {vcm.ViewID} with Candidate {vcm.Candidate.Shorten()} of {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count}");
-
-            await CheckAllStatsAsync();
+                await CheckAllStatsAsync();
+            }
         }
 
         private async Task CheckReplyAsync(ViewChangeReplyMessage reply)
@@ -322,8 +321,8 @@ namespace Lyra.Core.Decentralize
                 }
                 else
                 {
-                    replyMsgs.TryAdd(reply.From, new VCReplyWithTime(reply));
-                    await CheckAllStatsAsync();
+                    if(replyMsgs.TryAdd(reply.From, new VCReplyWithTime(reply)))
+                        await CheckAllStatsAsync();
                 }
             }
         }
@@ -346,8 +345,8 @@ namespace Lyra.Core.Decentralize
 
             if (Signatures.VerifyAccountSignature($"{lastSb.Hash}|{lastCons.Hash}", req.From, req.requestSignature))
             {
-                reqMsgs.TryAdd(req.From, new VCReqWithTime(req));
-                await CheckAllStatsAsync();
+                if(reqMsgs.TryAdd(req.From, new VCReqWithTime(req)))
+                    await CheckAllStatsAsync();
             }
             //else
             //    _log.LogWarning($"ViewChangeRequest signature verification failed from {req.From.Shorten()}");
