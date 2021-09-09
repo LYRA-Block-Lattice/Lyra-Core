@@ -153,6 +153,8 @@ cat dbrestore.sh | docker exec -i docker_mongo_1 bash
 docker start docker_testnet_1
 docker start docker_mainnet_1
 
+# done!
+
 # upgrade dualnet laterly
 cd ~/Lyra-Core/Docker
 docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q) && docker rmi $(docker images -a -q)
