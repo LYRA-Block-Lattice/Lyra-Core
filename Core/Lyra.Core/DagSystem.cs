@@ -87,13 +87,13 @@ namespace Lyra
             int waitCount = 60;
             while (Neo.Network.P2P.LocalNode.Singleton.ConnectedCount < 2)
             {
-                _log.LogWarning($"{waitCount} Wait for p2p network startup. connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
+                _log.LogInformation($"{waitCount} Wait for p2p network startup. connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
                 await Task.Delay(1000);
                 waitCount--;
                 if (waitCount <= 0)
                     break;
             }
-            _log.LogWarning($"p2p network connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
+            _log.LogInformation($"p2p network connected peer: {Neo.Network.P2P.LocalNode.Singleton.ConnectedCount}");
 
             TheBlockchain.Tell(new BlockChain.Startup());
 
