@@ -803,9 +803,10 @@ namespace Lyra.Core.Decentralize
                 Board.AllVoters = list;
             else
             {
-                var s = "voters count < 4. should not happen.";
+                var s = "voters count < 4. network outtage happened. trying to resync";
+                LocalConsolidationFailed(null);
                 _log.LogError(s);
-                throw new InvalidOperationException(s);
+                //throw new InvalidOperationException(s);
             }
             //_log.LogInformation("UpdateVoters ended.");
         }
