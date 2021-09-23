@@ -158,14 +158,22 @@ namespace Lyra.Node
         }
 
         [JsonRpcMethod("Send")]
-        public async Task<BalanceResult> SendAsync(string accountId, decimal amount, string destAccount, string ticker)
+        public async Task<SendResult> SendAsync(string accountId, decimal amount, string destAccount, string ticker)
         {
             var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.SendAsync(amount, destAccount, ticker);
             if (result == APIResultCodes.Success)
             {
-                return await BlockBalanceAsync(accountId, klWallet.LastBlock);
+                var txHash = klWallet.LastBlock.Hash;
+                var balanceResult = await BlockBalanceAsync(accountId, klWallet.LastBlock);
+                return new SendResult
+                {
+                    TxHash = txHash,
+                    balance = balanceResult.balance,
+                    height = balanceResult.height,
+                    unreceived = balanceResult.unreceived
+                };
             }
             else
             {

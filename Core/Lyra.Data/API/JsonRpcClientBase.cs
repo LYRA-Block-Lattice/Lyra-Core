@@ -27,6 +27,15 @@ namespace Lyra.Core.API
         public long height { get; set; }
         public bool unreceived { get; set; }
     }
+
+    public class SendResult
+    {
+        public Dictionary<string, decimal> balance { get; set; }
+        public long height { get; set; }
+        public bool unreceived { get; set; }
+        public string TxHash { get; set; }
+    }
+
     public class ApiStatus
     {
         public string version { get; set; }
