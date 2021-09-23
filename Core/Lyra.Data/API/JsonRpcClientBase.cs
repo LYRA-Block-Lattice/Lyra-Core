@@ -33,7 +33,7 @@ namespace Lyra.Core.API
         public Dictionary<string, decimal> balance { get; set; }
         public long height { get; set; }
         public bool unreceived { get; set; }
-        public string TxHash { get; set; }
+        public string txHash { get; set; }
     }
 
     public class ApiStatus

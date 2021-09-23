@@ -165,11 +165,11 @@ namespace Lyra.Node
             var result = await klWallet.SendAsync(amount, destAccount, ticker);
             if (result == APIResultCodes.Success)
             {
-                var txHash = klWallet.LastBlock.Hash;
+                var hash = klWallet.LastBlock.Hash;
                 var balanceResult = await BlockBalanceAsync(accountId, klWallet.LastBlock);
                 return new SendResult
                 {
-                    TxHash = txHash,
+                    txHash = hash,
                     balance = balanceResult.balance,
                     height = balanceResult.height,
                     unreceived = balanceResult.unreceived
