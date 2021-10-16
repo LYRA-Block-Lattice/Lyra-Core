@@ -5,7 +5,9 @@
         Standard = 1,
         Savings = 2,
         Service = 3,
-        PoolFactory = 4,
-        Pool = 5
+        PoolFactory = 5,
+        Pool = 6,
+        Staking = 7,
+        Profiting = 8
     }
 }

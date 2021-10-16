@@ -534,6 +534,7 @@ namespace Lyra.Core.Decentralize
                     var signAgainst = prevSvcBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
                     foreach (var voter in _board.AllVoters)
                     {
+                        //TODO: voter may not exists.
                         var node = _board.ActiveNodes.First(a => a.AccountID == voter);
                         svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
                     }
@@ -667,7 +668,7 @@ namespace Lyra.Core.Decentralize
                 var pf = new PoolFactoryBlock
                 {
                     Height = 1,
-                    AccountType = AccountTypes.Pool,
+                    AccountType = AccountTypes.PoolFactory,
                     AccountID = PoolFactoryBlock.FactoryAccount,        // in fact we not use this account.
                     Balances = new Dictionary<string, long>(),
                     PreviousHash = sb.Hash,

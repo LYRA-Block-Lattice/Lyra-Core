@@ -20,7 +20,7 @@ namespace Lyra.Core.Blocks
         public const string MANAGEDTAG = "managed";
 
         /// <summary>
-        /// a tag indicate that the block is to a managed account and need process by leader/consensus network.
+        /// a tag indicate that the block is to a managed account and need to be processed by leader/consensus network.
         /// "" -> create pool [to factory] or deposit funds [to pool]
         /// "withdraw" -> [to factory] withdraw funds from pool. 
         /// </summary>
@@ -284,6 +284,10 @@ namespace Lyra.Core.Blocks
         PoolWithdraw = 53,
         PoolSwapIn = 54,
         PoolSwapOut = 55,
+
+        // staking
+        StakingDeposit = 60,
+        StakingWithdraw = 61
     }
 
     public enum APIResultCodes
