@@ -463,7 +463,7 @@ namespace Lyra.Core.Decentralize
             var poolGenesis = new PoolGenesisBlock
             {
                 Height = 1,
-                AccountType = AccountTypes.SwapPool,
+                AccountType = AccountTypes.Pool,
                 AccountID = AccountId,        // in fact we not use this account.
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = sb.Hash,
