@@ -368,6 +368,15 @@ namespace Lyra.Core.Decentralize
         private void CreateStateMachine()
         {
             _stateMachine.Configure(BlockChainState.NULL)
+                .OnEntryAsync(async () =>
+                {
+                    // remove sync state if db is empty
+                    var count = await _sys.Storage.GetBlockCountAsync();
+                    if (0 == count)
+                    {
+                        LocalDbSyncState.Remove();
+                    }
+                })
                 .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Initializing);
 
             _ = _stateMachine.Configure(BlockChainState.Initializing)
