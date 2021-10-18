@@ -485,7 +485,7 @@ namespace Lyra.Core.Decentralize
 
                             _log.LogInformation($"Database consistent check is done.");
                             var localState = LocalDbSyncState.Load();
-                            if (localState.svcGenHash == null && localState.lastVerifiedConsHeight > 0)
+                            if (string.IsNullOrEmpty(localState.svcGenHash) && localState.lastVerifiedConsHeight > 0)
                             {
                                 localState.databaseVersion = LyraGlobal.DatabaseVersion;
                                 var svcGen = await _sys.Storage.GetServiceGenesisBlockAsync();
