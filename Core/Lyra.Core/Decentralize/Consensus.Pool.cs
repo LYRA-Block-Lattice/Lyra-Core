@@ -606,12 +606,15 @@ namespace Lyra.Core.Decentralize
                     case "pfcrpft":    // create profiting account
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
 
-                        
+                        _log.LogInformation($"Creating profiting account for {poolBlock.AccountID}");
+
                         break;
                     case "pfcrstk":    // create staking account
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
 
-                        
+                        _log.LogInformation($"Creating staking account for {poolBlock.AccountID}");
+
+
                         break;
 
                     case "pladdin":  // pool deposition
