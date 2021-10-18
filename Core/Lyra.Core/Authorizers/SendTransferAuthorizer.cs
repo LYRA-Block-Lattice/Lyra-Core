@@ -257,12 +257,59 @@ namespace Lyra.Core.Authorizers
                         }
                     }
                 }
-                else
-                    return APIResultCodes.InvalidTokenPair;
+                else if(block.Tags != null && block.Tags.ContainsKey(Block.REQSERVICETAG))
+                {
+                    var chgs = block.GetBalanceChanges(lastBlock);
+                    if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                        return APIResultCodes.InvalidFeeAmount;
+
+                    switch (block.Tags[Block.REQSERVICETAG])
+                    {
+                        case "crstk":   // create staking
+                            if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.StakingAccountCreateFee)
+                                return APIResultCodes.InvalidFeeAmount;
+
+                            decimal amount;
+                            string votefor;
+                            if (
+                                block.Tags.ContainsKey("amount") && decimal.TryParse(block.Tags["amount"], out amount)
+                                && block.Tags.ContainsKey("votefor") && !string.IsNullOrEmpty(block.Tags["votefor"])
+                                )
+                            {
+                                votefor = block.Tags["votefor"];
+                                if (amount >= 1 && Signatures.ValidateAccountId(votefor))
+                                {
+                                    return APIResultCodes.Success;
+                                }
+                            }
+                            break;
+                        case "crpft":   // create profiting
+                            if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.ProfitingAccountCreateFee)
+                                return APIResultCodes.InvalidFeeAmount;
+
+                            ProfitingType ptype;
+                            decimal shareRito;
+                            int seats;
+                            if(block.Tags.ContainsKey("ptype") && Enum.TryParse(block.Tags["ptype"], false, out ptype)
+                                && block.Tags.ContainsKey("share") && decimal.TryParse(block.Tags["share"], out shareRito)
+                                && block.Tags.ContainsKey("seats") && int.TryParse(block.Tags["seats"], out seats)
+                                )
+                            {
+                                if(shareRito >= 0m && shareRito <= 1m && seats >= 0 && seats <= 100)
+                                {
+                                    return APIResultCodes.Success;
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    return APIResultCodes.UnsuppportedServiceRequest;
+                }                
             }
             else if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
             {
-                return APIResultCodes.InvalidPoolOperation;
+                return APIResultCodes.InvalidServiceRequest;
             }
 
             return APIResultCodes.Success;

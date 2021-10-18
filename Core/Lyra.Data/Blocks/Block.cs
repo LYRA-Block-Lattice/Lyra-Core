@@ -467,6 +467,9 @@ namespace Lyra.Core.Blocks
 
         InvalidBlockData = 400,
         AccountLockDown,
-        UnsupportedBlockType
+        UnsupportedBlockType,
+
+        UnsuppportedServiceRequest = 500,
+        InvalidServiceRequest = 501
     }
 }

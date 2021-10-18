@@ -493,7 +493,7 @@ namespace Lyra.Core.Decentralize
         {
             if (send.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
             {
-                _log.LogInformation("Pool operation requested...");
+                _log.LogInformation("Pool/Service operation requested...");
                 _ = Task.Run(async () =>
                 {
                     try
@@ -505,6 +505,12 @@ namespace Lyra.Core.Decentralize
                                 break;
                             case "poolwithdraw":
                                 await ReceivePoolFactoryFeeAsync(send, "pfwithdraw");
+                                break;
+                            case "crstk":
+                                await ReceivePoolFactoryFeeAsync(send, "pfcrstk");
+                                break;
+                            case "crpft":
+                                await ReceivePoolFactoryFeeAsync(send, "pfcrpft");
                                 break;
                             default:
                                 _log.LogError("pool factory not allow such action: " + send.Tags[Block.REQSERVICETAG]);
@@ -596,6 +602,16 @@ namespace Lyra.Core.Decentralize
                         var poolId = send.Tags["poolid"];
                         _log.LogInformation($"Withdraw from pool {poolId}...");
                         await SendWithdrawFundsAsync(block as ReceiveTransferBlock, poolId, send.AccountID);
+                        break;
+                    case "pfcrpft":    // create profiting account
+                        _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
+
+                        
+                        break;
+                    case "pfcrstk":    // create staking account
+                        _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
+
+                        
                         break;
 
                     case "pladdin":  // pool deposition
