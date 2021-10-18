@@ -85,6 +85,7 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class ProfitingGenesisBlock : ReceiveTransferBlock, IOpeningBlock
     {
+        public string OwnerAccountId { get; set; }
         public ProfitingType PType { get; set; }
         public decimal ShareRito { get; set; }
         public int Seats { get; set; }
@@ -124,6 +125,7 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class StakingGenesisBlock : ReceiveTransferBlock, IOpeningBlock
     {
+        public string OwnerAccountId { get; set; }
         public ProfitingType PType { get; set; }
         public string RelatedTx { get; set; }
         public decimal Amount { get; set; }

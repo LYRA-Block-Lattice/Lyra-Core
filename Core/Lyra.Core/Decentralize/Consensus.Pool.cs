@@ -452,7 +452,6 @@ namespace Lyra.Core.Decentralize
         private async Task CNOCreateLiquidatePoolAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock, string token0, string token1)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
-            var pf = await _sys.Storage.FindLatestBlockAsync(PoolFactoryBlock.FactoryAccount);
 
             // get token gensis to make the token name proper
             var token0Gen = await _sys.Storage.FindTokenGenesisBlockAsync(null, token0);
@@ -468,7 +467,7 @@ namespace Lyra.Core.Decentralize
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
-            var keyStr = $"{pf.Height},{arrStr[0]},{arrStr[1]},{pf.Hash}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{arrStr[0]},{arrStr[1]},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
             var poolGenesis = new PoolGenesisBlock
@@ -645,11 +644,10 @@ namespace Lyra.Core.Decentralize
         private async Task CNOCreateProfitingAccountAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
-            var pf = await _sys.Storage.FindLatestBlockAsync(PoolFactoryBlock.FactoryAccount);
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
-            var keyStr = $"{pf.Height},{send.Tags["ptype"]},{send.Tags["share"]},{send.Tags["seats"]},{pf.Hash}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["ptype"]},{send.Tags["share"]},{send.Tags["seats"]},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
             ProfitingType ptype;
@@ -657,6 +655,7 @@ namespace Lyra.Core.Decentralize
             var poolGenesis = new ProfitingGenesisBlock
             {
                 Height = 1,
+                OwnerAccountId = send.AccountID,
                 AccountType = AccountTypes.Profiting,
                 AccountID = AccountId,        // in fact we not use this account.
                 Balances = new Dictionary<string, long>(),
@@ -686,11 +685,10 @@ namespace Lyra.Core.Decentralize
         private async Task CNOCreateStakingAccountAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
-            var pf = await _sys.Storage.FindLatestBlockAsync(PoolFactoryBlock.FactoryAccount);
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
-            var keyStr = $"{pf.Height},{send.Tags["ptype"]},{send.Tags["amount"]},{send.Tags["voting"]},{pf.Hash}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["ptype"]},{send.Tags["amount"]},{send.Tags["voting"]},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
             ProfitingType ptype;
@@ -698,7 +696,8 @@ namespace Lyra.Core.Decentralize
             var poolGenesis = new StakingGenesisBlock
             {
                 Height = 1,
-                AccountType = AccountTypes.Profiting,
+                OwnerAccountId = send.AccountID,
+                AccountType = AccountTypes.Staking,
                 AccountID = AccountId,        // in fact we not use this account.
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = sb.Hash,

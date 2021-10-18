@@ -31,12 +31,25 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            // first verify account id
-            var pf = await sys.Storage.GetPoolFactoryAsync();
+            // related tx must exist 
+            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx);
+            if (relTx == null)
+                return APIResultCodes.InvalidServiceRequest;
 
+            // send account must be current owner
+            var send = await sys.Storage.FindBlockByHashAsync((relTx as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
+            if(send.AccountID != block.OwnerAccountId)
+                return APIResultCodes.InvalidServiceRequest;
+
+            // service must not been processed
+            var processed = await sys.Storage.FindBlockByRelatedTxAsync(block.RelatedTx);
+            if(processed != null)
+                return APIResultCodes.InvalidServiceRequest;
+
+            // first verify account id
             // create a semi random account for pool.
             // it can be verified by other nodes.
-            var keyStr = $"{pf.Height},{block.PType},{block.Amount},{block.Voting},{pf.Hash}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{block.PType},{block.Amount},{block.Voting},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
             if (block.AccountID != AccountId)
