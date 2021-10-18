@@ -688,7 +688,7 @@ namespace Lyra.Core.Decentralize
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
-            var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["ptype"]},{send.Tags["amount"]},{send.Tags["voting"]},{send.AccountID}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["amount"]},{send.Tags["voting"]},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
             ProfitingType ptype;
@@ -707,7 +707,6 @@ namespace Lyra.Core.Decentralize
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // pool specified config
-                PType = ptype,
                 Amount = decimal.Parse(send.Tags["amount"]),
                 Voting = send.Tags["voting"],
                 RelatedTx = recvBlock.Hash

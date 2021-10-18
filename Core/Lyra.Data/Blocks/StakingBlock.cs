@@ -126,7 +126,6 @@ namespace Lyra.Core.Blocks
     public class StakingGenesisBlock : ReceiveTransferBlock, IOpeningBlock
     {
         public string OwnerAccountId { get; set; }
-        public ProfitingType PType { get; set; }
         public string RelatedTx { get; set; }
         public decimal Amount { get; set; }
         public string Voting { get; set; }
@@ -142,7 +141,6 @@ namespace Lyra.Core.Blocks
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += PType.ToString() + "|";
             extraData += Amount.ToString() + "|";
             extraData += Voting.ToString() + "|";
             if (RelatedTx != null)
@@ -154,7 +152,6 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
-            result += $"Profiting Type: {PType}\n";
             result += $"Amount: {Amount}\n";
             result += $"Voting: {Voting}\n";
             result += $"RelatedTx: {RelatedTx}\n";
