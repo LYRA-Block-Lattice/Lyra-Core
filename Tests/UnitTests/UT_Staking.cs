@@ -70,8 +70,11 @@ namespace UnitTests
                 var pgen = result.GetBlock() as ProfitingGenesisBlock;
                 Assert.IsNotNull(pgen);
 
-                //var result2 = await w1.CreateStakingAccountAsync(1000m, testPublicKey);
-                //Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result: {result2.ResultCode}");
+                var result2 = await w1.CreateStakingAccountAsync(1000m, pgen.AccountID);
+                Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result: {result2.ResultCode}");
+
+                var stkgen = result.GetBlock() as StakingGenesisBlock;
+                Assert.IsNotNull(stkgen);
             }
             finally
             {

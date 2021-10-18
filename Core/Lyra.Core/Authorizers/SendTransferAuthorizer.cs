@@ -273,10 +273,10 @@ namespace Lyra.Core.Authorizers
                             string votefor;
                             if (
                                 block.Tags.ContainsKey("amount") && decimal.TryParse(block.Tags["amount"], out amount)
-                                && block.Tags.ContainsKey("votefor") && !string.IsNullOrEmpty(block.Tags["votefor"])
+                                && block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"])
                                 )
                             {
-                                votefor = block.Tags["votefor"];
+                                votefor = block.Tags["voting"];
                                 if (amount >= 1 && Signatures.ValidateAccountId(votefor))
                                 {
                                     return APIResultCodes.Success;
