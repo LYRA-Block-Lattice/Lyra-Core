@@ -368,7 +368,11 @@ namespace Lyra.Core.Decentralize
         private void CreateStateMachine()
         {
             _stateMachine.Configure(BlockChainState.NULL)
-                .OnEntryAsync(async () =>
+                .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Initializing);
+
+            _ = _stateMachine.Configure(BlockChainState.Initializing)
+#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
+                .OnEntry(async () =>
                 {
                     // remove sync state if db is empty
                     var count = await _sys.Storage.GetBlockCountAsync();
@@ -381,13 +385,7 @@ namespace Lyra.Core.Decentralize
                         await DeclareConsensusNodeAsync();
 
                     await InitJobSchedulerAsync();
-                })
-                .Permit(BlockChainTrigger.LocalNodeStartup, BlockChainState.Initializing);
 
-            _ = _stateMachine.Configure(BlockChainState.Initializing)
-#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
-                .OnEntry(async () =>
-                {
                     do
                     {
                         try
