@@ -688,7 +688,9 @@ namespace Lyra.Core.Decentralize
                             .Where(a => _board.PrimaryAuthorizers.Contains(a.AccountID))
                             .Where(a => a.State == BlockChainState.Genesis)
                             .Count() < 4);
+
                         await GenesisAsync();
+                        await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone);
                     }
                     else
                     {
@@ -822,13 +824,6 @@ namespace Lyra.Core.Decentralize
 
             if (CurrentState == BlockChainState.Genesis)
             {
-                var localState = LocalDbSyncState.Load();
-                localState.databaseVersion = LyraGlobal.DatabaseVersion;
-                localState.svcGenHash = lsb.Hash;
-                localState.lastVerifiedConsHeight = cons.Height;
-                LocalDbSyncState.Save(localState);
-
-                await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone);
                 return;
             }
 
