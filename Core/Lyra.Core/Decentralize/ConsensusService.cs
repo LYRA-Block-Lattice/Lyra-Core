@@ -405,7 +405,7 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation($"Database consistent check... It may take a while.");
 
                             var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                            var fixedHeight = lastCons.Height;
+                            var fixedHeight = lastCons?.Height ?? 0;
                             var shouldReset = false;
 
                             var localSafeCons = LocalDbSyncState.Load().lastVerifiedConsHeight;
@@ -488,8 +488,8 @@ namespace Lyra.Core.Decentralize
                             if (localState.lastVerifiedConsHeight == 0)
                             {
                                 localState.databaseVersion = LyraGlobal.DatabaseVersion;
-                                var svcGen = await _sys.Storage.GetServiceGenesisBlockAsync();
-                                localState.svcGenHash = svcGen.Hash;
+                                var svcGen = await client.GetServiceGenesisBlockAsync();
+                                localState.svcGenHash = svcGen.GetBlock().Hash;
                             }
                             localState.lastVerifiedConsHeight = fixedHeight;
                             LocalDbSyncState.Save(localState);
