@@ -691,8 +691,6 @@ namespace Lyra.Core.Decentralize
             var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["amount"]},{send.Tags["voting"]},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
-            ProfitingType ptype;
-            Enum.TryParse(send.Tags["ptype"], out ptype);
             var poolGenesis = new StakingGenesisBlock
             {
                 Height = 1,
