@@ -55,7 +55,6 @@ namespace Lyra.Core.Blocks
         public long Amount { get; set; }
         public string Voting { get; set; }
 
-
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.Staking;
@@ -83,5 +82,18 @@ namespace Lyra.Core.Blocks
             result += $"AccountType: {AccountType}\n";
             return result;
         }
+    }
+
+    // data preserve
+    [BsonIgnoreExtraElements]
+    public class StakingGenesisBlock : ReceiveTransferBlock, IOpeningBlock
+    {
+        public AccountTypes AccountType { get; set; }
+    }
+
+    [BsonIgnoreExtraElements]
+    public class ProfitingGenesisBlock : ReceiveTransferBlock, IOpeningBlock
+    {
+        public AccountTypes AccountType { get; set; }
     }
 }
