@@ -302,7 +302,7 @@ namespace Lyra.Core.API
 
         public async Task<BlockAPIResult> GetBlockByRelatedTxAsync(string Hash)
         {
-            return await GetBlockByUrlAsync($"GetBlockByRelatedTxAsync/?Hash={Hash}");
+            return await GetBlockByUrlAsync($"GetBlockByRelatedTx/?Hash={Hash}");
         }
 
         public async Task<BlockAPIResult> GetBlockByIndexAsync(string AccountId, long Index)

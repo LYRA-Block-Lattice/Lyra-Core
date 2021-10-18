@@ -1922,7 +1922,8 @@ namespace Lyra.Core.Accounts
                 if (recv.Successful())
                 {
                     // then find by RelatedTx
-                    var gen = await _rpcClient.GetBlockByRelatedTxAsync(recv.GetBlock().Hash);
+                    var block = recv.GetBlock();
+                    var gen = await _rpcClient.GetBlockByRelatedTxAsync(block.Hash);
                     if(gen.Successful())
                     {
                         return gen;
