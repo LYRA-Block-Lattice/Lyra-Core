@@ -120,4 +120,44 @@ namespace Lyra.Core.Blocks
             return result;
         }
     }
+
+    [BsonIgnoreExtraElements]
+    public class StakingGenesisBlock : ReceiveTransferBlock, IOpeningBlock
+    {
+        public ProfitingType PType { get; set; }
+        public string RelatedTx { get; set; }
+        public decimal Amount { get; set; }
+        public string Voting { get; set; }
+
+
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.StakingGenesis;
+        }
+
+        public AccountTypes AccountType { get; set; }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += PType.ToString() + "|";
+            extraData += Amount.ToString() + "|";
+            extraData += Voting.ToString() + "|";
+            if (RelatedTx != null)
+                extraData += RelatedTx + "|";       // for compatible
+            extraData += AccountType + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"Profiting Type: {PType}\n";
+            result += $"Amount: {Amount}\n";
+            result += $"Voting: {Voting}\n";
+            result += $"RelatedTx: {RelatedTx}\n";
+            result += $"AccountType: {AccountType}\n";
+            return result;
+        }
+    }
 }

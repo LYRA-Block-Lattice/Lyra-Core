@@ -434,6 +434,32 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
+        public async Task<BlockAPIResult> GetBlockByRelatedTxAsync(string Hash)
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag.Storage.FindBlockByRelatedTxAsync(Hash);
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetBlockByRelatedTxAsync(Hash): " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
+
         public async Task<NonFungibleListAPIResult> GetNonFungibleTokensAsync(string AccountId, string Signature)
         {
             var result = new NonFungibleListAPIResult();

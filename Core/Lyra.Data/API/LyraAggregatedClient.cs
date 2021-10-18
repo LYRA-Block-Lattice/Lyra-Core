@@ -294,6 +294,13 @@ namespace Lyra.Data.API
             return await CheckResultAsync("GetBlockBySourceHash", tasks);
         }
 
+        public async Task<BlockAPIResult> GetBlockByRelatedTxAsync(string sourceHash)
+        {
+            var tasks = _primaryClients.Select(client => client.GetBlockByRelatedTxAsync(sourceHash)).ToList();
+
+            return await CheckResultAsync("GetBlockByRelatedTxAsync", tasks);
+        }
+
         public async Task<GetListStringAPIResult> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
             var tasks = _primaryClients.Select(client => client.GetBlockHashesByTimeRangeAsync(startTime, endTime)).ToList();

@@ -56,6 +56,7 @@ namespace Lyra.Core.API
         Task<BlockAPIResult> GetBlockByHashAsync(string AccountId, string Hash, string Signature);
         Task<BlockAPIResult> GetBlockAsync(string Hash);
         Task<BlockAPIResult> GetBlockBySourceHashAsync(string sourceHash);
+        Task<BlockAPIResult> GetBlockByRelatedTxAsync(string hash);
 
         Task<NewTransferAPIResult> LookForNewTransferAsync(string AccountId, string Signature);
         Task<NewTransferAPIResult2> LookForNewTransfer2Async(string AccountId, string Signature);

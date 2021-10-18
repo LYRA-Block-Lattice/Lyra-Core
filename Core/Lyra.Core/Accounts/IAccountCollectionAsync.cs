@@ -93,7 +93,7 @@ namespace Lyra.Core.Accounts
 
         Task<PoolFactoryBlock> GetPoolFactoryAsync();
         Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1);
-        Task<Block> FindBlockByRelatedTxAsync(string hash);
+        Task<TransactionBlock> FindBlockByRelatedTxAsync(string hash);
         /// <summary>
         /// Cleans up or deletes blocks collection.
         /// Used for unit testing.

@@ -615,7 +615,7 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
-        public async Task<Block> FindBlockByRelatedTxAsync(string hash)
+        public async Task<TransactionBlock> FindBlockByRelatedTxAsync(string hash)
         {
             var options = new FindOptions<Block, Block>
             {
@@ -627,7 +627,7 @@ namespace Lyra.Core.Accounts
             var result = await _blocks
                 .FindAsync(filterDefinition, options);
 
-            return await result.FirstOrDefaultAsync();
+            return (await result.FirstOrDefaultAsync()) as TransactionBlock;
         }
 
         public async Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index)

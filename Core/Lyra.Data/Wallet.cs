@@ -1889,7 +1889,7 @@ namespace Lyra.Core.Accounts
             {
                 { Block.REQSERVICETAG, "crstk" },
                 { "amount", $"{amount}" },
-                { "votefor", voteFor }
+                { "voting", voteFor }
             };
             var amounts = new Dictionary<string, decimal>
             {
@@ -1898,7 +1898,7 @@ namespace Lyra.Core.Accounts
             return await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
         }
 
-        public async Task<APIResult> CreateProfitingAccountAsync(ProfitingType ptype, decimal shareRito, int maxVoter)
+        public async Task<BlockAPIResult> CreateProfitingAccountAsync(ProfitingType ptype, decimal shareRito, int maxVoter)
         {
             var tags = new Dictionary<string, string>
             {
@@ -1911,7 +1911,27 @@ namespace Lyra.Core.Accounts
             {
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.ProfitingAccountCreateFee }
             };
-            return await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            if (result.ResultCode != APIResultCodes.Success)
+                return new BlockAPIResult { ResultCode = result.ResultCode };
+
+            for(int i = 0; i < 10; i++)
+            {
+                // first get receive hash
+                var recv = await _rpcClient.GetBlockBySourceHashAsync(_lastTransactionBlock.Hash);
+                if (recv.Successful())
+                {
+                    // then find by RelatedTx
+                    var gen = await _rpcClient.GetBlockByRelatedTxAsync(recv.GetBlock().Hash);
+                    if(gen.Successful())
+                    {
+                        return gen;
+                    }
+                }
+                await Task.Delay(500);
+            }
+
+            return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
         }
         #endregion
 

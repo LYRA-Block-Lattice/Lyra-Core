@@ -316,6 +316,9 @@ namespace Lyra.Core.API
                 case BlockTypes.ProfitingGenesis:
                     block = JsonConvert.DeserializeObject<ProfitingGenesisBlock>(BlockData);
                     break;
+                case BlockTypes.StakingGenesis:
+                    block = JsonConvert.DeserializeObject<StakingGenesisBlock>(BlockData);
+                    break;
                 case BlockTypes.Null:
                     block = null;
                     break;

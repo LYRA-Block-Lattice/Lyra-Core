@@ -65,7 +65,7 @@ namespace Lyra.Core.Decentralize
                         break;
                     case "crstk":
                         _log.LogInformation($"Create staking account for {send.AccountID}");
-
+                        await CNOCreateStakingAccountAsync(send, recvBlock);
                         break;
                     default:
                         _log.LogError("should not happen.");
@@ -657,7 +657,7 @@ namespace Lyra.Core.Decentralize
             var poolGenesis = new ProfitingGenesisBlock
             {
                 Height = 1,
-                AccountType = AccountTypes.Pool,
+                AccountType = AccountTypes.Profiting,
                 AccountID = AccountId,        // in fact we not use this account.
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = sb.Hash,
@@ -676,6 +676,47 @@ namespace Lyra.Core.Decentralize
             poolGenesis.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
             poolGenesis.AddTag("relhash", send.Hash);  // pool withdraw action
             poolGenesis.AddTag("type", "pfcrpft");       // pool remove liquidate
+
+            // pool blocks are service block so all service block signed by leader node
+            poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+
+            await QueueTxActionBlockAsync(poolGenesis);
+        }
+
+        private async Task CNOCreateStakingAccountAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock)
+        {
+            var sb = await _sys.Storage.GetLastServiceBlockAsync();
+            var pf = await _sys.Storage.GetPoolFactoryAsync();
+
+            // create a semi random account for pool.
+            // it can be verified by other nodes.
+            var keyStr = $"{pf.Height},{send.Tags["ptype"]},{send.Tags["amount"]},{send.Tags["voting"]},{pf.Hash}";
+            var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+
+            ProfitingType ptype;
+            Enum.TryParse(send.Tags["ptype"], out ptype);
+            var poolGenesis = new StakingGenesisBlock
+            {
+                Height = 1,
+                AccountType = AccountTypes.Profiting,
+                AccountID = AccountId,        // in fact we not use this account.
+                Balances = new Dictionary<string, long>(),
+                PreviousHash = sb.Hash,
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // pool specified config
+                PType = ptype,
+                Amount = decimal.Parse(send.Tags["amount"]),
+                Voting = send.Tags["voting"],
+                RelatedTx = recvBlock.Hash
+            };
+
+            poolGenesis.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            poolGenesis.AddTag("relhash", send.Hash);  // pool withdraw action
+            poolGenesis.AddTag("type", "pfcrstk");       // pool remove liquidate
 
             // pool blocks are service block so all service block signed by leader node
             poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
