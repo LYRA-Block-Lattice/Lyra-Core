@@ -46,20 +46,29 @@ namespace Lyra.Core.Decentralize
             {
                 var recvBlock = block as ReceiveTransferBlock;
                 var send = await _sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as SendTransferBlock;
-                if (send.Tags[Block.REQSERVICETAG] == "")
+                switch(send.Tags[Block.REQSERVICETAG])
                 {
-                    // then create pool for it.
-                    // CNO: Consensus Network Orgnization
-                    _log.LogInformation("Creating pool ...");
-                    await CNOCreateLiquidatePoolAsync(send, recvBlock, send.Tags["token0"], send.Tags["token1"]);
-                    //if (poolCreateResult == ConsensusResult.Yea)
-                    //    _log.LogInformation($"Pool created successfully.");
-                    //else
-                    //    _log.LogWarning("Can't create pool.");
-                }
-                else
-                {
-                    _log.LogError("should not happen.");
+                    case "":    
+                        // default to create a pool
+                        // then create pool for it.
+                        // CNO: Consensus Network Orgnization
+                        _log.LogInformation("Creating pool ...");
+                        await CNOCreateLiquidatePoolAsync(send, recvBlock, send.Tags["token0"], send.Tags["token1"]);
+                        //if (poolCreateResult == ConsensusResult.Yea)
+                        //    _log.LogInformation($"Pool created successfully.");
+                        //else
+                        //    _log.LogWarning("Can't create pool.");
+                        break;
+                    case "pfcrpft":
+                        _log.LogInformation($"Create profiting account for {send.AccountID}");
+                        break;
+                    case "pfcrstk":
+                        _log.LogInformation($"Create staking account for {send.AccountID}");
+
+                        break;
+                    default:
+                        _log.LogError("should not happen.");
+                        break;
                 }
             }
             else
@@ -591,6 +600,8 @@ namespace Lyra.Core.Decentralize
                 switch (blockType)
                 {
                     case "pfrecv":      // pool factory receive
+                    case "pfcrpft":    // create profiting account
+                    case "pfcrstk":    // create staking account
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
 
                         await PoolFactoryRecvActionAsync(block as ReceiveTransferBlock, result);
@@ -603,20 +614,6 @@ namespace Lyra.Core.Decentralize
                         _log.LogInformation($"Withdraw from pool {poolId}...");
                         await SendWithdrawFundsAsync(block as ReceiveTransferBlock, poolId, send.AccountID);
                         break;
-                    case "pfcrpft":    // create profiting account
-                        _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
-
-                        _log.LogInformation($"Creating profiting account for {poolBlock.AccountID}");
-
-                        break;
-                    case "pfcrstk":    // create staking account
-                        _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
-
-                        _log.LogInformation($"Creating staking account for {poolBlock.AccountID}");
-
-
-                        break;
-
                     case "pladdin":  // pool deposition
                         _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
 
