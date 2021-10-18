@@ -690,7 +690,6 @@ namespace Lyra.Core.Decentralize
                             .Count() < 4);
 
                         await GenesisAsync();
-                        await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone);
                     }
                     else
                     {
@@ -1537,6 +1536,10 @@ namespace Lyra.Core.Decentralize
                 }
 
                 return;
+            }
+            else if (block is ConsolidationBlock && CurrentState == BlockChainState.Genesis)
+            {
+                _ = Task.Run(async () => { await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone); });
             }
 
             if (result != ConsensusResult.Yea)
