@@ -286,8 +286,9 @@ namespace Lyra.Core.Blocks
         PoolSwapOut = 55,
 
         // staking
-        StakingDeposit = 60,
-        StakingWithdraw = 61
+        ProfitingGenesis = 60,
+        StakingDeposit = 61,
+        StakingWithdraw = 62
     }
 
     public enum APIResultCodes
