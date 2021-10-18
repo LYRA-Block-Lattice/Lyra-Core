@@ -485,11 +485,11 @@ namespace Lyra.Core.Decentralize
 
                             _log.LogInformation($"Database consistent check is done.");
                             var localState = LocalDbSyncState.Load();
-                            if (localState.lastVerifiedConsHeight == 0)
+                            if (localState.svcGenHash == null && localState.lastVerifiedConsHeight > 0)
                             {
                                 localState.databaseVersion = LyraGlobal.DatabaseVersion;
-                                var svcGen = await client.GetServiceGenesisBlockAsync();
-                                localState.svcGenHash = svcGen.GetBlock().Hash;
+                                var svcGen = await _sys.Storage.GetServiceGenesisBlockAsync();
+                                localState.svcGenHash = svcGen.Hash;
                             }
                             localState.lastVerifiedConsHeight = fixedHeight;
                             LocalDbSyncState.Save(localState);
