@@ -18,7 +18,7 @@ namespace Lyra.Core.Blocks
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.ProfitingGenesis;
+            return BlockTypes.Profiting;
         }
 
         public AccountTypes AccountType { get; set; }
@@ -58,7 +58,7 @@ namespace Lyra.Core.Blocks
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.StakingGenesis;
+            return BlockTypes.Staking;
         }
 
         public AccountTypes AccountType { get; set; }
