@@ -73,7 +73,7 @@ namespace UnitTests
                 var result2 = await w1.CreateStakingAccountAsync(1000m, pgen.AccountID);
                 Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result: {result2.ResultCode}");
 
-                var stkgen = result.GetBlock() as StakingGenesisBlock;
+                var stkgen = result2.GetBlock() as StakingGenesisBlock;
                 Assert.IsNotNull(stkgen);
             }
             finally
