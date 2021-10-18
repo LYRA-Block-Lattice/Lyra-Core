@@ -1882,6 +1882,39 @@ namespace Lyra.Core.Accounts
             return swapTokenResult;
         }
 
+        #region Staking Account
+        public async Task<APIResult> CreateStakingAccountAsync(decimal amount, string voteFor)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, "crstk" },
+                { "amount", $"{amount}" },
+                { "votefor", voteFor }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.StakingAccountCreateFee }
+            };
+            return await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+        }
+
+        public async Task<APIResult> CreateProfitingAccountAsync(ProfitingType ptype, decimal shareRito, int maxVoter)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, "crpft" },
+                { "ptype", ptype.ToString() },
+                { "share", $"{shareRito}" },
+                { "seats", $"{maxVoter}" }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.ProfitingAccountCreateFee }
+            };
+            return await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+        }
+        #endregion
+
         public string PrintLastBlock()
         {
             TransactionBlock latestBlock = GetLatestBlock();

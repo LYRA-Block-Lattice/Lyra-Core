@@ -49,8 +49,9 @@ namespace Lyra.Core.Decentralize
                 if (send.Tags[Block.REQSERVICETAG] == "")
                 {
                     // then create pool for it.
+                    // CNO: Consensus Network Orgnization
                     _log.LogInformation("Creating pool ...");
-                    await CreateLiquidatePoolAsync(send, recvBlock, send.Tags["token0"], send.Tags["token1"]);
+                    await CNOCreateLiquidatePoolAsync(send, recvBlock, send.Tags["token0"], send.Tags["token1"]);
                     //if (poolCreateResult == ConsensusResult.Yea)
                     //    _log.LogInformation($"Pool created successfully.");
                     //else
@@ -438,7 +439,7 @@ namespace Lyra.Core.Decentralize
         /// <param name="token0"></param>
         /// <param name="token1"></param>
         /// <returns></returns>
-        private async Task CreateLiquidatePoolAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock, string token0, string token1)
+        private async Task CNOCreateLiquidatePoolAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock, string token0, string token1)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
             var pf = await _sys.Storage.GetPoolFactoryAsync();
