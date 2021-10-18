@@ -452,7 +452,7 @@ namespace Lyra.Core.Decentralize
         private async Task CNOCreateLiquidatePoolAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock, string token0, string token1)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
-            var pf = await _sys.Storage.GetPoolFactoryAsync();
+            var pf = await _sys.Storage.FindLatestBlockAsync(PoolFactoryBlock.FactoryAccount);
 
             // get token gensis to make the token name proper
             var token0Gen = await _sys.Storage.FindTokenGenesisBlockAsync(null, token0);
@@ -645,7 +645,7 @@ namespace Lyra.Core.Decentralize
         private async Task CNOCreateProfitingAccountAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
-            var pf = await _sys.Storage.GetPoolFactoryAsync();
+            var pf = await _sys.Storage.FindLatestBlockAsync(PoolFactoryBlock.FactoryAccount);
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
@@ -686,7 +686,7 @@ namespace Lyra.Core.Decentralize
         private async Task CNOCreateStakingAccountAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
-            var pf = await _sys.Storage.GetPoolFactoryAsync();
+            var pf = await _sys.Storage.FindLatestBlockAsync(PoolFactoryBlock.FactoryAccount);
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
