@@ -484,6 +484,7 @@ namespace Lyra.Core.Decentralize
             var memStore = new AccountInMemoryStorage();
             Wallet.Create(memStore, "tmp", "", Settings.Default.LyraNode.Lyra.NetworkId, _sys.PosWallet.PrivateKey);
             var gensWallet = Wallet.Open(memStore, "tmp", "");
+            gensWallet.SetVoteFor(_sys.PosWallet.AccountId);
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
                 var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
