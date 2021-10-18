@@ -1888,7 +1888,7 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, "crstk" },
-                { "amount", $"{amount}" },
+                { "amount", $"{amount.ToBalanceLong()}" },
                 { "voting", voteFor }
             };
             var amounts = new Dictionary<string, decimal>

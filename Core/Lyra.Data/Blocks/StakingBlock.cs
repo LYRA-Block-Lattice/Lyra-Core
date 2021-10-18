@@ -127,7 +127,7 @@ namespace Lyra.Core.Blocks
     {
         public string OwnerAccountId { get; set; }
         public string RelatedTx { get; set; }
-        public decimal Amount { get; set; }
+        public long Amount { get; set; }
         public string Voting { get; set; }
 
 

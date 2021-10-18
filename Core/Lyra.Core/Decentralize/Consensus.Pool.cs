@@ -705,7 +705,7 @@ namespace Lyra.Core.Decentralize
                 FeeType = AuthorizationFeeTypes.NoFee,
 
                 // pool specified config
-                Amount = decimal.Parse(send.Tags["amount"]),
+                Amount = long.Parse(send.Tags["amount"]),
                 Voting = send.Tags["voting"],
                 RelatedTx = recvBlock.Hash
             };
