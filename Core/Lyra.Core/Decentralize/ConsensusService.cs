@@ -569,6 +569,14 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.StaticSync)
                 .OnEntry(() => Task.Run(async () =>
                 {
+                    if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
+                        await DeclareConsensusNodeAsync();
+                    //await Task.Delay(35000);    // wait for enough heartbeat
+                    //RefreshAllNodesVotes();
+
+
+                    await InitJobSchedulerAsync();
+
                     while (true)
                     {
                         try
@@ -714,13 +722,7 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
-                    if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
-                        await DeclareConsensusNodeAsync();
-                    //await Task.Delay(35000);    // wait for enough heartbeat
-                    //RefreshAllNodesVotes();
 
-
-                    await InitJobSchedulerAsync();
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)         // make a quick recovery
                 .Permit(BlockChainTrigger.LocalNodeMissingBlock, BlockChainState.Engaging);
