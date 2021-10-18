@@ -84,16 +84,4 @@ namespace Lyra.Core.Blocks
         }
     }
 
-    // data preserve
-    [BsonIgnoreExtraElements]
-    public class StakingGenesisBlock : ReceiveTransferBlock, IOpeningBlock
-    {
-        public AccountTypes AccountType { get; set; }
-    }
-
-    [BsonIgnoreExtraElements]
-    public class ProfitingGenesisBlock : ReceiveTransferBlock, IOpeningBlock
-    {
-        public AccountTypes AccountType { get; set; }
-    }
 }

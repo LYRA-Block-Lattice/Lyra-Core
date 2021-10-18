@@ -83,10 +83,6 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<ProfitingBlock>();
             BsonClassMap.RegisterClassMap<StakingBlock>();
 
-            // remove later
-            BsonClassMap.RegisterClassMap<ProfitingGenesisBlock>();
-            BsonClassMap.RegisterClassMap<StakingGenesisBlock>();
-
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
 
             Cluster = GetDatabase().Client.Cluster.ToString();
