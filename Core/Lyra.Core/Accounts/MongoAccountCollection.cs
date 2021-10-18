@@ -80,6 +80,8 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<PoolWithdrawBlock>();
             BsonClassMap.RegisterClassMap<PoolSwapInBlock>();
             BsonClassMap.RegisterClassMap<PoolSwapOutBlock>();
+            BsonClassMap.RegisterClassMap<ProfitingGenesisBlock>();
+            BsonClassMap.RegisterClassMap<StakingGenesisBlock>();
 
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
 
