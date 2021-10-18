@@ -59,10 +59,10 @@ namespace Lyra.Core.Decentralize
                         //else
                         //    _log.LogWarning("Can't create pool.");
                         break;
-                    case "pfcrpft":
+                    case "crpft":
                         _log.LogInformation($"Create profiting account for {send.AccountID}");
                         break;
-                    case "pfcrstk":
+                    case "crstk":
                         _log.LogInformation($"Create staking account for {send.AccountID}");
 
                         break;
