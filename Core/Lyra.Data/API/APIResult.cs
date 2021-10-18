@@ -314,10 +314,10 @@ namespace Lyra.Core.API
                     block = JsonConvert.DeserializeObject<PoolSwapOutBlock>(BlockData);
                     break;
                 case BlockTypes.ProfitingGenesis:
-                    block = JsonConvert.DeserializeObject<ProfitingGenesisBlock>(BlockData);
+                    block = JsonConvert.DeserializeObject<ProfitingBlock>(BlockData);
                     break;
                 case BlockTypes.StakingGenesis:
-                    block = JsonConvert.DeserializeObject<StakingGenesisBlock>(BlockData);
+                    block = JsonConvert.DeserializeObject<StakingBlock>(BlockData);
                     break;
                 case BlockTypes.Null:
                     block = null;

@@ -286,8 +286,8 @@ namespace Lyra.Core.Blocks
         PoolSwapOut = 55,
 
         // staking
-        ProfitingGenesis = 60,
-        StakingGenesis = 61,
+        Profiting = 60,
+        Staking = 61,
         StakingDeposit = 62,
         StakingWithdraw = 63
     }

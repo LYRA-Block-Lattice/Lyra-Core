@@ -67,13 +67,13 @@ namespace UnitTests
                 var result = await w1.CreateProfitingAccountAsync(ProfitingType.Node, 0.2m, 10);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
 
-                var pgen = result.GetBlock() as ProfitingGenesisBlock;
+                var pgen = result.GetBlock() as ProfitingBlock;
                 Assert.IsNotNull(pgen);
 
                 var result2 = await w1.CreateStakingAccountAsync(1000m, pgen.AccountID);
                 Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result: {result2.ResultCode}");
 
-                var stkgen = result2.GetBlock() as StakingGenesisBlock;
+                var stkgen = result2.GetBlock() as StakingBlock;
                 Assert.IsNotNull(stkgen);
             }
             finally
