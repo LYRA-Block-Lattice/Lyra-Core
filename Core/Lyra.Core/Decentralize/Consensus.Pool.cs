@@ -747,7 +747,7 @@ namespace Lyra.Core.Decentralize
                 OwnerAccountId = lastStk.OwnerAccountId,
                 AccountType = lastStk.AccountType,
                 AccountID = lastStk.AccountID,
-                Balances = lastStk.Balances,
+                Balances = new Dictionary<string, long>(),
                 PreviousHash = lastStk.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,
@@ -760,7 +760,7 @@ namespace Lyra.Core.Decentralize
             };
 
             var chgs = send.GetBalanceChanges(sendPrev);
-            stkNext.Balances[LyraGlobal.OFFICIALTICKERCODE] += chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong();
+            stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE] += chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong());
 
             stkNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
             stkNext.AddTag("relhash", send.Hash);  // pool withdraw action
