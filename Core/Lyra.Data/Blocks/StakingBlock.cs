@@ -15,7 +15,7 @@ namespace Lyra.Core.Blocks
     }
 
     [BsonIgnoreExtraElements]
-    public class StakingBlock : ReceiveTransferBlock, IBrokerAccount, IStaking, IOpeningBlock
+    public class StakingBlock : ReceiveTransferBlock, IBrokerAccount, IStaking
     {
         public AccountTypes AccountType { get; set; }
         public string Name { get; set; }
@@ -54,6 +54,12 @@ namespace Lyra.Core.Blocks
             result += $"RelatedTx: {RelatedTx}\n";
             return result;
         }
+    }
+
+    [BsonIgnoreExtraElements]
+    public class StakingGenesis: StakingBlock, IOpeningBlock
+    {
+
     }
 
     [BsonIgnoreExtraElements]

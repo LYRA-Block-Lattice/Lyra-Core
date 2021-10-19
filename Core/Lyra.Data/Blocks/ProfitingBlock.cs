@@ -44,6 +44,12 @@ namespace Lyra.Data.Blocks
         }
     }
 
+    [BsonIgnoreExtraElements]
+    public class ProfitingGenesis : ProfitingBlock, IOpeningBlock
+    {
+
+    }
+
 
     [BsonIgnoreExtraElements]
     public class BenefitingBlock : BrokerAccountSend, IProfiting
