@@ -689,7 +689,7 @@ namespace Lyra.Core.Decentralize
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
-            var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["amount"]},{send.Tags["voting"]},{send.AccountID}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["voting"]},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
             var stkGenesis = new StakingBlock
