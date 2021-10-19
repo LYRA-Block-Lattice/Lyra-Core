@@ -541,6 +541,16 @@ namespace Lyra.Core.Decentralize
                 {
                     try
                     {
+                        // non pool actions
+                        switch(send.Tags[Block.REQSERVICETAG])
+                        {
+                            case "addstk":
+                                await CNOAddStakingAsync(send);
+                                return;
+                            default:
+                                break;
+                        }
+
                         var pool = await _sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
                         if (pool == null)
                         {
