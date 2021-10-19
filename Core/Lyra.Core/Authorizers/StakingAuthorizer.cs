@@ -37,7 +37,7 @@ namespace Lyra.Core.Authorizers
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx);
-            if (relTx == null)
+            if (tblock is SendTransferBlock && relTx == null)
                 return APIResultCodes.InvalidServiceRequest;
 
             // send account must be current owner
@@ -47,7 +47,7 @@ namespace Lyra.Core.Authorizers
 
             // service must not been processed
             var processed = await sys.Storage.FindBlockByRelatedTxAsync(block.RelatedTx);
-            if(processed != null)
+            if(tblock is SendTransferBlock && processed != null)
                 return APIResultCodes.InvalidServiceRequest;
 
             // first verify account id
