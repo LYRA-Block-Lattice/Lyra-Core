@@ -118,7 +118,7 @@ namespace Lyra.Core.Decentralize
 
         public virtual void FinishAction (string actionHash)
         {
-            throw new Exception("Must override FinishAction");
+            //throw new Exception("Must override FinishAction");
         }
     }
 
