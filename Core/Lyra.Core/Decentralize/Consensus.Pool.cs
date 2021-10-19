@@ -637,6 +637,7 @@ namespace Lyra.Core.Decentralize
 
                     case "pfcreat":
                     case "pfcrstk":
+                    case "pfaddstk":
                     case "pfcrpft":
                     case "plswapout":
                     case "plrmout":
@@ -765,7 +766,7 @@ namespace Lyra.Core.Decentralize
 
             stkNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
             stkNext.AddTag("relhash", send.Hash);  // pool withdraw action
-            stkNext.AddTag("type", "pfaddtk");       // pool remove liquidate
+            stkNext.AddTag("type", "pfaddstk");       // pool remove liquidate
 
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
