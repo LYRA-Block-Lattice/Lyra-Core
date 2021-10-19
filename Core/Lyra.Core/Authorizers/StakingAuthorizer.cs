@@ -26,8 +26,12 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as StakingBlock;
 
+            TransactionBlock lastBlock = await sys.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
+            if (block.Height > 1 && lastBlock == null)
+                return APIResultCodes.CouldNotFindLatestBlock;
+
             // Validate blocks
-            var result = await VerifyBlockAsync(sys, block, null);
+            var result = await VerifyBlockAsync(sys, block, lastBlock);
             if (result != APIResultCodes.Success)
                 return result;
 
