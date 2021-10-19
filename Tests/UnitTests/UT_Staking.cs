@@ -31,7 +31,7 @@ namespace UnitTests
 
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);      // we need to run tests in serial
 
-        private ProfitingBlock _profiting;
+        Random _rand = new Random();
 
         private async Task<string> SignAPIAsync()
         {
@@ -56,46 +56,36 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public async Task CreateProfitingAccountAsync()
-        {
-            try
-            {
-                await semaphore.WaitAsync();
-
-                var w1 = Restore(testPrivateKey);
-                var syncResult = await w1.SyncAsync(client);
-                Assert.IsTrue(syncResult == APIResultCodes.Success);
-
-                var result = await w1.CreateProfitingAccountAsync(ProfitingType.Node, 0.2m, 10);
-                Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
-
-                var pgen = result.GetBlock() as ProfitingBlock;
-                Assert.IsNotNull(pgen);
-
-                _profiting = pgen;
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-        }
-
-        [TestMethod]
         public async Task CreateStakingAccountAsync()
         {
             try
             {
                 await semaphore.WaitAsync();
 
+                // sync wallet first
                 var w1 = Restore(testPrivateKey);
                 var syncResult = await w1.SyncAsync(client);
                 Assert.IsTrue(syncResult == APIResultCodes.Success);
 
-                var result2 = await w1.CreateStakingAccountAsync(1000m, _profiting.AccountID);
-                Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result: {result2.ResultCode}");
+                // test create profiting account
+                var result = await w1.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 0.2m, 10);
+                Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
+
+                var pgen = result.GetBlock() as ProfitingBlock;
+                Assert.IsNotNull(pgen);
+
+                // test create staking account
+                var result2 = await w1.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID);
+                Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result2: {result2.ResultCode}");
 
                 var stkgen = result2.GetBlock() as StakingBlock;
                 Assert.IsNotNull(stkgen);
+
+                // test add staking
+                var result3 = await w1.AddStakingAsync(stkgen.AccountID, 1000m);
+                Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
+
+
             }
             finally
             {

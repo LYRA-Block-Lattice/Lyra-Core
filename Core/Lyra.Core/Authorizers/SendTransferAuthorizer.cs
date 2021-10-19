@@ -265,6 +265,10 @@ namespace Lyra.Core.Authorizers
 
                     switch (block.Tags[Block.REQSERVICETAG])
                     {
+                        case "addstk":
+                            return APIResultCodes.Success;
+
+                            break;
                         case "crstk":   // create staking
                             if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.StakingAccountCreateFee)
                                 return APIResultCodes.InvalidFeeAmount;

@@ -1883,43 +1883,6 @@ namespace Lyra.Core.Accounts
         }
 
         #region Staking Account
-        public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, decimal amount, string voteFor)
-        {
-            var tags = new Dictionary<string, string>
-            {
-                { Block.REQSERVICETAG, "crstk" },
-                { "name", Name },
-                { "amount", $"{amount.ToBalanceLong()}" },
-                { "voting", voteFor }
-            };
-            var amounts = new Dictionary<string, decimal>
-            {
-                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.StakingAccountCreateFee }
-            };
-            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
-            if (result.ResultCode != APIResultCodes.Success)
-                return new BlockAPIResult { ResultCode = result.ResultCode };
-
-            for (int i = 0; i < 10; i++)
-            {
-                // first get receive hash
-                var recv = await _rpcClient.GetBlockBySourceHashAsync(_lastTransactionBlock.Hash);
-                if (recv.Successful())
-                {
-                    // then find by RelatedTx
-                    var block = recv.GetBlock();
-                    var gen = await _rpcClient.GetBlockByRelatedTxAsync(block.Hash);
-                    if (gen.Successful())
-                    {
-                        return gen;
-                    }
-                }
-                await Task.Delay(500);
-            }
-
-            return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
-        }
-
         public async Task<BlockAPIResult> CreateProfitingAccountAsync(string Name, ProfitingType ptype, decimal shareRito, int maxVoter)
         {
             var tags = new Dictionary<string, string>
@@ -1956,6 +1919,58 @@ namespace Lyra.Core.Accounts
             }
 
             return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
+        }
+
+        public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, string voteFor)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, "crstk" },
+                { "name", Name },
+                { "voting", voteFor }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.StakingAccountCreateFee }
+            };
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            if (result.ResultCode != APIResultCodes.Success)
+                return new BlockAPIResult { ResultCode = result.ResultCode };
+
+            for (int i = 0; i < 10; i++)
+            {
+                // first get receive hash
+                var recv = await _rpcClient.GetBlockBySourceHashAsync(_lastTransactionBlock.Hash);
+                if (recv.Successful())
+                {
+                    // then find by RelatedTx
+                    var block = recv.GetBlock();
+                    var gen = await _rpcClient.GetBlockByRelatedTxAsync(block.Hash);
+                    if (gen.Successful())
+                    {
+                        return gen;
+                    }
+                }
+                await Task.Delay(500);
+            }
+
+            return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
+        }
+
+        public async Task<APIResult> AddStakingAsync(string stakingAccountId, decimal amount)
+        {
+            var amountsDeposit = new Dictionary<string, decimal>
+            {
+                { "LYR", amount }
+            };
+
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, "addstk" }
+            };
+
+            var addStkResult = await SendExAsync(stakingAccountId, amountsDeposit, tags);
+            return addStkResult;
         }
         #endregion
 
