@@ -746,7 +746,7 @@ namespace Lyra.Core.Decentralize
                 OwnerAccountId = lastStk.OwnerAccountId,
                 AccountType = lastStk.AccountType,
                 AccountID = lastStk.AccountID,
-                Balances = new Dictionary<string, long>(),
+                Balances = lastStk.Balances,
                 PreviousHash = lastStk.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,
