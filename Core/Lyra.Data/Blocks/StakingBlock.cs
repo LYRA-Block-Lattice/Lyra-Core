@@ -8,20 +8,55 @@ using System.Text;
 namespace Lyra.Core.Blocks
 {
     [BsonIgnoreExtraElements]
-    public class ProfitingBlock : ReceiveTransferBlock, IOpeningBlock
+    public class BrokerAccountBase : ReceiveTransferBlock, IOpeningBlock
     {
+        public AccountTypes AccountType { get; set; }
         public string OwnerAccountId { get; set; }
+        public string RelatedTx { get; set; }
+
+        // user specified string, less thant 32 char
+        public string Name { get; set; }
+
+        public override BlockTypes GetBlockType()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            var plainTextBytes = Encoding.UTF8.GetBytes(Name);
+            var nameEnc = Convert.ToBase64String(plainTextBytes);   // to avoid attack
+            extraData += nameEnc + "|";
+            extraData += OwnerAccountId + "|";
+            if (RelatedTx != null)
+                extraData += RelatedTx + "|";       // for compatible
+            extraData += AccountType + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"Name: {Name}\n";
+            result += $"OwnerAccountId: {OwnerAccountId}\n";
+            result += $"RelatedTx: {RelatedTx}\n";
+            result += $"AccountType: {AccountType}\n";
+            return result;
+        }
+    }
+
+    [BsonIgnoreExtraElements]
+    public class ProfitingBlock : BrokerAccountBase
+    {
         public ProfitingType PType { get; set; }
         public decimal ShareRito { get; set; }
-        public int Seats { get; set; }
-        public string RelatedTx { get; set; }
+        public int Seats { get; set; }        
 
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.Profiting;
         }
-
-        public AccountTypes AccountType { get; set; }
 
         protected override string GetExtraData()
         {
@@ -29,9 +64,6 @@ namespace Lyra.Core.Blocks
             extraData += PType.ToString() + "|";
             extraData += ShareRito.ToString() + "|";
             extraData += Seats.ToString() + "|";
-            if (RelatedTx != null)
-                extraData += RelatedTx + "|";       // for compatible
-            extraData += AccountType + "|";
             return extraData;
         }
 
@@ -41,17 +73,13 @@ namespace Lyra.Core.Blocks
             result += $"Profiting Type: {PType}\n";
             result += $"Share Rito: {ShareRito}\n";
             result += $"Seats: {Seats}\n";
-            result += $"RelatedTx: {RelatedTx}\n";
-            result += $"AccountType: {AccountType}\n";
             return result;
         }
     }
 
     [BsonIgnoreExtraElements]
-    public class StakingBlock : ReceiveTransferBlock, IOpeningBlock
+    public class StakingBlock : BrokerAccountBase
     {
-        public string OwnerAccountId { get; set; }
-        public string RelatedTx { get; set; }
         public long Amount { get; set; }
         public string Voting { get; set; }
 
@@ -60,16 +88,11 @@ namespace Lyra.Core.Blocks
             return BlockTypes.Staking;
         }
 
-        public AccountTypes AccountType { get; set; }
-
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
             extraData += Amount.ToString() + "|";
             extraData += Voting.ToString() + "|";
-            if (RelatedTx != null)
-                extraData += RelatedTx + "|";       // for compatible
-            extraData += AccountType + "|";
             return extraData;
         }
 
@@ -78,8 +101,6 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"Amount: {Amount}\n";
             result += $"Voting: {Voting}\n";
-            result += $"RelatedTx: {RelatedTx}\n";
-            result += $"AccountType: {AccountType}\n";
             return result;
         }
     }

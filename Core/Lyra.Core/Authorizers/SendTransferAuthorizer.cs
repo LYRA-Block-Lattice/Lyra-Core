@@ -272,6 +272,7 @@ namespace Lyra.Core.Authorizers
                             decimal amount;
                             string votefor;
                             if (
+                                block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
                                 block.Tags.ContainsKey("amount") && decimal.TryParse(block.Tags["amount"], out amount)
                                 && block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"])
                                 )
@@ -290,7 +291,9 @@ namespace Lyra.Core.Authorizers
                             ProfitingType ptype;
                             decimal shareRito;
                             int seats;
-                            if(block.Tags.ContainsKey("ptype") && Enum.TryParse(block.Tags["ptype"], false, out ptype)
+                            if(
+                                block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
+                                block.Tags.ContainsKey("ptype") && Enum.TryParse(block.Tags["ptype"], false, out ptype)
                                 && block.Tags.ContainsKey("share") && decimal.TryParse(block.Tags["share"], out shareRito)
                                 && block.Tags.ContainsKey("seats") && int.TryParse(block.Tags["seats"], out seats)
                                 )

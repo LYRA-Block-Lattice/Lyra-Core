@@ -1883,11 +1883,12 @@ namespace Lyra.Core.Accounts
         }
 
         #region Staking Account
-        public async Task<BlockAPIResult> CreateStakingAccountAsync(decimal amount, string voteFor)
+        public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, decimal amount, string voteFor)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, "crstk" },
+                { "name", Name },
                 { "amount", $"{amount.ToBalanceLong()}" },
                 { "voting", voteFor }
             };
@@ -1919,11 +1920,12 @@ namespace Lyra.Core.Accounts
             return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
         }
 
-        public async Task<BlockAPIResult> CreateProfitingAccountAsync(ProfitingType ptype, decimal shareRito, int maxVoter)
+        public async Task<BlockAPIResult> CreateProfitingAccountAsync(string Name, ProfitingType ptype, decimal shareRito, int maxVoter)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, "crpft" },
+                { "name", Name },
                 { "ptype", ptype.ToString() },
                 { "share", $"{shareRito}" },
                 { "seats", $"{maxVoter}" }

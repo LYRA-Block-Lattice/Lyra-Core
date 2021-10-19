@@ -655,6 +655,7 @@ namespace Lyra.Core.Decentralize
             var poolGenesis = new ProfitingBlock
             {
                 Height = 1,
+                Name = send.Tags["name"],
                 OwnerAccountId = send.AccountID,
                 AccountType = AccountTypes.Profiting,
                 AccountID = AccountId,        // in fact we not use this account.
@@ -694,6 +695,7 @@ namespace Lyra.Core.Decentralize
             var poolGenesis = new StakingBlock
             {
                 Height = 1,
+                Name = send.Tags["name"],
                 OwnerAccountId = send.AccountID,
                 AccountType = AccountTypes.Staking,
                 AccountID = AccountId,        // in fact we not use this account.

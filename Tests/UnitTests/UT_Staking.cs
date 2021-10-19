@@ -31,6 +31,8 @@ namespace UnitTests
 
         private readonly SemaphoreSlim semaphore = new SemaphoreSlim(1);      // we need to run tests in serial
 
+        private ProfitingBlock _profiting;
+
         private async Task<string> SignAPIAsync()
         {
             var lsb = await client.GetLastServiceBlockAsync(); 
@@ -54,7 +56,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public async Task CreateStakingAccountAsync()
+        public async Task CreateProfitingAccountAsync()
         {
             try
             {
@@ -70,7 +72,26 @@ namespace UnitTests
                 var pgen = result.GetBlock() as ProfitingBlock;
                 Assert.IsNotNull(pgen);
 
-                var result2 = await w1.CreateStakingAccountAsync(1000m, pgen.AccountID);
+                _profiting = pgen;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        }
+
+        [TestMethod]
+        public async Task CreateStakingAccountAsync()
+        {
+            try
+            {
+                await semaphore.WaitAsync();
+
+                var w1 = Restore(testPrivateKey);
+                var syncResult = await w1.SyncAsync(client);
+                Assert.IsTrue(syncResult == APIResultCodes.Success);
+
+                var result2 = await w1.CreateStakingAccountAsync(1000m, _profiting.AccountID);
                 Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result: {result2.ResultCode}");
 
                 var stkgen = result2.GetBlock() as StakingBlock;
