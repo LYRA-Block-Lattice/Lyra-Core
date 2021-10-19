@@ -760,7 +760,7 @@ namespace Lyra.Core.Decentralize
             };
 
             var chgs = send.GetBalanceChanges(sendPrev);
-            stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE] += chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong());
+            stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE] + chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong());
 
             stkNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
             stkNext.AddTag("relhash", send.Hash);  // pool withdraw action
