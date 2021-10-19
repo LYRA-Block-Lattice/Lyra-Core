@@ -2,6 +2,7 @@
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Data.Utils;
 using Microsoft.Extensions.Logging;

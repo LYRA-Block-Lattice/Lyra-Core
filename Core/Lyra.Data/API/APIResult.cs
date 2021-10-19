@@ -5,6 +5,7 @@ using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 using Newtonsoft.Json;
 
 namespace Lyra.Core.API

@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Blocks;
+using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using System;
 using System.Collections.Generic;

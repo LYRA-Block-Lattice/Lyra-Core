@@ -4,6 +4,7 @@ using Lyra.Core.API;
 using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

@@ -1,46 +1,42 @@
-﻿using Lyra.Core.API;
-using Lyra.Data.Blocks;
+﻿using Lyra.Core.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.Options;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Lyra.Core.Blocks
+namespace Lyra.Data.Blocks
 {
-
-    public interface IStaking
+    public interface IBrokerAccount
     {
-        public string Voting { get; set; }
+        public string Name { get; set; }
+        public string OwnerAccountId { get; set; }
+        public string RelatedTx { get; set; }
     }
 
     [BsonIgnoreExtraElements]
-    public class StakingBlock : ReceiveTransferBlock, IBrokerAccount, IStaking, IOpeningBlock
+    public class BrokerAccountRecv : ReceiveTransferBlock, IBrokerAccount, IOpeningBlock
     {
-        public AccountTypes AccountType { get; set; }
+        // user specified string, less thant 32 char
         public string Name { get; set; }
-        public string Voting { get; set; }
+        public AccountTypes AccountType { get; set; }
         public string OwnerAccountId { get; set; }
         public string RelatedTx { get; set; }
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.Staking;
+            throw new NotImplementedException();
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += AccountType + "|";
-
             var plainTextBytes = Encoding.UTF8.GetBytes(Name);
             var nameEnc = Convert.ToBase64String(plainTextBytes);   // to avoid attack
             extraData += nameEnc + "|";
             extraData += OwnerAccountId + "|";
-
             if (RelatedTx != null)
                 extraData += RelatedTx + "|";       // for compatible
-            extraData += Voting.ToString() + "|";
+            extraData += AccountType + "|";
             return extraData;
         }
 
@@ -48,41 +44,38 @@ namespace Lyra.Core.Blocks
         {
             string result = base.Print();
             result += $"Name: {Name}\n";
-            result += $"AccountType: {AccountType}\n";
             result += $"OwnerAccountId: {OwnerAccountId}\n";
-            result += $"Voting: {Voting}\n";
             result += $"RelatedTx: {RelatedTx}\n";
+            result += $"AccountType: {AccountType}\n";
             return result;
         }
     }
 
     [BsonIgnoreExtraElements]
-    public class UnStakingBlock : SendTransferBlock, IBrokerAccount, IStaking
+    public class BrokerAccountSend : SendTransferBlock, IBrokerAccount, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
-        public string Name { get; set; }
-        public string Voting { get; set; }
         public string OwnerAccountId { get; set; }
         public string RelatedTx { get; set; }
 
+        // user specified string, less thant 32 char
+        public string Name { get; set; }
+
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.UnStaking;
+            throw new NotImplementedException();
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += AccountType + "|";
-
             var plainTextBytes = Encoding.UTF8.GetBytes(Name);
             var nameEnc = Convert.ToBase64String(plainTextBytes);   // to avoid attack
             extraData += nameEnc + "|";
             extraData += OwnerAccountId + "|";
-
             if (RelatedTx != null)
                 extraData += RelatedTx + "|";       // for compatible
-            extraData += Voting.ToString() + "|";
+            extraData += AccountType + "|";
             return extraData;
         }
 
@@ -90,12 +83,10 @@ namespace Lyra.Core.Blocks
         {
             string result = base.Print();
             result += $"Name: {Name}\n";
-            result += $"AccountType: {AccountType}\n";
             result += $"OwnerAccountId: {OwnerAccountId}\n";
-            result += $"Voting: {Voting}\n";
             result += $"RelatedTx: {RelatedTx}\n";
+            result += $"AccountType: {AccountType}\n";
             return result;
         }
     }
-
 }

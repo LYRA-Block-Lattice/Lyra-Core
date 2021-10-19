@@ -16,6 +16,7 @@ using Lyra.Core.API;
 using Lyra.Data.API;
 using Lyra.Data.Utils;
 using System.Text.RegularExpressions;
+using Lyra.Data.Blocks;
 //using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
@@ -81,7 +82,12 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<PoolSwapInBlock>();
             BsonClassMap.RegisterClassMap<PoolSwapOutBlock>();
             BsonClassMap.RegisterClassMap<ProfitingBlock>();
+            BsonClassMap.RegisterClassMap<BenefitingBlock>();
+            BsonClassMap.RegisterClassMap<IStaking>();
             BsonClassMap.RegisterClassMap<StakingBlock>();
+            BsonClassMap.RegisterClassMap<UnStakingBlock>();
+            BsonClassMap.RegisterClassMap<MerchantRecv>();
+            BsonClassMap.RegisterClassMap<MerchantSend>();
 
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
 
