@@ -766,7 +766,7 @@ namespace Lyra.Core.Decentralize
             stkNext.AddTag("type", "pfaddtk");       // pool remove liquidate
 
             // pool blocks are service block so all service block signed by leader node
-            stkNext.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
             await QueueTxActionBlockAsync(stkNext);
         }
