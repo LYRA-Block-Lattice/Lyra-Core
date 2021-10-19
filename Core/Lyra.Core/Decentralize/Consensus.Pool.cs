@@ -753,6 +753,7 @@ namespace Lyra.Core.Decentralize
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,
+                SourceHash = send.Hash,
 
                 // pool specified config
                 Voting = lastStk.Voting,
