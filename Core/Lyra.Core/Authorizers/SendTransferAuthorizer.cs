@@ -273,16 +273,14 @@ namespace Lyra.Core.Authorizers
                             if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.StakingAccountCreateFee)
                                 return APIResultCodes.InvalidFeeAmount;
 
-                            decimal amount;
                             string votefor;
                             if (
                                 block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
-                                block.Tags.ContainsKey("amount") && decimal.TryParse(block.Tags["amount"], out amount)
-                                && block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"])
+                                block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"])
                                 )
                             {
                                 votefor = block.Tags["voting"];
-                                if (amount >= 1 && Signatures.ValidateAccountId(votefor))
+                                if (Signatures.ValidateAccountId(votefor))
                                 {
                                     return APIResultCodes.Success;
                                 }
