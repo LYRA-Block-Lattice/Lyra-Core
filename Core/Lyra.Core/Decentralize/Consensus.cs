@@ -462,12 +462,15 @@ namespace Lyra.Core.Decentralize
             var svcGen = await CreateServiceGenesisBlockAsync();
             await SendBlockToConsensusAndWaitResultAsync(svcGen, ProtocolSettings.Default.StandbyValidators.ToList());
 
-            await Task.Delay(10000);
+            await Task.Delay(5000);
 
             var tokenGen = CreateLyraTokenGenesisBlock(svcGen);
             // DEBUG
             //_log.LogInformation("genesis block string:\n" + tokenGen.GetHashInput());
             await SendBlockToConsensusAndWaitResultAsync(tokenGen);
+
+            await Task.Delay(2000);
+            await CreatePoolFactoryAsync();
 
             await Task.Delay(25000);        // because cons block has a time shift.
 
