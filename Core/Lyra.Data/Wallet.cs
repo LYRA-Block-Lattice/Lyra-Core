@@ -155,16 +155,17 @@ namespace Lyra.Core.Accounts
                     return result;
 
                 var blockResult = await _rpcClient.GetLastBlockAsync(AccountId);
-                if (blockResult?.ResultCode == APIResultCodes.Success)
+                if (blockResult.ResultCode == APIResultCodes.Success)
                 {
                     _lastTransactionBlock = blockResult.GetBlock() as TransactionBlock;
+                }
 
-                    result = await SyncIncomingTransfersAsync();
+                result = await SyncIncomingTransfersAsync();
 
-                    return result;
-                }                
+                return result;
             }
-            return APIResultCodes.NoRPCServerConnection;
+            else
+                return APIResultCodes.NoRPCServerConnection;
         }
 
         public string SignAPICall()
