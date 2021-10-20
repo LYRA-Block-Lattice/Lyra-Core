@@ -720,7 +720,8 @@ namespace Lyra.Core.Decentralize
 
                 // pool specified config
                 Voting = send.Tags["voting"],
-                RelatedTx = recvBlock.Hash
+                RelatedTx = recvBlock.Hash,
+                Days = int.Parse(send.Tags["days"])
             };
 
             stkGenesis.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);

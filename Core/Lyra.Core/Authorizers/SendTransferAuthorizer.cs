@@ -274,8 +274,10 @@ namespace Lyra.Core.Authorizers
                                 return APIResultCodes.InvalidFeeAmount;
 
                             string votefor;
+                            int days;
                             if (
                                 block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
+                                block.Tags.ContainsKey("days") && int.TryParse(block.Tags["days"], out days) && days >= 3 &&
                                 block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"])
                                 )
                             {

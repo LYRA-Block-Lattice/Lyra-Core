@@ -1921,13 +1921,14 @@ namespace Lyra.Core.Accounts
             return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
         }
 
-        public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, string voteFor)
+        public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, string voteFor, int daysToStake)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, "crstk" },
                 { "name", Name },
-                { "voting", voteFor }
+                { "voting", voteFor },
+                { "days", daysToStake.ToString() }
             };
             var amounts = new Dictionary<string, decimal>
             {
