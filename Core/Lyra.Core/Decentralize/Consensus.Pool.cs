@@ -16,8 +16,12 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
+    public delegate Task<(ConsensusResult?, APIResultCodes errorCode)> TxHandler(TransactionBlock block);
     public partial class ConsensusService
     {
+        // for unittest only
+        public event TxHandler OnNewBlock;
+
         private readonly ServiceTxQueue _svcQueue = new ServiceTxQueue();
         private async Task QueueBlockForPoolAsync(TransactionBlock block, ServiceTx tx)
         {
@@ -586,7 +590,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void ProcessManagedBlock(TransactionBlock block, ConsensusResult? result)
+        public void ProcessManagedBlock(TransactionBlock block)
         {
             //if (!block.ContainsTag("type"))
             //{
@@ -630,10 +634,22 @@ namespace Lyra.Core.Decentralize
                     _ = Task.Run(async () =>
                     {
                         _log.LogInformation($"start process broker request {blueprint.relatedTx}");
-                        var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => SendBlockToConsensusAndWaitResultAsync(b));
-                        _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
-                        if (success)
-                            _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
+
+                        // hack for unit test
+                        if (_hostEnv == null)
+                        {
+                            var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
+                            _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
+                            if (success)
+                                _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
+                        }
+                        else
+                        {
+                            var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => SendBlockToConsensusAndWaitResultAsync(b));
+                            _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
+                            if (success)
+                                _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
+                        }
                     });
                 }
                 else

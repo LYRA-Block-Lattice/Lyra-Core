@@ -1466,7 +1466,7 @@ namespace Lyra.Core.Decentralize
             return APIResultCodes.Success;
         }
 
-        private void Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
+        public void Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
         {
             if(result != ConsensusResult.Uncertain)
                 _successBlockCount++;
@@ -1570,17 +1570,9 @@ namespace Lyra.Core.Decentralize
                 return;
 
             // node block require additional works
-            if (block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
+            if (block.ContainsTag(Block.MANAGEDTAG) || block.ContainsTag(Block.REQSERVICETAG))     // only managed account need
             {
-                ProcessManagedBlock(block as SendTransferBlock, result);
-            }
-            // client block require service
-            else if (block.ContainsTag(Block.REQSERVICETAG))
-            {
-                if (block is SendTransferBlock send)
-                {
-                    ProcessSendBlock(send);
-                }
+                ProcessManagedBlock(block as TransactionBlock);
             }
         }
 

@@ -1807,7 +1807,7 @@ namespace Lyra.Core.Accounts
             {
                 { "token0", tokenNames[0] },
                 { "token1", tokenNames[1] },
-                { Block.REQSERVICETAG, "" }
+                { Block.REQSERVICETAG, BrokerActions.BRK_POOL_CRPL }
             };
             var amounts = new Dictionary<string, decimal>
             {

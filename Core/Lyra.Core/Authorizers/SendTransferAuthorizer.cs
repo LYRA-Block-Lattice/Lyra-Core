@@ -9,6 +9,7 @@ using Lyra.Core.Accounts;
 using System.Diagnostics;
 using Lyra.Core.API;
 using System.Linq;
+using Lyra.Data.API;
 
 namespace Lyra.Core.Authorizers
 {
@@ -120,8 +121,7 @@ namespace Lyra.Core.Authorizers
             // monitor special account
             if (block.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
             {
-                if (block.Tags != null
-                        && block.Tags.ContainsKey("token0") && await CheckTokenAsync(sys, block.Tags["token0"])
+                if( block.Tags.ContainsKey("token0") && await CheckTokenAsync(sys, block.Tags["token0"])
                         && block.Tags.ContainsKey("token1") && await CheckTokenAsync(sys, block.Tags["token1"])
                         && block.Tags["token0"] != block.Tags["token1"]
                         && (block.Tags["token0"] == LyraGlobal.OFFICIALTICKERCODE || block.Tags["token1"] == LyraGlobal.OFFICIALTICKERCODE)
@@ -136,7 +136,7 @@ namespace Lyra.Core.Authorizers
                         if (chgs.Changes.Count > 1)
                             return APIResultCodes.InvalidFeeAmount;
 
-                        if (block.Tags[Block.REQSERVICETAG] == "")
+                        if (block.Tags[Block.REQSERVICETAG] == "" || block.Tags[Block.REQSERVICETAG] == BrokerActions.BRK_POOL_CRPL)
                         {
                             if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.PoolCreateFee)
                                 return APIResultCodes.InvalidFeeAmount;
