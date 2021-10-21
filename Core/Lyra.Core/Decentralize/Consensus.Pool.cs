@@ -586,70 +586,67 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private void ProcessManagedBlock(Block block, ConsensusResult? result)
+        private void ProcessManagedBlock(TransactionBlock block, ConsensusResult? result)
         {
-            if (!block.ContainsTag("type"))
+            //if (!block.ContainsTag("type"))
+            //{
+            //    _log.LogWarning("A MANAGEDTAG block not have type.");
+            //    return;
+            //}
+
+            //if (!block.ContainsTag("relhash"))
+            //{
+            //    _log.LogWarning("A MANAGEDTAG block not have related hash.");
+            //    return;
+            //}
+
+            //var blockRelHash = block.Tags["relhash"];
+            //var blockType = block.Tags["type"];
+            //var poolBlock = block as TransactionBlock;
+            if (block is SendTransferBlock send && send.Tags.ContainsKey(Block.REQSERVICETAG))
             {
-                _log.LogWarning("A MANAGEDTAG block not have type.");
-                return;
-            }
-
-            if (!block.ContainsTag("relhash"))
-            {
-                _log.LogWarning("A MANAGEDTAG block not have related hash.");
-                return;
-            }
-
-            var blockRelHash = block.Tags["relhash"];
-            var blockType = block.Tags["type"];
-            var poolBlock = block as TransactionBlock;
-
-            _ = Task.Run(async () =>
-            {
-
-                //_svcQueue[poolBlock.AccountID].
-                switch (blockType)
+                var action = send.Tags[Block.REQSERVICETAG];
+                var wf = _bf.WorkFlows[action];
+                // create a blueprint for workflow
+                var blueprint = new BrokerBlueprint
                 {
-                    case "pfrecv":      // pool factory receive
-                    case "pfrecvcrpft":    // create profiting account
-                    case "pfrecvcrstk":    // create staking account
-                        _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
+                    view = _currentView,
+                    start = DateTime.UtcNow,
+                    initiatorAccount = send.AccountID,
+                    brokerAccount = send.DestinationAccountId,
+                    relatedTx = send.Hash,
+                    action = action,
+                    workflow = new BrokerWorkFlow
+                    {
+                        pfrecv = wf.pfrecv,
+                        brokerOps = wf.brokerOps,
+                        extraOps = wf.extraOps
+                    }
+                };
+                _sys.Storage.CreateBlueprint(blueprint);
 
-                        await PoolFactoryRecvActionAsync(block as ReceiveTransferBlock, result);
-                        break;
-                    case "pfwithdraw":    // pool factory receive
-                        _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
-
-                        var send = await _sys.Storage.FindBlockByHashAsync((poolBlock as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
-                        var poolId = send.Tags["poolid"];
-                        _log.LogInformation($"Withdraw from pool {poolId}...");
-                        await SendWithdrawFundsAsync(block as ReceiveTransferBlock, poolId, send.AccountID);
-                        break;
-                    case "pladdin":  // pool deposition
-                        _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
-
-                        break;
-                    case "plswapin":  // pool swapin
-                        _svcQueue.Finish(poolBlock.AccountID, blockRelHash, poolBlock.Hash, null);
-
-                        await PoolRecvSwapInConsensusActionAsync(block as ReceiveTransferBlock, result);
-                        break;
-
-                    case "pfcreat":
-                    case "pfcrstk":
-                    case "pfaddstk":
-                    case "pfcrpft":
-                    case "plswapout":
-                    case "plrmout":
-                        _svcQueue.Finish(poolBlock.AccountID, blockRelHash, null, poolBlock.Hash);
-                        break;
-                    default:
-                        _log.LogWarning($"MANAGEDTAG Unsupported type: {block.Tags["type"]}");
-                        break;
+                if (IsThisNodeLeader)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        _log.LogInformation($"start process broker request {blueprint.relatedTx}");
+                        var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => SendBlockToConsensusAndWaitResultAsync(b));
+                        _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
+                        if (success)
+                            _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
+                    });
                 }
+                else
+                {
 
-                _log.LogInformation($"svcqueue has {_svcQueue.AllTx.Count} items.");
-            });
+                }
+            }
+
+            if(block.Tags!.ContainsKey(Block.MANAGEDTAG) && block is IBrokerAccount brokerAccount)
+            {
+                // update work flow
+                var blueprint = _sys.Storage.GetBlueprint(brokerAccount.RelatedTx);
+            }
         }
 
         // bellow staking & profiting

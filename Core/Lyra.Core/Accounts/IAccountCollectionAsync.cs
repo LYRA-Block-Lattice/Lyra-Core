@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 
 namespace Lyra.Core.Accounts
@@ -59,6 +60,7 @@ namespace Lyra.Core.Accounts
         TradeBlock FindUnexecutedTrade(string AccountId, string BuyTokenCode, string SellTokenCode);
 
         List<TradeOrderBlock> GetTradeOrderBlocks();
+        long GetCurrentView();
         Task<List<TradeOrderBlock>> GetSellTradeOrdersForTokenAsync(string BuyTokenCode);
         Task<List<TradeOrderBlock>> GetSellTradeOrdersAsync(string SellTokenCode, string BuyTokenCode);
 
@@ -99,5 +101,9 @@ namespace Lyra.Core.Accounts
         /// Used for unit testing.
         /// </summary>
         void Delete();
+        void CreateBlueprint(BrokerBlueprint blueprint);
+        object GetBlueprint(string relatedTx);
+        void RemoveBlueprint(string hash);
+        List<BrokerBlueprint> GetAllBlueprints();
     }
 }

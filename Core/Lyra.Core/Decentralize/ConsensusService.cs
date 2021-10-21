@@ -78,9 +78,12 @@ namespace Lyra.Core.Decentralize
         // authorizer snapshot
         private readonly DagSystem _sys;
         public DagSystem GetDagSystem() => _sys;
+        private BrokerFactory _bf;
+        private long _currentView;
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
+            _currentView = sys.Storage.GetCurrentView();
             _hostEnv = hostEnv;
             _localNode = localNode;
             //_blockchain = blockchain;
@@ -94,6 +97,9 @@ namespace Lyra.Core.Decentralize
             _board = new BillBoard();
             //_verifiedIP = new ConcurrentDictionary<string, DateTime>();
             _failedLeaders = new ConcurrentDictionary<string, DateTime>();
+
+            _bf = new BrokerFactory();
+            _bf.Init();
 
             if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
             {
@@ -852,7 +858,7 @@ namespace Lyra.Core.Decentralize
         {
             Board.UpdatePrimary(sb.Authorizers.Keys.ToList());
             Board.CurrentLeader = sb.Leader;
-
+            _currentView = sb.Height;
             if (_viewChangeHandler?.ViewId == sb.Height)
             {
                 _viewChangeHandler.FinishViewChange(sb.Height);
@@ -1521,7 +1527,7 @@ namespace Lyra.Core.Decentralize
                                             if (block == null)
                                             {
                                                 _log.LogInformation($"One action not finished for recv {recv.Hash}. processing...");
-                                                ProcessManagedBlock(block, ConsensusResult.Yea);
+                                                //ProcessManagedBlock(block, ConsensusResult.Yea);
                                             }
                                             else
                                             {
@@ -1552,7 +1558,7 @@ namespace Lyra.Core.Decentralize
             // node block require additional works
             if (block.ContainsTag(Block.MANAGEDTAG))     // only managed account need
             {
-                ProcessManagedBlock(block, result);
+                ProcessManagedBlock(block as SendTransferBlock, result);
             }
             // client block require service
             else if (block.ContainsTag(Block.REQSERVICETAG))

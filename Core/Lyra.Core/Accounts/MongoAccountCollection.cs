@@ -17,6 +17,7 @@ using Lyra.Data.API;
 using Lyra.Data.Utils;
 using System.Text.RegularExpressions;
 using Lyra.Data.Blocks;
+using Lyra.Core.Decentralize;
 //using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
@@ -31,8 +32,10 @@ namespace Lyra.Core.Accounts
         private MongoClient _Client;
 
         private IMongoCollection<Block> _blocks;
+        private IMongoCollection<BrokerBlueprint> _blueprints;
 
         readonly string _blocksCollectionName;
+        readonly string _blueprintCollectionName;
 
         IMongoDatabase _db;
 
@@ -50,6 +53,7 @@ namespace Lyra.Core.Accounts
             _DatabaseName = _config.Lyra.Database.DatabaseName;
 
             _blocksCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blocks";
+            _blueprintCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blueprints";
 
             BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Utc, BsonType.Document));
 
@@ -57,6 +61,12 @@ namespace Lyra.Core.Accounts
             {
                 cm.AutoMap();
                 cm.SetIsRootClass(true);
+            });
+
+            BsonClassMap.RegisterClassMap<BrokerBlueprint>(cm =>
+            {
+                cm.AutoMap();
+                cm.SetIsRootClass(false);
             });
 
             BsonClassMap.RegisterClassMap<TransactionBlock>();
@@ -89,6 +99,7 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<MerchantSend>();
 
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
+            _blueprints = GetDatabase().GetCollection<BrokerBlueprint>(_blueprintCollectionName);
 
             Cluster = GetDatabase().Client.Cluster.ToString();
 
@@ -1478,6 +1489,41 @@ namespace Lyra.Core.Accounts
                 .FirstOrDefaultAsync();
 
             return pool;
+        }
+
+        public void CreateBlueprint(BrokerBlueprint blueprint)
+        {
+            var exists = _blueprints.Find(a => a.relatedTx == blueprint.relatedTx);
+            if(!exists.Any())
+            {
+                _blueprints.InsertOne(blueprint);
+            }    
+        }
+
+        public object GetBlueprint(string relatedTx)
+        {
+            var exists = _blueprints.Find(a => a.relatedTx == relatedTx);
+            return exists.FirstOrDefault();
+        }
+
+        public void RemoveBlueprint(string relatedTx)
+        {
+            _blueprints.DeleteOne(a => a.relatedTx == relatedTx);
+        }
+
+        public List<BrokerBlueprint> GetAllBlueprints()
+        {
+            return _blueprints.Find(a => true).ToList();
+        }
+
+        public long GetCurrentView()
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
+
+            var finds = _blocks.Find(filterDefination).SortByDescending(a => a.Height).FirstOrDefault();
+
+            return finds == null ? 0 : finds.Height;
         }
     }
     public static class MyExtensions

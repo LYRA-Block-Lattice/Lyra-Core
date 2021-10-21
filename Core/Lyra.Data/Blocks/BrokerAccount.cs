@@ -10,6 +10,9 @@ namespace Lyra.Data.Blocks
     {
         public string Name { get; set; }
         public string OwnerAccountId { get; set; }
+        /// <summary>
+        /// Transaction Initiator's SendTransferBlock Hash.
+        /// </summary>
         public string RelatedTx { get; set; }
     }
 

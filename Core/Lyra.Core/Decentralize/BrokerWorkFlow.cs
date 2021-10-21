@@ -10,31 +10,68 @@ namespace Lyra.Core.Decentralize
 {
     public class BrokerWorkFlow
     {
+        public bool pfrecv { get; set; }
+        public Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps { get; set; }
+        public Func<DagSystem, ReceiveTransferBlock, Task<List<TransactionBlock>>> extraOps { get; set; }
+
+        public async Task<bool> ExecuteAsync(DagSystem sys, SendTransferBlock send, Func<TransactionBlock, Task<(ConsensusResult?, APIResultCodes errorCode)>> submit)
+        {
+            // execute work flow
+            bool r1, r2, r3;
+            if (pfrecv)
+            {
+                var pfrBlock = await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, send);
+                var result = await submit(pfrBlock);
+                r1 = result.Item1 == ConsensusResult.Yea;
+            }
+            else
+            {
+                r1 = true;
+            }
+            var brkBlock = await brokerOps(sys, send);
+            // send it
+            var result2 = await submit(brkBlock);
+            r2 = result2.Item1 == ConsensusResult.Yea;
+            r3 = true;
+            if (extraOps != null)
+            {
+                var otherBlocks = await extraOps(sys, brkBlock as ReceiveTransferBlock);
+                // foreach block send it
+                foreach (var b in otherBlocks)
+                {
+                    var result3 = await submit(b);
+                    r3 = r3 && result3.Item1 == ConsensusResult.Yea;
+                }
+            }
+            return r1 && r2 && r3;
+        }
+    }
+
+    public class BrokerBlueprint
+    {
         // properties
+        public long view { get; set; }
         public DateTime start { get; set; }
         public string initiatorAccount { get; set; }
         public string brokerAccount { get; set; }
         //public bool exclusive { get; set; }
-        public string reqSendHash { get; set; }
-        public string reqRecvHash { get; set; }
+        public string relatedTx { get; set; }
 
         // work flow
         public string action { get; set; }
-        public bool pfrecv { get; set; }
-        public Action<SendTransferBlock> brokerOps { get; set; }
-        public Action<ReceiveTransferBlock> extraOps { get; set; }
+        public BrokerWorkFlow workflow { get; set; }
     }
 
     public class BrokerFactory
     {
-        public static Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task> brokerOps, Func<DagSystem, ReceiveTransferBlock, Task> extraOps)> WorkFlows;
+        public Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, ReceiveTransferBlock, Task<List<TransactionBlock>>> extraOps)> WorkFlows { get; set; }
 
         public void Init()
         {
             if (WorkFlows != null)
                 throw new InvalidOperationException("Already initialized.");
 
-            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task> brokerOps, Func<DagSystem, ReceiveTransferBlock, Task> extraOps)>();
+            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, ReceiveTransferBlock, Task<List<TransactionBlock>>> extraOps)>();
 
             // liquidate pool
             WorkFlows.Add(BrokerActions.BRK_POOL_CRPL, (true, BrokerOperations.CNOCreateLiquidatePoolAsync, null));

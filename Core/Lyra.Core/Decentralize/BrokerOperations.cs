@@ -13,7 +13,7 @@ namespace Lyra.Core.Decentralize
 {
     public class BrokerOperations
     {
-        private async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, SendTransferBlock sendBlock, string actionType)
+        public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var receiveBlock = new ReceiveTransferBlock
@@ -30,7 +30,7 @@ namespace Lyra.Core.Decentralize
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
             receiveBlock.AddTag("relhash", sendBlock.Hash);  // pool factory recv 
-            receiveBlock.AddTag("type", actionType);       // pool factory receive
+            //receiveBlock.AddTag("type", actionType);       // pool factory receive
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -322,7 +322,7 @@ namespace Lyra.Core.Decentralize
             //await QueueBlockForPoolAsync(swapInBlock, tx);   // pool swap in
         }
 
-        public static async Task<TransactionBlock> SendPoolSwapOutTokenAsync(DagSystem sys, ReceiveTransferBlock recv/*, string targetAccountId, SwapCalculator cfg*/)
+        public static async Task<List<TransactionBlock>> SendPoolSwapOutTokenAsync(DagSystem sys, ReceiveTransferBlock recv/*, string targetAccountId, SwapCalculator cfg*/)
         {
             var swapInBlock = recv as PoolSwapInBlock;
             var recvBlockPrev = await sys.Storage.FindBlockByHashAsync(recv.PreviousHash) as TransactionBlock;
@@ -383,7 +383,7 @@ namespace Lyra.Core.Decentralize
             //if (chgs.FeeAmount != cfg.PayToAuthorizer)
             //    _log.LogError($"In swap out block gen: Fee should be {cfg.PayToAuthorizer} but {chgs.FeeAmount} ");
 
-            return swapOutBlock;
+            return new List<TransactionBlock> { swapOutBlock };
             //await QueueTxActionBlockAsync(swapOutBlock);
         }
 
@@ -435,7 +435,7 @@ namespace Lyra.Core.Decentralize
             throw new NotImplementedException();
         }
 
-        public static async Task<TransactionBlock> CNORedistributeProfitAsync(DagSystem sys, ReceiveTransferBlock recv)
+        public static async Task<List<TransactionBlock>> CNORedistributeProfitAsync(DagSystem sys, ReceiveTransferBlock recv)
         {
             throw new NotImplementedException();
         }

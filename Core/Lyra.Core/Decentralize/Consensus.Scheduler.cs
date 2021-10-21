@@ -202,15 +202,11 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
-                    // check svc tasks
-                    // leader monitor. check if all items in _pendingLeaderTasks is finished. if not, change view to remove the leader.
-                    cs._svcQueue.Clean();
-                    var timeoutTasks = cs._svcQueue.TimeoutTxes;
-                    if (timeoutTasks.Any())
+                    var blueprints = cs._sys.Storage.GetAllBlueprints();
+                    if (blueprints.Any(a => a.start < DateTime.UtcNow.AddSeconds(-30)))
                     {
-                        await cs.BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.LeaderFailedProcessingDEX);
-                        cs._svcQueue.Clean();
-                        cs._svcQueue.ResetTimestamp();
+                        cs._log.LogError($"Leader task time out found.");
+                        //await cs.BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.LeaderFailedProcessingDEX);
                     }
 
                     // check consolidation block
