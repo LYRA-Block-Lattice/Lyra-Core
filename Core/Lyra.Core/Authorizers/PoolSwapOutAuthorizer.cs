@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +46,7 @@ namespace Lyra.Core.Authorizers
             if (targetAccountId != swapOutBlock.DestinationAccountId)
                 return APIResultCodes.InvalidPoolSwapOutAccountId;
 
-            if (originalSendBlock.Tags == null || originalSendBlock.Tags[Block.REQSERVICETAG] != "swaptoken")
+            if (originalSendBlock.Tags == null || originalSendBlock.Tags[Block.REQSERVICETAG] != BrokerActions.BRK_POOL_SWAP)
                 return APIResultCodes.InvalidPoolOperation;
 
             var prevPrevBlock = await sys.Storage.FindBlockByHashAsync(previousBlock.PreviousHash) as TransactionBlock;

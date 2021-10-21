@@ -1832,7 +1832,7 @@ namespace Lyra.Core.Accounts
             {
                 { "token0", pool.Token0 },
                 { "token1", pool.Token1 },
-                { Block.REQSERVICETAG, "" }
+                { Block.REQSERVICETAG, BrokerActions.BRK_POOL_ADDLQ }
             };
 
             var poolDepositResult = await SendExAsync(pool.PoolAccountId, amountsDeposit, tags);
@@ -1847,7 +1847,7 @@ namespace Lyra.Core.Accounts
 
             var tags = new Dictionary<string, string>
             {
-                { Block.REQSERVICETAG, "poolwithdraw" },
+                { Block.REQSERVICETAG, BrokerActions.BRK_POOL_RMLQ },
                 { "poolid", pool.PoolAccountId },
                 { "token0", pool.Token0 },
                 { "token1", pool.Token1 }
@@ -1868,7 +1868,7 @@ namespace Lyra.Core.Accounts
 
             var tags = new Dictionary<string, string>
             {
-                { Block.REQSERVICETAG, "swaptoken" },
+                { Block.REQSERVICETAG, BrokerActions.BRK_POOL_SWAP },
                 { "poolid", pool.PoolAccountId },
                 { "token0", pool.Token0 },
                 { "token1", pool.Token1 },

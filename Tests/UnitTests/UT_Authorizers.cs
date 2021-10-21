@@ -186,6 +186,41 @@ namespace UnitTests
 
             var crplret = await testWallet.CreateLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(crplret.Successful());
+            while(true)
+            {
+                var pool = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
+                if(pool.PoolAccountId == null)
+                {
+                    await Task.Delay(100);
+                    continue;
+                }
+                Assert.IsTrue(pool.PoolAccountId.StartsWith('L'));
+                break;
+            }
+
+            // add liquidate to pool
+            var addpoolret = await testWallet.AddLiquidateToPoolAsync(token0, 1000000, "LYR", 5000);
+            Assert.IsTrue(addpoolret.Successful());
+
+            await Task.Delay(1000);
+
+            // swap
+            var poolx = await mock.Object.GetPoolAsync(token0, LyraGlobal.OFFICIALTICKERCODE);
+            Assert.IsNotNull(poolx.PoolAccountId);
+            var poolLatestBlock = poolx.GetBlock() as TransactionBlock;
+
+            var cal2 = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, token0, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, 20, 0);
+            var swapret = await testWallet.SwapTokenAsync("LYR", token0, "LYR", 20, cal2.SwapOutAmount);
+            Assert.IsTrue(swapret.Successful());
+
+            await Task.Delay(1000);
+
+            // remove liquidate from pool
+            var rmliqret = await testWallet.RemoveLiquidateFromPoolAsync(token0, "LYR");
+            Assert.IsTrue(rmliqret.Successful());
+
+            // let workflow to finish
+            await Task.Delay(3000);
         }
     }
 }

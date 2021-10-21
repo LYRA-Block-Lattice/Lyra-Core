@@ -136,7 +136,8 @@ namespace Lyra.Core.Authorizers
                         if (chgs.Changes.Count > 1)
                             return APIResultCodes.InvalidFeeAmount;
 
-                        if (block.Tags[Block.REQSERVICETAG] == "" || block.Tags[Block.REQSERVICETAG] == BrokerActions.BRK_POOL_CRPL)
+                        if (block.Tags[Block.REQSERVICETAG] == BrokerActions.BRK_POOL_ADDLQ || 
+                            block.Tags[Block.REQSERVICETAG] == BrokerActions.BRK_POOL_CRPL)
                         {
                             if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.PoolCreateFee)
                                 return APIResultCodes.InvalidFeeAmount;
@@ -150,7 +151,7 @@ namespace Lyra.Core.Authorizers
                             if (poolGenesis != null)
                                 return APIResultCodes.PoolAlreadyExists;
                         }
-                        else if (block.Tags[Block.REQSERVICETAG] == "poolwithdraw")
+                        else if (block.Tags[Block.REQSERVICETAG] == BrokerActions.BRK_POOL_RMLQ)
                         {
                             var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
                             if (poolGenesis == null)

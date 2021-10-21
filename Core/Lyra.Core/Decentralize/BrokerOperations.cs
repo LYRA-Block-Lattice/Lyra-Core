@@ -201,9 +201,10 @@ namespace Lyra.Core.Decentralize
         {
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var recvBlock = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
+            var poolId = send.Tags["poolid"];
             PoolWithdrawBlock withdrawBlock = new PoolWithdrawBlock()
             {
-                AccountID = send.DestinationAccountId,
+                AccountID = poolId,
                 ServiceHash = lsb.Hash,
                 DestinationAccountId = send.AccountID,
                 Balances = new Dictionary<string, long>(),
@@ -211,17 +212,15 @@ namespace Lyra.Core.Decentralize
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                RelatedTx = recvBlock.Hash
+                RelatedTx = send.Hash
             };
 
             var sendBlock = await sys.Storage.FindBlockByHashAsync(recvBlock.SourceHash) as SendTransferBlock;
 
-            withdrawBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            withdrawBlock.AddTag("relhash", sendBlock.Hash);  // pool withdraw action
-            withdrawBlock.AddTag("type", "plrmout");       // pool remove liquidate
+            withdrawBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored            
 
-            var poolGenesisBlock = await sys.Storage.FindFirstBlockAsync(send.DestinationAccountId) as PoolGenesisBlock;
-            var poolLatestBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
+            var poolGenesisBlock = await sys.Storage.FindFirstBlockAsync(poolId) as PoolGenesisBlock;
+            var poolLatestBlock = await sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
 
             var curBalance = poolLatestBlock.Balances.ToDecimalDict();
             var curShares = (poolLatestBlock as IPool).Shares.ToRitoDecimalDict();

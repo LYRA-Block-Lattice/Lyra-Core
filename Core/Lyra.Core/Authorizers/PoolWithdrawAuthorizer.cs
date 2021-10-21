@@ -43,8 +43,7 @@ namespace Lyra.Core.Authorizers
             var nextShares = (poolLatestBlock as IPool).Shares.ToRitoDecimalDict();
 
             // get target accountId
-            var relatedTxBlock = await sys.Storage.FindBlockByHashAsync(withdrawBlock.RelatedTx) as ReceiveTransferBlock;
-            var originalSendBlock = await sys.Storage.FindBlockByHashAsync(relatedTxBlock.SourceHash) as SendTransferBlock;
+            var originalSendBlock = await sys.Storage.FindBlockByHashAsync(withdrawBlock.RelatedTx) as SendTransferBlock;
             var targetAccountId = originalSendBlock.AccountID;
 
             if (targetAccountId != withdrawBlock.DestinationAccountId)
