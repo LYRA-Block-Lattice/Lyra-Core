@@ -44,13 +44,28 @@ namespace Lyra.Core.Accounts
 
         public MongoAccountCollection(string connStr, string dbName)
         {
-            _log = new SimpleLogger("Mongo").Logger;
-
-            _DatabaseName = dbName;
             _Client = new MongoClient(connStr);
-
+            _DatabaseName = dbName;
             _blocksCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blocks";
             _blueprintCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blueprints";
+
+            // hack
+            if (LyraNodeConfig.GetNetworkId() == "xtest")
+            {
+                if (GetClient() == null)
+                    return;
+
+                if (GetDatabase() == null)
+                    return;
+
+                var db = GetDatabase();
+
+                if (db.ListCollectionNames().ToList().Contains(_blocksCollectionName))
+                    db.DropCollection(_blocksCollectionName);
+                if (db.ListCollectionNames().ToList().Contains(_blueprintCollectionName))
+                    db.DropCollection(_blueprintCollectionName);
+            }
+            _log = new SimpleLogger("Mongo").Logger;
 
             BsonSerializer.RegisterSerializer(typeof(DateTime), new DateTimeSerializer(DateTimeKind.Utc, BsonType.Document));
 
