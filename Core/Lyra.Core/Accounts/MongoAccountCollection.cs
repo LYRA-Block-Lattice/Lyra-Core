@@ -27,8 +27,6 @@ namespace Lyra.Core.Accounts
     public class MongoAccountCollection : IAccountCollectionAsync
     {
         //private const string COLLECTION_DATABASE_NAME = "account_collection";
-        private readonly LyraConfig _config;
-
         private MongoClient _Client;
 
         private IMongoCollection<Block> _blocks;
@@ -44,13 +42,12 @@ namespace Lyra.Core.Accounts
 
         public string Cluster { get; set; }
 
-        public MongoAccountCollection()
+        public MongoAccountCollection(string connStr, string dbName)
         {
             _log = new SimpleLogger("Mongo").Logger;
 
-            _config = Neo.Settings.Default.LyraNode;
-
-            _DatabaseName = _config.Lyra.Database.DatabaseName;
+            _DatabaseName = dbName;
+            _Client = new MongoClient(connStr);
 
             _blocksCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blocks";
             _blueprintCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blueprints";
@@ -205,7 +202,7 @@ namespace Lyra.Core.Accounts
         /// <summary>
         /// Deletes all blocks and the block collection
         /// </summary>
-        public void Delete()
+        public void Delete(bool backup = true)
         {
             if (GetClient() == null)
                 return;
@@ -219,14 +216,21 @@ namespace Lyra.Core.Accounts
             if (db.ListCollectionNames().ToList().Contains(backupName))
                 db.DropCollection(backupName);
 
-            db.RenameCollection(_blocksCollectionName, backupName);
+            if (backup)
+                db.RenameCollection(_blocksCollectionName, backupName);
+            //else
+            //{
+            //    if (db.ListCollectionNames().ToList().Contains(_blocksCollectionName))
+            //        db.DropCollection(_blocksCollectionName);
+            //}
+
             _blocks = db.GetCollection<Block>(_blocksCollectionName);
+
+            db.DropCollection(_blueprintCollectionName);
         }
 
         private MongoClient GetClient()
         {
-            if (_Client == null)
-                _Client = new MongoClient(_config.Lyra.Database.DBConnect);
             return _Client;
         }
 

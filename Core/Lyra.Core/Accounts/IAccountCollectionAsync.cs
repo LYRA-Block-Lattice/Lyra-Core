@@ -100,7 +100,7 @@ namespace Lyra.Core.Accounts
         /// Cleans up or deletes blocks collection.
         /// Used for unit testing.
         /// </summary>
-        void Delete();
+        void Delete(bool backup);
         void CreateBlueprint(BrokerBlueprint blueprint);
         object GetBlueprint(string relatedTx);
         void RemoveBlueprint(string hash);

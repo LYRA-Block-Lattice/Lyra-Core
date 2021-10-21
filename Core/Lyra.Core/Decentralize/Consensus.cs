@@ -89,7 +89,7 @@ namespace Lyra.Core.Decentralize
                 if(oldState.databaseVersion > 0 && oldState.databaseVersion < LyraGlobal.DatabaseVersion)
                 {
                     // should upgrade database or resync completely
-                    _sys.Storage.Delete();
+                    _sys.Storage.Delete(true);
                     LocalDbSyncState.Remove();
                     localDbState = await GetNodeStatusAsync();
                 }
@@ -454,7 +454,7 @@ namespace Lyra.Core.Decentralize
             }                
         }
 
-        private async Task GenesisAsync()
+        public async Task GenesisAsync()
         {
             // genesis
             _log.LogInformation("all seed nodes are ready. do genesis.");
@@ -470,11 +470,11 @@ namespace Lyra.Core.Decentralize
             await SendBlockToConsensusAndWaitResultAsync(tokenGen);
 
             await Task.Delay(2000);
-            await CreatePoolFactoryAsync();
+            var pf = await CreatePoolFactoryBlockAsync();
 
             await Task.Delay(25000);        // because cons block has a time shift.
 
-            var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen);
+            var consGen = CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
             await SendBlockToConsensusAndWaitResultAsync(consGen);
 
             await Task.Delay(1000);
@@ -565,14 +565,14 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen)
+        public ConsolidationBlock CreateConsolidationGenesisBlock(ServiceBlock svcGen, LyraTokenGenesisBlock lyraGen, PoolFactoryBlock pf)
         {
             var consBlock = new ConsolidationBlock
             {
                 createdBy = ProtocolSettings.Default.StandbyValidators[0],
                 blockHashes = new List<string>()
                 {
-                    svcGen.Hash, lyraGen.Hash
+                    svcGen.Hash, lyraGen.Hash, pf.Hash
                 },
                 totalBlockCount = 2     // not including self
             };
@@ -633,22 +633,34 @@ namespace Lyra.Core.Decentralize
             };
 
             // wait for all nodes ready
-            while (true)
+            // for unit test
+            if(_localNode == null)      // unit test code
             {
                 svcGenesis.Authorizers = new Dictionary<string, string>();
                 foreach (var pn in ProtocolSettings.Default.StandbyValidators)
                 {
-                    if (!_board.ActiveNodes.Any(a => a.AccountID == pn))
-                        break;
-
-                    svcGenesis.Authorizers.Add(pn, _board.ActiveNodes.First(a => a.AccountID == pn).AuthorizerSignature);
+                    svcGenesis.Authorizers.Add(pn, pn);
                 }
-                if (svcGenesis.Authorizers.Count >= LyraGlobal.MINIMUM_AUTHORIZERS)
-                    break;
-                else
+            }
+            else
+            {
+                while (true)
                 {
-                    _log.LogInformation($"Waiting for seed nodes to up. Now we have {svcGenesis.Authorizers.Count} of {LyraGlobal.MINIMUM_AUTHORIZERS}");
-                    await Task.Delay(1000);
+                    svcGenesis.Authorizers = new Dictionary<string, string>();
+                    foreach (var pn in ProtocolSettings.Default.StandbyValidators)
+                    {
+                        if (!_board.ActiveNodes.Any(a => a.AccountID == pn))
+                            break;
+
+                        svcGenesis.Authorizers.Add(pn, _board.ActiveNodes.First(a => a.AccountID == pn).AuthorizerSignature);
+                    }
+                    if (svcGenesis.Authorizers.Count >= LyraGlobal.MINIMUM_AUTHORIZERS)
+                        break;
+                    else
+                    {
+                        _log.LogInformation($"Waiting for seed nodes to up. Now we have {svcGenesis.Authorizers.Count} of {LyraGlobal.MINIMUM_AUTHORIZERS}");
+                        await Task.Delay(1000);
+                    }
                 }
             }
 
@@ -659,7 +671,30 @@ namespace Lyra.Core.Decentralize
             return svcGenesis;
         }
 
-        private async Task CreatePoolFactoryAsync()
+        public async Task<PoolFactoryBlock> CreatePoolFactoryBlockAsync()
+        {
+            // current leader need to create the pool factory
+            var sb = await _sys.Storage.GetLastServiceBlockAsync();
+            var pf = new PoolFactoryBlock
+            {
+                Height = 1,
+                AccountType = AccountTypes.PoolFactory,
+                AccountID = PoolFactoryBlock.FactoryAccount,        // in fact we not use this account.
+                Balances = new Dictionary<string, long>(),
+                PreviousHash = sb.Hash,
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee
+            };
+
+            pf.AddTag(Block.MANAGEDTAG, "");        // no othere variables.
+
+            // pool blocks are service block so all service block signed by leader node
+            pf.InitializeBlock(null, _sys.PosWallet.PrivateKey, AccountId: _sys.PosWallet.AccountId);
+            return pf;
+        }
+
+        public async Task CreatePoolFactoryAsync()
         {
             var factory = await _sys.Storage.GetPoolFactoryAsync();
             if (factory != null)
@@ -667,24 +702,7 @@ namespace Lyra.Core.Decentralize
 
             if (Board.CurrentLeader == _sys.PosWallet.AccountId)
             {
-                // current leader need to create the pool factory
-                var sb = await _sys.Storage.GetLastServiceBlockAsync();
-                var pf = new PoolFactoryBlock
-                {
-                    Height = 1,
-                    AccountType = AccountTypes.PoolFactory,
-                    AccountID = PoolFactoryBlock.FactoryAccount,        // in fact we not use this account.
-                    Balances = new Dictionary<string, long>(),
-                    PreviousHash = sb.Hash,
-                    ServiceHash = sb.Hash,
-                    Fee = 0,
-                    FeeType = AuthorizationFeeTypes.NoFee
-                };
-
-                pf.AddTag(Block.MANAGEDTAG, "");        // no othere variables.
-
-                // pool blocks are service block so all service block signed by leader node
-                pf.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+                var pf = await CreatePoolFactoryBlockAsync();
                 await SendBlockToConsensusAndWaitResultAsync(pf);
             }
             else

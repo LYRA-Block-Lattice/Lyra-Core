@@ -67,10 +67,13 @@ namespace Lyra
             LocalNode = localNode;
             this.LocalNode.Tell(this);
 
-            TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, store));
-            TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
+            if(hostEnv != null)     // for unit test
+            {
+                TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, store));
+                TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
 
-            TradeEngine = new TradeMatchEngine(Storage);
+                TradeEngine = new TradeMatchEngine(Storage);
+            }
         }
 
         public async Task StartAsync()

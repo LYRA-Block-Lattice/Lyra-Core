@@ -21,45 +21,63 @@ namespace UnitTests
     [TestClass]
     public class UT_Consensus : TestKit
     {
-        private const int NodesCount = 4;
-        private TestProbe[] p2pStacks;
-        private TestAuthorizer[] authorizers;
+        //private const int NodesCount = 4;
+        //private TestProbe[] p2pStacks;
+        //private TestAuthorizer[] authorizers;
+
+        private ConsensusService cs;
+        private IAccountCollectionAsync store;
 
         [TestInitialize]
         public void TestSetup()
         {
             SimpleLogger.Factory = new NullLoggerFactory();
 
-            p2pStacks = new TestProbe[NodesCount];
-            authorizers = new TestAuthorizer[NodesCount];
-            for(int i = 0; i < NodesCount; i++)
-            {
-                p2pStacks[i] = CreateTestProbe();
-                authorizers[i] = new TestAuthorizer(p2pStacks[i]);
+            var probe = CreateTestProbe();
+            var ta = new TestAuthorizer(probe);
+            cs = new ConsensusService(ta.TheDagSystem, null, null, null);
+            store = ta.TheDagSystem.Storage;
+            
 
-                p2pStacks[i].SetAutoPilot(new DelegateAutoPilot((sender, message) =>
-                {
-                    var msg = message as LocalNode.SignedMessageRelay;
-                    if (msg != null)
-                    {
-                        // foreach dagsys sender not same tell it
-                    }
-                    sender.Tell(message, ActorRefs.NoSender);
-                    return AutoPilot.KeepRunning;
-                }));
-            }
+            //p2pStacks = new TestProbe[NodesCount];
+            //authorizers = new TestAuthorizer[NodesCount];
+            //for(int i = 0; i < NodesCount; i++)
+            //{
+            //    p2pStacks[i] = CreateTestProbe();
+            //    authorizers[i] = new TestAuthorizer(p2pStacks[i]);
+
+            //    p2pStacks[i].SetAutoPilot(new DelegateAutoPilot((sender, message) =>
+            //    {
+            //        var msg = message as LocalNode.SignedMessageRelay;
+            //        if (msg != null)
+            //        {
+            //            // foreach dagsys sender not same tell it
+            //        }
+            //        sender.Tell(message, ActorRefs.NoSender);
+            //        return AutoPilot.KeepRunning;
+            //    }));
+            //}
         }
 
         [TestCleanup]
         public void Cleanup()
-        {
+        {            
             Shutdown();
         }
 
         [TestMethod]
-        public void DagStatus()
+        public async Task ConsensusCreateAsync()
         {
-            
+            store.Delete(true);
+
+            var svcGen = await cs.CreateServiceGenesisBlockAsync();
+            await store.AddBlockAsync(svcGen);
+            var tokenGen = cs.CreateLyraTokenGenesisBlock(svcGen);
+            await store.AddBlockAsync(tokenGen);
+            var pf = await cs.CreatePoolFactoryBlockAsync();
+            await store.AddBlockAsync(pf);
+            var consGen = cs.CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
+            await store.AddBlockAsync(consGen);
         }
 
         [TestMethod]

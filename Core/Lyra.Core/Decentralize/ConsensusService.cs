@@ -101,6 +101,12 @@ namespace Lyra.Core.Decentralize
             _bf = new BrokerFactory();
             _bf.Init();
 
+            if (localNode == null)
+            {
+                Board.CurrentLeader = _sys.PosWallet.AccountId;
+                return;         // for unit test
+            }                
+
             if (Neo.Settings.Default.LyraNode.Lyra.Mode == Data.Utils.NodeMode.Normal)
             {
                 _viewChangeHandler = new ViewChangeHandler(_sys, this,
