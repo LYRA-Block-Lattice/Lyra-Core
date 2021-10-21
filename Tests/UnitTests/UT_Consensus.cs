@@ -11,6 +11,7 @@ using Lyra.Shared;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Neo;
 using Neo.Network.P2P;
 using Newtonsoft.Json;
 using System;
@@ -67,7 +68,8 @@ namespace UnitTests
 
         [TestCleanup]
         public void Cleanup()
-        {            
+        {
+            store.Delete(true);
             Shutdown();
         }
 
@@ -87,17 +89,20 @@ namespace UnitTests
                 cs = ConsensusService.Instance;                
             }
             cs.Board.CurrentLeader = sys.PosWallet.AccountId;
-            store.Delete(true);
+            cs.Board.LeaderCandidate = sys.PosWallet.AccountId;
+            ProtocolSettings.Default.StandbyValidators[0] = cs.Board.CurrentLeader;
 
             var svcGen = await cs.CreateServiceGenesisBlockAsync();
-            
+            //await AuthAsync(svcGen);
             await store.AddBlockAsync(svcGen);
             var tokenGen = cs.CreateLyraTokenGenesisBlock(svcGen);
+            await AuthAsync(tokenGen);
             await store.AddBlockAsync(tokenGen);
             var pf = await cs.CreatePoolFactoryBlockAsync();
             await AuthAsync(pf);
             await store.AddBlockAsync(pf);
             var consGen = cs.CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
+            //await AuthAsync(consGen);
             await store.AddBlockAsync(consGen);
         }
 
