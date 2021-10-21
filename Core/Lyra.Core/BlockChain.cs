@@ -42,8 +42,6 @@ namespace Lyra
         public uint Height;
         public string NetworkID { get; private set; }
 
-        AuthorizersFactory _authorizerFactory = new AuthorizersFactory();
-
         private LyraConfig _nodeConfig;
         private readonly IAccountCollectionAsync _store;
         private DagSystem _sys;

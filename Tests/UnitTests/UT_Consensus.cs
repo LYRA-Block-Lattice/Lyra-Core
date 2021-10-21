@@ -4,6 +4,7 @@ using Akka.TestKit.Xunit2;
 using FluentAssertions;
 using Lyra;
 using Lyra.Core.Accounts;
+using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Lyra.Shared;
@@ -27,6 +28,8 @@ namespace UnitTests
 
         private ConsensusService cs;
         private IAccountCollectionAsync store;
+        private AuthorizersFactory af;
+        private DagSystem sys;
 
         [TestInitialize]
         public void TestSetup()
@@ -35,9 +38,12 @@ namespace UnitTests
 
             var probe = CreateTestProbe();
             var ta = new TestAuthorizer(probe);
-            cs = new ConsensusService(ta.TheDagSystem, null, null, null);
+            sys = ta.TheDagSystem;
+            sys.StartConsensus();
             store = ta.TheDagSystem.Storage;
-            
+
+            af = new AuthorizersFactory();
+            af.Init();
 
             //p2pStacks = new TestProbe[NodesCount];
             //authorizers = new TestAuthorizer[NodesCount];
@@ -65,16 +71,31 @@ namespace UnitTests
             Shutdown();
         }
 
-        [TestMethod]
-        public async Task ConsensusCreateAsync()
+        private async Task AuthAsync(Block block)
         {
+            var auth = af.Create(block.BlockType);
+            var result = await auth.AuthorizeAsync(sys, block);
+            Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"{result.Item1}");
+        }
+
+        [TestMethod]
+        public async Task GenesisTest()
+        {
+            while (cs == null)
+            {
+                await Task.Delay(1000);
+                cs = ConsensusService.Instance;                
+            }
+            cs.Board.CurrentLeader = sys.PosWallet.AccountId;
             store.Delete(true);
 
             var svcGen = await cs.CreateServiceGenesisBlockAsync();
+            
             await store.AddBlockAsync(svcGen);
             var tokenGen = cs.CreateLyraTokenGenesisBlock(svcGen);
             await store.AddBlockAsync(tokenGen);
             var pf = await cs.CreatePoolFactoryBlockAsync();
+            await AuthAsync(pf);
             await store.AddBlockAsync(pf);
             var consGen = cs.CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
             await store.AddBlockAsync(consGen);

@@ -80,6 +80,7 @@ namespace Lyra.Core.Decentralize
         public DagSystem GetDagSystem() => _sys;
         private BrokerFactory _bf;
         private long _currentView;
+        public static ConsensusService Instance;
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
@@ -168,7 +169,8 @@ namespace Lyra.Core.Decentralize
 
             Receive<Startup>(state =>
             {
-                _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup);
+                if(_hostEnv != null) // unit test
+                    _stateMachine.Fire(BlockChainTrigger.LocalNodeStartup);
             });
 
             ReceiveAsync<QueryBlockchainStatus>(async _ =>
@@ -323,7 +325,8 @@ namespace Lyra.Core.Decentralize
             _stateMachine = new StateMachine<BlockChainState, BlockChainTrigger>(BlockChainState.NULL);
             _engageTriggerStart = _stateMachine.SetTriggerParameters<long>(BlockChainTrigger.ConsensusNodesInitSynced);
             _engageTriggerConsolidateFailed = _stateMachine.SetTriggerParameters<string>(BlockChainTrigger.LocalNodeOutOfSync);
-            CreateStateMachine();
+            if(_hostEnv != null)    // HACK: support unittest
+                CreateStateMachine();
 
             var timr = new System.Timers.Timer(200);
             timr.Elapsed += (s, o) =>
@@ -346,6 +349,11 @@ namespace Lyra.Core.Decentralize
             };
             timr.AutoReset = true;
             timr.Enabled = true;
+
+            Instance = this;
+            // hack for unit test
+            if (_hostEnv == null)
+                _localNode = null;
         }
 
         private async Task BeginChangeViewAsync(string sender, ViewChangeReason reason)
@@ -939,7 +947,7 @@ namespace Lyra.Core.Decentralize
             PosNode me = new PosNode(_sys.PosWallet.AccountId)
             {
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
-                ThumbPrint = _hostEnv.GetThumbPrint(),
+                ThumbPrint = _hostEnv?.GetThumbPrint(),
                 IPAddress = $"{_myIpAddress}"
             };
 
