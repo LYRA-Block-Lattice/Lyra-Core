@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -47,6 +48,7 @@ namespace Lyra.Core.Decentralize
         }
     }
 
+    [BsonIgnoreExtraElements]
     public class BrokerBlueprint
     {
         // properties

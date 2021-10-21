@@ -1519,7 +1519,7 @@ namespace Lyra.Core.Accounts
             }    
         }
 
-        public object GetBlueprint(string relatedTx)
+        public BrokerBlueprint GetBlueprint(string relatedTx)
         {
             var exists = _blueprints.Find(a => a.relatedTx == relatedTx);
             return exists.FirstOrDefault();

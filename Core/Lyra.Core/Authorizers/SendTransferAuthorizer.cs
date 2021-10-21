@@ -266,11 +266,11 @@ namespace Lyra.Core.Authorizers
 
                     switch (block.Tags[Block.REQSERVICETAG])
                     {
-                        case "addstk":
+                        case BrokerActions.BRK_STK_ADDSTK:
                             return APIResultCodes.Success;
 
                             break;
-                        case "crstk":   // create staking
+                        case BrokerActions.BRK_STK_CRSTK:   // create staking
                             if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.StakingAccountCreateFee)
                                 return APIResultCodes.InvalidFeeAmount;
 
@@ -289,7 +289,7 @@ namespace Lyra.Core.Authorizers
                                 }
                             }
                             break;
-                        case "crpft":   // create profiting
+                        case BrokerActions.BRK_PFT_CRPFT:   // create profiting
                             if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.ProfitingAccountCreateFee)
                                 return APIResultCodes.InvalidFeeAmount;
 

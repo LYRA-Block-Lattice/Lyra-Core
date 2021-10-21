@@ -1887,8 +1887,8 @@ namespace Lyra.Core.Accounts
         {
             var tags = new Dictionary<string, string>
             {
-                { Block.REQSERVICETAG, "crpft" },
-                { "name", Name },
+                { Block.REQSERVICETAG, BrokerActions.BRK_PFT_CRPFT },
+                { "name", Name },   // get by name. name can't duplicate
                 { "ptype", ptype.ToString() },
                 { "share", $"{shareRito}" },
                 { "seats", $"{maxVoter}" }

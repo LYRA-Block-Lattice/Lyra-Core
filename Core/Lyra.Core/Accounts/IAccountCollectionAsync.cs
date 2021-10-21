@@ -102,7 +102,7 @@ namespace Lyra.Core.Accounts
         /// </summary>
         void Delete(bool backup);
         void CreateBlueprint(BrokerBlueprint blueprint);
-        object GetBlueprint(string relatedTx);
+        BrokerBlueprint GetBlueprint(string relatedTx);
         void RemoveBlueprint(string hash);
         List<BrokerBlueprint> GetAllBlueprints();
     }

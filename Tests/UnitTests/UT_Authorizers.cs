@@ -9,6 +9,7 @@ using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 using Lyra.Shared;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -36,7 +37,7 @@ namespace UnitTests
         private Wallet genesisWallet;
         private Wallet testWallet;
 
-        private TransactionBlock _lastBlock;
+        ILyraAPI client;
 
         [TestInitialize]
         public void TestSetup()
@@ -105,6 +106,7 @@ namespace UnitTests
             var api = new NodeAPI();
             var apisvc = new ApiService(NullLogger<ApiService>.Instance);
             var mock = new Mock<ILyraAPI>();
+            client = mock.Object;
             mock.Setup(x => x.SendTransferAsync(It.IsAny<SendTransferBlock>()))
                 .Callback((SendTransferBlock block) => {
                     var t = Task.Run(async () => {
@@ -120,6 +122,10 @@ namespace UnitTests
 
             mock.Setup(x => x.GetLastBlockAsync(It.IsAny<string>()))
                 .Returns<string>(acct => Task.FromResult(api.GetLastBlockAsync(acct)).Result);
+            mock.Setup(x => x.GetBlockBySourceHashAsync(It.IsAny<string>()))
+                .Returns<string>(acct => Task.FromResult(api.GetBlockBySourceHashAsync(acct)).Result);
+            mock.Setup(x => x.GetBlockByRelatedTxAsync(It.IsAny<string>()))
+                .Returns<string>(acct => Task.FromResult(api.GetBlockByRelatedTxAsync(acct)).Result);
             mock.Setup(x => x.LookForNewTransfer2Async(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns<string, string>((acct, sign) => Task.FromResult(api.LookForNewTransfer2Async(acct, sign)).Result);
             mock.Setup(x => x.GetTokenGenesisBlockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -171,6 +177,24 @@ namespace UnitTests
             await testWallet.SyncAsync(mock.Object);
             Assert.AreEqual(testWallet.BaseBalance, tamount);
 
+            //await TestPoolAsync();
+            await TestProfitingAndStaking();
+
+            // let workflow to finish
+            await Task.Delay(3000);
+        }
+
+        private async Task TestProfitingAndStaking()
+        {
+            var crpftret = await testWallet.CreateProfitingAccountAsync("moneycow", ProfitingType.Node,
+                0.5m, 50);
+            Assert.IsTrue(crpftret.Successful());
+            var pftblock = crpftret.GetBlock() as ProfitingBlock;
+            Assert.IsTrue(pftblock.AccountID.StartsWith('L'));
+        }
+
+        private async Task TestPoolAsync()
+        {
             // create pool
             var token0 = "unnitest/test0";
             var token1 = "unnitest/test1";
@@ -186,10 +210,10 @@ namespace UnitTests
 
             var crplret = await testWallet.CreateLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(crplret.Successful());
-            while(true)
+            while (true)
             {
                 var pool = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
-                if(pool.PoolAccountId == null)
+                if (pool.PoolAccountId == null)
                 {
                     await Task.Delay(100);
                     continue;
@@ -205,7 +229,7 @@ namespace UnitTests
             await Task.Delay(1000);
 
             // swap
-            var poolx = await mock.Object.GetPoolAsync(token0, LyraGlobal.OFFICIALTICKERCODE);
+            var poolx = await client.GetPoolAsync(token0, LyraGlobal.OFFICIALTICKERCODE);
             Assert.IsNotNull(poolx.PoolAccountId);
             var poolLatestBlock = poolx.GetBlock() as TransactionBlock;
 
@@ -219,8 +243,8 @@ namespace UnitTests
             var rmliqret = await testWallet.RemoveLiquidateFromPoolAsync(token0, "LYR");
             Assert.IsTrue(rmliqret.Successful());
 
-            // let workflow to finish
-            await Task.Delay(3000);
+            await Task.Delay(1000);
+            await testWallet.SyncAsync(null);
         }
     }
 }

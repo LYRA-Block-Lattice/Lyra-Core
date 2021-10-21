@@ -33,13 +33,11 @@ namespace Lyra.Core.Authorizers
                 return result;
 
             // related tx must exist 
-            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx);
+            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
             if (relTx == null)
                 return APIResultCodes.InvalidServiceRequest;
 
-            // send account must be current owner
-            var send = await sys.Storage.FindBlockByHashAsync((relTx as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
-            if (send.AccountID != block.OwnerAccountId)
+            if (relTx.AccountID != block.OwnerAccountId)
                 return APIResultCodes.InvalidServiceRequest;
 
             // service must not been processed
@@ -50,7 +48,7 @@ namespace Lyra.Core.Authorizers
             // first verify account id
             // create a semi random account for pool.
             // it can be verified by other nodes.
-            var keyStr = $"{send.Hash.Substring(0, 16)},{block.PType},{block.ShareRito},{block.Seats},{send.AccountID}";
+            var keyStr = $"{relTx.Hash.Substring(0, 16)},{block.PType},{block.ShareRito},{block.Seats},{relTx.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
             if (block.AccountID != AccountId)
