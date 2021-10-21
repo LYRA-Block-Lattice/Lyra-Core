@@ -56,7 +56,7 @@ namespace UnitTests
         [TestCleanup]
         public void Cleanup()
         {
-            store.Delete(true);
+            //store.Delete(true);
             Shutdown();
         }
 
@@ -97,23 +97,38 @@ namespace UnitTests
             var apisvc = new ApiService(NullLogger<ApiService>.Instance);
             var mock = new Mock<ILyraAPI>();
             mock.Setup(x => x.SendTransferAsync(It.IsAny<SendTransferBlock>()))
-                .Callback<SendTransferBlock>(send => _lastBlock = send)
+                .Callback((SendTransferBlock block) => {
+                    var t = Task.Run(async () => {
+                        await AuthAsync(block);
+                        await store.AddBlockAsync(block);
+                    });
+                    Task.WaitAll(t);
+                })
                 .ReturnsAsync(new AuthorizationAPIResult { ResultCode = APIResultCodes.Success });
             mock.Setup(x => x.GetSyncHeightAsync())
                 .ReturnsAsync(await api.GetSyncHeightAsync());
             mock.Setup(x => x.GetLastServiceBlockAsync())
                 .ReturnsAsync(await api.GetLastServiceBlockAsync());
-            string accId = "";
-            string sign = "";
+
             mock.Setup(x => x.GetLastBlockAsync(It.IsAny<string>()))
                 //.Callback((string s) => accId = s)
                 .Returns<string>(acct => Task.FromResult(api.GetLastBlockAsync(acct)).Result);
             mock.Setup(x => x.LookForNewTransfer2Async(It.IsAny<string>(), It.IsAny<string>()))
-                .Callback((string a, string b) => { accId = a; sign = b; })
-                .ReturnsAsync(await api.LookForNewTransfer2Async(accId, sign));
-            ReceiveTransferBlock recv = null;
+                //.Callback((string a, string b) => { accId = a; sign = b; })
+                //.ReturnsAsync(await api.LookForNewTransfer2Async(accId, sign));
+                .Returns<string, string>((acct, sign) => Task.FromResult(api.LookForNewTransfer2Async(acct, sign)).Result);
+
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Callback((ReceiveTransferBlock block) => {
+                    var t = Task.Run(async () => {
+                        await AuthAsync(block);
+                        await store.AddBlockAsync(block);
+                    });
+                    Task.WaitAll(t);
+                })
+                .ReturnsAsync(new AuthorizationAPIResult { ResultCode = APIResultCodes.Success });
+            mock.Setup(x => x.ReceiveTransferAndOpenAccountAsync(It.IsAny<OpenWithReceiveTransferBlock>()))
+                .Callback((OpenWithReceiveTransferBlock block) => {
                     var t = Task.Run(async () => {
                         await AuthAsync(block);
                         await store.AddBlockAsync(block);
@@ -130,8 +145,16 @@ namespace UnitTests
 
             Assert.IsTrue(genesisWallet.BaseBalance > 100000000m);
 
-            //Wallet.Create(walletStor, "xunit", "1234", "xtest", testPrivateKey);
-            //testWallet = Wallet.Open(walletStor, "xunit", "1234", mock.Object);
+            var sendResult = await genesisWallet.SendAsync(10000m, testPublicKey);
+            Assert.IsTrue(sendResult.Successful(), $"send error {sendResult.ResultCode}");
+
+            var walletStor2 = new AccountInMemoryStorage();
+            Wallet.Create(walletStor2, "xunit", "1234", "xtest", testPrivateKey);
+            testWallet = Wallet.Open(walletStor2, "xunit", "1234", mock.Object);
+            Assert.AreEqual(testWallet.AccountId, testPublicKey);
+
+            await testWallet.SyncAsync(mock.Object);
+            Assert.AreEqual(testWallet.BaseBalance, 10000m);
         }
     }
 }
