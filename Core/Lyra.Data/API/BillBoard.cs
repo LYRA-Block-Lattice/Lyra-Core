@@ -51,6 +51,7 @@ namespace Lyra.Data.API
             NodeAddresses = new ConcurrentDictionary<string, string>();
             ActiveNodes = new List<ActiveNode>();
             AllVoters = new List<string>();
+            PrimaryAuthorizers = new List<string>();
         }
 
         public void UpdatePrimary(List<string> list)
