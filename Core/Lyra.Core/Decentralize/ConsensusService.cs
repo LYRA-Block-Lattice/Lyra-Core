@@ -1640,7 +1640,7 @@ namespace Lyra.Core.Decentralize
 
                                 foreach (var bp in allBlueprints.OrderBy(a => a.start))
                                 {
-                                    while (IsThisNodeLeader)
+                                    if (IsThisNodeLeader)
                                     {
                                         try
                                         {
@@ -1661,7 +1661,7 @@ namespace Lyra.Core.Decentralize
                                                 var success = await bp.workflow.ExecuteAsync(_sys, send, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
                                                 _log.LogInformation($"broker request {bp.relatedTx} result: {success}");
                                                 //if (success)
-                                                    _sys.Storage.RemoveBlueprint(bp.relatedTx);
+                                                _sys.Storage.RemoveBlueprint(bp.relatedTx);
                                             }
                                         }
                                         catch (Exception e)
@@ -1669,6 +1669,8 @@ namespace Lyra.Core.Decentralize
                                             _log.LogError($"In build blueprint: {e.ToString()}");
                                         }
                                     }
+                                    else
+                                        break;
                                 }
 
                                 _pfTaskMutex.Release();
