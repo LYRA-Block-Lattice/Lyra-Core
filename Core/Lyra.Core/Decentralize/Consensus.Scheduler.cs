@@ -205,7 +205,7 @@ namespace Lyra.Core.Decentralize
                     var blueprints = cs._sys.Storage.GetAllBlueprints();
                     if (blueprints.Any(a => a.start < DateTime.UtcNow.AddSeconds(-30)))
                     {
-                        cs._log.LogError($"Leader task time out found.");
+                        //cs._log.LogError($"Leader task time out found.");
                         //await cs.BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.LeaderFailedProcessingDEX);
                     }
 
