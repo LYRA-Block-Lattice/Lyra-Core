@@ -1622,8 +1622,8 @@ namespace Lyra.Core.Decentralize
                         workflow = new BrokerWorkFlow
                         {
                             pfrecv = wf.pfrecv,
-                            brokerOps = wf.brokerOps,
-                            extraOps = wf.extraOps
+                            //brokerOps = wf.brokerOps,
+                            //extraOps = wf.extraOps
                         }
                     };
                     _sys.Storage.CreateBlueprint(blueprint);
@@ -1644,6 +1644,10 @@ namespace Lyra.Core.Decentralize
                                     {
                                         try
                                         {
+                                            var wf = _bf.WorkFlows[action];
+                                            bp.workflow.brokerOps = wf.brokerOps;
+                                            bp.workflow.extraOps = wf.extraOps;
+
                                             // hack for unit test
                                             if (_hostEnv == null)
                                             {
