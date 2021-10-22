@@ -193,8 +193,8 @@ namespace UnitTests
             await test2Wallet.SyncAsync(mock.Object);
             Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            //await TestPoolAsync();
-            await TestProfitingAndStaking();
+            await TestPoolAsync();
+            //await TestProfitingAndStaking();
 
             // let workflow to finish
             await Task.Delay(3000);

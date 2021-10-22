@@ -82,6 +82,7 @@ namespace Lyra.Core.Decentralize
         private BrokerFactory _bf;
         private long _currentView;
         public static ConsensusService Instance;
+        private Mutex _pfTaskMutex = new Mutex(false);
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
@@ -1629,26 +1630,46 @@ namespace Lyra.Core.Decentralize
 
                     if (IsThisNodeLeader)
                     {
-                        _ = Task.Run(async () =>
+                        if(_pfTaskMutex.WaitOne(1))
                         {
-                            _log.LogInformation($"start process broker request {blueprint.relatedTx}");
+                            _ = Task.Run(async () =>
+                            {
+                                _log.LogInformation($"start process broker request {blueprint.relatedTx}");
 
-                            // hack for unit test
-                            if (_hostEnv == null)
-                            {
-                                var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
-                                _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
-                                if (success)
-                                    _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
-                            }
-                            else
-                            {
-                                var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => SendBlockToConsensusAndWaitResultAsync(b));
-                                _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
-                                if (success)
-                                    _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
-                            }
-                        });
+                                var allBlueprints = _sys.Storage.GetAllBlueprints();
+
+                                foreach (var bp in allBlueprints.OrderBy(a => a.start))
+                                {
+                                    while (IsThisNodeLeader)
+                                    {
+                                        try
+                                        {
+                                            // hack for unit test
+                                            if (_hostEnv == null)
+                                            {
+                                                var success = await bp.workflow.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
+                                                _log.LogInformation($"broker request {bp.relatedTx} result: {success}");
+                                                if (success)
+                                                    _sys.Storage.RemoveBlueprint(bp.relatedTx);
+                                            }
+                                            else
+                                            {
+                                                var success = await bp.workflow.ExecuteAsync(_sys, send, (b) => SendBlockToConsensusAndWaitResultAsync(b));
+                                                _log.LogInformation($"broker request {bp.relatedTx} result: {success}");
+                                                if (success)
+                                                    _sys.Storage.RemoveBlueprint(bp.relatedTx);
+                                            }
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            _log.LogError($"In build blueprint: {e.ToString()}");
+                                        }
+                                    }
+                                }
+
+                                _pfTaskMutex.ReleaseMutex();
+                            });
+                        }
                     }
                     else
                     {
