@@ -31,6 +31,20 @@ namespace Lyra.Core.Authorizers
             if (block.AccountType != AccountTypes.Profiting)
                 return APIResultCodes.InvalidBlockType;
 
+            // related tx must exist 
+            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            if (relTx == null)
+                return APIResultCodes.InvalidServiceRequest;
+
+            // first verify account id
+            // create a semi random account for pool.
+            // it can be verified by other nodes.
+            var keyStr = $"{relTx.Hash.Substring(0, 16)},{block.PType},{block.ShareRito},{block.Seats},{relTx.AccountID}";
+            var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+
+            if (block.AccountID != AccountId)
+                return APIResultCodes.InvalidAccountId;
+
             return APIResultCodes.Success;
         }
     }

@@ -607,58 +607,71 @@ namespace Lyra.Core.Decentralize
             //var blockRelHash = block.Tags["relhash"];
             //var blockType = block.Tags["type"];
             //var poolBlock = block as TransactionBlock;
-            if (block is SendTransferBlock send && send.Tags.ContainsKey(Block.REQSERVICETAG))
+
+            
+
+            if (block is SendTransferBlock send)
             {
-                var action = send.Tags[Block.REQSERVICETAG];
-                var wf = _bf.WorkFlows[action];
-                // create a blueprint for workflow
-                var blueprint = new BrokerBlueprint
+                var dstAccount = _sys.Storage.FindFirstBlock(send.DestinationAccountId);
+
+                string action = null;
+                if (dstAccount != null && ((IOpeningBlock)dstAccount).AccountType == AccountTypes.Profiting)
+                    action = BrokerActions.BRK_PFT_GETPFT;
+                else if(send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
+                    action = send.Tags[Block.REQSERVICETAG];
+
+                if(action != null)
                 {
-                    view = _currentView,
-                    start = DateTime.UtcNow,
-                    initiatorAccount = send.AccountID,
-                    brokerAccount = send.DestinationAccountId,
-                    relatedTx = send.Hash,
-                    action = action,
-                    workflow = new BrokerWorkFlow
+                    var wf = _bf.WorkFlows[action];
+                    // create a blueprint for workflow
+                    var blueprint = new BrokerBlueprint
                     {
-                        pfrecv = wf.pfrecv,
-                        brokerOps = wf.brokerOps,
-                        extraOps = wf.extraOps
+                        view = _currentView,
+                        start = DateTime.UtcNow,
+                        initiatorAccount = send.AccountID,
+                        brokerAccount = send.DestinationAccountId,
+                        relatedTx = send.Hash,
+                        action = action,
+                        workflow = new BrokerWorkFlow
+                        {
+                            pfrecv = wf.pfrecv,
+                            brokerOps = wf.brokerOps,
+                            extraOps = wf.extraOps
+                        }
+                    };
+                    _sys.Storage.CreateBlueprint(blueprint);
+
+                    if (IsThisNodeLeader)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            _log.LogInformation($"start process broker request {blueprint.relatedTx}");
+
+                            // hack for unit test
+                            if (_hostEnv == null)
+                            {
+                                var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
+                                _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
+                                if (success)
+                                    _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
+                            }
+                            else
+                            {
+                                var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => SendBlockToConsensusAndWaitResultAsync(b));
+                                _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
+                                if (success)
+                                    _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
+                            }
+                        });
                     }
-                };
-                _sys.Storage.CreateBlueprint(blueprint);
-
-                if (IsThisNodeLeader)
-                {
-                    _ = Task.Run(async () =>
+                    else
                     {
-                        _log.LogInformation($"start process broker request {blueprint.relatedTx}");
 
-                        // hack for unit test
-                        if (_hostEnv == null)
-                        {
-                            var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
-                            _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
-                            if (success)
-                                _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
-                        }
-                        else
-                        {
-                            var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => SendBlockToConsensusAndWaitResultAsync(b));
-                            _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
-                            if (success)
-                                _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
-                        }
-                    });
-                }
-                else
-                {
-
+                    }
                 }
             }
 
-            if(block.Tags!.ContainsKey(Block.MANAGEDTAG) && block is IBrokerAccount brokerAccount)
+            if(block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG) && block is IBrokerAccount brokerAccount)
             {
                 // update work flow
                 var blueprint = _sys.Storage.GetBlueprint(brokerAccount.RelatedTx);

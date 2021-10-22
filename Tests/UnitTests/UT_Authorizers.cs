@@ -240,8 +240,24 @@ namespace UnitTests
             var stk = await CreateStaking(testWallet, pftblock.AccountID, 2000m);
             var stk2 = await CreateStaking(test2Wallet, pftblock.AccountID, 2000m);
 
-            await UnStaking(testWallet, (stk as TransactionBlock).AccountID);
-            await UnStaking(test2Wallet, (stk2 as TransactionBlock).AccountID);
+            await testWallet.SyncAsync(null);
+            await test2Wallet.SyncAsync(null);
+
+            // profit redistribution
+            var sendret = await genesisWallet.SendAsync(10000m, pftblock.AccountID);
+            Assert.IsTrue(sendret.Successful());
+            await Task.Delay(1000);
+            
+            //var bal1 = testWallet.BaseBalance;
+            //await testWallet.SyncAsync(null);
+            //Assert.AreEqual(bal1 + 5000m, testWallet.BaseBalance);
+
+            //var bal2 = test2Wallet.BaseBalance;
+            //await test2Wallet.SyncAsync(null);
+            //Assert.AreEqual(bal2 + 5000m, test2Wallet.BaseBalance);
+
+            //await UnStaking(testWallet, (stk as TransactionBlock).AccountID);
+            //await UnStaking(test2Wallet, (stk2 as TransactionBlock).AccountID);
         }
 
         private async Task TestPoolAsync()

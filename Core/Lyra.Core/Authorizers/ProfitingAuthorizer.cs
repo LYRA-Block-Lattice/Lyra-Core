@@ -28,7 +28,10 @@ namespace Lyra.Core.Authorizers
             var block = tblock as ProfitingBlock;
 
             // Validate blocks
-            var result = await VerifyBlockAsync(sys, block, null);
+            Block prev = null;
+            if (block.Height > 1)
+                prev = await sys.Storage.FindBlockByHashAsync(block.PreviousHash);
+            var result = await VerifyBlockAsync(sys, block, prev);
             if (result != APIResultCodes.Success)
                 return result;
 
@@ -37,22 +40,10 @@ namespace Lyra.Core.Authorizers
             if (relTx == null)
                 return APIResultCodes.InvalidServiceRequest;
 
-            if (relTx.AccountID != block.OwnerAccountId)
-                return APIResultCodes.InvalidServiceRequest;
-
-            // service must not been processed
-            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed.Count != 0)
-                return APIResultCodes.InvalidServiceRequest;
-
-            // first verify account id
-            // create a semi random account for pool.
-            // it can be verified by other nodes.
-            var keyStr = $"{relTx.Hash.Substring(0, 16)},{block.PType},{block.ShareRito},{block.Seats},{relTx.AccountID}";
-            var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
-
-            if (block.AccountID != AccountId)
-                return APIResultCodes.InvalidAccountId;
+            //// service must not been processed
+            //var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            //if (processed.Count != 0)
+            //    return APIResultCodes.InvalidServiceRequest;
 
             return APIResultCodes.Success;
         }

@@ -1570,10 +1570,7 @@ namespace Lyra.Core.Decentralize
                 return;
 
             // node block require additional works
-            if (block.ContainsTag(Block.MANAGEDTAG) || block.ContainsTag(Block.REQSERVICETAG))     // only managed account need
-            {
-                ProcessManagedBlock(block as TransactionBlock);
-            }
+            ProcessManagedBlock(block as TransactionBlock);
         }
 
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)

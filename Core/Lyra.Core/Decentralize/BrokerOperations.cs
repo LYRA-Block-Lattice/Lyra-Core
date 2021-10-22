@@ -431,7 +431,41 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> CNOReceiveProfitAsync(DagSystem sys, SendTransferBlock send)
         {
-            throw new NotImplementedException();
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+            var lastPft = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
+
+            var pftNext = new ProfitingBlock
+            {
+                Height = lastPft.Height + 1,
+                Name = ((IBrokerAccount)lastPft).Name,
+                OwnerAccountId = ((IBrokerAccount)lastPft).OwnerAccountId,
+                AccountID = lastPft.AccountID,
+                Balances = new Dictionary<string, long>(),
+                PreviousHash = lastPft.Hash,
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+                SourceHash = send.Hash,
+
+                // profit specified config
+                PType = ((IProfiting)lastPft).PType,
+                ShareRito = ((IProfiting)lastPft).ShareRito,
+                Seats = ((IProfiting)lastPft).Seats,
+                RelatedTx = send.Hash
+            };
+
+            //TODO: think about multiple token
+            var chgs = send.GetBalanceChanges(sendPrev);
+            var oldBalance = lastPft.Balances.ContainsKey("LYR") ? lastPft.Balances[LyraGlobal.OFFICIALTICKERCODE] : 0;
+            pftNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, oldBalance + chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong());
+
+            pftNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            // pool blocks are service block so all service block signed by leader node
+            pftNext.InitializeBlock(lastPft, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            return pftNext;
         }
 
         public static async Task<List<TransactionBlock>> CNORedistributeProfitAsync(DagSystem sys, ReceiveTransferBlock recv)

@@ -387,6 +387,14 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
+        public TransactionBlock FindFirstBlock(string AccountId)
+        {
+            var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
+
+            var result = _blocks.Find(filter).SortBy(a => a.Height).FirstOrDefault();
+            return result as TransactionBlock;
+        }
+
         public async Task<TokenGenesisBlock> FindTokenGenesisBlockAsync(string Hash, string Ticker)
         {
             //TokenGenesisBlock result = null;
