@@ -1660,7 +1660,7 @@ namespace Lyra.Core.Decentralize
                                             {
                                                 var success = await bp.workflow.ExecuteAsync(_sys, send, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
                                                 _log.LogInformation($"broker request {bp.relatedTx} result: {success}");
-                                                if (success)
+                                                //if (success)
                                                     _sys.Storage.RemoveBlueprint(bp.relatedTx);
                                             }
                                         }

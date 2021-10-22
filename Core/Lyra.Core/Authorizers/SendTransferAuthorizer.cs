@@ -127,6 +127,9 @@ namespace Lyra.Core.Authorizers
                         && (block.Tags["token0"] == LyraGlobal.OFFICIALTICKERCODE || block.Tags["token1"] == LyraGlobal.OFFICIALTICKERCODE)
                         )
                 {
+
+                    // TODO: check blueprints to see if exclusive actions exists.
+
                     if (block.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
                     {
                         var chgs = block.GetBalanceChanges(lastBlock);
