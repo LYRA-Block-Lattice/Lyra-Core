@@ -103,8 +103,10 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<PoolWithdrawBlock>();
             BsonClassMap.RegisterClassMap<PoolSwapInBlock>();
             BsonClassMap.RegisterClassMap<PoolSwapOutBlock>();
+            BsonClassMap.RegisterClassMap<ProfitingGenesis>();
             BsonClassMap.RegisterClassMap<ProfitingBlock>();
             BsonClassMap.RegisterClassMap<BenefitingBlock>();
+            BsonClassMap.RegisterClassMap<StakingGenesis>();
             BsonClassMap.RegisterClassMap<StakingBlock>();
             BsonClassMap.RegisterClassMap<UnStakingBlock>();
             BsonClassMap.RegisterClassMap<MerchantRecv>();
