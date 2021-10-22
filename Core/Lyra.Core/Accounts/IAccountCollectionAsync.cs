@@ -107,5 +107,6 @@ namespace Lyra.Core.Accounts
         BrokerBlueprint GetBlueprint(string relatedTx);
         void RemoveBlueprint(string hash);
         List<BrokerBlueprint> GetAllBlueprints();
+        Task<List<string>> FindAllStakersForProfitingAccountAsync(string pftid);
     }
 }

@@ -1552,6 +1552,31 @@ namespace Lyra.Core.Accounts
 
             return finds == null ? 0 : finds.Height;
         }
+
+        public async Task<List<string>> FindAllStakersForProfitingAccountAsync(string pftid)
+        {
+            var importedAccounts = FindAllImportedAccountID();
+
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("Voting", pftid);
+            var finds = await _blocks.FindAsync(filterDefination);
+
+            var stakings = finds.ToList()
+                .Cast<TransactionBlock>()
+                .OrderByDescending(a => a.Height)
+                .GroupBy(a => a.AccountID)      // this time select the latest block of account
+                .Select(g => new
+                {
+                    AccountId = g.Key,
+                    //Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE],
+                    Balance2 = g.First().Balances,//.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] : 0,
+                    Owner = ((IStaking)g.First()).OwnerAccountId
+                });
+
+            return stakings.OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
+                .Select(a => a.Owner)
+                .ToList();
+        }
     }
     public static class MyExtensions
     {

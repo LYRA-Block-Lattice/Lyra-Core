@@ -320,6 +320,9 @@ namespace Lyra.Core.API
                 case BlockTypes.Profiting:
                     block = JsonConvert.DeserializeObject<ProfitingBlock>(BlockData);
                     break;
+                case BlockTypes.Benefiting:
+                    block = JsonConvert.DeserializeObject<BenefitingBlock>(BlockData);
+                    break;
                 case BlockTypes.StakingGenesis:
                     block = JsonConvert.DeserializeObject<StakingGenesis>(BlockData);
                     break;

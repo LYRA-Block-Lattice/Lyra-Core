@@ -84,7 +84,7 @@ namespace Lyra.Data.Blocks
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.Profiting;
+            return BlockTypes.Benefiting;
         }
 
         protected override string GetExtraData()

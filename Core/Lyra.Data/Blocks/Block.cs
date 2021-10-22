@@ -288,6 +288,7 @@ namespace Lyra.Core.Blocks
         // staking
         ProfitingGenesis = 60,
         Profiting = 61,
+        Benefiting = 62,
 
         StakingGenesis = 65,
         Staking = 66,

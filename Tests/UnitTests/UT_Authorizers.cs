@@ -246,18 +246,18 @@ namespace UnitTests
             // profit redistribution
             var sendret = await genesisWallet.SendAsync(10000m, pftblock.AccountID);
             Assert.IsTrue(sendret.Successful());
-            await Task.Delay(1000);
-            
-            //var bal1 = testWallet.BaseBalance;
-            //await testWallet.SyncAsync(null);
-            //Assert.AreEqual(bal1 + 5000m, testWallet.BaseBalance);
+            await Task.Delay(2000);
 
-            //var bal2 = test2Wallet.BaseBalance;
-            //await test2Wallet.SyncAsync(null);
-            //Assert.AreEqual(bal2 + 5000m, test2Wallet.BaseBalance);
+            var bal1 = testWallet.BaseBalance;
+            await testWallet.SyncAsync(null);
+            Assert.AreEqual(bal1 + 5000m, testWallet.BaseBalance);
 
-            //await UnStaking(testWallet, (stk as TransactionBlock).AccountID);
-            //await UnStaking(test2Wallet, (stk2 as TransactionBlock).AccountID);
+            var bal2 = test2Wallet.BaseBalance;
+            await test2Wallet.SyncAsync(null);
+            Assert.AreEqual(bal2 + 5000m, test2Wallet.BaseBalance);
+
+            await UnStaking(testWallet, (stk as TransactionBlock).AccountID);
+            await UnStaking(test2Wallet, (stk2 as TransactionBlock).AccountID);
         }
 
         private async Task TestPoolAsync()
