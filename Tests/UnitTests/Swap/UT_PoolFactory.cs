@@ -124,6 +124,9 @@ namespace UnitTests.Swap
                 var w1 = Restore(testPrivateKey);
                 await w1.SyncAsync(client);
 
+                var r = await w1.CreateLiquidatePoolAsync("unittest/UCoinA", "LYR");
+                await Task.Delay(3000);
+
                 var result = await w1.CreateLiquidatePoolAsync("", "");
                 Assert.AreEqual(APIResultCodes.TokenGenesisBlockNotFound, result.ResultCode);
 

@@ -82,7 +82,7 @@ namespace Lyra.Core.Decentralize
         private BrokerFactory _bf;
         private long _currentView;
         public static ConsensusService Instance;
-        private SemaphoreSlim _pfTaskMutex = new SemaphoreSlim(0, 1);
+        private SemaphoreSlim _pfTaskMutex = new SemaphoreSlim(1);
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
