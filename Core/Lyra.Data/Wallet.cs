@@ -1930,7 +1930,7 @@ namespace Lyra.Core.Accounts
         {
             var tags = new Dictionary<string, string>
             {
-                { Block.REQSERVICETAG, "crstk" },
+                { Block.REQSERVICETAG, BrokerActions.BRK_STK_CRSTK },
                 { "name", Name },
                 { "voting", voteFor },
                 { "days", daysToStake.ToString() }
@@ -1976,11 +1976,20 @@ namespace Lyra.Core.Accounts
 
             var tags = new Dictionary<string, string>
             {
-                { Block.REQSERVICETAG, "addstk" }
+                { Block.REQSERVICETAG, BrokerActions.BRK_STK_ADDSTK }
             };
 
             var addStkResult = await SendExAsync(stakingAccountId, amountsDeposit, tags);
             return addStkResult;
+        }
+
+        public async Task<StakingBlock> GetStakingAsync(string stakingAccountId)
+        {
+            var result = await _rpcClient.GetLastBlockAsync(stakingAccountId);
+            if (result.Successful())
+                return result.GetBlock() as StakingBlock;
+            else
+                return null;
         }
         #endregion
 

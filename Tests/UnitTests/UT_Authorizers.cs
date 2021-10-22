@@ -190,7 +190,17 @@ namespace UnitTests
                 0.5m, 50);
             Assert.IsTrue(crpftret.Successful());
             var pftblock = crpftret.GetBlock() as ProfitingBlock;
-            Assert.IsTrue(pftblock.AccountID.StartsWith('L'));
+            Assert.IsTrue(pftblock.OwnerAccountId == testWallet.AccountId);
+
+            var crstkret = await testWallet.CreateStakingAccountAsync("moneybag", pftblock.AccountID, 3);
+            Assert.IsTrue(crstkret.Successful());
+            var stkblock = crstkret.GetBlock() as StakingBlock;
+            Assert.IsTrue(stkblock.OwnerAccountId == testWallet.AccountId);
+
+            var addstkret = await testWallet.AddStakingAsync(stkblock.AccountID, 2000m);
+            await Task.Delay(1000);
+            var stk = await testWallet.GetStakingAsync(stkblock.AccountID);
+            Assert.AreEqual(stk.Balances["LYR"].ToBalanceDecimal(), 2000m);
         }
 
         private async Task TestPoolAsync()

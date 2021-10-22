@@ -41,7 +41,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidServiceRequest;
 
             // send account must be current owner
-            var send = await sys.Storage.FindBlockByHashAsync((relTx as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
+            var send = relTx as SendTransferBlock;
             if(send.AccountID != block.OwnerAccountId)
                 return APIResultCodes.InvalidServiceRequest;
 

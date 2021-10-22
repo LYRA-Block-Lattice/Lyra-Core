@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Accounts
 {
