@@ -314,6 +314,9 @@ namespace Lyra.Core.API
                 case BlockTypes.PoolSwapOut:
                     block = JsonConvert.DeserializeObject<PoolSwapOutBlock>(BlockData);
                     break;
+                case BlockTypes.ProfitingGenesis:
+                    block = JsonConvert.DeserializeObject<ProfitingGenesis>(BlockData);
+                    break;
                 case BlockTypes.Profiting:
                     block = JsonConvert.DeserializeObject<ProfitingBlock>(BlockData);
                     break;

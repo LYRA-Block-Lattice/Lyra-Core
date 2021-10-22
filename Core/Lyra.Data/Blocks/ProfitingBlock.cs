@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Lyra.Data.Blocks
 {
-    public interface IProfiting
+    public interface IProfiting : IBrokerAccount
     {
         public ProfitingType PType { get; set; }
         public decimal ShareRito { get; set; }
@@ -47,7 +47,26 @@ namespace Lyra.Data.Blocks
     [BsonIgnoreExtraElements]
     public class ProfitingGenesis : ProfitingBlock, IOpeningBlock
     {
+        public AccountTypes AccountType { get; set; }
 
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.ProfitingGenesis;
+        }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += AccountType + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"AccountType: {AccountType}\n";
+            return result;
+        }
     }
 
 

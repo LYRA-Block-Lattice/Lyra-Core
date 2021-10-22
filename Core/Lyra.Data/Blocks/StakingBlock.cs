@@ -20,12 +20,8 @@ namespace Lyra.Core.Blocks
     }
 
     [BsonIgnoreExtraElements]
-    public class StakingBlock : ReceiveTransferBlock, IStaking
+    public class StakingBlock : BrokerAccountRecv, IStaking
     {
-        public string Name { get; set; }
-        public string OwnerAccountId { get; set; }
-        public string RelatedTx { get; set; }
-
         public string Voting { get; set; }
         public int Days { get; set; }
 
@@ -37,13 +33,6 @@ namespace Lyra.Core.Blocks
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            var plainTextBytes = Encoding.UTF8.GetBytes(Name);
-            var nameEnc = Convert.ToBase64String(plainTextBytes);   // to avoid attack
-            extraData += nameEnc + "|";
-            extraData += OwnerAccountId + "|";
-
-            if (RelatedTx != null)
-                extraData += RelatedTx + "|";       // for compatible
             extraData += Voting.ToString() + "|";
             extraData += Days.ToString() + "|";
             return extraData;
@@ -52,11 +41,8 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
-            result += $"Name: {Name}\n";
-            result += $"OwnerAccountId: {OwnerAccountId}\n";
             result += $"Voting: {Voting}\n";
             result += $"Days: {Days}\n";
-            result += $"RelatedTx: {RelatedTx}\n";
             return result;
         }
     }
@@ -87,13 +73,8 @@ namespace Lyra.Core.Blocks
     }
 
     [BsonIgnoreExtraElements]
-    public class UnStakingBlock : SendTransferBlock, IStaking
+    public class UnStakingBlock : BrokerAccountSend, IStaking
     {
-        public AccountTypes AccountType { get; set; }
-        public string Name { get; set; }        
-        public string OwnerAccountId { get; set; }
-        public string RelatedTx { get; set; }
-
         public string Voting { get; set; }
         public int Days { get; set; }
 
@@ -105,15 +86,7 @@ namespace Lyra.Core.Blocks
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
-            extraData += AccountType + "|";
 
-            var plainTextBytes = Encoding.UTF8.GetBytes(Name);
-            var nameEnc = Convert.ToBase64String(plainTextBytes);   // to avoid attack
-            extraData += nameEnc + "|";
-            extraData += OwnerAccountId + "|";
-
-            if (RelatedTx != null)
-                extraData += RelatedTx + "|";       // for compatible
             extraData += Voting.ToString() + "|";
             extraData += Days.ToString() + "|";
             return extraData;
@@ -122,12 +95,8 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
-            result += $"Name: {Name}\n";
-            result += $"AccountType: {AccountType}\n";
-            result += $"OwnerAccountId: {OwnerAccountId}\n";
             result += $"Voting: {Voting}\n";
             result += $"Days: {Days}\n";
-            result += $"RelatedTx: {RelatedTx}\n";
             return result;
         }
     }

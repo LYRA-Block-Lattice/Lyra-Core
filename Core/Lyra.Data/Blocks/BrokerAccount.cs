@@ -17,11 +17,11 @@ namespace Lyra.Data.Blocks
     }
 
     [BsonIgnoreExtraElements]
-    public class BrokerAccountRecv : ReceiveTransferBlock, IBrokerAccount, IOpeningBlock
+    public class BrokerAccountRecv : ReceiveTransferBlock, IBrokerAccount
     {
         // user specified string, less thant 32 char
         public string Name { get; set; }
-        public AccountTypes AccountType { get; set; }
+
         public string OwnerAccountId { get; set; }
         public string RelatedTx { get; set; }
 
@@ -39,7 +39,6 @@ namespace Lyra.Data.Blocks
             extraData += OwnerAccountId + "|";
             if (RelatedTx != null)
                 extraData += RelatedTx + "|";       // for compatible
-            extraData += AccountType + "|";
             return extraData;
         }
 
@@ -49,15 +48,13 @@ namespace Lyra.Data.Blocks
             result += $"Name: {Name}\n";
             result += $"OwnerAccountId: {OwnerAccountId}\n";
             result += $"RelatedTx: {RelatedTx}\n";
-            result += $"AccountType: {AccountType}\n";
             return result;
         }
     }
 
     [BsonIgnoreExtraElements]
-    public class BrokerAccountSend : SendTransferBlock, IBrokerAccount, IOpeningBlock
+    public class BrokerAccountSend : SendTransferBlock, IBrokerAccount
     {
-        public AccountTypes AccountType { get; set; }
         public string OwnerAccountId { get; set; }
         public string RelatedTx { get; set; }
 
@@ -78,7 +75,6 @@ namespace Lyra.Data.Blocks
             extraData += OwnerAccountId + "|";
             if (RelatedTx != null)
                 extraData += RelatedTx + "|";       // for compatible
-            extraData += AccountType + "|";
             return extraData;
         }
 
@@ -88,7 +84,6 @@ namespace Lyra.Data.Blocks
             result += $"Name: {Name}\n";
             result += $"OwnerAccountId: {OwnerAccountId}\n";
             result += $"RelatedTx: {RelatedTx}\n";
-            result += $"AccountType: {AccountType}\n";
             return result;
         }
     }

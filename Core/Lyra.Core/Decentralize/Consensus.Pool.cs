@@ -677,7 +677,7 @@ namespace Lyra.Core.Decentralize
 
             ProfitingType ptype;
             Enum.TryParse(send.Tags["ptype"], out ptype);
-            var poolGenesis = new ProfitingBlock
+            var poolGenesis = new ProfitingGenesis
             {
                 Height = 1,
                 Name = send.Tags["name"],
