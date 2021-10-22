@@ -76,6 +76,10 @@ namespace Lyra.Core.Authorizers
             {
                 mt.AppendLeaf(MerkleHash.Create(hash));
 
+                // verify block exists
+                if (null == await sys.Storage.FindBlockByHashAsync(hash))
+                    return APIResultCodes.BlockNotFound;
+
                 // aggregate fees
                 var transBlock = (await sys.Storage.FindBlockByHashAsync(hash)) as TransactionBlock;
                 if (transBlock != null)
