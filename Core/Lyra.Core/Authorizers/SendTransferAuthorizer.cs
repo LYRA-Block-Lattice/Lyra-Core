@@ -267,6 +267,8 @@ namespace Lyra.Core.Authorizers
                     switch (block.Tags[Block.REQSERVICETAG])
                     {
                         case BrokerActions.BRK_STK_ADDSTK:
+                        case BrokerActions.BRK_STK_UNSTK:
+                            // verify sender is the owner of stkingblock
                             return APIResultCodes.Success;
 
                             break;

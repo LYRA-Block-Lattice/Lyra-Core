@@ -47,7 +47,9 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.PoolSwapIn, "PoolSwapInAuthorizer");
             _authorizers.Add(BlockTypes.PoolSwapOut, "PoolSwapOutAuthorizer");
             _authorizers.Add(BlockTypes.Profiting, "ProfitingAuthorizer");
+            _authorizers.Add(BlockTypes.StakingGenesis, "StakingGenesisAuthorizer");
             _authorizers.Add(BlockTypes.Staking, "StakingAuthorizer");
+            _authorizers.Add(BlockTypes.UnStaking, "UnStakingAuthorizer");
 
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
             foreach(var kvp in _authorizers)

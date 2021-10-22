@@ -448,7 +448,7 @@ namespace Lyra.Core.Decentralize
             var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["voting"]},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
-            var stkGenesis = new StakingBlock
+            var stkGenesis = new StakingGenesis
             {
                 Height = 1,
                 Name = send.Tags["name"],
@@ -484,14 +484,14 @@ namespace Lyra.Core.Decentralize
         {
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
-            var lastStk = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as StakingBlock;
+            var lastStk = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
 
             var stkNext = new StakingBlock
             {
                 Height = lastStk.Height + 1,
-                Name = lastStk.Name,
-                OwnerAccountId = lastStk.OwnerAccountId,
-                AccountType = lastStk.AccountType,
+                Name = ((IBrokerAccount)lastStk).Name,
+                OwnerAccountId = ((IBrokerAccount)lastStk).OwnerAccountId,
+                //AccountType = ((IOpeningBlock)lastStk).AccountType,
                 AccountID = lastStk.AccountID,
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = lastStk.Hash,
@@ -502,8 +502,8 @@ namespace Lyra.Core.Decentralize
                 SourceHash = send.Hash,
 
                 // pool specified config
-                Voting = lastStk.Voting,
-                RelatedTx = lastStk.RelatedTx
+                Voting = ((IStaking)lastStk).Voting,
+                RelatedTx = send.Hash
             };
 
             var chgs = send.GetBalanceChanges(sendPrev);
@@ -516,12 +516,41 @@ namespace Lyra.Core.Decentralize
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return stkNext;
-            //await QueueTxActionBlockAsync(stkNext);
         }
 
         public static async Task<TransactionBlock> CNOUnStakeAsync(DagSystem sys, SendTransferBlock send)
         {
-            throw new NotImplementedException();
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+            var stkId = send.Tags["stkid"];
+            var lastStk = await sys.Storage.FindLatestBlockAsync(stkId) as StakingBlock;
+
+            var stkNext = new UnStakingBlock
+            {
+                Height = lastStk.Height + 1,
+                Name = lastStk.Name,
+                OwnerAccountId = lastStk.OwnerAccountId,
+                AccountID = lastStk.AccountID,
+                Balances = new Dictionary<string, long>(),
+                PreviousHash = lastStk.Hash,
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+                DestinationAccountId = send.AccountID,
+
+                // pool specified config
+                Voting = lastStk.Voting,
+                RelatedTx = send.Hash
+            };
+
+            stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
+
+            stkNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            // pool blocks are service block so all service block signed by leader node
+            stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            return stkNext;
         }
 
         // merchants

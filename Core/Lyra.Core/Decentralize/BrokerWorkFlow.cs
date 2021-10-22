@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Shared;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ namespace Lyra.Core.Decentralize
                 var pfrBlock = await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, send);
                 var result = await submit(pfrBlock);
                 r1 = result.Item1 == ConsensusResult.Yea;
+                Console.WriteLine($"WF: {send.Hash.Shorten()} pfrecv: {r1}");
             }
             else
             {
@@ -33,6 +35,8 @@ namespace Lyra.Core.Decentralize
             // send it
             var result2 = await submit(brkBlock);
             r2 = result2.Item1 == ConsensusResult.Yea;
+            Console.WriteLine($"WF: {send.Hash.Shorten()} {brkBlock.BlockType}: {r2}");
+
             r3 = true;
             if (extraOps != null)
             {
@@ -42,6 +46,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var result3 = await submit(b);
                     r3 = r3 && result3.Item1 == ConsensusResult.Yea;
+                    Console.WriteLine($"WF: {send.Hash.Shorten()} {b.BlockType}: {result3.Item1 == ConsensusResult.Yea}");
                 }
             }
             return r1 && r2 && r3;

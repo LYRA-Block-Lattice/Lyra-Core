@@ -722,7 +722,6 @@ namespace Lyra.Core.Decentralize
                 Height = 1,
                 Name = send.Tags["name"],
                 OwnerAccountId = send.AccountID,
-                AccountType = AccountTypes.Staking,
                 AccountID = AccountId,        // in fact we not use this account.
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = sb.Hash,
@@ -760,7 +759,6 @@ namespace Lyra.Core.Decentralize
                 Height = lastStk.Height + 1,
                 Name = lastStk.Name,
                 OwnerAccountId = lastStk.OwnerAccountId,
-                AccountType = lastStk.AccountType,
                 AccountID = lastStk.AccountID,
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = lastStk.Hash,

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class StakingAuthorizer : BaseAuthorizer
+    public class UnStakingAuthorizer : BaseAuthorizer
     {
         public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
@@ -21,10 +21,10 @@ namespace Lyra.Core.Authorizers
         }
         private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is StakingBlock))
+            if (!(tblock is UnStakingBlock))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as StakingBlock;
+            var block = tblock as UnStakingBlock;
 
             TransactionBlock lastBlock = await sys.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
             if (block.Height > 1 && lastBlock == null)
@@ -47,7 +47,7 @@ namespace Lyra.Core.Authorizers
 
             // service must not been processed
             var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if(tblock is SendTransferBlock && processed != null)
+            if(tblock is SendTransferBlock && processed.Count != 0)
                 return APIResultCodes.InvalidServiceRequest;
 
             if(block.Height == 1)

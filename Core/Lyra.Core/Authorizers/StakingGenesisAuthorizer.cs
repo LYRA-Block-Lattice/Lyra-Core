@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class StakingAuthorizer : BaseAuthorizer
+    public class StakingGenesisAuthorizer : BaseAuthorizer
     {
         public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
@@ -21,10 +21,13 @@ namespace Lyra.Core.Authorizers
         }
         private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            if (!(tblock is StakingBlock))
+            if (!(tblock is StakingGenesis))
                 return APIResultCodes.InvalidBlockType;
 
-            var block = tblock as StakingBlock;
+            var block = tblock as StakingGenesis;
+
+            if (block.AccountType != AccountTypes.Staking)
+                return APIResultCodes.InvalidBlockType;
 
             TransactionBlock lastBlock = await sys.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
             if (block.Height > 1 && lastBlock == null)
@@ -50,17 +53,14 @@ namespace Lyra.Core.Authorizers
             if(tblock is SendTransferBlock && processed != null)
                 return APIResultCodes.InvalidServiceRequest;
 
-            if(block.Height == 1)
-            {
-                // first verify account id
-                // create a semi random account for pool.
-                // it can be verified by other nodes.
-                var keyStr = $"{send.Hash.Substring(0, 16)},{block.Voting},{send.AccountID}";
-                var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+            // first verify account id
+            // create a semi random account for pool.
+            // it can be verified by other nodes.
+            var keyStr = $"{send.Hash.Substring(0, 16)},{block.Voting},{send.AccountID}";
+            var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
-                if (block.AccountID != AccountId)
-                    return APIResultCodes.InvalidAccountId;
-            }
+            if (block.AccountID != AccountId)
+                return APIResultCodes.InvalidAccountId;
 
             return APIResultCodes.Success;
         }

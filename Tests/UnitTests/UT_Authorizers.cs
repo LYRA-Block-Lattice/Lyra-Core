@@ -198,9 +198,21 @@ namespace UnitTests
             Assert.IsTrue(stkblock.OwnerAccountId == testWallet.AccountId);
 
             var addstkret = await testWallet.AddStakingAsync(stkblock.AccountID, 2000m);
+            Assert.IsTrue(addstkret.Successful());
             await Task.Delay(1000);
             var stk = await testWallet.GetStakingAsync(stkblock.AccountID);
-            Assert.AreEqual(stk.Balances["LYR"].ToBalanceDecimal(), 2000m);
+            Assert.AreEqual((stk as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), 2000m);
+
+            var balance = testWallet.BaseBalance;
+            var unstkret = await testWallet.UnStakingAsync(stkblock.AccountID);
+            Assert.IsTrue(unstkret.Successful());
+            await Task.Delay(500);
+            await testWallet.SyncAsync(null);
+            var nb = balance + 2000m - 2;// * 0.988m; // two send fee
+            Assert.AreEqual(testWallet.BaseBalance, nb);
+
+            var stk2 = await testWallet.GetStakingAsync(stkblock.AccountID);
+            Assert.AreEqual((stk2 as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), 0);
         }
 
         private async Task TestPoolAsync()
