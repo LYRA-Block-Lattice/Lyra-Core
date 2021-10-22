@@ -13,17 +13,17 @@ namespace UnitTests
         private TestProbe tp;
         private TestAuthorizer ta;
 
-        [TestInitialize]
-        public void Initialize()
-        {
-            tp = CreateTestProbe();
-            ta = new TestAuthorizer(tp);
-        }
+        //[TestInitialize]
+        //public void Initialize()
+        //{
+        //    tp = CreateTestProbe();
+        //    ta = new TestAuthorizer(tp);
+        //}
 
-        [TestMethod]
-        public void TestGenesis()
-        {
+        //[TestMethod]
+        //public void TestGenesis()
+        //{
             
-        }
+        //}
     }
 }

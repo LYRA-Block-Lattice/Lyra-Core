@@ -258,15 +258,15 @@ namespace Lyra.Core.Decentralize
             {
                 var (localAuthResult, localAuthSign) = await authorizer.AuthorizeAsync(_context.GetDagSystem(), item.Block);
 
-                // process service required send
-                if (localAuthResult == APIResultCodes.Success
-                    && item.Block is SendTransferBlock send
-                    && send.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
-                {
-                    localAuthResult = _context.AddSvcQueue(send);
-                    if (localAuthResult != APIResultCodes.Success)
-                        localAuthSign = null;       // destroy it
-                }
+                //// process service required send
+                //if (localAuthResult == APIResultCodes.Success
+                //    && item.Block is SendTransferBlock send
+                //    && send.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
+                //{
+                //    localAuthResult = _context.AddSvcQueue(send);
+                //    if (localAuthResult != APIResultCodes.Success)
+                //        localAuthSign = null;       // destroy it
+                //}
 
                 result = new AuthorizedMsg
                 {

@@ -28,6 +28,7 @@ using Shared;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using System.Diagnostics;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Decentralize
 {
@@ -1458,14 +1459,14 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public APIResultCodes AddSvcQueue(SendTransferBlock send)
-        {
-            if (!_svcQueue.CanAdd(send.DestinationAccountId))
-                return APIResultCodes.ReQuotaNeeded;
+        //public APIResultCodes AddSvcQueue(SendTransferBlock send)
+        //{
+        //    if (!_svcQueue.CanAdd(send.DestinationAccountId))
+        //        return APIResultCodes.ReQuotaNeeded;
 
-            _svcQueue.Add(send.DestinationAccountId, send.Hash);
-            return APIResultCodes.Success;
-        }
+        //    _svcQueue.Add(send.DestinationAccountId, send.Hash);
+        //    return APIResultCodes.Success;
+        //}
 
         public void Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
         {
@@ -1502,7 +1503,7 @@ namespace Lyra.Core.Decentralize
                 if (result == ConsensusResult.Yea)
                 {
                     ServiceBlockCreated(serviceBlock);
-
+                    /*
                     if (IsThisNodeLeader)
                     {
                         // new leader. clean all the unfinished swap operations
@@ -1557,7 +1558,7 @@ namespace Lyra.Core.Decentralize
                             allLeaderTasks = _svcQueue.AllTx.OrderBy(x => x.TimeStamp).ToList();
                             _log.LogInformation($"This new leader still have {allLeaderTasks.Count} leader tasks in queue.");
                         });
-                    }
+                    }*/
                 }
 
                 return;
@@ -1573,6 +1574,94 @@ namespace Lyra.Core.Decentralize
             if(block is TransactionBlock tb)
             // node block require additional works
                 ProcessManagedBlock(tb);
+        }
+
+        public void ProcessManagedBlock(TransactionBlock block)
+        {
+            //if (!block.ContainsTag("type"))
+            //{
+            //    _log.LogWarning("A MANAGEDTAG block not have type.");
+            //    return;
+            //}
+
+            //if (!block.ContainsTag("relhash"))
+            //{
+            //    _log.LogWarning("A MANAGEDTAG block not have related hash.");
+            //    return;
+            //}
+
+            //var blockRelHash = block.Tags["relhash"];
+            //var blockType = block.Tags["type"];
+            //var poolBlock = block as TransactionBlock;
+
+
+
+            if (block is SendTransferBlock send)
+            {
+                var dstAccount = _sys.Storage.FindFirstBlock(send.DestinationAccountId);
+
+                string action = null;
+                if (dstAccount != null && ((IOpeningBlock)dstAccount).AccountType == AccountTypes.Profiting)
+                    action = BrokerActions.BRK_PFT_GETPFT;
+                else if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
+                    action = send.Tags[Block.REQSERVICETAG];
+
+                if (action != null)
+                {
+                    var wf = _bf.WorkFlows[action];
+                    // create a blueprint for workflow
+                    var blueprint = new BrokerBlueprint
+                    {
+                        view = _currentView,
+                        start = DateTime.UtcNow,
+                        initiatorAccount = send.AccountID,
+                        brokerAccount = send.DestinationAccountId,
+                        relatedTx = send.Hash,
+                        action = action,
+                        workflow = new BrokerWorkFlow
+                        {
+                            pfrecv = wf.pfrecv,
+                            brokerOps = wf.brokerOps,
+                            extraOps = wf.extraOps
+                        }
+                    };
+                    _sys.Storage.CreateBlueprint(blueprint);
+
+                    if (IsThisNodeLeader)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            _log.LogInformation($"start process broker request {blueprint.relatedTx}");
+
+                            // hack for unit test
+                            if (_hostEnv == null)
+                            {
+                                var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
+                                _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
+                                if (success)
+                                    _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
+                            }
+                            else
+                            {
+                                var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => SendBlockToConsensusAndWaitResultAsync(b));
+                                _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
+                                if (success)
+                                    _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
+                            }
+                        });
+                    }
+                    else
+                    {
+
+                    }
+                }
+            }
+
+            if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG) && block is IBrokerAccount brokerAccount)
+            {
+                // update work flow
+                var blueprint = _sys.Storage.GetBlueprint(brokerAccount.RelatedTx);
+            }
         }
 
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)

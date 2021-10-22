@@ -22,29 +22,29 @@ namespace Lyra.Core.Decentralize
         // for unittest only
         public event TxHandler OnNewBlock;
 
-        private readonly ServiceTxQueue _svcQueue = new ServiceTxQueue();
-        private async Task QueueBlockForPoolAsync(TransactionBlock block, ServiceTx tx)
-        {
-            if (block == null || tx == null)
-                throw new ArgumentNullException();
+        //private readonly ServiceTxQueue _svcQueue = new ServiceTxQueue();
+        //private async Task QueueBlockForPoolAsync(TransactionBlock block, ServiceTx tx)
+        //{
+        //    if (block == null || tx == null)
+        //        throw new ArgumentNullException();
 
-            if(IsThisNodeLeader)
-            {
-                await SendBlockToConsensusAndForgetAsync(block);
-            }
-        }
+        //    if(IsThisNodeLeader)
+        //    {
+        //        await SendBlockToConsensusAndForgetAsync(block);
+        //    }
+        //}
 
-        private async Task QueueTxActionBlockAsync(TransactionBlock actionBlock)
-        {
-            if (actionBlock == null)
-                throw new ArgumentNullException();
+        //private async Task QueueTxActionBlockAsync(TransactionBlock actionBlock)
+        //{
+        //    if (actionBlock == null)
+        //        throw new ArgumentNullException();
 
-            if (IsThisNodeLeader)
-            {
-                await SendBlockToConsensusAndForgetAsync(actionBlock);
-            }
-        }
-
+        //    if (IsThisNodeLeader)
+        //    {
+        //        await SendBlockToConsensusAndForgetAsync(actionBlock);
+        //    }
+        //}
+        /*
         private async Task PoolFactoryRecvActionAsync(Block block, ConsensusResult? result)
         {
             if (result == ConsensusResult.Yea)
@@ -109,7 +109,7 @@ namespace Lyra.Core.Decentralize
         /// </summary>
         /// <param name="sendBlock"></param>
         /// <returns></returns>
-        private async Task ReceivePoolFactoryFeeAsync(SendTransferBlock sendBlock, string actionType)
+        private async Task xReceivePoolFactoryFeeAsync(SendTransferBlock sendBlock, string actionType)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var receiveBlock = new ReceiveTransferBlock
@@ -158,7 +158,7 @@ namespace Lyra.Core.Decentralize
             {
                 PoolId = latestPoolBlock.AccountID
             };
-            await QueueBlockForPoolAsync(receiveBlock, tx);  // create pool / withdraw
+            ////await QueueBlockForPoolAsync(receiveBlock, tx);  // create pool / withdraw
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace Lyra.Core.Decentralize
         /// </summary>
         /// <param name="sendBlock"></param>
         /// <returns></returns>
-        private async Task ReceivePoolSwapInAsync(SendTransferBlock sendBlock)
+        private async Task xReceivePoolSwapInAsync(SendTransferBlock sendBlock)
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -228,7 +228,7 @@ namespace Lyra.Core.Decentralize
             {
                 PoolId = latestPoolBlock.AccountID
             };
-            await QueueBlockForPoolAsync(swapInBlock, tx);   // pool swap in
+            //await QueueBlockForPoolAsync(swapInBlock, tx);   // pool swap in
         }
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace Lyra.Core.Decentralize
         /// <param name="token"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        private async Task SendPoolSwapOutTokenAsync(PoolSwapInBlock swapInBlock, string targetAccountId, SwapCalculator cfg)
+        private async Task xSendPoolSwapOutTokenAsync(PoolSwapInBlock swapInBlock, string targetAccountId, SwapCalculator cfg)
         {
             var lsb = await _sys.Storage.GetLastServiceBlockAsync();
             var swapOutBlock = new PoolSwapOutBlock()
@@ -294,7 +294,7 @@ namespace Lyra.Core.Decentralize
             if(chgs.FeeAmount != cfg.PayToAuthorizer)
                 _log.LogError($"In swap out block gen: Fee should be {cfg.PayToAuthorizer} but {chgs.FeeAmount} ");
 
-            await QueueTxActionBlockAsync(swapOutBlock);
+            //await QueueTxActionBlockAsync(swapOutBlock);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace Lyra.Core.Decentralize
         /// </summary>
         /// <param name="sendBlock"></param>
         /// <returns></returns>
-        private async Task ReceivePoolDepositionAsync(SendTransferBlock sendBlock)
+        private async Task xReceivePoolDepositionAsync(SendTransferBlock sendBlock)
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -379,7 +379,7 @@ namespace Lyra.Core.Decentralize
             {
                 PoolId = latestPoolBlock.AccountID
             };
-            await QueueBlockForPoolAsync(depositBlock, tx);  // pool deposition
+            //await QueueBlockForPoolAsync(depositBlock, tx);  // pool deposition
         }
 
         /// <summary>
@@ -444,7 +444,7 @@ namespace Lyra.Core.Decentralize
 
             withdrawBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(_sys.PosWallet.PrivateKey, hash, _sys.PosWallet.AccountId));
 
-            await QueueTxActionBlockAsync(withdrawBlock);
+            //await QueueTxActionBlockAsync(withdrawBlock);
         }
 
         /// <summary>
@@ -454,7 +454,7 @@ namespace Lyra.Core.Decentralize
         /// <param name="token0"></param>
         /// <param name="token1"></param>
         /// <returns></returns>
-        private async Task CNOCreateLiquidatePoolAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock, string token0, string token1)
+        private async Task xCNOCreateLiquidatePoolAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock, string token0, string token1)
         {
             var sb = await _sys.Storage.GetLastServiceBlockAsync();
 
@@ -500,7 +500,7 @@ namespace Lyra.Core.Decentralize
             // pool blocks are service block so all service block signed by leader node
             poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
-            await QueueTxActionBlockAsync(poolGenesis);
+            //await QueueTxActionBlockAsync(poolGenesis);
         }
 
         private void ProcessSendBlock(SendTransferBlock send)
@@ -590,93 +590,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public void ProcessManagedBlock(TransactionBlock block)
-        {
-            //if (!block.ContainsTag("type"))
-            //{
-            //    _log.LogWarning("A MANAGEDTAG block not have type.");
-            //    return;
-            //}
 
-            //if (!block.ContainsTag("relhash"))
-            //{
-            //    _log.LogWarning("A MANAGEDTAG block not have related hash.");
-            //    return;
-            //}
-
-            //var blockRelHash = block.Tags["relhash"];
-            //var blockType = block.Tags["type"];
-            //var poolBlock = block as TransactionBlock;
-
-            
-
-            if (block is SendTransferBlock send)
-            {
-                var dstAccount = _sys.Storage.FindFirstBlock(send.DestinationAccountId);
-
-                string action = null;
-                if (dstAccount != null && ((IOpeningBlock)dstAccount).AccountType == AccountTypes.Profiting)
-                    action = BrokerActions.BRK_PFT_GETPFT;
-                else if(send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
-                    action = send.Tags[Block.REQSERVICETAG];
-
-                if(action != null)
-                {
-                    var wf = _bf.WorkFlows[action];
-                    // create a blueprint for workflow
-                    var blueprint = new BrokerBlueprint
-                    {
-                        view = _currentView,
-                        start = DateTime.UtcNow,
-                        initiatorAccount = send.AccountID,
-                        brokerAccount = send.DestinationAccountId,
-                        relatedTx = send.Hash,
-                        action = action,
-                        workflow = new BrokerWorkFlow
-                        {
-                            pfrecv = wf.pfrecv,
-                            brokerOps = wf.brokerOps,
-                            extraOps = wf.extraOps
-                        }
-                    };
-                    _sys.Storage.CreateBlueprint(blueprint);
-
-                    if (IsThisNodeLeader)
-                    {
-                        _ = Task.Run(async () =>
-                        {
-                            _log.LogInformation($"start process broker request {blueprint.relatedTx}");
-
-                            // hack for unit test
-                            if (_hostEnv == null)
-                            {
-                                var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
-                                _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
-                                if (success)
-                                    _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
-                            }
-                            else
-                            {
-                                var success = await blueprint.workflow.ExecuteAsync(_sys, send, (b) => SendBlockToConsensusAndWaitResultAsync(b));
-                                _log.LogInformation($"broker request {blueprint.relatedTx} result: {success}");
-                                if (success)
-                                    _sys.Storage.RemoveBlueprint(blueprint.relatedTx);
-                            }
-                        });
-                    }
-                    else
-                    {
-
-                    }
-                }
-            }
-
-            if(block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG) && block is IBrokerAccount brokerAccount)
-            {
-                // update work flow
-                var blueprint = _sys.Storage.GetBlueprint(brokerAccount.RelatedTx);
-            }
-        }
 
         // bellow staking & profiting
         private async Task CNOCreateProfitingAccountAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock)
@@ -718,7 +632,7 @@ namespace Lyra.Core.Decentralize
             // pool blocks are service block so all service block signed by leader node
             poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
-            await QueueTxActionBlockAsync(poolGenesis);
+            //await QueueTxActionBlockAsync(poolGenesis);
         }
 
         private async Task CNOCreateStakingAccountAsync(SendTransferBlock send, ReceiveTransferBlock recvBlock)
@@ -758,7 +672,7 @@ namespace Lyra.Core.Decentralize
             // pool blocks are service block so all service block signed by leader node
             stkGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
-            await QueueTxActionBlockAsync(stkGenesis);
+            //await QueueTxActionBlockAsync(stkGenesis);
         }
 
         private async Task CNOAddStakingAsync(SendTransferBlock send)
@@ -796,8 +710,8 @@ namespace Lyra.Core.Decentralize
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
-            await QueueTxActionBlockAsync(stkNext);
-        }
+            //await QueueTxActionBlockAsync(stkNext);
+        }*/
 
     }
 }
