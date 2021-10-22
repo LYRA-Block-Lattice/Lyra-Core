@@ -434,25 +434,26 @@ namespace Lyra.Core.Decentralize
             return result;
         }
 
-        public async Task<BlockAPIResult> GetBlockByRelatedTxAsync(string Hash)
+        public async Task<MultiBlockAPIResult> GetBlocksByRelatedTxAsync(string Hash)
         {
-            var result = new BlockAPIResult();
+            var result = new MultiBlockAPIResult();
 
             try
             {
-                var block = await NodeService.Dag.Storage.FindBlockByRelatedTxAsync(Hash);
-                if (block != null)
+                var blocks = await NodeService.Dag.Storage.FindBlocksByRelatedTxAsync(Hash);
+                if (blocks == null)
                 {
-                    result.BlockData = Json(block);
-                    result.ResultBlockType = block.BlockType;
-                    result.ResultCode = APIResultCodes.Success;
-                }
-                else
                     result.ResultCode = APIResultCodes.BlockNotFound;
+                    return result;
+                }
+
+                result.SetBlocks(blocks.ToArray());
+                result.ResultCode = APIResultCodes.Success;
+                return result;
             }
             catch (Exception e)
             {
-                Console.WriteLine("Exception in GetBlockByRelatedTxAsync(Hash): " + e.Message);
+                Console.WriteLine("Exception in GetBlocksByRelatedTxAsync(Hash): " + e.Message);
                 result.ResultCode = APIResultCodes.UnknownError;
                 result.ResultMessage = e.ToString();
             }

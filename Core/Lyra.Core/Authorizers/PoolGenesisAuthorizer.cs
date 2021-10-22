@@ -40,7 +40,7 @@ namespace Lyra.Core.Authorizers
             var send = await sys.Storage.FindBlockByHashAsync((relTx as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
 
             // service must not been processed
-            var processed = await sys.Storage.FindBlockByRelatedTxAsync(block.RelatedTx);
+            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
             if (processed != null)
                 return APIResultCodes.InvalidServiceRequest;
 

@@ -124,8 +124,8 @@ namespace UnitTests
                 .Returns<string>(acct => Task.FromResult(api.GetLastBlockAsync(acct)).Result);
             mock.Setup(x => x.GetBlockBySourceHashAsync(It.IsAny<string>()))
                 .Returns<string>(acct => Task.FromResult(api.GetBlockBySourceHashAsync(acct)).Result);
-            mock.Setup(x => x.GetBlockByRelatedTxAsync(It.IsAny<string>()))
-                .Returns<string>(acct => Task.FromResult(api.GetBlockByRelatedTxAsync(acct)).Result);
+            mock.Setup(x => x.GetBlocksByRelatedTxAsync(It.IsAny<string>()))
+                .Returns<string>(acct => Task.FromResult(api.GetBlocksByRelatedTxAsync(acct)).Result);
             mock.Setup(x => x.LookForNewTransfer2Async(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns<string, string>((acct, sign) => Task.FromResult(api.LookForNewTransfer2Async(acct, sign)).Result);
             mock.Setup(x => x.GetTokenGenesisBlockAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))

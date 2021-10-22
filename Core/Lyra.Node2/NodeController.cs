@@ -195,12 +195,12 @@ namespace LyraLexWeb2
             return await _node.GetBlockBySourceHashAsync(Hash);
         }
 
-        [Route("GetBlockByRelatedTx")]
+        [Route("GetBlocksByRelatedTx")]
         [HttpGet]
-        public async Task<BlockAPIResult> GetBlockByRelatedTxAsync(string Hash)
+        public async Task<MultiBlockAPIResult> GetBlocksByRelatedTxAsync(string Hash)
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.GetBlockByRelatedTxAsync(Hash);
+            return await _node.GetBlocksByRelatedTxAsync(Hash);
         }
 
         [Route("GetNonFungibleTokens")]

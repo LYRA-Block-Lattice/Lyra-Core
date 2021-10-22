@@ -13,6 +13,7 @@ using System.Data;
 using Lyra.Data.API;
 using Lyra.Data.Utils;
 using System.Threading;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Accounts
 {
@@ -1903,16 +1904,20 @@ namespace Lyra.Core.Accounts
 
             for(int i = 0; i < 10; i++)
             {
-                // first get receive hash
-                var recv = await _rpcClient.GetBlockBySourceHashAsync(_lastTransactionBlock.Hash);
-                if (recv.Successful())
+                // then find by RelatedTx
+                var blocks = await _rpcClient.GetBlocksByRelatedTxAsync(GetLatestBlock().Hash);
+                if (blocks.Successful())
                 {
-                    // then find by RelatedTx
-                    var block = recv.GetBlock();
-                    var gen = await _rpcClient.GetBlockByRelatedTxAsync(block.Hash);
-                    if(gen.Successful())
+                    var txs = blocks.GetBlocks();
+                    var gen = txs.FirstOrDefault(a => a is ProfitingBlock pb && pb.OwnerAccountId == AccountId);
+                    if (gen != null)
                     {
-                        return gen;
+                        var ret = new BlockAPIResult
+                        {
+                            ResultCode = APIResultCodes.Success,
+                        };
+                        ret.SetBlock(gen);
+                        return ret;
                     }
                 }
                 await Task.Delay(500);
@@ -1940,16 +1945,20 @@ namespace Lyra.Core.Accounts
 
             for (int i = 0; i < 10; i++)
             {
-                // first get receive hash
-                var recv = await _rpcClient.GetBlockBySourceHashAsync(_lastTransactionBlock.Hash);
-                if (recv.Successful())
+                // then find by RelatedTx
+                var blocks = await _rpcClient.GetBlocksByRelatedTxAsync(GetLatestBlock().Hash);
+                if (blocks.Successful())
                 {
-                    // then find by RelatedTx
-                    var block = recv.GetBlock();
-                    var gen = await _rpcClient.GetBlockByRelatedTxAsync(block.Hash);
-                    if (gen.Successful())
+                    var txs = blocks.GetBlocks();
+                    var gen = txs.FirstOrDefault(a => a is StakingBlock pb && pb.OwnerAccountId == AccountId);
+                    if (gen != null)
                     {
-                        return gen;
+                        var ret = new BlockAPIResult
+                        {
+                            ResultCode = APIResultCodes.Success,
+                        };
+                        ret.SetBlock(gen);
+                        return ret;
                     }
                 }
                 await Task.Delay(500);

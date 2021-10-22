@@ -41,8 +41,8 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidServiceRequest;
 
             // service must not been processed
-            var processed = await sys.Storage.FindBlockByRelatedTxAsync(block.RelatedTx);
-            if (processed != null)
+            var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            if (processed.Count != 0)
                 return APIResultCodes.InvalidServiceRequest;
 
             // first verify account id

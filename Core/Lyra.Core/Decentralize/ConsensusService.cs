@@ -1535,19 +1535,19 @@ namespace Lyra.Core.Decentralize
                                     {
                                         entry.FinishRecv(recv.Hash);
 
-                                        if ((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
-                                        {
-                                            var block = await _sys.Storage.FindBlockByRelatedTxAsync(recv.Hash);
-                                            if (block == null)
-                                            {
-                                                _log.LogInformation($"One action not finished for recv {recv.Hash}. processing...");
-                                                //ProcessManagedBlock(block, ConsensusResult.Yea);
-                                            }
-                                            else
-                                            {
-                                                entry.FinishAction(block.Hash);
-                                            }
-                                        }
+                                        //if ((entry is ServiceWithActionTx actx) && actx.ReplyActionHash == null)
+                                        //{
+                                        //    var block = await _sys.Storage.FindBlocksByRelatedTxAsync(recv.Hash);
+                                        //    if (block == null)
+                                        //    {
+                                        //        _log.LogInformation($"One action not finished for recv {recv.Hash}. processing...");
+                                        //        //ProcessManagedBlock(block, ConsensusResult.Yea);
+                                        //    }
+                                        //    else
+                                        //    {
+                                        //        entry.FinishAction(block.Hash);
+                                        //    }
+                                        //}
                                     }
                                 }
                             }
