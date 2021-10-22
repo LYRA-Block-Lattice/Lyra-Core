@@ -96,6 +96,7 @@ namespace Lyra.Core.Decentralize
             _stats = new List<TransStats>();
 
             _board = new BillBoard();
+
             //_verifiedIP = new ConcurrentDictionary<string, DateTime>();
             _failedLeaders = new ConcurrentDictionary<string, DateTime>();
 
