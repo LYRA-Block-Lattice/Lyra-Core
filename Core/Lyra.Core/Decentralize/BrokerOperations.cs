@@ -103,7 +103,7 @@ namespace Lyra.Core.Decentralize
                 // pool specified config
                 Token0 = arrStr[0],
                 Token1 = arrStr[1],
-                RelatedTx = recvBlock.Hash
+                RelatedTx = send.Hash
             };
 
             poolGenesis.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
@@ -343,7 +343,7 @@ namespace Lyra.Core.Decentralize
                 Fee = cfg.PayToAuthorizer,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.Regular,
-                RelatedTx = recv.Hash
+                RelatedTx = send.Hash
             };
 
             swapOutBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
