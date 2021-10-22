@@ -5,21 +5,17 @@ using System.Text;
 
 namespace Lyra.Data.Blocks
 {
-    public interface IMerchant
+    public interface IMerchant : IBrokerAccount
     {
 
     }
-    public class MerchantRecv : ReceiveTransferBlock, IBrokerAccount, IMerchant
+    public class MerchantRecv : BrokerAccountRecv, IMerchant
     {
-        public string Name { get; set; }
-        public string OwnerAccountId { get; set; }
-        public string RelatedTx { get; set; }
+
     }
 
-    public class MerchantSend : SendTransferBlock, IBrokerAccount, IMerchant
+    public class MerchantSend : BrokerAccountSend, IMerchant
     {
-        public string Name { get; set; }
-        public string OwnerAccountId { get; set; }
-        public string RelatedTx { get; set; }
+
     }
 }

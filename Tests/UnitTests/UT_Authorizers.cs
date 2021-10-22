@@ -29,6 +29,9 @@ namespace UnitTests
         readonly string testPrivateKey = "2LqBaZopCiPjBQ9tbqkqqyo4TSaXHUth3mdMJkhaBbMTf6Mr8u";
         readonly string testPublicKey = "LUTPLGNAP4vTzXh5tWVCmxUBh8zjGTR8PKsfA8E67QohNsd1U6nXPk4Q9jpFKsKfULaaT3hs6YK7WKm57QL5oarx8mZdbM";
 
+        readonly string test2PrivateKey = "2XAGksPqMDxeSJVoE562TX7JzmCKna3i7AS9e4ZPmiTKQYATsy";
+        string test2PublicKey = "LUTob2rWpFBZ6r3UxHhDYR8Utj4UDrmf1SFC25RpQxEfZNaA2WHCFtLVmURe1ty4ZNU9gBkCCrSt6ffiXKrRH3z9T3ZdXK";
+
         private ConsensusService cs;
         private IAccountCollectionAsync store;
         private AuthorizersFactory af;
@@ -36,6 +39,7 @@ namespace UnitTests
 
         private Wallet genesisWallet;
         private Wallet testWallet;
+        private Wallet test2Wallet;
 
         ILyraAPI client;
 
@@ -168,7 +172,10 @@ namespace UnitTests
             var tamount = 1000000m;
             var sendResult = await genesisWallet.SendAsync(tamount, testPublicKey);
             Assert.IsTrue(sendResult.Successful(), $"send error {sendResult.ResultCode}");
+            var sendResult2 = await genesisWallet.SendAsync(tamount, test2PublicKey);
+            Assert.IsTrue(sendResult2.Successful(), $"send error {sendResult.ResultCode}");
 
+            // test 1 wallet
             var walletStor2 = new AccountInMemoryStorage();
             Wallet.Create(walletStor2, "xunit", "1234", "xtest", testPrivateKey);
             testWallet = Wallet.Open(walletStor2, "xunit", "1234", mock.Object);
@@ -177,11 +184,49 @@ namespace UnitTests
             await testWallet.SyncAsync(mock.Object);
             Assert.AreEqual(testWallet.BaseBalance, tamount);
 
+            // test 2 wallet
+            var walletStor3 = new AccountInMemoryStorage();
+            Wallet.Create(walletStor3, "xunit2", "1234", "xtest", test2PrivateKey);
+            test2Wallet = Wallet.Open(walletStor3, "xunit2", "1234", mock.Object);
+            Assert.AreEqual(test2Wallet.AccountId, test2PublicKey);
+
+            await test2Wallet.SyncAsync(mock.Object);
+            Assert.AreEqual(test2Wallet.BaseBalance, tamount);
+
             //await TestPoolAsync();
             await TestProfitingAndStaking();
 
             // let workflow to finish
             await Task.Delay(3000);
+        }
+
+        private async Task<IStaking> CreateStaking(Wallet w, string pftid, decimal amount)
+        {
+            var crstkret = await w.CreateStakingAccountAsync("moneybag", pftid, 3);
+            Assert.IsTrue(crstkret.Successful());
+            var stkblock = crstkret.GetBlock() as StakingBlock;
+            Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);
+
+            var addstkret = await w.AddStakingAsync(stkblock.AccountID, amount);
+            Assert.IsTrue(addstkret.Successful());
+            await Task.Delay(1000);
+            var stk = await w.GetStakingAsync(stkblock.AccountID);
+            Assert.AreEqual((stk as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), amount);
+            return stk;
+        }
+
+        private async Task UnStaking(Wallet w, string stkid)
+        {
+            var balance = w.BaseBalance;
+            var unstkret = await w.UnStakingAsync(stkid);
+            Assert.IsTrue(unstkret.Successful());
+            await Task.Delay(500);
+            await w.SyncAsync(null);
+            var nb = balance + 2000m - 2;// * 0.988m; // two send fee
+            Assert.AreEqual(w.BaseBalance, nb);
+
+            var stk2 = await w.GetStakingAsync(stkid);
+            Assert.AreEqual((stk2 as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), 0);
         }
 
         private async Task TestProfitingAndStaking()
@@ -192,27 +237,11 @@ namespace UnitTests
             var pftblock = crpftret.GetBlock() as ProfitingBlock;
             Assert.IsTrue(pftblock.OwnerAccountId == testWallet.AccountId);
 
-            var crstkret = await testWallet.CreateStakingAccountAsync("moneybag", pftblock.AccountID, 3);
-            Assert.IsTrue(crstkret.Successful());
-            var stkblock = crstkret.GetBlock() as StakingBlock;
-            Assert.IsTrue(stkblock.OwnerAccountId == testWallet.AccountId);
+            var stk = await CreateStaking(testWallet, pftblock.AccountID, 2000m);
+            var stk2 = await CreateStaking(test2Wallet, pftblock.AccountID, 2000m);
 
-            var addstkret = await testWallet.AddStakingAsync(stkblock.AccountID, 2000m);
-            Assert.IsTrue(addstkret.Successful());
-            await Task.Delay(1000);
-            var stk = await testWallet.GetStakingAsync(stkblock.AccountID);
-            Assert.AreEqual((stk as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), 2000m);
-
-            var balance = testWallet.BaseBalance;
-            var unstkret = await testWallet.UnStakingAsync(stkblock.AccountID);
-            Assert.IsTrue(unstkret.Successful());
-            await Task.Delay(500);
-            await testWallet.SyncAsync(null);
-            var nb = balance + 2000m - 2;// * 0.988m; // two send fee
-            Assert.AreEqual(testWallet.BaseBalance, nb);
-
-            var stk2 = await testWallet.GetStakingAsync(stkblock.AccountID);
-            Assert.AreEqual((stk2 as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), 0);
+            await UnStaking(testWallet, (stk as TransactionBlock).AccountID);
+            await UnStaking(test2Wallet, (stk2 as TransactionBlock).AccountID);
         }
 
         private async Task TestPoolAsync()
