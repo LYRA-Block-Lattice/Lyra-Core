@@ -41,7 +41,7 @@ namespace Lyra.Core.Authorizers
 
             // service must not been processed
             var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (processed != null)
+            if (processed.Count != 0)
                 return APIResultCodes.InvalidServiceRequest;
 
             // create a semi random account for pool.

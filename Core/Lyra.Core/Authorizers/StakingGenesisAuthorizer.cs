@@ -50,7 +50,7 @@ namespace Lyra.Core.Authorizers
 
             // service must not been processed
             var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if(tblock is SendTransferBlock && processed != null)
+            if(tblock is SendTransferBlock && processed.Count != 0)
                 return APIResultCodes.InvalidServiceRequest;
 
             // first verify account id
