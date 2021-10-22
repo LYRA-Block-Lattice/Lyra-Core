@@ -103,8 +103,8 @@ namespace UnitTests
             var pf = await cs.CreatePoolFactoryBlockAsync();
             await AuthAsync(pf);
             var consGen = cs.CreateConsolidationGenesisBlock(svcGen, tokenGen, pf);
-            //await AuthAsync(consGen);
-            await store.AddBlockAsync(consGen);
+            await AuthAsync(consGen);
+            //await store.AddBlockAsync(consGen);
 
             NodeService.Dag = sys;
             var api = new NodeAPI();

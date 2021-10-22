@@ -1569,8 +1569,9 @@ namespace Lyra.Core.Decentralize
             if (result != ConsensusResult.Yea)
                 return;
 
+            if(block is TransactionBlock tb)
             // node block require additional works
-            ProcessManagedBlock(block as TransactionBlock);
+                ProcessManagedBlock(tb);
         }
 
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)

@@ -574,13 +574,14 @@ namespace Lyra.Core.Decentralize
                 {
                     svcGen.Hash, lyraGen.Hash, pf.Hash
                 },
-                totalBlockCount = 2     // not including self
+                totalBlockCount = 3     // not including self
             };
             consBlock.TimeStamp = DateTime.UtcNow.AddSeconds(-18);
 
             var mt = new MerkleTree();
             mt.AppendLeaf(MerkleHash.Create(svcGen.Hash));
             mt.AppendLeaf(MerkleHash.Create(lyraGen.Hash));
+            mt.AppendLeaf(MerkleHash.Create(pf.Hash));
 
             consBlock.MerkelTreeHash = mt.BuildTree().ToString();
             consBlock.ServiceHash = svcGen.Hash;
