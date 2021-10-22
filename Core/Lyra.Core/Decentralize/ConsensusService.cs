@@ -82,7 +82,7 @@ namespace Lyra.Core.Decentralize
         private BrokerFactory _bf;
         private long _currentView;
         public static ConsensusService Instance;
-        private Mutex _pfTaskMutex = new Mutex(false);
+        private SemaphoreSlim _pfTaskMutex = new SemaphoreSlim(0, 1);
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
@@ -1630,7 +1630,7 @@ namespace Lyra.Core.Decentralize
 
                     if (IsThisNodeLeader)
                     {
-                        if(_pfTaskMutex.WaitOne(1))
+                        if(_pfTaskMutex.Wait(1))
                         {
                             _ = Task.Run(async () =>
                             {
@@ -1667,7 +1667,7 @@ namespace Lyra.Core.Decentralize
                                     }
                                 }
 
-                                _pfTaskMutex.ReleaseMutex();
+                                _pfTaskMutex.Release();
                             });
                         }
                     }

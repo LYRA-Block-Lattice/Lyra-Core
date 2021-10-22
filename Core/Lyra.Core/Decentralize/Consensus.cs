@@ -539,9 +539,9 @@ namespace Lyra.Core.Decentralize
                     var signAgainst = prevSvcBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
                     foreach (var voter in _board.AllVoters)
                     {
-                        //TODO: voter may not exists.
-                        var node = _board.ActiveNodes.First(a => a.AccountID == voter);
-                        svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
+                        var node = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == voter);
+                        if(node != null)
+                            svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
                     }
 
                     // fees aggregation
