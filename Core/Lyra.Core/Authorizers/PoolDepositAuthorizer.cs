@@ -31,7 +31,8 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as PoolDepositBlock;
 
-
+            if (block.SourceHash != block.RelatedTx)
+                return APIResultCodes.InvalidRelatedTx;
 
             return APIResultCodes.Success;
         }

@@ -37,6 +37,10 @@ namespace Lyra.Core.Authorizers
             if (block.Days < 1 || block.Days > 36500)
                 return APIResultCodes.InvalidTimeRange;
 
+            var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            if (send == null || send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                return APIResultCodes.InvalidMessengerAccount;
+
             return APIResultCodes.Success;
         }
     }

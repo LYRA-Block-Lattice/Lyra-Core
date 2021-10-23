@@ -34,6 +34,10 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as PoolSwapOutBlock;
 
+            // also prevent race condition
+            var recv = await sys.Storage.FindBlockByHashAsync(block.PreviousHash) as ReceiveTransferBlock;
+            if (recv.SourceHash != block.RelatedTx)
+                return APIResultCodes.InvalidRelatedTx;
 
             return APIResultCodes.Success;
         }

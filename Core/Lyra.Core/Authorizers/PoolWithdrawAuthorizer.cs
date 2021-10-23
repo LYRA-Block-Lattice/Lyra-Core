@@ -31,6 +31,14 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as PoolWithdrawBlock;
 
+            var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            if (send == null || send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                return APIResultCodes.InvalidMessengerAccount;
+
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            if(blocks.Count != 0)
+                return APIResultCodes.InvalidRelatedTx;
+
             return APIResultCodes.Success;
         }
 

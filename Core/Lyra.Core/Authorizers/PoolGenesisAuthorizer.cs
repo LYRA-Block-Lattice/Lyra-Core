@@ -38,7 +38,7 @@ namespace Lyra.Core.Authorizers
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (relTx == null)
+            if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
                 return APIResultCodes.InvalidServiceRequest;
 
             // service must not been processed

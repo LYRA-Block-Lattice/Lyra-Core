@@ -45,6 +45,8 @@ namespace Lyra.Core.Authorizers
 
             // related tx must exist 
             var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            if (send == null || send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                return APIResultCodes.InvalidMessengerAccount;
 
             // first verify account id
             // create a semi random account for pool.

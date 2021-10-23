@@ -25,17 +25,22 @@ namespace Lyra.Core.Authorizers
         }
         private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            var recv = tblock as BrokerAccountRecv;
-            if (recv == null)
+            var block = tblock as BrokerAccountRecv;
+            if (block == null)
                 return APIResultCodes.InvalidBlockType;
 
-            if (string.IsNullOrWhiteSpace(recv.Name))
+            if (string.IsNullOrWhiteSpace(block.Name))
                 return APIResultCodes.InvalidName;
 
-            if (!await sys.Storage.AccountExistsAsync(recv.OwnerAccountId))
+            if (!await sys.Storage.AccountExistsAsync(block.OwnerAccountId))
                 return APIResultCodes.AccountDoesNotExist;
 
-            if (null == await sys.Storage.FindBlockByHashAsync(recv.RelatedTx))
+            var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            if (send == null)
+                return APIResultCodes.InvalidRelatedTx;
+
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            if (blocks.Count != 0)
                 return APIResultCodes.InvalidRelatedTx;
 
             return APIResultCodes.Success;
@@ -60,18 +65,27 @@ namespace Lyra.Core.Authorizers
         }
         private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            var send = tblock as BrokerAccountSend;
-            if (send == null)
+            var block = tblock as BrokerAccountSend;
+            if (block == null)
                 return APIResultCodes.InvalidBlockType;
 
-            if (string.IsNullOrWhiteSpace(send.Name))
+            if (string.IsNullOrWhiteSpace(block.Name))
                 return APIResultCodes.InvalidName;
 
-            if (!await sys.Storage.AccountExistsAsync(send.OwnerAccountId))
+            if (!await sys.Storage.AccountExistsAsync(block.OwnerAccountId))
                 return APIResultCodes.AccountDoesNotExist;
 
-            if (null == await sys.Storage.FindBlockByHashAsync(send.RelatedTx))
+            var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            if (send == null)
                 return APIResultCodes.InvalidRelatedTx;
+
+            // benefiting may have multiple blocks
+            if(!(block is BenefitingBlock))
+            {
+                var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+                if (blocks.Count != 0)
+                    return APIResultCodes.InvalidRelatedTx;
+            }
 
             return APIResultCodes.Success;
         }
