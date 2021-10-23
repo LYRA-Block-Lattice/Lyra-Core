@@ -69,7 +69,7 @@ namespace UnitTests.Swap
                 var token1 = testTokenA;
 
                 var poolCreateResult = await w1.CreateLiquidatePoolAsync(token0, token1);
-                Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, "Can't create pool for " + token1);
+                Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"Can't create pool for {token1} {poolCreateResult.ResultCode}");
             }
         }
         [TestMethod]
@@ -300,7 +300,7 @@ namespace UnitTests.Swap
                     { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
                 };
                 var poolCreateResultx = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
-                Assert.IsTrue(poolCreateResultx.ResultCode == APIResultCodes.Success, "Should finally OK.");
+                Assert.IsTrue(poolCreateResultx.ResultCode != APIResultCodes.Success, "Should finally OK.");
 
                 //// finally do it right
                 //tags = new Dictionary<string, string>();

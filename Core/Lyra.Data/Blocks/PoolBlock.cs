@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Data.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using System;
@@ -10,6 +11,7 @@ namespace Lyra.Core.Blocks
     public interface IPool
     {
         Dictionary<string, long> Shares { get; set; }
+        public string RelatedTx { get; set; }
     }
     /// <summary>
     /// 
@@ -17,6 +19,7 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class PoolDepositBlock : ReceiveTransferBlock, IPool
     {
+        public string RelatedTx { get; set; }
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolDeposit;
@@ -83,6 +86,7 @@ namespace Lyra.Core.Blocks
     [BsonIgnoreExtraElements]
     public class PoolSwapInBlock : ReceiveTransferBlock, IPool
     {
+        public string RelatedTx { get; set; }
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.PoolSwapIn;
@@ -145,11 +149,12 @@ namespace Lyra.Core.Blocks
     /// 
     /// </summary>
     [BsonIgnoreExtraElements]
-    public class PoolGenesisBlock : ReceiveTransferBlock, IOpeningBlock
+    public class PoolGenesisBlock : ReceiveTransferBlock, IPool, IOpeningBlock
     {
         public string Token0 { get; set; }
         public string Token1 { get; set; }
         public string RelatedTx { get; set; }
+        public Dictionary<string, long> Shares { get; set; }
 
         public override BlockTypes GetBlockType()
         {

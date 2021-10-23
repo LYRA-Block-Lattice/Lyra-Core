@@ -81,6 +81,7 @@ namespace Lyra.Data.Blocks
         // when distribute profit, make sure the staking time frame overlap profit time.
         // staking -> last profiting -> this profiting -> unstaking
         public string ProfitHash { get; set; } 
+        public string StakingAccountId { get; set; }
 
         public override BlockTypes GetBlockType()
         {

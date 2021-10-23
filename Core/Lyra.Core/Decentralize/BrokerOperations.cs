@@ -13,8 +13,14 @@ namespace Lyra.Core.Decentralize
 {
     public class BrokerOperations
     {
+        // every method must check if the operation has been done.
+        // if has been done, return null.
         public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
+            var pfrcv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
+            if (pfrcv != null)
+                return null;
+
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var receiveBlock = new ReceiveTransferBlock
             {
@@ -68,6 +74,10 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> CNOCreateLiquidatePoolAsync(DagSystem sys, SendTransferBlock send/*, ReceiveTransferBlock recvBlock, string token0, string token1*/)
         {
+            var pool = await sys.Storage.GetPoolAsync(send.Tags["token0"], send.Tags["token1"]);
+            if (pool != null)
+                return null;
+
             var sb = await sys.Storage.GetLastServiceBlockAsync();
 
             // get token gensis to make the token name proper
@@ -121,6 +131,9 @@ namespace Lyra.Core.Decentralize
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
+            var existsAdd = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
+            if (existsAdd != null)
+                return null;
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var depositBlock = new PoolDepositBlock
@@ -199,6 +212,10 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> SendWithdrawFundsAsync(DagSystem sys, SendTransferBlock send/*, string poolId, string targetAccountId*/)
         {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            if (blocks.Any(a => a is PoolWithdrawBlock))
+                return null;
+
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var recvBlock = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             var poolId = send.Tags["poolid"];
@@ -259,6 +276,9 @@ namespace Lyra.Core.Decentralize
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(sendBlock.Hash);
+            if (blocks.Any(a => a is PoolSwapInBlock))
+                return null;
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var swapInBlock = new PoolSwapInBlock
@@ -270,7 +290,9 @@ namespace Lyra.Core.Decentralize
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                RelatedTx = sendBlock.Hash
             };
 
             swapInBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
@@ -321,8 +343,15 @@ namespace Lyra.Core.Decentralize
             //await QueueBlockForPoolAsync(swapInBlock, tx);   // pool swap in
         }
 
-        public static async Task<List<TransactionBlock>> SendPoolSwapOutTokenAsync(DagSystem sys, ReceiveTransferBlock recv/*, string targetAccountId, SwapCalculator cfg*/)
+        public static async Task<List<TransactionBlock>> SendPoolSwapOutTokenAsync(DagSystem sys, string reqHash)
         {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(reqHash);
+            var swout = blocks.FirstOrDefault(a => a is PoolSwapOutBlock);
+            if (swout != null)
+                return null;
+
+            var recv = blocks.FirstOrDefault(a => a is PoolSwapInBlock) as PoolSwapInBlock;
+
             var swapInBlock = recv as PoolSwapInBlock;
             var recvBlockPrev = await sys.Storage.FindBlockByHashAsync(recv.PreviousHash) as TransactionBlock;
             var recvChgs = swapInBlock.GetBalanceChanges(recvBlockPrev);
@@ -332,7 +361,7 @@ namespace Lyra.Core.Decentralize
                     kvp.Key, kvp.Value, 0);
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
-            var send = await sys.Storage.FindBlockByHashAsync(recv.SourceHash) as SendTransferBlock;
+            var send = await sys.Storage.FindBlockByHashAsync(swapInBlock.SourceHash) as SendTransferBlock;
             var swapOutBlock = new PoolSwapOutBlock()
             {
                 AccountID = send.DestinationAccountId,
@@ -388,6 +417,11 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> CNOCreateProfitingAccountAsync(DagSystem sys, SendTransferBlock send)
         {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var pgen = blocks.FirstOrDefault(a => a is ProfitingGenesis);
+            if (pgen != null)
+                return null;
+
             var sb = await sys.Storage.GetLastServiceBlockAsync();
 
             // create a semi random account for pool.
@@ -431,6 +465,10 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> CNOReceiveProfitAsync(DagSystem sys, SendTransferBlock send)
         {
+            var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
+            if (block != null)
+                return null;
+
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
             var lastPft = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
@@ -468,8 +506,11 @@ namespace Lyra.Core.Decentralize
             return pftNext;
         }
 
-        public static async Task<List<TransactionBlock>> CNORedistributeProfitAsync(DagSystem sys, ReceiveTransferBlock recv)
+        public static async Task<List<TransactionBlock>> CNORedistributeProfitAsync(DagSystem sys, string reqHash)
         {
+            var recv = await sys.Storage.FindBlockBySourceHashAsync(reqHash);
+            var allsents = await sys.Storage.FindBlocksByRelatedTxAsync(reqHash);
+
             // create [multiple] send based on the staking
             var prevBlock = await sys.Storage.FindBlockByHashAsync(recv.PreviousHash) as TransactionBlock;
             var chgs = recv.GetBalanceChanges(prevBlock);
@@ -486,7 +527,9 @@ namespace Lyra.Core.Decentralize
             var allSends = new List<TransactionBlock>();
             foreach (var target in targets)
             {
-                
+                if (allsents.Any(x => x is BenefitingBlock bfb && bfb.StakingAccountId == target.stk))
+                    continue;
+
                 var pftSend = new BenefitingBlock
                 {
                     Height = lastPft.Height + 1,
@@ -499,13 +542,14 @@ namespace Lyra.Core.Decentralize
                     Fee = 0,
                     FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                     FeeType = AuthorizationFeeTypes.NoFee,
-                    DestinationAccountId = target,
+                    DestinationAccountId = target.user,
 
                     // profit specified config
                     PType = ((IProfiting)lastPft).PType,
                     ShareRito = ((IProfiting)lastPft).ShareRito,
                     Seats = ((IProfiting)lastPft).Seats,
-                    RelatedTx = recv.SourceHash
+                    RelatedTx = (recv as ReceiveTransferBlock).SourceHash,
+                    StakingAccountId = target.stk
                 };
 
                 //TODO: think about multiple token
@@ -520,11 +564,19 @@ namespace Lyra.Core.Decentralize
 
                 lastPft = pftSend;
             }
-            return allSends;
+            if (allSends.Count > 0)
+                return allSends;
+            else
+                return null;
         }
 
         public static async Task<TransactionBlock> CNOCreateStakingAccountAsync(DagSystem sys, SendTransferBlock send)
         {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            var pgen = blocks.FirstOrDefault(a => a is StakingGenesis);
+            if (pgen != null)
+                return null;
+
             var sb = await sys.Storage.GetLastServiceBlockAsync();
 
             // create a semi random account for pool.
@@ -566,6 +618,10 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> CNOAddStakingAsync(DagSystem sys, SendTransferBlock send)
         {
+            var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
+            if (block != null)
+                return null;
+
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
             var lastStk = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
@@ -604,6 +660,10 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> CNOUnStakeAsync(DagSystem sys, SendTransferBlock send)
         {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            if (blocks.All(a => a is UnStakingBlock))
+                return null;
+
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
             var stkId = send.Tags["stkid"];

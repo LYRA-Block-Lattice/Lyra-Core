@@ -664,15 +664,15 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<Block>> FindBlocksByRelatedTxAsync(string hash)
         {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-            };
+            //var options = new FindOptions<Block, Block>
+            //{
+            //    Limit = 1,
+            //};
             var builder = new FilterDefinitionBuilder<Block>();
             var filterDefinition = builder.Eq("RelatedTx", hash);
 
             var result = await _blocks
-                .FindAsync(filterDefinition, options);
+                .FindAsync(filterDefinition);
 
             return await result.ToListAsync();
         }
@@ -1522,7 +1522,7 @@ namespace Lyra.Core.Accounts
 
         public void CreateBlueprint(BrokerBlueprint blueprint)
         {
-            var exists = _blueprints.Find(a => a.relatedTx == blueprint.relatedTx);
+            var exists = _blueprints.Find(a => a.svcReqHash == blueprint.svcReqHash);
             if(!exists.Any())
             {
                 _blueprints.InsertOne(blueprint);
@@ -1531,13 +1531,19 @@ namespace Lyra.Core.Accounts
 
         public BrokerBlueprint GetBlueprint(string relatedTx)
         {
-            var exists = _blueprints.Find(a => a.relatedTx == relatedTx);
+            var exists = _blueprints.Find(a => a.svcReqHash == relatedTx);
             return exists.FirstOrDefault();
         }
 
         public void RemoveBlueprint(string relatedTx)
         {
-            _blueprints.DeleteOne(a => a.relatedTx == relatedTx);
+            _blueprints.DeleteOne(a => a.svcReqHash == relatedTx);
+        }
+
+        public void UpdateBlueprint(BrokerBlueprint bp)
+        {
+            RemoveBlueprint(bp.svcReqHash);
+            CreateBlueprint(bp);
         }
 
         public List<BrokerBlueprint> GetAllBlueprints()
@@ -1555,7 +1561,8 @@ namespace Lyra.Core.Accounts
             return finds == null ? 0 : finds.Height;
         }
 
-        public async Task<List<string>> FindAllStakersForProfitingAccountAsync(string pftid)
+        // StakingAccountId -> UserAccountId
+        public async Task<List<(string stk, string user)>> FindAllStakersForProfitingAccountAsync(string pftid)
         {
             var importedAccounts = FindAllImportedAccountID();
 
@@ -1576,7 +1583,7 @@ namespace Lyra.Core.Accounts
                 });
 
             return stakings.OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
-                .Select(a => a.Owner)
+                .Select(a => (a.AccountId, a.Owner))
                 .ToList();
         }
     }
