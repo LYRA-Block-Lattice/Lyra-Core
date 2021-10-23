@@ -105,7 +105,7 @@ namespace UnitTests.Swap
                 var token1 = tokenFullName;
 
                 var poolCreateResult = await w1.CreateLiquidatePoolAsync(token0, token1);
-                Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, "Can't create pool for " + token1);
+                Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"{poolCreateResult.ResultCode} Can't create pool for " + token1);
             }
             finally
             {

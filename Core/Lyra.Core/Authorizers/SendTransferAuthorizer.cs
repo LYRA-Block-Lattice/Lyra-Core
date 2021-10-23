@@ -219,7 +219,7 @@ namespace Lyra.Core.Authorizers
                             return APIResultCodes.InvalidProfitingAccount;
                         }
                         var pftgen = await sys.Storage.FindFirstBlockAsync(votefor) as ProfitingGenesis;
-                        if(pftgen == null || pftgen.AccountType == AccountTypes.Profiting)
+                        if(pftgen == null || pftgen.AccountType != AccountTypes.Profiting)
                         {
                             return APIResultCodes.InvalidProfitingAccount;
                         }
