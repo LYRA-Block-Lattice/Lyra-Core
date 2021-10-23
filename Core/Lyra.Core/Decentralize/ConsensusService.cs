@@ -1626,9 +1626,10 @@ namespace Lyra.Core.Decentralize
                     try
                     {
                         var allBlueprints = _sys.Storage.GetAllBlueprints();
-
+                        _log.LogInformation($"Executing blueprints: total {allBlueprints.Count} pending.");
                         foreach (var bp in allBlueprints.OrderBy(a => a.start))
                         {
+                            _log.LogInformation($"Executing blueprints: process {bp.svcReqHash} ...");
                             if (IsThisNodeLeader)
                             {
                                 try
@@ -1643,8 +1644,9 @@ namespace Lyra.Core.Decentralize
                                     }
                                     else
                                     {
+                                        _log.LogInformation($"Begin executing blueprints...");
                                         var success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
-                                        _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                                        _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
                                         if (success)
                                             _sys.Storage.RemoveBlueprint(bp.svcReqHash);
                                         else
@@ -1655,7 +1657,7 @@ namespace Lyra.Core.Decentralize
                                 }
                                 catch (Exception e)
                                 {
-                                    _log.LogError($"In build blueprint: {e.ToString()}");
+                                    _log.LogError($"In executing blueprint: {e}");
                                 }
                             }
                             else
@@ -1664,10 +1666,11 @@ namespace Lyra.Core.Decentralize
                     }
                     catch(Exception e)
                     {
-                        _log.LogInformation("Error Executing blueprints: " + e.ToString());
+                        _log.LogError("Error Executing blueprints: " + e.ToString());
                     }
                     finally
                     {
+                        _log.LogInformation("Executing blueprints Done.");
                         _pfTaskMutex.Release();
                     }                    
                 });
