@@ -1695,7 +1695,7 @@ namespace Lyra.Core.Decentralize
             {
                 _ = Task.Run(async () => {
                     var send = await _sys.Storage.FindBlockByHashAsync(key) as SendTransferBlock;
-                    var success = await bp.ExecuteAsync(_sys, send, null);  // fake run
+                    var success = await bp.ExecuteAsync(_sys, send, async (b) => await Task.FromResult((ConsensusResult.Uncertain, APIResultCodes.UndefinedError)));  // fake run
                     _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                     if (success)
                         _sys.Storage.RemoveBlueprint(bp.svcReqHash);
