@@ -44,11 +44,11 @@ namespace Lyra.Core.Decentralize
 
         public bool FullDone => preDone && mainDone && extraDone;
 
-        public async Task<bool> ExecuteAsync(DagSystem sys, SendTransferBlock send, Func<TransactionBlock, Task<(ConsensusResult?, APIResultCodes errorCode)>> submit)
+        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task<(ConsensusResult?, APIResultCodes errorCode)>> submit)
         {
             // execute work flow
             var wf = BrokerFactory.WorkFlows[action];
-
+            var send = await sys.Storage.FindBlockByHashAsync(svcReqHash) as SendTransferBlock;
             if (!preDone)
             {
                 if(wf.pfrecv)

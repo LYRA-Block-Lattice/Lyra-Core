@@ -1608,59 +1608,59 @@ namespace Lyra.Core.Decentralize
                 };
                 _sys.Storage.CreateBlueprint(blueprint);
 
-                if (IsThisNodeLeader)
+                if(IsThisNodeLeader)
                 {
-                    if (_pfTaskMutex.Wait(1))
+                    _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
+                    ExecuteBlueprints();
+                }
+            }
+        }
+
+        public void ExecuteBlueprints()
+        {
+            if (_pfTaskMutex.Wait(1))
+            {
+                _ = Task.Run(async () =>
+                {
+                    var allBlueprints = _sys.Storage.GetAllBlueprints();
+
+                    foreach (var bp in allBlueprints.OrderBy(a => a.start))
                     {
-                        _ = Task.Run(async () =>
+                        if (IsThisNodeLeader)
                         {
-                            _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
-
-                            var allBlueprints = _sys.Storage.GetAllBlueprints();
-
-                            foreach (var bp in allBlueprints.OrderBy(a => a.start))
-                            {
-                                if (IsThisNodeLeader)
+                            try
+                            {                                
+                                // hack for unit test
+                                if (_hostEnv == null)
                                 {
-                                    try
-                                    {
-                                        // hack for unit test
-                                        if (_hostEnv == null)
-                                        {
-                                            var success = await bp.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
-                                            _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                                            if (success)
-                                                _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                                        }
-                                        else
-                                        {
-                                            var success = await bp.ExecuteAsync(_sys, send, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
-                                            _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                                            if (success)
-                                                _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                                            else
-                                            {
-                                                _sys.Storage.UpdateBlueprint(bp);
-                                            }
-                                        }
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        _log.LogError($"In build blueprint: {e.ToString()}");
-                                    }
+                                    var success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
+                                    _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                                    if (success)
+                                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
                                 }
                                 else
-                                    break;
+                                {
+                                    var success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
+                                    _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                                    if (success)
+                                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                    else
+                                    {
+                                        _sys.Storage.UpdateBlueprint(bp);
+                                    }
+                                }
                             }
-
-                            _pfTaskMutex.Release();
-                        });
+                            catch (Exception e)
+                            {
+                                _log.LogError($"In build blueprint: {e.ToString()}");
+                            }
+                        }
+                        else
+                            break;
                     }
-                }
-                else
-                {
 
-                }
+                    _pfTaskMutex.Release();
+                });
             }
         }
 
@@ -1694,8 +1694,7 @@ namespace Lyra.Core.Decentralize
             if(!bp.FullDone)
             {
                 _ = Task.Run(async () => {
-                    var send = await _sys.Storage.FindBlockByHashAsync(key) as SendTransferBlock;
-                    var success = await bp.ExecuteAsync(_sys, send, async (b) => await Task.FromResult((ConsensusResult.Uncertain, APIResultCodes.UndefinedError)));  // fake run
+                    var success = await bp.ExecuteAsync(_sys, async (b) => await Task.FromResult((ConsensusResult.Uncertain, APIResultCodes.UndefinedError)));  // fake run
                     _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                     if (success)
                         _sys.Storage.RemoveBlueprint(bp.svcReqHash);

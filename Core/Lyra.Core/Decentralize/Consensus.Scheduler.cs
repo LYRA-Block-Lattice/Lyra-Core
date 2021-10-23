@@ -202,12 +202,15 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
-                    var blueprints = cs._sys.Storage.GetAllBlueprints();
-                    if (blueprints.Any(a => a.start < DateTime.UtcNow.AddSeconds(-30)))
+                    if(cs.IsThisNodeLeader)
                     {
-                        //cs._log.LogError($"Leader task time out found.");
-                        //await cs.BeginChangeViewAsync("Leader svc checker timer", ViewChangeReason.LeaderFailedProcessingDEX);
+                        var blueprints = cs._sys.Storage.GetAllBlueprints();
+                        if (blueprints.Any())//a => a.start < DateTime.UtcNow.AddSeconds(-30)))
+                        {
+                            cs.ExecuteBlueprints();
+                        }
                     }
+
 
                     // check consolidation block
                 }
