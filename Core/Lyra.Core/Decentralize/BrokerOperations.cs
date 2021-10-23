@@ -218,7 +218,10 @@ namespace Lyra.Core.Decentralize
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var recvBlock = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
-            var poolId = send.Tags["poolid"];
+
+            var poolGenesis = await sys.Storage.GetPoolAsync(send.Tags["token0"], send.Tags["token1"]);
+            var poolId = poolGenesis.AccountID;
+
             PoolWithdrawBlock withdrawBlock = new PoolWithdrawBlock()
             {
                 AccountID = poolId,

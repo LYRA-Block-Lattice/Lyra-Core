@@ -1852,7 +1852,6 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_POOL_RMLQ },
-                { "poolid", pool.PoolAccountId },
                 { "token0", pool.Token0 },
                 { "token1", pool.Token1 }
             };
@@ -1873,7 +1872,6 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_POOL_SWAP },
-                { "poolid", pool.PoolAccountId },
                 { "token0", pool.Token0 },
                 { "token1", pool.Token1 },
                 { "minrecv", $"{amountToGet.ToBalanceLong()}" }
