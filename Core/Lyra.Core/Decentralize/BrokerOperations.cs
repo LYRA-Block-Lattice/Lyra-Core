@@ -524,7 +524,8 @@ namespace Lyra.Core.Decentralize
             var totalStakingAmount = stakers.Sum(a => a.amount);
 
             TransactionBlock lastPft = recv;
-            var lastBalance = recv.Balances[LyraGlobal.OFFICIALTICKERCODE];
+            var profitToDistribute = recv.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+            long lastBalance = recv.Balances[LyraGlobal.OFFICIALTICKERCODE];
             var sb = await sys.Storage.GetLastServiceBlockAsync();
 
             var allSends = new List<TransactionBlock>();
@@ -556,7 +557,8 @@ namespace Lyra.Core.Decentralize
                 };
 
                 //TODO: think about multiple token
-                var amount = Math.Round(target.amount / totalStakingAmount, 8);
+                var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
+                Console.WriteLine($"Send {target.user} staking {target.amount} amount {amount}");
                 lastBalance -= amount.ToBalanceLong();
                 pftSend.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastBalance);
 
@@ -628,7 +630,8 @@ namespace Lyra.Core.Decentralize
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
-            var lastStk = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
+            var lastBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId);
+            var lastStk = lastBlock as TransactionBlock;
 
             var stkNext = new StakingBlock
             {
@@ -646,6 +649,7 @@ namespace Lyra.Core.Decentralize
                 SourceHash = send.Hash,
 
                 // pool specified config
+                Days = (lastBlock as IStaking).Days,
                 Voting = ((IStaking)lastStk).Voting,
                 RelatedTx = send.Hash
             };
@@ -665,7 +669,7 @@ namespace Lyra.Core.Decentralize
         public static async Task<TransactionBlock> CNOUnStakeAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
-            if (blocks.All(a => a is UnStakingBlock))
+            if (blocks.Any(a => a is UnStakingBlock))
                 return null;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
@@ -688,6 +692,7 @@ namespace Lyra.Core.Decentralize
                 DestinationAccountId = send.AccountID,
 
                 // pool specified config
+                Days = lastStk.Days,
                 Voting = lastStk.Voting,
                 RelatedTx = send.Hash
             };

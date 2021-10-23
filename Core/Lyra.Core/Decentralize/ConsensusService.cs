@@ -1571,9 +1571,10 @@ namespace Lyra.Core.Decentralize
             if (result != ConsensusResult.Yea)
                 return;
 
-            if (block is SendTransferBlock send &&
-                send.Tags != null &&
-                send.Tags.ContainsKey(Block.REQSERVICETAG))
+            //if (block is SendTransferBlock send &&
+            //    send.Tags != null &&
+            //    send.Tags.ContainsKey(Block.REQSERVICETAG))
+            if (block is SendTransferBlock send)
                 ProcessServerReqBlock(send);
 
             if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))

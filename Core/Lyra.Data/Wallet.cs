@@ -1951,7 +1951,7 @@ namespace Lyra.Core.Accounts
                 if (blocks.Successful())
                 {
                     var txs = blocks.GetBlocks();
-                    var gen = txs.FirstOrDefault(a => a is IStaking pb && pb.OwnerAccountId == AccountId);
+                    var gen = txs.FirstOrDefault(a => a is IBrokerAccount pb && pb.OwnerAccountId == AccountId);
                     if (gen != null)
                     {
                         var ret = new BlockAPIResult

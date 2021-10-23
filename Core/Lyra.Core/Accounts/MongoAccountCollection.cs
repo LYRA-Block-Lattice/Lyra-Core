@@ -1579,7 +1579,7 @@ namespace Lyra.Core.Accounts
                     AccountId = g.Key,
                     //Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE],
                     Balance2 = g.First().Balances,//.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] : 0,
-                    Owner = ((IStaking)g.First()).OwnerAccountId
+                    Owner = ((IBrokerAccount)g.First()).OwnerAccountId
                 });
 
             return stakings.OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])

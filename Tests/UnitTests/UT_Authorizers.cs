@@ -194,7 +194,7 @@ namespace UnitTests
             Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
             await TestPoolAsync();
-            //await TestProfitingAndStaking();
+            await TestProfitingAndStaking();
 
             // let workflow to finish
             await Task.Delay(3000);
@@ -206,12 +206,13 @@ namespace UnitTests
             Assert.IsTrue(crstkret.Successful());
             var stkblock = crstkret.GetBlock() as StakingBlock;
             Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);
+            await Task.Delay(1000);
 
             var addstkret = await w.AddStakingAsync(stkblock.AccountID, amount);
             Assert.IsTrue(addstkret.Successful());
             await Task.Delay(1000);
             var stk = await w.GetStakingAsync(stkblock.AccountID);
-            Assert.AreEqual((stk as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), amount);
+            Assert.AreEqual(amount, (stk as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
             return stk;
         }
 
@@ -220,10 +221,10 @@ namespace UnitTests
             var balance = w.BaseBalance;
             var unstkret = await w.UnStakingAsync(stkid);
             Assert.IsTrue(unstkret.Successful());
-            await Task.Delay(500);
+            await Task.Delay(1000);
             await w.SyncAsync(null);
             var nb = balance + 2000m - 2;// * 0.988m; // two send fee
-            Assert.AreEqual(w.BaseBalance, nb);
+            Assert.AreEqual(nb, w.BaseBalance);
 
             var stk2 = await w.GetStakingAsync(stkid);
             Assert.AreEqual((stk2 as TransactionBlock).Balances["LYR"].ToBalanceDecimal(), 0);
