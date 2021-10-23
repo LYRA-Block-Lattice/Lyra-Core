@@ -123,9 +123,13 @@ namespace Lyra.Core.Authorizers
             if (block.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
             {
                 var svcReqResult = APIResultCodes.Success;
+                
                 switch(block.Tags[Block.REQSERVICETAG])
                 {
                     case BrokerActions.BRK_POOL_CRPL:
+                        if (sys.Storage.GetAllBlueprints().Any(x => x.action == BrokerActions.BRK_POOL_CRPL))
+                            return APIResultCodes.SystemBusy;
+
                         svcReqResult = await VerifyCreatingPoolAsync(sys, block, lastBlock);
                         break;
                     case BrokerActions.BRK_POOL_RMLQ:
@@ -328,6 +332,10 @@ namespace Lyra.Core.Authorizers
             if (!pool.Shares.ContainsKey(block.AccountID))
                 return APIResultCodes.PoolShareNotExists;
 
+            // check pending swap
+            if (sys.Storage.GetAllBlueprints().Any(x => x.brokerAccount == poolGenesis.AccountID))
+                return APIResultCodes.ReQuotaNeeded;
+
             return APIResultCodes.Success;
         }
 
@@ -380,6 +388,10 @@ namespace Lyra.Core.Authorizers
                     )
                     return APIResultCodes.InvalidPoolDepositionRito;
             }
+
+            // check pending swap
+            if (sys.Storage.GetAllBlueprints().Any(x => x.brokerAccount == block.DestinationAccountId))
+                return APIResultCodes.ReQuotaNeeded;
 
             return APIResultCodes.Success;
         }
@@ -440,6 +452,10 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.SwapSlippageExcceeded;
                 }
             }
+
+            // check pending swap
+            if (sys.Storage.GetAllBlueprints().Any(x => x.brokerAccount == block.DestinationAccountId))
+                return APIResultCodes.ReQuotaNeeded;
 
             return APIResultCodes.Success;
         }

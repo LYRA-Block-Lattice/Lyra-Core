@@ -475,6 +475,7 @@ namespace Lyra.Core.Blocks
         InvalidShareOfProfit,
         DuplicatedName,
         InvalidStakingAccount,
+        SystemBusy,
 
         InvalidBlockData = 400,
         AccountLockDown,

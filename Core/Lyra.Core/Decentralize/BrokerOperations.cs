@@ -97,7 +97,6 @@ namespace Lyra.Core.Decentralize
             var keyStr = $"{send.Hash.Substring(0, 16)},{arrStr[0]},{arrStr[1]},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
-            var recvBlock = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             var poolGenesis = new PoolGenesisBlock
             {
                 Height = 1,

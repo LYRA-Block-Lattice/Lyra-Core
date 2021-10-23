@@ -1576,8 +1576,8 @@ namespace Lyra.Core.Decentralize
                 send.Tags.ContainsKey(Block.REQSERVICETAG))
                 ProcessServerReqBlock(send);
 
-            //if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
-            //    ProcessManagedBlock(block as TransactionBlock);
+            if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
+                ProcessManagedBlock(block as TransactionBlock);
         }
 
         public void ProcessServerReqBlock(SendTransferBlock send)
@@ -1676,7 +1676,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-/*        public void ProcessManagedBlock(TransactionBlock block)
+        public void ProcessManagedBlock(TransactionBlock block)
         {
             // for non-leader nodes to update their blueprints
             if (IsThisNodeLeader)
@@ -1723,7 +1723,7 @@ namespace Lyra.Core.Decentralize
             {
                 _sys.Storage.RemoveBlueprint(key);
             }
-        }*/
+        }
 
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
             where T : SourceSignedMessage, new()
