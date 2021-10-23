@@ -1572,127 +1572,142 @@ namespace Lyra.Core.Decentralize
             if (result != ConsensusResult.Yea)
                 return;
 
-            if(block is TransactionBlock tb)
-            // node block require additional works
-                ProcessManagedBlock(tb);
+            if (block is SendTransferBlock send &&
+                send.Tags != null &&
+                send.Tags.ContainsKey(Block.REQSERVICETAG))
+                ProcessServerReqBlock(send);
+
+            if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
+                ProcessManagedBlock(block as TransactionBlock);
+        }
+
+        public void ProcessServerReqBlock(SendTransferBlock send)
+        {
+            var dstAccount = _sys.Storage.FindFirstBlock(send.DestinationAccountId);
+
+            string action = null;
+            if (dstAccount != null && ((IOpeningBlock)dstAccount).AccountType == AccountTypes.Profiting)
+                action = BrokerActions.BRK_PFT_GETPFT;
+            else if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
+                action = send.Tags[Block.REQSERVICETAG];
+
+            if (action != null)
+            {
+                // create a blueprint for workflow
+                var blueprint = new BrokerBlueprint
+                {
+                    view = _currentView,
+                    start = DateTime.UtcNow,
+                    initiatorAccount = send.AccountID,
+                    brokerAccount = send.DestinationAccountId,
+                    svcReqHash = send.Hash,
+                    action = action,
+                    preDone = false,
+                    mainDone = false,
+                    extraDone = false
+                };
+                _sys.Storage.CreateBlueprint(blueprint);
+
+                if (IsThisNodeLeader)
+                {
+                    if (_pfTaskMutex.Wait(1))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
+
+                            var allBlueprints = _sys.Storage.GetAllBlueprints();
+
+                            foreach (var bp in allBlueprints.OrderBy(a => a.start))
+                            {
+                                if (IsThisNodeLeader)
+                                {
+                                    try
+                                    {
+                                        // hack for unit test
+                                        if (_hostEnv == null)
+                                        {
+                                            var success = await bp.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
+                                            _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                                            if (success)
+                                                _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                        }
+                                        else
+                                        {
+                                            var success = await bp.ExecuteAsync(_sys, send, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
+                                            _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                                            if (success)
+                                                _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                            else
+                                            {
+                                                _sys.Storage.UpdateBlueprint(bp);
+                                            }
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _log.LogError($"In build blueprint: {e.ToString()}");
+                                    }
+                                }
+                                else
+                                    break;
+                            }
+
+                            _pfTaskMutex.Release();
+                        });
+                    }
+                }
+                else
+                {
+
+                }
+            }
         }
 
         public void ProcessManagedBlock(TransactionBlock block)
         {
-            //if (!block.ContainsTag("type"))
-            //{
-            //    _log.LogWarning("A MANAGEDTAG block not have type.");
-            //    return;
-            //}
+            // for non-leader nodes to update their blueprints
+            if (IsThisNodeLeader)
+                return;
 
-            //if (!block.ContainsTag("relhash"))
-            //{
-            //    _log.LogWarning("A MANAGEDTAG block not have related hash.");
-            //    return;
-            //}
-
-            //var blockRelHash = block.Tags["relhash"];
-            //var blockType = block.Tags["type"];
-            //var poolBlock = block as TransactionBlock;
+            // find the key
+            string key = null;
+            
             if (block.AccountID == PoolFactoryBlock.FactoryAccount)
             {
-                var key = (block as ReceiveTransferBlock).SourceHash;
-                var blueprint = _sys.Storage.GetBlueprint(key);
-                blueprint.preDone = true;
-                _sys.Storage.UpdateBlueprint(blueprint);
+                key = (block as ReceiveTransferBlock).SourceHash;
             }
-
-
-
-
-            if (block is SendTransferBlock send)
+            else if(block is IPool pool)
             {
-                var dstAccount = _sys.Storage.FindFirstBlock(send.DestinationAccountId);
+                key = pool.RelatedTx;
+            }
+            else if(block is IBrokerAccount ib)
+            {
+                key = ib.RelatedTx;
+            }
+            // add token gateway, merchant etc.
 
-                string action = null;
-                if (dstAccount != null && ((IOpeningBlock)dstAccount).AccountType == AccountTypes.Profiting)
-                    action = BrokerActions.BRK_PFT_GETPFT;
-                else if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
-                    action = send.Tags[Block.REQSERVICETAG];
+            if (key == null)
+                return;
 
-                if (action != null)
-                {
-                    // create a blueprint for workflow
-                    var blueprint = new BrokerBlueprint
-                    {
-                        view = _currentView,
-                        start = DateTime.UtcNow,
-                        initiatorAccount = send.AccountID,
-                        brokerAccount = send.DestinationAccountId,
-                        svcReqHash = send.Hash,
-                        action = action,
-                        preDone = false,
-                        mainDone = false,
-                        extraDone = false
-                    };
-                    _sys.Storage.CreateBlueprint(blueprint);
-
-                    if (IsThisNodeLeader)
-                    {
-                        if(_pfTaskMutex.Wait(1))
-                        {
-                            _ = Task.Run(async () =>
-                            {
-                                _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
-
-                                var allBlueprints = _sys.Storage.GetAllBlueprints();
-
-                                foreach (var bp in allBlueprints.OrderBy(a => a.start))
-                                {
-                                    if (IsThisNodeLeader)
-                                    {
-                                        try
-                                        {
-                                            // hack for unit test
-                                            if (_hostEnv == null)
-                                            {
-                                                var success = await bp.ExecuteAsync(_sys, send, (b) => OnNewBlock(b));
-                                                _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                                                if (success)
-                                                    _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                                            }
-                                            else
-                                            {
-                                                var success = await bp.ExecuteAsync(_sys, send, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
-                                                _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                                                if (success)
-                                                    _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                                                else
-                                                {
-                                                    _sys.Storage.UpdateBlueprint(bp);
-                                                }
-                                                    
-                                            }
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            _log.LogError($"In build blueprint: {e.ToString()}");
-                                        }
-                                    }
-                                    else
-                                        break;
-                                }
-
-                                _pfTaskMutex.Release();
-                            });
-                        }
-                    }
+            var bp = _sys.Storage.GetBlueprint(key);
+            if(!bp.FullDone)
+            {
+                _ = Task.Run(async () => {
+                    var send = await _sys.Storage.FindBlockByHashAsync(key) as SendTransferBlock;
+                    var success = await bp.ExecuteAsync(_sys, send, null);  // fake run
+                    _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                    if (success)
+                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
                     else
                     {
-
+                        _sys.Storage.UpdateBlueprint(bp);
                     }
-                }
+                });
             }
-
-            if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG) && block is IBrokerAccount brokerAccount)
+            else
             {
-                // update work flow
-                var blueprint = _sys.Storage.GetBlueprint(brokerAccount.RelatedTx);
+                _sys.Storage.RemoveBlueprint(key);
             }
         }
 
