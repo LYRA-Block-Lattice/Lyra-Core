@@ -69,7 +69,7 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            if(!mainDone)
+            if(preDone && !mainDone)
             {
                 if(wf.brokerOps != null)
                 {
@@ -90,7 +90,7 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            if (!extraDone)
+            if (preDone && mainDone && !extraDone)
             {
                 if(wf.extraOps != null)
                 {
