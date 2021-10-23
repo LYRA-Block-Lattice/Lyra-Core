@@ -521,7 +521,8 @@ namespace Lyra.Core.Decentralize
             var stakers = await sys.Storage.FindAllStakersForProfitingAccountAsync(recv.AccountID);
             var targets = stakers.Take(((IProfiting)recv).Seats);
             // so 
-            var amount = chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] / targets.Count();
+            var totalStakingAmount = stakers.Sum(a => a.amount);
+
             TransactionBlock lastPft = recv;
             var lastBalance = recv.Balances[LyraGlobal.OFFICIALTICKERCODE];
             var sb = await sys.Storage.GetLastServiceBlockAsync();
@@ -555,6 +556,7 @@ namespace Lyra.Core.Decentralize
                 };
 
                 //TODO: think about multiple token
+                var amount = Math.Round(target.amount / totalStakingAmount, 8);
                 lastBalance -= amount.ToBalanceLong();
                 pftSend.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastBalance);
 
