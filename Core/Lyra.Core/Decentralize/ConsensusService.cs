@@ -1577,8 +1577,8 @@ namespace Lyra.Core.Decentralize
                 send.Tags.ContainsKey(Block.REQSERVICETAG))
                 ProcessServerReqBlock(send);
 
-            if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
-                ProcessManagedBlock(block as TransactionBlock);
+            //if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
+            //    ProcessManagedBlock(block as TransactionBlock);
         }
 
         public void ProcessServerReqBlock(SendTransferBlock send)
@@ -1630,38 +1630,38 @@ namespace Lyra.Core.Decentralize
                         foreach (var bp in allBlueprints.OrderBy(a => a.start))
                         {
                             _log.LogInformation($"Executing blueprints: process {bp.svcReqHash} ...");
-                            if (IsThisNodeLeader)
+
+                            try
                             {
-                                try
+                                // hack for unit test
+                                if (_hostEnv == null)
                                 {
-                                    // hack for unit test
-                                    if (_hostEnv == null)
-                                    {
-                                        var success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
-                                        _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                                        if (success)
-                                            _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                                    }
+                                    var success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
+                                    _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                                    if (success)
+                                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                }
+                                else
+                                {
+                                    _log.LogInformation($"Begin executing blueprints...");
+                                    bool success;
+                                    if (IsThisNodeLeader)
+                                        success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
+                                    else   // give normal nodes a chance to clear the queue
+                                        success = await bp.ExecuteAsync(_sys, async (b) => await Task.FromResult((ConsensusResult.Uncertain, APIResultCodes.UndefinedError)));
+                                    _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
+                                    if (success)
+                                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
                                     else
                                     {
-                                        _log.LogInformation($"Begin executing blueprints...");
-                                        var success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
-                                        _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
-                                        if (success)
-                                            _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                                        else
-                                        {
-                                            _sys.Storage.UpdateBlueprint(bp);
-                                        }
+                                        _sys.Storage.UpdateBlueprint(bp);
                                     }
                                 }
-                                catch (Exception e)
-                                {
-                                    _log.LogError($"In executing blueprint: {e}");
-                                }
                             }
-                            else
-                                break;
+                            catch (Exception e)
+                            {
+                                _log.LogError($"In executing blueprint: {e}");
+                            }
                         }
                     }
                     catch(Exception e)
@@ -1677,7 +1677,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public void ProcessManagedBlock(TransactionBlock block)
+/*        public void ProcessManagedBlock(TransactionBlock block)
         {
             // for non-leader nodes to update their blueprints
             if (IsThisNodeLeader)
@@ -1724,7 +1724,7 @@ namespace Lyra.Core.Decentralize
             {
                 _sys.Storage.RemoveBlueprint(key);
             }
-        }
+        }*/
 
         private async Task<bool> CriticalRelayAsync<T>(T message, Func<T, Task> localAction)
             where T : SourceSignedMessage, new()
