@@ -1586,6 +1586,30 @@ namespace Lyra.Core.Accounts
                 .Select(a => (a.AccountId, a.Owner))
                 .ToList();
         }
+
+        public async Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId)
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("OwnerAccountId", ownerAccountId);
+            var finds = await _blocks.FindAsync(filterDefination);
+
+            var q = await _blocks.OfType<ProfitingGenesis>()
+                .FindAsync(a => a.OwnerAccountId == ownerAccountId);
+
+            return await q.ToListAsync();
+        }
+
+        public async Task<List<StakingGenesis>> FindAllStakingAccountForOwnerAsync(string ownerAccountId)
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("OwnerAccountId", ownerAccountId);
+            var finds = await _blocks.FindAsync(filterDefination);
+
+            var q = await _blocks.OfType<StakingGenesis>()
+                .FindAsync(a => a.OwnerAccountId == ownerAccountId);
+
+            return await q.ToListAsync();
+        }
     }
     public static class MyExtensions
     {

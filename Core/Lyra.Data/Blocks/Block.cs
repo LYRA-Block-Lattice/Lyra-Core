@@ -470,6 +470,11 @@ namespace Lyra.Core.Blocks
         PoolOutOfLiquidaty,
         ReQuotaNeeded,  // pool or target account is busy
         InvalidBlockTags,
+        InvalidProfitingAccount,
+        VotingDaysTooSmall,
+        InvalidShareOfProfit,
+        DuplicatedName,
+        InvalidStakingAccount,
 
         InvalidBlockData = 400,
         AccountLockDown,
@@ -477,5 +482,6 @@ namespace Lyra.Core.Blocks
 
         UnsuppportedServiceRequest = 500,
         InvalidServiceRequest = 501
+
     }
 }

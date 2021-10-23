@@ -10,6 +10,7 @@ using System.Diagnostics;
 using Lyra.Core.API;
 using System.Linq;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Authorizers
 {
@@ -156,9 +157,33 @@ namespace Lyra.Core.Authorizers
             switch (block.Tags[Block.REQSERVICETAG])
             {
                 case BrokerActions.BRK_STK_ADDSTK:
+                    if (block.Tags.Count == 1)
+                    {
+                        // verify sender is the owner of stkingblock
+                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
+                        if (!stks.Any(a => a.AccountID == block.DestinationAccountId))
+                            return APIResultCodes.InvalidStakingAccount;
+                    }
+                    else
+                        return APIResultCodes.InvalidBlockTags;
+                    break;
                 case BrokerActions.BRK_STK_UNSTK:
-                    // verify sender is the owner of stkingblock
-                    return APIResultCodes.Success;
+                    if (
+                        block.Tags.ContainsKey("stkid") && !string.IsNullOrWhiteSpace(block.Tags["stkid"])
+                        && block.Tags.Count == 2
+                        )
+                    {
+                        if (block.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                            return APIResultCodes.InvalidServiceRequest;
+
+                        // verify sender is the owner of stkingblock
+                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
+                        if (!stks.Any(a => a.AccountID == block.Tags["stkid"]))
+                            return APIResultCodes.InvalidStakingAccount;
+                    }
+                    else
+                        return APIResultCodes.InvalidBlockTags;
+                    break;
                 case BrokerActions.BRK_STK_CRSTK:   // create staking
                     if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.StakingAccountCreateFee)
                         return APIResultCodes.InvalidFeeAmount;
@@ -168,15 +193,31 @@ namespace Lyra.Core.Authorizers
                     if (
                         block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
                         block.Tags.ContainsKey("days") && int.TryParse(block.Tags["days"], out days) && days >= 3 &&
-                        block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"])
+                        block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"]) &&
+                        block.Tags.Count == 4
                         )
                     {
+                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
+                        if (stks.Any(a => a.Name == block.Tags["name"]))
+                            return APIResultCodes.DuplicatedName;
+
                         votefor = block.Tags["voting"];
-                        if (Signatures.ValidateAccountId(votefor))
+                        if (!Signatures.ValidateAccountId(votefor))
                         {
-                            return APIResultCodes.Success;
+                            return APIResultCodes.InvalidProfitingAccount;
+                        }
+                        var pftgen = await sys.Storage.FindFirstBlockAsync(votefor) as ProfitingGenesis;
+                        if(pftgen == null || pftgen.AccountType == AccountTypes.Profiting)
+                        {
+                            return APIResultCodes.InvalidProfitingAccount;
+                        }
+                        if(days < 1)
+                        {
+                            return APIResultCodes.VotingDaysTooSmall;
                         }
                     }
+                    else
+                        return APIResultCodes.InvalidBlockTags;
                     break;
                 case BrokerActions.BRK_PFT_CRPFT:   // create profiting
                     if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.ProfitingAccountCreateFee)
@@ -190,18 +231,28 @@ namespace Lyra.Core.Authorizers
                         block.Tags.ContainsKey("ptype") && Enum.TryParse(block.Tags["ptype"], false, out ptype)
                         && block.Tags.ContainsKey("share") && decimal.TryParse(block.Tags["share"], out shareRito)
                         && block.Tags.ContainsKey("seats") && int.TryParse(block.Tags["seats"], out seats)
+                        && block.Tags.Count == 5
                         )
                     {
                         if (shareRito >= 0m && shareRito <= 1m && seats >= 0 && seats <= 100)
                         {
-                            return APIResultCodes.Success;
+                            // name dup check
+                            var pfts = await sys.Storage.FindAllProfitingAccountForOwnerAsync(block.AccountID);
+                            if (pfts.Any(a => a.Name == block.Tags["name"]))
+                                return APIResultCodes.DuplicatedName;
+                        }
+                        else
+                        {
+                            return APIResultCodes.InvalidShareOfProfit;
                         }
                     }
+                    else
+                        return APIResultCodes.InvalidBlockTags;
                     break;
                 default:
                     break;
             }
-            return APIResultCodes.InvalidServiceRequest;
+            return APIResultCodes.Success;
         }
 
         private async Task<APIResultCodes> CheckTagsAsync(DagSystem sys, Block block, int tagsCount = 3)
