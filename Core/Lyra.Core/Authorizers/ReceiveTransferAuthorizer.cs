@@ -36,7 +36,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidAccountId;
 
             // 1. check if the account already exists
-            if(block is ProfitingGenesis || block is StakingGenesis)
+            if(block is ProfitingGenesis || block is StakingGenesis || block is PoolGenesisBlock)
             {
                 return APIResultCodes.Success;
             }
