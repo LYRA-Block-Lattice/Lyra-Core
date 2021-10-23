@@ -1620,46 +1620,56 @@ namespace Lyra.Core.Decentralize
         {
             if (_pfTaskMutex.Wait(1))
             {
+                _log.LogInformation("Executing blueprints.");
                 _ = Task.Run(async () =>
                 {
-                    var allBlueprints = _sys.Storage.GetAllBlueprints();
-
-                    foreach (var bp in allBlueprints.OrderBy(a => a.start))
+                    try
                     {
-                        if (IsThisNodeLeader)
+                        var allBlueprints = _sys.Storage.GetAllBlueprints();
+
+                        foreach (var bp in allBlueprints.OrderBy(a => a.start))
                         {
-                            try
-                            {                                
-                                // hack for unit test
-                                if (_hostEnv == null)
+                            if (IsThisNodeLeader)
+                            {
+                                try
                                 {
-                                    var success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
-                                    _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                                    if (success)
-                                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                                }
-                                else
-                                {
-                                    var success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
-                                    _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                                    if (success)
-                                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                    // hack for unit test
+                                    if (_hostEnv == null)
+                                    {
+                                        var success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
+                                        _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                                        if (success)
+                                            _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                    }
                                     else
                                     {
-                                        _sys.Storage.UpdateBlueprint(bp);
+                                        var success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
+                                        _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                                        if (success)
+                                            _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                        else
+                                        {
+                                            _sys.Storage.UpdateBlueprint(bp);
+                                        }
                                     }
                                 }
+                                catch (Exception e)
+                                {
+                                    _log.LogError($"In build blueprint: {e.ToString()}");
+                                }
                             }
-                            catch (Exception e)
-                            {
-                                _log.LogError($"In build blueprint: {e.ToString()}");
-                            }
+                            else
+                                break;
                         }
-                        else
-                            break;
                     }
-
-                    _pfTaskMutex.Release();
+                    catch(Exception e)
+                    {
+                        _log.LogInformation("Error Executing blueprints: " + e.ToString());
+                    }
+                    finally
+                    {
+                        _pfTaskMutex.Release();
+                    }                    
                 });
             }
         }
