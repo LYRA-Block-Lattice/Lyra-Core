@@ -69,7 +69,7 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            if(!mainDone && wf.brokerOps != null)
+            if(!mainDone)
             {
                 if(wf.brokerOps != null)
                 {
@@ -90,24 +90,31 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
-            if (!extraDone && wf.extraOps != null)
+            if (!extraDone)
             {
-                var otherBlocks = await wf.extraOps(sys, svcReqHash);
-                if(otherBlocks == null)
+                if(wf.extraOps != null)
                 {
-                    extraDone = true;
+                    var otherBlocks = await wf.extraOps(sys, svcReqHash);
+                    if (otherBlocks == null)
+                    {
+                        extraDone = true;
+                    }
+                    else
+                    {
+                        // foreach block send it
+                        bool r3 = true;
+                        foreach (var b in otherBlocks)
+                        {
+                            var result3 = await submit(b);
+                            r3 = r3 && result3.Item1 == ConsensusResult.Yea;
+                            Console.WriteLine($"WF: {send.Hash.Shorten()} {b.BlockType}: extraDone: {result3.Item1 == ConsensusResult.Yea}");
+                        }
+                        extraDone = r3;
+                    }
                 }
                 else
                 {
-                    // foreach block send it
-                    bool r3 = true;
-                    foreach (var b in otherBlocks)
-                    {
-                        var result3 = await submit(b);
-                        r3 = r3 && result3.Item1 == ConsensusResult.Yea;
-                        Console.WriteLine($"WF: {send.Hash.Shorten()} {b.BlockType}: extraDone: {result3.Item1 == ConsensusResult.Yea}");
-                    }
-                    extraDone = r3;
+                    extraDone = true;
                 }
             }
             return FullDone;
