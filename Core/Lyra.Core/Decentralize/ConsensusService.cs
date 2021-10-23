@@ -844,14 +844,13 @@ namespace Lyra.Core.Decentralize
         internal async Task CheckNewPlayerAsync()
         {
             //_log.LogInformation($"Checking new player(s)...");
-
-            var cons = await _sys.Storage.GetLastConsolidationBlockAsync();
-            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
-
-            if (CurrentState == BlockChainState.Genesis)
+            if (CurrentState != BlockChainState.Almighty)
             {
                 return;
             }
+
+            var cons = await _sys.Storage.GetLastConsolidationBlockAsync();
+            var lsb = await _sys.Storage.GetLastServiceBlockAsync();
 
             var list1 = lsb.Authorizers.Keys.ToList();
             UpdateVoters();
