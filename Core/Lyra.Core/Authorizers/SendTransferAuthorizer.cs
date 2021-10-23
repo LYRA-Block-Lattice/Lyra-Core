@@ -144,6 +144,14 @@ namespace Lyra.Core.Authorizers
 
                 return svcReqResult;  
             }
+            else
+            {
+                // not allow to send to pf
+                if(block.DestinationAccountId == PoolFactoryBlock.FactoryAccount)
+                {
+                    return APIResultCodes.InvalidDestinationAccountId;
+                }
+            }
 
             return APIResultCodes.Success;
         }
