@@ -479,6 +479,8 @@ namespace Lyra.Core.Blocks
         InvalidName,
         InvalidRelatedTx,
         InvalidTimeRange,
+        InvalidShareRitio,
+        InvalidSeatsCount,
 
         InvalidBlockData = 400,
         AccountLockDown,

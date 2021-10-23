@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Lyra.Core.Utils;
 using Lyra.Core.Accounts;
 using System.Linq;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Authorizers
 {
@@ -35,6 +36,11 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidAccountId;
 
             // 1. check if the account already exists
+            if(block is ProfitingGenesis || block is StakingGenesis)
+            {
+                return APIResultCodes.Success;
+            }
+
             if (!await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountDoesNotExist;
 
@@ -96,7 +102,7 @@ namespace Lyra.Core.Authorizers
             BalanceChanges sendTransaction;
             if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer
                 || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn
-                || block.BlockType == BlockTypes.Staking)  // temp code. should use getbalancechanges
+                || block.BlockType == BlockTypes.Staking || block.BlockType == BlockTypes.Profiting)  // temp code. should use getbalancechanges
             {
                 if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
                 {

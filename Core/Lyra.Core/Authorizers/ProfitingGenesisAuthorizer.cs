@@ -13,10 +13,14 @@ namespace Lyra.Core.Authorizers
     {
         public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            var result0 = base.AuthorizeAsync(sys, tblock);
-            var result = await AuthorizeImplAsync(sys, tblock);
+            var br = await base.AuthorizeAsync(sys, tblock);
+            APIResultCodes result;
+            if (br.Item1 == APIResultCodes.Success)
+                result = await AuthorizeImplAsync(sys, tblock);
+            else
+                result = br.Item1;
 
-            if (APIResultCodes.Success == result && result0.IsCompletedSuccessfully)
+            if (APIResultCodes.Success == result)
                 return (APIResultCodes.Success, Sign(sys, tblock));
             else
                 return (result, (AuthorizationSignature)null);
