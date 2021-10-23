@@ -1704,6 +1704,9 @@ namespace Lyra.Core.Decentralize
                 return;
 
             var bp = _sys.Storage.GetBlueprint(key);
+            if (bp == null)
+                return;
+
             if(!bp.FullDone)
             {
                 _ = Task.Run(async () => {
