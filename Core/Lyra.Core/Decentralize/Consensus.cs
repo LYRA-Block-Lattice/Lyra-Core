@@ -480,7 +480,7 @@ namespace Lyra.Core.Decentralize
 
             await Task.Delay(1000);
 
-            _log.LogInformation("svc genesis is done.");
+            _log.LogInformation("Genesis is done.");
 
             await Task.Delay(30000);
 

@@ -250,7 +250,7 @@ namespace Lyra.Core.Authorizers
                         return APIResultCodes.InvalidBlockTags;
                     break;
                 default:
-                    break;
+                    return APIResultCodes.InvalidServiceRequest;
             }
             return APIResultCodes.Success;
         }
