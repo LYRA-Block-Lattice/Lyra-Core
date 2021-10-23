@@ -31,7 +31,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var relatedTransactions = await sys.Storage.FindBlocksByRelatedTxAsync(swapOutBlock.RelatedTx);
-            if (relatedTransactions.Count == 2)
+            if (relatedTransactions.Count >= 2)
                 return APIResultCodes.PoolOperationAlreadyCompleted;
 
             var poolId = (block as PoolSwapOutBlock).AccountID;
@@ -39,8 +39,7 @@ namespace Lyra.Core.Authorizers
             var poolLatestBlock = await sys.Storage.FindLatestBlockAsync(poolId) as TransactionBlock;
 
             // get target accountId
-            var relatedTxBlock = await sys.Storage.FindBlockByHashAsync(swapOutBlock.RelatedTx) as ReceiveTransferBlock;
-            var originalSendBlock = await sys.Storage.FindBlockByHashAsync(relatedTxBlock.SourceHash) as SendTransferBlock;
+            var originalSendBlock = await sys.Storage.FindBlockByHashAsync(swapOutBlock.RelatedTx) as SendTransferBlock;
             var targetAccountId = originalSendBlock.AccountID;
 
             if (targetAccountId != swapOutBlock.DestinationAccountId)

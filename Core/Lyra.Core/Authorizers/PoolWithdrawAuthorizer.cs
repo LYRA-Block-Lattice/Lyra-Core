@@ -29,7 +29,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockType;
 
             var relatedTransactions = await sys.Storage.FindBlocksByRelatedTxAsync(withdrawBlock.RelatedTx);
-            if (relatedTransactions != null)
+            if (relatedTransactions.Count >= 2)
                 return APIResultCodes.PoolOperationAlreadyCompleted;
 
             var poolId = (block as PoolWithdrawBlock).AccountID;
