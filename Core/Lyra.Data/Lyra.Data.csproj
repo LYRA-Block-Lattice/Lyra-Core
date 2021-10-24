@@ -46,4 +46,20 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <AdditionalFiles Remove="C:\Users\Wizard\.nuget\packages\microsoft.visualstudio.threading.analyzers\16.10.56\build\AdditionalFiles\vs-threading.LegacyThreadSwitchingMembers.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Remove="C:\Users\Wizard\.nuget\packages\microsoft.visualstudio.threading.analyzers\16.10.56\build\AdditionalFiles\vs-threading.MainThreadAssertingMethods.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Remove="C:\Users\Wizard\.nuget\packages\microsoft.visualstudio.threading.analyzers\16.10.56\build\AdditionalFiles\vs-threading.MainThreadSwitchingMethods.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Remove="C:\Users\Wizard\.nuget\packages\microsoft.visualstudio.threading.analyzers\16.10.56\build\AdditionalFiles\vs-threading.MembersRequiringMainThread.txt" />
+  </ItemGroup>
+
 </Project>

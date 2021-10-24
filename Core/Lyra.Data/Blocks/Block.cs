@@ -293,6 +293,11 @@ namespace Lyra.Core.Blocks
         StakingGenesis = 65,
         Staking = 66,
         UnStaking = 67,
+
+        // token gateway for external blockchains
+        TokenGatewayGenesis = 70,
+        TokenMint = 71,
+        TokenBurn = 72
     }
 
     public enum APIResultCodes

@@ -205,6 +205,18 @@ namespace UnitTests.Swap
                 };
                 amounts = new Dictionary<string, decimal>
                 {
+                    { "ddd", PoolFactoryBlock.PoolCreateFee }
+                };
+                poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
+                Assert.IsTrue(poolCreateResult.ResultCode != APIResultCodes.Success, $"Should failed but {poolCreateResult.ResultCode}");
+
+                tags = new Dictionary<string, string>
+                {
+                    { "token0", token0 },
+                    { Block.REQSERVICETAG, "" }
+                };
+                amounts = new Dictionary<string, decimal>
+                {
                     { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
                 };
                 poolCreateResult = await w1.SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
