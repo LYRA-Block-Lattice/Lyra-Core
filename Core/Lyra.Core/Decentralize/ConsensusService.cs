@@ -1423,12 +1423,13 @@ namespace Lyra.Core.Decentralize
                 throw new Exception("Block is already in queue.");
             }
 
+            Send2P2pNetwork(state.InputMsg);
+
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
             if (worker != null)
             {
                 await worker.ProcessStateAsync(state);
-            }
-            Send2P2pNetwork(state.InputMsg);
+            }            
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash, bool checkState = false)

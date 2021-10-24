@@ -205,7 +205,7 @@ namespace Lyra.Core.Decentralize
                     if(cs.CurrentState == Data.API.BlockChainState.Almighty)
                     {
                         var blueprints = cs._sys.Storage.GetAllBlueprints();
-                        if (blueprints.Any())//a => a.start < DateTime.UtcNow.AddSeconds(-30)))
+                        if (blueprints.Any() && cs.IsThisNodeLeader)//a => a.start < DateTime.UtcNow.AddSeconds(-30)))
                         {
                             cs.ExecuteBlueprints();
                         }
