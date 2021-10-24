@@ -259,13 +259,13 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         _log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
-                        if (signedMsg.MsgType == ChatMessageType.AuthorizerPrePrepare)
-                        {
-                            var json = JsonConvert.SerializeObject(signedMsg);
-                            Console.WriteLine("===\n" + json + "\n===");
+                        //if (signedMsg.MsgType == ChatMessageType.AuthorizerPrePrepare)
+                        //{
+                        //    var json = JsonConvert.SerializeObject(signedMsg);
+                        //    Console.WriteLine("===\n" + json + "\n===");
 
-                            var jb = JsonConvert.SerializeObject(signedMsg);
-                        }
+                        //    var jb = JsonConvert.SerializeObject(signedMsg);
+                        //}
                     }
                 }
                 catch (Exception ex)
@@ -945,22 +945,22 @@ namespace Lyra.Core.Decentralize
             //    Debugger.Break();
             _localNode.Tell(item);
 
-            if(item is AuthorizingMsg auth && auth.Block is ProfitingGenesis gen)
-            {
-                var json = JsonConvert.SerializeObject(item);
-                Console.WriteLine("===\n" + json + "\n===");
+            //if(item is AuthorizingMsg auth && auth.Block is ProfitingGenesis gen)
+            //{
+            //    var json = JsonConvert.SerializeObject(item);
+            //    Console.WriteLine("===\n" + json + "\n===");
 
-                var jb = JsonConvert.SerializeObject(auth.Block);
-                var blockx = JsonConvert.DeserializeObject<ProfitingGenesis>(jb);
-                var v = blockx.VerifyHash();
-                Console.WriteLine($"Test convert hash verify result: {v}");
-                if(!v)
-                {
-                    var jb2 = JsonConvert.SerializeObject(blockx);
-                    Console.WriteLine($"-----------\n{jb}\n\n{jb2}\n----------");
-                    Console.WriteLine($"+++++++++++\n{auth.Block.GetHashInput()}\n\n{blockx.GetHashInput()}\n+++++++++++");
-                }
-            }
+            //    var jb = JsonConvert.SerializeObject(auth.Block);
+            //    var blockx = JsonConvert.DeserializeObject<ProfitingGenesis>(jb);
+            //    var v = blockx.VerifyHash();
+            //    Console.WriteLine($"Test convert hash verify result: {v}");
+            //    if(!v)
+            //    {
+            //        var jb2 = JsonConvert.SerializeObject(blockx);
+            //        Console.WriteLine($"-----------\n{jb}\n\n{jb2}\n----------");
+            //        Console.WriteLine($"+++++++++++\n{auth.Block.GetHashInput()}\n\n{blockx.GetHashInput()}\n+++++++++++");
+            //    }
+            //}
         }
 
         private async Task<ActiveNode> DeclareConsensusNodeAsync()
