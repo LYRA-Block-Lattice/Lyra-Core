@@ -952,7 +952,13 @@ namespace Lyra.Core.Decentralize
 
                 var jb = JsonConvert.SerializeObject(auth.Block);
                 var blockx = JsonConvert.DeserializeObject<ProfitingGenesis>(jb);
-                Console.WriteLine($"Test convert hash verify result: {blockx.VerifyHash()}");
+                var v = blockx.VerifyHash();
+                Console.WriteLine($"Test convert hash verify result: {v}");
+                if(!v)
+                {
+                    var jb2 = JsonConvert.SerializeObject(blockx);
+                    Console.WriteLine($"-----------\n{jb}\n\n{jb2}\n----------");
+                }
             }
         }
 
