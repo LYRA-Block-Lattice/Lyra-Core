@@ -958,6 +958,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var jb2 = JsonConvert.SerializeObject(blockx);
                     Console.WriteLine($"-----------\n{jb}\n\n{jb2}\n----------");
+                    Console.WriteLine($"+++++++++++\n{auth.Block.GetHashInput()}\n\n{blockx.GetHashInput()}\n+++++++++++");
                 }
             }
         }
