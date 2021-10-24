@@ -259,6 +259,11 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         _log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
+                        if (signedMsg.MsgType == ChatMessageType.AuthorizerPrePrepare)
+                        {
+                            var json = JsonConvert.SerializeObject(signedMsg);
+                            Console.WriteLine("===\n" + json + "\n===");
+                        }
                     }
                 }
                 catch (Exception ex)
