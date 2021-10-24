@@ -1289,7 +1289,9 @@ namespace Lyra.Core.Decentralize
                             else
                             {
                                 // leader may be faulty
-                                await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
+                                var lsp = await _sys.Storage.GetLastServiceBlockAsync();
+                                if(lsp.TimeStamp > DateTime.UtcNow.AddSeconds(-10))
+                                    await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
                             }
                         }
                     }
@@ -1748,7 +1750,14 @@ namespace Lyra.Core.Decentralize
                         {
                             bool success = false;
                             if (IsThisNodeLeader)
-                                success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                            {
+                                if (_hostEnv == null)
+                                {
+                                    success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
+                                }
+                                else
+                                    success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                            }
                             else   // give normal nodes a chance to clear the queue
                                 success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
                             _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
