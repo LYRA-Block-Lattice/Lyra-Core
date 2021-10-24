@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -82,6 +83,8 @@ namespace Lyra.Core.API
         #region Liquidate Pool
         Task<PoolInfoAPIResult> GetPoolAsync(string token0, string token1);
         #endregion
+
+        Task<MultiBlockAPIResult> GetAllBrokerAccountsForOwnerAsync(string ownerAccount);
 
     }
 

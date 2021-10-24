@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using Lyra.Shared;
 using System.Data;
 using System.Threading;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Client.CLI
 {
@@ -41,6 +42,8 @@ namespace Lyra.Client.CLI
         public const string COMMAND_VOTEFOR = "votefor";
         public const string COMMAND_SYNCFEE = "syncfee";
         public const string COMMAND_IMPORT_ACCOUNT = "import";
+        public const string COMMAND_PROFITING = "profiting";
+        public const string COMMAND_STAKING = "staking";
 
         // Generate new NFT genesis
         public const string COMMAND_CREATE_NFT = "createnft";
@@ -93,6 +96,9 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: DPoS: Set Vote for Account Id", COMMAND_VOTEFOR));
                         Console.WriteLine(string.Format(@"{0,10}: Transfer funds to another account", COMMAND_SEND));
                         Console.WriteLine(string.Format(@"{0,10}: Transfer collectible NFT to another account", COMMAND_SEND_NFT));
+                        Console.WriteLine(string.Format(@"{0,10}: Pool operations", COMMAND_CREATE_POOL));
+                        Console.WriteLine(string.Format(@"{0,10}: Profiting accounts", COMMAND_PROFITING));
+                        Console.WriteLine(string.Format(@"{0,10}: Staking and UnStaking", COMMAND_STAKING));
                         //Console.WriteLine(string.Format(@"{0,10}: Pay to a merchant", COMMAND_PAY));
                         //Console.WriteLine(string.Format(@"{0,10}: Accept payment from a buyer", COMMAND_SELL));
                         Console.WriteLine(string.Format(@"{0,10}: Show the account status summary", COMMAND_STATUS));
@@ -223,6 +229,12 @@ namespace Lyra.Client.CLI
                             Console.WriteLine("Error while process pool command: " + ex.Message);
                         }
                         break;
+                    case COMMAND_PROFITING:
+                        await ProcessProfitingCommandAsync();
+                        break;
+                    case COMMAND_STAKING:
+                        await ProcessStakingCommandAsync();
+                        break;
                     case COMMAND_HISTORY:
                     case COMMAND_HISTORY_SHORT:
                         await ProcessHistoryAsync();
@@ -255,6 +267,48 @@ namespace Lyra.Client.CLI
                 Console.WriteLine(string.Format("Error: {0}", e.Message));
             }
             return 0;
+        }
+
+        private async Task ProcessProfitingCommandAsync()
+        {
+            var gensResult = await _wallet.RPC.GetAllBrokerAccountsForOwnerAsync(_wallet.AccountId);
+            var gens = gensResult.GetBlocks();
+            Console.WriteLine($"You have {gens.Count()} accounts.");
+            foreach(var gen in gens)
+            {
+                Console.WriteLine($"{gen.BlockType}: {(gen as TransactionBlock).AccountID}");
+            }
+            Console.WriteLine("Create a new profiting account? Y/n");
+            if (ReadYesNoAnswer())
+            {
+                Console.WriteLine("The Name of the profiting account: ");
+                var sName = Console.ReadLine();
+                Console.WriteLine("Percentage of revernue you want to share with voters (%): ");
+                var sRitio = Console.ReadLine();
+                Console.WriteLine("Number of seats for voters ( 0 - 100 ): ");
+                var sSeats = Console.ReadLine();
+                var ritio = decimal.Parse(sRitio);
+                var seats = int.Parse(sSeats);
+                Console.WriteLine(@$"Create new profiting account: {sName}
+Share ritio: {ritio} %
+Seats: {seats}
+
+");
+                if (ReadYesNoAnswer())
+                {
+                    var creatRet = await _wallet.CreateProfitingAccountAsync(sName, ProfitingType.Node, ritio / 100, seats);
+                    if(creatRet.Successful())
+                    {
+                        var pftGensis = creatRet.GetBlock() as ProfitingGenesis;
+                        Console.WriteLine($"Gratz! Your new profiting account is: {pftGensis.AccountID}");
+                    }
+                }
+            }
+        }
+
+        private async Task ProcessStakingCommandAsync()
+        {
+
         }
 
         private async Task ProcessPoolCommandAsync()

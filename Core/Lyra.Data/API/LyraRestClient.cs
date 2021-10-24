@@ -593,5 +593,15 @@ namespace Lyra.Core.API
 
             return await GetAsync<PoolInfoAPIResult>("GetPool", args);
         }
+
+        public async Task<MultiBlockAPIResult> GetAllBrokerAccountsForOwnerAsync(string ownerAccount)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "ownerAccount", ownerAccount },
+            };
+
+            return await GetAsync<MultiBlockAPIResult>("GetAllBrokerAccountsForOwner", args);
+        }
     }
 }

@@ -45,6 +45,7 @@ namespace Lyra.Core.Accounts
         //private RPCClient _rpcClient = null;
         private readonly IAccountDatabase _store;
         private ILyraAPI _rpcClient = null;
+        public ILyraAPI RPC => _rpcClient;
 
         private long SyncHeight = -1;
         private string SyncHash = string.Empty;

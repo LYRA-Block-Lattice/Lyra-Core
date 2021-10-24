@@ -531,5 +531,10 @@ namespace Lyra.Data.API
 
             return await CheckResultAsync("", tasks);
         }
+
+        public Task<MultiBlockAPIResult> GetAllBrokerAccountsForOwnerAsync(string ownerAccount)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

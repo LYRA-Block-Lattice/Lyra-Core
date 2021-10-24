@@ -1520,6 +1520,19 @@ namespace Lyra.Core.Accounts
             return pool;
         }
 
+        public async Task<List<Block>> GetAllBrokerAccountsForOwnerAsync(string ownerAccount)
+        {
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.And(filter.Or(
+                filter.Eq("BlockType", BlockTypes.ProfitingGenesis),
+                filter.Eq("BlockType", BlockTypes.StakingGenesis)
+                ), filter.Eq("OwnerAccountId", ownerAccount));
+
+            var finds = await _blocks.FindAsync(filterDefination);
+            var gens = finds.ToList();
+            return gens;
+        }
+
         public void CreateBlueprint(BrokerBlueprint blueprint)
         {
             var exists = _blueprints.Find(a => a.svcReqHash == blueprint.svcReqHash);

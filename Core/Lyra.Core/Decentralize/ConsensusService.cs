@@ -950,7 +950,8 @@ namespace Lyra.Core.Decentralize
             {
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
                 ThumbPrint = _hostEnv?.GetThumbPrint(),
-                IPAddress = $"{_myIpAddress}"
+                IPAddress = $"{_myIpAddress}",
+                FeeAccountID = Settings.Default.LyraNode.Lyra.FeeAccountId
             };
 
             //_log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");

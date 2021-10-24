@@ -97,6 +97,7 @@ namespace Lyra.Core.Accounts
 
         Task<PoolFactoryBlock> GetPoolFactoryAsync();
         Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1);
+        Task<List<Block>> GetAllBrokerAccountsForOwnerAsync(string ownerAccount);
         Task<List<Block>> FindBlocksByRelatedTxAsync(string hash);
         /// <summary>
         /// Cleans up or deletes blocks collection.

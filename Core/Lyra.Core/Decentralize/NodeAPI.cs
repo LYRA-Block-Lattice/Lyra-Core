@@ -17,6 +17,7 @@ using Akka.Routing;
 using Lyra.Data.API;
 using Lyra.Data.Utils;
 using Lyra.Data.Crypto;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Decentralize
 {
@@ -1051,5 +1052,29 @@ namespace Lyra.Core.Decentralize
         }
 
         #endregion
+
+        public async Task<MultiBlockAPIResult> GetAllBrokerAccountsForOwnerAsync(string ownerAccount)
+        {
+            var result = new MultiBlockAPIResult();
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetAllBrokerAccountsForOwnerAsync(ownerAccount);
+                if (blocks != null)
+                {
+                    result.SetBlocks(blocks.ToArray());
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetAllBrokerAccountsForOwner: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
+        }
     }
 }

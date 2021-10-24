@@ -10,9 +10,10 @@
         },
         "Wallet": {
           "Name": "poswallet",
-          "Password":  ""
+          "Password": ""
         },
-        "Mode": ""
+        "Mode": "",
+        "FeeAccountId": ""
       }
     },
     "Storage": {

@@ -101,7 +101,20 @@ namespace UnitTests.Swap
             balances = w1.GetLatestBlock().Balances;
             Assert.IsTrue(balances[testTokenA].ToBalanceDecimal() > 100000m, "Insufficient funds: " + testTokenA);
         }
+        
         [TestMethod]
+        public async Task TestAll()
+        {
+            await APoolSetupProperlyAsync();
+            await PoolDepositionAsync();
+            await SwapCoinWrongAsync();
+            await SwapLYRToTokenAAsync();
+            await SwapTokenAToLYRAsync();
+            await SwapWithSlippageAsync();
+            await ZPoolWithdrawAsync();
+        }
+
+
         public async Task APoolSetupProperlyAsync()
         {
             var pool = await client.GetPoolAsync(testTokenA, LyraGlobal.OFFICIALTICKERCODE);
@@ -109,7 +122,6 @@ namespace UnitTests.Swap
             pool.PoolAccountId.Should().StartWith("L");
         }
 
-        [TestMethod]
         public async Task PoolDepositionAsync()
         {
             try
@@ -140,6 +152,7 @@ namespace UnitTests.Swap
                     var result = await w1.AddLiquidateToPoolAsync(pool.Token0, token0Amount, pool.Token1, token1Amount);
                     Assert.IsTrue(result.ResultCode == APIResultCodes.Success, "Unable to deposit to pool: " + result.ResultCode);
                 }
+                await Task.Delay(1000);
             }
             finally
             {
@@ -147,7 +160,6 @@ namespace UnitTests.Swap
             }
         }
 
-        [TestMethod]
         public async Task ZPoolWithdrawAsync()
         {
             try
@@ -203,7 +215,6 @@ namespace UnitTests.Swap
             }
         }
 
-        [TestMethod]
         public async Task SwapTokenAToLYRAsync()
         {
             try
@@ -254,7 +265,6 @@ namespace UnitTests.Swap
             }
         }
 
-        [TestMethod]
         public async Task SwapLYRToTokenAAsync()
         {
             try
@@ -314,7 +324,6 @@ namespace UnitTests.Swap
             }
         }
 
-        [TestMethod]
         public async Task SwapWithSlippageAsync()
         {
             try
@@ -380,7 +389,6 @@ namespace UnitTests.Swap
             }
         }
 
-        [TestMethod]
         public async Task SwapCoinWrongAsync()
         {
             try
