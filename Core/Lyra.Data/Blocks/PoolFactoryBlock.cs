@@ -29,7 +29,9 @@ namespace Lyra.Core.Blocks
         {
             string extraData = base.GetExtraData();
             extraData += FactoryAccount + "|";
-            extraData += AccountType + "|";
+
+            //HACK: temporary fix. should roll out db upgrade in future.
+            extraData += AccountTypes.Pool + "|";
             return extraData;
         }
 
