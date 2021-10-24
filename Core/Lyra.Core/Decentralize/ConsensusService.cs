@@ -1648,9 +1648,9 @@ namespace Lyra.Core.Decentralize
                                     _log.LogInformation($"Begin executing blueprints...");
                                     bool success;
                                     if (IsThisNodeLeader)
-                                        success = await bp.ExecuteAsync(_sys, async (b) => { await SendBlockToConsensusAndForgetAsync(b); return (ConsensusResult.Uncertain, APIResultCodes.UndefinedError); });
+                                        success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b) );
                                     else   // give normal nodes a chance to clear the queue
-                                        success = await bp.ExecuteAsync(_sys, async (b) => await Task.FromResult((ConsensusResult.Uncertain, APIResultCodes.UndefinedError)));
+                                        success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
                                     _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
                                     if (success)
                                         _sys.Storage.RemoveBlueprint(bp.svcReqHash);
@@ -1712,7 +1712,7 @@ namespace Lyra.Core.Decentralize
             if(!bp.FullDone)
             {
                 _ = Task.Run(async () => {
-                    var success = await bp.ExecuteAsync(_sys, async (b) => await Task.FromResult((ConsensusResult.Uncertain, APIResultCodes.UndefinedError)));  // fake run
+                    var success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);  // fake run
                     _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                     if (success)
                         _sys.Storage.RemoveBlueprint(bp.svcReqHash);

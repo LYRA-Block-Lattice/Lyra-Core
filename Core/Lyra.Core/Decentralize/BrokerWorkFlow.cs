@@ -44,7 +44,7 @@ namespace Lyra.Core.Decentralize
 
         public bool FullDone => preDone && mainDone && extraDone;
 
-        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task<(ConsensusResult?, APIResultCodes errorCode)>> submit)
+        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit)
         {
             // execute work flow
             var wf = BrokerFactory.WorkFlows[action];
@@ -58,8 +58,8 @@ namespace Lyra.Core.Decentralize
                         preDone = true;
                     else
                     {
-                        var result = await submit(preBlock);
-                        preDone = result.Item1 == ConsensusResult.Yea;
+                        await submit(preBlock);
+                        preDone = false;
                         Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
                     }
                 }
@@ -79,8 +79,8 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         // send it
-                        var result2 = await submit(mainBlock);
-                        mainDone = result2.Item1 == ConsensusResult.Yea;
+                        await submit(mainBlock);
+                        mainDone = false;
                         Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
                     }
                 }
@@ -105,9 +105,9 @@ namespace Lyra.Core.Decentralize
                         bool r3 = true;
                         foreach (var b in otherBlocks)
                         {
-                            var result3 = await submit(b);
-                            r3 = r3 && result3.Item1 == ConsensusResult.Yea;
-                            Console.WriteLine($"WF: {send.Hash.Shorten()} {b.BlockType}: extraDone: {result3.Item1 == ConsensusResult.Yea}");
+                            await submit(b);
+                            r3 = r3 && false;
+                            Console.WriteLine($"WF: {send.Hash.Shorten()} {b.BlockType}: extraDone: {r3}");
                         }
                         extraDone = r3;
                     }
