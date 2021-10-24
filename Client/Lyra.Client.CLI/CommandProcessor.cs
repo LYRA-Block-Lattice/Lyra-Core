@@ -272,32 +272,34 @@ namespace Lyra.Client.CLI
         private async Task ProcessProfitingCommandAsync()
         {
             var gensResult = await _wallet.RPC.GetAllBrokerAccountsForOwnerAsync(_wallet.AccountId);
-            var gens = gensResult.GetBlocks();
+            var gens = gensResult.GetBlocks().Where(a => a is ProfitingGenesis).Cast<ProfitingGenesis>();
             Console.WriteLine($"You have {gens.Count()} accounts.");
             foreach(var gen in gens)
             {
-                Console.WriteLine($"{gen.BlockType}: {(gen as TransactionBlock).AccountID}");
+                var type = gen.BlockType == BlockTypes.ProfitingGenesis ? "Profiting" : "Staking";
+                Console.WriteLine($"{type}: Name: {(gen as IBrokerAccount).Name} {gen.AccountID}");
             }
-            Console.WriteLine("Create a new profiting account? Y/n");
+
+            Console.Write("Create a new profiting account? Y/n? ");
             if (ReadYesNoAnswer())
             {
-                Console.WriteLine("The Name of the profiting account: ");
+                Console.Write("The Name of the profiting account: ");
                 var sName = Console.ReadLine();
-                Console.WriteLine("Percentage of revernue you want to share with voters (%): ");
+                Console.Write("Percentage of revernue you want to share with voters (%): ");
                 var sRitio = Console.ReadLine();
-                Console.WriteLine("Number of seats for voters ( 0 - 100 ): ");
+                Console.Write("Number of seats for voters ( 0 - 100 ): ");
                 var sSeats = Console.ReadLine();
                 var ritio = decimal.Parse(sRitio);
                 var seats = int.Parse(sSeats);
-                Console.WriteLine(@$"Create new profiting account: {sName}
+                Console.Write(@$"Create new profiting account: {sName}
 Share ritio: {ritio} %
 Seats: {seats}
 
-");
+Y/n? ");
                 if (ReadYesNoAnswer())
                 {
                     var creatRet = await _wallet.CreateProfitingAccountAsync(sName, ProfitingType.Node, ritio / 100, seats);
-                    if(creatRet.Successful())
+                    if (creatRet.Successful())
                     {
                         var pftGensis = creatRet.GetBlock() as ProfitingGenesis;
                         Console.WriteLine($"Gratz! Your new profiting account is: {pftGensis.AccountID}");
@@ -308,6 +310,137 @@ Seats: {seats}
 
         private async Task ProcessStakingCommandAsync()
         {
+            var gensResult = await _wallet.RPC.GetAllBrokerAccountsForOwnerAsync(_wallet.AccountId);
+            var gens = gensResult.GetBlocks().Where(a => a is StakingGenesis).Cast<StakingGenesis>().ToList();
+            Console.WriteLine($"You have {gens.Count()} accounts.");
+            foreach (var gen in gens)
+            {
+                var type = gen.BlockType == BlockTypes.ProfitingGenesis ? "Profiting" : "Staking";
+                var lbRet = await _wallet.RPC.GetLastBlockAsync(gen.AccountID);
+                var amount = 0m;
+                if (lbRet.Successful() && lbRet.GetBlock() is TransactionBlock tb && tb.Balances.ContainsKey("LYR"))
+                    amount = tb.Balances["LYR"].ToBalanceDecimal();
+                Console.WriteLine($"{type}: Name: {(gen as IBrokerAccount).Name} {gen.AccountID.Shorten()} Amount: {amount}");
+            }
+
+            Console.WriteLine("Please choose your action:");
+            Console.WriteLine("\t1, Create a new staking account");
+            Console.WriteLine("\t2, Add funds to a staking account");
+            Console.WriteLine($"\t3, Withdraw funds from a staking account");
+            Console.WriteLine($"\t4, Details of staking account");
+            Console.WriteLine("\t5, Exit\n");
+
+            var act = int.Parse(Console.ReadLine());
+            switch(act)
+            {
+                case 1:
+                    Console.WriteLine("Create a new staking account.");
+                    Console.Write("The Name of the staking account: ");
+                    var sName = Console.ReadLine();
+                    Console.Write("Which profiting account you want to staking: ");
+                    var pftAcct = Console.ReadLine();
+                    Console.Write("Number of days ( 3 - 36500 ): ");
+                    var dayss = Console.ReadLine();
+                    var days = int.Parse(dayss);
+                    Console.Write(@$"Create new staking account: {sName}
+Staking for: {pftAcct} %
+Days: {days}
+
+Y/n? ");
+                    if (ReadYesNoAnswer())
+                    {
+                        var creatRet = await _wallet.CreateStakingAccountAsync(sName, pftAcct, days);
+                        if (creatRet.Successful())
+                        {
+                            var pftGensis = creatRet.GetBlock() as StakingGenesis;
+                            Console.WriteLine($"Gratz! Your new staking account is: {pftGensis.AccountID}");
+                        }
+                    }
+                    break;
+                case 2:
+                    Console.WriteLine("Add funds to a staking account.");
+                    Console.WriteLine($"Select your staking account.");
+                    var i = 1;
+                    foreach (var gen in gens)
+                    {
+                        var type = gen.BlockType == BlockTypes.ProfitingGenesis ? "Profiting" : "Staking";
+                        Console.WriteLine($"{i++}. {type}: Name: {(gen as IBrokerAccount).Name} {gen.AccountID}");
+                    }
+                    Console.Write($"Your choice: (1 - {gens.Count}): ");
+                    var ndx = int.Parse(Console.ReadLine());
+                    var stkact = gens.Skip(ndx - 1).First();
+                    Console.Write($"LYR amount to add to {stkact.AccountID.Shorten()}: ");
+                    var amount = decimal.Parse(Console.ReadLine());
+                    Console.Write(@$"Add funds to staking account: {stkact.Name}
+Account ID: {stkact.AccountID} %
+Amount: {amount}
+
+Y/n? ");
+                    if (ReadYesNoAnswer())
+                    {
+                        var creatRet = await _wallet.AddStakingAsync(stkact.AccountID, amount);
+                        if (creatRet.Successful())
+                        {
+                            Console.WriteLine($"Gratz! Add funds success!");
+                        }
+                        else
+                            Console.WriteLine("Oh no, something error. please try again. " + creatRet.ResultCode.ToString());
+                    }
+                    break;
+                case 3:
+                    Console.WriteLine("Withdraw funds from a staking account.");
+                    Console.WriteLine($"Select your staking account.");
+                    var j = 1;
+                    foreach (var gen in gens)
+                    {
+                        var type = gen.BlockType == BlockTypes.ProfitingGenesis ? "Profiting" : "Staking";
+                        Console.WriteLine($"{j++}. {type}: Name: {(gen as IBrokerAccount).Name} {gen.AccountID}");
+                    }
+                    Console.Write($"Your choice: (1 - {gens.Count}): ");
+                    var index = int.Parse(Console.ReadLine());
+                    var stk = gens.Skip(index - 1).First();
+                    Console.Write(@$"Withdraw funds from staking account: {stk.Name}
+Account ID: {stk.AccountID} %
+
+Y/n? ");
+                    if (ReadYesNoAnswer())
+                    {
+                        var creatRet = await _wallet.UnStakingAsync(stk.AccountID);
+                        if (creatRet.Successful())
+                        {
+                            Console.WriteLine($"Gratz! Withdraw funds success!");
+                        }
+                        else
+                            Console.WriteLine("Oh no, something error. please try again. " + creatRet.ResultCode.ToString());
+                    }
+                    break;
+                case 4:
+                    Console.WriteLine($"Select your staking account.");
+                    var k = 1;
+                    foreach (var gen in gens)
+                    {
+                        var type = gen.BlockType == BlockTypes.ProfitingGenesis ? "Profiting" : "Staking";
+                        Console.WriteLine($"{k++}. {type}: Name: {(gen as IBrokerAccount).Name} {gen.AccountID}");
+                    }
+                    Console.Write($"Your choice: (1 - {gens.Count}): ");
+                    var ndx2 = int.Parse(Console.ReadLine());
+                    var stkact2 = gens.Skip(ndx2 - 1).First();
+
+                    var lbRet = await _wallet.RPC.GetLastBlockAsync(stkact2.AccountID);
+                    var amountx = 0m;
+                    if (lbRet.Successful() && lbRet.GetBlock() is TransactionBlock tb && tb.Balances.ContainsKey("LYR"))
+                        amountx = tb.Balances["LYR"].ToBalanceDecimal();
+
+                    Console.Write(@$"Details about staking account: {stkact2.Name}
+Account ID: {stkact2.AccountID}
+Voting For: {stkact2.Voting}
+Amount: {amountx}
+
+");
+                    break;
+                default:
+                    break;
+            }
 
         }
 
