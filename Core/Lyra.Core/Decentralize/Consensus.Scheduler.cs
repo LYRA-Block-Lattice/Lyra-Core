@@ -43,7 +43,7 @@ namespace Lyra.Core.Decentralize
             // Tell quartz to schedule the job using our trigger
             await CreateJobAsync(TimeSpan.FromSeconds(24), typeof(HeartBeater), "Heart Beat", jobGroup);
             await CreateJobAsync(TimeSpan.FromMilliseconds(100), typeof(BlockAuthorizationMonitor), "Block Monitor", jobGroup);
-            await CreateJobAsync("0/2 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
+            await CreateJobAsync("0/15 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
 
             // 10 min view change, 30 min fetch balance.
             if(Neo.Settings.Default.LyraNode.Lyra.NetworkId == "devnet")
