@@ -44,6 +44,13 @@ namespace Lyra.Core.Decentralize
 
         public bool FullDone => preDone && mainDone && extraDone;
 
+        public int blockCount {get;set;}
+
+        public BrokerBlueprint()
+        {
+
+        }
+
         public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit)
         {
             // execute work flow
@@ -58,6 +65,7 @@ namespace Lyra.Core.Decentralize
                         preDone = true;
                     else
                     {
+                        blockCount++;
                         await submit(preBlock);
                         preDone = false;
                         Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
@@ -79,6 +87,7 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         // send it
+                        blockCount++;
                         await submit(mainBlock);
                         mainDone = false;
                         Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
@@ -105,6 +114,7 @@ namespace Lyra.Core.Decentralize
                         bool r3 = true;
                         foreach (var b in otherBlocks)
                         {
+                            blockCount++;
                             await submit(b);
                             r3 = r3 && false;
                             Console.WriteLine($"WF: {send.Hash.Shorten()} {b.BlockType}: extraDone: {r3}");

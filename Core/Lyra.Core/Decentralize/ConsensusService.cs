@@ -1622,6 +1622,7 @@ namespace Lyra.Core.Decentralize
                 // create a blueprint for workflow
                 var blueprint = new BrokerBlueprint
                 {
+                    blockCount = 0,
                     view = _currentView,
                     start = DateTime.UtcNow,
                     initiatorAccount = send.AccountID,
@@ -1652,6 +1653,7 @@ namespace Lyra.Core.Decentralize
                     try
                     {
                         var allBlueprints = _sys.Storage.GetAllBlueprints();
+
                         _log.LogInformation($"Executing blueprints: total {allBlueprints.Count} pending.");
                         foreach (var bp in allBlueprints.OrderBy(a => a.start))
                         {
@@ -1659,10 +1661,11 @@ namespace Lyra.Core.Decentralize
 
                             try
                             {
+                                bool success = false;
                                 // hack for unit test
                                 if (_hostEnv == null)
-                                {
-                                    var success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
+                                {                                    
+                                    success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
                                     _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                                     if (success)
                                         _sys.Storage.RemoveBlueprint(bp.svcReqHash);
@@ -1670,18 +1673,19 @@ namespace Lyra.Core.Decentralize
                                 else
                                 {
                                     _log.LogInformation($"Begin executing blueprints...");
-                                    bool success;
                                     if (IsThisNodeLeader)
-                                        success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b) );
+                                        success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
                                     else   // give normal nodes a chance to clear the queue
                                         success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
                                     _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
-                                    if (success)
-                                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                                    else
-                                    {
-                                        _sys.Storage.UpdateBlueprint(bp);
-                                    }
+
+                                }
+
+                                if (success)
+                                    _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                else
+                                {
+                                    _sys.Storage.UpdateBlueprint(bp);
                                 }
                             }
                             catch (Exception e)
@@ -1705,10 +1709,6 @@ namespace Lyra.Core.Decentralize
 
         public void ProcessManagedBlock(TransactionBlock block)
         {
-            // for non-leader nodes to update their blueprints
-            if (IsThisNodeLeader)
-                return;
-
             // find the key
             string key = null;
             
@@ -1735,14 +1735,39 @@ namespace Lyra.Core.Decentralize
 
             if(!bp.FullDone)
             {
-                _ = Task.Run(async () => {
-                    var success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);  // fake run
-                    _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                    if (success)
-                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                    else
+                _ = Task.Run(async () =>
+                {
+                    // hack for unit test
+                    if (_hostEnv == null)
                     {
-                        _sys.Storage.UpdateBlueprint(bp);
+                        await Task.Delay(10);
+                    }
+                    if (_pfTaskMutex.Wait(1))
+                    {
+                        try
+                        {
+                            bool success = false;
+                            if (IsThisNodeLeader)
+                                success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                            else   // give normal nodes a chance to clear the queue
+                                success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
+                            _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                            if (success)
+                                _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                            else
+                            {
+                                _sys.Storage.UpdateBlueprint(bp);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            _log.LogError("Error Executing blueprints: " + e.ToString());
+                        }
+                        finally
+                        {
+                            _log.LogInformation("Executing blueprints Done.");
+                            _pfTaskMutex.Release();
+                        }
                     }
                 });
             }
