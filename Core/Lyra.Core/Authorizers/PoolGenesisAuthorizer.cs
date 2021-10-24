@@ -8,11 +8,16 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class PoolGenesisAuthorizer : BaseAuthorizer
+    public class PoolGenesisAuthorizer : ReceiveTransferAuthorizer
     {
         public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            var result = await AuthorizeImplAsync(sys, tblock);
+            var br = await base.AuthorizeAsync(sys, tblock);
+            APIResultCodes result;
+            if (br.Item1 == APIResultCodes.Success)
+                result = await AuthorizeImplAsync(sys, tblock);
+            else
+                result = br.Item1;
 
             if (APIResultCodes.Success == result)
                 return (APIResultCodes.Success, Sign(sys, tblock));
@@ -33,7 +38,7 @@ namespace Lyra.Core.Authorizers
 
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (relTx == null)
+            if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
                 return APIResultCodes.InvalidServiceRequest;
 
             // service must not been processed

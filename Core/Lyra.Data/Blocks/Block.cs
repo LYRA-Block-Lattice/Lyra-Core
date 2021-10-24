@@ -476,6 +476,12 @@ namespace Lyra.Core.Blocks
         DuplicatedName,
         InvalidStakingAccount,
         SystemBusy,
+        InvalidName,
+        InvalidRelatedTx,
+        InvalidTimeRange,
+        InvalidShareRitio,
+        InvalidSeatsCount,
+        InvalidMessengerAccount,
 
         InvalidBlockData = 400,
         AccountLockDown,

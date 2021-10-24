@@ -1562,7 +1562,7 @@ namespace Lyra.Core.Accounts
         }
 
         // StakingAccountId -> UserAccountId
-        public async Task<List<(string stk, string user)>> FindAllStakersForProfitingAccountAsync(string pftid)
+        public async Task<List<(string stk, string user, decimal amount)>> FindAllStakersForProfitingAccountAsync(string pftid)
         {
             var importedAccounts = FindAllImportedAccountID();
 
@@ -1579,11 +1579,11 @@ namespace Lyra.Core.Accounts
                     AccountId = g.Key,
                     //Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE],
                     Balance2 = g.First().Balances,//.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] : 0,
-                    Owner = ((IStaking)g.First()).OwnerAccountId
+                    Owner = ((IBrokerAccount)g.First()).OwnerAccountId
                 });
 
             return stakings.OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
-                .Select(a => (a.AccountId, a.Owner))
+                .Select(a => (a.AccountId, a.Owner, a.Balance2[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal()))
                 .ToList();
         }
 

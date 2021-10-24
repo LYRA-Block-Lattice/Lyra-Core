@@ -9,11 +9,16 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class ProfitingAuthorizer : BaseAuthorizer
+    public class ProfitingAuthorizer : BrokerAccountRecvAuthorizer
     {
         public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            var result = await AuthorizeImplAsync(sys, tblock);
+            var br = await base.AuthorizeAsync(sys, tblock);
+            APIResultCodes result;
+            if (br.Item1 == APIResultCodes.Success)
+                result = await AuthorizeImplAsync(sys, tblock);
+            else
+                result = br.Item1;
 
             if (APIResultCodes.Success == result)
                 return (APIResultCodes.Success, Sign(sys, tblock));
@@ -27,23 +32,11 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as ProfitingBlock;
 
-            // Validate blocks
-            Block prev = null;
-            if (block.Height > 1)
-                prev = await sys.Storage.FindBlockByHashAsync(block.PreviousHash);
-            var result = await VerifyBlockAsync(sys, block, prev);
-            if (result != APIResultCodes.Success)
-                return result;
+            if (block.ShareRito < 0 || block.ShareRito > 1)
+                return APIResultCodes.InvalidShareRitio;
 
-            // related tx must exist 
-            var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (relTx == null)
-                return APIResultCodes.InvalidServiceRequest;
-
-            //// service must not been processed
-            //var processed = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            //if (processed.Count != 0)
-            //    return APIResultCodes.InvalidServiceRequest;
+            if (block.Seats < 1 || block.Seats > 100)
+                return APIResultCodes.InvalidSeatsCount;
 
             return APIResultCodes.Success;
         }

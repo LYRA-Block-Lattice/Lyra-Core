@@ -10,6 +10,38 @@ namespace Lyra.Core.Authorizers
 {
     public class PoolWithdrawAuthorizer : SendTransferAuthorizer
     {
+        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
+        {
+            var br = await base.AuthorizeAsync(sys, tblock);
+            APIResultCodes result;
+            if (br.Item1 == APIResultCodes.Success)
+                result = await AuthorizeImplAsync(sys, tblock);
+            else
+                result = br.Item1;
+
+            if (APIResultCodes.Success == result)
+                return (APIResultCodes.Success, Sign(sys, tblock));
+            else
+                return (result, (AuthorizationSignature)null);
+        }
+        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        {
+            if (!(tblock is PoolWithdrawBlock))
+                return APIResultCodes.InvalidBlockType;
+
+            var block = tblock as PoolWithdrawBlock;
+
+            var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
+            if (send == null || send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                return APIResultCodes.InvalidMessengerAccount;
+
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            if(blocks.Count != 0)
+                return APIResultCodes.InvalidRelatedTx;
+
+            return APIResultCodes.Success;
+        }
+
         protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
         {
             APIResultCodes result = APIResultCodes.Success;

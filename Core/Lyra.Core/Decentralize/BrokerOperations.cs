@@ -35,8 +35,6 @@ namespace Lyra.Core.Decentralize
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            receiveBlock.AddTag("relhash", sendBlock.Hash);  // pool factory recv 
-            //receiveBlock.AddTag("type", actionType);       // pool factory receive
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -116,8 +114,6 @@ namespace Lyra.Core.Decentralize
             };
 
             poolGenesis.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            poolGenesis.AddTag("relhash", send.Hash);  // pool withdraw action
-            poolGenesis.AddTag("type", "pfcreat");       // pool remove liquidate
 
             // pool blocks are service block so all service block signed by leader node
             poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
@@ -144,12 +140,12 @@ namespace Lyra.Core.Decentralize
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                RelatedTx = sendBlock.Hash
             };
 
             depositBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            depositBlock.AddTag("relhash", sendBlock.Hash);  // pool deposit
-            depositBlock.AddTag("type", "pladdin");       // pool add liquidate
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -298,8 +294,6 @@ namespace Lyra.Core.Decentralize
             };
 
             swapInBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            swapInBlock.AddTag("relhash", sendBlock.Hash);  // pool swap in
-            swapInBlock.AddTag("type", "plswapin");       // pool swap in
 
             TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
@@ -378,8 +372,6 @@ namespace Lyra.Core.Decentralize
             };
 
             swapOutBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            swapOutBlock.AddTag("relhash", send.Hash);  // pool swap out action
-            swapOutBlock.AddTag("type", "plswapout");       // pool swap in
 
             var poolGenesisBlock = await sys.Storage.FindFirstBlockAsync(recv.AccountID) as PoolGenesisBlock;
             var poolLatestBlock = await sys.Storage.FindLatestBlockAsync(recv.AccountID) as TransactionBlock;
@@ -455,8 +447,6 @@ namespace Lyra.Core.Decentralize
             };
 
             pftGenesis.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            pftGenesis.AddTag("relhash", send.Hash);  // pool withdraw action
-            pftGenesis.AddTag("type", "pfcrpft");       // pool remove liquidate
 
             // pool blocks are service block so all service block signed by leader node
             pftGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
@@ -521,9 +511,11 @@ namespace Lyra.Core.Decentralize
             var stakers = await sys.Storage.FindAllStakersForProfitingAccountAsync(recv.AccountID);
             var targets = stakers.Take(((IProfiting)recv).Seats);
             // so 
-            var amount = chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] / targets.Count();
+            var totalStakingAmount = stakers.Sum(a => a.amount);
+
             TransactionBlock lastPft = recv;
-            var lastBalance = recv.Balances[LyraGlobal.OFFICIALTICKERCODE];
+            var profitToDistribute = recv.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+            long lastBalance = recv.Balances[LyraGlobal.OFFICIALTICKERCODE];
             var sb = await sys.Storage.GetLastServiceBlockAsync();
 
             var allSends = new List<TransactionBlock>();
@@ -555,6 +547,8 @@ namespace Lyra.Core.Decentralize
                 };
 
                 //TODO: think about multiple token
+                var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
+                Console.WriteLine($"Send {target.user} staking {target.amount} amount {amount}");
                 lastBalance -= amount.ToBalanceLong();
                 pftSend.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastBalance);
 
@@ -609,8 +603,6 @@ namespace Lyra.Core.Decentralize
             stkGenesis.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
 
             stkGenesis.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            stkGenesis.AddTag("relhash", send.Hash);  // pool withdraw action
-            stkGenesis.AddTag("type", "pfcrstk");       // pool remove liquidate
 
             // pool blocks are service block so all service block signed by leader node
             stkGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
@@ -626,7 +618,8 @@ namespace Lyra.Core.Decentralize
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
-            var lastStk = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
+            var lastBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId);
+            var lastStk = lastBlock as TransactionBlock;
 
             var stkNext = new StakingBlock
             {
@@ -644,6 +637,7 @@ namespace Lyra.Core.Decentralize
                 SourceHash = send.Hash,
 
                 // pool specified config
+                Days = (lastBlock as IStaking).Days,
                 Voting = ((IStaking)lastStk).Voting,
                 RelatedTx = send.Hash
             };
@@ -652,8 +646,6 @@ namespace Lyra.Core.Decentralize
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE] + chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong());
 
             stkNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-            stkNext.AddTag("relhash", send.Hash);  // pool withdraw action
-            stkNext.AddTag("type", "pfaddstk");       // pool remove liquidate
 
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
@@ -663,7 +655,7 @@ namespace Lyra.Core.Decentralize
         public static async Task<TransactionBlock> CNOUnStakeAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
-            if (blocks.All(a => a is UnStakingBlock))
+            if (blocks.Any(a => a is UnStakingBlock))
                 return null;
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
@@ -686,6 +678,7 @@ namespace Lyra.Core.Decentralize
                 DestinationAccountId = send.AccountID,
 
                 // pool specified config
+                Days = lastStk.Days,
                 Voting = lastStk.Voting,
                 RelatedTx = send.Hash
             };

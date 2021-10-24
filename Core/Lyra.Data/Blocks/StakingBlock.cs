@@ -9,7 +9,7 @@ using System.Text;
 namespace Lyra.Core.Blocks
 {
 
-    public interface IStaking : IBrokerAccount
+    public interface IStaking
     {
         // staking take effect after 1 day.
         public string Voting { get; set; }
