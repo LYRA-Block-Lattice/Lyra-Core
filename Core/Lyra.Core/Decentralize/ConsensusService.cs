@@ -263,6 +263,8 @@ namespace Lyra.Core.Decentralize
                         {
                             var json = JsonConvert.SerializeObject(signedMsg);
                             Console.WriteLine("===\n" + json + "\n===");
+
+                            var jb = JsonConvert.SerializeObject(signedMsg);
                         }
                     }
                 }
@@ -943,10 +945,14 @@ namespace Lyra.Core.Decentralize
             //    Debugger.Break();
             _localNode.Tell(item);
 
-            if(item.MsgType == ChatMessageType.AuthorizerPrePrepare)
+            if(item is AuthorizingMsg auth && auth.Block is ProfitingGenesis gen)
             {
                 var json = JsonConvert.SerializeObject(item);
                 Console.WriteLine("===\n" + json + "\n===");
+
+                var jb = JsonConvert.SerializeObject(auth.Block);
+                var blockx = JsonConvert.DeserializeObject<ProfitingGenesis>(jb);
+                Console.WriteLine($"Test convert hash verify result: {blockx.VerifyHash()}");
             }
         }
 
