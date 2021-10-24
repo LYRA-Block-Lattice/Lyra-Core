@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using System;
@@ -42,7 +43,7 @@ namespace Lyra.Core.Authorizers
             // first verify account id
             // create a semi random account for pool.
             // it can be verified by other nodes.
-            var keyStr = $"{send.Hash.Substring(0, 16)},{block.PType},{block.ShareRito},{block.Seats},{send.AccountID}";
+            var keyStr = $"{send.Hash.Substring(0, 16)},{block.PType},{block.ShareRito.ToBalanceLong()},{block.Seats},{send.AccountID}";
             var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
 
             if (block.AccountID != AccountId)
