@@ -1647,7 +1647,7 @@ namespace Lyra.Core.Decentralize
                                     _log.LogInformation($"Begin executing blueprints...");
                                     bool success;
                                     if (IsThisNodeLeader)
-                                        success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
+                                        success = await bp.ExecuteAsync(_sys, async (b) => { await SendBlockToConsensusAndForgetAsync(b); return (ConsensusResult.Uncertain, APIResultCodes.UndefinedError); });
                                     else   // give normal nodes a chance to clear the queue
                                         success = await bp.ExecuteAsync(_sys, async (b) => await Task.FromResult((ConsensusResult.Uncertain, APIResultCodes.UndefinedError)));
                                     _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
