@@ -937,6 +937,12 @@ namespace Lyra.Core.Decentralize
             //if (item.MsgType == ChatMessageType.HeartBeat || item.MsgType == ChatMessageType.NodeUp)
             //    Debugger.Break();
             _localNode.Tell(item);
+
+            if(item.MsgType == ChatMessageType.AuthorizerPrePrepare)
+            {
+                var json = JsonConvert.SerializeObject(item);
+                Console.WriteLine("===\n" + json + "\n===");
+            }
         }
 
         private async Task<ActiveNode> DeclareConsensusNodeAsync()
