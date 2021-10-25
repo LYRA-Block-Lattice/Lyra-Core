@@ -83,6 +83,8 @@ namespace Lyra.Core.Decentralize
         private long _currentView;
         public static ConsensusService Instance;
         private SemaphoreSlim _pfTaskMutex = new SemaphoreSlim(1);
+
+        private DateTime _lastConsolidateTry;
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
@@ -92,6 +94,7 @@ namespace Lyra.Core.Decentralize
             //_blockchain = blockchain;
             _log = new SimpleLogger("ConsensusService").Logger;
             _successBlockCount = 0;
+            _lastConsolidateTry = DateTime.UtcNow;
 
             _criticalMsgCache = new ConcurrentDictionary<string, DateTime>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
@@ -1238,6 +1241,12 @@ namespace Lyra.Core.Decentralize
             if (_stateMachine.State != BlockChainState.Almighty
                 && _stateMachine.State != BlockChainState.Engaging)
                 return;
+
+            // avoid hammer
+            if (DateTime.UtcNow - _lastConsolidateTry < TimeSpan.FromSeconds(1))
+                return;
+
+            _lastConsolidateTry = DateTime.UtcNow;
 
             // check if there are pending consolidate blocks
             var pendingCons = _activeConsensus.Values
