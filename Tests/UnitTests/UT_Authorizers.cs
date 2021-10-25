@@ -199,8 +199,8 @@ namespace UnitTests
         [TestMethod]
         public async Task FullTest()
         {
-            //await CreateTestBlockchainAsync();
-            await CreateDevnet();
+            await CreateTestBlockchainAsync();
+            //await CreateDevnet();
 
             // test 1 wallet
             var walletStor2 = new AccountInMemoryStorage();
@@ -220,7 +220,7 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            //await TestPoolAsync();
+            await TestPoolAsync();
             await TestProfitingAndStaking();
 
             // let workflow to finish

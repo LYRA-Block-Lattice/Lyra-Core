@@ -34,7 +34,7 @@ namespace Lyra.Core.Accounts
         {
             _newVoteFor = voteTarget;
         }
-        public string VoteFor => _newVoteFor == null ? _lastTransactionBlock?.VoteFor : _newVoteFor;
+        public string VoteFor => _newVoteFor ?? (_lastTransactionBlock?.VoteFor);
 
         private bool _noConsole;
 

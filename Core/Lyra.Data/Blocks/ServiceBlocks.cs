@@ -118,10 +118,10 @@ namespace Lyra.Core.Blocks
             result += $"NetworkId: {NetworkId}\n";
             result += $"Leader: {Leader}\n";
             result += $"FeeTicker: {FeeTicker}\n";
-            result += $"TransferFee: {TransferFee.ToString()}\n";
-            result += $"TokenGenerationFee: {TokenGenerationFee.ToString()}\n";
-            result += $"TradeFee: {TradeFee.ToString()}\n";
-            result += $"FeesGenerated: {FeesGenerated.ToString()}\n";
+            result += $"TransferFee: {TransferFee}\n";
+            result += $"TokenGenerationFee: {TokenGenerationFee}\n";
+            result += $"TradeFee: {TradeFee}\n";
+            result += $"FeesGenerated: {FeesGenerated}\n";
 
             result += "Authorizers: " + Authorizers.Select(a => $"{a.Key}:{a.Value}")
                 .Aggregate((a, b) => a + ", " + b);
