@@ -1620,12 +1620,8 @@ namespace Lyra.Core.Decentralize
 
         public void ProcessServerReqBlock(SendTransferBlock send)
         {
-            var dstAccount = _sys.Storage.FindFirstBlock(send.DestinationAccountId);
-
             string action = null;
-            if (dstAccount != null && ((IOpeningBlock)dstAccount).AccountType == AccountTypes.Profiting)
-                action = BrokerActions.BRK_PFT_GETPFT;
-            else if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
+            if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
                 action = send.Tags[Block.REQSERVICETAG];
 
             if (action != null)
@@ -1633,7 +1629,6 @@ namespace Lyra.Core.Decentralize
                 // create a blueprint for workflow
                 var blueprint = new BrokerBlueprint
                 {
-                    blockCount = 0,
                     view = _currentView,
                     start = DateTime.UtcNow,
                     initiatorAccount = send.AccountID,
@@ -1753,7 +1748,8 @@ namespace Lyra.Core.Decentralize
                     {
                         await Task.Delay(10);
                     }
-                    if (_pfTaskMutex.Wait(1))
+                    // debug unit test. force execute when unit test debug
+                    if (_hostEnv == null || _pfTaskMutex.Wait(1))
                     {
                         try
                         {

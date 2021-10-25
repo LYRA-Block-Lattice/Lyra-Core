@@ -3,6 +3,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
+using Lyra.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -339,7 +340,7 @@ namespace Lyra.Core.Decentralize
             //await QueueBlockForPoolAsync(swapInBlock, tx);   // pool swap in
         }
 
-        public static async Task<List<TransactionBlock>> SendPoolSwapOutTokenAsync(DagSystem sys, string reqHash)
+        public static async Task<TransactionBlock> SendPoolSwapOutTokenAsync(DagSystem sys, string reqHash)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(reqHash);
             var swout = blocks.FirstOrDefault(a => a is PoolSwapOutBlock);
@@ -405,8 +406,7 @@ namespace Lyra.Core.Decentralize
             //if (chgs.FeeAmount != cfg.PayToAuthorizer)
             //    _log.LogError($"In swap out block gen: Fee should be {cfg.PayToAuthorizer} but {chgs.FeeAmount} ");
 
-            return new List<TransactionBlock> { swapOutBlock };
-            //await QueueTxActionBlockAsync(swapOutBlock);
+            return swapOutBlock;
         }
 
         public static async Task<TransactionBlock> CNOCreateProfitingAccountAsync(DagSystem sys, SendTransferBlock send)
@@ -456,17 +456,156 @@ namespace Lyra.Core.Decentralize
             //await QueueTxActionBlockAsync(poolGenesis);
         }
 
-        public static async Task<TransactionBlock> CNOReceiveProfitAsync(DagSystem sys, SendTransferBlock send)
+        // like wallet.receive
+        public static async Task<TransactionBlock> CNOReceiveAllProfitAsync(DagSystem sys, SendTransferBlock reqSend)
         {
-            var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
-            if (block != null)
-                return null;
+            var pftid = reqSend.Tags["pftid"];
 
+            var transfer_info = await GetSendToPftAsync(sys, pftid);
+
+            if (transfer_info.Successful())
+            {
+                var receiveBlock = await CNOReceiveProfitAsync(sys, reqSend.Hash, pftid, transfer_info);
+
+                return receiveBlock;        // because we do it one block a time
+            }
+            else
+                return null;        // the check
+        }
+
+        private static async Task<NewTransferAPIResult2> GetSendToPftAsync(DagSystem sys, string pftid)
+        {
+            NewTransferAPIResult2 transfer_info = new NewTransferAPIResult2();
+            SendTransferBlock sendBlock = await sys.Storage.FindUnsettledSendBlockAsync(pftid);
+
+            if (sendBlock != null)
+            {
+                TransactionBlock previousBlock = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+                if (previousBlock == null)
+                    transfer_info.ResultCode = APIResultCodes.CouldNotTraceSendBlockChain;
+                else
+                {
+                    transfer_info.Transfer = sendBlock.GetBalanceChanges(previousBlock); //CalculateTransaction(sendBlock, previousSendBlock);
+                    transfer_info.SourceHash = sendBlock.Hash;
+                    transfer_info.NonFungibleToken = sendBlock.NonFungibleToken;
+                    transfer_info.ResultCode = APIResultCodes.Success;
+                }
+            }
+            else
+                transfer_info.ResultCode = APIResultCodes.NoNewTransferFound;
+            return transfer_info;
+        }
+
+        private static async Task<TransactionBlock> CNOReceiveProfitAsync(DagSystem sys, string relatedTx, string pftid, NewTransferAPIResult2 transInfo)
+        {
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
-            var lastPft = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId) as TransactionBlock;
+            var lastPft = await sys.Storage.FindLatestBlockAsync(pftid) as TransactionBlock;
 
             var pftNext = new ProfitingBlock
+            {
+                Name = ((IBrokerAccount)lastPft).Name,
+                OwnerAccountId = ((IBrokerAccount)lastPft).OwnerAccountId,
+                AccountID = lastPft.AccountID,
+                Balances = new Dictionary<string, long>(),
+                PreviousHash = lastPft.Hash,
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+                SourceHash = transInfo.SourceHash,
+
+                // profit specified config
+                PType = ((IProfiting)lastPft).PType,
+                ShareRito = ((IProfiting)lastPft).ShareRito,
+                Seats = ((IProfiting)lastPft).Seats,
+                RelatedTx = relatedTx
+            };
+
+            var recvBalances = lastPft.Balances.ToDecimalDict();
+            foreach (var chg in transInfo.Transfer.Changes)
+            {
+                if (recvBalances.ContainsKey(chg.Key))
+                    recvBalances[chg.Key] += chg.Value;
+                else
+                    recvBalances.Add(chg.Key, chg.Value);
+            }
+
+            pftNext.Balances = recvBalances.ToLongDict();
+
+            pftNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            // pool blocks are service block so all service block signed by leader node
+            pftNext.InitializeBlock(lastPft, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            return pftNext;
+        }
+
+        public static async Task<TransactionBlock> CNORedistributeProfitAsync(DagSystem sys, string reqHash)
+        {
+            var reqBlock = await sys.Storage.FindBlockByHashAsync(reqHash);
+            var pftid = reqBlock.Tags["pftid"];
+            // create [multiple] send based on the staking
+            // TODO: get staking by time receiving.
+            // TODO: support bulk receive and single send
+            // get stakings
+            var lastBlock = await sys.Storage.FindLatestBlockAsync(pftid) as IProfiting;
+            var stakers = await sys.Storage.FindAllStakersForProfitingAccountAsync(pftid, reqBlock.TimeStamp);
+            var targets = stakers.Take(lastBlock.Seats);
+            var relatedTxs = (await sys.Storage.FindBlocksByRelatedTxAsync(reqHash)).OrderBy(a => a.TimeStamp).ToList();
+            // so 
+            var totalStakingAmount = stakers.Sum(a => a.amount);
+            var lastProfitingBlock = relatedTxs.Where(a => a is ProfitingBlock)
+                .OrderBy(a => a.TimeStamp)
+                .Last() as ProfitingBlock;
+            var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
+
+            // create a dictionary to hold amounts to send
+            // staking account -> amount
+            var sendAmounts = new Dictionary<string, decimal>();
+            foreach(var target in targets)
+            {
+                var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
+                sendAmounts.Add(target.stk, amount);
+            }
+
+            //TransactionBlock lastPft = recv;
+            //long lastBalance = recv.Balances[LyraGlobal.OFFICIALTICKERCODE];
+
+            var allSends = new List<TransactionBlock>();
+            var sentBlocks = relatedTxs.Where(a => a is BenefitingBlock)
+                .Cast<BenefitingBlock>()
+                .OrderBy(a => a.Height)
+                .ToList();
+
+            foreach (var target in targets)
+            {
+                var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.stk);
+                if (stkSend != null)
+                    continue;
+
+                var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
+                var sb = await sys.Storage.GetLastServiceBlockAsync();
+                var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
+                    target, reqHash,
+                    amount);
+
+                return pftSend;
+            }
+
+            // all remaining send to the owner
+            if (sentBlocks.Any(a => a.DestinationAccountId == lastBlock.OwnerAccountId && a.StakingAccountId == null))
+                return null;
+
+            var sb2 = await sys.Storage.GetLastServiceBlockAsync();
+            var ownrSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb2, (null, lastBlock.OwnerAccountId, 1m), reqHash, sentBlocks.Last().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
+            return ownrSend;
+        }
+
+        private static BenefitingBlock CreateBenefiting(TransactionBlock lastPft, ServiceBlock sb, 
+            (string stk, string user, decimal amount) target, string relatedTx,
+            decimal amount
+            )
+        {
+            var pftSend = new BenefitingBlock
             {
                 Height = lastPft.Height + 1,
                 Name = ((IBrokerAccount)lastPft).Name,
@@ -478,93 +617,28 @@ namespace Lyra.Core.Decentralize
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                SourceHash = send.Hash,
+                DestinationAccountId = target.user,
 
                 // profit specified config
                 PType = ((IProfiting)lastPft).PType,
                 ShareRito = ((IProfiting)lastPft).ShareRito,
                 Seats = ((IProfiting)lastPft).Seats,
-                RelatedTx = send.Hash
+                RelatedTx = relatedTx,
+                StakingAccountId = target.stk
             };
 
             //TODO: think about multiple token
-            var chgs = send.GetBalanceChanges(sendPrev);
-            var oldBalance = lastPft.Balances.ContainsKey("LYR") ? lastPft.Balances[LyraGlobal.OFFICIALTICKERCODE] : 0;
-            pftNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, oldBalance + chgs.Changes[LyraGlobal.OFFICIALTICKERCODE].ToBalanceLong());
+            
+            Console.WriteLine($"Send {target.user.Shorten()} Index {pftSend.Height} who is staking {target.amount} amount {amount}");
+            var lastBalance = lastPft.Balances[LyraGlobal.OFFICIALTICKERCODE];
+            lastBalance -= amount.ToBalanceLong();
+            pftSend.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastBalance);
 
-            pftNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+            pftSend.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
             // pool blocks are service block so all service block signed by leader node
-            pftNext.InitializeBlock(lastPft, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-            return pftNext;
-        }
-
-        public static async Task<List<TransactionBlock>> CNORedistributeProfitAsync(DagSystem sys, string reqHash)
-        {
-            var recv = await sys.Storage.FindBlockBySourceHashAsync(reqHash);
-            var allsents = await sys.Storage.FindBlocksByRelatedTxAsync(reqHash);
-
-            // create [multiple] send based on the staking
-            var prevBlock = await sys.Storage.FindBlockByHashAsync(recv.PreviousHash) as TransactionBlock;
-            var chgs = recv.GetBalanceChanges(prevBlock);
-
-            // get stakings
-            var stakers = await sys.Storage.FindAllStakersForProfitingAccountAsync(recv.AccountID);
-            var targets = stakers.Take(((IProfiting)recv).Seats);
-            // so 
-            var totalStakingAmount = stakers.Sum(a => a.amount);
-
-            TransactionBlock lastPft = recv;
-            var profitToDistribute = recv.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
-            long lastBalance = recv.Balances[LyraGlobal.OFFICIALTICKERCODE];
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
-
-            var allSends = new List<TransactionBlock>();
-            foreach (var target in targets)
-            {
-                if (allsents.Any(x => x is BenefitingBlock bfb && bfb.StakingAccountId == target.stk))
-                    continue;
-
-                var pftSend = new BenefitingBlock
-                {
-                    Height = lastPft.Height + 1,
-                    Name = ((IBrokerAccount)lastPft).Name,
-                    OwnerAccountId = ((IBrokerAccount)lastPft).OwnerAccountId,
-                    AccountID = lastPft.AccountID,
-                    Balances = new Dictionary<string, long>(),
-                    PreviousHash = lastPft.Hash,
-                    ServiceHash = sb.Hash,
-                    Fee = 0,
-                    FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                    FeeType = AuthorizationFeeTypes.NoFee,
-                    DestinationAccountId = target.user,
-
-                    // profit specified config
-                    PType = ((IProfiting)lastPft).PType,
-                    ShareRito = ((IProfiting)lastPft).ShareRito,
-                    Seats = ((IProfiting)lastPft).Seats,
-                    RelatedTx = (recv as ReceiveTransferBlock).SourceHash,
-                    StakingAccountId = target.stk
-                };
-
-                //TODO: think about multiple token
-                var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
-                Console.WriteLine($"Send {target.user} staking {target.amount} amount {amount}");
-                lastBalance -= amount.ToBalanceLong();
-                pftSend.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastBalance);
-
-                pftSend.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-
-                // pool blocks are service block so all service block signed by leader node
-                pftSend.InitializeBlock(lastPft, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-                allSends.Add(pftSend);
-
-                lastPft = pftSend;
-            }
-            if (allSends.Count > 0)
-                return allSends;
-            else
-                return null;
+            pftSend.InitializeBlock(lastPft, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            return pftSend;
         }
 
         public static async Task<TransactionBlock> CNOCreateStakingAccountAsync(DagSystem sys, SendTransferBlock send)

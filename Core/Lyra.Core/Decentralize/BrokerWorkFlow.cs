@@ -44,8 +44,6 @@ namespace Lyra.Core.Decentralize
 
         public bool FullDone => preDone && mainDone && extraDone;
 
-        public int blockCount {get;set;}
-
         public BrokerBlueprint()
         {
 
@@ -65,10 +63,9 @@ namespace Lyra.Core.Decentralize
                         preDone = true;
                     else
                     {
-                        blockCount++;
                         await submit(preBlock);
                         preDone = false;
-                        Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
+                        //Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
                     }
                 }
                 else
@@ -87,10 +84,9 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         // send it
-                        blockCount++;
                         await submit(mainBlock);
                         mainDone = false;
-                        Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
+                        //Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
                     }
                 }
                 else
@@ -111,15 +107,9 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         // foreach block send it
-                        bool r3 = true;
-                        foreach (var b in otherBlocks)
-                        {
-                            blockCount++;
-                            await submit(b);
-                            r3 = r3 && false;
-                            Console.WriteLine($"WF: {send.Hash.Shorten()} {b.BlockType}: extraDone: {r3}");
-                        }
-                        extraDone = r3;
+                        await submit(otherBlocks);
+                        //Console.WriteLine($"WF: {send.Hash.Shorten()} {otherBlocks.BlockType}: extraDone: {false}");
+                        extraDone = false;
                     }
                 }
                 else
@@ -133,14 +123,14 @@ namespace Lyra.Core.Decentralize
 
     public class BrokerFactory
     {
-        public static Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<List<TransactionBlock>>> extraOps)> WorkFlows { get; set; }
+        public static Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
 
         public void Init()
         {
             if (WorkFlows != null)
                 throw new InvalidOperationException("Already initialized.");
 
-            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<List<TransactionBlock>>> extraOps)>();
+            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)>();
 
             // liquidate pool
             WorkFlows.Add(BrokerActions.BRK_POOL_CRPL, (true, BrokerOperations.CNOCreateLiquidatePoolAsync, null));
@@ -150,7 +140,7 @@ namespace Lyra.Core.Decentralize
 
             // profiting
             WorkFlows.Add(BrokerActions.BRK_PFT_CRPFT, (true, BrokerOperations.CNOCreateProfitingAccountAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_PFT_GETPFT, (false, BrokerOperations.CNOReceiveProfitAsync, BrokerOperations.CNORedistributeProfitAsync));
+            WorkFlows.Add(BrokerActions.BRK_PFT_GETPFT, (true, BrokerOperations.CNOReceiveAllProfitAsync, BrokerOperations.CNORedistributeProfitAsync));
 
             // staking
             WorkFlows.Add(BrokerActions.BRK_STK_CRSTK, (true, BrokerOperations.CNOCreateStakingAccountAsync, null));

@@ -836,16 +836,20 @@ namespace Lyra.Core.Accounts
 
         private async Task<ReceiveTransferBlock> FindReceiveBlockAsync(string AccountId, string SourceHash)
         {
-            var p1 = new BsonArray
-            {
-                (int)BlockTypes.ReceiveTransfer,
-                (int)BlockTypes.OpenAccountWithReceiveTransfer
-            };
+            //var p1 = new BsonArray
+            //{
+            //    (int)BlockTypes.ReceiveTransfer,
+            //    (int)BlockTypes.OpenAccountWithReceiveTransfer
+            //};
 
-            var builder1 = Builders<Block>.Filter;
-            var filterDefinition1 = builder1.And(builder1.In("BlockType", p1), builder1.And(builder1.Eq("AccountID", AccountId), builder1.Eq("SourceHash", SourceHash)));
+            var builder1 = Builders<ReceiveTransferBlock>.Filter;
+            var filterDefinition1 = builder1.Eq("SourceHash", SourceHash);
 
-            return await (await _blocks.FindAsync(filterDefinition1)).FirstOrDefaultAsync() as ReceiveTransferBlock;
+            //return await (await _blocks.FindAsync(filterDefinition1)).FirstOrDefaultAsync() as ReceiveTransferBlock;
+            var finds = await _blocks.OfType<ReceiveTransferBlock>()
+                .FindAsync(filterDefinition1);
+
+            return await finds.FirstOrDefaultAsync();
         }
 
         // Check if the account has any imported accounts and return the list of them if they exist
@@ -1575,8 +1579,9 @@ namespace Lyra.Core.Accounts
         }
 
         // StakingAccountId -> UserAccountId
-        public async Task<List<(string stk, string user, decimal amount)>> FindAllStakersForProfitingAccountAsync(string pftid)
+        public async Task<List<(string stk, string user, decimal amount)>> FindAllStakersForProfitingAccountAsync(string pftid, DateTime timeBefore)
         {
+            // TODO: add time support
             var importedAccounts = FindAllImportedAccountID();
 
             var filter = Builders<Block>.Filter;
@@ -1596,6 +1601,7 @@ namespace Lyra.Core.Accounts
                 });
 
             return stakings.OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
+                .ThenBy(x => x.AccountId)   // make the list consist
                 .Select(a => (a.AccountId, a.Owner, a.Balance2[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal()))
                 .ToList();
         }

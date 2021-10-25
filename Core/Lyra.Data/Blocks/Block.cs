@@ -484,13 +484,15 @@ namespace Lyra.Core.Blocks
         InvalidShareRitio,
         InvalidSeatsCount,
         InvalidMessengerAccount,
+        RequestNotPermited,
 
         InvalidBlockData = 400,
         AccountLockDown,
         UnsupportedBlockType,
 
         UnsuppportedServiceRequest = 500,
-        InvalidServiceRequest = 501
+        InvalidServiceRequest = 501,
+        Unsupported
 
     }
 }
