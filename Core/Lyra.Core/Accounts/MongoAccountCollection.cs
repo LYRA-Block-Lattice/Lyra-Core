@@ -124,7 +124,7 @@ namespace Lyra.Core.Accounts
                 //try
                 //{
                 //    var options = new CreateIndexOptions() { Unique = true };
-                //    var field1 = new StringFieldDefinition<TransactionBlock>("AccountId");
+                //    var field1 = new StringFieldDefinition<TransactionBlock>("AccountID");
                 //    var field2 = new StringFieldDefinition<TransactionBlock>("Height");
                 //    var indexDefinition = new IndexKeysDefinitionBuilder<TransactionBlock>()
                 //        .Ascending(field1).Ascending(field2);
@@ -703,20 +703,22 @@ namespace Lyra.Core.Accounts
             return await result.FirstOrDefaultAsync();
         }
 
-        //private async Task<ReceiveTransferBlock> FindLastRecvBlockAsync(string AccountId)
-        //{
-        //    var options = new FindOptions<Block, Block>
-        //    {
-        //        Limit = 1,
-        //        Sort = Builders<Block>.Sort.Descending(o => o.Height)
-        //    };
-        //    var builder = new FilterDefinitionBuilder<Block>();
-        //    var filterDefinition = builder.And(builder.Eq("AccountID", AccountId),
-        //            builder.Eq("BlockType", BlockTypes.ReceiveTransfer));
+        private async Task<ReceiveTransferBlock> FindLastReceiveBlockAsync(string AccountId)
+        {
+            var options = new FindOptions<ReceiveTransferBlock, ReceiveTransferBlock>
+            {
+                Limit = 1,
+                Sort = Builders<ReceiveTransferBlock>.Sort.Descending(o => o.Height)
+            };
 
-        //    var result = await (await _blocks.FindAsync(filterDefinition, options)).FirstOrDefaultAsync();
-        //    return result as ReceiveTransferBlock;
-        //}
+            var builder1 = Builders<ReceiveTransferBlock>.Filter;
+            var filterDefinition1 = builder1.Eq("AccountID", AccountId);
+
+            var finds = await _blocks.OfType<ReceiveTransferBlock>()
+                .FindAsync(filterDefinition1, options);
+
+            return await finds.FirstOrDefaultAsync();
+        }
 
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId)
         {
@@ -743,51 +745,34 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
-        // this api will be used to implement 'virtual balance'
-        // Note: avoid use enumerable to make api atomic
-        public async IAsyncEnumerable<SendTransferBlock> FindAllUnsettledSendForAsync(string AccountId)
-        {
-            // First, let find all send blocks:
-            // (It can be optimzed as it's going to be growing, so it can be called with munimum Service Chain Height parameter to look only for recent blocks) 
-            var builder = Builders<Block>.Filter;
-            //var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("Height", fromIndex);
-            var filterDefinition = builder.Eq("DestinationAccountId", AccountId);
-
-            var allSendBlocks = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
-
-            foreach (SendTransferBlock sendBlock in allSendBlocks)
-            {
-                var result = await FindReceiveBlockAsync(AccountId, sendBlock.Hash);
-
-                if (result == null)
-                    yield return sendBlock;
-            }
-        }
-
         // look up by destination account
         public async Task<SendTransferBlock> FindUnsettledSendBlockByDestinationAccountIdAsync(string AccountId)
         {
-
-            /* send and receive blocks ar from different account chains so their indexes are not related! 
+            // assuming all receive are based on time order, so we can do shallow scan to save resources.
+            // default do 'shallow' scan.
+            // will implement deep scan in future.
             // get last settled receive block
-            long fromIndex = 0;
-            var lastRecvBlock = await FindLastRecvBlock(AccountId);
+            var timeToScan = DateTime.MinValue;
+            var lastRecvBlock = await FindLastReceiveBlockAsync(AccountId);
             if (lastRecvBlock != null)
             {
-                var lastSendToThisAccountBlock = await FindBlockByHashAsync(lastRecvBlock.SourceHash);
-
-                if (lastSendToThisAccountBlock != null)
-                    fromIndex = lastSendToThisAccountBlock.Height;
+                var send = await FindBlockByHashAsync(lastRecvBlock.SourceHash);
+                if(send != null)    // genesis has no send
+                    timeToScan = send.TimeStamp;
             }
-            */
 
             // First, let find all send blocks:
             // (It can be optimzed as it's going to be growing, so it can be called with munimum Service Chain Height parameter to look only for recent blocks) 
-            var builder = Builders<Block>.Filter;
-            //var filterDefinition = builder.Eq("DestinationAccountId", AccountId) & builder.Gt("Height", fromIndex);
-            var filterDefinition = builder.Eq("DestinationAccountId", AccountId);
+            var options = new FindOptions<Block, Block>
+            {
+                Limit = 10,
+                Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp)
+            };
 
-            var allSendBlocks = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
+            var builder = Builders<Block>.Filter;
+            var filterDefinition = builder.And(builder.Gt("TimeStamp", timeToScan), builder.Eq("DestinationAccountId", AccountId));
+
+            var allSendBlocks = await (await _blocks.FindAsync(filterDefinition, options)).ToListAsync();
 
             foreach (SendTransferBlock sendBlock in allSendBlocks)
             {
@@ -836,16 +821,9 @@ namespace Lyra.Core.Accounts
 
         private async Task<ReceiveTransferBlock> FindReceiveBlockAsync(string AccountId, string SourceHash)
         {
-            //var p1 = new BsonArray
-            //{
-            //    (int)BlockTypes.ReceiveTransfer,
-            //    (int)BlockTypes.OpenAccountWithReceiveTransfer
-            //};
-
             var builder1 = Builders<ReceiveTransferBlock>.Filter;
-            var filterDefinition1 = builder1.Eq("SourceHash", SourceHash);
+            var filterDefinition1 = builder1.And(builder1.Eq("AccountID", AccountId), builder1.Eq("SourceHash", SourceHash));
 
-            //return await (await _blocks.FindAsync(filterDefinition1)).FirstOrDefaultAsync() as ReceiveTransferBlock;
             var finds = await _blocks.OfType<ReceiveTransferBlock>()
                 .FindAsync(filterDefinition1);
 

@@ -69,7 +69,7 @@ namespace UnitTests
         private async Task<bool> AuthAsync(Block block)
         {
             var accid = block is TransactionBlock tb ? tb.AccountID : "";
-            Console.WriteLine($"Auth: {accid.Shorten()} {block.BlockType} Index: {block.Height}");
+            Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): {accid.Shorten()} {block.BlockType} Index: {block.Height}");
             var auth = af.Create(block.BlockType);
             var result = await auth.AuthorizeAsync(sys, block);
             Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"{result.Item1}");
@@ -200,7 +200,7 @@ namespace UnitTests
             await TestProfitingAndStaking();
 
             // let workflow to finish
-            await Task.Delay(3000);
+            await Task.Delay(1000);
         }
 
         private async Task<IStaking> CreateStaking(Wallet w, string pftid, decimal amount)
@@ -271,7 +271,7 @@ namespace UnitTests
             Assert.IsTrue(getpftRet.Successful(), $"Failed to get dividends: {getpftRet.ResultCode}");
 
             // then sync wallet and see if it gets a dividend
-            await Task.Delay(6000);
+            await Task.Delay(1000);
             var bal1 = testWallet.BaseBalance;
             Console.WriteLine("Check balance");
             await testWallet.SyncAsync(null);
