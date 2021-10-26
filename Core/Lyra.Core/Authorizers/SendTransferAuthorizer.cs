@@ -270,7 +270,7 @@ namespace Lyra.Core.Authorizers
                     if (pft == null)
                         return APIResultCodes.InvalidAccountId;
 
-                    var stkrs = await sys.Storage.FindAllStakersForProfitingAccountAsync(pftid, DateTime.UtcNow);
+                    var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
                     if (!stkrs.Any(a => a.user == block.AccountID) && pft.OwnerAccountId != block.AccountID)
                         return APIResultCodes.RequestNotPermited;
 

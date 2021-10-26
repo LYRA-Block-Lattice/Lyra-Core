@@ -68,6 +68,7 @@ namespace Lyra.Data.API
         public decimal Votes { get; set; }
         public BlockChainState State { get; set; }
         public string ThumbPrint { get; set; }
+        public string ProfitingAccountId { get; set; }
     }
 
     public class PosNode

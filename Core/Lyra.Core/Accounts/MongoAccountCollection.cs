@@ -1557,14 +1557,14 @@ namespace Lyra.Core.Accounts
         }
 
         // StakingAccountId -> UserAccountId
-        public async Task<List<(string stk, string user, decimal amount)>> FindAllStakersForProfitingAccountAsync(string pftid, DateTime timeBefore)
+        public List<(string stk, string user, decimal amount)> FindAllStakings(string pftid, DateTime timeBefore)
         {
             // TODO: add time support
             var importedAccounts = FindAllImportedAccountID();
 
             var filter = Builders<Block>.Filter;
             var filterDefination = filter.Eq("Voting", pftid);
-            var finds = await _blocks.FindAsync(filterDefination);
+            var finds = _blocks.Find(filterDefination);
 
             var stakings = finds.ToList()
                 .Cast<TransactionBlock>()
@@ -1575,11 +1575,15 @@ namespace Lyra.Core.Accounts
                     AccountId = g.Key,
                     //Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE],
                     Balance2 = g.First().Balances,//.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] : 0,
-                    Owner = ((IBrokerAccount)g.First()).OwnerAccountId
+                    Owner = ((IBrokerAccount)g.First()).OwnerAccountId,
+                    Time = g.First().TimeStamp,
+                    Days = ((IStaking)g.First()).Days
                 });
 
-            return stakings.OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
-                .ThenBy(x => x.AccountId)   // make the list consist
+            return stakings
+                .Where(a => timeBefore - a.Time < TimeSpan.FromDays(a.Days))
+                .OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
+                .ThenBy(x => x.AccountId)
                 .Select(a => (a.AccountId, a.Owner, a.Balance2[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal()))
                 .ToList();
         }

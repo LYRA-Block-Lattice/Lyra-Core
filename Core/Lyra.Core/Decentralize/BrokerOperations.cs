@@ -548,7 +548,7 @@ namespace Lyra.Core.Decentralize
             // TODO: support bulk receive and single send
             // get stakings
             var lastBlock = await sys.Storage.FindLatestBlockAsync(pftid) as IProfiting;
-            var stakers = await sys.Storage.FindAllStakersForProfitingAccountAsync(pftid, reqBlock.TimeStamp);
+            var stakers = sys.Storage.FindAllStakings(pftid, reqBlock.TimeStamp);
             var targets = stakers.Take(lastBlock.Seats);
             var relatedTxs = (await sys.Storage.FindBlocksByRelatedTxAsync(reqHash)).OrderBy(a => a.TimeStamp).ToList();
             // so 

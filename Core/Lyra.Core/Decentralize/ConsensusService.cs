@@ -1002,7 +1002,7 @@ namespace Lyra.Core.Decentralize
             }
             else
                 _board.NodeAddresses.TryAdd(me.AccountID, me.IPAddress.ToString());
-            await OnNodeActiveAsync(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint);
+            await OnNodeActiveAsync(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint, me.FeeAccountID);
 
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
@@ -1017,10 +1017,10 @@ namespace Lyra.Core.Decentralize
                 return;
             }
 
-            await OnNodeActiveAsync(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null);
+            await OnNodeActiveAsync(heartBeat.From, heartBeat.AuthorizerSignature, heartBeat.State, heartBeat.PublicIP, null, null);
         }
 
-        private async Task OnNodeActiveAsync(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint)
+        private async Task OnNodeActiveAsync(string accountId, string authSign, BlockChainState state, string ip, string thumbPrint, string pftAccount)
         {
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
@@ -1035,6 +1035,9 @@ namespace Lyra.Core.Decentralize
 
                 if (thumbPrint != null)
                     node.ThumbPrint = thumbPrint;
+
+                if (pftAccount != null)
+                    node.ProfitingAccountId = pftAccount;
             }
             else
             {
@@ -1048,6 +1051,9 @@ namespace Lyra.Core.Decentralize
 
                 if (thumbPrint != null)
                     node.ThumbPrint = thumbPrint;
+
+                if (pftAccount != null)
+                    node.ProfitingAccountId = pftAccount;
 
                 _board.ActiveNodes.Add(node);
             }
@@ -1219,7 +1225,7 @@ namespace Lyra.Core.Decentralize
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     return;
 
-                await OnNodeActiveAsync(node.AccountID, node.AuthorizerSignature, BlockChainState.Almighty, node.IPAddress, node.ThumbPrint);
+                await OnNodeActiveAsync(node.AccountID, node.AuthorizerSignature, BlockChainState.Almighty, node.IPAddress, node.ThumbPrint, node.FeeAccountID);
             }
             catch (Exception ex)
             {
@@ -1892,7 +1898,7 @@ namespace Lyra.Core.Decentralize
                 _locker.WaitOne();
                 // remove stalled nodes
                 // debug only
-                foreach(var x in _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-60)))
+                foreach (var x in _board.ActiveNodes.Where(a => a.LastActive < DateTime.Now.AddSeconds(-60)))
                 {
                     _log.LogInformation($"RefreshAllNodesVotes is removing {x.AccountID}");
                 }
@@ -1912,6 +1918,13 @@ namespace Lyra.Core.Decentralize
                     }
                     else
                         node.Votes = vote.Amount;
+
+                    // TODO: new cal. remove old one after full upgrade
+                    if (node.ProfitingAccountId != null)
+                    {
+                        var stks = _sys.Storage.FindAllStakings(node.ProfitingAccountId, DateTime.UtcNow);
+                        node.Votes += stks.Sum(a => a.amount);
+                    }
                 }
             }
             catch (Exception ex)
