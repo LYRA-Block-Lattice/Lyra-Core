@@ -23,7 +23,7 @@ namespace Lyra.Core.Blocks
         public string CalculateHash()
         {
             string record = GetHashInput();
-
+            //Console.WriteLine($"Record: {record}");
             using (SHA256Managed sha = new SHA256Managed())
             {
                 byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(record));
@@ -41,6 +41,7 @@ namespace Lyra.Core.Blocks
         {
             if (string.IsNullOrWhiteSpace(Hash))
                 Hash = CalculateHash();
+            //Console.WriteLine($"Hash: {Hash}\nAccountID: {accountId}");
             Signature = Signatures.GetSignature(PrivateKey, Hash, accountId);
             return this.Signature;
         }

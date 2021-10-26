@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace Lyra.Data.Blocks
         {
             string extraData = base.GetExtraData();
             extraData += PType.ToString() + "|";
-            extraData += ShareRito.ToString() + "|";
+            extraData += ShareRito.ToBalanceLong().ToString() + "|";
             extraData += Seats.ToString() + "|";
             return extraData;
         }

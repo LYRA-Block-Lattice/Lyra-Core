@@ -344,7 +344,11 @@ namespace Lyra.Core.API
                 return block;
             }
             else
+            {
+                Console.WriteLine($">>>>>\n{BlockData}\n>>>>");
                 return null;
+            }
+                
         }
 
         public override int GetHashCode()

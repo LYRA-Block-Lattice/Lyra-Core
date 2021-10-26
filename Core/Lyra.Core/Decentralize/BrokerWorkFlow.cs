@@ -44,7 +44,12 @@ namespace Lyra.Core.Decentralize
 
         public bool FullDone => preDone && mainDone && extraDone;
 
-        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task<(ConsensusResult?, APIResultCodes errorCode)>> submit)
+        public BrokerBlueprint()
+        {
+
+        }
+
+        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit)
         {
             // execute work flow
             var wf = BrokerFactory.WorkFlows[action];
@@ -58,9 +63,9 @@ namespace Lyra.Core.Decentralize
                         preDone = true;
                     else
                     {
-                        var result = await submit(preBlock);
-                        preDone = result.Item1 == ConsensusResult.Yea;
-                        Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
+                        await submit(preBlock);
+                        preDone = false;
+                        //Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
                     }
                 }
                 else
@@ -79,9 +84,9 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         // send it
-                        var result2 = await submit(mainBlock);
-                        mainDone = result2.Item1 == ConsensusResult.Yea;
-                        Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
+                        await submit(mainBlock);
+                        mainDone = false;
+                        //Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
                     }
                 }
                 else
@@ -102,14 +107,9 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         // foreach block send it
-                        bool r3 = true;
-                        foreach (var b in otherBlocks)
-                        {
-                            var result3 = await submit(b);
-                            r3 = r3 && result3.Item1 == ConsensusResult.Yea;
-                            Console.WriteLine($"WF: {send.Hash.Shorten()} {b.BlockType}: extraDone: {result3.Item1 == ConsensusResult.Yea}");
-                        }
-                        extraDone = r3;
+                        await submit(otherBlocks);
+                        //Console.WriteLine($"WF: {send.Hash.Shorten()} {otherBlocks.BlockType}: extraDone: {false}");
+                        extraDone = false;
                     }
                 }
                 else
@@ -123,14 +123,14 @@ namespace Lyra.Core.Decentralize
 
     public class BrokerFactory
     {
-        public static Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<List<TransactionBlock>>> extraOps)> WorkFlows { get; set; }
+        public static Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
 
         public void Init()
         {
             if (WorkFlows != null)
                 throw new InvalidOperationException("Already initialized.");
 
-            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<List<TransactionBlock>>> extraOps)>();
+            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)>();
 
             // liquidate pool
             WorkFlows.Add(BrokerActions.BRK_POOL_CRPL, (true, BrokerOperations.CNOCreateLiquidatePoolAsync, null));
@@ -140,7 +140,7 @@ namespace Lyra.Core.Decentralize
 
             // profiting
             WorkFlows.Add(BrokerActions.BRK_PFT_CRPFT, (true, BrokerOperations.CNOCreateProfitingAccountAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_PFT_GETPFT, (false, BrokerOperations.CNOReceiveProfitAsync, BrokerOperations.CNORedistributeProfitAsync));
+            WorkFlows.Add(BrokerActions.BRK_PFT_GETPFT, (true, BrokerOperations.CNOReceiveAllProfitAsync, BrokerOperations.CNORedistributeProfitAsync));
 
             // staking
             WorkFlows.Add(BrokerActions.BRK_STK_CRSTK, (true, BrokerOperations.CNOCreateStakingAccountAsync, null));

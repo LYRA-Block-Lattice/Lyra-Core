@@ -26,6 +26,9 @@ namespace Lyra.Core.Authorizers
         }
         protected virtual async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
+            // this operation makes too much trouble. disable temproray
+            return APIResultCodes.Unsupported;
+
             if (!(tblock is ImportAccountBlock))
                 return APIResultCodes.InvalidBlockType;
 

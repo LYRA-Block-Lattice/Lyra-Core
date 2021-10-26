@@ -34,7 +34,7 @@ namespace Lyra.Core.Accounts
         {
             _newVoteFor = voteTarget;
         }
-        public string VoteFor => _newVoteFor == null ? _lastTransactionBlock?.VoteFor : _newVoteFor;
+        public string VoteFor => _newVoteFor ?? (_lastTransactionBlock?.VoteFor);
 
         private bool _noConsole;
 
@@ -45,6 +45,7 @@ namespace Lyra.Core.Accounts
         //private RPCClient _rpcClient = null;
         private readonly IAccountDatabase _store;
         private ILyraAPI _rpcClient = null;
+        public ILyraAPI RPC => _rpcClient;
 
         private long SyncHeight = -1;
         private string SyncHash = string.Empty;
@@ -69,7 +70,7 @@ namespace Lyra.Core.Accounts
 
         public bool NoConsole { get => _noConsole; set => _noConsole = value; }
 
-        private Wallet(IAccountDatabase storage, string name, ILyraAPI rpcClient = null)
+        protected Wallet(IAccountDatabase storage, string name, ILyraAPI rpcClient = null)
         {
             _store = storage;
             AccountName = name;
@@ -1925,6 +1926,23 @@ namespace Lyra.Core.Accounts
             }
 
             return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
+        }
+
+        public async Task<APIResult> CreateDividendsAsync(string profitingAccountId)
+        {
+            var amountsDeposit = new Dictionary<string, decimal>
+            {
+                { "LYR", 1 }
+            };
+
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_PFT_GETPFT },
+                { "pftid", profitingAccountId }
+            };
+
+            var getpftResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amountsDeposit, tags);
+            return getpftResult;
         }
 
         public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, string voteFor, int daysToStake)

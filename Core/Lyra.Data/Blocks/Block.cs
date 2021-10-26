@@ -51,11 +51,12 @@ namespace Lyra.Core.Blocks
 
         public Block()
         {
-            TimeStamp = DateTime.UtcNow;
+            //TimeStamp = DateTime.UtcNow;
         }
 
         public void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)
         {
+            TimeStamp = DateTime.UtcNow;
             if (prevBlock != null)
             {
                 Height = prevBlock.Height + 1;
@@ -77,6 +78,7 @@ namespace Lyra.Core.Blocks
 
         public void InitializeBlock(Block prevBlock, SignHandler signr)
         {
+            TimeStamp = DateTime.UtcNow;
             if (prevBlock != null)
             {
                 Height = prevBlock.Height + 1;
@@ -487,13 +489,15 @@ namespace Lyra.Core.Blocks
         InvalidShareRitio,
         InvalidSeatsCount,
         InvalidMessengerAccount,
+        RequestNotPermited,
 
         InvalidBlockData = 400,
         AccountLockDown,
         UnsupportedBlockType,
 
         UnsuppportedServiceRequest = 500,
-        InvalidServiceRequest = 501
+        InvalidServiceRequest = 501,
+        Unsupported
 
     }
 }

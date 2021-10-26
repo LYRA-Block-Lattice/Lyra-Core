@@ -39,9 +39,10 @@ namespace Lyra.Core.Authorizers
             if (send == null)
                 return APIResultCodes.InvalidRelatedTx;
 
-            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
-            if (blocks.Count != 0)
-                return APIResultCodes.InvalidRelatedTx;
+            // may have multiple receive. like profiting block.
+            //var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
+            //if (blocks.Count != 0)
+            //    return APIResultCodes.InvalidRelatedTx;
 
             return APIResultCodes.Success;
         }

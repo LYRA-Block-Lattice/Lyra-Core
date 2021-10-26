@@ -566,6 +566,13 @@ namespace LyraLexWeb2
             return await _node.GetPoolAsync(token0, token1);
         }
 
+        [Route("GetAllBrokerAccountsForOwner")]
+        [HttpGet]
+        public async Task<MultiBlockAPIResult> GetAllBrokerAccountsForOwnerAsync(string ownerAccount)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetAllBrokerAccountsForOwnerAsync(ownerAccount);
+        }
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

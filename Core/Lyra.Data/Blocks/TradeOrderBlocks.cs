@@ -77,15 +77,15 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
-            result += $"OrderType: {OrderType.ToString()}\n";
+            result += $"OrderType: {OrderType}\n";
             result += $"SellTokenCode: {SellTokenCode}\n";
             result += $"BuyTokenCode: {BuyTokenCode}\n";
             result += $"TradeAmount: {JsonConvert.SerializeObject(TradeAmount)}\n";
             result += $"MinTradeAmount: {JsonConvert.SerializeObject(MinTradeAmount)}\n";
             result += $"Price: {JsonConvert.SerializeObject(Price)}\n";
-            result += $"MaxQuantity: {MaxQuantity.ToString()}\n";
-            result += $"CoverAnotherTradersFee: {CoverAnotherTradersFee.ToString()}\n";
-            result += $"AnotherTraderWillCoverFee: {AnotherTraderWillCoverFee.ToString()}\n";
+            result += $"MaxQuantity: {MaxQuantity}\n";
+            result += $"CoverAnotherTradersFee: {CoverAnotherTradersFee}\n";
+            result += $"AnotherTraderWillCoverFee: {AnotherTraderWillCoverFee}\n";
             return result;
         }
 

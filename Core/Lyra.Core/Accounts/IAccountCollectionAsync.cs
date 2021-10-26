@@ -97,6 +97,7 @@ namespace Lyra.Core.Accounts
 
         Task<PoolFactoryBlock> GetPoolFactoryAsync();
         Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1);
+        Task<List<Block>> GetAllBrokerAccountsForOwnerAsync(string ownerAccount);
         Task<List<Block>> FindBlocksByRelatedTxAsync(string hash);
         /// <summary>
         /// Cleans up or deletes blocks collection.
@@ -108,7 +109,7 @@ namespace Lyra.Core.Accounts
         void RemoveBlueprint(string hash);
         void UpdateBlueprint(BrokerBlueprint bp);
         List<BrokerBlueprint> GetAllBlueprints();
-        Task<List<(string stk, string user, decimal amount)>> FindAllStakersForProfitingAccountAsync(string pftid);
+        Task<List<(string stk, string user, decimal amount)>> FindAllStakersForProfitingAccountAsync(string pftid, DateTime timeBefore);
         Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId);
         Task<List<StakingGenesis>> FindAllStakingAccountForOwnerAsync(string ownerAccountId);
     }

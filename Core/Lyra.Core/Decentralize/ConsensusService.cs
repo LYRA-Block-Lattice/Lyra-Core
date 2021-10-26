@@ -83,6 +83,8 @@ namespace Lyra.Core.Decentralize
         private long _currentView;
         public static ConsensusService Instance;
         private SemaphoreSlim _pfTaskMutex = new SemaphoreSlim(1);
+
+        private DateTime _lastConsolidateTry;
         public ConsensusService(DagSystem sys, IHostEnv hostEnv, IActorRef localNode, IActorRef blockchain)
         {
             _sys = sys;
@@ -92,6 +94,7 @@ namespace Lyra.Core.Decentralize
             //_blockchain = blockchain;
             _log = new SimpleLogger("ConsensusService").Logger;
             _successBlockCount = 0;
+            _lastConsolidateTry = DateTime.UtcNow;
 
             _criticalMsgCache = new ConcurrentDictionary<string, DateTime>();
             _activeConsensus = new ConcurrentDictionary<string, ConsensusWorker>();
@@ -259,6 +262,13 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         _log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
+                        //if (signedMsg.MsgType == ChatMessageType.AuthorizerPrePrepare)
+                        //{
+                        //    var json = JsonConvert.SerializeObject(signedMsg);
+                        //    Console.WriteLine("===\n" + json + "\n===");
+
+                        //    var jb = JsonConvert.SerializeObject(signedMsg);
+                        //}
                     }
                 }
                 catch (Exception ex)
@@ -937,6 +947,23 @@ namespace Lyra.Core.Decentralize
             //if (item.MsgType == ChatMessageType.HeartBeat || item.MsgType == ChatMessageType.NodeUp)
             //    Debugger.Break();
             _localNode.Tell(item);
+
+            //if(item is AuthorizingMsg auth && auth.Block is ProfitingGenesis gen)
+            //{
+            //    var json = JsonConvert.SerializeObject(item);
+            //    Console.WriteLine("===\n" + json + "\n===");
+
+            //    var jb = JsonConvert.SerializeObject(auth.Block);
+            //    var blockx = JsonConvert.DeserializeObject<ProfitingGenesis>(jb);
+            //    var v = blockx.VerifyHash();
+            //    Console.WriteLine($"Test convert hash verify result: {v}");
+            //    if(!v)
+            //    {
+            //        var jb2 = JsonConvert.SerializeObject(blockx);
+            //        Console.WriteLine($"-----------\n{jb}\n\n{jb2}\n----------");
+            //        Console.WriteLine($"+++++++++++\n{auth.Block.GetHashInput()}\n\n{blockx.GetHashInput()}\n+++++++++++");
+            //    }
+            //}
         }
 
         private async Task<ActiveNode> DeclareConsensusNodeAsync()
@@ -950,7 +977,8 @@ namespace Lyra.Core.Decentralize
             {
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
                 ThumbPrint = _hostEnv?.GetThumbPrint(),
-                IPAddress = $"{_myIpAddress}"
+                IPAddress = $"{_myIpAddress}",
+                FeeAccountID = Settings.Default.LyraNode.Lyra.FeeAccountId
             };
 
             //_log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");
@@ -1214,6 +1242,12 @@ namespace Lyra.Core.Decentralize
                 && _stateMachine.State != BlockChainState.Engaging)
                 return;
 
+            // avoid hammer
+            if (DateTime.UtcNow - _lastConsolidateTry < TimeSpan.FromSeconds(1))
+                return;
+
+            _lastConsolidateTry = DateTime.UtcNow;
+
             // check if there are pending consolidate blocks
             var pendingCons = _activeConsensus.Values
                 .Where(a =>
@@ -1264,7 +1298,9 @@ namespace Lyra.Core.Decentralize
                             else
                             {
                                 // leader may be faulty
-                                await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
+                                var lsp = await _sys.Storage.GetLastServiceBlockAsync();
+                                if(lsp.TimeStamp > DateTime.UtcNow.AddSeconds(-10))
+                                    await BeginChangeViewAsync("cons blk monitor", ViewChangeReason.LeaderFailedConsolidating);
                             }
                         }
                     }
@@ -1422,12 +1458,13 @@ namespace Lyra.Core.Decentralize
                 throw new Exception("Block is already in queue.");
             }
 
+            Send2P2pNetwork(state.InputMsg);
+
             var worker = await GetWorkerAsync(state.InputMsg.Block.Hash);
             if (worker != null)
             {
                 await worker.ProcessStateAsync(state);
-            }
-            Send2P2pNetwork(state.InputMsg);
+            }            
         }
 
         private async Task<ConsensusWorker> GetWorkerAsync(string hash, bool checkState = false)
@@ -1583,12 +1620,8 @@ namespace Lyra.Core.Decentralize
 
         public void ProcessServerReqBlock(SendTransferBlock send)
         {
-            var dstAccount = _sys.Storage.FindFirstBlock(send.DestinationAccountId);
-
             string action = null;
-            if (dstAccount != null && ((IOpeningBlock)dstAccount).AccountType == AccountTypes.Profiting)
-                action = BrokerActions.BRK_PFT_GETPFT;
-            else if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
+            if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
                 action = send.Tags[Block.REQSERVICETAG];
 
             if (action != null)
@@ -1626,6 +1659,7 @@ namespace Lyra.Core.Decentralize
                     try
                     {
                         var allBlueprints = _sys.Storage.GetAllBlueprints();
+
                         _log.LogInformation($"Executing blueprints: total {allBlueprints.Count} pending.");
                         foreach (var bp in allBlueprints.OrderBy(a => a.start))
                         {
@@ -1633,10 +1667,11 @@ namespace Lyra.Core.Decentralize
 
                             try
                             {
+                                bool success = false;
                                 // hack for unit test
                                 if (_hostEnv == null)
-                                {
-                                    var success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
+                                {                                    
+                                    success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
                                     _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                                     if (success)
                                         _sys.Storage.RemoveBlueprint(bp.svcReqHash);
@@ -1644,18 +1679,19 @@ namespace Lyra.Core.Decentralize
                                 else
                                 {
                                     _log.LogInformation($"Begin executing blueprints...");
-                                    bool success;
                                     if (IsThisNodeLeader)
-                                        success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndWaitResultAsync(b));
+                                        success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
                                     else   // give normal nodes a chance to clear the queue
-                                        success = await bp.ExecuteAsync(_sys, async (b) => await Task.FromResult((ConsensusResult.Uncertain, APIResultCodes.UndefinedError)));
+                                        success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
                                     _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
-                                    if (success)
-                                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                                    else
-                                    {
-                                        _sys.Storage.UpdateBlueprint(bp);
-                                    }
+
+                                }
+
+                                if (success)
+                                    _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                else
+                                {
+                                    _sys.Storage.UpdateBlueprint(bp);
                                 }
                             }
                             catch (Exception e)
@@ -1679,10 +1715,6 @@ namespace Lyra.Core.Decentralize
 
         public void ProcessManagedBlock(TransactionBlock block)
         {
-            // for non-leader nodes to update their blueprints
-            if (IsThisNodeLeader)
-                return;
-
             // find the key
             string key = null;
             
@@ -1709,14 +1741,47 @@ namespace Lyra.Core.Decentralize
 
             if(!bp.FullDone)
             {
-                _ = Task.Run(async () => {
-                    var success = await bp.ExecuteAsync(_sys, async (b) => await Task.FromResult((ConsensusResult.Uncertain, APIResultCodes.UndefinedError)));  // fake run
-                    _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
-                    if (success)
-                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
-                    else
+                _ = Task.Run(async () =>
+                {
+                    // hack for unit test
+                    if (_hostEnv == null)
                     {
-                        _sys.Storage.UpdateBlueprint(bp);
+                        await Task.Delay(10);
+                    }
+                    // debug unit test. force execute when unit test debug
+                    if (_hostEnv == null || _pfTaskMutex.Wait(1))
+                    {
+                        try
+                        {
+                            bool success = false;
+                            if (IsThisNodeLeader)
+                            {
+                                if (_hostEnv == null)
+                                {
+                                    success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
+                                }
+                                else
+                                    success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                            }
+                            else   // give normal nodes a chance to clear the queue
+                                success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
+                            _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
+                            if (success)
+                                _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                            else
+                            {
+                                _sys.Storage.UpdateBlueprint(bp);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            _log.LogError("Error Executing blueprints: " + e.ToString());
+                        }
+                        finally
+                        {
+                            _log.LogInformation("Executing blueprints Done.");
+                            _pfTaskMutex.Release();
+                        }
                     }
                 });
             }
