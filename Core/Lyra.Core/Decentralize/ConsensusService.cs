@@ -1367,7 +1367,7 @@ namespace Lyra.Core.Decentralize
         //    }
         //}
 
-        private async Task LeaderCreateConsolidateBlockAsync(ConsolidationBlock lastCons, DateTime timeStamp, IEnumerable<string> collection)
+        public async Task LeaderCreateConsolidateBlockAsync(ConsolidationBlock lastCons, DateTime timeStamp, IEnumerable<string> collection)
         {
             _log.LogInformation($"Leader is creating ConsolidationBlock... ");
 
@@ -1459,6 +1459,12 @@ namespace Lyra.Core.Decentralize
 
         private async Task SubmitToConsensusAsync(AuthState state)
         {
+            // unit test support
+            if(_hostEnv == null)
+            {
+                await OnNewBlock(state.InputMsg.Block);
+                return;
+            }
             if (IsBlockInQueue(state.InputMsg?.Block))
             {
                 throw new Exception("Block is already in queue.");

@@ -1,13 +1,13 @@
 ﻿
 using Lyra.Core.API;
+using Lyra.Data.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 
 namespace Lyra.Core.Blocks
 {
     [BsonIgnoreExtraElements]
-    [Obsolete]
-    public class ReceiveAuthorizerFeeBlock : ReceiveTransferBlock
+    public class ReceiveNodeProfitBlock : ProfitingBlock
     {        
         public long ServiceBlockStartHeight { get; set; }
         public long ServiceBlockEndHeight { get; set; }
@@ -24,7 +24,7 @@ namespace Lyra.Core.Blocks
 
         public override BlockTypes GetBlockType()
         {
-            return BlockTypes.ReceiveAuthorizerFee;
+            return BlockTypes.ReceiveNodeProfit;
         }
 
         public override string Print()

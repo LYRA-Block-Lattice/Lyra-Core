@@ -55,7 +55,7 @@ namespace Lyra.Core.Decentralize
             else
             {
                 await CreateJobAsync("0 0/10 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
-                await CreateJobAsync(TimeSpan.FromMinutes(30), typeof(FetchBalance), "Fetch Balance", jobGroup);
+                await CreateJobAsync(TimeSpan.FromMinutes(60 * 6), typeof(FetchBalance), "Fetch Balance", jobGroup);
             }
 
             // Start up the scheduler (nothing can actually run until the

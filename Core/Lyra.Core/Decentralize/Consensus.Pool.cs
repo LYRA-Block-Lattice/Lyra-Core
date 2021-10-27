@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public delegate Task<(ConsensusResult?, APIResultCodes errorCode)> TxHandler(TransactionBlock block);
+    public delegate Task<(ConsensusResult?, APIResultCodes errorCode)> TxHandler(Block block);
     public partial class ConsensusService
     {
         // for unittest only

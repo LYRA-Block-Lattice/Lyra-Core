@@ -265,6 +265,7 @@ namespace Lyra.Core.Blocks
         ReceiveMultipleFee = 35,
 
         ReceiveAuthorizerFee = 36,
+        ReceiveNodeProfit = 37,
 
         // Trading blocks
         // Put Sell or Buy trade order to exchange tokens

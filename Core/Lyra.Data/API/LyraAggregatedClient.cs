@@ -472,7 +472,7 @@ namespace Lyra.Data.API
             return await SeedClient.OpenAccountWithImportAsync(block);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveAuthorizerFeeBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveNodeProfitBlock block)
         {
             return await SeedClient.ReceiveFeeAsync(block);
         }

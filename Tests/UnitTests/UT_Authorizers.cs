@@ -71,17 +71,26 @@ namespace UnitTests
 
         private async Task<bool> AuthAsync(Block block)
         {
-            var accid = block is TransactionBlock tb ? tb.AccountID : "";
-            Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): {accid.Shorten()} {block.BlockType} Index: {block.Height}");
-            var auth = af.Create(block.BlockType);
-            var result = await auth.AuthorizeAsync(sys, block);
-            Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"{result.Item1}");
+            if(block is TransactionBlock)
+            {
+                var accid = block is TransactionBlock tb ? tb.AccountID : "";
+                Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): {accid.Shorten()} {block.BlockType} Index: {block.Height}");
+                var auth = af.Create(block.BlockType);
+                var result = await auth.AuthorizeAsync(sys, block);
+                Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"{result.Item1}");
 
-            await store.AddBlockAsync(block);
+                await store.AddBlockAsync(block);
 
-            cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
+                cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
 
-            return result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success;
+                return result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success;
+            }
+            else
+            {
+                // allow service block and consolidation block for now
+                await store.AddBlockAsync(block);
+                return true;
+            }
         }
 
         private async Task CreateTestBlockchainAsync()
@@ -127,8 +136,15 @@ namespace UnitTests
                 .ReturnsAsync(new AuthorizationAPIResult { ResultCode = APIResultCodes.Success });
             mock.Setup(x => x.GetSyncHeightAsync())
                 .ReturnsAsync(await api.GetSyncHeightAsync());
+
             mock.Setup(x => x.GetLastServiceBlockAsync())
-                .ReturnsAsync(await api.GetLastServiceBlockAsync());
+                .Returns(() => Task.FromResult(api.GetLastServiceBlockAsync()).Result);
+            mock.Setup(x => x.GetLastConsolidationBlockAsync())
+                .Returns(() => Task.FromResult(api.GetLastConsolidationBlockAsync()).Result);
+
+            mock.Setup(x => x.GetBlockHashesByTimeRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+                .Returns<DateTime, DateTime>((acct, sign) => Task.FromResult(api.GetBlockHashesByTimeRangeAsync(acct, sign)).Result);
+
 
             mock.Setup(x => x.GetLastBlockAsync(It.IsAny<string>()))
                 .Returns<string>(acct => Task.FromResult(api.GetLastBlockAsync(acct)).Result);
@@ -220,11 +236,41 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            await TestPoolAsync();
-            await TestProfitingAndStaking();
+            //await TestPoolAsync();
+            //await TestProfitingAndStaking();
+            await TestNodeFee();
 
             // let workflow to finish
             await Task.Delay(1000);
+        }
+
+        private async Task TestNodeFee()
+        {
+            // create service block
+            var lsb = await testWallet.RPC.GetLastServiceBlockAsync();
+            await cs.CreateNewViewAsNewLeaderAsync();
+            var lsb2 = await testWallet.RPC.GetLastServiceBlockAsync();
+            Assert.IsTrue(lsb.GetBlock().Height + 1 == lsb2.GetBlock().Height);
+
+            var lconRet = await testWallet.RPC.GetLastConsolidationBlockAsync();
+            Assert.IsTrue(lconRet.Successful());
+            var lcon = lconRet.GetBlock() as ConsolidationBlock;
+
+            var unConsList = await testWallet.RPC.GetBlockHashesByTimeRangeAsync(lcon.TimeStamp, DateTime.UtcNow);
+            await cs.LeaderCreateConsolidateBlockAsync(lcon, DateTime.UtcNow, unConsList.Entities);
+            var lcon2 = await testWallet.RPC.GetLastConsolidationBlockAsync();
+            Assert.IsTrue(lcon.Height + 1 == lcon2.GetBlock().Height);
+
+            // create a profiting account
+            Console.WriteLine("Profiting gen");
+            var crpftret = await genesisWallet.CreateProfitingAccountAsync($"moneycow{_rand.Next()}", ProfitingType.Node,
+                0.5m, 50);
+            Assert.IsTrue(crpftret.Successful());
+            var pftblock = crpftret.GetBlock() as ProfitingBlock;
+            Assert.IsTrue(pftblock.OwnerAccountId == genesisWallet.AccountId);
+
+            await genesisWallet.GetNodeFeeAsync(genesisWallet.AccountId);
+            await Task.Delay(5 * 1000);
         }
 
         private async Task<IStaking> CreateStaking(Wallet w, string pftid, decimal amount)

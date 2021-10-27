@@ -91,7 +91,7 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<TradeOrderBlock>();
             BsonClassMap.RegisterClassMap<ExecuteTradeOrderBlock>();
             BsonClassMap.RegisterClassMap<CancelTradeOrderBlock>();
-            BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
+            BsonClassMap.RegisterClassMap<ReceiveNodeProfitBlock>();
             BsonClassMap.RegisterClassMap<ConsolidationBlock>();
             BsonClassMap.RegisterClassMap<ServiceBlock>();
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
@@ -846,22 +846,22 @@ namespace Lyra.Core.Accounts
             return import_blocks;
         }
 
-        public async Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId)
+        public async Task<UnSettledFees> FindUnsettledFeesAsync(string pftid)
         {
             // !!! TO DO - take care of fees for imported accounts!!!!
             // get the latest feeblock
             // get all new service since the latest feeblock
-            var options = new FindOptions<ReceiveAuthorizerFeeBlock, ReceiveAuthorizerFeeBlock>
+            var options = new FindOptions<ReceiveNodeProfitBlock, ReceiveNodeProfitBlock>
             {
                 Limit = 1,
-                Sort = Builders<ReceiveAuthorizerFeeBlock>.Sort.Descending(o => o.Height)
+                Sort = Builders<ReceiveNodeProfitBlock>.Sort.Descending(o => o.Height)
             };
-            var builder = new FilterDefinitionBuilder<ReceiveAuthorizerFeeBlock>();
-            var filterDefinition = builder.Eq("AccountID", AuthorizerAccountId);
+            var builder = new FilterDefinitionBuilder<ReceiveNodeProfitBlock>();
+            var filterDefinition = builder.Eq("AccountID", pftid);
 
             long fromHeight = 1;
             var latestFb = await (await _blocks
-                .OfType<ReceiveAuthorizerFeeBlock>()
+                .OfType<ReceiveNodeProfitBlock>()
                 .FindAsync(filterDefinition, options))
                 .FirstOrDefaultAsync();
             if (latestFb != null)
@@ -871,7 +871,7 @@ namespace Lyra.Core.Accounts
 
             var endHeight = (await GetLastServiceBlockAsync()).Height;
 
-            return await FindUnsettledFeesAsync(AuthorizerAccountId, fromHeight, endHeight);
+            return await FindUnsettledFeesAsync(pftid, fromHeight, endHeight);
         }
 
         public async Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId, long fromHeight, long endHeight)
@@ -898,7 +898,7 @@ namespace Lyra.Core.Accounts
             long lastSbHeight = fromHeight;
             decimal totalFees = 0;
 
-            for (int i = 0; i < sblist.Count - 2; i++)
+            for (int i = 0; i < sblist.Count - 1; i++)
             {
                 if (sblist[i].Authorizers.ContainsKey(AuthorizerAccountId))
                 {

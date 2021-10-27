@@ -261,6 +261,30 @@ namespace Lyra.Core.Authorizers
                     else
                         return APIResultCodes.InvalidBlockTags;
                     break;
+                case BrokerActions.BRK_PFT_FEEPFT:  //TODO: add support
+                    var nodeid = block.Tags.ContainsKey("nodeid") ? block.Tags["nodeid"] : null;
+                    if (nodeid == null)
+                        return APIResultCodes.InvalidAccountId;
+
+                    var pfts2 = await sys.Storage.FindAllProfitingAccountForOwnerAsync(nodeid);
+                    if(pfts2.Count > 0)
+                    {
+                        var pftid2 = pfts2.First().AccountID;
+
+                        var pft2 = await sys.Storage.FindFirstBlockAsync(pftid2) as ProfitingGenesis;
+                        if (pft2 == null)
+                            return APIResultCodes.InvalidAccountId;
+
+                        var stkrs2 = sys.Storage.FindAllStakings(pftid2, DateTime.UtcNow);
+                        if (!stkrs2.Any(a => a.user == block.AccountID) && pft2.OwnerAccountId != block.AccountID)
+                            return APIResultCodes.RequestNotPermited;
+
+                        // no concurency
+                        if (sys.Storage.GetAllBlueprints().Any(x => x.brokerAccount == pftid2))
+                            return APIResultCodes.SystemBusy;
+                    }
+
+                    return APIResultCodes.Success;
                 case BrokerActions.BRK_PFT_GETPFT:
                     var pftid = block.Tags.ContainsKey("pftid") ? block.Tags["pftid"] : null;
                     if (pftid == null)

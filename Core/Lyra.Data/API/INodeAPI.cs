@@ -100,7 +100,7 @@ namespace Lyra.Core.API
         Task<AuthorizationAPIResult> SendTransferAsync(SendTransferBlock block);
 
         Task<AuthorizationAPIResult> ReceiveTransferAsync(ReceiveTransferBlock block);
-        Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveAuthorizerFeeBlock block);
+        Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveNodeProfitBlock block);
 
         Task<AuthorizationAPIResult> ReceiveTransferAndOpenAccountAsync(OpenWithReceiveTransferBlock block);
 

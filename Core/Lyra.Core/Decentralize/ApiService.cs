@@ -132,7 +132,7 @@ namespace Lyra.Core.Decentralize
             return await Pre_PrepareAsync(receiveBlock).ConfigureAwait(false);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveAuthorizerFeeBlock receiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveNodeProfitBlock receiveBlock)
         {
             return await Pre_PrepareAsync(receiveBlock).ConfigureAwait(false);
         }

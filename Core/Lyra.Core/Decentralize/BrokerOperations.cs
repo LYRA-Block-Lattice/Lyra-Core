@@ -456,6 +456,57 @@ namespace Lyra.Core.Decentralize
             //await QueueTxActionBlockAsync(poolGenesis);
         }
 
+        public static async Task<TransactionBlock> SyncNodeFeesAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var nodeid = send.Tags["nodeid"];
+            var usf = await sys.Storage.FindUnsettledFeesAsync(nodeid);
+
+            var feesEndSb = await sys.Storage.FindServiceBlockByIndexAsync(usf.ServiceBlockEndHeight);
+
+            // must be first profiting account of nodes'
+            var pfts = await sys.Storage.FindAllProfitingAccountForOwnerAsync(nodeid);
+            var pft = pfts.First();
+
+            ProfitingBlock latestBlock = await sys.Storage.FindLatestBlockAsync(pft.AccountID) as ProfitingBlock;
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            var receiveBlock = new ReceiveNodeProfitBlock
+            {
+                AccountID = pft.AccountID,
+                ServiceHash = sb.Hash,
+                //SourceHash = feesEndSb.Hash,      // no source like all genesis. set source to svc block vaoliate the rule.
+                ServiceBlockStartHeight = usf.ServiceBlockStartHeight,
+                ServiceBlockEndHeight = usf.ServiceBlockEndHeight,
+                Balances = latestBlock.Balances.ToDictionary(entry => entry.Key,
+                                           entry => entry.Value),
+                Fee = 0,
+                FeeType = AuthorizationFeeTypes.NoFee,
+                NonFungibleToken = null,
+
+                // profit specified config
+                Name = ((IBrokerAccount)latestBlock).Name,
+                OwnerAccountId = ((IBrokerAccount)latestBlock).OwnerAccountId,
+                PType = ((IProfiting)latestBlock).PType,
+                ShareRito = ((IProfiting)latestBlock).ShareRito,
+                Seats = ((IProfiting)latestBlock).Seats,
+                RelatedTx = send.Hash
+            };
+
+            receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            if (latestBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+            {
+                receiveBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] += usf.TotalFees.ToBalanceLong();
+            }
+            else
+            {
+                receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, usf.TotalFees.ToBalanceLong());
+            }
+
+            receiveBlock.InitializeBlock(latestBlock, sys.PosWallet.PrivateKey, AccountId: sys.PosWallet.AccountId);
+
+            return receiveBlock;
+        }
+
         // like wallet.receive
         public static async Task<TransactionBlock> CNOReceiveAllProfitAsync(DagSystem sys, SendTransferBlock reqSend)
         {
@@ -503,8 +554,6 @@ namespace Lyra.Core.Decentralize
 
             var pftNext = new ProfitingBlock
             {
-                Name = ((IBrokerAccount)lastPft).Name,
-                OwnerAccountId = ((IBrokerAccount)lastPft).OwnerAccountId,
                 AccountID = lastPft.AccountID,
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = lastPft.Hash,
@@ -515,6 +564,8 @@ namespace Lyra.Core.Decentralize
                 SourceHash = transInfo.SourceHash,
 
                 // profit specified config
+                Name = ((IBrokerAccount)lastPft).Name,
+                OwnerAccountId = ((IBrokerAccount)lastPft).OwnerAccountId,
                 PType = ((IProfiting)lastPft).PType,
                 ShareRito = ((IProfiting)lastPft).ShareRito,
                 Seats = ((IProfiting)lastPft).Seats,
@@ -535,7 +586,7 @@ namespace Lyra.Core.Decentralize
             pftNext.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
 
             // pool blocks are service block so all service block signed by leader node
-            pftNext.InitializeBlock(lastPft, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+            pftNext.InitializeBlock(lastPft, sys.PosWallet.PrivateKey, AccountId: sys.PosWallet.AccountId);
             return pftNext;
         }
 
@@ -561,7 +612,7 @@ namespace Lyra.Core.Decentralize
             // create a dictionary to hold amounts to send
             // staking account -> amount
             var sendAmounts = new Dictionary<string, decimal>();
-            foreach(var target in targets)
+            foreach (var target in targets)
             {
                 var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
                 sendAmounts.Add(target.stk, amount);
@@ -600,7 +651,7 @@ namespace Lyra.Core.Decentralize
             return ownrSend;
         }
 
-        private static BenefitingBlock CreateBenefiting(TransactionBlock lastPft, ServiceBlock sb, 
+        private static BenefitingBlock CreateBenefiting(TransactionBlock lastPft, ServiceBlock sb,
             (string stk, string user, decimal amount) target, string relatedTx,
             decimal amount
             )
@@ -628,7 +679,7 @@ namespace Lyra.Core.Decentralize
             };
 
             //TODO: think about multiple token
-            
+
             Console.WriteLine($"Send {target.user.Shorten()} Index {pftSend.Height} who is staking {target.amount} amount {amount}");
             var lastBalance = lastPft.Balances[LyraGlobal.OFFICIALTICKERCODE];
             lastBalance -= amount.ToBalanceLong();

@@ -203,8 +203,9 @@ namespace Lyra.Client.CLI
                     //    Console.WriteLine("Sync Result: " + sync_result2.ToString());
                     //    break;
                     case COMMAND_SYNCFEE:
-                        var sfeeResult = await _wallet.SyncNodeFeesAsync();
-                        Console.WriteLine($"Sync Fees Result: {sfeeResult}");
+                        //var sfeeResult = await _wallet.SyncNodeFeesAsync();
+                        //Console.WriteLine($"Sync Fees Result: {sfeeResult}");
+                        Console.Write("Obsolete: Node daemon will receive fees automatically.");
                         break;
                     //case COMMAND_TRADE_ORDER:
                     //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);

@@ -544,6 +544,10 @@ namespace Lyra.Core.Decentralize
                             svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
                     }
 
+                    // unite test only
+                    if (_hostEnv == null)
+                        svcBlock.Authorizers.Add(_board.CurrentLeader, null);
+
                     // fees aggregation
                     _log.LogInformation($"Fee aggregating...");
                     var allConsBlocks = await _sys.Storage.GetConsolidationBlocksAsync(prevSvcBlock.Hash);
@@ -560,7 +564,9 @@ namespace Lyra.Core.Decentralize
                 }
                 finally
                 {
-                    await Task.Delay(10000);
+                    // for unit test only, save 10 seconds
+                    if(_hostEnv != null)
+                        await Task.Delay(10000);
                     _creatingSvcBlock = false;
                 }
             }

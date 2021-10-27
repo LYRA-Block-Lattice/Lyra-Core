@@ -484,7 +484,7 @@ namespace Lyra.Core.API
             return await PostBlockAsync("ReceiveTransfer", block);
         }
 
-        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveAuthorizerFeeBlock block)
+        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveNodeProfitBlock block)
         {
             return await PostBlockAsync("ReceiveFee", block);
         }

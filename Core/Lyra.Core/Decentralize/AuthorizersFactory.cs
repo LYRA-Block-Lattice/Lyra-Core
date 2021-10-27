@@ -26,7 +26,7 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.SendTransfer, "SendTransferAuthorizer");
             _authorizers.Add(BlockTypes.LyraTokenGenesis, "GenesisAuthorizer");
             _authorizers.Add(BlockTypes.ReceiveFee, "ReceiveTransferAuthorizer");
-            _authorizers.Add(BlockTypes.ReceiveAuthorizerFee, "ReceiveAuthorizerFeeAuthorizer");
+            _authorizers.Add(BlockTypes.ReceiveNodeProfit, "ReceiveNodeProfitAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithReceiveFee, "NewAccountAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithReceiveTransfer, "NewAccountAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithImport, "NewAccountWithImportAuthorizer");

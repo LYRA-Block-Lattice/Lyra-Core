@@ -296,80 +296,7 @@ namespace Lyra.Core.Accounts
             }
         }
 
-        public async Task<APIResultCodes> SyncNodeFeesAsync()
-        {
-            while (!_cancel.IsCancellationRequested)
-            {
-                var fbsResult = await _rpcClient.LookForNewFeesAsync(AccountId, SignAPICall());
-                if (fbsResult.ResultCode != APIResultCodes.Success || fbsResult.pendingFees == null)
-                    return fbsResult.ResultCode;
 
-                var feesEndSbResult = await _rpcClient.GetServiceBlockByIndexAsync("Service", fbsResult.pendingFees.ServiceBlockEndHeight);
-                if (feesEndSbResult.ResultCode != APIResultCodes.Success)
-                    return feesEndSbResult.ResultCode;
-
-                var feesEndSb = feesEndSbResult.GetBlock() as ServiceBlock;
-
-                TransactionBlock latestBlock = GetLatestBlock();
-                var receiveBlock = new ReceiveAuthorizerFeeBlock
-                {
-                    AccountID = AccountId,
-                    VoteFor = VoteFor,
-                    ServiceHash = await GetLastServiceBlockHashAsync(),
-                    SourceHash = feesEndSb.Hash,
-                    ServiceBlockStartHeight = fbsResult.pendingFees.ServiceBlockStartHeight,
-                    ServiceBlockEndHeight = fbsResult.pendingFees.ServiceBlockEndHeight,
-                    Balances = latestBlock.Balances.ToDictionary(entry => entry.Key,
-                                               entry => entry.Value),
-                    Fee = 0,
-                    FeeType = AuthorizationFeeTypes.NoFee,
-                    NonFungibleToken = null
-                };
-
-                if (latestBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                {
-                    receiveBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] += fbsResult.pendingFees.TotalFees.ToBalanceLong();
-                }
-                else
-                {
-                    receiveBlock.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, fbsResult.pendingFees.TotalFees.ToBalanceLong());
-                }
-
-                receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
-
-                if (!receiveBlock.ValidateTransaction(latestBlock))
-                    throw new ApplicationException("ValidateTransaction failed");
-
-                //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
-
-                var result = await _rpcClient.ReceiveFeeAsync(receiveBlock);
-
-                if (result.ResultCode == APIResultCodes.BlockSignatureValidationFailed)
-                {
-                    PrintConLine($"BlockSignatureValidationFailed");
-                    PrintConLine("Error Message: ");
-                    PrintConLine(result.ResultMessage);
-                    PrintConLine("Local Block: ");
-                    PrintConLine(receiveBlock.Print());
-                }
-                else if (result.ResultCode != APIResultCodes.Success)
-                {
-                    PrintConLine($"Failed to authorize receive fee block with error code: {result.ResultCode}");
-                    PrintConLine("Error Message: " + result.ResultMessage);
-                }
-                else
-                {
-                    _lastTransactionBlock = receiveBlock;
-
-                    PrintConLine($"Receive fee block has been authorized successfully");
-                    PrintConLine("Balance: " + await GetDisplayBalancesAsync());
-                }
-                //PrintCon(string.Format("{0}> ", AccountName));
-                return result.ResultCode;
-            }
-
-            return APIResultCodes.UnknownError;
-        }
 
         #region Reward Trade Processing
 
@@ -1939,6 +1866,23 @@ namespace Lyra.Core.Accounts
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_PFT_GETPFT },
                 { "pftid", profitingAccountId }
+            };
+
+            var getpftResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amountsDeposit, tags);
+            return getpftResult;
+        }
+
+        public async Task<APIResult> GetNodeFeeAsync(string profitingAccountId)
+        {
+            var amountsDeposit = new Dictionary<string, decimal>
+            {
+                { "LYR", 1 }
+            };
+
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_PFT_FEEPFT },
+                { "nodeid", profitingAccountId }
             };
 
             var getpftResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amountsDeposit, tags);

@@ -90,57 +90,69 @@ namespace Lyra.Core.Authorizers
         //}
 
 
-        protected async Task<APIResultCodes> ValidateReceiveTransAmountAsync(DagSystem sys, ReceiveTransferBlock block, BalanceChanges receiveTransaction)
+        protected virtual async Task<APIResultCodes> ValidateReceiveTransAmountAsync(DagSystem sys, ReceiveTransferBlock block, BalanceChanges receiveTransaction)
         {
             //find the corresponding send block and validate the added transaction amount
-            var sourceBlock = await sys.Storage.FindBlockByHashAsync(block.SourceHash) as TransactionBlock;
-            if (sourceBlock == null)
-                return APIResultCodes.SourceSendBlockNotFound;
-
-
-            // find the actual amount of transaction 
-            BalanceChanges sendTransaction;
-            if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer
-                || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn
-                || block.BlockType == BlockTypes.Staking || block.BlockType == BlockTypes.Profiting)  // temp code. should use getbalancechanges
+            var srcBlock = await sys.Storage.FindBlockByHashAsync(block.SourceHash);
+            if (srcBlock is TransactionBlock sourceBlock)
             {
-                if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
+                if (sourceBlock == null)
+                    return APIResultCodes.SourceSendBlockNotFound;
+
+                // find the actual amount of transaction 
+                BalanceChanges sendTransaction;
+                if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer
+                    || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn
+                    || block.BlockType == BlockTypes.Staking || block.BlockType == BlockTypes.Profiting)  // temp code. should use getbalancechanges
                 {
-                    // first check if the transfer was aimed to imported account
-                    if (!await sys.Storage.WasAccountImportedAsync((sourceBlock as SendTransferBlock).DestinationAccountId, block.AccountID))
-                        return APIResultCodes.InvalidDestinationAccountId;
+                    if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
+                    {
+                        // first check if the transfer was aimed to imported account
+                        if (!await sys.Storage.WasAccountImportedAsync((sourceBlock as SendTransferBlock).DestinationAccountId, block.AccountID))
+                            return APIResultCodes.InvalidDestinationAccountId;
+                    }
+
+                    TransactionBlock prevToSendBlock = await sys.Storage.FindBlockByHashAsync(sourceBlock.PreviousHash) as TransactionBlock;
+                    if (prevToSendBlock == null)
+                        return APIResultCodes.CouldNotTraceSendBlockChain;
+
+                    sendTransaction = sourceBlock.GetBalanceChanges(prevToSendBlock);
+
+                    if (!sourceBlock.ValidateTransaction(prevToSendBlock))
+                        return APIResultCodes.SendTransactionValidationFailed;
+                    //originallySentAmount = sendTransaction.Amount;
+                    //originallySentAmount = 
+                    //    prevToSendBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - sourceBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - (sourceBlock as IFeebleBlock).Fee;
                 }
+                else
+                if (block.BlockType == BlockTypes.ReceiveFee || block.BlockType == BlockTypes.OpenAccountWithReceiveFee)
+                {
+                    sendTransaction = new BalanceChanges();
+                    sendTransaction.Changes.Add(LyraGlobal.OFFICIALTICKERCODE, sourceBlock.Fee);
+                }
+                else
+                    return APIResultCodes.InvalidBlockType;
 
-                TransactionBlock prevToSendBlock = await sys.Storage.FindBlockByHashAsync(sourceBlock.PreviousHash) as TransactionBlock;
-                if (prevToSendBlock == null)
-                    return APIResultCodes.CouldNotTraceSendBlockChain;
+                if (!sendTransaction.Changes.OrderBy(kvp => kvp.Key)
+                    .SequenceEqual(receiveTransaction.Changes.OrderBy(kvp => kvp.Key)))
+                    return APIResultCodes.TransactionAmountDoesNotMatch;
 
-                sendTransaction = sourceBlock.GetBalanceChanges(prevToSendBlock);
+                //if (sendTransaction.Amount != receiveTransaction.Amount)
+                //    return APIResultCodes.TransactionAmountDoesNotMatch;
 
-                if (!sourceBlock.ValidateTransaction(prevToSendBlock))
-                    return APIResultCodes.SendTransactionValidationFailed;
-                //originallySentAmount = sendTransaction.Amount;
-                //originallySentAmount = 
-                //    prevToSendBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - sourceBlock.Balances[LyraGlobal.LYRA_TICKER_CODE] - (sourceBlock as IFeebleBlock).Fee;
+                //if (sendTransaction.TokenCode != receiveTransaction.TokenCode)
+                //    return APIResultCodes.TransactionTokenDoesNotMatch;
+            }
+            else if (srcBlock == null)
+            {
+                // TODO: verify NodeFeeBlock
+                if (block is ReceiveNodeProfitBlock)
+                    return APIResultCodes.Success;
             }
             else
-            if (block.BlockType == BlockTypes.ReceiveFee || block.BlockType == BlockTypes.OpenAccountWithReceiveFee)
             {
-                sendTransaction = new BalanceChanges();
-                sendTransaction.Changes.Add(LyraGlobal.OFFICIALTICKERCODE, sourceBlock.Fee);
-            }            
-            else
-                return APIResultCodes.InvalidBlockType;
-
-            if(!sendTransaction.Changes.OrderBy(kvp => kvp.Key)
-                .SequenceEqual(receiveTransaction.Changes.OrderBy(kvp => kvp.Key)))
-                return APIResultCodes.TransactionAmountDoesNotMatch;
-
-            //if (sendTransaction.Amount != receiveTransaction.Amount)
-            //    return APIResultCodes.TransactionAmountDoesNotMatch;
-
-            //if (sendTransaction.TokenCode != receiveTransaction.TokenCode)
-            //    return APIResultCodes.TransactionTokenDoesNotMatch;
+                return APIResultCodes.UnsupportedBlockType;
+            }
 
             return APIResultCodes.Success;
         }

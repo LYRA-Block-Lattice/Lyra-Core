@@ -445,7 +445,7 @@ namespace LyraLexWeb2
 
         [Route("ReceiveFee")]
         [HttpPost]
-        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveAuthorizerFeeBlock receiveBlock)
+        public async Task<AuthorizationAPIResult> ReceiveFeeAsync(ReceiveNodeProfitBlock receiveBlock)
         {
             if (!CheckServiceStatus()) return null;
             return await _trans.ReceiveFeeAsync(receiveBlock);
