@@ -35,18 +35,22 @@ namespace Lyra.Core.Decentralize
 
         // pre step, pf recv
         public bool preDone { get; set; }
+        public bool prePending { get; set; }
 
         // main step, broker operation, can be null
         public bool mainDone { get; set; }
+        public List<string> mainPendings { get; set; }      // has 
 
         // extra step
         public bool extraDone { get; set; }
+        public List<string> extraPendings { get; set; }
 
         public bool FullDone => preDone && mainDone && extraDone;
 
         public BrokerBlueprint()
         {
-
+            mainPendings = new List<string>();
+            extraPendings = new List<string>();
         }
 
         public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit)
@@ -58,14 +62,14 @@ namespace Lyra.Core.Decentralize
             {
                 if(wf.pfrecv)
                 {
-                    var preBlock = await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, send);
+                    var preBlock = await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, this, send);
                     if (preBlock == null)
                         preDone = true;
                     else
                     {
                         await submit(preBlock);
                         preDone = false;
-                        //Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
+                        Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
                     }
                 }
                 else
@@ -78,7 +82,7 @@ namespace Lyra.Core.Decentralize
             {
                 if(wf.brokerOps != null)
                 {
-                    var mainBlock = await wf.brokerOps(sys, send);
+                    var mainBlock = await wf.brokerOps(sys, this, send);
                     if (mainBlock == null)
                         mainDone = true;
                     else
@@ -86,7 +90,7 @@ namespace Lyra.Core.Decentralize
                         // send it
                         await submit(mainBlock);
                         mainDone = false;
-                        //Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
+                        Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
                     }
                 }
                 else
@@ -99,7 +103,7 @@ namespace Lyra.Core.Decentralize
             {
                 if(wf.extraOps != null)
                 {
-                    var otherBlocks = await wf.extraOps(sys, svcReqHash);
+                    var otherBlocks = await wf.extraOps(sys, this, svcReqHash);
                     if (otherBlocks == null)
                     {
                         extraDone = true;
@@ -108,7 +112,7 @@ namespace Lyra.Core.Decentralize
                     {
                         // foreach block send it
                         await submit(otherBlocks);
-                        //Console.WriteLine($"WF: {send.Hash.Shorten()} {otherBlocks.BlockType}: extraDone: {false}");
+                        Console.WriteLine($"WF: {send.Hash.Shorten()} {otherBlocks.BlockType}: extraDone: {false}");
                         extraDone = false;
                     }
                 }
@@ -123,14 +127,14 @@ namespace Lyra.Core.Decentralize
 
     public class BrokerFactory
     {
-        public static Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
+        public static Dictionary<string, (bool pfrecv, Func<DagSystem, BrokerBlueprint, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, BrokerBlueprint, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
 
         public void Init()
         {
             if (WorkFlows != null)
                 throw new InvalidOperationException("Already initialized.");
 
-            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)>();
+            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, BrokerBlueprint, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, BrokerBlueprint, string, Task<TransactionBlock>> extraOps)>();
 
             // liquidate pool
             WorkFlows.Add(BrokerActions.BRK_POOL_CRPL, (true, BrokerOperations.CNOCreateLiquidatePoolAsync, null));

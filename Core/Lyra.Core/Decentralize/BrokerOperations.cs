@@ -16,11 +16,12 @@ namespace Lyra.Core.Decentralize
     {
         // every method must check if the operation has been done.
         // if has been done, return null.
-        public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock sendBlock)
         {
-            var pfrcv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
-            if (pfrcv != null)
+            if (bp.prePending)
                 return null;
+
+            bp.prePending = true;
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var receiveBlock = new ReceiveTransferBlock
@@ -71,13 +72,11 @@ namespace Lyra.Core.Decentralize
             //await QueueBlockForPoolAsync(receiveBlock, tx);  // create pool / withdraw
         }
 
-        public static async Task<TransactionBlock> CNOCreateLiquidatePoolAsync(DagSystem sys, SendTransferBlock send/*, ReceiveTransferBlock recvBlock, string token0, string token1*/)
+        public static async Task<TransactionBlock> CNOCreateLiquidatePoolAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send/*, ReceiveTransferBlock recvBlock, string token0, string token1*/)
         {
             var pool = await sys.Storage.GetPoolAsync(send.Tags["token0"], send.Tags["token1"]);
             if (pool != null)
                 return null;
-
-            var sb = await sys.Storage.GetLastServiceBlockAsync();
 
             // get token gensis to make the token name proper
             var token0Gen = await sys.Storage.FindTokenGenesisBlockAsync(null, send.Tags["token0"]);
@@ -90,6 +89,14 @@ namespace Lyra.Core.Decentralize
 
             var arrStr = new[] { token0Gen.Ticker, token1Gen.Ticker };
             Array.Sort(arrStr);
+
+            var key = $"{arrStr[0]}|{arrStr[1]}";
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
+
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
 
             // create a semi random account for pool.
             // it can be verified by other nodes.
@@ -123,8 +130,14 @@ namespace Lyra.Core.Decentralize
             //await QueueTxActionBlockAsync(poolGenesis);
         }
 
-        public static async Task<TransactionBlock> AddPoolLiquidateAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public static async Task<TransactionBlock> AddPoolLiquidateAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock sendBlock)
         {
+            var key = sendBlock.Hash;
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
+
             // assume all send variables are legal
             // token0/1, amount, etc.
             var existsAdd = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
@@ -206,8 +219,14 @@ namespace Lyra.Core.Decentralize
             //await QueueBlockForPoolAsync(depositBlock, tx);  // pool deposition
         }
 
-        public static async Task<TransactionBlock> SendWithdrawFundsAsync(DagSystem sys, SendTransferBlock send/*, string poolId, string targetAccountId*/)
+        public static async Task<TransactionBlock> SendWithdrawFundsAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send/*, string poolId, string targetAccountId*/)
         {
+            var key = send.Hash;
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
+
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is PoolWithdrawBlock))
                 return null;
@@ -271,8 +290,14 @@ namespace Lyra.Core.Decentralize
             //await QueueTxActionBlockAsync(withdrawBlock);
         }
 
-        public static async Task<TransactionBlock> ReceivePoolSwapInAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public static async Task<TransactionBlock> ReceivePoolSwapInAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock sendBlock)
         {
+            var key = sendBlock.Hash + "-In";
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
+
             // assume all send variables are legal
             // token0/1, amount, etc.
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(sendBlock.Hash);
@@ -340,8 +365,14 @@ namespace Lyra.Core.Decentralize
             //await QueueBlockForPoolAsync(swapInBlock, tx);   // pool swap in
         }
 
-        public static async Task<TransactionBlock> SendPoolSwapOutTokenAsync(DagSystem sys, string reqHash)
+        public static async Task<TransactionBlock> SendPoolSwapOutTokenAsync(DagSystem sys, BrokerBlueprint bp, string reqHash)
         {
+            var key = reqHash + "Out";
+            if (bp.extraPendings.Any(a => a == key))
+                return null;
+
+            bp.extraPendings.Add(key);
+
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(reqHash);
             var swout = blocks.FirstOrDefault(a => a is PoolSwapOutBlock);
             if (swout != null)
@@ -409,8 +440,14 @@ namespace Lyra.Core.Decentralize
             return swapOutBlock;
         }
 
-        public static async Task<TransactionBlock> CNOCreateProfitingAccountAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNOCreateProfitingAccountAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
+            var key = send.Hash;
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
+
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var pgen = blocks.FirstOrDefault(a => a is ProfitingGenesis);
             if (pgen != null)
@@ -456,7 +493,7 @@ namespace Lyra.Core.Decentralize
             //await QueueTxActionBlockAsync(poolGenesis);
         }
 
-        public static async Task<TransactionBlock> SyncNodeFeesAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> SyncNodeFeesAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             var nodeid = send.AccountID;
 
@@ -467,6 +504,12 @@ namespace Lyra.Core.Decentralize
             var usf = await sys.Storage.FindUnsettledFeesAsync(nodeid, pft.AccountID);
             if (usf == null)
                 return null;
+
+            var key = $"fee|{usf.ServiceBlockStartHeight}|{usf.ServiceBlockEndHeight}";
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
 
             var feesEndSb = await sys.Storage.FindServiceBlockByIndexAsync(usf.ServiceBlockEndHeight);
 
@@ -511,21 +554,21 @@ namespace Lyra.Core.Decentralize
         }
 
         // like wallet.receive
-        public static async Task<TransactionBlock> CNOReceiveAllProfitAsync(DagSystem sys, SendTransferBlock reqSend)
+        public static async Task<TransactionBlock> CNOReceiveAllProfitAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock reqSend)
         {
             // if is current authorizers, sync fee first
             // add check to save resources
-            var feeBlk = await SyncNodeFeesAsync(sys, reqSend);
+            var feeBlk = await SyncNodeFeesAsync(sys, bp, reqSend);
             if (feeBlk != null)
                 return feeBlk;
 
             var pftid = reqSend.Tags["pftid"];
 
-            var transfer_info = await GetSendToPftAsync(sys, pftid);
+            var transfer_info = await GetSendToPftAsync(sys, bp, pftid);
 
             if (transfer_info.Successful())
             {
-                var receiveBlock = await CNOReceiveProfitAsync(sys, reqSend.Hash, pftid, transfer_info);
+                var receiveBlock = await CNOReceiveProfitAsync(sys, bp, reqSend.Hash, pftid, transfer_info);
 
                 return receiveBlock;        // because we do it one block a time
             }
@@ -533,7 +576,7 @@ namespace Lyra.Core.Decentralize
                 return null;        // the check
         }
 
-        private static async Task<NewTransferAPIResult2> GetSendToPftAsync(DagSystem sys, string pftid)
+        private static async Task<NewTransferAPIResult2> GetSendToPftAsync(DagSystem sys, BrokerBlueprint bp, string pftid)
         {
             NewTransferAPIResult2 transfer_info = new NewTransferAPIResult2();
             SendTransferBlock sendBlock = await sys.Storage.FindUnsettledSendBlockAsync(pftid);
@@ -556,10 +599,16 @@ namespace Lyra.Core.Decentralize
             return transfer_info;
         }
 
-        private static async Task<TransactionBlock> CNOReceiveProfitAsync(DagSystem sys, string relatedTx, string pftid, NewTransferAPIResult2 transInfo)
+        private static async Task<TransactionBlock> CNOReceiveProfitAsync(DagSystem sys, BrokerBlueprint bp, string relatedTx, string pftid, NewTransferAPIResult2 transInfo)
         {
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var lastPft = await sys.Storage.FindLatestBlockAsync(pftid) as TransactionBlock;
+
+            var key = $"pft|{transInfo.SourceHash}";
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
 
             var pftNext = new ProfitingBlock
             {
@@ -599,7 +648,7 @@ namespace Lyra.Core.Decentralize
             return pftNext;
         }
 
-        public static async Task<TransactionBlock> CNORedistributeProfitAsync(DagSystem sys, string reqHash)
+        public static async Task<TransactionBlock> CNORedistributeProfitAsync(DagSystem sys, BrokerBlueprint bp, string reqHash)
         {
             var reqBlock = await sys.Storage.FindBlockByHashAsync(reqHash);
             var pftid = reqBlock.Tags["pftid"];
@@ -638,6 +687,12 @@ namespace Lyra.Core.Decentralize
 
             foreach (var target in targets)
             {
+                var key = $"sstk|{target.stk}";
+                if (bp.extraPendings.Any(a => a == key))
+                    return null;
+
+                bp.extraPendings.Add(key);
+
                 var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.stk);
                 if (stkSend != null)
                     continue;
@@ -657,6 +712,13 @@ namespace Lyra.Core.Decentralize
 
             var sb2 = await sys.Storage.GetLastServiceBlockAsync();
             var lastTx = relatedTxs.Last() as TransactionBlock;
+
+            var key2 = $"sown|{lastBlock.OwnerAccountId}";
+            if (bp.extraPendings.Any(a => a == key2))
+                return null;
+
+            bp.extraPendings.Add(key2);
+
             var ownrSend = CreateBenefiting(lastTx, sb2, (null, lastBlock.OwnerAccountId, 1m), reqHash, lastTx.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
             return ownrSend;
         }
@@ -702,8 +764,14 @@ namespace Lyra.Core.Decentralize
             return pftSend;
         }
 
-        public static async Task<TransactionBlock> CNOCreateStakingAccountAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNOCreateStakingAccountAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
+            var key = $"{send.Hash}";
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
+
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var pgen = blocks.FirstOrDefault(a => a is StakingGenesis);
             if (pgen != null)
@@ -746,8 +814,14 @@ namespace Lyra.Core.Decentralize
             //await QueueTxActionBlockAsync(stkGenesis);
         }
 
-        public static async Task<TransactionBlock> CNOAddStakingAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNOAddStakingAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
+            var key = $"{send.Hash}";
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
+
             var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             if (block != null)
                 return null;
@@ -788,8 +862,14 @@ namespace Lyra.Core.Decentralize
             return stkNext;
         }
 
-        public static async Task<TransactionBlock> CNOUnStakeAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNOUnStakeAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
+            var key = $"{send.Hash}";
+            if (bp.mainPendings.Any(a => a == key))
+                return null;
+
+            bp.mainPendings.Add(key);
+
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is UnStakingBlock))
                 return null;
@@ -829,23 +909,23 @@ namespace Lyra.Core.Decentralize
         }
 
         // merchants
-        public static async Task<TransactionBlock> CNOMCTCreateAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNOMCTCreateAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             throw new NotImplementedException();
         }
-        public static async Task<TransactionBlock> CNOMCTPayAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNOMCTPayAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             throw new NotImplementedException();
         }
-        public static async Task<TransactionBlock> CNOMCTUnPayAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNOMCTUnPayAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             throw new NotImplementedException();
         }
-        public static async Task<TransactionBlock> CNOMCTConfirmPayAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNOMCTConfirmPayAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             throw new NotImplementedException();
         }
-        public static async Task<TransactionBlock> CNOMCTGetPayAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNOMCTGetPayAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             throw new NotImplementedException();
         }
