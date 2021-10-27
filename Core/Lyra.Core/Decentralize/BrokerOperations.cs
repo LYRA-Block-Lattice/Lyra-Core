@@ -675,11 +675,16 @@ namespace Lyra.Core.Decentralize
             var stakers = sys.Storage.FindAllStakings(pftid, reqBlock.TimeStamp);
             var targets = stakers.Take(lastBlock.Seats);
             var relatedTxs = (await sys.Storage.FindBlocksByRelatedTxAsync(reqHash)).OrderBy(a => a.TimeStamp).ToList();
+            if(relatedTxs.Count == 0)
+            {
+                // no balance
+                return null;
+            }
             // so 
             var totalStakingAmount = stakers.Sum(a => a.amount);
             var lastProfitingBlock = relatedTxs.Where(a => a is ProfitingBlock)
                 .OrderBy(a => a.TimeStamp)
-                .Last() as ProfitingBlock;
+                .Last() as TransactionBlock;
             var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
 
             // create a dictionary to hold amounts to send
