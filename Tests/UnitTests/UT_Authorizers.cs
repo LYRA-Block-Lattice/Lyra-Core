@@ -270,7 +270,7 @@ namespace UnitTests
             Assert.IsTrue(pftblock.OwnerAccountId == genesisWallet.AccountId);
 
             await genesisWallet.GetNodeFeeAsync(genesisWallet.AccountId);
-            await Task.Delay(5 * 1000);
+            await Task.Delay(2 * 1000);
         }
 
         private async Task<IStaking> CreateStaking(Wallet w, string pftid, decimal amount)

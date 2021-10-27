@@ -459,13 +459,16 @@ namespace Lyra.Core.Decentralize
         public static async Task<TransactionBlock> SyncNodeFeesAsync(DagSystem sys, SendTransferBlock send)
         {
             var nodeid = send.Tags["nodeid"];
-            var usf = await sys.Storage.FindUnsettledFeesAsync(nodeid);
-
-            var feesEndSb = await sys.Storage.FindServiceBlockByIndexAsync(usf.ServiceBlockEndHeight);
 
             // must be first profiting account of nodes'
             var pfts = await sys.Storage.FindAllProfitingAccountForOwnerAsync(nodeid);
             var pft = pfts.First();
+
+            var usf = await sys.Storage.FindUnsettledFeesAsync(nodeid, pft.AccountID);
+            if (usf == null)
+                return null;
+
+            var feesEndSb = await sys.Storage.FindServiceBlockByIndexAsync(usf.ServiceBlockEndHeight);
 
             ProfitingBlock latestBlock = await sys.Storage.FindLatestBlockAsync(pft.AccountID) as ProfitingBlock;
             var sb = await sys.Storage.GetLastServiceBlockAsync();

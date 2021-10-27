@@ -897,7 +897,9 @@ namespace Lyra.Core.Decentralize
 
             try
             {
-                fbs.pendingFees = await NodeService.Dag.Storage.FindUnsettledFeesAsync(AccountId);
+                var pfts = await NodeService.Dag.Storage.FindAllProfitingAccountForOwnerAsync(AccountId);
+                var pft = pfts.First();
+                fbs.pendingFees = await NodeService.Dag.Storage.FindUnsettledFeesAsync(AccountId, pft.AccountID);
                 fbs.ResultCode = APIResultCodes.Success;
                 return fbs;
             }

@@ -846,7 +846,7 @@ namespace Lyra.Core.Accounts
             return import_blocks;
         }
 
-        public async Task<UnSettledFees> FindUnsettledFeesAsync(string pftid)
+        public async Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId, string pftid)
         {
             // !!! TO DO - take care of fees for imported accounts!!!!
             // get the latest feeblock
@@ -871,10 +871,10 @@ namespace Lyra.Core.Accounts
 
             var endHeight = (await GetLastServiceBlockAsync()).Height;
 
-            return await FindUnsettledFeesAsync(pftid, fromHeight, endHeight);
+            return await FindUnsettledFeesAsync(AuthorizerAccountId, pftid, fromHeight, endHeight);
         }
 
-        public async Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId, long fromHeight, long endHeight)
+        public async Task<UnSettledFees> FindUnsettledFeesAsync(string AuthorizerAccountId, string pftid, long fromHeight, long endHeight)
         {
             var builder2 = new FilterDefinitionBuilder<ServiceBlock>();
             //var builder3 = new FilterDefinitionBuilder<KeyValuePair<string, string>>();
@@ -914,7 +914,7 @@ namespace Lyra.Core.Accounts
             {
                 return new UnSettledFees
                 {
-                    AccountId = AuthorizerAccountId,
+                    AccountId = pftid,
                     ServiceBlockStartHeight = fromHeight,
                     ServiceBlockEndHeight = lastSbHeight,
                     TotalFees = totalFees
