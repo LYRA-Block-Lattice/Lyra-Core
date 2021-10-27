@@ -257,10 +257,11 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
-                    if (cs._sys.PosWallet.VoteFor == null)
-                        cs._sys.PosWallet.SetVoteFor(cs._sys.PosWallet.AccountId);
-
                     await cs._sys.PosWallet.SyncAsync(null);
+                    var pfts = await cs._sys.Storage.FindAllProfitingAccountForOwnerAsync(cs._sys.PosWallet.AccountId);
+                    var pft = pfts.FirstOrDefault();
+                    if(pft != null)
+                        await cs._sys.PosWallet.CreateDividendsAsync(pft.AccountID);
                 }
                 catch (Exception e)
                 {

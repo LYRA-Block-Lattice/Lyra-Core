@@ -1872,23 +1872,6 @@ namespace Lyra.Core.Accounts
             return getpftResult;
         }
 
-        public async Task<APIResult> GetNodeFeeAsync(string profitingAccountId)
-        {
-            var amountsDeposit = new Dictionary<string, decimal>
-            {
-                { "LYR", 1 }
-            };
-
-            var tags = new Dictionary<string, string>
-            {
-                { Block.REQSERVICETAG, BrokerActions.BRK_PFT_FEEPFT },
-                { "nodeid", profitingAccountId }
-            };
-
-            var getpftResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amountsDeposit, tags);
-            return getpftResult;
-        }
-
         public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, string voteFor, int daysToStake)
         {
             var tags = new Dictionary<string, string>

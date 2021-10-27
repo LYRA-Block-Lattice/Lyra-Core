@@ -458,7 +458,7 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> SyncNodeFeesAsync(DagSystem sys, SendTransferBlock send)
         {
-            var nodeid = send.Tags["nodeid"];
+            var nodeid = send.AccountID;
 
             // must be first profiting account of nodes'
             var pfts = await sys.Storage.FindAllProfitingAccountForOwnerAsync(nodeid);
@@ -513,6 +513,12 @@ namespace Lyra.Core.Decentralize
         // like wallet.receive
         public static async Task<TransactionBlock> CNOReceiveAllProfitAsync(DagSystem sys, SendTransferBlock reqSend)
         {
+            // if is current authorizers, sync fee first
+            // add check to save resources
+            var feeBlk = await SyncNodeFeesAsync(sys, reqSend);
+            if (feeBlk != null)
+                return feeBlk;
+
             var pftid = reqSend.Tags["pftid"];
 
             var transfer_info = await GetSendToPftAsync(sys, pftid);
@@ -650,7 +656,8 @@ namespace Lyra.Core.Decentralize
                 return null;
 
             var sb2 = await sys.Storage.GetLastServiceBlockAsync();
-            var ownrSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb2, (null, lastBlock.OwnerAccountId, 1m), reqHash, sentBlocks.Last().Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
+            var lastTx = relatedTxs.Last() as TransactionBlock;
+            var ownrSend = CreateBenefiting(lastTx, sb2, (null, lastBlock.OwnerAccountId, 1m), reqHash, lastTx.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
             return ownrSend;
         }
 

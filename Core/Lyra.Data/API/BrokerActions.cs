@@ -13,7 +13,7 @@ namespace Lyra.Data.API
         public const string BRK_STK_UNSTK = "UNSTK";
 
         public const string BRK_PFT_CRPFT = "CRPFT";
-        public const string BRK_PFT_FEEPFT = "FEEPFT";
+        //public const string BRK_PFT_FEEPFT = "FEEPFT";    // combine to getpft
         public const string BRK_PFT_GETPFT = "GETPFT";
 
         public const string BRK_MCT_CRMCT = "CRMCT";

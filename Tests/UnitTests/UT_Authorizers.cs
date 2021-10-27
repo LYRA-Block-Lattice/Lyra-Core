@@ -236,8 +236,8 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            //await TestPoolAsync();
-            //await TestProfitingAndStaking();
+            await TestPoolAsync();
+            await TestProfitingAndStaking();
             await TestNodeFee();
 
             // let workflow to finish
@@ -269,7 +269,7 @@ namespace UnitTests
             var pftblock = crpftret.GetBlock() as ProfitingBlock;
             Assert.IsTrue(pftblock.OwnerAccountId == genesisWallet.AccountId);
 
-            await genesisWallet.GetNodeFeeAsync(genesisWallet.AccountId);
+            await genesisWallet.CreateDividendsAsync(pftblock.AccountID);
             await Task.Delay(2 * 1000);
         }
 
