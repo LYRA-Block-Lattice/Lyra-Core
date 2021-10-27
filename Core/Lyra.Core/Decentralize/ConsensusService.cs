@@ -1025,19 +1025,19 @@ namespace Lyra.Core.Decentralize
             var lastSb = await _sys.Storage.GetLastServiceBlockAsync();
             var signAgainst = lastSb?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
 
-            // verify pftaccount
-            if (!string.IsNullOrWhiteSpace(pftAccount))
-            {
-                var pfts = await _sys.Storage.FindAllProfitingAccountForOwnerAsync(accountId);
-                var pft = pfts.FirstOrDefault();
-                if (pft == null || pft.AccountID != pftAccount)
-                {
-                    var exists = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == accountId);
-                    if (exists != null)
-                        _board.ActiveNodes.Remove(exists);
-                    return;
-                }
-            }
+            // verify pftaccount !! genesis mode!!
+            //if (!string.IsNullOrWhiteSpace(pftAccount))
+            //{
+            //    var pfts = await _sys.Storage.FindAllProfitingAccountForOwnerAsync(accountId);
+            //    var pft = pfts.FirstOrDefault();
+            //    if (pft == null || pft.AccountID != pftAccount)
+            //    {
+            //        var exists = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == accountId);
+            //        if (exists != null)
+            //            _board.ActiveNodes.Remove(exists);
+            //        return;
+            //    }
+            //}
 
             ActiveNode node;
             if (_board.ActiveNodes.ToArray().Any(a => a.AccountID == accountId))
