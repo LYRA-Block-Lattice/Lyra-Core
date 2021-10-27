@@ -105,6 +105,10 @@ namespace Lyra.Core.Decentralize
 
             bp.mainPendings.Add(key, "");
 
+            var poole = await sys.Storage.GetPoolAsync(arrStr[0], arrStr[1]);
+            if (poole != null)
+                return null;
+
             var sb = await sys.Storage.GetLastServiceBlockAsync();
 
             // create a semi random account for pool.
