@@ -51,12 +51,11 @@ namespace Lyra.Core.Blocks
 
         public Block()
         {
-            //TimeStamp = DateTime.UtcNow;
+            TimeStamp = DateTime.UtcNow;
         }
 
         public void InitializeBlock(Block prevBlock, string PrivateKey, string AccountId)
         {
-            TimeStamp = DateTime.UtcNow;
             if (prevBlock != null)
             {
                 Height = prevBlock.Height + 1;
@@ -78,7 +77,6 @@ namespace Lyra.Core.Blocks
 
         public void InitializeBlock(Block prevBlock, SignHandler signr)
         {
-            TimeStamp = DateTime.UtcNow;
             if (prevBlock != null)
             {
                 Height = prevBlock.Height + 1;

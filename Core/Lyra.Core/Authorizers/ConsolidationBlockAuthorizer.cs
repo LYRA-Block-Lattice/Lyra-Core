@@ -56,7 +56,10 @@ namespace Lyra.Core.Authorizers
 
                 var allHashes = (await sys.Storage.GetBlockHashesByTimeRangeAsync(lastCons.TimeStamp, block.TimeStamp)).ToList();
                 if (block.blockHashes.Count != allHashes.Count)
+                {
+                    Console.WriteLine($"real count: {allHashes.Count} but block has: {block.blockHashes.Count}");
                     return APIResultCodes.InvalidConsolidationBlockCount;
+                }                    
 
                 var mineNotYours = allHashes.Except(block.blockHashes).ToList();
                 var yoursNotMine = block.blockHashes.Except(allHashes).ToList();
