@@ -112,6 +112,9 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<MerchantRecv>();
             BsonClassMap.RegisterClassMap<MerchantSend>();
 
+            // obsolete, but needed for compatiblity
+            BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
+
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
             _blueprints = GetDatabase().GetCollection<BrokerBlueprint>(_blueprintCollectionName);
 
