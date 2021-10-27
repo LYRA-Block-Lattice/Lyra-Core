@@ -107,7 +107,7 @@ namespace Lyra.Core.Accounts
         void CreateBlueprint(BrokerBlueprint blueprint);
         BrokerBlueprint GetBlueprint(string relatedTx);
         void RemoveBlueprint(string hash);
-        void UpdateBlueprint(BrokerBlueprint bp);
+        long UpdateBlueprint(BrokerBlueprint bp);
         List<BrokerBlueprint> GetAllBlueprints();
         List<(string stk, string user, decimal amount)> FindAllStakings(string pftid, DateTime timeBefore);
         Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId);

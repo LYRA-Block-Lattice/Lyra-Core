@@ -21,6 +21,7 @@ namespace Lyra.Core.Decentralize
             if (bp.prePending)
                 return null;
 
+            Console.WriteLine($"PF Recv for {sendBlock.Hash} Pending: {bp.prePending}");
             bp.prePending = true;
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
@@ -689,7 +690,7 @@ namespace Lyra.Core.Decentralize
             {
                 var key = $"sstk|{target.stk}";
                 if (bp.extraPendings.Any(a => a == key))
-                    return null;
+                    continue;
 
                 bp.extraPendings.Add(key);
 
@@ -706,18 +707,18 @@ namespace Lyra.Core.Decentralize
                 return pftSend;
             }
 
+            var key2 = $"sown|{lastBlock.OwnerAccountId}";
+            if (bp.extraPendings.Any(a => a == key2))
+                return null;
+
+            bp.extraPendings.Add(key2);
+
             // all remaining send to the owner
             if (sentBlocks.Any(a => a.DestinationAccountId == lastBlock.OwnerAccountId && a.StakingAccountId == null))
                 return null;
 
             var sb2 = await sys.Storage.GetLastServiceBlockAsync();
             var lastTx = relatedTxs.Last() as TransactionBlock;
-
-            var key2 = $"sown|{lastBlock.OwnerAccountId}";
-            if (bp.extraPendings.Any(a => a == key2))
-                return null;
-
-            bp.extraPendings.Add(key2);
 
             var ownrSend = CreateBenefiting(lastTx, sb2, (null, lastBlock.OwnerAccountId, 1m), reqHash, lastTx.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
             return ownrSend;

@@ -11,6 +11,7 @@ using Lyra.Core.API;
 using System.Linq;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
+using Lyra.Core.Decentralize;
 
 namespace Lyra.Core.Authorizers
 {
@@ -127,7 +128,7 @@ namespace Lyra.Core.Authorizers
                 switch(block.Tags[Block.REQSERVICETAG])
                 {
                     case BrokerActions.BRK_POOL_CRPL:
-                        if (sys.Storage.GetAllBlueprints().Any(x => x.action == BrokerActions.BRK_POOL_CRPL))
+                        if (BrokerFactory.GetAllBlueprints().Any(x => x.action == BrokerActions.BRK_POOL_CRPL))
                             return APIResultCodes.SystemBusy;
 
                         svcReqResult = await VerifyCreatingPoolAsync(sys, block, lastBlock);
@@ -299,7 +300,7 @@ namespace Lyra.Core.Authorizers
                         return APIResultCodes.RequestNotPermited;
 
                     // no concurency
-                    if (sys.Storage.GetAllBlueprints().Any(x => x.brokerAccount == pftid))
+                    if (BrokerFactory.GetAllBlueprints().Any(x => x.brokerAccount == pftid))
                         return APIResultCodes.SystemBusy;
 
                     return APIResultCodes.Success;
@@ -375,7 +376,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.PoolShareNotExists;
 
             // check pending swap
-            if (sys.Storage.GetAllBlueprints().Any(x => x.brokerAccount == poolGenesis.AccountID))
+            if (BrokerFactory.GetAllBlueprints().Any(x => x.brokerAccount == poolGenesis.AccountID))
                 return APIResultCodes.ReQuotaNeeded;
 
             return APIResultCodes.Success;
@@ -432,7 +433,7 @@ namespace Lyra.Core.Authorizers
             }
 
             // check pending swap
-            if (sys.Storage.GetAllBlueprints().Any(x => x.brokerAccount == block.DestinationAccountId))
+            if (BrokerFactory.GetAllBlueprints().Any(x => x.brokerAccount == block.DestinationAccountId))
                 return APIResultCodes.ReQuotaNeeded;
 
             return APIResultCodes.Success;
@@ -496,7 +497,7 @@ namespace Lyra.Core.Authorizers
             }
 
             // check pending swap
-            if (sys.Storage.GetAllBlueprints().Any(x => x.brokerAccount == block.DestinationAccountId))
+            if (BrokerFactory.GetAllBlueprints().Any(x => x.brokerAccount == block.DestinationAccountId))
                 return APIResultCodes.ReQuotaNeeded;
 
             return APIResultCodes.Success;

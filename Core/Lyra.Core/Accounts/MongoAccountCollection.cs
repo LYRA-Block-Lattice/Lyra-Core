@@ -1535,10 +1535,11 @@ namespace Lyra.Core.Accounts
             _blueprints.DeleteOne(a => a.svcReqHash == relatedTx);
         }
 
-        public void UpdateBlueprint(BrokerBlueprint bp)
+        public long UpdateBlueprint(BrokerBlueprint bp)
         {
-            RemoveBlueprint(bp.svcReqHash);
-            CreateBlueprint(bp);
+            var filter = Builders<BrokerBlueprint>.Filter.Eq(a => a.svcReqHash, bp.svcReqHash);
+            var result = _blueprints.ReplaceOne(filter, bp);
+            return result.ModifiedCount;
         }
 
         public List<BrokerBlueprint> GetAllBlueprints()

@@ -327,7 +327,7 @@ namespace UnitTests
             await testWallet.SyncAsync(null);
             await test2Wallet.SyncAsync(null);
 
-            Console.WriteLine("send as profit");
+            Console.WriteLine($"({DateTime.Now:mm:ss.ff}) send as profit");
             // send profit to profit account
             for(var i = 0; i < 3; i++)
             {
@@ -335,7 +335,7 @@ namespace UnitTests
                 Assert.IsTrue(sendret.Successful());
             }
 
-            Console.WriteLine("Dividend");
+            Console.WriteLine($"({DateTime.Now:mm:ss.ff}) Dividend");
             // the owner try to get the dividends
             var getpftRet = await testWallet.CreateDividendsAsync(pftblock.AccountID);
             Assert.IsTrue(getpftRet.Successful(), $"Failed to get dividends: {getpftRet.ResultCode}");
@@ -345,7 +345,7 @@ namespace UnitTests
             if (networkId == "devnet")
                 await Task.Delay(3000);
             var bal1 = testWallet.BaseBalance;
-            Console.WriteLine("Check balance");
+            Console.WriteLine($"({DateTime.Now:mm:ss.ff}) Check balance");
             await testWallet.SyncAsync(null);
             Assert.AreEqual(bal1 + totalProfit * shareRito / 2 + totalProfit * (1 - shareRito), testWallet.BaseBalance);
 
@@ -374,17 +374,9 @@ namespace UnitTests
 
             var crplret = await testWallet.CreateLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(crplret.Successful());
-            while (true)
-            {
-                var pool = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
-                if (pool.PoolAccountId == null)
-                {
-                    await Task.Delay(100);
-                    continue;
-                }
-                Assert.IsTrue(pool.PoolAccountId.StartsWith('L'));
-                break;
-            }
+            await Task.Delay(2000);
+            var pool = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
+            Assert.IsTrue(pool.PoolAccountId.StartsWith('L'));
 
             // add liquidate to pool
             var addpoolret = await testWallet.AddLiquidateToPoolAsync(token0, 1000000, "LYR", 5000);

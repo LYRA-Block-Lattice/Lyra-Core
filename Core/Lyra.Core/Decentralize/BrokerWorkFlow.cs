@@ -1,10 +1,13 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.Accounts;
+using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Shared;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -129,12 +132,14 @@ namespace Lyra.Core.Decentralize
     {
         public static Dictionary<string, (bool pfrecv, Func<DagSystem, BrokerBlueprint, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, BrokerBlueprint, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
 
+        public static ConcurrentDictionary<string, BrokerBlueprint> Bps { get; set; }
         public void Init()
         {
             if (WorkFlows != null)
                 throw new InvalidOperationException("Already initialized.");
 
             WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, BrokerBlueprint, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, BrokerBlueprint, string, Task<TransactionBlock>> extraOps)>();
+            Bps = new ConcurrentDictionary<string, BrokerBlueprint>();
 
             // liquidate pool
             WorkFlows.Add(BrokerActions.BRK_POOL_CRPL, (true, BrokerOperations.CNOCreateLiquidatePoolAsync, null));
@@ -158,6 +163,51 @@ namespace Lyra.Core.Decentralize
             WorkFlows.Add(BrokerActions.BRK_MCT_UNPAY, (true, BrokerOperations.CNOMCTUnPayAsync, null));
             WorkFlows.Add(BrokerActions.BRK_MCT_CFPAY, (true, BrokerOperations.CNOMCTConfirmPayAsync, null));
             WorkFlows.Add(BrokerActions.BRK_MCT_GETPAY, (true, BrokerOperations.CNOMCTGetPayAsync, null));
+        }
+
+        public static void CreateBlueprint(BrokerBlueprint blueprint)
+        {
+            Bps.TryAdd(blueprint.svcReqHash, blueprint);
+        }
+        public static BrokerBlueprint GetBlueprint(string relatedTx)
+        {
+            if (Bps.ContainsKey(relatedTx))
+                return Bps[relatedTx];
+            else
+                return null;
+        }
+        public static void RemoveBlueprint(string hash)
+        {
+            if (Bps.ContainsKey(hash))
+                Bps.TryRemove(hash, out _);
+        }
+        public static long UpdateBlueprint(BrokerBlueprint bp)
+        {
+            if (Bps.ContainsKey(bp.svcReqHash))
+            {
+                Bps[bp.svcReqHash] = bp;
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        public static List<BrokerBlueprint> GetAllBlueprints()
+        {
+            return Bps.Values.ToList();
+        }
+
+        public static void Persist(IAccountCollectionAsync stor)
+        {
+            // save to database
+            var bps = stor.GetAllBlueprints();
+            foreach (var bp in bps)
+                stor.RemoveBlueprint(bp.svcReqHash);
+
+            foreach (var x in Bps.Values)
+                stor.CreateBlueprint(x);
         }
     }
 }

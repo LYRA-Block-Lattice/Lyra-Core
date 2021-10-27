@@ -204,11 +204,13 @@ namespace Lyra.Core.Decentralize
                 {
                     if(cs.CurrentState == Data.API.BlockChainState.Almighty)
                     {
-                        var blueprints = cs._sys.Storage.GetAllBlueprints();
+                        var blueprints = BrokerFactory.GetAllBlueprints();
                         if (blueprints.Any() && cs.IsThisNodeLeader)//a => a.start < DateTime.UtcNow.AddSeconds(-30)))
                         {
                             cs.ExecuteBlueprints();
                         }
+
+                        BrokerFactory.Persist(cs._sys.Storage);
                     }
 
 

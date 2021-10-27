@@ -1665,7 +1665,7 @@ namespace Lyra.Core.Decentralize
                     mainDone = false,
                     extraDone = false
                 };
-                _sys.Storage.CreateBlueprint(blueprint);
+                BrokerFactory.CreateBlueprint(blueprint);
 
                 if(IsThisNodeLeader)
                 {
@@ -1684,7 +1684,7 @@ namespace Lyra.Core.Decentralize
                 {
                     try
                     {
-                        var allBlueprints = _sys.Storage.GetAllBlueprints();
+                        var allBlueprints = BrokerFactory.GetAllBlueprints();
 
                         _log.LogInformation($"Executing blueprints: total {allBlueprints.Count} pending.");
                         foreach (var bp in allBlueprints.OrderBy(a => a.start))
@@ -1700,7 +1700,7 @@ namespace Lyra.Core.Decentralize
                                     success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
                                     _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                                     if (success)
-                                        _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                        BrokerFactory.RemoveBlueprint(bp.svcReqHash);
                                 }
                                 else
                                 {
@@ -1714,10 +1714,10 @@ namespace Lyra.Core.Decentralize
                                 }
 
                                 if (success)
-                                    _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                    BrokerFactory.RemoveBlueprint(bp.svcReqHash);
                                 else
                                 {
-                                    _sys.Storage.UpdateBlueprint(bp);
+                                    BrokerFactory.UpdateBlueprint(bp);
                                 }
                             }
                             catch (Exception e)
@@ -1761,7 +1761,7 @@ namespace Lyra.Core.Decentralize
             if (key == null)
                 return;
 
-            var bp = _sys.Storage.GetBlueprint(key);
+            var bp = BrokerFactory.GetBlueprint(key);
             if (bp == null)
                 return;
 
@@ -1793,10 +1793,10 @@ namespace Lyra.Core.Decentralize
                                 success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
                             _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                             if (success)
-                                _sys.Storage.RemoveBlueprint(bp.svcReqHash);
+                                BrokerFactory.RemoveBlueprint(bp.svcReqHash);
                             else
                             {
-                                _sys.Storage.UpdateBlueprint(bp);
+                                BrokerFactory.UpdateBlueprint(bp);
                             }
                         }
                         catch (Exception e)
@@ -1813,7 +1813,7 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                _sys.Storage.RemoveBlueprint(key);
+                BrokerFactory.RemoveBlueprint(key);
             }
         }
 
