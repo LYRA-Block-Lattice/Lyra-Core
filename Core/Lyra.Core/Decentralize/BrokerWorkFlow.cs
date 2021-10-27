@@ -58,8 +58,14 @@ namespace Lyra.Core.Decentralize
             extraPendings = new Dictionary<string, string>();
         }
 
-        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit)
+        public async Task<bool> ExecuteAsync(DagSystem sys, bool IsLeader, Func<TransactionBlock, Task> submit)
         {
+            if(!IsLeader)
+            {
+                prePending = false;
+                mainPendings.Clear();
+                extraPendings.Clear();
+            }
             // execute work flow
             var wf = BrokerFactory.WorkFlows[action];
             var send = await sys.Storage.FindBlockByHashAsync(svcReqHash) as SendTransferBlock;

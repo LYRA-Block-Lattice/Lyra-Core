@@ -45,6 +45,7 @@ namespace UnitTests.Swap
             }
         }
 
+
         [TestInitialize]
         public async Task UT_PoolFactory_SetupAsync()
         {
@@ -105,6 +106,11 @@ namespace UnitTests.Swap
                 var token1 = tokenFullName;
 
                 var poolCreateResult = await w1.CreateLiquidatePoolAsync(token0, token1);
+                if(poolCreateResult.ResultCode == APIResultCodes.SystemBusy)
+                {
+                    await Task.Delay(2000);
+                    poolCreateResult = await w1.CreateLiquidatePoolAsync(token0, token1);
+                }
                 Assert.IsTrue(poolCreateResult.ResultCode == APIResultCodes.Success, $"{poolCreateResult.ResultCode} Can't create pool for " + token1);
             }
             finally
