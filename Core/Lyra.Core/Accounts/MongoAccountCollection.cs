@@ -50,7 +50,7 @@ namespace Lyra.Core.Accounts
             _blueprintCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blueprints";
 
             // hack
-            if (LyraNodeConfig.GetNetworkId() == "xtest" || LyraNodeConfig.GetNetworkId() == "devnet")
+            if (LyraNodeConfig.GetNetworkId() == "xtest")// || LyraNodeConfig.GetNetworkId() == "devnet")
             {
                 if (GetClient() == null)
                     return;
