@@ -26,6 +26,11 @@ namespace Lyra.Core.Decentralize
             Console.WriteLine($"PF Recv for {sendBlock.Hash} Pending: {bp.prePending}");
             bp.prePending = true;
 
+            // check exists
+            var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
+            if (recv != null)
+                return null;
+
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var receiveBlock = new ReceiveTransferBlock
             {
