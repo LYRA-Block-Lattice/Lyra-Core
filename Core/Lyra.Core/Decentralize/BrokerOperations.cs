@@ -19,7 +19,9 @@ namespace Lyra.Core.Decentralize
         public static async Task<ReceiveTransferBlock> ReceivePoolFactoryFeeAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock sendBlock)
         {
             if (bp.prePending)
+            {
                 return null;
+            }
 
             Console.WriteLine($"PF Recv for {sendBlock.Hash} Pending: {bp.prePending}");
             bp.prePending = true;
@@ -65,6 +67,7 @@ namespace Lyra.Core.Decentralize
 
             receiveBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
 
+            bp.preHash = receiveBlock.Hash;
             return receiveBlock;
             //var tx = new ServiceWithActionTx(sendBlock.Hash)
             //{
@@ -92,10 +95,10 @@ namespace Lyra.Core.Decentralize
             Array.Sort(arrStr);
 
             var key = $"{arrStr[0]}|{arrStr[1]}";
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             var sb = await sys.Storage.GetLastServiceBlockAsync();
 
@@ -126,7 +129,7 @@ namespace Lyra.Core.Decentralize
 
             // pool blocks are service block so all service block signed by leader node
             poolGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
-
+            bp.mainPendings[key] = poolGenesis.Hash;
             return poolGenesis;
             //await QueueTxActionBlockAsync(poolGenesis);
         }
@@ -134,10 +137,10 @@ namespace Lyra.Core.Decentralize
         public static async Task<TransactionBlock> AddPoolLiquidateAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock sendBlock)
         {
             var key = sendBlock.Hash;
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -212,6 +215,7 @@ namespace Lyra.Core.Decentralize
             depositBlock.Shares = depositShares.ToRitoLongDict();
 
             depositBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+            bp.mainPendings[key] = depositBlock.Hash;
             return depositBlock;
             //var tx = new ServiceTx(sendBlock.Hash)
             //{
@@ -223,10 +227,10 @@ namespace Lyra.Core.Decentralize
         public static async Task<TransactionBlock> SendWithdrawFundsAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send/*, string poolId, string targetAccountId*/)
         {
             var key = send.Hash;
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is PoolWithdrawBlock))
@@ -287,6 +291,7 @@ namespace Lyra.Core.Decentralize
             withdrawBlock.Shares = nextShares.ToRitoLongDict();
 
             withdrawBlock.InitializeBlock(poolLatestBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
+            bp.mainPendings[key] = withdrawBlock.Hash;
             return withdrawBlock;
             //await QueueTxActionBlockAsync(withdrawBlock);
         }
@@ -294,10 +299,10 @@ namespace Lyra.Core.Decentralize
         public static async Task<TransactionBlock> ReceivePoolSwapInAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock sendBlock)
         {
             var key = sendBlock.Hash + "-In";
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -357,22 +362,18 @@ namespace Lyra.Core.Decentralize
             swapInBlock.Balances = depositBalance.ToLongDict();
             swapInBlock.Shares = (latestPoolBlock as IPool).Shares;
             swapInBlock.InitializeBlock(latestPoolBlock, (hash) => Signatures.GetSignature(sys.PosWallet.PrivateKey, hash, sys.PosWallet.AccountId));
-            return swapInBlock;
 
-            //var tx = new ServiceWithActionTx(sendBlock.Hash)
-            //{
-            //    PoolId = latestPoolBlock.AccountID
-            //};
-            //await QueueBlockForPoolAsync(swapInBlock, tx);   // pool swap in
+            bp.mainPendings[key] = swapInBlock.Hash;
+            return swapInBlock;
         }
 
         public static async Task<TransactionBlock> SendPoolSwapOutTokenAsync(DagSystem sys, BrokerBlueprint bp, string reqHash)
         {
             var key = reqHash + "Out";
-            if (bp.extraPendings.Any(a => a == key))
+            if (bp.extraPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.extraPendings.Add(key);
+            bp.extraPendings.Add(key, "");
 
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(reqHash);
             var swout = blocks.FirstOrDefault(a => a is PoolSwapOutBlock);
@@ -438,16 +439,17 @@ namespace Lyra.Core.Decentralize
             //if (chgs.FeeAmount != cfg.PayToAuthorizer)
             //    _log.LogError($"In swap out block gen: Fee should be {cfg.PayToAuthorizer} but {chgs.FeeAmount} ");
 
+            bp.extraPendings[key] = swapInBlock.Hash;
             return swapOutBlock;
         }
 
         public static async Task<TransactionBlock> CNOCreateProfitingAccountAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             var key = send.Hash;
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var pgen = blocks.FirstOrDefault(a => a is ProfitingGenesis);
@@ -490,8 +492,8 @@ namespace Lyra.Core.Decentralize
             // pool blocks are service block so all service block signed by leader node
             pftGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
+            bp.mainPendings[key] = pftGenesis.Hash;
             return pftGenesis;
-            //await QueueTxActionBlockAsync(poolGenesis);
         }
 
         public static async Task<TransactionBlock> SyncNodeFeesAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
@@ -507,10 +509,10 @@ namespace Lyra.Core.Decentralize
                 return null;
 
             var key = $"fee|{usf.ServiceBlockStartHeight}|{usf.ServiceBlockEndHeight}";
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             var feesEndSb = await sys.Storage.FindServiceBlockByIndexAsync(usf.ServiceBlockEndHeight);
 
@@ -551,6 +553,7 @@ namespace Lyra.Core.Decentralize
 
             receiveBlock.InitializeBlock(latestBlock, sys.PosWallet.PrivateKey, AccountId: sys.PosWallet.AccountId);
 
+            bp.mainPendings[key] = receiveBlock.Hash;
             return receiveBlock;
         }
 
@@ -606,10 +609,10 @@ namespace Lyra.Core.Decentralize
             var lastPft = await sys.Storage.FindLatestBlockAsync(pftid) as TransactionBlock;
 
             var key = $"pft|{transInfo.SourceHash}";
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             var pftNext = new ProfitingBlock
             {
@@ -646,6 +649,8 @@ namespace Lyra.Core.Decentralize
 
             // pool blocks are service block so all service block signed by leader node
             pftNext.InitializeBlock(lastPft, sys.PosWallet.PrivateKey, AccountId: sys.PosWallet.AccountId);
+
+            bp.mainPendings[key] = pftNext.Hash;
             return pftNext;
         }
 
@@ -689,10 +694,10 @@ namespace Lyra.Core.Decentralize
             foreach (var target in targets)
             {
                 var key = $"sstk|{target.stk}";
-                if (bp.extraPendings.Any(a => a == key))
+                if (bp.extraPendings.Any(a => a.Key == key))
                     continue;
 
-                bp.extraPendings.Add(key);
+                bp.extraPendings.Add(key, "");
 
                 var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.stk);
                 if (stkSend != null)
@@ -704,14 +709,15 @@ namespace Lyra.Core.Decentralize
                     target, reqHash,
                     amount);
 
+                bp.extraPendings[key] = pftSend.Hash;
                 return pftSend;
             }
 
             var key2 = $"sown|{lastBlock.OwnerAccountId}";
-            if (bp.extraPendings.Any(a => a == key2))
+            if (bp.extraPendings.Any(a => a.Key == key2))
                 return null;
 
-            bp.extraPendings.Add(key2);
+            bp.extraPendings.Add(key2, "");
 
             // all remaining send to the owner
             if (sentBlocks.Any(a => a.DestinationAccountId == lastBlock.OwnerAccountId && a.StakingAccountId == null))
@@ -721,6 +727,8 @@ namespace Lyra.Core.Decentralize
             var lastTx = relatedTxs.Last() as TransactionBlock;
 
             var ownrSend = CreateBenefiting(lastTx, sb2, (null, lastBlock.OwnerAccountId, 1m), reqHash, lastTx.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
+
+            bp.extraPendings[key2] = ownrSend.Hash;
             return ownrSend;
         }
 
@@ -768,10 +776,10 @@ namespace Lyra.Core.Decentralize
         public static async Task<TransactionBlock> CNOCreateStakingAccountAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             var key = $"{send.Hash}";
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var pgen = blocks.FirstOrDefault(a => a is StakingGenesis);
@@ -811,17 +819,18 @@ namespace Lyra.Core.Decentralize
 
             // pool blocks are service block so all service block signed by leader node
             stkGenesis.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+
+            bp.mainPendings[key] = stkGenesis.Hash;
             return stkGenesis;
-            //await QueueTxActionBlockAsync(stkGenesis);
         }
 
         public static async Task<TransactionBlock> CNOAddStakingAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             var key = $"{send.Hash}";
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             if (block != null)
@@ -860,16 +869,18 @@ namespace Lyra.Core.Decentralize
 
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+
+            bp.mainPendings[key] = stkNext.Hash;
             return stkNext;
         }
 
         public static async Task<TransactionBlock> CNOUnStakeAsync(DagSystem sys, BrokerBlueprint bp, SendTransferBlock send)
         {
             var key = $"{send.Hash}";
-            if (bp.mainPendings.Any(a => a == key))
+            if (bp.mainPendings.Any(a => a.Key == key))
                 return null;
 
-            bp.mainPendings.Add(key);
+            bp.mainPendings.Add(key, "");
 
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is UnStakingBlock))
@@ -906,6 +917,8 @@ namespace Lyra.Core.Decentralize
 
             // pool blocks are service block so all service block signed by leader node
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+
+            bp.mainPendings[key] = stkNext.Hash;
             return stkNext;
         }
 

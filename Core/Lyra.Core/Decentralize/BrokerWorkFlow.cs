@@ -39,21 +39,23 @@ namespace Lyra.Core.Decentralize
         // pre step, pf recv
         public bool preDone { get; set; }
         public bool prePending { get; set; }
+        public string preHash { get; set; }
 
         // main step, broker operation, can be null
         public bool mainDone { get; set; }
-        public List<string> mainPendings { get; set; }      // has 
+        public Dictionary<string, string> mainPendings { get; set; }      // has 
 
         // extra step
         public bool extraDone { get; set; }
-        public List<string> extraPendings { get; set; }
+        public Dictionary<string, string> extraPendings { get; set; }
 
         public bool FullDone => preDone && mainDone && extraDone;
 
         public BrokerBlueprint()
         {
-            mainPendings = new List<string>();
-            extraPendings = new List<string>();
+            // key => hash. check the hash to make sure block exists.
+            mainPendings = new Dictionary<string, string>();
+            extraPendings = new Dictionary<string, string>();
         }
 
         public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit)
@@ -65,6 +67,10 @@ namespace Lyra.Core.Decentralize
             {
                 if(wf.pfrecv)
                 {
+                    // block pending consensus
+                    if (prePending && await sys.Storage.FindBlockByHashAsync(preHash) == null)
+                        return false;
+
                     var preBlock = await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, this, send);
                     if (preBlock == null)
                         preDone = true;
@@ -85,6 +91,14 @@ namespace Lyra.Core.Decentralize
             {
                 if(wf.brokerOps != null)
                 {
+                    // check pending blocks
+                    foreach(var kvp in mainPendings)
+                    {
+                        var blk = await sys.Storage.FindBlockByHashAsync(kvp.Value);
+                        if (blk == null)
+                            return false;
+                    }
+
                     var mainBlock = await wf.brokerOps(sys, this, send);
                     if (mainBlock == null)
                         mainDone = true;
@@ -106,6 +120,14 @@ namespace Lyra.Core.Decentralize
             {
                 if(wf.extraOps != null)
                 {
+                    // check pending blocks
+                    foreach (var kvp in extraPendings)
+                    {
+                        var blk = await sys.Storage.FindBlockByHashAsync(kvp.Value);
+                        if (blk == null)
+                            return false;
+                    }
+
                     var otherBlocks = await wf.extraOps(sys, this, svcReqHash);
                     if (otherBlocks == null)
                     {
