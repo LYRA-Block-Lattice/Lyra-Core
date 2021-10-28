@@ -680,24 +680,8 @@ namespace Lyra.Core.Decentralize
                 // no balance
                 return null;
             }
-            // so 
+            // be carefull a profiting account may have no stakers.
             var totalStakingAmount = stakers.Sum(a => a.amount);
-            var lastProfitingBlock = relatedTxs.Where(a => a is ProfitingBlock)
-                .OrderBy(a => a.TimeStamp)
-                .Last() as TransactionBlock;
-            var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
-
-            // create a dictionary to hold amounts to send
-            // staking account -> amount
-            var sendAmounts = new Dictionary<string, decimal>();
-            foreach (var target in targets)
-            {
-                var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
-                sendAmounts.Add(target.stk, amount);
-            }
-
-            //TransactionBlock lastPft = recv;
-            //long lastBalance = recv.Balances[LyraGlobal.OFFICIALTICKERCODE];
 
             var allSends = new List<TransactionBlock>();
             var sentBlocks = relatedTxs.Where(a => a is BenefitingBlock)
@@ -705,26 +689,43 @@ namespace Lyra.Core.Decentralize
                 .OrderBy(a => a.Height)
                 .ToList();
 
-            foreach (var target in targets)
+            if(totalStakingAmount > 0)
             {
-                var key = $"sstk|{target.stk}";
-                if (bp.extraPendings.Any(a => a.Key == key))
-                    continue;
+                var lastProfitingBlock = relatedTxs.Where(a => a is ProfitingBlock)
+                    .OrderBy(a => a.TimeStamp)
+                    .Last() as TransactionBlock;
+                var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
 
-                bp.extraPendings.Add(key, "");
+                // create a dictionary to hold amounts to send
+                // staking account -> amount
+                var sendAmounts = new Dictionary<string, decimal>();
+                foreach (var target in targets)
+                {
+                    var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
+                    sendAmounts.Add(target.stk, amount);
+                }
 
-                var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.stk);
-                if (stkSend != null)
-                    continue;
+                foreach (var target in targets)
+                {
+                    var key = $"sstk|{target.stk}";
+                    if (bp.extraPendings.Any(a => a.Key == key))
+                        continue;
 
-                var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
-                var sb = await sys.Storage.GetLastServiceBlockAsync();
-                var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
-                    target, reqHash,
-                    amount);
+                    bp.extraPendings.Add(key, "");
 
-                bp.extraPendings[key] = pftSend.Hash;
-                return pftSend;
+                    var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.stk);
+                    if (stkSend != null)
+                        continue;
+
+                    var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
+                    var sb = await sys.Storage.GetLastServiceBlockAsync();
+                    var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
+                        target, reqHash,
+                        amount);
+
+                    bp.extraPendings[key] = pftSend.Hash;
+                    return pftSend;
+                }
             }
 
             var key2 = $"sown|{lastBlock.OwnerAccountId}";

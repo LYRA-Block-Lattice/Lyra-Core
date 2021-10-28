@@ -211,6 +211,15 @@ namespace Lyra.Core.Decentralize
                         }
 
                         BrokerFactory.Persist(cs._sys.Storage);
+
+                        if(!cs._viewChangeHandler.IsViewChanging)
+                        {
+                            var bps = BrokerFactory.GetAllBlueprints();
+                            var lsp = await cs._sys.Storage.GetLastServiceBlockAsync();
+                            if (bps.Any(a => DateTime.UtcNow - a.start > TimeSpan.FromSeconds(60))
+                                && DateTime.UtcNow - lsp.TimeStamp > TimeSpan.FromSeconds(60))
+                                await cs.BeginChangeViewAsync("block monitor", ViewChangeReason.LeaderFailedProcessingDEX);
+                        }
                     }
 
 
@@ -260,6 +269,7 @@ namespace Lyra.Core.Decentralize
                 try
                 {
                     await cs._sys.PosWallet.SyncAsync(null);
+                    // open when all upgraded.
                     var pfts = await cs._sys.Storage.FindAllProfitingAccountForOwnerAsync(cs._sys.PosWallet.AccountId);
                     var pft = pfts.FirstOrDefault();
                     if (pft != null)
