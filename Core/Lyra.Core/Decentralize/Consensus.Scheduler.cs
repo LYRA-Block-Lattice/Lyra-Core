@@ -270,10 +270,10 @@ namespace Lyra.Core.Decentralize
                 {
                     await cs._sys.PosWallet.SyncAsync(null);
                     // open when all upgraded.
-                    var pfts = await cs._sys.Storage.FindAllProfitingAccountForOwnerAsync(cs._sys.PosWallet.AccountId);
-                    var pft = pfts.FirstOrDefault();
-                    if (pft != null)
-                        await cs._sys.PosWallet.CreateDividendsAsync(pft.AccountID);
+                    //var pfts = await cs._sys.Storage.FindAllProfitingAccountForOwnerAsync(cs._sys.PosWallet.AccountId);
+                    //var pft = pfts.FirstOrDefault();
+                    //if (pft != null)
+                    //    await cs._sys.PosWallet.CreateDividendsAsync(pft.AccountID);
                 }
                 catch (Exception e)
                 {
