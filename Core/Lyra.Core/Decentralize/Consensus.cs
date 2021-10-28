@@ -540,7 +540,7 @@ namespace Lyra.Core.Decentralize
                     foreach (var voter in _board.AllVoters)
                     {
                         var node = _board.ActiveNodes.FirstOrDefault(a => a.AccountID == voter);
-                        if(node != null)
+                        if(node != null && Signatures.VerifyAccountSignature(signAgainst, node.AccountID, node.AuthorizerSignature))
                             svcBlock.Authorizers.Add(node.AccountID, node.AuthorizerSignature);
                     }
 

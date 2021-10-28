@@ -59,17 +59,14 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidServiceBlockTotalFees;
 
                 var signAgainst = prevBlock?.Hash ?? ProtocolSettings.Default.StandbyValidators[0];
-                if (board.AllVoters.Count != block.Authorizers.Count)
-                    return APIResultCodes.InvalidAuthorizerCount;
 
-                foreach (var vtr in board.AllVoters)
+                foreach (var voter in board.AllVoters)
                 {
-                    if (!block.Authorizers.ContainsKey(vtr))
-                        return APIResultCodes.InvalidAuthorizerInServiceBlock;
-
-                    if (!Signatures.VerifyAccountSignature(signAgainst, vtr, block.Authorizers[vtr]))
+                    var node = board.ActiveNodes.FirstOrDefault(a => a.AccountID == voter);
+                    if (node != null && Signatures.VerifyAccountSignature(signAgainst, node.AccountID, node.AuthorizerSignature))
                     {
-                        return APIResultCodes.InvalidAuthorizerSignatureInServiceBlock;
+                        if (!block.Authorizers.ContainsKey(voter))
+                            return APIResultCodes.InvalidAuthorizerInServiceBlock;
                     }
                 }
             }
