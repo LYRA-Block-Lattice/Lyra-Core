@@ -38,39 +38,24 @@ namespace Lyra.Core.Decentralize
 
         // pre step, pf recv
         public bool preDone { get; set; }
-        public bool prePending { get; set; }
-        public string preHash { get; set; }
 
         // main step, broker operation, can be null
         public bool mainDone { get; set; }
-        public Dictionary<string, string> mainPendings { get; set; }      // has 
 
         // extra step
         public bool extraDone { get; set; }
-        public Dictionary<string, string> extraPendings { get; set; }
 
         public bool FullDone => preDone && mainDone && extraDone;
 
+        public DateTime LastBlockTime { get; private set; }
+
         public BrokerBlueprint()
         {
-            // key => hash. check the hash to make sure block exists.
-            mainPendings = new Dictionary<string, string>();
-            extraPendings = new Dictionary<string, string>();
+
         }
 
-        public void Reset()
+        public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit)
         {
-            prePending = false;
-            mainPendings.Clear();
-            extraPendings.Clear();
-        }
-
-        public async Task<bool> ExecuteAsync(DagSystem sys, bool IsLeader, Func<TransactionBlock, Task> submit)
-        {
-            if(!IsLeader)
-            {
-                Reset();
-            }
             // execute work flow
             var wf = BrokerFactory.WorkFlows[action];
             var send = await sys.Storage.FindBlockByHashAsync(svcReqHash) as SendTransferBlock;
@@ -78,15 +63,12 @@ namespace Lyra.Core.Decentralize
             {
                 if(wf.pfrecv)
                 {
-                    // block pending consensus
-                    if (prePending && await sys.Storage.FindBlockByHashAsync(preHash) == null)
-                        return false;
-
-                    var preBlock = await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, this, send);
+                    var preBlock = await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, send);
                     if (preBlock == null)
                         preDone = true;
                     else
                     {
+                        LastBlockTime = DateTime.UtcNow;
                         await submit(preBlock);
                         preDone = false;
                         Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
@@ -102,20 +84,13 @@ namespace Lyra.Core.Decentralize
             {
                 if(wf.brokerOps != null)
                 {
-                    // check pending blocks
-                    foreach(var kvp in mainPendings)
-                    {
-                        var blk = await sys.Storage.FindBlockByHashAsync(kvp.Value);
-                        if (blk == null)
-                            return false;
-                    }
-
-                    var mainBlock = await wf.brokerOps(sys, this, send);
+                    var mainBlock = await wf.brokerOps(sys, send);
                     if (mainBlock == null)
                         mainDone = true;
                     else
                     {
                         // send it
+                        LastBlockTime = DateTime.UtcNow;
                         await submit(mainBlock);
                         mainDone = false;
                         Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
@@ -131,15 +106,7 @@ namespace Lyra.Core.Decentralize
             {
                 if(wf.extraOps != null)
                 {
-                    // check pending blocks
-                    foreach (var kvp in extraPendings)
-                    {
-                        var blk = await sys.Storage.FindBlockByHashAsync(kvp.Value);
-                        if (blk == null)
-                            return false;
-                    }
-
-                    var otherBlocks = await wf.extraOps(sys, this, svcReqHash);
+                    var otherBlocks = await wf.extraOps(sys, svcReqHash);
                     if (otherBlocks == null)
                     {
                         extraDone = true;
@@ -147,6 +114,7 @@ namespace Lyra.Core.Decentralize
                     else
                     {
                         // foreach block send it
+                        LastBlockTime = DateTime.UtcNow;
                         await submit(otherBlocks);
                         Console.WriteLine($"WF: {send.Hash.Shorten()} {otherBlocks.BlockType}: extraDone: {false}");
                         extraDone = false;
@@ -163,7 +131,7 @@ namespace Lyra.Core.Decentralize
 
     public class BrokerFactory
     {
-        public static Dictionary<string, (bool pfrecv, Func<DagSystem, BrokerBlueprint, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, BrokerBlueprint, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
+        public static Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
 
         public static ConcurrentDictionary<string, BrokerBlueprint> Bps { get; set; }
         public void Init()
@@ -171,7 +139,7 @@ namespace Lyra.Core.Decentralize
             if (WorkFlows != null)
                 throw new InvalidOperationException("Already initialized.");
 
-            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, BrokerBlueprint, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, BrokerBlueprint, string, Task<TransactionBlock>> extraOps)>();
+            WorkFlows = new Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)>();
             Bps = new ConcurrentDictionary<string, BrokerBlueprint>();
 
             // liquidate pool

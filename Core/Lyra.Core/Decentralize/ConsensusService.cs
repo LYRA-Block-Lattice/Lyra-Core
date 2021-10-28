@@ -1695,7 +1695,7 @@ namespace Lyra.Core.Decentralize
                                 // hack for unit test
                                 if (_hostEnv == null)
                                 {                                    
-                                    success = await bp.ExecuteAsync(_sys, IsThisNodeLeader, (b) => OnNewBlock(b));
+                                    success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
                                     _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                                     if (success)
                                         BrokerFactory.RemoveBlueprint(bp.svcReqHash);
@@ -1704,9 +1704,14 @@ namespace Lyra.Core.Decentralize
                                 {
                                     _log.LogInformation($"Begin executing blueprints...");
                                     if (IsThisNodeLeader)
-                                        success = await bp.ExecuteAsync(_sys, IsThisNodeLeader, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                                    {
+                                        if (bp.LastBlockTime.AddSeconds(2) > DateTime.UtcNow)   // wait for consensus
+                                            success = false;
+                                        else
+                                            success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                                    }                                        
                                     else   // give normal nodes a chance to clear the queue
-                                        success = await bp.ExecuteAsync(_sys, IsThisNodeLeader, async (b) => await Task.CompletedTask);
+                                        success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
                                     _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
 
                                 }
@@ -1765,10 +1770,6 @@ namespace Lyra.Core.Decentralize
 
             if(!bp.FullDone)
             {
-                if(result != ConsensusResult.Yea)
-                {
-                    bp.Reset();     // restart, redo
-                }
                 _ = Task.Run(async () =>
                 {
                     // hack for unit test
@@ -1786,13 +1787,13 @@ namespace Lyra.Core.Decentralize
                             {
                                 if (_hostEnv == null)
                                 {
-                                    success = await bp.ExecuteAsync(_sys, IsThisNodeLeader, (b) => OnNewBlock(b));
+                                    success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
                                 }
                                 else
-                                    success = await bp.ExecuteAsync(_sys, IsThisNodeLeader, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                                    success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
                             }
                             else   // give normal nodes a chance to clear the queue
-                                success = await bp.ExecuteAsync(_sys, IsThisNodeLeader, async (b) => await Task.CompletedTask);
+                                success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
                             _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                             if (success)
                                 BrokerFactory.RemoveBlueprint(bp.svcReqHash);
