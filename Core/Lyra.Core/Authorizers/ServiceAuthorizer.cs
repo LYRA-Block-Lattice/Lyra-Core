@@ -69,6 +69,11 @@ namespace Lyra.Core.Authorizers
                             return APIResultCodes.InvalidAuthorizerInServiceBlock;
                     }
                 }
+
+                if(block.Authorizers.Keys.Any(a => !board.AllVoters.Contains(a)))
+                {
+                    return APIResultCodes.InvalidAuthorizerInServiceBlock;
+                }
             }
             else // svc gensis
             {
