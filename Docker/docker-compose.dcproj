@@ -16,6 +16,7 @@
     <None Include=".dockerignore" />
     <None Include="dbrestore.sh" />
     <None Include="init-mongo.sh" />
+    <None Include="node-create-pftid.txt" />
     <None Include="README.md" />
   </ItemGroup>
 </Project>

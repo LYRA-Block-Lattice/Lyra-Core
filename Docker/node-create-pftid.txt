@@ -1,0 +1,43 @@
+$ docker pull wizdy/lyra:latest
+$ docker run -it --env LYRA_NETWORK=testnet -v ~/.lyra:/root/.lyra wizdy/lyra:latest
+LYRA Block Lattice Command Line Client
+Version: 2.4.1.2
+
+Current networkd ID: testnet
+
+Open wallet or creat a new wallet. Name: [My Account] poswallet
+Please input the password to open wallet poswallet:
+Wallet opened.
+Try syncing wallet with Lyra blockchain...
+Wallet is synced.
+Last Service Block Received 4806
+Transfer Fee: 1.0
+Token Generation Fee: 10000.0
+Trade Fee: 0.1
+
+Type 'help' to see the list of available commands
+
+Network Id: testnet
+Account Id: L9vS4Ry5CMrEb3S6LHfBMZtPr4rUK7d5vzgfLpotqAvKJg5PZtQdZjPEQjDNTenjzrwU1ykzkF5omuexvK4jbFC5BD1o5A
+Current voting for Account Id:
+Number of Blocks: 29
+Balance:
+    650 LYR
+
+
+poswallet> profiting
+You have 0 accounts.
+Create a new profiting account? Y/n? y
+The Name of the profiting account: node1
+Percentage of revernue you want to share with voters (%): 100
+Number of seats for voters ( 0 - 100 ): 100
+Create new profiting account: node1
+Share ritio: 100 %
+Seats: 100
+
+Y/n? y
+Gratz! Your new profiting account is: LMtVaJPs5uqsoC2KoSiB8raNADPqRMPb3TsduxZJ3ZruavJvUGGu9adAVJzqU8NL7a5G5BWhsUL44txNjiZJsCCYS68Ntp
+
+poswallet> stop
+LYRA Block Lattice Client is shutting down
+$ echo "NODE_PFT_ID=LMtVaJPs5uqsoC2KoSiB8raNADPqRMPb3TsduxZJ3ZruavJvUGGu9adAVJzqU8NL7a5G5BWhsUL44txNjiZJsCCYS68Ntp" >> .env
