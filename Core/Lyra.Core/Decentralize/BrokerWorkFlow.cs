@@ -58,13 +58,18 @@ namespace Lyra.Core.Decentralize
             extraPendings = new Dictionary<string, string>();
         }
 
+        public void Reset()
+        {
+            prePending = false;
+            mainPendings.Clear();
+            extraPendings.Clear();
+        }
+
         public async Task<bool> ExecuteAsync(DagSystem sys, bool IsLeader, Func<TransactionBlock, Task> submit)
         {
             if(!IsLeader)
             {
-                prePending = false;
-                mainPendings.Clear();
-                extraPendings.Clear();
+                Reset();
             }
             // execute work flow
             var wf = BrokerFactory.WorkFlows[action];

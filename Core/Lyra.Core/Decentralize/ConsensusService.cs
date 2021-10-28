@@ -1629,21 +1629,21 @@ namespace Lyra.Core.Decentralize
                 _ = Task.Run(async () => { await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone); });
             }
 
-            if (result != ConsensusResult.Yea)
-                return;
-
             //if (block is SendTransferBlock send &&
             //    send.Tags != null &&
             //    send.Tags.ContainsKey(Block.REQSERVICETAG))
             if (block is SendTransferBlock send)
-                ProcessServerReqBlock(send);
+                ProcessServerReqBlock(send, result);
 
             if (block.Tags != null && block.Tags.ContainsKey(Block.MANAGEDTAG))
-                ProcessManagedBlock(block as TransactionBlock);
+                ProcessManagedBlock(block as TransactionBlock, result);
         }
 
-        public void ProcessServerReqBlock(SendTransferBlock send)
+        public void ProcessServerReqBlock(SendTransferBlock send, ConsensusResult? result)
         {
+            if (result != ConsensusResult.Yea)
+                return;
+
             string action = null;
             if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
                 action = send.Tags[Block.REQSERVICETAG];
@@ -1737,7 +1737,7 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        public void ProcessManagedBlock(TransactionBlock block)
+        public void ProcessManagedBlock(TransactionBlock block, ConsensusResult? result)
         {
             // find the key
             string key = null;
@@ -1765,6 +1765,10 @@ namespace Lyra.Core.Decentralize
 
             if(!bp.FullDone)
             {
+                if(result != ConsensusResult.Yea)
+                {
+                    bp.Reset();     // restart, redo
+                }
                 _ = Task.Run(async () =>
                 {
                     // hack for unit test
