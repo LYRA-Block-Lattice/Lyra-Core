@@ -183,7 +183,7 @@ namespace Lyra.Core.Decentralize
                         }
 
                         //if(!cs._activeConsensus.Any(a => a.Value.Status == ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging))
-                        //    await cs.ConsolidateBlocksAsync();
+                        await cs.ConsolidateBlocksAsync();
                     }
                 }
                 catch (Exception e)
