@@ -29,13 +29,13 @@ namespace Lyra.Data.Utils
         public LyraDatabaseConfig Database { get; }
         public LyraWalletConfig Wallet { get; }
         public NodeMode Mode { get; }
-        public string FeeAccountId { get; }
+        public string ProfitAccountID { get; }
 
         public LyraNodeConfig(IConfigurationSection section)
         {
             Database = new LyraDatabaseConfig(section.GetSection("Database"));
             Wallet = new LyraWalletConfig(section.GetSection("Wallet"));
-            FeeAccountId = section.GetSection("FeeAccountId").Value;
+            ProfitAccountID = section.GetSection("ProfitAccountID").Value;
             try
             {
                 Mode = (NodeMode)Enum.Parse(typeof(NodeMode), section.GetSection("Mode").Value, true);

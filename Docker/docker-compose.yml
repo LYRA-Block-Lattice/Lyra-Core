@@ -34,6 +34,7 @@ services:
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect: mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@mongo/${LYRA_DB_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name: ${LYRA_POS_WALLET_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password: ${LYRA_POS_WALLET_PASSWORD}
+      LYRA_ApplicationConfiguration__LyraNode__Lyra__ProfitAccountID: ${NODE_PFT_ID}
     ports:
       - ${LYRA_P2P_PORT}:${LYRA_P2P_PORT}
       - ${LYRA_API_PORT}:${LYRA_API_PORT}

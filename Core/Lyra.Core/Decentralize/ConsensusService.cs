@@ -978,7 +978,7 @@ namespace Lyra.Core.Decentralize
                 NodeVersion = LyraGlobal.NODE_VERSION.ToString(),
                 ThumbPrint = _hostEnv?.GetThumbPrint(),
                 IPAddress = $"{_myIpAddress}",
-                FeeAccountID = Settings.Default.LyraNode.Lyra.FeeAccountId
+                PftAccountID = Settings.Default.LyraNode.Lyra.ProfitAccountID
             };
 
             //_log.LogInformation($"Declare node up to network. my IP is {_myIpAddress}");
@@ -1002,7 +1002,7 @@ namespace Lyra.Core.Decentralize
             }
             else
                 _board.NodeAddresses.TryAdd(me.AccountID, me.IPAddress.ToString());
-            await OnNodeActiveAsync(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint, me.FeeAccountID);
+            await OnNodeActiveAsync(me.AccountID, me.AuthorizerSignature, _stateMachine.State, _myIpAddress.ToString(), me.ThumbPrint, me.PftAccountID);
 
             return _board.ActiveNodes.FirstOrDefault(a => a.AccountID == me.AccountID);
         }
@@ -1239,7 +1239,7 @@ namespace Lyra.Core.Decentralize
                 if (string.IsNullOrWhiteSpace(node.IPAddress))
                     return;
 
-                await OnNodeActiveAsync(node.AccountID, node.AuthorizerSignature, BlockChainState.Almighty, node.IPAddress, node.ThumbPrint, node.FeeAccountID);
+                await OnNodeActiveAsync(node.AccountID, node.AuthorizerSignature, BlockChainState.Almighty, node.IPAddress, node.ThumbPrint, node.PftAccountID);
             }
             catch (Exception ex)
             {

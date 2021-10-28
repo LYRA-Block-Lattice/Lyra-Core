@@ -29,4 +29,4 @@ COPY --from=publish /app/publish .
 # RUN echo "#!/bin/bash \n dotnet lyra.dll -n ${LYRA_NETWORK} -g ${LYRA_POS_WALLET_NAME} --password ${LYRA_POS_WALLET_PASSWORD}" > ./entrypoint.sh
 # RUN chmod +x ./entrypoint.sh
 # ENTRYPOINT ["./entrypoint.sh"]
-ENTRYPOINT ["/bin/sh", "-c", "dotnet lyra.dll -n ${LYRA_NETWORK} -g ${LYRA_POS_WALLET_NAME} --password ${LYRA_POS_WALLET_PASSWORD}"]
+ENTRYPOINT ["/bin/sh", "-c", "dotnet lyra.dll -n ${LYRA_NETWORK}"]
