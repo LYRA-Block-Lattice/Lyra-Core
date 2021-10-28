@@ -173,17 +173,17 @@ namespace Lyra.Core.Decentralize
                                 }
                                 else
                                 {
-                                    cs._log.LogWarning($"Block {worker.State.InputMsg.Block.Hash.Shorten()} {worker.State.InputMsg.Block.BlockType} {worker.State.InputMsg.Block.Height} failed. do view change...");
-                                    // consensus failed. change view and redo later
-                                    worker.Status = ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging;
+                                    //cs._log.LogWarning($"Block {worker.State.InputMsg.Block.Hash.Shorten()} {worker.State.InputMsg.Block.BlockType} {worker.State.InputMsg.Block.Height} failed. do view change...");
+                                    //// consensus failed. change view and redo later
+                                    //worker.Status = ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging;
 
-                                    await cs.BeginChangeViewAsync("block monitor", ViewChangeReason.ConsensusTimeout);
+                                    //await cs.BeginChangeViewAsync("block monitor", ViewChangeReason.ConsensusTimeout);
                                 }
                             }
                         }
 
-                        if(!cs._activeConsensus.Any(a => a.Value.Status == ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging))
-                            await cs.ConsolidateBlocksAsync();
+                        //if(!cs._activeConsensus.Any(a => a.Value.Status == ConsensusWorker.ConsensusWorkerStatus.WaitForViewChanging))
+                        //    await cs.ConsolidateBlocksAsync();
                     }
                 }
                 catch (Exception e)
