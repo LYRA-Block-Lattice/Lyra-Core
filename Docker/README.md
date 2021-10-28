@@ -86,7 +86,7 @@ cd Lyra-Core/Docker
 cp .env.mainnet-example .env
 vi .env
 
-# create a profiting account for node [Reference](node-create-pftid.txt)
+# create a profiting account for node
 docker pull wizdy/lyra:latest
 docker run -it --env LYRA_NETWORK=mainnet -v ~/.lyra:/root/.lyra wizdy/lyra:latest
 # then use the "profinting" command in cli to create a new profint account
@@ -193,3 +193,7 @@ docker-compose --env-file .env up -d
 ~/Lyra-Core/Core/Lyra.Node2/Dockerfile
 ~/Lyra-Core/Client/Lyra.Client.CLI/Dockfile
 ```
+
+# Reference
+
+[Create a profiting account for node](node-create-pftid.txt)
