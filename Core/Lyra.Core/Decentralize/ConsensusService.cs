@@ -1557,8 +1557,6 @@ namespace Lyra.Core.Decentralize
             if (!localIsGood)
             {
                 LocalConsolidationFailed(block.Hash);
-
-                return;
             }
 
             if (block is ServiceBlock serviceBlock)
