@@ -272,7 +272,7 @@ namespace Lyra.Core.Decentralize
                     // open when all upgraded.
                     var pfts = await cs._sys.Storage.FindAllProfitingAccountForOwnerAsync(cs._sys.PosWallet.AccountId);
                     var pft = pfts.FirstOrDefault();
-                    if (pft != null)
+                    if (pft != null && pft.AccountID.StartsWith("LRJtGk"))      // debug only
                         await cs._sys.PosWallet.CreateDividendsAsync(pft.AccountID);
                 }
                 catch (Exception e)
