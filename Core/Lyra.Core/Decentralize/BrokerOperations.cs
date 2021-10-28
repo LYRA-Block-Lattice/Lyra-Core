@@ -525,7 +525,7 @@ namespace Lyra.Core.Decentralize
 
             var feesEndSb = await sys.Storage.FindServiceBlockByIndexAsync(usf.ServiceBlockEndHeight);
 
-            ProfitingBlock latestBlock = await sys.Storage.FindLatestBlockAsync(pft.AccountID) as ProfitingBlock;
+            TransactionBlock latestBlock = await sys.Storage.FindLatestBlockAsync(pft.AccountID) as TransactionBlock;
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var receiveBlock = new ReceiveNodeProfitBlock
             {
