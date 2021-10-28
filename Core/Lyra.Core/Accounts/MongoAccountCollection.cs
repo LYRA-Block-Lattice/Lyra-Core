@@ -41,9 +41,11 @@ namespace Lyra.Core.Accounts
         readonly ILogger _log;
 
         public string Cluster { get; set; }
+        private string _networkId;
 
         public MongoAccountCollection(string connStr, string dbName)
         {
+            _networkId = LyraNodeConfig.GetNetworkId();
             _Client = new MongoClient(connStr);
             _DatabaseName = dbName;
             _blocksCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blocks";
@@ -854,6 +856,13 @@ namespace Lyra.Core.Accounts
             // !!! TO DO - take care of fees for imported accounts!!!!
             // get the latest feeblock
             // get all new service since the latest feeblock
+            long startHeight = 1;
+
+            if (_networkId == "testnet")
+                startHeight = 4800;
+            else if (_networkId == "mainnet")
+                startHeight = 8888;
+
             var options = new FindOptions<ReceiveNodeProfitBlock, ReceiveNodeProfitBlock>
             {
                 Limit = 1,
@@ -872,7 +881,13 @@ namespace Lyra.Core.Accounts
                 fromHeight = latestFb.ServiceBlockEndHeight + 1;
             }
 
+            if (fromHeight < startHeight)
+                fromHeight = startHeight;
+
             var endHeight = (await GetLastServiceBlockAsync()).Height;
+
+            if (endHeight < fromHeight)
+                return null;
 
             return await FindUnsettledFeesAsync(AuthorizerAccountId, pftid, fromHeight, endHeight);
         }
