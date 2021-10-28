@@ -38,7 +38,7 @@ namespace Lyra.Core.Authorizers
             var lastSb = await sys.Storage.GetLastServiceBlockAsync();
             var feesEndSb = await sys.Storage.FindServiceBlockByIndexAsync(unSetFees.ServiceBlockEndHeight);
 
-            ProfitingBlock lastBlock = await sys.Storage.FindLatestBlockAsync(block.AccountID) as ProfitingBlock;
+            TransactionBlock lastBlock = await sys.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
 
             var oldBalance = lastBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ?
                 lastBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] : 0;
