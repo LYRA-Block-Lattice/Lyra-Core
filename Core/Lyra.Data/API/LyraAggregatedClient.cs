@@ -14,7 +14,7 @@ namespace Lyra.Data.API
     public class LyraAggregatedClient : ILyraAPI
     {
         private readonly string _networkId;
-        private readonly bool _seedsOnly;
+        private bool _seedsOnly;
 
         private List<LyraRestClient> _primaryClients;
 
@@ -144,6 +144,7 @@ namespace Lyra.Data.API
 
         public void ReBase(bool toSeedOnly)
         {
+            _seedsOnly = toSeedOnly;
             if (toSeedOnly)
                 _baseIndex = _baseIndex++ % 4;
             else
@@ -177,7 +178,7 @@ namespace Lyra.Data.API
         public async Task<T> CheckResultAsync<T>(string name, List<Task<T>> tasks) where T: APIResult, new()
         {
             var expectedCount = LyraGlobal.GetMajority(tasks.Count);
-            if (tasks.Count == 4)    // seed stage
+            if (_seedsOnly)    // seed stage
                 expectedCount = 2;
 
             ISet<Task<T>> activeTasks = new HashSet<Task<T>>(tasks);
