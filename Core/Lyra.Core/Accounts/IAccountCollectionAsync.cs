@@ -114,5 +114,6 @@ namespace Lyra.Core.Accounts
         Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId);
         Task<List<StakingGenesis>> FindAllStakingAccountForOwnerAsync(string ownerAccountId);
         Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end);
+        Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end);
     }
 }

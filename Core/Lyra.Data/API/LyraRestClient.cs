@@ -632,6 +632,17 @@ namespace Lyra.Core.API
             return await GetAsync<ProfitingStats>("GetAccountStats", args);
         }
 
+        public async Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "pftid", pftid },
+                { "stkid", stkid },
+                { "timeBeginTicks", begin.Ticks.ToString() },
+                { "timeEndTicks", end.Ticks.ToString() }
+            };
 
+            return await GetAsync<ProfitingStats>("GetAccountStats", args);
+        }
     }
 }

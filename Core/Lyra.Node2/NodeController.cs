@@ -591,6 +591,16 @@ namespace LyraLexWeb2
                 new DateTime(timeEndTicks, DateTimeKind.Utc));
         }
 
+        [Route("GetBenefitStats")]
+        [HttpGet]
+        public async Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, long timeBeginTicks, long timeEndTicks)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetBenefitStatsAsync(pftid, stkid, new DateTime(timeBeginTicks, DateTimeKind.Utc),
+                new DateTime(timeEndTicks, DateTimeKind.Utc));
+        }
+
+        
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

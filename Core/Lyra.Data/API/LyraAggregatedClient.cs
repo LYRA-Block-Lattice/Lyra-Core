@@ -547,5 +547,10 @@ namespace Lyra.Data.API
         {
             throw new NotImplementedException();
         }
+
+        public Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

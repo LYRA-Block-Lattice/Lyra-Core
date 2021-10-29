@@ -225,6 +225,7 @@ namespace Lyra.Core.Accounts
                     await CreateIndexes(_blocks, "Token0", false);
                     await CreateIndexes(_blocks, "Token1", false);
                     await CreateIndexes(_blocks, "RelatedTx", false);
+                    await CreateIndexes(_blocks, "StakingAccountId", false);
 
                     // account changes
                     await CreateIndexes(_accountChanges, "AccountID", false);
@@ -1701,35 +1702,6 @@ namespace Lyra.Core.Accounts
             return finds == null ? 0 : finds.Height;
         }
 
-        public async Task<ProfitingStats> GetProfitingStatsAsync(string pftid, DateTime begin, DateTime end)
-        {
-            var pft = await FindFirstBlockAsync(pftid) as ProfitingGenesis;
-            if (pft == null)
-                return null;
-
-            var filter = Builders<AccountChange>.Filter;
-            var filterDefination = filter.And(
-                filter.Eq("AccountID", pftid),
-                filter.Gte("Time", begin),
-                filter.Lte("Time", end),
-                filter.Gt("LyrChg", 0)
-                );
-
-            var finds = await _accountChanges
-                .Find(filterDefination)
-                .ToListAsync();
-
-            var total = finds.Sum(a => a.LyrChg);
-            var stats = new ProfitingStats
-            {
-                ProfitingID = pft.AccountID,
-                Begin = begin,
-                End = end,
-                Total = total
-            };
-            return stats;
-        }
-
         public async Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end)
         {
             var stk = await FindFirstBlockAsync(accountId);
@@ -1757,6 +1729,36 @@ namespace Lyra.Core.Accounts
                 Total = total
             };
             return stats;
+        }
+
+        public async Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end)
+        {
+            var pft = await FindFirstBlockAsync(pftid);
+            if (pft == null)
+                return null;
+
+            var stk = await FindFirstBlockAsync(stkid);
+            if (stk == null)
+                return null;
+
+            var bnfts = _blocks.AsQueryable()
+                .Where(a => a is BenefitingBlock)
+                .Cast<BenefitingBlock>()
+                .Where(a => a.AccountID == pftid && a.StakingAccountId == stkid
+                        && a.TimeStamp > begin && a.TimeStamp < end);
+
+            var query = from b in bnfts
+                        join c in _accountChanges.AsQueryable()
+                            on b.Hash equals c.TxHash
+                        select c.LyrChg;
+
+            return new ProfitingStats
+            {
+                ProfitingID = stkid,
+                Begin = begin,
+                End = end,
+                Total = query.Sum()
+            };
         }
 
         // StakingAccountId -> UserAccountId
