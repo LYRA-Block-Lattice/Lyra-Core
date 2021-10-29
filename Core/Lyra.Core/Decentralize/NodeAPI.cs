@@ -1078,5 +1078,10 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        public List<(string stk, string user, decimal amount)> FindAllStakings(string pftid, DateTime timeBefore)
+        {
+            return NodeService.Dag.Storage.FindAllStakings(pftid, timeBefore);
+        }
     }
 }

@@ -573,6 +573,15 @@ namespace LyraLexWeb2
             if (!CheckServiceStatus()) return null;
             return await _node.GetAllBrokerAccountsForOwnerAsync(ownerAccount);
         }
+
+        [Route("FindAllStakings")]
+        [HttpGet]
+        public List<(string stk, string user, decimal amount)> FindAllStakings(string pftid, long timeBeforeTicks)
+        {
+            if (!CheckServiceStatus()) return null;
+            return _node.FindAllStakings(pftid, new DateTime(timeBeforeTicks, DateTimeKind.Utc));
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 
