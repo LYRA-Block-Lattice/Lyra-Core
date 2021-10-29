@@ -1083,5 +1083,10 @@ namespace Lyra.Core.Decentralize
         {
             return NodeService.Dag.Storage.FindAllStakings(pftid, timeBefore);
         }
+
+        public Task<ProfitingStats> GetProfitingStatsAsync(string pftid, DateTime begin, DateTime end)
+        {
+            return NodeService.Dag.Storage.GetProfitingStatsAsync(pftid, begin, end);
+        }
     }
 }

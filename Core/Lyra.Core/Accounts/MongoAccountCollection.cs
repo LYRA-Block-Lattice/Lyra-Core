@@ -1702,30 +1702,29 @@ namespace Lyra.Core.Accounts
 
         public async Task<ProfitingStats> GetProfitingStatsAsync(string pftid, DateTime begin, DateTime end)
         {
-            // unable to get stats from current blockchain.
-            // use an idle thread to create stats.
-            
-            
             var pft = await FindFirstBlockAsync(pftid) as ProfitingGenesis;
             if (pft == null)
                 return null;
 
-            var filter = Builders<BenefitingBlock>.Filter;
+            var filter = Builders<AccountChange>.Filter;
             var filterDefination = filter.And(
                 filter.Eq("AccountID", pftid),
-                filter.Gte("TimeStamp", begin),
-                filter.Lte("TimeStamp", end));
+                filter.Gte("Time", begin),
+                filter.Lte("Time", end),
+                filter.Gt("LyrChg", 0)
+                );
 
-            var finds = await _blocks.OfType<BenefitingBlock>()
+            var finds = await _accountChanges
                 .Find(filterDefination)
                 .ToListAsync();
 
-            //var total = finds.Sum(a => a.)
+            var total = finds.Sum(a => a.LyrChg);
             var stats = new ProfitingStats
             {
                 ProfitingID = pft.AccountID,
                 Begin = begin,
-                End = end
+                End = end,
+                Total = total
             };
             return stats;
         }

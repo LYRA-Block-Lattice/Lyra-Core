@@ -86,6 +86,7 @@ namespace Lyra.Core.API
 
         Task<MultiBlockAPIResult> GetAllBrokerAccountsForOwnerAsync(string ownerAccount);
         List<Staker> FindAllStakings(string pftid, DateTime timeBefore);
+        Task<ProfitingStats> GetProfitingStatsAsync(string pftid, DateTime begin, DateTime end);
     }
 
     public interface INodeTransactionAPI

@@ -34,8 +34,7 @@ namespace Lyra.Data.API
         public string ProfitingID { get; set; }
         public DateTime Begin { get; set; }
         public DateTime End { get; set; }
-        public decimal TotalToStaking { get; set; }
-        public decimal TotalToOwner { get; set; }
+        public decimal Total { get; set; }
     }
 
     public class AccountChange
