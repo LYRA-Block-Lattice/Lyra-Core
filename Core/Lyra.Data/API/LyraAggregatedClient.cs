@@ -538,7 +538,7 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        public List<(string stk, string user, decimal amount)> FindAllStakings(string pftid, DateTime timeBefore)
+        public List<Staker> FindAllStakings(string pftid, DateTime timeBefore)
         {
             throw new NotImplementedException();
         }

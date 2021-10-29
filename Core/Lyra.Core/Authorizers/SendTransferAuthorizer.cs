@@ -296,7 +296,7 @@ namespace Lyra.Core.Authorizers
                         return APIResultCodes.InvalidAccountId;
 
                     var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
-                    if (!stkrs.Any(a => a.user == block.AccountID) && pft.OwnerAccountId != block.AccountID)
+                    if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
                         return APIResultCodes.RequestNotPermited;
 
                     // no concurency

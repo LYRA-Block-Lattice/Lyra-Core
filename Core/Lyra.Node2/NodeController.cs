@@ -576,7 +576,7 @@ namespace LyraLexWeb2
 
         [Route("FindAllStakings")]
         [HttpGet]
-        public List<(string stk, string user, decimal amount)> FindAllStakings(string pftid, long timeBeforeTicks)
+        public List<Staker> FindAllStakings(string pftid, long timeBeforeTicks)
         {
             if (!CheckServiceStatus()) return null;
             return _node.FindAllStakings(pftid, new DateTime(timeBeforeTicks, DateTimeKind.Utc));

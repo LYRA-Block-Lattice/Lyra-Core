@@ -18,6 +18,14 @@ namespace Lyra.Data.API
         public string VoteFor { get; set; }
 
         public Decimal LYR => Balance2.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? Balance2[LyraGlobal.OFFICIALTICKERCODE] : 0;
+    }
 
+    public class Staker
+    {
+        public string StkAccount { get; set; }
+        public string OwnerAccount { get; set; }
+        public DateTime Time { get; set; }
+        public int Days { get; set; }
+        public decimal Amount { get; set; }
     }
 }

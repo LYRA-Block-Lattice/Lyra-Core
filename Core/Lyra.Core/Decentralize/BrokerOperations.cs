@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Shared;
@@ -612,7 +613,7 @@ namespace Lyra.Core.Decentralize
                 return null;
             }
             // be carefull a profiting account may have no stakers.
-            var totalStakingAmount = stakers.Sum(a => a.amount);
+            var totalStakingAmount = stakers.Sum(a => a.Amount);
 
             var allSends = new List<TransactionBlock>();
             var sentBlocks = relatedTxs.Where(a => a is BenefitingBlock)
@@ -632,17 +633,17 @@ namespace Lyra.Core.Decentralize
                 var sendAmounts = new Dictionary<string, decimal>();
                 foreach (var target in targets)
                 {
-                    var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
-                    sendAmounts.Add(target.stk, amount);
+                    var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
+                    sendAmounts.Add(target.StkAccount, amount);
                 }
 
                 foreach (var target in targets)
                 {
-                    var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.stk);
+                    var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.StkAccount);
                     if (stkSend != null)
                         continue;
 
-                    var amount = Math.Round(profitToDistribute * (target.amount / totalStakingAmount), 8);
+                    var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
                     var sb = await sys.Storage.GetLastServiceBlockAsync();
                     var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
                         target, reqHash,
@@ -659,13 +660,13 @@ namespace Lyra.Core.Decentralize
             var sb2 = await sys.Storage.GetLastServiceBlockAsync();
             var lastTx = relatedTxs.Last() as TransactionBlock;
 
-            var ownrSend = CreateBenefiting(lastTx, sb2, (null, lastBlock.OwnerAccountId, 1m), reqHash, lastTx.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
+            var ownrSend = CreateBenefiting(lastTx, sb2, new Staker { OwnerAccount = lastBlock.OwnerAccountId }, reqHash, lastTx.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
 
             return ownrSend;
         }
 
         private static BenefitingBlock CreateBenefiting(TransactionBlock lastPft, ServiceBlock sb,
-            (string stk, string user, decimal amount) target, string relatedTx,
+            Staker target, string relatedTx,
             decimal amount
             )
         {
@@ -681,19 +682,19 @@ namespace Lyra.Core.Decentralize
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                DestinationAccountId = target.user,
+                DestinationAccountId = target.OwnerAccount,
 
                 // profit specified config
                 PType = ((IProfiting)lastPft).PType,
                 ShareRito = ((IProfiting)lastPft).ShareRito,
                 Seats = ((IProfiting)lastPft).Seats,
                 RelatedTx = relatedTx,
-                StakingAccountId = target.stk
+                StakingAccountId = target.StkAccount
             };
 
             //TODO: think about multiple token
 
-            Console.WriteLine($"Send {target.user.Shorten()} Index {pftSend.Height} who is staking {target.amount} amount {amount}");
+            Console.WriteLine($"Send {target.OwnerAccount.Shorten()} Index {pftSend.Height} who is staking {target.Amount} amount {amount}");
             var lastBalance = lastPft.Balances[LyraGlobal.OFFICIALTICKERCODE];
             lastBalance -= amount.ToBalanceLong();
             pftSend.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastBalance);

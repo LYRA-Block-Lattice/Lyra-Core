@@ -604,7 +604,7 @@ namespace Lyra.Core.API
             return await GetAsync<MultiBlockAPIResult>("GetAllBrokerAccountsForOwner", args);
         }
 
-        public async Task<List<(string stk, string user, decimal amount)>> FindAllStakingsAsync(string pftid, DateTime timeBefore)
+        public async Task<List<Staker>> FindAllStakingsAsync(string pftid, DateTime timeBefore)
         {
             var args = new Dictionary<string, string>
             {
@@ -612,10 +612,10 @@ namespace Lyra.Core.API
                 { "timeBeforeTicks", timeBefore.Ticks.ToString() }
             };
 
-            return await GetAsync<List<(string stk, string user, decimal amount)>>("FindAllStakings", args);
+            return await GetAsync<List<Staker>>("FindAllStakings", args);
         }
 
-        List<(string stk, string user, decimal amount)> INodeAPI.FindAllStakings(string pftid, DateTime timeBefore)
+        List<Staker> INodeAPI.FindAllStakings(string pftid, DateTime timeBefore)
         {
             throw new NotImplementedException();
         }

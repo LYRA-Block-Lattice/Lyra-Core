@@ -1576,7 +1576,7 @@ namespace Lyra.Core.Accounts
         }
 
         // StakingAccountId -> UserAccountId
-        public List<(string stk, string user, decimal amount)> FindAllStakings(string pftid, DateTime timeBefore)
+        public List<Staker> FindAllStakings(string pftid, DateTime timeBefore)
         {
             // TODO: add time support
             var importedAccounts = FindAllImportedAccountID();
@@ -1603,7 +1603,14 @@ namespace Lyra.Core.Accounts
                 .Where(a => timeBefore - a.Time < TimeSpan.FromDays(a.Days))
                 .OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
                 .ThenBy(x => x.AccountId)
-                .Select(a => (a.AccountId, a.Owner, a.Balance2[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal()))
+                .Select(a => new Staker
+                {
+                    StkAccount = a.AccountId,
+                    OwnerAccount = a.Owner,
+                    Amount = a.Balance2[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal(),
+                    Time = a.Time,
+                    Days = a.Days
+                })
                 .ToList();
         }
 

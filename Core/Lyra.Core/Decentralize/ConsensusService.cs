@@ -1940,7 +1940,7 @@ namespace Lyra.Core.Decentralize
                     if (node.ProfitingAccountId != null)
                     {
                         var stks = _sys.Storage.FindAllStakings(node.ProfitingAccountId, DateTime.UtcNow);
-                        node.Votes += stks.Sum(a => a.amount);
+                        node.Votes += stks.Sum(a => a.Amount);
                     }
                 }
             }
