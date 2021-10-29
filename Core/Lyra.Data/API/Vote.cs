@@ -28,4 +28,13 @@ namespace Lyra.Data.API
         public int Days { get; set; }
         public decimal Amount { get; set; }
     }
+
+    public class ProfitingStats
+    {
+        public string ProfitingID { get; set; }
+        public DateTime Begin { get; set; }
+        public DateTime End { get; set; }
+        public decimal TotalToStaking { get; set; }
+        public decimal TotalToOwner { get; set; }
+    }
 }

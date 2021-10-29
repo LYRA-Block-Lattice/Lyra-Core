@@ -1575,6 +1575,32 @@ namespace Lyra.Core.Accounts
             return finds == null ? 0 : finds.Height;
         }
 
+        public async Task<ProfitingStats> GetProfitingStatsAsync(string pftid, DateTime begin, DateTime end)
+        {
+            var pft = await FindFirstBlockAsync(pftid) as ProfitingGenesis;
+            if (pft == null)
+                return null;
+
+            var filter = Builders<BenefitingBlock>.Filter;
+            var filterDefination = filter.And(
+                filter.Eq("AccountID", pftid),
+                filter.Gte("TimeStamp", begin),
+                filter.Lte("TimeStamp", end));
+
+            var finds = await _blocks.OfType<BenefitingBlock>()
+                .Find(filterDefination)
+                .ToListAsync();
+
+            //var total = finds.Sum(a => a.)
+            var stats = new ProfitingStats
+            {
+                ProfitingID = pft.AccountID,
+                Begin = begin,
+                End = end
+            };
+            return stats;
+        }
+
         // StakingAccountId -> UserAccountId
         public List<Staker> FindAllStakings(string pftid, DateTime timeBefore)
         {
