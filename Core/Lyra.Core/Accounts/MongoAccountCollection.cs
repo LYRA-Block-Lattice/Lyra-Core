@@ -1730,6 +1730,35 @@ namespace Lyra.Core.Accounts
             return stats;
         }
 
+        public async Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end)
+        {
+            var stk = await FindFirstBlockAsync(accountId);
+            if (stk == null)
+                return null;
+
+            var filter = Builders<AccountChange>.Filter;
+            var filterDefination = filter.And(
+                filter.Eq("AccountID", accountId),
+                filter.Gte("Time", begin),
+                filter.Lte("Time", end),
+                filter.Gt("LyrChg", 0)
+                );
+
+            var finds = await _accountChanges
+                .Find(filterDefination)
+                .ToListAsync();
+
+            var total = finds.Sum(a => a.LyrChg);
+            var stats = new ProfitingStats
+            {
+                ProfitingID = accountId,
+                Begin = begin,
+                End = end,
+                Total = total
+            };
+            return stats;
+        }
+
         // StakingAccountId -> UserAccountId
         public List<Staker> FindAllStakings(string pftid, DateTime timeBefore)
         {

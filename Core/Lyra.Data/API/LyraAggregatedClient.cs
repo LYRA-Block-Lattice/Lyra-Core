@@ -543,7 +543,7 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        Task<ProfitingStats> INodeAPI.GetProfitingStatsAsync(string pftid, DateTime begin, DateTime end)
+        Task<ProfitingStats> INodeAPI.GetAccountStatsAsync(string accountId, DateTime begin, DateTime end)
         {
             throw new NotImplementedException();
         }

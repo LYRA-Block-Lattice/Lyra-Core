@@ -582,12 +582,12 @@ namespace LyraLexWeb2
             return _node.FindAllStakings(pftid, new DateTime(timeBeforeTicks, DateTimeKind.Utc));
         }
 
-        [Route("GetProfitingStats")]
+        [Route("GetAccountStats")]
         [HttpGet]
-        public async Task<ProfitingStats> GetProfitingStatsAsync(string pftid, long timeBeginTicks, long timeEndTicks)
+        public async Task<ProfitingStats> GetAccountStatsAsync(string accountId, long timeBeginTicks, long timeEndTicks)
         {
             if (!CheckServiceStatus()) return null;
-            return await _node.GetProfitingStatsAsync(pftid, new DateTime(timeBeginTicks, DateTimeKind.Utc),
+            return await _node.GetAccountStatsAsync(accountId, new DateTime(timeBeginTicks, DateTimeKind.Utc),
                 new DateTime(timeEndTicks, DateTimeKind.Utc));
         }
 

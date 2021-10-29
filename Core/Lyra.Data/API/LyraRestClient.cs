@@ -620,16 +620,16 @@ namespace Lyra.Core.API
             throw new NotImplementedException();
         }
 
-        public async Task<ProfitingStats> GetProfitingStatsAsync(string pftid, DateTime begin, DateTime end)
+        public async Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end)
         {
             var args = new Dictionary<string, string>
             {
-                { "pftid", pftid },
+                { "accountId", accountId },
                 { "timeBeginTicks", begin.Ticks.ToString() },
                 { "timeEndTicks", end.Ticks.ToString() }
             };
 
-            return await GetAsync<ProfitingStats>("GetProfitingStats", args);
+            return await GetAsync<ProfitingStats>("GetAccountStats", args);
         }
 
 

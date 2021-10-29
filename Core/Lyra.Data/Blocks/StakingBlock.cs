@@ -30,6 +30,14 @@ namespace Lyra.Core.Blocks
             return BlockTypes.Staking;
         }
 
+        public decimal GetAmount()
+        {
+            if (Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                return Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+            else
+                return 0;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
