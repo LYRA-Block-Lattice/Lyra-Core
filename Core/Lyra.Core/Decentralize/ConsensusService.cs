@@ -550,15 +550,9 @@ namespace Lyra.Core.Decentralize
                                     }
                                     else if (result.ResultCode == APIResultCodes.APIRouteFailed)
                                     {
-                                        // if seed, sync to the highest seed.
-                                        //if(IsThisNodeSeed)
-                                        //{
                                         client.ReBase(true);
+                                        await client.InitAsync();
                                         break;
-                                        //}
-
-                                        //await client.InitAsync();
-                                        //continue;
                                     }
                                     else if (result.ResultCode != APIResultCodes.ServiceBlockNotFound)
                                     {
