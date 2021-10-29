@@ -210,6 +210,16 @@ namespace Lyra.Core.Decentralize
                             cs.ExecuteBlueprints();
                         }
 
+
+                        foreach (var x in blueprints.ToArray())
+                        {
+                            if (x.start.AddMinutes(10) < DateTime.UtcNow)    // expire failed tasks
+                            {
+                                cs._log.LogError($"blueprint failed: {x.svcReqHash}");
+                                blueprints.Remove(blueprints.First(a => a.svcReqHash == x.svcReqHash));
+                            }
+                        }
+
                         BrokerFactory.Persist(cs._sys.Storage);
 
                         if(!cs._viewChangeHandler.IsViewChanging)

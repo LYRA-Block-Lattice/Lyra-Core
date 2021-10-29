@@ -206,9 +206,6 @@ namespace Lyra.Core.Decentralize
             var bps = stor.GetAllBlueprints();
             foreach (var bp in bps)
                 stor.RemoveBlueprint(bp.svcReqHash);
-
-            foreach (var x in Bps.Values)
-                stor.CreateBlueprint(x);
         }
     }
 }
