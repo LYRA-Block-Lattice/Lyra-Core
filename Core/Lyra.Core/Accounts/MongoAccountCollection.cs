@@ -1743,8 +1743,8 @@ namespace Lyra.Core.Accounts
 
             var bnfts = _blocks.AsQueryable()
                 .Where(a => a is BenefitingBlock)
-                .Cast<BenefitingBlock>()
-                .Where(a => a.AccountID == pftid && a.StakingAccountId == stkid
+                //.Cast<BenefitingBlock>()
+                .Where(a => (a as BenefitingBlock).AccountID == pftid && (a as BenefitingBlock).StakingAccountId == stkid
                         && a.TimeStamp > begin && a.TimeStamp < end);
 
             var query = from b in bnfts
@@ -1752,12 +1752,14 @@ namespace Lyra.Core.Accounts
                             on b.Hash equals c.TxHash
                         select c.LyrChg;
 
+            var queryy = query.ToList();
+
             return new ProfitingStats
             {
                 ProfitingID = stkid,
                 Begin = begin,
                 End = end,
-                Total = query.Sum()
+                Total = -1 * queryy.Sum()
             };
         }
 
