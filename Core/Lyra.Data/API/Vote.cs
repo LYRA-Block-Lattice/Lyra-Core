@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -37,6 +38,7 @@ namespace Lyra.Data.API
         public decimal Total { get; set; }
     }
 
+    [BsonIgnoreExtraElements]
     public class AccountChange
     {
         public DateTime Time { get; set; }
