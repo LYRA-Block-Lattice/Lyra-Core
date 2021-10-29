@@ -31,9 +31,11 @@ namespace Lyra.Core.Accounts
 
         private IMongoCollection<Block> _blocks;
         private IMongoCollection<BrokerBlueprint> _blueprints;
+        private IMongoCollection<AccountChange> _accountChanges;
 
         readonly string _blocksCollectionName;
         readonly string _blueprintCollectionName;
+        readonly string _accountChangesCollectionName;
 
         IMongoDatabase _db;
 
@@ -50,6 +52,7 @@ namespace Lyra.Core.Accounts
             _DatabaseName = dbName;
             _blocksCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blocks";
             _blueprintCollectionName = $"{LyraNodeConfig.GetNetworkId()}_blueprints";
+            _accountChangesCollectionName = $"{LyraNodeConfig.GetNetworkId()}_acctchgs";
 
             // hack
             if (LyraNodeConfig.GetNetworkId() == "xtest")// || LyraNodeConfig.GetNetworkId() == "devnet")
@@ -66,6 +69,8 @@ namespace Lyra.Core.Accounts
                     db.DropCollection(_blocksCollectionName);
                 if (db.ListCollectionNames().ToList().Contains(_blueprintCollectionName))
                     db.DropCollection(_blueprintCollectionName);
+                if (db.ListCollectionNames().ToList().Contains(_accountChangesCollectionName))
+                    db.DropCollection(_accountChangesCollectionName);
             }
             _log = new SimpleLogger("Mongo").Logger;
 
@@ -78,6 +83,12 @@ namespace Lyra.Core.Accounts
             });
 
             BsonClassMap.RegisterClassMap<BrokerBlueprint>(cm =>
+            {
+                cm.AutoMap();
+                cm.SetIsRootClass(false);
+            });
+
+            BsonClassMap.RegisterClassMap<AccountChange>(cm =>
             {
                 cm.AutoMap();
                 cm.SetIsRootClass(false);
@@ -119,6 +130,7 @@ namespace Lyra.Core.Accounts
 
             _blocks = GetDatabase().GetCollection<Block>(_blocksCollectionName);
             _blueprints = GetDatabase().GetCollection<BrokerBlueprint>(_blueprintCollectionName);
+            _accountChanges = GetDatabase().GetCollection<AccountChange>(_accountChangesCollectionName);
 
             Cluster = GetDatabase().Client.Cluster.ToString();
 
@@ -142,15 +154,15 @@ namespace Lyra.Core.Accounts
             //    //}
             //}
 
-            async Task CreateIndexes(string columnName, bool uniq)
+            async Task CreateIndexes<T>(IMongoCollection<T> colls, string columnName, bool uniq)
             {
                 try
                 {
                     var options = new CreateIndexOptions() { Unique = uniq };
-                    var field = new StringFieldDefinition<Block>(columnName);
-                    var indexDefinition = new IndexKeysDefinitionBuilder<Block>().Ascending(field);
-                    var indexModel = new CreateIndexModel<Block>(indexDefinition, options);
-                    await _blocks.Indexes.CreateOneAsync(indexModel);
+                    var field = new StringFieldDefinition<T>(columnName);
+                    var indexDefinition = new IndexKeysDefinitionBuilder<T>().Ascending(field);
+                    var indexModel = new CreateIndexModel<T>(indexDefinition, options);
+                    await colls.Indexes.CreateOneAsync(indexModel);
                 }
                 catch(Exception ex)
                 {
@@ -161,14 +173,14 @@ namespace Lyra.Core.Accounts
                 }
             }
 
-            async Task CreateNoneStringIndex(string colName, bool uniq)
+            async Task CreateNoneStringIndex<T>(IMongoCollection<T> colls, string colName, bool uniq)
             {
                 try
                 {
                     var options = new CreateIndexOptions() { Unique = uniq };
-                    IndexKeysDefinition<Block> keyCode = "{ " + colName + ": 1 }";
-                    var codeIndexModel = new CreateIndexModel<Block>(keyCode, options);
-                    await _blocks.Indexes.CreateOneAsync(codeIndexModel);
+                    IndexKeysDefinition<T> keyCode = "{ " + colName + ": 1 }";
+                    var codeIndexModel = new CreateIndexModel<T>(keyCode, options);
+                    await colls.Indexes.CreateOneAsync(codeIndexModel);
 
                 }
                 catch (Exception ex)
@@ -177,7 +189,7 @@ namespace Lyra.Core.Accounts
                         return;
 
                     await _blocks.Indexes.DropOneAsync(colName + "_1");
-                    await CreateIndexes(colName, uniq);
+                    await CreateIndexes(colls, colName, uniq);
                 }
             }
 
@@ -189,36 +201,133 @@ namespace Lyra.Core.Accounts
                 {
                     //await CreateCompoundIndex();
 
-                    await CreateIndexes("_t", false);
-                    await CreateIndexes("Hash", true);
-                    await CreateIndexes("TimeStamp", false);
-                    await CreateIndexes("TimeStamp.Ticks", false);
-                    await CreateIndexes("PreviousHash", false);
-                    await CreateIndexes("AccountID", false);
-                    await CreateNoneStringIndex("Height", false);
-                    await CreateNoneStringIndex("BlockType", false);
+                    await CreateIndexes(_blocks, "_t", false);
+                    await CreateIndexes(_blocks, "Hash", true);
+                    await CreateIndexes(_blocks, "TimeStamp", false);
+                    await CreateIndexes(_blocks, "TimeStamp.Ticks", false);
+                    await CreateIndexes(_blocks, "PreviousHash", false);
+                    await CreateIndexes(_blocks, "AccountID", false);
+                    await CreateNoneStringIndex(_blocks, "Height", false);
+                    await CreateNoneStringIndex(_blocks, "BlockType", false);
 
-                    await CreateIndexes("SourceHash", false);
-                    await CreateIndexes("DestinationAccountId", false);
-                    await CreateIndexes("Ticker", false);
-                    await CreateIndexes("VoteFor", false);
+                    await CreateIndexes(_blocks, "SourceHash", false);
+                    await CreateIndexes(_blocks, "DestinationAccountId", false);
+                    await CreateIndexes(_blocks, "Ticker", false);
+                    await CreateIndexes(_blocks, "VoteFor", false);
 
-                    await CreateNoneStringIndex("OrderType", false);
-                    await CreateIndexes("SellTokenCode", false);
-                    await CreateIndexes("BuyTokenCode", false);
-                    await CreateIndexes("TradeOrderId", false);
+                    await CreateNoneStringIndex(_blocks, "OrderType", false);
+                    await CreateIndexes(_blocks, "SellTokenCode", false);
+                    await CreateIndexes(_blocks, "BuyTokenCode", false);
+                    await CreateIndexes(_blocks, "TradeOrderId", false);
 
-                    await CreateIndexes("ImportedAccountId", false);
+                    await CreateIndexes(_blocks, "ImportedAccountId", false);
 
-                    await CreateIndexes("Token0", false);
-                    await CreateIndexes("Token1", false);
-                    await CreateIndexes("RelatedTx", false);
+                    await CreateIndexes(_blocks, "Token0", false);
+                    await CreateIndexes(_blocks, "Token1", false);
+                    await CreateIndexes(_blocks, "RelatedTx", false);
+
+                    // account changes
+                    await CreateIndexes(_accountChanges, "AccountID", false);
+                    await CreateIndexes(_accountChanges, "Time", false);
+                    await CreateIndexes(_accountChanges, "TxHash", true);
+                    await CreateNoneStringIndex(_accountChanges, "LyrChg", false);
+                    await CreateNoneStringIndex(_accountChanges, "ConsHeight", false);
                 }
                 catch(Exception e)
                 {
                     _log.LogError("In create index: " + e.ToString());
                 }
             });
+        }
+
+        public async Task UpdateStatsAsync()
+        {
+            var options = new FindOptions<AccountChange, AccountChange>
+            {
+                Limit = 1,
+                Sort = Builders<AccountChange>.Sort.Descending(o => o.ConsHeight)
+            };
+            var filter = Builders<Block>.Filter;
+            var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
+
+            long start = 1;
+            var lastQ = await _accountChanges.FindAsync(new BsonDocument(), options);
+            if(lastQ != null)
+            {
+                var last = await lastQ.FirstOrDefaultAsync();
+
+                if (last != null)
+                    start = last.ConsHeight;
+            }
+
+            var endCons = await GetLastConsolidationBlockAsync();
+            var end = endCons.Height;
+
+            for(var i = start; i <= end; i++)
+            {
+                var acs = new List<AccountChange>();
+                var cons = await FindConsolidationBlockByIndexAsync(i);
+                foreach(var hash in cons.blockHashes)
+                {
+                    var blk = await FindBlockByHashAsync(hash);
+                    decimal chg = 0;
+                    string acct;
+                    if (blk is ReceiveTransferBlock recv)
+                    {
+                        acct = recv.AccountID;
+                        if (recv.SourceHash == null) // genesis
+                        {
+                            if (recv is ReceiveNodeProfitBlock)
+                            {
+                                var prev = await FindBlockByHashAsync(recv.PreviousHash) as TransactionBlock;
+                                var chgs = recv.GetBalanceChanges(prev);
+                                if (chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                                    chg = chgs.Changes[LyraGlobal.OFFICIALTICKERCODE];
+                            }
+                            if (true == recv.Balances?.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                                chg = recv.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                        }
+                        else
+                        {
+                            var send = await FindBlockByHashAsync(recv.SourceHash) as TransactionBlock;
+                            var sendPrev = await FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+                            var chgs = send.GetBalanceChanges(sendPrev);
+                            if (chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                                chg = chgs.Changes[LyraGlobal.OFFICIALTICKERCODE];
+                        }
+                    }
+                    else if (blk is SendTransferBlock send)
+                    {
+                        acct = send.AccountID;
+                        var prev = await FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+                        var chgs = send.GetBalanceChanges(prev);
+                        if (chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                            chg = -1 * chgs.Changes[LyraGlobal.OFFICIALTICKERCODE];
+                    }
+                    else if(blk is ServiceBlock || blk is ConsolidationBlock)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        _log.LogCritical($"Unprocessed block type: {blk.GetBlockType()} Height: {blk.Height}");
+                        return; // just abort. no data cruption. (because of batch insert)
+                    }
+
+                    var ac = new AccountChange
+                    {
+                        Time = blk.TimeStamp,
+                        AccountID = acct,
+                        TxHash = blk.Hash,
+                        LyrChg = chg,
+                        ConsHeight = cons.Height
+                    };
+                    acs.Add(ac);
+                    if (ac.LyrChg < -100000)
+                        ac.LyrChg += 1;
+                }
+                await _accountChanges.InsertManyAsync(acs);
+            }
         }
 
         /// <summary>
@@ -703,6 +812,22 @@ namespace Lyra.Core.Accounts
 
             var result = await _blocks
                 .OfType<ServiceBlock>()
+                .FindAsync(filterDefinition, options);
+
+            return await result.FirstOrDefaultAsync();
+        }
+
+        public async Task<ConsolidationBlock> FindConsolidationBlockByIndexAsync(Int64 index)
+        {
+            var options = new FindOptions<ConsolidationBlock, ConsolidationBlock>
+            {
+                Limit = 1,
+            };
+            var builder = new FilterDefinitionBuilder<ConsolidationBlock>();
+            var filterDefinition = builder.Eq("Height", index);
+
+            var result = await _blocks
+                .OfType<ConsolidationBlock>()
                 .FindAsync(filterDefinition, options);
 
             return await result.FirstOrDefaultAsync();
@@ -1577,6 +1702,10 @@ namespace Lyra.Core.Accounts
 
         public async Task<ProfitingStats> GetProfitingStatsAsync(string pftid, DateTime begin, DateTime end)
         {
+            // unable to get stats from current blockchain.
+            // use an idle thread to create stats.
+            
+            
             var pft = await FindFirstBlockAsync(pftid) as ProfitingGenesis;
             if (pft == null)
                 return null;

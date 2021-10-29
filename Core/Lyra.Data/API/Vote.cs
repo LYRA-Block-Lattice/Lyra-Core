@@ -37,4 +37,17 @@ namespace Lyra.Data.API
         public decimal TotalToStaking { get; set; }
         public decimal TotalToOwner { get; set; }
     }
+
+    public class AccountChange
+    {
+        public DateTime Time { get; set; }
+        public string AccountID { get; set; }
+        public string TxHash { get; set; }
+        
+        /// <summary>
+        /// change of LYR. + means income, - means spend, 0 means no change
+        /// </summary>
+        public decimal LyrChg { get; set; }
+        public long ConsHeight { get; set; }
+    }
 }

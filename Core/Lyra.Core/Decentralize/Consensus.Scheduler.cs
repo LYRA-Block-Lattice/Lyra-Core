@@ -44,9 +44,10 @@ namespace Lyra.Core.Decentralize
             await CreateJobAsync(TimeSpan.FromSeconds(24), typeof(HeartBeater), "Heart Beat", jobGroup);
             await CreateJobAsync(TimeSpan.FromMilliseconds(100), typeof(BlockAuthorizationMonitor), "Block Monitor", jobGroup);
             await CreateJobAsync("0/2 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
+            await CreateJobAsync(TimeSpan.FromMinutes(17), typeof(IdleWorks), "Idle Works", jobGroup);
 
             // 10 min view change, 30 min fetch balance.
-            if(Neo.Settings.Default.LyraNode.Lyra.NetworkId == "devnet")
+            if (Neo.Settings.Default.LyraNode.Lyra.NetworkId == "devnet")
             {
                 // need a quick debug test
                 await CreateJobAsync("0 0/2 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
@@ -251,20 +252,36 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
-                    // announce self
-                    cs._board.ActiveNodes.RemoveAll(a => a.LastActive < DateTime.Now.AddSeconds(-60));
-                    await Task.Delay(5000);
-
                     await cs.DeclareConsensusNodeAsync();
 
                     // make sure peers update its status
-                    await Task.Delay(5000);
+                    await Task.Delay(10000);
 
                     await cs.CheckNewPlayerAsync();               
                 }
                 catch (Exception e)
                 {
                     cs._log.LogError($"In NewPlayerMonitor: {e}");
+                }
+            }
+        }
+
+        [DisallowConcurrentExecution]
+        private class IdleWorks : IJob
+        {
+            public async Task Execute(IJobExecutionContext context)
+            {
+                var cs = context.Scheduler.Context.Get("cs") as ConsensusService;
+
+                try
+                {
+                    // TODO: create a better method to detect 'Idle'
+                    if(cs.CurrentState == Data.API.BlockChainState.Almighty)
+                        await cs._sys.Storage.UpdateStatsAsync();
+                }
+                catch (Exception e)
+                {
+                    cs._log.LogError($"In IdleWorks: {e}");
                 }
             }
         }
