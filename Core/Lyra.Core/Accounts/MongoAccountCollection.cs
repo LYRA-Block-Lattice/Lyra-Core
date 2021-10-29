@@ -257,13 +257,13 @@ namespace Lyra.Core.Accounts
                 var last = await lastQ.FirstOrDefaultAsync();
 
                 if (last != null)
-                    start = last.ConsHeight;
+                    start = last.ConsHeight + 1;
             }
 
             var endCons = await GetLastConsolidationBlockAsync();
             var end = endCons.Height;
 
-            for(var i = start; i < end; i++)
+            for(var i = start; i <= end; i++)
             {
                 var acs = new List<AccountChange>();
                 var cons = await FindConsolidationBlockByIndexAsync(i);
