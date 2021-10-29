@@ -642,7 +642,7 @@ namespace Lyra.Core.API
                 { "timeEndTicks", end.Ticks.ToString() }
             };
 
-            return await GetAsync<ProfitingStats>("GetAccountStats", args);
+            return await GetAsync<ProfitingStats>("GetBenefitStats", args);
         }
     }
 }
