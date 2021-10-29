@@ -550,13 +550,13 @@ namespace LyraLexWeb2
             return _node.FindVotes(model);
         }
 
-        [Route("GetFeeStats")]
-        [HttpGet]
-        public FeeStats GetFeeStats()
-        {
-            if (!CheckServiceStatus()) return null;
-            return _node.GetFeeStats();
-        }
+        //[Route("GetFeeStats")]
+        //[HttpGet]
+        //public FeeStats GetFeeStats()
+        //{
+        //    if (!CheckServiceStatus()) return null;
+        //    return _node.GetFeeStats();
+        //}
 
         [Route("GetPool")]
         [HttpGet]

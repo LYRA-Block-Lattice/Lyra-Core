@@ -42,19 +42,19 @@ namespace UnitTests
         //    Assert.AreEqual(svcBlock1.GetBlock().Hash, svcBlock2.GetBlock().Hash);
         //}
 
-        [TestMethod]
-        public async Task TestGetFeeAsync()
-        {
-            var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
+        //[TestMethod]
+        //public async Task TestGetFeeAsync()
+        //{
+        //    var client = LyraRestClient.Create(networkId, "Windows", "UnitTest", "1.0");
 
-            var aggClient = new LyraAggregatedClient(networkId, false);
-            await aggClient.InitAsync();
+        //    var aggClient = new LyraAggregatedClient(networkId, false);
+        //    await aggClient.InitAsync();
 
-            var svcBlock1 = await client.GetFeeStatsAsync();
-            var svcBlock2 = aggClient.GetFeeStats();
+        //    var svcBlock1 = await client.GetFeeStatsAsync();
+        //    var svcBlock2 = aggClient.GetFeeStats();
 
-            Assert.AreEqual(svcBlock1, svcBlock2);
-        }
+        //    Assert.AreEqual(svcBlock1, svcBlock2);
+        //}
 
     }
 }
