@@ -290,11 +290,23 @@ namespace Lyra.Core.Accounts
                         }
                         else
                         {
-                            var send = await FindBlockByHashAsync(recv.SourceHash) as TransactionBlock;
-                            var sendPrev = await FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
-                            var chgs = send.GetBalanceChanges(sendPrev);
-                            if (chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
-                                chg = chgs.Changes[LyraGlobal.OFFICIALTICKERCODE];
+                            var srcblk = await FindBlockByHashAsync(recv.SourceHash);
+                            if(srcblk is TransactionBlock send)
+                            {
+                                var sendPrev = await FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
+                                var chgs = send.GetBalanceChanges(sendPrev);
+                                if (chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                                    chg = chgs.Changes[LyraGlobal.OFFICIALTICKERCODE];
+                            }
+                            else
+                            {
+                                // the old fee block use service block as source
+                                // treat as ReceiveNodeProfitBlock
+                                var prev = await FindBlockByHashAsync(recv.PreviousHash) as TransactionBlock;
+                                var chgs = recv.GetBalanceChanges(prev);
+                                if (chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                                    chg = chgs.Changes[LyraGlobal.OFFICIALTICKERCODE];
+                            }
                         }
                     }
                     else if (blk is SendTransferBlock send)
