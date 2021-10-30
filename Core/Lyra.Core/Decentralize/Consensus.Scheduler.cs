@@ -257,7 +257,7 @@ namespace Lyra.Core.Decentralize
                     // make sure peers update its status
                     await Task.Delay(10000);
 
-                    await cs.CheckNewPlayerAsync();               
+                    await cs.CheckCreateNewViewAsync();               
                 }
                 catch (Exception e)
                 {

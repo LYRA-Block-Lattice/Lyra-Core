@@ -39,6 +39,12 @@ namespace Lyra.Core.Decentralize
 
         // we have new player join / leave
         PlayerJoinAndLeft,
+
+        // change view every 3 hours
+        ViewTimeout, 
+
+        // none so no action needed
+        None
     };
 
     public delegate void LeaderCandidateSelected(string candidate);

@@ -848,7 +848,7 @@ namespace Lyra.Core.Decentralize
             //_log.LogInformation("UpdateVoters ended.");
         }
 
-        internal async Task CheckNewPlayerAsync()
+        internal async Task CheckCreateNewViewAsync()
         {
             //_log.LogInformation($"Checking new player(s)...");
             if (CurrentState != BlockChainState.Almighty)
@@ -866,15 +866,22 @@ namespace Lyra.Core.Decentralize
             var firstNotSecond = list1.Except(list2).ToList();
             var secondNotFirst = list2.Except(list1).ToList();
 
-            if (!firstNotSecond.Any() && !secondNotFirst.Any())
+            var reason = ViewChangeReason.None;
+
+            if (firstNotSecond.Any() || secondNotFirst.Any())
             {
                 //_log.LogInformation($"voter list is same as previous one.");
-                return;
+                reason = ViewChangeReason.PlayerJoinAndLeft;
+            }
+            else if(lsb.TimeStamp.AddHours(4) < DateTime.UtcNow)
+            {
+                reason = ViewChangeReason.ViewTimeout;
             }
 
-            _log.LogInformation($"We have new player(s). Change view...");
+            //_log.LogInformation($"We have new player(s). Change view...");
             // should change view for new member
-            await BeginChangeViewAsync("new player monitor", ViewChangeReason.PlayerJoinAndLeft);
+            if(reason != ViewChangeReason.None)
+                await BeginChangeViewAsync("View Monitor", reason);
         }
 
         internal void ServiceBlockCreated(ServiceBlock sb)
