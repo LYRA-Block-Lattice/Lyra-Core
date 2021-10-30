@@ -59,6 +59,9 @@ namespace Lyra.Core.Decentralize
             // execute work flow
             var wf = BrokerFactory.WorkFlows[action];
             var send = await sys.Storage.FindBlockByHashAsync(svcReqHash) as SendTransferBlock;
+            if (send == null)
+                return false;
+
             if (!preDone)
             {
                 if(wf.pfrecv)
