@@ -653,6 +653,11 @@ namespace Lyra.Core.Decentralize
                 }
             }
 
+            // if share 100%, no need to send
+            var pftgen = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;
+            if (pftgen.ShareRito == 1m)
+                return null;
+
             // all remaining send to the owner
             if (sentBlocks.Any(a => a.DestinationAccountId == lastBlock.OwnerAccountId && a.StakingAccountId == null))
                 return null;
