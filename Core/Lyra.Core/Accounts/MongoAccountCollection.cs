@@ -268,6 +268,9 @@ namespace Lyra.Core.Accounts
             {
                 var acs = new List<AccountChange>();
                 var cons = await FindConsolidationBlockByIndexAsync(i);
+                if (cons == null)
+                    return;
+
                 foreach(var hash in cons.blockHashes)
                 {
                     var blk = await FindBlockByHashAsync(hash);
