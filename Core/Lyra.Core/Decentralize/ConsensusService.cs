@@ -237,39 +237,42 @@ namespace Lyra.Core.Decentralize
 
                     //_log.LogInformation($"ReceiveAsync SignedMessageRelay from {signedMsg.From.Shorten()} Hash {(signedMsg as BlockConsensusMessage)?.BlockHash}");
 
-                    if (signedMsg.TimeStamp < DateTime.UtcNow.AddSeconds(3) &&
-                        signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-60) &&
-                        signedMsg.VerifySignature(signedMsg.From))
+                    if(signedMsg.TimeStamp < DateTime.UtcNow.AddSeconds(3) &&
+                        signedMsg.TimeStamp > DateTime.UtcNow.AddSeconds(-30))
                     {
-                        await OnNextConsensusMessageAsync(signedMsg);
-                        //await CriticalRelayAsync(signedMsg, async (msg) =>
-                        //{
-                        //    await OnNextConsensusMessageAsync(msg);
-                        //});
-
-                        // not needed anymore
-                        // seeds take resp to forward heatbeat, once
-                        if (IsThisNodeSeed && (
-                            signedMsg.MsgType == ChatMessageType.HeartBeat
-                            //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
-                            //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
-                            //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
-                            ))
+                        if (signedMsg.VerifySignature(signedMsg.From))
                         {
-                            await CriticalRelayAsync(signedMsg, null);
+                            await OnNextConsensusMessageAsync(signedMsg);
+                            //await CriticalRelayAsync(signedMsg, async (msg) =>
+                            //{
+                            //    await OnNextConsensusMessageAsync(msg);
+                            //});
+
+                            // not needed anymore
+                            // seeds take resp to forward heatbeat, once
+                            if (IsThisNodeSeed && (
+                                signedMsg.MsgType == ChatMessageType.HeartBeat
+                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeRequest
+                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeReply
+                                //|| signedMsg.MsgType == ChatMessageType.ViewChangeCommit
+                                ))
+                            {
+                                await CriticalRelayAsync(signedMsg, null);
+                            }
+                        }
+                        else
+                        {
+                            _log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
+                            //if (signedMsg.MsgType == ChatMessageType.AuthorizerPrePrepare)
+                            //{
+                            //    var json = JsonConvert.SerializeObject(signedMsg);
+                            //    Console.WriteLine("===\n" + json + "\n===");
+
+                            //    var jb = JsonConvert.SerializeObject(signedMsg);
+                            //}
                         }
                     }
-                    else
-                    {
-                        _log.LogWarning($"Receive Relay illegal type {signedMsg.MsgType} Delayed {(DateTime.UtcNow - signedMsg.TimeStamp).TotalSeconds}s Verify: {signedMsg.VerifySignature(signedMsg.From)} From: {signedMsg.From.Shorten()}");
-                        //if (signedMsg.MsgType == ChatMessageType.AuthorizerPrePrepare)
-                        //{
-                        //    var json = JsonConvert.SerializeObject(signedMsg);
-                        //    Console.WriteLine("===\n" + json + "\n===");
 
-                        //    var jb = JsonConvert.SerializeObject(signedMsg);
-                        //}
-                    }
                 }
                 catch (Exception ex)
                 {
