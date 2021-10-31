@@ -274,6 +274,9 @@ namespace Lyra.Core.Accounts
                 foreach(var hash in cons.blockHashes)
                 {
                     var blk = await FindBlockByHashAsync(hash);
+                    if (blk == null)
+                        return;
+
                     decimal chg = 0;
                     string acct;
                     if (blk is ReceiveTransferBlock recv)
