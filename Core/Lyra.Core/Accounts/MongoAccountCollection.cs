@@ -1830,7 +1830,7 @@ namespace Lyra.Core.Accounts
             var rets = new List<Profiting>();
             foreach(var gen in q)
             {
-                var stats = await GetAccountStatsAsync(gen.AccountID, begin, begin);
+                var stats = await GetAccountStatsAsync(gen.AccountID, begin, end);
                 rets.Add(new Profiting
                 {
                     gens = gen,
