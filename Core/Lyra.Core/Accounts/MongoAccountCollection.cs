@@ -1803,7 +1803,7 @@ namespace Lyra.Core.Accounts
                 });
 
             return stakings
-                .Where(a => timeBefore - a.Time < TimeSpan.FromDays(a.Days))
+                .Where(a => a.Time.AddDays( 1 + a.Days ) > timeBefore)
                 .OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
                 .ThenBy(x => x.AccountId)
                 .Select(a => new Staker
