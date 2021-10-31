@@ -750,7 +750,7 @@ namespace Lyra.Core.Accounts
             //stopwatch.Stop();
             //PrintConLine($"_rpcClient.SendTransfer: {stopwatch.ElapsedMilliseconds} ms.");
 
-            if (result.ResultCode == APIResultCodes.Success)
+            if (result?.ResultCode == APIResultCodes.Success)
                 _lastTransactionBlock = sendBlock;
 
             return result;
