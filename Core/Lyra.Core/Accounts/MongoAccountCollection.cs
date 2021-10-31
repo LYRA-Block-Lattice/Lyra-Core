@@ -274,6 +274,9 @@ namespace Lyra.Core.Accounts
                 foreach(var hash in cons.blockHashes)
                 {
                     var blk = await FindBlockByHashAsync(hash);
+                    if (blk == null)
+                        return;
+
                     decimal chg = 0;
                     string acct;
                     if (blk is ReceiveTransferBlock recv)
@@ -1803,7 +1806,7 @@ namespace Lyra.Core.Accounts
                 });
 
             return stakings
-                .Where(a => a.Time.AddDays( 1 + a.Days ) > timeBefore)
+                .Where(a => a.Time.AddDays( a.Days - 1 ) > timeBefore)
                 .OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
                 .ThenBy(x => x.AccountId)
                 .Select(a => new Staker
@@ -1815,6 +1818,26 @@ namespace Lyra.Core.Accounts
                     Days = a.Days
                 })
                 .ToList();
+        }
+
+        public async Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end)
+        {
+            var q = _blocks.OfType<ProfitingGenesis>()
+                .AsQueryable()
+                .Where(a => a.TimeStamp > begin && a.TimeStamp < end)
+                .ToList();
+
+            var rets = new List<Profiting>();
+            foreach(var gen in q)
+            {
+                var stats = await GetAccountStatsAsync(gen.AccountID, begin, begin);
+                rets.Add(new Profiting
+                {
+                    gens = gen,
+                    totalprofit = stats.Total
+                });
+            }
+            return rets;
         }
 
         public async Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId)

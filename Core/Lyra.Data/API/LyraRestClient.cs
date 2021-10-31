@@ -604,6 +604,17 @@ namespace Lyra.Core.API
             return await GetAsync<MultiBlockAPIResult>("GetAllBrokerAccountsForOwner", args);
         }
 
+        public async Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "timeBeginTicks", begin.Ticks.ToString() },
+                { "timeEndTicks", end.Ticks.ToString() }
+            };
+
+            return await GetAsync<List<Profiting>>("FindAllProfitingAccounts", args);
+        }
+
         public async Task<List<Staker>> FindAllStakingsAsync(string pftid, DateTime timeBefore)
         {
             var args = new Dictionary<string, string>

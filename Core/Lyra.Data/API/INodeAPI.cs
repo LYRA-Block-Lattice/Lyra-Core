@@ -85,6 +85,7 @@ namespace Lyra.Core.API
         #endregion
 
         Task<MultiBlockAPIResult> GetAllBrokerAccountsForOwnerAsync(string ownerAccount);
+        Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end);
         List<Staker> FindAllStakings(string pftid, DateTime timeBefore);
         Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end);
         Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end);

@@ -574,6 +574,14 @@ namespace LyraLexWeb2
             return await _node.GetAllBrokerAccountsForOwnerAsync(ownerAccount);
         }
 
+        [Route("FindAllProfitingAccounts")]
+        [HttpGet]
+        public Task<List<Profiting>> FindAllProfitingAccountsAsync(long timeBeginTicks, long timeEndTicks)
+        {
+            return _node.FindAllProfitingAccountsAsync(new DateTime(timeBeginTicks, DateTimeKind.Utc),
+                new DateTime(timeEndTicks, DateTimeKind.Utc));
+        }
+
         [Route("FindAllStakings")]
         [HttpGet]
         public List<Staker> FindAllStakings(string pftid, long timeBeforeTicks)
