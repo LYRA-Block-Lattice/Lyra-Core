@@ -578,7 +578,8 @@ namespace LyraLexWeb2
         [HttpGet]
         public Task<List<Profiting>> FindAllProfitingAccountsAsync(long timeBeginTicks, long timeEndTicks)
         {
-            return _node.FindAllProfitingAccountsAsync(new DateTime(timeBeginTicks, DateTimeKind.Utc),
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindAllProfitingAccountsAsync(new DateTime(timeBeginTicks, DateTimeKind.Utc),
                 new DateTime(timeEndTicks, DateTimeKind.Utc));
         }
 
