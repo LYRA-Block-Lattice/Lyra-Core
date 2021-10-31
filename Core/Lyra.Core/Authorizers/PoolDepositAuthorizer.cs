@@ -42,6 +42,13 @@ namespace Lyra.Core.Authorizers
             // recalculate
             var recvBlock = block as PoolDepositBlock;
             var sendBlock = await sys.Storage.FindBlockByHashAsync((block as ReceiveTransferBlock).SourceHash) as SendTransferBlock;
+            
+            if(sendBlock == null)
+            {
+                // missing block. this node is lagged.
+                return APIResultCodes.InvalidPreviousBlock;
+            }
+            
             var prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
 
