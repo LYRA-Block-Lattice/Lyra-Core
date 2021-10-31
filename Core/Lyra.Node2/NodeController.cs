@@ -576,7 +576,7 @@ namespace LyraLexWeb2
 
         [Route("FindAllProfitingAccounts")]
         [HttpGet]
-        public Task<List<Profiting>> FindAllProfitingAccountsAsync(long timeBeginTicks, long timeEndTicks)
+        public async Task<List<Profiting>> FindAllProfitingAccountsAsync(long timeBeginTicks, long timeEndTicks)
         {
             if (!CheckServiceStatus()) return null;
             return await _node.FindAllProfitingAccountsAsync(new DateTime(timeBeginTicks, DateTimeKind.Utc),
