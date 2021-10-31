@@ -627,29 +627,33 @@ namespace Lyra.Core.Decentralize
                     .OrderBy(a => a.TimeStamp)
                     .Last() as TransactionBlock;
                 var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
-
-                // create a dictionary to hold amounts to send
-                // staking account -> amount
-                var sendAmounts = new Dictionary<string, decimal>();
-                foreach (var target in targets)
+                
+                // don't distribute < 1LYR
+                if(profitToDistribute > 1)
                 {
-                    var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
-                    sendAmounts.Add(target.StkAccount, amount);
-                }
+                    // create a dictionary to hold amounts to send
+                    // staking account -> amount
+                    var sendAmounts = new Dictionary<string, decimal>();
+                    foreach (var target in targets)
+                    {
+                        var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
+                        sendAmounts.Add(target.StkAccount, amount);
+                    }
 
-                foreach (var target in targets)
-                {
-                    var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.StkAccount);
-                    if (stkSend != null)
-                        continue;
+                    foreach (var target in targets)
+                    {
+                        var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.StkAccount);
+                        if (stkSend != null)
+                            continue;
 
-                    var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
-                    var sb = await sys.Storage.GetLastServiceBlockAsync();
-                    var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
-                        target, reqHash,
-                        amount);
+                        var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
+                        var sb = await sys.Storage.GetLastServiceBlockAsync();
+                        var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
+                            target, reqHash,
+                            amount);
 
-                    return pftSend;
+                        return pftSend;
+                    }
                 }
             }
 
