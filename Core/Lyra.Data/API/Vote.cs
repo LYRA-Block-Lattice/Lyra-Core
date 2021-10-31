@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Data.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,12 @@ namespace Lyra.Data.API
         public string VoteFor { get; set; }
 
         public Decimal LYR => Balance2.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? Balance2[LyraGlobal.OFFICIALTICKERCODE] : 0;
+    }
+
+    public class Profiting
+    {
+        public ProfitingGenesis gens { get; set; }
+        public decimal totalprofit { get; set; }
     }
 
     public class Staker

@@ -552,5 +552,10 @@ namespace Lyra.Data.API
         {
             throw new NotImplementedException();
         }
+
+        public Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

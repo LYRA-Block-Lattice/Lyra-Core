@@ -110,10 +110,12 @@ namespace Lyra.Core.Accounts
         void RemoveBlueprint(string hash);
         long UpdateBlueprint(BrokerBlueprint bp);
         List<BrokerBlueprint> GetAllBlueprints();
+        Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end);
         List<Staker> FindAllStakings(string pftid, DateTime timeBefore);
         Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId);
         Task<List<StakingGenesis>> FindAllStakingAccountForOwnerAsync(string ownerAccountId);
         Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end);
         Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end);
+        
     }
 }
