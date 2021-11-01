@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Lyra.Core.Blocks
 {
-    public enum ProfitingType { Node, Oracle, Merchant }
+    public enum ProfitingType { Node, Oracle, Merchant, Yield }
     // user send the specified amount fee to pool factory
     // pool factory will generate a new pool account
     // user send funds to the pool to create it

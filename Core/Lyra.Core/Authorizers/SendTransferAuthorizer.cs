@@ -253,6 +253,10 @@ namespace Lyra.Core.Authorizers
                             var pfts = await sys.Storage.FindAllProfitingAccountForOwnerAsync(block.AccountID);
                             if (pfts.Any(a => a.Name == block.Tags["name"]))
                                 return APIResultCodes.DuplicatedName;
+
+                            // one type per account. just keep it simple.
+                            if (pfts.Any(a => a.PType == ptype))
+                                return APIResultCodes.DuplicateAccountType;
                         }
                         else
                         {
