@@ -1816,7 +1816,7 @@ namespace Lyra.Core.Accounts
                 });
 
             return stakings
-                .Where(a => a.Time.AddDays( a.Days - 1 ) > timeBefore) // and Time.AddDays(1) < DateTime.UTCNow
+                .Where(a => a.Time.AddDays(1) < DateTime.UtcNow && a.Time.AddDays(a.Days) > timeBefore)
                 .OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
                 .ThenBy(x => x.AccountId)
                 .Select(a => new Staker
