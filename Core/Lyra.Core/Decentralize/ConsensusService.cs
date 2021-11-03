@@ -886,9 +886,9 @@ namespace Lyra.Core.Decentralize
 
         internal void ServiceBlockCreated(ServiceBlock sb)
         {
-            var lsb = _sys.Storage.GetLastServiceBlock();
-            if(sb.Height > lsb.Height)
-            {
+            //var lsb = _sys.Storage.GetLastServiceBlock();
+            //if(sb.Height > lsb.Height)
+            //{
                 Board.UpdatePrimary(sb.Authorizers.Keys.ToList());
                 Board.CurrentLeader = sb.Leader;
                 _currentView = sb.Height;
@@ -898,8 +898,7 @@ namespace Lyra.Core.Decentralize
                     //_log.LogInformation($"Shift View Id to {sb.Height + 1}");
                     _viewChangeHandler.ShiftView(sb.Height + 1);
                 }
-            }
-
+            //}
         }
 
         internal void LocalConsolidationFailed(string hash)
