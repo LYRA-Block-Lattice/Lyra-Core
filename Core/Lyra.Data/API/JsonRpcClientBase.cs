@@ -12,6 +12,25 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.API
 {
+    public class StakingInfo
+    {
+        public string name { get; set; }
+        public string voting { get; set; }
+        public string owner { get; set; }
+        public string stkid { get; set; }
+        public int days { get; set; }
+        public DateTime start { get; set; }
+        public decimal amount { get; set; }
+    }
+    public class ProfitInfo
+    {
+        public string name { get; set; }
+        public string type { get; set; }
+        public decimal shareratio { get; set; }
+        public int seats { get; set; }
+        public string pftid { get; set; }
+        public string owner { get; set; }
+    }
     public class PoolInfo
     {
         public string poolId { get; set; }

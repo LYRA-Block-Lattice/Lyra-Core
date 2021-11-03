@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Lyra.Data.Utils;
+using Lyra.Data.API;
+using Lyra.Data.Blocks;
 
 namespace Noded.Services
 {
@@ -457,12 +459,17 @@ namespace Noded.Services
             if (pool.PoolAccountId != null)
                 return new APIResult { ResultCode = APIResultCodes.PoolAlreadyExists };
 
-            var tags = new Dictionary<string, string>();
-            tags.Add("token0", tokenNames[0]);
-            tags.Add("token1", tokenNames[1]);
-            tags.Add(Block.REQSERVICETAG, "");
-            var amounts = new Dictionary<string, decimal>();
-            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee);
+            var tags = new Dictionary<string, string>
+            {
+                { "token0", tokenNames[0] },
+                { "token1", tokenNames[1] },
+                { Block.REQSERVICETAG, BrokerActions.BRK_POOL_CRPL }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.PoolCreateFee }
+            };
+
             return await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
         }
 
@@ -472,14 +479,18 @@ namespace Noded.Services
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
-            var amountsDeposit = new Dictionary<string, decimal>();
-            amountsDeposit.Add(token0, token0Amount);
-            amountsDeposit.Add(token1, token1Amount);
+            var amountsDeposit = new Dictionary<string, decimal>
+            {
+                { token0, token0Amount },
+                { token1, token1Amount }
+            };
 
-            var tags = new Dictionary<string, string>();
-            tags.Add("token0", pool.Token0);
-            tags.Add("token1", pool.Token1);
-            tags.Add(Block.REQSERVICETAG, "");
+            var tags = new Dictionary<string, string>
+            {
+                { "token0", pool.Token0 },
+                { "token1", pool.Token1 },
+                { Block.REQSERVICETAG, BrokerActions.BRK_POOL_ADDLQ }
+            };
 
             var poolDepositResult = await SendExAsync(pool.PoolAccountId, amountsDeposit, tags);
             return poolDepositResult;
@@ -491,13 +502,16 @@ namespace Noded.Services
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
-            var tags = new Dictionary<string, string>();
-            tags.Add(Block.REQSERVICETAG, "poolwithdraw");
-            tags.Add("poolid", pool.PoolAccountId);
-            tags.Add("token0", pool.Token0);
-            tags.Add("token1", pool.Token1);
-            var amounts = new Dictionary<string, decimal>();
-            amounts.Add(LyraGlobal.OFFICIALTICKERCODE, 1m);
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_POOL_RMLQ },
+                { "token0", pool.Token0 },
+                { "token1", pool.Token1 }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1m }
+            };
             var poolWithdrawResult = await SendExAsync(pool.PoolFactoryAccountId, amounts, tags);
             return poolWithdrawResult;
         }
@@ -508,14 +522,17 @@ namespace Noded.Services
             if (pool.PoolAccountId == null)
                 return new APIResult { ResultCode = APIResultCodes.PoolNotExists };
 
-            var tags = new Dictionary<string, string>();
-            tags.Add(Block.REQSERVICETAG, "swaptoken");
-            tags.Add("poolid", pool.PoolAccountId);
-            tags.Add("token0", pool.Token0);
-            tags.Add("token1", pool.Token1);
-            tags.Add("minrecv", $"{amountToGet.ToBalanceLong()}");
-            var amounts = new Dictionary<string, decimal>();
-            amounts.Add(tokenToSwap, amountToSwap);
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_POOL_SWAP },
+                { "token0", pool.Token0 },
+                { "token1", pool.Token1 },
+                { "minrecv", $"{amountToGet.ToBalanceLong()}" }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { tokenToSwap, amountToSwap }
+            };
             var swapTokenResult = await SendExAsync(pool.PoolAccountId, amounts, tags);
             return swapTokenResult;
         }
@@ -539,5 +556,149 @@ namespace Noded.Services
             else
                 return null;
         }
+
+        #region Staking Account
+        public async Task<BlockAPIResult> CreateProfitingAccountAsync(string Name, ProfitingType ptype, decimal shareRito, int maxVoter)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_PFT_CRPFT },
+                { "name", Name },   // get by name. name can't duplicate
+                { "ptype", ptype.ToString() },
+                { "share", $"{shareRito}" },
+                { "seats", $"{maxVoter}" }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.ProfitingAccountCreateFee }
+            };
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            if (result.ResultCode != APIResultCodes.Success)
+                return new BlockAPIResult { ResultCode = result.ResultCode };
+
+            for (int i = 0; i < 10; i++)
+            {
+                // then find by RelatedTx
+                var blocks = await _node.GetBlocksByRelatedTxAsync((await GetLatestBlockAsync()).Hash);
+                if (blocks.Successful())
+                {
+                    var txs = blocks.GetBlocks();
+                    var gen = txs.FirstOrDefault(a => a is ProfitingBlock pb && pb.OwnerAccountId == AccountId);
+                    if (gen != null)
+                    {
+                        var ret = new BlockAPIResult
+                        {
+                            ResultCode = APIResultCodes.Success,
+                        };
+                        ret.SetBlock(gen);
+                        return ret;
+                    }
+                }
+                await Task.Delay(500);
+            }
+
+            return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
+        }
+
+        public async Task<APIResult> CreateDividendsAsync(string profitingAccountId)
+        {
+            var amountsDeposit = new Dictionary<string, decimal>
+            {
+                { "LYR", 1 }
+            };
+
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_PFT_GETPFT },
+                { "pftid", profitingAccountId }
+            };
+
+            var getpftResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amountsDeposit, tags);
+            return getpftResult;
+        }
+
+        public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, string voteFor, int daysToStake)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_STK_CRSTK },
+                { "name", Name },
+                { "voting", voteFor },
+                { "days", daysToStake.ToString() }
+            };
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.StakingAccountCreateFee }
+            };
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            if (result.ResultCode != APIResultCodes.Success)
+                return new BlockAPIResult { ResultCode = result.ResultCode };
+
+            for (int i = 0; i < 10; i++)
+            {
+                // then find by RelatedTx
+                var blocks = await _node.GetBlocksByRelatedTxAsync((await GetLatestBlockAsync()).Hash);
+                if (blocks.Successful())
+                {
+                    var txs = blocks.GetBlocks();
+                    var gen = txs.FirstOrDefault(a => a is IBrokerAccount pb && pb.OwnerAccountId == AccountId);
+                    if (gen != null)
+                    {
+                        var ret = new BlockAPIResult
+                        {
+                            ResultCode = APIResultCodes.Success,
+                        };
+                        ret.SetBlock(gen);
+                        return ret;
+                    }
+                }
+                await Task.Delay(500);
+            }
+
+            return new BlockAPIResult { ResultCode = APIResultCodes.ConsensusTimeout };
+        }
+
+        public async Task<APIResult> AddStakingAsync(string stakingAccountId, decimal amount)
+        {
+            var amountsDeposit = new Dictionary<string, decimal>
+            {
+                { "LYR", amount }
+            };
+
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_STK_ADDSTK }
+            };
+
+            var addStkResult = await SendExAsync(stakingAccountId, amountsDeposit, tags);
+            return addStkResult;
+        }
+
+        public async Task<IStaking> GetStakingAsync(string stakingAccountId)
+        {
+            var result = await _node.GetLastBlockAsync(stakingAccountId);
+            if (result.Successful())
+                return result.GetBlock() as IStaking;
+            else
+                return null;
+        }
+
+        public async Task<APIResult> UnStakingAsync(string stakingAccountId)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_STK_UNSTK },
+                { "stkid", stakingAccountId },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1m }
+            };
+
+            var addStkResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            return addStkResult;
+        }
+        #endregion
     }
 }

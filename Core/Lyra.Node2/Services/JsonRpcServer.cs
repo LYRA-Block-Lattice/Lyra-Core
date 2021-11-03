@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lyra.Data.Utils;
 using System.Linq;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Node
 {
@@ -388,6 +389,140 @@ namespace Lyra.Node
             else
             {
                 throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+
+        [JsonRpcMethod("CreateProfitingAccount")]
+        public async Task<ProfitInfo> CreateProfitingAccountAsync(string accountId, string Name, ProfitingType ptype, decimal shareRito, int maxVoter)
+        {
+            var klWallet = CreateWallet(accountId);
+
+            var result = await klWallet.CreateProfitingAccountAsync(Name, ptype, shareRito, maxVoter);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                var pgen = result.GetBlock() as ProfitingGenesis;
+                var pftinfo = new ProfitInfo
+                {
+                    owner = pgen.OwnerAccountId,
+                    pftid = pgen.AccountID,
+                    seats = pgen.Seats,
+                    shareratio = pgen.ShareRito,
+                    name = pgen.Name,
+                    type = pgen.PType.ToString()
+                };
+
+                return pftinfo;
+            }
+            else
+            {
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+
+        [JsonRpcMethod("CreateDividends")]
+        public async Task<bool> CreateDividendsAsync(string accountId, string profitingAccountId)
+        {
+            var klWallet = CreateWallet(accountId);
+
+            var result = await klWallet.CreateDividendsAsync(profitingAccountId);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return true;
+            }
+            else
+            {
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+
+        [JsonRpcMethod("CreateStakingAccount")]
+        public async Task<StakingInfo> CreateStakingAccountAsync(string accountId, string Name, string voteFor, int daysToStake)
+        {
+            var klWallet = CreateWallet(accountId);
+
+            var result = await klWallet.CreateStakingAccountAsync(Name, voteFor, daysToStake);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                var sgen = result.GetBlock() as StakingGenesis;
+                var stkinfo = new StakingInfo
+                {
+                    owner = sgen.OwnerAccountId,
+                    stkid = sgen.AccountID,
+                    name = sgen.Name,
+
+                    start = sgen.TimeStamp,
+                    amount = 0,
+                    days = sgen.Days,
+                    voting = sgen.Voting
+                };
+
+                return stkinfo;
+            }
+            else
+            {
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+
+        [JsonRpcMethod("AddStaking")]
+        public async Task<bool> AddStakingAsync(string accountId, string stakingAccountId, decimal amount)
+        {
+            var klWallet = CreateWallet(accountId);
+
+            var result = await klWallet.AddStakingAsync(stakingAccountId, amount);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return true;
+            }
+            else
+            {
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+
+        [JsonRpcMethod("UnStaking")]
+        public async Task<bool> UnStakingAsync(string accountId, string stakingAccountId)
+        {
+            var klWallet = CreateWallet(accountId);
+
+            var result = await klWallet.UnStakingAsync(stakingAccountId);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                return true;
+            }
+            else
+            {
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+
+        [JsonRpcMethod("GetStaking")]
+        public async Task<StakingInfo> GetStakingAsync(string accountId, string stakingAccountId)
+        {
+            var klWallet = CreateWallet(accountId);
+
+            var result = await klWallet.GetStakingAsync(stakingAccountId);
+            if (result != null)
+            {
+                var tb = result as TransactionBlock;
+                var sgenresult = await _node.GetBlockByIndexAsync(stakingAccountId, 1);
+                var sgen = sgenresult.GetBlock() as StakingGenesis;
+                var stkinfo = new StakingInfo
+                {
+                    owner = sgen.OwnerAccountId,
+                    stkid = sgen.AccountID,
+                    name = sgen.Name,
+
+                    start = sgen.TimeStamp,
+                    amount = tb.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal(),
+                    days = sgen.Days,
+                    voting = sgen.Voting
+                };
+                return stkinfo;
+            }
+            else
+            {
+                throw new Exception($"No such staking account");
             }
         }
     }
