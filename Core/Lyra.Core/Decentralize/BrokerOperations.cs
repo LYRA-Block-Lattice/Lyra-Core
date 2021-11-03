@@ -621,41 +621,40 @@ namespace Lyra.Core.Decentralize
                 .OrderBy(a => a.Height)
                 .ToList();
 
-            if(totalStakingAmount > 0)
+            var lastProfitingBlock = relatedTxs.Where(a => a is ProfitingBlock)
+                .OrderBy(a => a.TimeStamp)
+                .Last() as TransactionBlock;
+            var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
+
+            // don't distribute < 1LYR
+            if (profitToDistribute > 1)
             {
-                var lastProfitingBlock = relatedTxs.Where(a => a is ProfitingBlock)
-                    .OrderBy(a => a.TimeStamp)
-                    .Last() as TransactionBlock;
-                var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
-                
-                // don't distribute < 1LYR
-                if(profitToDistribute > 1)
+                // create a dictionary to hold amounts to send
+                // staking account -> amount
+                var sendAmounts = new Dictionary<string, decimal>();
+                foreach (var target in targets)
                 {
-                    // create a dictionary to hold amounts to send
-                    // staking account -> amount
-                    var sendAmounts = new Dictionary<string, decimal>();
-                    foreach (var target in targets)
-                    {
-                        var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
-                        sendAmounts.Add(target.StkAccount, amount);
-                    }
+                    var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
+                    sendAmounts.Add(target.StkAccount, amount);
+                }
 
-                    foreach (var target in targets)
-                    {
-                        var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.StkAccount);
-                        if (stkSend != null)
-                            continue;
+                foreach (var target in targets)
+                {
+                    var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.StkAccount);
+                    if (stkSend != null)
+                        continue;
 
-                        var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
-                        var sb = await sys.Storage.GetLastServiceBlockAsync();
-                        var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
-                            target, reqHash,
-                            amount);
+                    var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
+                    var sb = await sys.Storage.GetLastServiceBlockAsync();
+                    var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
+                        target, reqHash,
+                        amount);
 
-                        return pftSend;
-                    }
+                    return pftSend;
                 }
             }
+            else
+                return null;    // not enough profit to distribute
 
             // if share 100%, no need to send
             var pftgen = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;

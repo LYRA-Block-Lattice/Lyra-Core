@@ -41,6 +41,7 @@ namespace Lyra.Client.CLI
         public const string COMMAND_REDEEM_REWARDS = "redeem";
         public const string COMMAND_VOTEFOR = "votefor";
         public const string COMMAND_SYNCFEE = "syncfee";
+        public const string COMMAND_SYNCPROFIT = "syncp";
         public const string COMMAND_IMPORT_ACCOUNT = "import";
         public const string COMMAND_PROFITING = "profiting";
         public const string COMMAND_STAKING = "staking";
@@ -115,7 +116,7 @@ namespace Lyra.Client.CLI
                         Console.WriteLine(string.Format(@"{0,10}: Show transaction block with specified index", COMMAND_PRINT_BLOCK));
                         Console.WriteLine(string.Format(@"{0,10}: Show the list of active reward orders", COMMAND_PRINT_ACTIVE_TRADE_ORDER_LIST));
                         Console.WriteLine(string.Format(@"{0,10}: Sync up with the node (receive transfers)", COMMAND_SYNC));
-                        Console.WriteLine(string.Format(@"{0,10}: Sync up authorizer node's fees", COMMAND_SYNCFEE));
+                        Console.WriteLine(string.Format(@"{0,10}: Sync profit", COMMAND_SYNCPROFIT));
                         //Console.WriteLine(string.Format(@"{0,10}: Reset and do sync up with the node", COMMAND_RESYNC));
                         Console.WriteLine(string.Format(@"{0,10}: Exit this app", COMMAND_STOP));
                         //Console.WriteLine(string.Format(@"{0,10}: Generate a network genesis block (testnet only)", COMMAND_GEN_NOTE));
@@ -206,6 +207,31 @@ namespace Lyra.Client.CLI
                         //var sfeeResult = await _wallet.SyncNodeFeesAsync();
                         //Console.WriteLine($"Sync Fees Result: {sfeeResult}");
                         Console.Write("Obsolete: Node daemon will receive fees automatically.");
+                        break;
+                    case COMMAND_SYNCPROFIT:
+                        // first do sync
+                        var sync2 = await _wallet.SyncAsync(null);
+                        if (sync2 == APIResultCodes.Success)
+                        {
+                            var pftsret = await wallet.RPC.GetAllBrokerAccountsForOwnerAsync(wallet.AccountId);
+                            if (pftsret.Successful())
+                            {
+                                var blks = pftsret.GetBlocks();
+                                var pft = blks.FirstOrDefault(a => a.BlockType == BlockTypes.ProfitingGenesis)
+                                    as ProfitingGenesis;
+                                if (pft != null)
+                                {
+                                    var divret = await wallet.CreateDividendsAsync(pft.AccountID);
+                                    Console.WriteLine(divret.ResultCode);
+                                }
+                                else
+                                    Console.WriteLine("No profiting account found.");
+                            }
+                            else
+                                Console.WriteLine(pftsret.ResultCode);
+                        }
+                        else
+                            Console.WriteLine(sync2);
                         break;
                     //case COMMAND_TRADE_ORDER:
                     //    //Console.WriteLine(UNSUPPORTED_COMMAND_MSG);
