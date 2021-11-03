@@ -886,15 +886,20 @@ namespace Lyra.Core.Decentralize
 
         internal void ServiceBlockCreated(ServiceBlock sb)
         {
-            Board.UpdatePrimary(sb.Authorizers.Keys.ToList());
-            Board.CurrentLeader = sb.Leader;
-            _currentView = sb.Height;
-            if (_viewChangeHandler?.ViewId == sb.Height)
+            var lsb = _sys.Storage.GetLastServiceBlock();
+            if(sb.Height > lsb.Height)
             {
-                _viewChangeHandler.FinishViewChange(sb.Height);
-                //_log.LogInformation($"Shift View Id to {sb.Height + 1}");
-                _viewChangeHandler.ShiftView(sb.Height + 1);
+                Board.UpdatePrimary(sb.Authorizers.Keys.ToList());
+                Board.CurrentLeader = sb.Leader;
+                _currentView = sb.Height;
+                if (_viewChangeHandler?.ViewId == sb.Height)
+                {
+                    _viewChangeHandler.FinishViewChange(sb.Height);
+                    //_log.LogInformation($"Shift View Id to {sb.Height + 1}");
+                    _viewChangeHandler.ShiftView(sb.Height + 1);
+                }
             }
+
         }
 
         internal void LocalConsolidationFailed(string hash)

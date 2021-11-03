@@ -44,6 +44,7 @@ namespace Lyra.Core.Accounts
         // for service blocks
         Task<ServiceBlock> GetServiceGenesisBlockAsync();
         Task<LyraTokenGenesisBlock> GetLyraTokenGenesisBlockAsync();
+        ServiceBlock GetLastServiceBlock();
         Task<ServiceBlock> GetLastServiceBlockAsync();
         Task<ConsolidationBlock> GetLastConsolidationBlockAsync();
         Task<List<ConsolidationBlock>> GetConsolidationBlocksAsync(long startHeight, int count);

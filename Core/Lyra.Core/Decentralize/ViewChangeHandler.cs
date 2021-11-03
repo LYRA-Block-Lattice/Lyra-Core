@@ -11,6 +11,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Loyc.Collections;
 using Lyra.Data;
+using System.Threading;
+using Lyra.Data.API;
+using Neo;
+using Lyra.Core.Blocks;
 
 namespace Lyra.Core.Decentralize
 {
@@ -54,6 +58,8 @@ namespace Lyra.Core.Decentralize
     {
         private readonly LeaderCandidateSelected _candidateSelected;
         private readonly LeaderSelectedHandler _leaderSelected;
+
+        private SemaphoreSlim _vcTaskMutex = new SemaphoreSlim(1);
 
         private class VCReqWithTime
         {
@@ -155,6 +161,41 @@ namespace Lyra.Core.Decentralize
             if (ViewId != 0 && vcm.ViewID != ViewId)
             {
                 _log.LogInformation($"VC Msgs: view ID {vcm.ViewID} not valid with {ViewId}");
+                if (vcm.ViewID > ViewId)
+                {
+                    // maybe outdated?
+                    if(_vcTaskMutex.Wait(1))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
+                                await client.InitAsync();
+                                var lsb = await client.GetLastServiceBlockAsync();
+                                if(lsb.ResultCode == Blocks.APIResultCodes.Success)
+                                {
+                                    var sb = lsb.GetBlock() as ServiceBlock;
+                                    if(sb.Height > ViewId)
+                                    {
+                                        // outdated
+                                        _context.LocalConsolidationFailed(sb.Hash);
+                                    }
+                                }
+                            }
+                            catch(Exception ex)
+                            {
+                                _log.LogError($"In detecting latest view: {ex}");
+                            }
+                            finally
+                            {
+                                // throttle
+                                await Task.Delay(3000);
+                                _vcTaskMutex.Release();
+                            }
+                        });
+                    }
+                }
                 return;
             }
 

@@ -417,6 +417,16 @@ namespace Lyra.Core.Accounts
             return await result.AnyAsync();
         }
 
+        public ServiceBlock GetLastServiceBlock()
+        {
+            var q = _blocks.OfType<ServiceBlock>()
+                .AsQueryable()
+                .OrderByDescending(a => a.Height)
+                .FirstOrDefault();
+
+            return q;
+        }
+
         public async Task<ServiceBlock> GetLastServiceBlockAsync()
         {
             var options = new FindOptions<Block, Block>
