@@ -255,6 +255,9 @@ namespace Lyra.Core.Decentralize
             {
                 _log.LogInformation($"CheckAllStats VID: {ViewId} Time: {TimeStarted} Req: {reqMsgs.Count} Reply: {replyMsgs.Count} Commit: {commitMsgs.Count} Votes {commitMsgs.Count}/{LyraGlobal.GetMajority(_context.Board.AllVoters.Count)}/{_context.Board.AllVoters.Count} Replyed: {replySent} Commited: {commitSent}");
 
+                if (string.IsNullOrEmpty(nextLeader))
+                    CalculateLeaderCandidate();
+
                 var reply = new ViewChangeReplyMessage
                 {
                     From = _sys.PosWallet.AccountId,
