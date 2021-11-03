@@ -219,19 +219,19 @@ namespace Lyra.Core.Authorizers
                     if (!thisBlock.IsBlockValid(prevBlock))
                         return APIResultCodes.AccountChainBlockValidationFailed;
 
-                    if(block.ContainsTag(Block.MANAGEDTAG))
-                    {
-                        var svcBlock = await sys.Storage.FindBlockByHashAsync(block.ServiceHash) as ServiceBlock;
-                        var result = Signatures.VerifyAccountSignature(thisBlock.Hash, svcBlock.Leader, thisBlock.Signature);
-                        if (!result)
-                            return APIResultCodes.AccountChainSignatureValidationFailed;
-                    }
-                    else
-                    {
-                        var result = Signatures.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature);
-                        if (!result)
-                            return APIResultCodes.AccountChainSignatureValidationFailed;
-                    }
+                    //if(block.ContainsTag(Block.MANAGEDTAG))
+                    //{
+                    //    var svcBlock = await sys.Storage.FindBlockByHashAsync(block.ServiceHash) as ServiceBlock;
+                    //    var result = Signatures.VerifyAccountSignature(thisBlock.Hash, svcBlock.Leader, thisBlock.Signature);
+                    //    if (!result)
+                    //        return APIResultCodes.AccountChainSignatureValidationFailed;
+                    //}
+                    //else
+                    //{
+                    //    var result = Signatures.VerifyAccountSignature(thisBlock.Hash, thisBlock.AccountID, thisBlock.Signature);
+                    //    if (!result)
+                    //        return APIResultCodes.AccountChainSignatureValidationFailed;
+                    //}
 
                     thisBlock = prevBlock;
                 }
