@@ -312,20 +312,25 @@ namespace Lyra.Client.CLI
             {
                 Console.Write("The Name of the profiting account: ");
                 var sName = Console.ReadLine();
+                Console.Write("The Type of the profiting account (Node/Oracle/Merchant/Yield): ");
+                var sType = Console.ReadLine();
                 Console.Write("Percentage of revernue you want to share with voters (%): ");
                 var sRitio = Console.ReadLine();
                 Console.Write("Number of seats for voters ( 0 - 100 ): ");
                 var sSeats = Console.ReadLine();
+
+                var type = (ProfitingType)Enum.Parse(typeof(ProfitingType), sType);
                 var ritio = decimal.Parse(sRitio);
                 var seats = int.Parse(sSeats);
                 Console.Write(@$"Create new profiting account: {sName}
+Type: {type}
 Share ritio: {ritio} %
 Seats: {seats}
 
 Y/n? ");
                 if (ReadYesNoAnswer())
                 {
-                    var creatRet = await _wallet.CreateProfitingAccountAsync(sName, ProfitingType.Node, ritio / 100, seats);
+                    var creatRet = await _wallet.CreateProfitingAccountAsync(sName, type, ritio / 100, seats);
                     if (creatRet.Successful())
                     {
                         var pftGensis = creatRet.GetBlock() as ProfitingGenesis;
