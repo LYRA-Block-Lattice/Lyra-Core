@@ -635,7 +635,8 @@ namespace Lyra.Core.Decentralize
                 foreach (var target in targets)
                 {
                     var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
-                    sendAmounts.Add(target.StkAccount, amount);
+                    if(amount > 0.00000001m)
+                        sendAmounts.Add(target.StkAccount, amount);
                 }
 
                 foreach (var target in targets)
@@ -644,7 +645,10 @@ namespace Lyra.Core.Decentralize
                     if (stkSend != null)
                         continue;
 
-                    var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
+                    if (!sendAmounts.ContainsKey(target.StkAccount))
+                        continue;
+
+                    var amount = sendAmounts[target.StkAccount];
                     var sb = await sys.Storage.GetLastServiceBlockAsync();
                     var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
                         target, reqHash,
