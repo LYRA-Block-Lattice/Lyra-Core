@@ -814,13 +814,13 @@ namespace Lyra.Core.Decentralize
             var sb = await sys.Storage.GetLastServiceBlockAsync();
             var sendPrev = await sys.Storage.FindBlockByHashAsync(send.PreviousHash) as TransactionBlock;
             var stkId = send.Tags["stkid"];
-            var lastStk = await sys.Storage.FindLatestBlockAsync(stkId) as StakingBlock;
+            var lastStk = await sys.Storage.FindLatestBlockAsync(stkId) as TransactionBlock;
 
             var stkNext = new UnStakingBlock
             {
                 Height = lastStk.Height + 1,
-                Name = lastStk.Name,
-                OwnerAccountId = lastStk.OwnerAccountId,
+                Name = (lastStk as IBrokerAccount).Name,
+                OwnerAccountId = (lastStk as IBrokerAccount).OwnerAccountId,
                 AccountID = lastStk.AccountID,
                 Balances = new Dictionary<string, long>(),
                 PreviousHash = lastStk.Hash,
@@ -831,8 +831,8 @@ namespace Lyra.Core.Decentralize
                 DestinationAccountId = send.AccountID,
 
                 // pool specified config
-                Days = lastStk.Days,
-                Voting = lastStk.Voting,
+                Days = (lastStk as IStaking).Days,
+                Voting = (lastStk as IStaking).Voting,
                 RelatedTx = send.Hash
             };
 
