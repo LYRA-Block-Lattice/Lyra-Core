@@ -485,6 +485,7 @@ namespace Lyra.Core.Blocks
         InvalidMessengerAccount,
         RequestNotPermited,
         DuplicateAccountType,
+        InvalidManagementBlock,
 
         InvalidBlockData = 400,
         AccountLockDown,

@@ -10,7 +10,7 @@ using Lyra.Data.Utils;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
 
-namespace Noded.Services
+namespace Lyra.Data.API
 {
     public class KeylessWallet
     {
