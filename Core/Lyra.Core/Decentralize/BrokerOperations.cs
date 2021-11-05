@@ -628,7 +628,7 @@ namespace Lyra.Core.Decentralize
             var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
 
             // don't distribute < 1LYR
-            if (profitToDistribute > 1)
+            if (profitToDistribute > 1 && totalStakingAmount > 0)
             {
                 // create a dictionary to hold amounts to send
                 // staking account -> amount
