@@ -100,7 +100,7 @@ namespace Lyra.Core.Decentralize
             // create a semi random account for pool.
             // it can be verified by other nodes.
             var keyStr = $"{send.Hash.Substring(0, 16)},{arrStr[0]},{arrStr[1]},{send.AccountID}";
-            var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+            var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var poolGenesis = new PoolGenesisBlock
             {
@@ -418,7 +418,7 @@ namespace Lyra.Core.Decentralize
             // it can be verified by other nodes.
             decimal shareRito = decimal.Parse(send.Tags["share"]);
             var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["ptype"]},{shareRito.ToBalanceLong()},{send.Tags["seats"]},{send.AccountID}";
-            var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+            var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             ProfitingType ptype;
             Enum.TryParse(send.Tags["ptype"], out ptype);
@@ -730,7 +730,7 @@ namespace Lyra.Core.Decentralize
             // create a semi random account for pool.
             // it can be verified by other nodes.
             var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["voting"]},{send.AccountID}";
-            var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+            var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var stkGenesis = new StakingGenesis
             {

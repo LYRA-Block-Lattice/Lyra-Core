@@ -44,7 +44,7 @@ namespace Lyra.Core.Authorizers
             // create a semi random account for pool.
             // it can be verified by other nodes.
             var keyStr = $"{send.Hash.Substring(0, 16)},{block.PType},{block.ShareRito.ToBalanceLong()},{block.Seats},{send.AccountID}";
-            var (_, AccountId) = Signatures.GenerateWallet(Encoding.ASCII.GetBytes(keyStr).Take(32).ToArray());
+            var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             if (block.AccountID != AccountId)
                 return APIResultCodes.InvalidAccountId;
