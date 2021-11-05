@@ -865,6 +865,8 @@ namespace Lyra.Core.Accounts
 
         private async Task<ReceiveTransferBlock> FindLastReceiveBlockAsync(string AccountId)
         {
+            // must exclude token genesis
+            // fees also has no sourcehash. consider it.
             var options = new FindOptions<ReceiveTransferBlock, ReceiveTransferBlock>
             {
                 Limit = 1,
@@ -872,7 +874,9 @@ namespace Lyra.Core.Accounts
             };
 
             var builder1 = Builders<ReceiveTransferBlock>.Filter;
-            var filterDefinition1 = builder1.Eq("AccountID", AccountId);
+            var filterDefinition1 = builder1.And(
+                builder1.Eq("AccountID", AccountId),
+                builder1.Ne("BlockType", BlockTypes.TokenGenesis));
 
             var finds = await _blocks.OfType<ReceiveTransferBlock>()
                 .FindAsync(filterDefinition1, options);
