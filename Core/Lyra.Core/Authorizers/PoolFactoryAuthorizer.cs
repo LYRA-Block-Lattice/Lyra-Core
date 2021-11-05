@@ -8,16 +8,7 @@ namespace Lyra.Core.Authorizers
 {
     public class PoolFactoryAuthorizer : BaseAuthorizer
     {
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
-        {
-            var result = await AuthorizeImplAsync(sys, tblock);
-
-            if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(sys, tblock));
-            else
-                return (result, (AuthorizationSignature)null);
-        }
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is PoolFactoryBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -35,7 +26,7 @@ namespace Lyra.Core.Authorizers
             if (await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists;
 
-            return APIResultCodes.Success;
+            return await base.AuthorizeImplAsync(sys, tblock);
         }
     }
 }

@@ -12,19 +12,7 @@ namespace Lyra.Core.Authorizers
 {
     public class ImportAccountAuthorizer : BaseAuthorizer
     {
-        public ImportAccountAuthorizer()
-        {
-        }
-
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
-        {
-            var result = await AuthorizeImplAsync(sys, tblock);
-            if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(sys, tblock));
-            else
-                return (result, (AuthorizationSignature)null);
-        }
-        protected virtual async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             // this operation makes too much trouble. disable temproray
             return APIResultCodes.Unsupported;
@@ -40,6 +28,10 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.CouldNotFindLatestBlock;
 
             TransactionBlock last_imported_block = await sys.Storage.FindLatestBlockAsync(import_block.ImportedAccountId) as TransactionBlock;
+
+            var bret = await base.AuthorizeImplAsync(sys, tblock);
+            if (bret != APIResultCodes.Success)
+                return bret;
 
             return await ValidateImportedAccountAsync(sys, import_block, previous_block, last_imported_block);
         }

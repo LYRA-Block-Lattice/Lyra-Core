@@ -30,6 +30,7 @@ namespace Lyra.Core.Authorizers
         }
     }
 
+    // -> Block
     public abstract class BaseAuthorizer : IAuthorizer
     {
         ILogger _log;
@@ -38,15 +39,20 @@ namespace Lyra.Core.Authorizers
             _log = new SimpleLogger("BaseAuthorizer").Logger;
         }
 
-        public virtual Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
+        public async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
         {
-            throw new NotImplementedException("Must override");
+            var result = await AuthorizeImplAsync(sys, tblock);
+
+            if (APIResultCodes.Success == result)
+                return (APIResultCodes.Success, Sign(sys, tblock));
+            else
+                return (result, (AuthorizationSignature)null);
         }
 
-        //public virtual APIResultCodes Commit<T>(T tblock)
-        //{
-        //    throw new NotImplementedException("Must override");
-        //}
+        protected virtual Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        {
+            return Task.FromResult(APIResultCodes.Success);
+        }
 
         protected virtual async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
         {

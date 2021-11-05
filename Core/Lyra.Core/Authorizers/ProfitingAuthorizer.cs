@@ -11,21 +11,7 @@ namespace Lyra.Core.Authorizers
 {
     public class ProfitingAuthorizer : BrokerAccountRecvAuthorizer
     {
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
-        {
-            var br = await base.AuthorizeAsync(sys, tblock);
-            APIResultCodes result;
-            if (br.Item1 == APIResultCodes.Success)
-                result = await AuthorizeImplAsync(sys, tblock);
-            else
-                result = br.Item1;
-
-            if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(sys, tblock));
-            else
-                return (result, (AuthorizationSignature)null);
-        }
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ProfitingBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -38,7 +24,7 @@ namespace Lyra.Core.Authorizers
             if (block.Seats < 1 || block.Seats > 100)
                 return APIResultCodes.InvalidSeatsCount;
 
-            return APIResultCodes.Success;
+            return await base.AuthorizeImplAsync(sys, tblock);
         }
     }
 }

@@ -5,20 +5,7 @@ namespace Lyra.Core.Authorizers
 {
     public class CancelTradeOrderAuthorizer: BaseAuthorizer
     {
-        public CancelTradeOrderAuthorizer()
-        {
-        }
-
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
-        {
-            var result = await AuthorizeImplAsync(sys, tblock);
-            if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(sys, tblock));
-            else
-                return (result, (AuthorizationSignature)null);
-        }
-
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is CancelTradeOrderBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -51,7 +38,7 @@ namespace Lyra.Core.Authorizers
 
             //sys.TradeEngine.RemoveOrder(original_order);
 
-            return APIResultCodes.Success;
+            return await base.AuthorizeImplAsync(sys, tblock);
         }
 
         // The cancellation should restore the balance that was locked by the trade order.

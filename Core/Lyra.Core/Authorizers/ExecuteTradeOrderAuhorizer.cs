@@ -7,20 +7,7 @@ namespace Lyra.Core.Authorizers
 {
     public class ExecuteTradeOrderAuthorizer: SendTransferAuthorizer
     {
-        public ExecuteTradeOrderAuthorizer()
-        { 
-        }
-
-        public override async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
-        {
-            var result = await AuthorizeImplAsync(sys, tblock);
-            if (APIResultCodes.Success == result)
-                return (APIResultCodes.Success, Sign(sys, tblock));
-            else
-                return (result, (AuthorizationSignature)null);
-        }
-
-        private async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ExecuteTradeOrderBlock))
                 return APIResultCodes.InvalidBlockType;
@@ -84,8 +71,7 @@ namespace Lyra.Core.Authorizers
             //if (trade_order.MaxQuantity == 1)
             //    sys.TradeEngine.RemoveOrder(trade_order);
 
-            return APIResultCodes.Success;
-
+            return await base.AuthorizeImplAsync(sys, tblock);
         }
 
         protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
