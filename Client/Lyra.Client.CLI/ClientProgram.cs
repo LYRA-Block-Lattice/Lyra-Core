@@ -43,6 +43,9 @@ namespace Lyra.Client.CLI
         [Option("-w|--wallet", Description = "Wallet Name")]
         public string WalletName { get; set; }
 
+        [Option("-e|--exec", Description = "Run command and exit")]
+        public string Exec { get; set; }
+
         [Option("-s|--rpcserver", Description = "Run JsonRPC Server")]
         public bool RunJsonRPCServer { get; set; }
 

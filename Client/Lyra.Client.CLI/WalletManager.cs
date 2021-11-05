@@ -46,7 +46,7 @@ namespace Lyra.Client.CLI
 
             CommandProcessor command = new CommandProcessor();
             string walletName = options.WalletName;
-            string walletPassword = null;
+            string walletPassword = options.WalletPassword;
             try
             {
                 while (walletName == null || !File.Exists($"{lyra_folder}{Path.DirectorySeparatorChar}{walletName}{LyraGlobal.WALLETFILEEXT}"))
@@ -173,12 +173,20 @@ namespace Lyra.Client.CLI
 
                 var cmdInput = CommandProcessor.COMMAND_STATUS;
 
-                while (!options.cancellation.IsCancellationRequested && cmdInput != CommandProcessor.COMMAND_STOP)
+                if (options.Exec != null)
                 {
-                    var result = await command.ExecuteAsync(wallet, cmdInput, options.cancellation.Token);
+                    var result = await command.ExecuteAsync(wallet, options.Exec, options.cancellation.Token);
                     Console.Write(string.Format("\n{0}> ", wallet.AccountName));
-                    //Console.Write
-                    cmdInput = Console.ReadLine();
+                }
+                else
+                {
+                    while (!options.cancellation.IsCancellationRequested && cmdInput != CommandProcessor.COMMAND_STOP)
+                    {
+                        var result = await command.ExecuteAsync(wallet, cmdInput, options.cancellation.Token);
+                        Console.Write(string.Format("\n{0}> ", wallet.AccountName));
+                        //Console.Write
+                        cmdInput = Console.ReadLine();
+                    }
                 }
 
                 Console.WriteLine($"{LyraGlobal.PRODUCTNAME} Client is shutting down");

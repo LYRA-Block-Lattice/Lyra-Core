@@ -2,7 +2,7 @@
   "profiles": {
     "Lyra.Client.CLI": {
       "commandName": "Project",
-      "commandLineArgs": "--networkid devnet"
+      "commandLineArgs": "--networkid devnet -w testx -e syncp --password \"\""
     },
     "Docker": {
       "commandName": "Docker"

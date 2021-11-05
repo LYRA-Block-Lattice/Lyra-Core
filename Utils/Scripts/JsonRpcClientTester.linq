@@ -20,20 +20,21 @@ async static Task Main(string[] args)
 {
 	//var networkId = "testnet";
 	//var url = "wss://testnet.lyra.live/api/v1/socket";
+	//var url = "wss://192.168.3.62:4504/api/v1/socket";
 	
 	var networkId = "devnet";
 	//var url = "wss://api.devnet:4504/api/v1/socket";
-	var url = "wss://localhost:4504/api/v1/socket";
+	var url = "wss://devnet.lyra.live:4504/api/v1/socket";
 	//var url = "wss://localhost:4504/api/v2/socket";
 
 	var cancel = new CancellationTokenSource();
 
 	var w1 = new JsWallet("dkrwRdqNjEEshpLuEPPqc6zM1HM3nzGjsYts39zzA1iUypcpj", url, networkId, cancel);
 
-	(var pvt, var pub) = PortableSignatures.GenerateWallet();
+	//(var pvt, var pub) = PortableSignatures.GenerateWallet();
 	// if need to insepct.
-	File.AppendAllText($"{Environment.ExpandEnvironmentVariables("%TEMP%")}\\testerkeys.txt", $"Tester {DateTime.Now} {pvt} {pub}");
-
+	//File.AppendAllText($"{Environment.ExpandEnvironmentVariables("%TEMP%")}\\testerkeys.txt", $"Tester {DateTime.Now} {pvt} {pub}");
+	var pvt = "pEKgwTAvZc5eBbqigu8wpTd59N2cxTsAJWoBqzR32kxFegknq";// LT29bEJF2WafaGppVQBcXtCKc93XjK77mv4k5qrfGiSAWPNUEmBgCzBRMsh9wpg3FLM1er63cPZ8NCMeBBWuGrJ9d1xwcF
 	var wtest = new JsWallet(pvt, url, networkId, cancel);
 	
 	_ = Task.Run(async () => await Tester.TestProc(wtest, w1, networkId, cancel) );
@@ -50,12 +51,16 @@ public class Tester
 		while(!tester.IsReady)
 			await Task.Delay(1000);
 
-		tester.CallRPC("get status", "ApiStatus Status(string version, string networkid)", "Status", new string[] { "2.2.0.0", networkId });
-		tester.CallRPC("get status with error", "ApiStatus Status(string version, string networkid) with error", "Status", new string[] { "2.0", networkId });
+		//tester.CallRPC("get status", "ApiStatus Status(string version, string networkid)", "Status", new string[] { "2.2.0.0", networkId });
+		//tester.CallRPC("get status with error", "ApiStatus Status(string version, string networkid) with error", "Status", new string[] { "2.0", networkId });
 
 		tester.CallRPC("wallet get balance", "BalanceResult Balance(string accountId)", "Balance", new string[] { tester.AccountId });
+
 		tester.CallRPC("monitor receiving", "void Monitor(string accountId)", "Monitor", new string[] { tester.AccountId });
 
+		//cancel.Cancel();
+		//return;
+		
 		// someone send to this wallet
 		await Task.Delay(2000);
 		Console.WriteLine("\n> rich guy is sending you token...\n");
