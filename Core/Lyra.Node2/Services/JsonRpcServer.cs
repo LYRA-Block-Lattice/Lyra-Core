@@ -422,6 +422,17 @@ namespace Lyra.Node
 
                     if(blk is IStaking stk)
                     {
+                        decimal amt = 0;
+                        var lastblkret = await _node.GetLastBlockAsync((stk as TransactionBlock).AccountID);
+                        if(lastblkret.Successful())
+                        {
+                            var lastblk = lastblkret.GetBlock() as TransactionBlock;
+                            if (lastblk.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                            {
+                                amt = lastblk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                            }
+                        }
+
                         var stkinfo = new StakingInfo
                         {
                             owner = stk.OwnerAccountId,
@@ -429,7 +440,7 @@ namespace Lyra.Node
                             name = stk.Name,
 
                             start = (stk as TransactionBlock).TimeStamp,
-                            amount = 0,
+                            amount = amt,
                             days = stk.Days,
                             voting = stk.Voting
                         };
