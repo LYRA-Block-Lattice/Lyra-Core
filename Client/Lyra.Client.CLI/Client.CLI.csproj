@@ -13,10 +13,10 @@
     <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>bin\Debug\netcoreapp3.1</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>bin\Release\netcoreapp3.1</OutputPath>
+    <OutputPath>bin\Release\</OutputPath>
     <NoWarn>
     </NoWarn>
     <AllowUnsafeBlocks>

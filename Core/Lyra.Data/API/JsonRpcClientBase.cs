@@ -12,6 +12,13 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.API
 {
+    public class BrokerAccountsInfo
+    {
+        public string owner { get; set; }
+        public List<ProfitInfo> profits { get; set; }
+        public List<StakingInfo> stakings { get; set; }
+    }
+
     public class StakingInfo
     {
         public string name { get; set; }

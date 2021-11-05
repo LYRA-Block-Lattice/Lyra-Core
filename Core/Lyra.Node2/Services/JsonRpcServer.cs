@@ -392,6 +392,59 @@ namespace Lyra.Node
             }
         }
 
+        [JsonRpcMethod("GetBrokerAccounts")]
+        public async Task<BrokerAccountsInfo> GetBrokerAccountsAsync(string accountId)
+        {
+            var result = await _node.GetAllBrokerAccountsForOwnerAsync(accountId);
+            if (result.ResultCode == APIResultCodes.Success)
+            {
+                BrokerAccountsInfo accts = new BrokerAccountsInfo();
+                accts.owner = accountId;
+                accts.profits = new List<ProfitInfo>();
+                accts.stakings = new List<StakingInfo>();
+
+                var blks = result.GetBlocks();
+                foreach(var blk in blks)
+                {
+                    if(blk is IProfiting pft)
+                    {
+                        var pftinfo = new ProfitInfo
+                        {
+                            owner = pft.OwnerAccountId,
+                            pftid = (blk as TransactionBlock).AccountID,
+                            seats = pft.Seats,
+                            shareratio = pft.ShareRito,
+                            name = pft.Name,
+                            type = pft.PType.ToString()
+                        };
+                        accts.profits.Add(pftinfo);
+                    }
+
+                    if(blk is IStaking stk)
+                    {
+                        var stkinfo = new StakingInfo
+                        {
+                            owner = stk.OwnerAccountId,
+                            stkid = (stk as TransactionBlock).AccountID,
+                            name = stk.Name,
+
+                            start = (stk as TransactionBlock).TimeStamp,
+                            amount = 0,
+                            days = stk.Days,
+                            voting = stk.Voting
+                        };
+
+                        accts.stakings.Add(stkinfo);
+                    }
+                }
+                return accts;
+            }
+            else
+            {
+                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+            }
+        }
+
         [JsonRpcMethod("CreateProfitingAccount")]
         public async Task<ProfitInfo> CreateProfitingAccountAsync(string accountId, string Name, ProfitingType ptype, decimal shareRito, int maxVoter)
         {
