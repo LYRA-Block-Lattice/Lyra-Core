@@ -16,16 +16,19 @@
   <Namespace>WebSocket4Net</Namespace>
 </Query>
 
+
+//var networkId = "testnet";
+//var url = "wss://testnet.lyra.live/api/v1/socket";
+//var url = "wss://192.168.3.62:4504/api/v1/socket";
+
+static string networkId = "devnet";
+//var url = "wss://api.devnet:4504/api/v1/socket";
+static string url = "wss://devnet.lyra.live:4504/api/v1/socket";
+//var url = "wss://localhost:4504/api/v2/socket";
+
 async static Task Main(string[] args)
 {
-	//var networkId = "testnet";
-	//var url = "wss://testnet.lyra.live/api/v1/socket";
-	//var url = "wss://192.168.3.62:4504/api/v1/socket";
-	
-	var networkId = "devnet";
-	//var url = "wss://api.devnet:4504/api/v1/socket";
-	var url = "wss://devnet.lyra.live:4504/api/v1/socket";
-	//var url = "wss://localhost:4504/api/v2/socket";
+
 
 	var cancel = new CancellationTokenSource();
 
@@ -62,10 +65,10 @@ public class Tester
 		//return;
 		
 		// someone send to this wallet
-		await Task.Delay(2000);
+		await Task.Delay(4000);
 		Console.WriteLine("\n> rich guy is sending you token...\n");
-		richGuy.Send(tester.AccountId, "LYR", 13000);
-		await Task.Delay(2000);
+		richGuy.Send(tester.AccountId, "LYR", 23000);
+		await Task.Delay(4000);
 
 		tester.CallRPC("balance shows unreceived", "BalanceResult Balance(string accountId)", "Balance", new string[] { tester.AccountId });
 		tester.CallRPC("receive it", "BalanceResult Receive(string accountId)", "Receive", new string[] { tester.AccountId });		
@@ -76,8 +79,39 @@ public class Tester
 		var jsonTime = (long) Math.Round(DateTime.UtcNow
 			   .Subtract(new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc))
 			   .TotalMilliseconds);
-		tester.CallRPC("show all transaction history", "List<TransactionDescription> History(string accountId, long startTime, long endTime, int count)", "History", new string[] { tester.AccountId, "0", jsonTime.ToString(), "100" });
+		tester.CallRPC("show all transaction history", "List<TransactionDescription> History(string accountId, long startTime, long endTime, int count)", "History", new string[] { tester.AccountId, "0", jsonTime.ToString(), "5" });
 
+		// do profiting / staking stuff
+		(var pvt1, var pub1) = PortableSignatures.GenerateWallet();
+		(var pvt2, var pub2) = PortableSignatures.GenerateWallet();
+		var wpft = new JsWallet(pvt1, url, networkId, cancel);
+		var wstk = new JsWallet(pvt2, url, networkId, cancel);
+		richGuy.Send(wpft.AccountId, "LYR", 2000);
+		richGuy.Send(wstk.AccountId, "LYR", 2000);
+		await Task.Delay(1000);
+		wpft.Receive();
+		wstk.Receive();
+		(dynamic pftresult, _) = wpft.CallRPC("Create a profiting account", "ProfitInfo CreateProfitingAccount(string accountId, string Name, ProfitingType ptype, decimal shareRito, int maxVoter)", "CreateProfitingAccount", new string[]{wpft.AccountId, "Pft1", "Node", "0.8", "100"});
+		await Task.Delay(2000);
+		(dynamic stkresult, _) = wstk.CallRPC("Staking to a profiting account", "StakingInfo CreateStakingAccount(string accountId, string Name, string voteFor, int daysToStake)", "CreateStakingAccount", new string[] {wstk.AccountId, "Stk1", pftresult.result.pftid, "1000"});
+		await Task.Delay(2000);
+		(dynamic addstkresult, _) = wstk.CallRPC("Add staking funds", "bool AddStaking(string accountId, string stakingAccountId, decimal amount)", "AddStaking", new string[] {wstk.AccountId, stkresult.result.stkid, "200"});
+		await Task.Delay(2000);
+
+
+		(dynamic pftdvdresult, _) = wpft.CallRPC("Create dividends", "bool CreateDividends(string accountId, string profitingAccountId)", "CreateDividends", new string[] { wpft.AccountId, pftresult.result.pftid });
+		await Task.Delay(2000);
+		(dynamic unstkresult, _) = wstk.CallRPC("Unstaking", "bool UnStaking(string accountId, string stakingAccountId)", "UnStaking", new string[] { wstk.AccountId, stkresult.result.stkid});
+		await Task.Delay(2000);
+
+		// broker account info
+		wstk.CallRPC("Create a profiting account", "ProfitInfo CreateProfitingAccount(string accountId, string Name, ProfitingType ptype, decimal shareRito, int maxVoter)", "CreateProfitingAccount", new string[] { wstk.AccountId, "Pft Test", "Node", "0.5", "42" });
+		await Task.Delay(2000);
+		(dynamic getstkresult, _) = wstk.CallRPC("Get all broker accounts", "BrokerAccountsInfo GetBrokerAccounts(string accountId)", "GetBrokerAccounts", new string[] { wstk.AccountId });
+		await Task.Delay(2000);
+
+		await Task.Delay(2000);
+		
 		// doing pool stuff
 		var ticker = $"testit/{tokenName}";
 		tester.CallRPC("get pool info", "PoolInfo Pool(string token0, string token1)", "Pool", new string[] { "LYR", ticker });
@@ -232,6 +266,8 @@ public abstract class LyraJsonRPCClient
 			@params = args
 		}, wait);		
 		Console.WriteLine();
+		
+		Thread.Sleep(2000);
 		
 		return (_data, _error);
 	}
