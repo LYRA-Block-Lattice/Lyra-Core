@@ -15,7 +15,7 @@ using Lyra.Core.Decentralize;
 
 namespace Lyra.Core.Authorizers
 {
-    public class SendTransferAuthorizer : BaseAuthorizer
+    public class SendTransferAuthorizer : TransactionAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
@@ -495,17 +495,14 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-
-        protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
+        protected override decimal GetFeeAmount()
         {
-            APIResultCodes result = APIResultCodes.Success;
-            if (block.FeeType != AuthorizationFeeTypes.Regular)
-                result = APIResultCodes.InvalidFeeAmount;
+            return 1m;
+        }
 
-            if (block.Fee != (await sys.Storage.GetLastServiceBlockAsync()).TransferFee)
-                result = APIResultCodes.InvalidFeeAmount;
-
-            return result;
+        protected override AuthorizationFeeTypes GetFeeType()
+        {
+            return AuthorizationFeeTypes.Regular;
         }
 
         protected override async Task<APIResultCodes> ValidateCollectibleNFTAsync(DagSystem sys, TransactionBlock send_or_receice_block, TokenGenesisBlock token_block)

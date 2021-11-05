@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class TradeOrderAuthorizer: BaseAuthorizer
+    public class TradeOrderAuthorizer: TransactionAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {

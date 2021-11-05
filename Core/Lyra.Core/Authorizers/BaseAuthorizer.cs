@@ -103,17 +103,23 @@ namespace Lyra.Core.Authorizers
                     if (block.Tags[Block.MANAGEDTAG] != "")
                         return APIResultCodes.InvalidManagementBlock;
 
-                    if (!(block is IBrokerAccount))
-                        return APIResultCodes.InvalidBrokerAcount;
+                    //if (!(block is IBrokerAccount) && !(block is PoolFactoryBlock) && !(block is IPool))
+                    //    return APIResultCodes.InvalidBrokerAcount;
+
+                    var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                    verifyAgainst = board.CurrentLeader;
                 }
                 else
                 {
                     if (block is IBrokerAccount)
                         return APIResultCodes.InvalidBrokerAcount;
 
-                    var firstBlock = await sys.Storage.FindFirstBlockAsync(blockt.AccountID);
-                    if (firstBlock is IBrokerAccount || firstBlock.ContainsTag(Block.MANAGEDTAG))
-                        return APIResultCodes.InvalidBrokerAcount;
+                    if(block.Height > 1)
+                    {
+                        var firstBlock = await sys.Storage.FindFirstBlockAsync(blockt.AccountID);
+                        if (firstBlock is IBrokerAccount || firstBlock.ContainsTag(Block.MANAGEDTAG))
+                            return APIResultCodes.InvalidBrokerAcount;
+                    }
                 }
 
                 if(previousBlock != null && previousBlock.ContainsTag(Block.MANAGEDTAG))
@@ -291,27 +297,7 @@ namespace Lyra.Core.Authorizers
                 //        return APIResultCodes.InvalidFeeAmount;
             }
 
-            var res = await ValidateFeeAsync(sys, block);
-            if (res != APIResultCodes.Success)
-                return res;
-
             return APIResultCodes.Success;
-        }
-
-        //protected abstract Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block);
-
-        protected virtual Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
-        {
-            APIResultCodes result;
-            if (block.FeeType != AuthorizationFeeTypes.NoFee)
-                result = APIResultCodes.InvalidFeeAmount;
-
-            if (block.Fee != 0)
-                result = APIResultCodes.InvalidFeeAmount;
-
-            result = APIResultCodes.Success;
-
-            return Task.FromResult(result);
         }
 
         protected virtual async Task<APIResultCodes> ValidateNonFungibleAsync(DagSystem sys, TransactionBlock send_or_receice_block, TransactionBlock previousBlock)

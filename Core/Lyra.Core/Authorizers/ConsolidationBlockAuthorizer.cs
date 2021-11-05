@@ -13,11 +13,6 @@ namespace Lyra.Core.Authorizers
 {
     public class ConsolidationBlockAuthorizer : BaseAuthorizer
     {
-        protected override Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
-        {
-            return Task.FromResult(APIResultCodes.Success);
-        }
-
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ConsolidationBlock))

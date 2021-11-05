@@ -11,7 +11,7 @@ using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class ReceiveTransferAuthorizer: BaseAuthorizer
+    public class ReceiveTransferAuthorizer: TransactionAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
@@ -29,34 +29,39 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.Success;
             }
 
-            if (!await sys.Storage.AccountExistsAsync(block.AccountID))
-                return APIResultCodes.AccountDoesNotExist;
+            if(block.BlockType != BlockTypes.OpenAccountWithReceiveTransfer && 
+                block.BlockType != BlockTypes.OpenAccountWithReceiveFee &&
+                block.BlockType != BlockTypes.OpenAccountWithImport)
+            {
+                if (!await sys.Storage.AccountExistsAsync(block.AccountID))
+                    return APIResultCodes.AccountDoesNotExist;
+
+                TransactionBlock lastBlock = await sys.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
+                if (lastBlock == null)
+                    return APIResultCodes.CouldNotFindLatestBlock;
+
+                var result = await VerifyBlockAsync(sys, block, lastBlock);
+                if (result != APIResultCodes.Success)
+                    return result;
+
+                result = await VerifyTransactionBlockAsync(sys, block);
+                if (result != APIResultCodes.Success)
+                    return result;
+
+                if (!block.ValidateTransaction(lastBlock))
+                    return APIResultCodes.ReceiveTransactionValidationFailed;
+
+                result = await ValidateReceiveTransAmountAsync(sys, block, block.GetBalanceChanges(lastBlock));
+                if (result != APIResultCodes.Success)
+                    return result;
+
+                result = await ValidateNonFungibleAsync(sys, block, lastBlock);
+                if (result != APIResultCodes.Success)
+                    return result;
+            }
 
             if (await sys.Storage.WasAccountImportedAsync(block.AccountID))
                 return APIResultCodes.CannotModifyImportedAccount;
-
-            TransactionBlock lastBlock = await sys.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
-            if (lastBlock == null)
-                return APIResultCodes.CouldNotFindLatestBlock;
-
-            var result = await VerifyBlockAsync(sys, block, lastBlock);
-            if (result != APIResultCodes.Success)
-                return result;
-
-            result = await VerifyTransactionBlockAsync(sys, block);
-            if (result != APIResultCodes.Success)
-                return result;
-
-            if (!block.ValidateTransaction(lastBlock))
-                return APIResultCodes.ReceiveTransactionValidationFailed;
-
-            result = await ValidateReceiveTransAmountAsync(sys, block, block.GetBalanceChanges(lastBlock));
-            if (result != APIResultCodes.Success)
-                return result;
-
-            result = await ValidateNonFungibleAsync(sys, block, lastBlock);
-            if (result != APIResultCodes.Success)
-                return result;
 
             // Check duplicate receives (kind of double spending up down)
             var duplicate_block = await sys.Storage.FindBlockBySourceHashAsync(block.SourceHash);
@@ -66,17 +71,10 @@ namespace Lyra.Core.Authorizers
             return await base.AuthorizeImplAsync(sys, tblock);
         }
 
-        //protected override Task<APIResultCodes> ValidateFeeAsync(TransactionBlock block)
-        //{
-        //    if (block.FeeType != AuthorizationFeeTypes.NoFee)
-        //        return Task.FromResult(APIResultCodes.InvalidFeeAmount);
-
-        //    if (block.Fee != 0)
-        //        return Task.FromResult(APIResultCodes.InvalidFeeAmount);
-
-        //    return Task.FromResult(APIResultCodes.Success);
-        //}
-
+        protected override AuthorizationFeeTypes GetFeeType()
+        {
+            return AuthorizationFeeTypes.NoFee;
+        }
 
         protected virtual async Task<APIResultCodes> ValidateReceiveTransAmountAsync(DagSystem sys, ReceiveTransferBlock block, BalanceChanges receiveTransaction)
         {

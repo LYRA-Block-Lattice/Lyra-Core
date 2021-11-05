@@ -114,18 +114,6 @@ namespace Lyra.Core.Authorizers
             return await base.AuthorizeImplAsync(sys, tblock);
         }
 
-        protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
-        {
-            if (block.FeeType != AuthorizationFeeTypes.Regular)
-                return APIResultCodes.InvalidFeeAmount;
-
-            if (block.Fee != (await sys.Storage.GetLastServiceBlockAsync()).TokenGenerationFee)
-                return APIResultCodes.InvalidFeeAmount;
-
-            return APIResultCodes.Success;
-        }
-
-
 
     }
 }

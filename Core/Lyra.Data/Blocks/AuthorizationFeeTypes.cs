@@ -21,9 +21,9 @@
         BothParties = 2,
 
         /// <summary>
-        /// Zero fee - the fee is "paid" by client's proof of work.
+        /// dynamic calculated, like swap, with ratio, etc.
         /// </summary>
-        PoW = 3
+        Dynamic = 3,
     }
 
 }

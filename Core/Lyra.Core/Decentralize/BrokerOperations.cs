@@ -368,7 +368,7 @@ namespace Lyra.Core.Decentralize
                 Tags = null,
                 Fee = cfg.PayToAuthorizer,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.Regular,
+                FeeType = AuthorizationFeeTypes.Dynamic,
                 RelatedTx = send.Hash
             };
 
@@ -478,6 +478,7 @@ namespace Lyra.Core.Decentralize
                                            entry => entry.Value),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 NonFungibleToken = null,
 
                 // profit specified config

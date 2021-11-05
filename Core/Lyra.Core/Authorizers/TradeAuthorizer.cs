@@ -11,7 +11,7 @@ using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {
-    public class TradeAuthorizer: BaseAuthorizer
+    public class TradeAuthorizer : TransactionAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {

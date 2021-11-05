@@ -38,18 +38,5 @@ namespace Lyra.Core.Authorizers
             return await base.AuthorizeImplAsync(sys, tblock);
         }
 
-        //protected override APIResultCodes ValidateFeeAsync(TransactionBlock block)
-        //{
-        //    if (block.FeeType != AuthorizationFeeTypes.NoFee)
-        //        return APIResultCodes.InvalidFeeAmount;
-
-        //    if (block.Fee != 0)
-        //        return APIResultCodes.InvalidFeeAmount;
-
-        //    return APIResultCodes.Success;
-        //}
-
-
-
     }
 }

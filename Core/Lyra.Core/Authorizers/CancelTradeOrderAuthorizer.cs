@@ -56,16 +56,5 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)
-        {
-            if (block.FeeType != AuthorizationFeeTypes.NoFee)
-                return APIResultCodes.InvalidFeeAmount;
-
-            if (block.Fee != 0)
-                return APIResultCodes.InvalidFeeAmount;
-
-            return await Task.FromResult(APIResultCodes.Success);
-        }
-
     }
 }
