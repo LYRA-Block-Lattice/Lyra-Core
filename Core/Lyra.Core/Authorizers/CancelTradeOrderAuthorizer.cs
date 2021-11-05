@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class CancelTradeOrderAuthorizer: BaseAuthorizer
+    public class CancelTradeOrderAuthorizer: ReceiveTransferAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {

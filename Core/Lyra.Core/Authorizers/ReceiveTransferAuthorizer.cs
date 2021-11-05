@@ -31,7 +31,8 @@ namespace Lyra.Core.Authorizers
 
             if(block.BlockType != BlockTypes.OpenAccountWithReceiveTransfer && 
                 block.BlockType != BlockTypes.OpenAccountWithReceiveFee &&
-                block.BlockType != BlockTypes.OpenAccountWithImport)
+                block.BlockType != BlockTypes.OpenAccountWithImport &&
+                block.BlockType != BlockTypes.LyraTokenGenesis)
             {
                 if (!await sys.Storage.AccountExistsAsync(block.AccountID))
                     return APIResultCodes.AccountDoesNotExist;
@@ -55,9 +56,12 @@ namespace Lyra.Core.Authorizers
                 if (result != APIResultCodes.Success)
                     return result;
 
-                result = await ValidateNonFungibleAsync(sys, block, lastBlock);
-                if (result != APIResultCodes.Success)
-                    return result;
+                if(block.BlockType != BlockTypes.TokenGenesis)
+                {
+                    result = await ValidateNonFungibleAsync(sys, block, lastBlock);
+                    if (result != APIResultCodes.Success)
+                        return result;
+                }
             }
 
             if (await sys.Storage.WasAccountImportedAsync(block.AccountID))

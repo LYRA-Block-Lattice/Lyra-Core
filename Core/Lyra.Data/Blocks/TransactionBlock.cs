@@ -142,9 +142,17 @@ namespace Lyra.Core.Blocks
 
             var trs = GetBalanceChanges(previousBlock);
 
-            //if (trs.Amount == 0)
-            if (trs.Changes.Count == 0 || trs.Changes.Any(a => a.Value <= 0))
-                return false;
+            if(this is TokenGenesisBlock)
+            {
+                // lyra down, other up
+                if (trs.Changes.Count == 0 || trs.Changes[LyraGlobal.OFFICIALTICKERCODE] >= 0)
+                    return false;
+            }
+            else
+            {
+                if (trs.Changes.Count == 0 || trs.Changes.Any(a => a.Value <= 0))
+                    return false;
+            }
 
             return true;
         }

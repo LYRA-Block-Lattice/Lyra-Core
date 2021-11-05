@@ -10,7 +10,7 @@ using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {
-    public class ImportAccountAuthorizer : BaseAuthorizer
+/*    public class ImportAccountAuthorizer : BaseAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
@@ -135,5 +135,5 @@ namespace Lyra.Core.Authorizers
         }
 
 
-    }
+    }*/
 }

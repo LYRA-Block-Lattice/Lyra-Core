@@ -24,17 +24,15 @@ namespace Lyra.Core.Decentralize
 
             _authorizers = new Dictionary<BlockTypes, string>();
             _authorizers.Add(BlockTypes.SendTransfer, "SendTransferAuthorizer");
-            _authorizers.Add(BlockTypes.LyraTokenGenesis, "GenesisAuthorizer");
+            
             _authorizers.Add(BlockTypes.ReceiveFee, "ReceiveTransferAuthorizer");
             _authorizers.Add(BlockTypes.ReceiveNodeProfit, "ReceiveNodeProfitAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithReceiveFee, "NewAccountAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithReceiveTransfer, "NewAccountAuthorizer");
-            _authorizers.Add(BlockTypes.OpenAccountWithImport, "NewAccountWithImportAuthorizer");
+            //_authorizers.Add(BlockTypes.OpenAccountWithImport, "NewAccountWithImportAuthorizer");
             _authorizers.Add(BlockTypes.ReceiveTransfer, "ReceiveTransferAuthorizer");
-            _authorizers.Add(BlockTypes.ImportAccount, "ImportAccountAuthorizer");
-            _authorizers.Add(BlockTypes.TokenGenesis, "NewTokenAuthorizer");
+            //_authorizers.Add(BlockTypes.ImportAccount, "ImportAccountAuthorizer");
             _authorizers.Add(BlockTypes.Consolidation, "ConsolidationBlockAuthorizer");
-            //_authorizers.Add(BlockTypes.NullTransaction, "NullTransactionAuthorizer");
             _authorizers.Add(BlockTypes.Service, "ServiceAuthorizer");
             _authorizers.Add(BlockTypes.TradeOrder, "TradeOrderAuthorizer");
             _authorizers.Add(BlockTypes.Trade, "TradeAuthorizer");
@@ -52,6 +50,9 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.StakingGenesis, "StakingGenesisAuthorizer");
             _authorizers.Add(BlockTypes.Staking, "StakingAuthorizer");
             _authorizers.Add(BlockTypes.UnStaking, "UnStakingAuthorizer");
+
+            _authorizers.Add(BlockTypes.LyraTokenGenesis, "LyraGenesisAuthorizer");
+            _authorizers.Add(BlockTypes.TokenGenesis, "TokenGenesisAuthorizer");
 
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
             foreach(var kvp in _authorizers)

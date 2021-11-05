@@ -620,6 +620,7 @@ namespace Lyra.Core.Decentralize
                 PreviousHash = svcGen.Hash,
                 ServiceHash = svcGen.Hash,
                 Fee = svcGen.TokenGenerationFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.Regular,
                 RenewalDate = DateTime.UtcNow.AddYears(100)
             };

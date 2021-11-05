@@ -398,6 +398,7 @@ namespace Lyra.Data.API
                 Balances = new Dictionary<string, long>(),
                 ServiceHash = svcBlockResult.GetBlock().Hash,
                 Fee = lastServiceBlock.TokenGenerationFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.Regular,
                 Owner = owner,
                 Address = address,

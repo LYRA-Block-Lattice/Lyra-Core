@@ -6,7 +6,7 @@ using Lyra.Core.Accounts;
 
 namespace Lyra.Core.Authorizers
 {
-    public class NewAccountWithImportAuthorizer : ImportAccountAuthorizer
+/*    public class NewAccountWithImportAuthorizer : ImportAccountAuthorizer
     {
         public NewAccountWithImportAuthorizer()
         {
@@ -53,5 +53,5 @@ namespace Lyra.Core.Authorizers
             }
             return APIResultCodes.Success;
         }
-    }
+    }*/
 }
