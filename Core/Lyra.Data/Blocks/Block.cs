@@ -486,6 +486,7 @@ namespace Lyra.Core.Blocks
         RequestNotPermited,
         DuplicateAccountType,
         InvalidManagementBlock,
+        InvalidBrokerAcount,
 
         InvalidBlockData = 400,
         AccountLockDown,

@@ -15,6 +15,7 @@ using Lyra.Shared;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using Lyra.Data.Utils;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Authorizers
 {
@@ -91,9 +92,30 @@ namespace Lyra.Core.Authorizers
                 if (block.Height > 1 && previousBlock == null)
                     return APIResultCodes.InvalidPreviousBlock;
 
+                if(block.ContainsTag(Block.MANAGEDTAG))
+                {
+                    if (block.Tags[Block.MANAGEDTAG] != "")
+                        return APIResultCodes.InvalidManagementBlock;
+
+                    if (!(block is IBrokerAccount))
+                        return APIResultCodes.InvalidBrokerAcount;
+                }
+                else
+                {
+                    if (block is IBrokerAccount)
+                        return APIResultCodes.InvalidBrokerAcount;
+
+                    var firstBlock = await sys.Storage.FindFirstBlockAsync(blockt.AccountID);
+                    if (firstBlock is IBrokerAccount || firstBlock.ContainsTag(Block.MANAGEDTAG))
+                        return APIResultCodes.InvalidBrokerAcount;
+                }
+
                 if(previousBlock != null && previousBlock.ContainsTag(Block.MANAGEDTAG))
                 {
                     if (!blockt.ContainsTag(Block.MANAGEDTAG))
+                        return APIResultCodes.InvalidManagementBlock;
+
+                    if (blockt.Tags[Block.MANAGEDTAG] != "")
                         return APIResultCodes.InvalidManagementBlock;
 
                     var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
