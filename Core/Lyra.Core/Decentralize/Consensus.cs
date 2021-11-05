@@ -697,7 +697,8 @@ namespace Lyra.Core.Decentralize
                 PreviousHash = sb.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,
-                FeeType = AuthorizationFeeTypes.NoFee
+                FeeType = AuthorizationFeeTypes.NoFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
             };
 
             pf.AddTag(Block.MANAGEDTAG, "");        // no othere variables.

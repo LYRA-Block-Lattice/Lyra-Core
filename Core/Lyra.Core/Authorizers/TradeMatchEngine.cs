@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Lyra.Core.Blocks;
 using Lyra.Core.Accounts;
 using System;
+using Lyra.Core.API;
 
 namespace Lyra.Core.Authorizers
 {
@@ -76,7 +77,8 @@ namespace Lyra.Core.Authorizers
                         AccountID = order.AccountID,
                         SellTokenCode = order.SellTokenCode,
                         BuyTokenCode = order.BuyTokenCode,
-                        BuyAmount = order.TradeAmount
+                        BuyAmount = order.TradeAmount,
+                        FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                     };
 
                     if (sellorder.CoverAnotherTradersFee)

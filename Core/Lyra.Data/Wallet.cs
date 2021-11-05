@@ -332,6 +332,7 @@ namespace Lyra.Core.Accounts
                 BuyAmount = discount_amount,
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 SellAmount = discount_amount * sell_order.Price,
                 Balances = new Dictionary<string, long>(),
                 DestinationAccountId = sell_order.AccountID,
@@ -1129,6 +1130,7 @@ namespace Lyra.Core.Accounts
                 ServiceHash = await GetLastServiceBlockHashAsync(),
                 Balances = new Dictionary<string, long>(),
                 FeeType = AuthorizationFeeTypes.NoFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 TradeOrderId = OrderId
             };
 
@@ -1294,6 +1296,7 @@ namespace Lyra.Core.Accounts
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 NonFungibleToken = null,
                 VoteFor = VoteFor
             };
@@ -1378,6 +1381,7 @@ namespace Lyra.Core.Accounts
                 Balances = new Dictionary<string, long>(),
                 Fee = 0,
                 FeeType = AuthorizationFeeTypes.NoFee,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 NonFungibleToken = null,
                 VoteFor = VoteFor
             };
