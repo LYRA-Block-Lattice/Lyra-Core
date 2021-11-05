@@ -314,7 +314,7 @@ namespace Lyra.Client.CLI
                 var sName = Console.ReadLine();
                 Console.Write("The Type of the profiting account (Node/Oracle/Merchant/Yield): ");
                 var sType = Console.ReadLine();
-                Console.Write("Percentage of revernue you want to share with voters (%): ");
+                Console.Write("Percentage of revernue you want to share with voters ( 0 - 100 ) %): ");
                 var sRitio = Console.ReadLine();
                 Console.Write("Number of seats for voters ( 0 - 100 ): ");
                 var sSeats = Console.ReadLine();
@@ -420,7 +420,7 @@ Y/n? ");
                     }
                     break;
                 case 3:
-                    Console.WriteLine("Withdraw funds from a staking account.");
+                    Console.WriteLine("Unstaking from a staking account.");
                     Console.WriteLine($"Select your staking account.");
                     var j = 1;
                     foreach (var gen in gens)

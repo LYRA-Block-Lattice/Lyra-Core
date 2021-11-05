@@ -87,7 +87,9 @@ namespace Lyra.Core.Authorizers
                     _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock Index: {block.Height} by {block.GetHashInput()}");
 
                 var verifyAgainst = blockt.AccountID;
-                if (blockt.ContainsTag(Block.MANAGEDTAG))      // pool block is both service and transaction
+                if (blockt.ContainsTag(Block.MANAGEDTAG)
+                    || (previousBlock != null && previousBlock.ContainsTag(Block.MANAGEDTAG))
+                    )      // pool block is both service and transaction
                 {
                     var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                     verifyAgainst = board.CurrentLeader;
