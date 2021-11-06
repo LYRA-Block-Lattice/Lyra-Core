@@ -398,6 +398,8 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidPoolDepositionAmount;
 
             var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
+            if (poolGenesis == null)
+                return APIResultCodes.PoolNotExists;
 
             if (!chgs.Changes.ContainsKey(poolGenesis.Token0) || !chgs.Changes.ContainsKey(poolGenesis.Token1))
                 return APIResultCodes.InvalidPoolDepositionAmount;
