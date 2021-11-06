@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Data.Blocks;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using System;
@@ -17,6 +18,8 @@ namespace Lyra.Core.Blocks
         // min 3 days. after the time, voting is not effect and can ben redeemed any time.
         // if redeem earlier, a 1.2% fee will be charged. (SEC: < 2%)
         public int Days { get; set; }
+        public DateTime Start { get; set; }
+        public bool CompoundMode { get; set; }
     }
 
     [BsonIgnoreExtraElements]
@@ -24,6 +27,11 @@ namespace Lyra.Core.Blocks
     {
         public string Voting { get; set; }
         public int Days { get; set; }
+
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        [BsonRepresentation(BsonType.Document)]
+        public DateTime Start { get; set; }
+        public bool CompoundMode { get; set; }
 
         public override BlockTypes GetBlockType()
         {
@@ -53,6 +61,11 @@ namespace Lyra.Core.Blocks
             string extraData = base.GetExtraData();
             extraData += Voting.ToString() + "|";
             extraData += Days.ToString() + "|";
+            if (Start != null)
+            {
+                extraData += DateTimeToString(Start) + "|";
+                extraData += CompoundMode + "|";
+            }
             return extraData;
         }
 
@@ -61,12 +74,65 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"Voting: {Voting}\n";
             result += $"Days: {Days}\n";
+            result += $"Start From: {Start}\n";
+            result += $"Compound Mode: {CompoundMode}\n";
+            return result;
+        }
+    }
+
+     [BsonIgnoreExtraElements]
+    public class UnStakingBlock : BrokerAccountSend, IStaking
+    {
+        public string Voting { get; set; }
+        public int Days { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Utc)]
+        [BsonRepresentation(BsonType.Document)]
+        public DateTime Start { get; set; }
+        public bool CompoundMode { get; set; }
+
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.UnStaking;
+        }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as UnStakingBlock;
+
+            return base.AuthCompare(ob) &&
+                Voting == ob.Voting &&
+                Days == ob.Days
+                ;
+        }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+
+            extraData += Voting.ToString() + "|";
+            extraData += Days.ToString() + "|";
+            if(Start != null)
+            {
+                extraData += DateTimeToString(Start) + "|";
+                extraData += CompoundMode + "|";
+            }
+
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"Voting: {Voting}\n";
+            result += $"Days: {Days}\n";
+            result += $"Start From: {Start}\n";
+            result += $"Compound Mode: {CompoundMode}\n";
             return result;
         }
     }
 
     [BsonIgnoreExtraElements]
-    public class StakingGenesis: StakingBlock, IOpeningBlock
+    public class StakingGenesis : StakingBlock, IOpeningBlock
     {
         public AccountTypes AccountType { get; set; }
 
@@ -98,44 +164,4 @@ namespace Lyra.Core.Blocks
             return result;
         }
     }
-
-    [BsonIgnoreExtraElements]
-    public class UnStakingBlock : BrokerAccountSend, IStaking
-    {
-        public string Voting { get; set; }
-        public int Days { get; set; }
-
-        public override BlockTypes GetBlockType()
-        {
-            return BlockTypes.UnStaking;
-        }
-
-        public override bool AuthCompare(Block other)
-        {
-            var ob = other as UnStakingBlock;
-
-            return base.AuthCompare(ob) &&
-                Voting == ob.Voting &&
-                Days == ob.Days
-                ;
-        }
-
-        protected override string GetExtraData()
-        {
-            string extraData = base.GetExtraData();
-
-            extraData += Voting.ToString() + "|";
-            extraData += Days.ToString() + "|";
-            return extraData;
-        }
-
-        public override string Print()
-        {
-            string result = base.Print();
-            result += $"Voting: {Voting}\n";
-            result += $"Days: {Days}\n";
-            return result;
-        }
-    }
-
 }
