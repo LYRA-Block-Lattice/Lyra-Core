@@ -10,6 +10,15 @@ namespace Lyra.Core.Blocks
         // Hash of the send block
         public string SourceHash { get; set; }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as ReceiveTransferBlock;
+
+            return base.AuthCompare(ob) &&
+                SourceHash == ob.SourceHash
+                ;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();

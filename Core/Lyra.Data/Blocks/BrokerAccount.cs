@@ -29,6 +29,14 @@ namespace Lyra.Data.Blocks
         {
             throw new NotImplementedException();
         }
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as BrokerAccountRecv;
+            return base.AuthCompare(ob) &&
+                Name == ob.Name &&
+                OwnerAccountId == ob.OwnerAccountId &&
+                RelatedTx == ob.RelatedTx;
+        }
 
         protected override string GetExtraData()
         {
@@ -64,6 +72,15 @@ namespace Lyra.Data.Blocks
         public override BlockTypes GetBlockType()
         {
             throw new NotImplementedException();
+        }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as BrokerAccountSend;
+            return base.AuthCompare(ob) &&
+                Name == ob.Name &&
+                OwnerAccountId == ob.OwnerAccountId &&
+                RelatedTx == ob.RelatedTx;
         }
 
         protected override string GetExtraData()

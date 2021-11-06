@@ -111,6 +111,38 @@ namespace Lyra.Core.Blocks
         /// </summary>
         public string VoteFor { get; set; }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as TransactionBlock;
+
+            return base.AuthCompare(ob) &&
+                CompareBalances(ob.Balances) &&
+                AccountID == ob.AccountID &&
+                Fee == ob.Fee &&
+                FeeCode == ob.FeeCode &&
+                FeeType == ob.FeeType &&
+                NonFungibleToken == ob.NonFungibleToken &&
+                VoteFor == ob.VoteFor
+                ;
+        }
+
+        private bool CompareBalances(Dictionary<string, long> otherBalance)
+        {
+            if (Balances.Count != otherBalance.Count)
+                return false;
+
+            foreach (var kvp in Balances)
+            {
+                if (!otherBalance.ContainsKey(kvp.Key))
+                    return false;
+
+                if (otherBalance[kvp.Key] != kvp.Value)
+                    return false;
+            }
+
+            return true;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();

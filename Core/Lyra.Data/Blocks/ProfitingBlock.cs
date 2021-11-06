@@ -26,6 +26,17 @@ namespace Lyra.Data.Blocks
             return BlockTypes.Profiting;
         }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as ProfitingBlock;
+
+            return base.AuthCompare(ob) &&
+                PType == ob.PType &&
+                ShareRito == ob.ShareRito &&
+                Seats == ob.Seats
+                ;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
@@ -53,6 +64,15 @@ namespace Lyra.Data.Blocks
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.ProfitingGenesis;
+        }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as ProfitingGenesis;
+
+            return base.AuthCompare(ob) &&
+                AccountType == ob.AccountType
+                ;
         }
 
         protected override string GetExtraData()
@@ -89,6 +109,18 @@ namespace Lyra.Data.Blocks
             return BlockTypes.Benefiting;
         }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as BenefitingBlock;
+
+            return base.AuthCompare(ob) &&
+                PType == ob.PType &&
+                ShareRito == ob.ShareRito &&
+                Seats == ob.Seats &&
+                ProfitHash == ob.ProfitHash &&
+                StakingAccountId == ob.StakingAccountId
+                ;
+        }
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();

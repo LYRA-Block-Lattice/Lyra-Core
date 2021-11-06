@@ -1,6 +1,7 @@
 ﻿using Akka.Actor;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Core.Decentralize;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
@@ -81,6 +82,33 @@ namespace Lyra.Core.Authorizers
 
                 if (!IsManagedBlockAllowed(sys, blockt))
                     return APIResultCodes.InvalidManagementBlock;
+
+                string reltx = null;
+                if (block is IBrokerAccount ib)
+                    reltx = ib.RelatedTx;
+                else if (block is IPool ip)
+                    reltx = ip.RelatedTx;
+
+                if (reltx != null)
+                {
+                    var wf = BrokerFactory.GetBlueprint(reltx);
+                    if (wf == null)
+                        return APIResultCodes.InvalidManagementBlock;
+
+                    TransactionBlock txnew = null;
+                    await wf.ExecuteAsync(sys, (blk) =>
+                    {
+                        txnew = blk;
+                        return Task.CompletedTask;
+                    });
+
+                    if (txnew == null)
+                        return APIResultCodes.InvalidManagementBlock;
+
+                    // compare block
+                    if (!block.AuthCompare(txnew))
+                        return APIResultCodes.InvalidManagedTransaction;
+                }
 
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                 verifyAgainst = board.CurrentLeader;

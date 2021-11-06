@@ -106,8 +106,6 @@ namespace Lyra.Core.Blocks
 
         public string Custom3 { get; set; }
 
-
-
         // TO DO - add image, renewaldate
         protected override string GetExtraData()
         {

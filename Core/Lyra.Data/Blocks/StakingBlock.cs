@@ -30,6 +30,16 @@ namespace Lyra.Core.Blocks
             return BlockTypes.Staking;
         }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as StakingBlock;
+
+            return base.AuthCompare(ob) &&
+                Voting == ob.Voting &&
+                Days == ob.Days
+                ;
+        }
+
         public decimal GetAmount()
         {
             if (Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
@@ -65,6 +75,15 @@ namespace Lyra.Core.Blocks
             return BlockTypes.StakingGenesis;
         }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as StakingGenesis;
+
+            return base.AuthCompare(ob) &&
+                AccountType == ob.AccountType
+                ;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
@@ -89,6 +108,16 @@ namespace Lyra.Core.Blocks
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.UnStaking;
+        }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as UnStakingBlock;
+
+            return base.AuthCompare(ob) &&
+                Voting == ob.Voting &&
+                Days == ob.Days
+                ;
         }
 
         protected override string GetExtraData()

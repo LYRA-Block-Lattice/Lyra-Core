@@ -31,6 +31,35 @@ namespace Lyra.Core.Blocks
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Shares { get; set; }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as PoolDepositBlock;
+
+            return base.AuthCompare(ob) &&
+                CompareShares(ob.Shares) &&
+                RelatedTx == ob.RelatedTx;
+        }
+
+        private bool CompareShares(Dictionary<string, long> otherShares)
+        {
+            if (Shares == null && otherShares == null)
+                return true;
+
+            if (Shares.Count != otherShares.Count)
+                return false;
+
+            foreach(var kvp in Shares)
+            {
+                if (!otherShares.ContainsKey(kvp.Key))
+                    return false;
+
+                if (otherShares[kvp.Key] != kvp.Value)
+                    return false;
+            }
+
+            return true;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
@@ -66,6 +95,35 @@ namespace Lyra.Core.Blocks
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Shares { get; set; }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as PoolWithdrawBlock;
+
+            return base.AuthCompare(ob) &&
+                CompareShares(ob.Shares) &&
+                RelatedTx == ob.RelatedTx;
+        }
+
+        private bool CompareShares(Dictionary<string, long> otherShares)
+        {
+            if (Shares == null && otherShares == null)
+                return true;
+
+            if (Shares.Count != otherShares.Count)
+                return false;
+
+            foreach (var kvp in Shares)
+            {
+                if (!otherShares.ContainsKey(kvp.Key))
+                    return false;
+
+                if (otherShares[kvp.Key] != kvp.Value)
+                    return false;
+            }
+
+            return true;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
@@ -98,6 +156,35 @@ namespace Lyra.Core.Blocks
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Shares { get; set; }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as PoolSwapInBlock;
+
+            return base.AuthCompare(ob) &&
+                CompareShares(ob.Shares) &&
+                RelatedTx == ob.RelatedTx;
+        }
+
+        private bool CompareShares(Dictionary<string, long> otherShares)
+        {
+            if (Shares == null && otherShares == null)
+                return true;
+
+            if (Shares.Count != otherShares.Count)
+                return false;
+
+            foreach (var kvp in Shares)
+            {
+                if (!otherShares.ContainsKey(kvp.Key))
+                    return false;
+
+                if (otherShares[kvp.Key] != kvp.Value)
+                    return false;
+            }
+
+            return true;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
@@ -127,6 +214,35 @@ namespace Lyra.Core.Blocks
         // make sure sum(share) is always 1M
         [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
         public Dictionary<string, long> Shares { get; set; }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as PoolSwapOutBlock;
+
+            return base.AuthCompare(ob) &&
+                CompareShares(ob.Shares) &&
+                RelatedTx == ob.RelatedTx;
+        }
+
+        private bool CompareShares(Dictionary<string, long> otherShares)
+        {
+            if (Shares == null && otherShares == null)
+                return true;
+
+            if (Shares.Count != otherShares.Count)
+                return false;
+
+            foreach (var kvp in Shares)
+            {
+                if (!otherShares.ContainsKey(kvp.Key))
+                    return false;
+
+                if (otherShares[kvp.Key] != kvp.Value)
+                    return false;
+            }
+
+            return true;
+        }
 
         protected override string GetExtraData()
         {
@@ -162,6 +278,37 @@ namespace Lyra.Core.Blocks
         }
 
         public AccountTypes AccountType { get; set; }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as PoolGenesisBlock;
+
+            return base.AuthCompare(ob) &&
+                CompareShares(ob.Shares) &&
+                RelatedTx == ob.RelatedTx &&
+                Token0 == ob.Token0 &&
+                Token1 == ob.Token1;
+        }
+
+        private bool CompareShares(Dictionary<string, long> otherShares)
+        {
+            if (Shares == null && otherShares == null)
+                return true;
+
+            if (Shares.Count != otherShares.Count)
+                return false;
+
+            foreach (var kvp in Shares)
+            {
+                if (!otherShares.ContainsKey(kvp.Key))
+                    return false;
+
+                if (otherShares[kvp.Key] != kvp.Value)
+                    return false;
+            }
+
+            return true;
+        }
 
         protected override string GetExtraData()
         {

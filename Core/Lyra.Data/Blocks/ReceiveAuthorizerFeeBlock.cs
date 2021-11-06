@@ -13,6 +13,17 @@ namespace Lyra.Core.Blocks
         public long ServiceBlockEndHeight { get; set; }
         public decimal AuthorizerFee { get; set; }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as ReceiveAuthorizerFeeBlock;
+
+            return base.AuthCompare(ob) &&
+                ServiceBlockStartHeight == ob.ServiceBlockStartHeight &&
+                ServiceBlockEndHeight == ob.ServiceBlockEndHeight &&
+                AuthorizerFee == ob.AuthorizerFee
+                ;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();

@@ -72,9 +72,12 @@ namespace Lyra.Core.Blocks
         // all fees generated since last service block
         public long FeesGenerated { get; set; }
 
-        public ServiceBlock()
+        public override bool AuthCompare(Block other)
         {
-            
+            var ob = other as ServiceBlock;
+
+            return base.AuthCompare(ob) &&
+                false;      // TODO: add compare in future
         }
 
         protected override string GetExtraData()

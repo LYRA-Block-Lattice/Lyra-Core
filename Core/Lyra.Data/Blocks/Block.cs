@@ -98,6 +98,19 @@ namespace Lyra.Core.Blocks
             Signature = signr(Hash);
         }
 
+        public virtual bool AuthCompare(Block other)
+        {
+            if (other == null)
+                return false;
+
+            return Height == other.Height &&
+                Version == other.Version &&
+                BlockType == other.BlockType &&
+                ServiceHash == other.ServiceHash &&
+                PreviousHash == other.PreviousHash &&
+                JsonConvert.SerializeObject(Tags) == JsonConvert.SerializeObject(other.Tags);
+        }
+
         public override string GetHashInput()
         {
             return Height.ToString() + "|" +
@@ -491,6 +504,7 @@ namespace Lyra.Core.Blocks
         InvalidBalance,
         InvalidOpeningAccount,
         InvalidBlockSequence,
+        InvalidManagedTransaction,
 
         InvalidBlockData = 400,
         AccountLockDown,

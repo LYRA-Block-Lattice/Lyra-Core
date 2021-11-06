@@ -23,6 +23,33 @@ namespace Lyra.Core.Blocks
             return BlockTypes.Consolidation;
         }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as ConsolidationBlock;
+
+            return base.AuthCompare(ob) &&
+                CompareHashes(ob.blockHashes) &&
+                MerkelTreeHash == ob.MerkelTreeHash &&
+                totalBlockCount == ob.totalBlockCount &&
+                totalFees == ob.totalFees &&
+                createdBy == ob.createdBy;
+        }
+
+        private bool CompareHashes(List<String> otherHashes)
+        {
+            if (blockHashes.Count != otherHashes.Count)
+                return false;
+
+            var arr1 = blockHashes.ToArray();
+            var arr2 = otherHashes.ToArray();
+            for(var i = 0; i < blockHashes.Count; i++)
+            {
+                if (arr1[i] != arr2[i])
+                    return false;
+            }
+            return true;
+        }
+
         protected override string GetExtraData()
         {
             string nui = string.Empty;

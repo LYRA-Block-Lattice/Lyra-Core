@@ -27,6 +27,15 @@ namespace Lyra.Core.Blocks
         // TO DO: create new separate block for send transfer; make this block abstract base class for all sending blocks
         //public string PaymentID { get; set; }
 
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as SendTransferBlock;
+
+            return base.AuthCompare(ob) &&
+                DestinationAccountId == ob.DestinationAccountId
+                ;
+        }
+
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
