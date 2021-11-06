@@ -607,7 +607,9 @@ namespace Lyra.Core.Decentralize
             var lastBlock = await sys.Storage.FindLatestBlockAsync(pftid) as IProfiting;
             var stakers = sys.Storage.FindAllStakings(pftid, reqBlock.TimeStamp);
             var targets = stakers.Take(lastBlock.Seats);
-            var relatedTxs = (await sys.Storage.FindBlocksByRelatedTxAsync(reqHash)).OrderBy(a => a.TimeStamp).ToList();
+            var relatedTxs = (await sys.Storage.FindBlocksByRelatedTxAsync(reqHash))
+                .Cast<TransactionBlock>()
+                .OrderBy(a => a.TimeStamp).ToList();
             if(relatedTxs.Count == 0)
             {
                 // no balance
@@ -628,7 +630,7 @@ namespace Lyra.Core.Decentralize
             var profitToDistribute = lastProfitingBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() * lastBlock.ShareRito;
 
             // don't distribute < 1LYR
-            if (profitToDistribute > 1 && totalStakingAmount > 0)
+            if (profitToDistribute >= 1 && totalStakingAmount > 0)
             {
                 // create a dictionary to hold amounts to send
                 // staking account -> amount
@@ -657,10 +659,26 @@ namespace Lyra.Core.Decentralize
 
                     return pftSend;
                 }
-            }
-            else
-                return null;    // not enough profit to distribute
 
+                // then create compound staking
+                foreach (var target in targets)
+                {
+                    if(target.CompoundMode)
+                    {
+                        var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.StkAccount);
+                        if (stkSend == null)
+                            continue;
+
+                        if (relatedTxs.Any(a => a is StakingBlock stk && stk.SourceHash == stkSend.Hash))
+                            continue;
+
+                        var compstk = await CNOAddStakingAsync(sys, stkSend);
+                        if (compstk != null)
+                            return compstk;
+                    }
+                }
+            }
+                        
             // if share 100%, no need to send
             var pftgen = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;
             if (pftgen.ShareRito == 1m)
@@ -695,7 +713,7 @@ namespace Lyra.Core.Decentralize
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.NoFee,
-                DestinationAccountId = target.OwnerAccount,
+                DestinationAccountId = target.CompoundMode ? target.StkAccount : target.OwnerAccount,
 
                 // profit specified config
                 PType = ((IProfiting)lastPft).PType,
@@ -707,7 +725,6 @@ namespace Lyra.Core.Decentralize
 
             //TODO: think about multiple token
 
-            Console.WriteLine($"Send {target.OwnerAccount.Shorten()} Index {pftSend.Height} who is staking {target.Amount} amount {amount}");
             var lastBalance = lastPft.Balances[LyraGlobal.OFFICIALTICKERCODE];
             lastBalance -= amount.ToBalanceLong();
             pftSend.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, lastBalance);
@@ -716,6 +733,9 @@ namespace Lyra.Core.Decentralize
 
             // pool blocks are service block so all service block signed by leader node
             pftSend.InitializeBlock(lastPft, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+
+            Console.WriteLine($"Send {target.OwnerAccount.Shorten()} Index {pftSend.Height} who is staking {target.Amount} amount {amount} hash: {pftSend.Hash}");
+
             return pftSend;
         }
 
@@ -750,7 +770,9 @@ namespace Lyra.Core.Decentralize
                 // pool specified config
                 Voting = send.Tags["voting"],
                 RelatedTx = send.Hash,
-                Days = int.Parse(send.Tags["days"])
+                Days = int.Parse(send.Tags["days"]),
+                Start = DateTime.UtcNow.AddDays(1),
+                CompoundMode = true
             };
 
             stkGenesis.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
@@ -774,6 +796,19 @@ namespace Lyra.Core.Decentralize
             var lastBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId);
             var lastStk = lastBlock as TransactionBlock;
 
+            string relatedTx;
+            DateTime start;
+            if(send is BenefitingBlock bnb)
+            {
+                relatedTx = bnb.RelatedTx;
+                start = DateTime.UtcNow;
+            }
+            else
+            {
+                relatedTx = send.Hash;
+                start = DateTime.UtcNow.AddDays(-1);
+            }
+
             var stkNext = new StakingBlock
             {
                 Height = lastStk.Height + 1,
@@ -792,7 +827,9 @@ namespace Lyra.Core.Decentralize
                 // pool specified config
                 Days = (lastBlock as IStaking).Days,
                 Voting = ((IStaking)lastStk).Voting,
-                RelatedTx = send.Hash
+                RelatedTx = relatedTx,
+                Start = start,
+                CompoundMode = true
             };
 
             var chgs = send.GetBalanceChanges(sendPrev);
@@ -834,7 +871,9 @@ namespace Lyra.Core.Decentralize
                 // pool specified config
                 Days = (lastStk as IStaking).Days,
                 Voting = (lastStk as IStaking).Voting,
-                RelatedTx = send.Hash
+                RelatedTx = send.Hash,
+                Start = DateTime.MaxValue,
+                CompoundMode = true
             };
 
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);

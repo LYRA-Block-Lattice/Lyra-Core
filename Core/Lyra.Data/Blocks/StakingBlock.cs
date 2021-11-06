@@ -80,7 +80,7 @@ namespace Lyra.Core.Blocks
         }
     }
 
-     [BsonIgnoreExtraElements]
+    [BsonIgnoreExtraElements]
     public class UnStakingBlock : BrokerAccountSend, IStaking
     {
         public string Voting { get; set; }

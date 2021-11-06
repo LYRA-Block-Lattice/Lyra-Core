@@ -35,6 +35,7 @@ namespace Lyra.Data.API
         public DateTime Time { get; set; }
         public int Days { get; set; }
         public decimal Amount { get; set; }
+        public bool CompoundMode { get; set; }
     }
 
     public class ProfitingStats

@@ -1815,12 +1815,13 @@ namespace Lyra.Core.Accounts
                     //Balance = g.First().Balances[LyraGlobal.OFFICIALTICKERCODE],
                     Balance2 = g.First().Balances,//.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ? g.First().Balances[LyraGlobal.OFFICIALTICKERCODE] : 0,
                     Owner = ((IBrokerAccount)g.First()).OwnerAccountId,
-                    Time = g.First().TimeStamp,
-                    Days = ((IStaking)g.First()).Days
+                    Time = ((IStaking)g.First()).Start,
+                    Days = ((IStaking)g.First()).Days,
+                    CompoundMode = ((IStaking)g.First()).CompoundMode
                 });
 
             return stakings
-                .Where(a => a.Time.AddDays(1) < timeBefore && a.Time.AddDays(a.Days) > timeBefore)
+                .Where(a => a.Time < timeBefore && a.Time.AddDays(a.Days) > timeBefore)
                 .OrderByDescending(x => x.Balance2[LyraGlobal.OFFICIALTICKERCODE])
                 .ThenBy(x => x.AccountId)
                 .Select(a => new Staker
@@ -1829,7 +1830,8 @@ namespace Lyra.Core.Accounts
                     OwnerAccount = a.Owner,
                     Amount = a.Balance2[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal(),
                     Time = a.Time,
-                    Days = a.Days
+                    Days = a.Days,
+                    CompoundMode = a.CompoundMode
                 })
                 .ToList();
         }
