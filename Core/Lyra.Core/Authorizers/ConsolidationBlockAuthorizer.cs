@@ -49,10 +49,6 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidConsolidationBlockHashes;
             }
 
-            var result = await VerifyBlockAsync(sys, block, lastCons);
-            if (result != APIResultCodes.Success)
-                return result;
-
             // recalculate merkeltree
             // use merkle tree to consolidate all previous blocks, from lastCons.UIndex to consBlock.UIndex -1
             var mt = new MerkleTree();

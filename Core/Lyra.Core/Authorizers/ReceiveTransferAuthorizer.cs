@@ -13,6 +13,13 @@ namespace Lyra.Core.Authorizers
 {
     public class ReceiveTransferAuthorizer: TransactionAuthorizer
     {
+        static List<BlockTypes> AllowedOpeningBlockTypes = new List<BlockTypes> { 
+            BlockTypes.ProfitingGenesis,
+            BlockTypes.StakingGenesis,
+            BlockTypes.PoolGenesis,
+            BlockTypes.OpenAccountWithReceiveTransfer,
+            BlockTypes.LyraTokenGenesis
+        };
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is ReceiveTransferBlock))
@@ -24,15 +31,20 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidAccountId;
 
             // 1. check if the account already exists
-            if(block is ProfitingGenesis || block is StakingGenesis || block is PoolGenesisBlock)
-            {
-                return APIResultCodes.Success;
-            }
+            //if(block is ProfitingGenesis || block is StakingGenesis || block is PoolGenesisBlock)
+            //{
+            //    return APIResultCodes.Success;
+            //}
 
-            if(block.BlockType != BlockTypes.OpenAccountWithReceiveTransfer && 
-                block.BlockType != BlockTypes.OpenAccountWithReceiveFee &&
-                block.BlockType != BlockTypes.OpenAccountWithImport &&
-                block.BlockType != BlockTypes.LyraTokenGenesis)
+            if(block is IOpeningBlock)
+            {
+                if (block.Height != 1)
+                    return APIResultCodes.InvalidOpeningAccount;
+
+                if(!AllowedOpeningBlockTypes.Any(a => a == block.BlockType))
+                    return APIResultCodes.InvalidOpeningAccount;
+            }
+            else
             {
                 if (!await sys.Storage.AccountExistsAsync(block.AccountID))
                     return APIResultCodes.AccountDoesNotExist;
@@ -41,11 +53,7 @@ namespace Lyra.Core.Authorizers
                 if (lastBlock == null)
                     return APIResultCodes.CouldNotFindLatestBlock;
 
-                var result = await VerifyBlockAsync(sys, block, lastBlock);
-                if (result != APIResultCodes.Success)
-                    return result;
-
-                result = await VerifyTransactionBlockAsync(sys, block);
+                var result = await VerifyTransactionBlockAsync(sys, block);
                 if (result != APIResultCodes.Success)
                     return result;
 

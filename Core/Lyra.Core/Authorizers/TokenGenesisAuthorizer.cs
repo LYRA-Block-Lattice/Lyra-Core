@@ -35,11 +35,6 @@ namespace Lyra.Core.Authorizers
                 if (lastBlock == null)
                     return APIResultCodes.CouldNotFindLatestBlock;
 
-                // 2. Validate blocks
-                var result = await VerifyBlockAsync(sys, block, lastBlock);
-                if (result != APIResultCodes.Success)
-                    return result;
-
                 // check LYR balance
                 if (lastBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] != block.Balances[LyraGlobal.OFFICIALTICKERCODE] + block.Fee.ToBalanceLong())
                     return APIResultCodes.InvalidNewAccountBalance;
@@ -141,11 +136,6 @@ namespace Lyra.Core.Authorizers
             // 1. check if the account already exists
             if (await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists; // 
-
-            // 2. Validate blocks
-            var result = await VerifyBlockAsync(sys, block, null);
-            if (result != APIResultCodes.Success)
-                return result;
 
             // check if this token already exists
             //AccountData genesis_blocks = _accountCollection.GetAccount(AccountCollection.GENESIS_BLOCKS);

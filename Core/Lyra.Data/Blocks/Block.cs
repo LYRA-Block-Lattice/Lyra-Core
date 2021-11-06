@@ -489,6 +489,7 @@ namespace Lyra.Core.Blocks
         InvalidBrokerAcount,
         InvalidUnstaking,
         InvalidBalance,
+        InvalidOpeningAccount,
 
         InvalidBlockData = 400,
         AccountLockDown,

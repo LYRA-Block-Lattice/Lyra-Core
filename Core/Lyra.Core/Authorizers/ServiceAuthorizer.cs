@@ -25,10 +25,6 @@ namespace Lyra.Core.Authorizers
 
             var prevBlock = await sys.Storage.FindBlockByHashAsync(block.PreviousHash);
 
-            var result = await VerifyBlockAsync(sys, block, prevBlock);
-            if (result != APIResultCodes.Success)
-                return result;
-
             // service specifice feature
             if (block.FeeTicker != LyraGlobal.OFFICIALTICKERCODE)
                 return APIResultCodes.InvalidFeeTicker;

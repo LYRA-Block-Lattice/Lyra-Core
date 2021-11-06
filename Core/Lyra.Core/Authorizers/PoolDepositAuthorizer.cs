@@ -10,19 +10,6 @@ namespace Lyra.Core.Authorizers
 {
     public class PoolDepositAuthorizer : ReceiveTransferAuthorizer
     {
-        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
-        {
-            if (!(tblock is PoolDepositBlock))
-                return APIResultCodes.InvalidBlockType;
-
-            var block = tblock as PoolDepositBlock;
-
-            if (block.SourceHash != block.RelatedTx)
-                return APIResultCodes.InvalidRelatedTx;
-
-            return await base.AuthorizeImplAsync(sys, tblock);
-        }
-
         protected override async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
         {
             // recalculate

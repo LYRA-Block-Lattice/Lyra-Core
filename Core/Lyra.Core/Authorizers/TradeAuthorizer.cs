@@ -31,10 +31,6 @@ namespace Lyra.Core.Authorizers
             if (lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            var result = await VerifyBlockAsync(sys, block, lastBlock);
-            if (result != APIResultCodes.Success)
-                return result;
-
             //if (lastBlock.Balances[TokenGenesisBlock.POINTGEAR_TICKER_CODE] <= block.Balances[TokenGenesisBlock.POINTGEAR_TICKER_CODE] + block.Fee)
             //    return AuthorizationResultCodes.NegativeTransactionAmount;
 
@@ -42,7 +38,7 @@ namespace Lyra.Core.Authorizers
             if (!Signatures.ValidateAccountId(block.DestinationAccountId))
                 return APIResultCodes.InvalidDestinationAccountId;
 
-            result = await VerifyTransactionBlockAsync(sys, block);
+            var result = await VerifyTransactionBlockAsync(sys, block);
             if (result != APIResultCodes.Success)
                 return result;
 

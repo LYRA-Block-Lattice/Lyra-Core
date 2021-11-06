@@ -18,11 +18,6 @@ namespace Lyra.Core.Authorizers
             if (block.AccountID != PoolFactoryBlock.FactoryAccount)
                 return APIResultCodes.InvalidAccountId;
 
-            // Validate blocks
-            var result = await VerifyBlockAsync(sys, block, null);
-            if (result != APIResultCodes.Success)
-                return result;
-
             if (await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists;
 

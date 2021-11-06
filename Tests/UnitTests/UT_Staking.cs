@@ -68,8 +68,14 @@ namespace UnitTests
                 var syncResult = await w1.SyncAsync(client);
                 Assert.IsTrue(syncResult == APIResultCodes.Success);
 
+                var (pvt, pub) = Signatures.GenerateWallet();
+                var wx = Restore(pvt);
+                await w1.SendAsync(500, wx.AccountId);
+                await Task.Delay(1000);
+                await wx.SyncAsync(client);
+
                 // test create profiting account
-                var result = await w1.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 0.2m, 10);
+                var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 0.2m, 10);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
 
                 var pgen = result.GetBlock() as ProfitingBlock;

@@ -24,11 +24,6 @@ namespace Lyra.Core.Authorizers
             if (block.Height > 1 && lastBlock == null)
                 return APIResultCodes.CouldNotFindLatestBlock;
 
-            // Validate blocks
-            var result = await VerifyBlockAsync(sys, block, lastBlock);
-            if (result != APIResultCodes.Success)
-                return result;
-
             // related tx must exist 
             var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
             if (send == null || send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)

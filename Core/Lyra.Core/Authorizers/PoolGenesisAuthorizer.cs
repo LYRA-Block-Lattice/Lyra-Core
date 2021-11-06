@@ -17,11 +17,6 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as PoolGenesisBlock;
 
-            // Validate blocks
-            var result = await VerifyBlockAsync(sys, block, null);
-            if (result != APIResultCodes.Success)
-                return result;
-
             // related tx must exist 
             var relTx = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
             if (relTx == null || relTx.DestinationAccountId != PoolFactoryBlock.FactoryAccount)

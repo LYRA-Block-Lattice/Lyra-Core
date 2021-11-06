@@ -26,11 +26,7 @@ namespace Lyra.Core.Authorizers
             if (await sys.Storage.FindLatestBlockAsync(block.AccountID) != null)
                 return APIResultCodes.AccountBlockAlreadyExists;
 
-            var result = await VerifyBlockAsync(sys, block, null);
-            if (result != APIResultCodes.Success)
-                return result;
-
-            result = await VerifyTransactionBlockAsync(sys, block);
+            var result = await VerifyTransactionBlockAsync(sys, block);
             if (result != APIResultCodes.Success)
                 return result;
 

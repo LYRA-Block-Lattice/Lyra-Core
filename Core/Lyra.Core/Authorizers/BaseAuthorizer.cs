@@ -39,7 +39,7 @@ namespace Lyra.Core.Authorizers
             _log = new SimpleLogger("BaseAuthorizer").Logger;
         }
 
-        public async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock)
+        public async Task<(APIResultCodes, AuthorizationSignature)> AuthorizeAsync<T>(DagSystem sys, T tblock) where T : Block
         {
             var result = await AuthorizeImplAsync(sys, tblock);
 
@@ -49,9 +49,12 @@ namespace Lyra.Core.Authorizers
                 return (result, (AuthorizationSignature)null);
         }
 
-        protected virtual Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        protected virtual async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock) where T : Block
         {
-            return Task.FromResult(APIResultCodes.Success);
+            var prevBlock = await sys.Storage.FindBlockByHashAsync(tblock.PreviousHash);
+
+            var result = await VerifyBlockAsync(sys, tblock, prevBlock);
+            return result;
         }
 
         protected virtual async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
