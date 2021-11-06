@@ -33,7 +33,7 @@ namespace Lyra.Core.Authorizers
     // -> Block
     public abstract class BaseAuthorizer : IAuthorizer
     {
-        ILogger _log;
+        protected ILogger _log;
         public BaseAuthorizer()
         {
             _log = new SimpleLogger("BaseAuthorizer").Logger;
@@ -53,156 +53,28 @@ namespace Lyra.Core.Authorizers
         {
             var prevBlock = await sys.Storage.FindBlockByHashAsync(tblock.PreviousHash);
 
-            var result = await VerifyBlockAsync(sys, tblock, prevBlock);
+            var result = await VerifyWithPrevAsync(sys, tblock, prevBlock);
             return result;
         }
 
-        protected virtual async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
+        protected virtual async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
         {
-            if (previousBlock != null && !block.IsBlockValid(previousBlock))
-                return APIResultCodes.InvalidPreviousBlock;
-
-            // allow time drift: form -5 to +3
-            var uniNow = DateTime.UtcNow;
-            if (block is ServiceBlock bsb)
+            if (previousBlock != null)
             {
-                var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                if (board.LeaderCandidate != bsb.Leader)
-                {
-                    _log.LogWarning($"Invalid leader. was {bsb.Leader.Shorten()} should be {board.LeaderCandidate.Shorten()}");
-                    return APIResultCodes.InvalidLeaderInServiceBlock;
-                }
-
-                var result = block.VerifySignature(board.LeaderCandidate);
-                if (!result)
-                {
-                    _log.LogWarning($"VerifySignature failed for ServiceBlock Index: {block.Height} with Leader {board.CurrentLeader}");
-                    return APIResultCodes.BlockSignatureValidationFailed;
-                }
-
-                if (sys.ConsensusState != BlockChainState.StaticSync)
-                {
-                    if (block.TimeStamp < uniNow.AddSeconds(-18) || block.TimeStamp > uniNow.AddSeconds(3))
-                    {
-                        _log.LogInformation($"TimeStamp 1: {block.TimeStamp} Universal Time Now: {uniNow}");
-                        return APIResultCodes.InvalidBlockTimeStamp;
-                    }
-                }
-            }
-            else if (block is TransactionBlock)
-            {
-                var blockt = block as TransactionBlock;
-
-                if (!blockt.VerifyHash())
-                    _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock Index: {block.Height} by {block.GetHashInput()}");
-
-                var verifyAgainst = blockt.AccountID;
-
-                if (block.Height > 1 && previousBlock == null)
+                if (!block.IsBlockValid(previousBlock))
                     return APIResultCodes.InvalidPreviousBlock;
 
-                if(block.ContainsTag(Block.MANAGEDTAG))
-                {
-                    if (block.Tags[Block.MANAGEDTAG] != "")
-                        return APIResultCodes.InvalidManagementBlock;
+                if (block.Height != previousBlock.Height + 1)
+                    return APIResultCodes.InvalidBlockSequence;
 
-                    //if (!(block is IBrokerAccount) && !(block is PoolFactoryBlock) && !(block is IPool))
-                    //    return APIResultCodes.InvalidBrokerAcount;
-
-                    var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                    verifyAgainst = board.CurrentLeader;
-                }
-                else
-                {
-                    if (block is IBrokerAccount)
-                        return APIResultCodes.InvalidBrokerAcount;
-
-                    if(block.Height > 1)
-                    {
-                        var firstBlock = await sys.Storage.FindFirstBlockAsync(blockt.AccountID);
-                        if (firstBlock is IBrokerAccount || firstBlock.ContainsTag(Block.MANAGEDTAG))
-                            return APIResultCodes.InvalidBrokerAcount;
-                    }
-                }
-
-                if(previousBlock != null && previousBlock.ContainsTag(Block.MANAGEDTAG))
-                {
-                    if (!blockt.ContainsTag(Block.MANAGEDTAG))
-                        return APIResultCodes.InvalidManagementBlock;
-
-                    if (blockt.Tags[Block.MANAGEDTAG] != "")
-                        return APIResultCodes.InvalidManagementBlock;
-
-                    var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                    verifyAgainst = board.CurrentLeader;
-                }
-
-                var result = block.VerifySignature(verifyAgainst);
-                if (!result)
-                {
-                    _log.LogWarning($"VerifyBlock failed for TransactionBlock Index: {block.Height} Type: {block.BlockType} by {blockt.AccountID}");
-                    return APIResultCodes.BlockSignatureValidationFailed;
-                }
-
-                // check if this Index already exists (double-spending, kind of)
-                if (await sys.Storage.FindBlockByIndexAsync(blockt.AccountID, block.Height) != null)
-                    return APIResultCodes.BlockWithThisIndexAlreadyExists;
-
-                // check service hash
-                if (string.IsNullOrWhiteSpace(blockt.ServiceHash))
-                    return APIResultCodes.ServiceBlockNotFound;
-
-                var svcBlock = await sys.Storage.GetLastServiceBlockAsync();
-                if (blockt.ServiceHash != svcBlock.Hash)
-                {
-                    // verify svc hash exists
-                    var svc2 = await sys.Storage.FindBlockByHashAsync(blockt.ServiceHash);
-                    if(svc2 == null)
-                        return APIResultCodes.ServiceBlockNotFound;
-                }                    
-
-                //if (!await ValidateRenewalDateAsync(sys, blockt, previousBlock as TransactionBlock))
-                //    return APIResultCodes.TokenExpired;
-
-                if (sys.ConsensusState != BlockChainState.StaticSync)
-                {
-                    if (block.TimeStamp < uniNow.AddSeconds(-120) || block.TimeStamp > uniNow.AddSeconds(3))
-                    {
-                        _log.LogInformation($"TimeStamp 2: {block.TimeStamp} Universal Time Now: {uniNow}");
-                        return APIResultCodes.InvalidBlockTimeStamp;
-                    }
-                }
-            }
-            else if (block is ConsolidationBlock cons)
-            {
-                if (sys.ConsensusState != BlockChainState.StaticSync)
-                {
-                    // time shift 10 seconds.
-                    if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(3))
-                    {
-                        _log.LogInformation($"TimeStamp 3: {block.TimeStamp} Universal Time Now: {uniNow}");
-                        return APIResultCodes.InvalidBlockTimeStamp;
-                    }
-                }
-
-                var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
-                if (board.CurrentLeader != cons.createdBy)
-                {
-                    _log.LogWarning($"Invalid leader. was {cons.createdBy.Shorten()} should be {board.CurrentLeader.Shorten()}");
-                    return APIResultCodes.InvalidLeaderInConsolidationBlock;
-                }
-
-                var result = block.VerifySignature(board.CurrentLeader);
-                if (!result)
-                {
-                    _log.LogWarning($"VerifySignature failed for ConsolidationBlock Index: {block.Height} with Leader {board.CurrentLeader}");
-                    return APIResultCodes.BlockSignatureValidationFailed;
-                }
+                if(block.TimeStamp <=  previousBlock.TimeStamp)
+                    return APIResultCodes.InvalidBlockTimeStamp;
             }
             else
             {
-                return APIResultCodes.InvalidBlockType;
-            }                
+                if(block.Height != 1)
+                    return APIResultCodes.InvalidBlockSequence;
+            }         
 
             // This is the double-spending check for send block!
             if (!string.IsNullOrEmpty(block.PreviousHash) && (await sys.Storage.FindBlockByPreviousBlockHashAsync(block.PreviousHash)) != null)

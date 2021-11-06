@@ -11,6 +11,8 @@ using System.Text;
 using System.Threading.Tasks;
 using static Lyra.Core.Decentralize.ConsensusService;
 using Lyra.Data.API;
+using Microsoft.Extensions.Logging;
+using Lyra.Shared;
 
 namespace Lyra.Core.Authorizers
 {
@@ -76,6 +78,36 @@ namespace Lyra.Core.Authorizers
             }
 
             return await base.AuthorizeImplAsync(sys, tblock);
+        }
+
+        protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
+        {
+            var bsb = block as ServiceBlock;
+            var uniNow = DateTime.UtcNow;
+            var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+            if (board.LeaderCandidate != bsb.Leader)
+            {
+                _log.LogWarning($"Invalid leader. was {bsb.Leader.Shorten()} should be {board.LeaderCandidate.Shorten()}");
+                return APIResultCodes.InvalidLeaderInServiceBlock;
+            }
+
+            var result = block.VerifySignature(board.LeaderCandidate);
+            if (!result)
+            {
+                _log.LogWarning($"VerifySignature failed for ServiceBlock Index: {block.Height} with Leader {board.CurrentLeader}");
+                return APIResultCodes.BlockSignatureValidationFailed;
+            }
+
+            if (sys.ConsensusState != BlockChainState.StaticSync)
+            {
+                if (block.TimeStamp < uniNow.AddSeconds(-18) || block.TimeStamp > uniNow.AddSeconds(3))
+                {
+                    _log.LogInformation($"TimeStamp 1: {block.TimeStamp} Universal Time Now: {uniNow}");
+                    return APIResultCodes.InvalidBlockTimeStamp;
+                }
+            }
+
+            return await base.VerifyWithPrevAsync(sys, block, previousBlock);
         }
     }
 }

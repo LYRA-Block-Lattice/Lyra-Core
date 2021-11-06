@@ -1,12 +1,17 @@
-﻿using Lyra.Core.API;
+﻿using Akka.Actor;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
+using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Data.Utils;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Lyra.Core.Decentralize.ConsensusService;
 
 namespace Lyra.Core.Authorizers
 {
@@ -48,6 +53,97 @@ namespace Lyra.Core.Authorizers
                 return vf;
 
             return await base.AuthorizeImplAsync(sys, tblock);
+        }
+
+        protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
+        {
+            if (previousBlock != null && (block as TransactionBlock).AccountID != (previousBlock as TransactionBlock).AccountID)
+                return APIResultCodes.InvalidAccountId;
+
+            var blockt = block as TransactionBlock;
+            var uniNow = DateTime.UtcNow;
+
+            if (!blockt.VerifyHash())
+                _log.LogWarning($"VerifyBlock VerifyHash failed for TransactionBlock Index: {block.Height} by {block.GetHashInput()}");
+
+            var verifyAgainst = blockt.AccountID;
+
+            if (block.Height > 1 && previousBlock == null)
+                return APIResultCodes.InvalidPreviousBlock;
+
+            if (block.ContainsTag(Block.MANAGEDTAG))
+            {
+                if (block.Tags[Block.MANAGEDTAG] != "")
+                    return APIResultCodes.InvalidManagementBlock;
+
+                //if (!(block is IBrokerAccount) && !(block is PoolFactoryBlock) && !(block is IPool))
+                //    return APIResultCodes.InvalidBrokerAcount;
+
+                var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                verifyAgainst = board.CurrentLeader;
+            }
+            else
+            {
+                if (block is IBrokerAccount)
+                    return APIResultCodes.InvalidBrokerAcount;
+
+                if (block.Height > 1)
+                {
+                    var firstBlock = await sys.Storage.FindFirstBlockAsync(blockt.AccountID);
+                    if (firstBlock is IBrokerAccount || firstBlock.ContainsTag(Block.MANAGEDTAG))
+                        return APIResultCodes.InvalidBrokerAcount;
+                }
+            }
+
+            if (previousBlock != null && previousBlock.ContainsTag(Block.MANAGEDTAG))
+            {
+                if (!blockt.ContainsTag(Block.MANAGEDTAG))
+                    return APIResultCodes.InvalidManagementBlock;
+
+                if (blockt.Tags[Block.MANAGEDTAG] != "")
+                    return APIResultCodes.InvalidManagementBlock;
+
+                var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+                verifyAgainst = board.CurrentLeader;
+            }
+
+            var result = block.VerifySignature(verifyAgainst);
+            if (!result)
+            {
+                _log.LogWarning($"VerifyBlock failed for TransactionBlock Index: {block.Height} Type: {block.BlockType} by {blockt.AccountID}");
+                return APIResultCodes.BlockSignatureValidationFailed;
+            }
+
+            // check if this Index already exists (double-spending, kind of)
+            if (await sys.Storage.FindBlockByIndexAsync(blockt.AccountID, block.Height) != null)
+                return APIResultCodes.BlockWithThisIndexAlreadyExists;
+
+            // check service hash
+            if (string.IsNullOrWhiteSpace(blockt.ServiceHash))
+                return APIResultCodes.ServiceBlockNotFound;
+
+            var svcBlock = await sys.Storage.GetLastServiceBlockAsync();
+            if (blockt.ServiceHash != svcBlock.Hash)
+            {
+                // verify svc hash exists
+                var svc2 = await sys.Storage.FindBlockByHashAsync(blockt.ServiceHash);
+                if (svc2 == null)
+                    return APIResultCodes.ServiceBlockNotFound;
+            }
+
+            //if (!await ValidateRenewalDateAsync(sys, blockt, previousBlock as TransactionBlock))
+            //    return APIResultCodes.TokenExpired;
+
+            if (sys.ConsensusState != BlockChainState.StaticSync)
+            {
+                if (block.TimeStamp < uniNow.AddSeconds(-120) || block.TimeStamp > uniNow.AddSeconds(3))
+                {
+                    _log.LogInformation($"TimeStamp 2: {block.TimeStamp} Universal Time Now: {uniNow}");
+                    return APIResultCodes.InvalidBlockTimeStamp;
+                }
+            }
+
+            return await base.VerifyWithPrevAsync(sys, block, previousBlock);
         }
 
         protected virtual decimal GetFeeAmount()

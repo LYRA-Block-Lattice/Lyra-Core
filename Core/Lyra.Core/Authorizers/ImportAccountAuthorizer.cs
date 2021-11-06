@@ -41,7 +41,7 @@ namespace Lyra.Core.Authorizers
             if (import_block.AccountID == import_block.ImportedAccountId)
                 return APIResultCodes.CannotImportAccountToItself;
 
-            var result = await VerifyBlockAsync(sys, import_block, previous_block);
+            var result = await VerifyWithPrevAsync(sys, import_block, previous_block);
             if (result != APIResultCodes.Success)
                 return result;
 

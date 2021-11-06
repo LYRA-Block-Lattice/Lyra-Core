@@ -33,7 +33,7 @@ namespace Lyra.Core.Authorizers
             return AuthorizationFeeTypes.NoFee;
         }
 
-        protected override async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
+        protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
         {
             var withdrawBlock = block as PoolWithdrawBlock;
             if (withdrawBlock == null)
@@ -87,7 +87,7 @@ namespace Lyra.Core.Authorizers
                 .SequenceEqual(nextShares.ToRitoLongDict().OrderBy(a => a.Key)))
                 return APIResultCodes.InvalidPoolWithdrawRito;
 
-            return await base.VerifyBlockAsync(sys, block, previousBlock);
+            return await base.VerifyWithPrevAsync(sys, block, previousBlock);
         }
     }
 }

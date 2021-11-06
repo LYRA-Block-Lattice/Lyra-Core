@@ -33,7 +33,7 @@ namespace Lyra.Core.Authorizers
             return AuthorizationFeeTypes.Dynamic;
         }
 
-        protected override async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
+        protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
         {
             var swapOutBlock = block as PoolSwapOutBlock;
             if (swapOutBlock == null)
@@ -116,7 +116,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidPoolSwapOutShare;
 
             _calculator = cfg;
-            return await base.VerifyBlockAsync(sys, block, previousBlock);
+            return await base.VerifyWithPrevAsync(sys, block, previousBlock);
         }
     }
 }

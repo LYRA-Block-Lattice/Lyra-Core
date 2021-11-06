@@ -10,7 +10,7 @@ namespace Lyra.Core.Authorizers
 {
     public class PoolDepositAuthorizer : ReceiveTransferAuthorizer
     {
-        protected override async Task<APIResultCodes> VerifyBlockAsync(DagSystem sys, Block block, Block previousBlock)
+        protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
         {
             // recalculate
             var recvBlock = block as PoolDepositBlock;
@@ -75,7 +75,7 @@ namespace Lyra.Core.Authorizers
                 .SequenceEqual(recvBlock.Shares.OrderBy(a => a.Key)))
                 return APIResultCodes.InvalidPoolDepositionRito;
 
-            return await base.VerifyBlockAsync(sys, block, previousBlock);
+            return await base.VerifyWithPrevAsync(sys, block, previousBlock);
         }
     }
 }

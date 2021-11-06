@@ -8,6 +8,11 @@ using Lyra.Core.Accounts;
 using Clifton.Blockchain;
 using System.Linq;
 using Lyra.Core.API;
+using Lyra.Data.API;
+using Microsoft.Extensions.Logging;
+using static Lyra.Core.Decentralize.ConsensusService;
+using Akka.Actor;
+using Lyra.Shared;
 
 namespace Lyra.Core.Authorizers
 {
@@ -82,5 +87,35 @@ namespace Lyra.Core.Authorizers
             return await base.AuthorizeImplAsync(sys, tblock);
         }
 
+        protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
+        {
+            var cons = block as ConsolidationBlock;
+            var uniNow = DateTime.UtcNow;
+            if (sys.ConsensusState != BlockChainState.StaticSync)
+            {
+                // time shift 10 seconds.
+                if (block.TimeStamp < uniNow.AddSeconds(-60) || block.TimeStamp > uniNow.AddSeconds(3))
+                {
+                    _log.LogInformation($"TimeStamp 3: {block.TimeStamp} Universal Time Now: {uniNow}");
+                    return APIResultCodes.InvalidBlockTimeStamp;
+                }
+            }
+
+            var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
+            if (board.CurrentLeader != cons.createdBy)
+            {
+                _log.LogWarning($"Invalid leader. was {cons.createdBy.Shorten()} should be {board.CurrentLeader.Shorten()}");
+                return APIResultCodes.InvalidLeaderInConsolidationBlock;
+            }
+
+            var result = block.VerifySignature(board.CurrentLeader);
+            if (!result)
+            {
+                _log.LogWarning($"VerifySignature failed for ConsolidationBlock Index: {block.Height} with Leader {board.CurrentLeader}");
+                return APIResultCodes.BlockSignatureValidationFailed;
+            }
+
+            return await base.VerifyWithPrevAsync(sys, block, previousBlock);
+        }
     }
 }
