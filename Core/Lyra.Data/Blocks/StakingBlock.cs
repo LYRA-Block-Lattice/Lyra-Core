@@ -61,7 +61,7 @@ namespace Lyra.Core.Blocks
             string extraData = base.GetExtraData();
             extraData += Voting.ToString() + "|";
             extraData += Days.ToString() + "|";
-            if (Start != null)
+            if (Version >= 4)
             {
                 extraData += DateTimeToString(Start) + "|";
                 extraData += CompoundMode + "|";
@@ -111,7 +111,7 @@ namespace Lyra.Core.Blocks
 
             extraData += Voting.ToString() + "|";
             extraData += Days.ToString() + "|";
-            if(Start != null)
+            if (Version >= 4)
             {
                 extraData += DateTimeToString(Start) + "|";
                 extraData += CompoundMode + "|";
