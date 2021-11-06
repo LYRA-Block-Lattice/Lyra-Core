@@ -26,5 +26,10 @@ namespace Lyra.Core.Authorizers
 
             return await base.AuthorizeImplAsync(sys, tblock);
         }
+
+        protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
+        {
+            return true;
+        }
     }
 }
