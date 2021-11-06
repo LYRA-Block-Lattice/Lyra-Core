@@ -83,6 +83,16 @@ namespace Lyra.Core.Authorizers
             return await base.AuthorizeImplAsync(sys, tblock);
         }
 
+        protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
+        {
+            if (block.AccountID == PoolFactoryBlock.FactoryAccount
+                || block is IPool
+                || block is IProfiting)
+                return true;
+
+            return base.IsManagedBlockAllowed(sys, block);
+        }
+
         protected override AuthorizationFeeTypes GetFeeType()
         {
             return AuthorizationFeeTypes.NoFee;

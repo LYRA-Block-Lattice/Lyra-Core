@@ -79,6 +79,9 @@ namespace Lyra.Core.Authorizers
                 //if (!(block is IBrokerAccount) && !(block is PoolFactoryBlock) && !(block is IPool))
                 //    return APIResultCodes.InvalidBrokerAcount;
 
+                if (!IsManagedBlockAllowed(sys, blockt))
+                    return APIResultCodes.InvalidManagementBlock;
+
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                 verifyAgainst = board.CurrentLeader;
             }
@@ -144,6 +147,11 @@ namespace Lyra.Core.Authorizers
             }
 
             return await base.VerifyWithPrevAsync(sys, block, previousBlock);
+        }
+
+        protected virtual bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
+        {
+            return false;
         }
 
         protected virtual decimal GetFeeAmount()
