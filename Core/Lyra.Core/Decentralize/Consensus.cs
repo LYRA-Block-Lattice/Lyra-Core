@@ -86,13 +86,13 @@ namespace Lyra.Core.Decentralize
                 if (oldState.svcGenHash != seedSvcGen.GetBlock().Hash)
                     LocalDbSyncState.Remove();
 
-                if(oldState.databaseVersion > 0 && oldState.databaseVersion < LyraGlobal.DatabaseVersion)
-                {
-                    // should upgrade database or resync completely
-                    _sys.Storage.Delete(true);
-                    LocalDbSyncState.Remove();
-                    localDbState = await GetNodeStatusAsync();
-                }
+                //if(oldState.databaseVersion > 0 && oldState.databaseVersion < LyraGlobal.DatabaseVersion)
+                //{
+                //    // should upgrade database or resync completely
+                //    _sys.Storage.Delete(true);
+                //    LocalDbSyncState.Remove();
+                //    localDbState = await GetNodeStatusAsync();
+                //}
             }
 
             var localState = LocalDbSyncState.Load();
