@@ -2,6 +2,7 @@
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -615,6 +616,16 @@ namespace Lyra.Core.API
             return await GetAsync<List<Profiting>>("FindAllProfitingAccounts", args);
         }
 
+        public async Task<ProfitingGenesis> FindProfitingAccountsByNameAsync(string Name)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "name", Name }
+            };
+
+            return await GetAsync<ProfitingGenesis>("FindProfitingAccountsByName", args);
+        }
+
         public async Task<List<Staker>> FindAllStakingsAsync(string pftid, DateTime timeBefore)
         {
             var args = new Dictionary<string, string>
@@ -654,6 +665,11 @@ namespace Lyra.Core.API
             };
 
             return await GetAsync<ProfitingStats>("GetBenefitStats", args);
+        }
+
+        ProfitingGenesis INodeAPI.FindProfitingAccountsByNameAsync(string Name)
+        {
+            throw new NotImplementedException();
         }
     }
 }

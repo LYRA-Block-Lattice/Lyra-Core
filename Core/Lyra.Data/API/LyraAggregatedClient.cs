@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -554,6 +555,11 @@ namespace Lyra.Data.API
         }
 
         public Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ProfitingGenesis FindProfitingAccountsByNameAsync(string Name)
         {
             throw new NotImplementedException();
         }

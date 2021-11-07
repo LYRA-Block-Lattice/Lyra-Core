@@ -1856,6 +1856,17 @@ namespace Lyra.Core.Accounts
             return rets;
         }
 
+        public ProfitingGenesis FindProfitingAccountsByName(string Name)
+        {
+            var q = _blocks.OfType<ProfitingGenesis>()
+                .AsQueryable()
+                .Where(a => a.Name == Name)
+                .ToList();
+
+            var rets = q.FirstOrDefault();
+            return rets;
+        }
+
         public async Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId)
         {
             var filter = Builders<Block>.Filter;

@@ -12,6 +12,7 @@ using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
+using Lyra.Data.Blocks;
 using Lyra.Node2;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Http;
@@ -581,6 +582,14 @@ namespace LyraLexWeb2
             if (!CheckServiceStatus()) return null;
             return await _node.FindAllProfitingAccountsAsync(new DateTime(timeBeginTicks, DateTimeKind.Utc),
                 new DateTime(timeEndTicks, DateTimeKind.Utc));
+        }
+
+        [Route("FindProfitingAccountsByName")]
+        [HttpGet]
+        public ProfitingGenesis FindProfitingAccountsByName(string name)
+        {
+            if (!CheckServiceStatus()) return null;
+            return _node.FindProfitingAccountsByNameAsync(name);
         }
 
         [Route("FindAllStakings")]
