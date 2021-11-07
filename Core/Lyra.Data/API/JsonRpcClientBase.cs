@@ -28,6 +28,7 @@ namespace Lyra.Core.API
         public int days { get; set; }
         public DateTime start { get; set; }
         public decimal amount { get; set; }
+        public bool compound { get; set; }
     }
     public class ProfitInfo
     {

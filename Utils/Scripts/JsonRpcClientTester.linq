@@ -93,7 +93,7 @@ public class Tester
 		wstk.Receive();
 		(dynamic pftresult, _) = wpft.CallRPC("Create a profiting account", "ProfitInfo CreateProfitingAccount(string accountId, string Name, ProfitingType ptype, decimal shareRito, int maxVoter)", "CreateProfitingAccount", new string[]{wpft.AccountId, "Pft1", "Node", "0.8", "100"});
 		await Task.Delay(2000);
-		(dynamic stkresult, _) = wstk.CallRPC("Staking to a profiting account", "StakingInfo CreateStakingAccount(string accountId, string Name, string voteFor, int daysToStake)", "CreateStakingAccount", new string[] {wstk.AccountId, "Stk1", pftresult.result.pftid, "1000"});
+		(dynamic stkresult, _) = wstk.CallRPC("Staking to a profiting account", "StakingInfo CreateStakingAccount(string accountId, string Name, string voteFor, int daysToStake, bool compundMode)", "CreateStakingAccount", new string[] {wstk.AccountId, "Stk1", pftresult.result.pftid, "1000", "True"});
 		await Task.Delay(2000);
 		(dynamic addstkresult, _) = wstk.CallRPC("Add staking funds", "bool AddStaking(string accountId, string stakingAccountId, decimal amount)", "AddStaking", new string[] {wstk.AccountId, stkresult.result.stkid, "200"});
 		await Task.Delay(2000);

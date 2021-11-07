@@ -620,14 +620,15 @@ namespace Lyra.Data.API
             return getpftResult;
         }
 
-        public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, string voteFor, int daysToStake)
+        public async Task<BlockAPIResult> CreateStakingAccountAsync(string Name, string voteFor, int daysToStake, bool compundMode)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_STK_CRSTK },
                 { "name", Name },
                 { "voting", voteFor },
-                { "days", daysToStake.ToString() }
+                { "days", daysToStake.ToString() },
+                { "compound", compundMode.ToString() }
             };
             var amounts = new Dictionary<string, decimal>
             {

@@ -82,7 +82,7 @@ namespace UnitTests
                 Assert.IsNotNull(pgen);
 
                 // test create staking account
-                var result2 = await w1.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID, 3);
+                var result2 = await w1.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID, 30, true);
                 Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result2: {result2.ResultCode}");
 
                 var stkgen = result2.GetBlock() as StakingBlock;

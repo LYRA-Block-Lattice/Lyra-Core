@@ -275,7 +275,7 @@ namespace UnitTests
 
         private async Task<IStaking> CreateStaking(Wallet w, string pftid, decimal amount)
         {
-            var crstkret = await w.CreateStakingAccountAsync($"moneybag{_rand.Next()}", pftid, 3);
+            var crstkret = await w.CreateStakingAccountAsync($"moneybag{_rand.Next()}", pftid, 30, true);
             Assert.IsTrue(crstkret.Successful());
             var stkblock = crstkret.GetBlock() as StakingBlock;
             Assert.IsTrue(stkblock.OwnerAccountId == w.AccountId);

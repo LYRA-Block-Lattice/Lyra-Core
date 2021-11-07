@@ -439,10 +439,11 @@ namespace Lyra.Node
                             stkid = (stk as TransactionBlock).AccountID,
                             name = stk.Name,
 
-                            start = (stk as TransactionBlock).TimeStamp,
+                            start = stk.Start,
                             amount = amt,
                             days = stk.Days,
-                            voting = stk.Voting
+                            voting = stk.Voting,
+                            compound = stk.CompoundMode
                         };
 
                         accts.stakings.Add(stkinfo);
@@ -500,11 +501,11 @@ namespace Lyra.Node
         }
 
         [JsonRpcMethod("CreateStakingAccount")]
-        public async Task<StakingInfo> CreateStakingAccountAsync(string accountId, string Name, string voteFor, int daysToStake)
+        public async Task<StakingInfo> CreateStakingAccountAsync(string accountId, string Name, string voteFor, int daysToStake, bool compoundMode)
         {
             var klWallet = CreateWallet(accountId);
 
-            var result = await klWallet.CreateStakingAccountAsync(Name, voteFor, daysToStake);
+            var result = await klWallet.CreateStakingAccountAsync(Name, voteFor, daysToStake, compoundMode);
             if (result.ResultCode == APIResultCodes.Success)
             {
                 var sgen = result.GetBlock() as StakingGenesis;
@@ -514,10 +515,11 @@ namespace Lyra.Node
                     stkid = sgen.AccountID,
                     name = sgen.Name,
 
-                    start = sgen.TimeStamp,
+                    start = sgen.Start,
                     amount = 0,
                     days = sgen.Days,
-                    voting = sgen.Voting
+                    voting = sgen.Voting,
+                    compound = sgen.CompoundMode
                 };
 
                 return stkinfo;
@@ -577,10 +579,11 @@ namespace Lyra.Node
                     stkid = sgen.AccountID,
                     name = sgen.Name,
 
-                    start = sgen.TimeStamp,
+                    start = sgen.Start,
                     amount = tb.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal(),
                     days = sgen.Days,
-                    voting = sgen.Voting
+                    voting = sgen.Voting,
+                    compound = sgen.CompoundMode
                 };
                 return stkinfo;
             }
