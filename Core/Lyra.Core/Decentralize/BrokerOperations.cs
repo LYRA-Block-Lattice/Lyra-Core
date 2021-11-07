@@ -772,7 +772,7 @@ namespace Lyra.Core.Decentralize
                 RelatedTx = send.Hash,
                 Days = int.Parse(send.Tags["days"]),
                 Start = DateTime.UtcNow.AddDays(1),
-                CompoundMode = true
+                CompoundMode = send.Tags["compound"] == "True"
             };
 
             stkGenesis.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
@@ -829,7 +829,7 @@ namespace Lyra.Core.Decentralize
                 Voting = ((IStaking)lastStk).Voting,
                 RelatedTx = relatedTx,
                 Start = start,
-                CompoundMode = true
+                CompoundMode = ((IStaking)lastStk).CompoundMode
             };
 
             var chgs = send.GetBalanceChanges(sendPrev);
@@ -873,7 +873,7 @@ namespace Lyra.Core.Decentralize
                 Voting = (lastStk as IStaking).Voting,
                 RelatedTx = send.Hash,
                 Start = DateTime.MaxValue,
-                CompoundMode = true
+                CompoundMode = ((IStaking)lastStk).CompoundMode
             };
 
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);

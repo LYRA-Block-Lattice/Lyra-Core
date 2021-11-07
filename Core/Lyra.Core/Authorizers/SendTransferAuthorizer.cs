@@ -189,7 +189,8 @@ namespace Lyra.Core.Authorizers
                         block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
                         block.Tags.ContainsKey("days") && int.TryParse(block.Tags["days"], out days) && days >= 3 &&
                         block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"]) &&
-                        block.Tags.Count == 4
+                        block.Tags.ContainsKey("compound") && !string.IsNullOrEmpty(block.Tags["compound"]) &&
+                        block.Tags.Count == 5
                         )
                     {
                         var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
@@ -210,6 +211,8 @@ namespace Lyra.Core.Authorizers
                         {
                             return APIResultCodes.VotingDaysTooSmall;
                         }
+                        if (block.Tags["compound"] != "True" && block.Tags["compound"] != "False")
+                            return APIResultCodes.InvalidBlockTags;
                     }
                     else
                         return APIResultCodes.InvalidBlockTags;

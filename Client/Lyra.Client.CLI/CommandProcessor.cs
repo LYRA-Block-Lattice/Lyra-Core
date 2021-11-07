@@ -374,14 +374,17 @@ Y/n? ");
                     Console.Write("Number of days ( 3 - 36500 ): ");
                     var dayss = Console.ReadLine();
                     var days = int.Parse(dayss);
+                    Console.Write("Compound staking mode (Y/n): ");
+                    var compoundMode = ReadYesNoAnswer();
                     Console.Write(@$"Create new staking account: {sName}
 Staking for: {pftAcct} %
 Days: {days}
+Compound Staking: {compoundMode}
 
 Y/n? ");
                     if (ReadYesNoAnswer())
                     {
-                        var creatRet = await _wallet.CreateStakingAccountAsync(sName, pftAcct, days);
+                        var creatRet = await _wallet.CreateStakingAccountAsync(sName, pftAcct, days, compoundMode);
                         if (creatRet.Successful())
                         {
                             var pftGensis = creatRet.GetBlock() as StakingGenesis;
