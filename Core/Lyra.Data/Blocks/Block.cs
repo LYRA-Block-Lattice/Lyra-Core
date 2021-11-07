@@ -505,6 +505,7 @@ namespace Lyra.Core.Blocks
         InvalidOpeningAccount,
         InvalidBlockSequence,
         InvalidManagedTransaction,
+        ProfitUnavaliable,
 
         InvalidBlockData = 400,
         AccountLockDown,

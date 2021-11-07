@@ -207,7 +207,11 @@ namespace Lyra.Core.Authorizers
                         {
                             return APIResultCodes.InvalidProfitingAccount;
                         }
-                        if(days < 1)
+                        if(pftgen.Seats == 0 || pftgen.ShareRito == 0)
+                        {
+                            return APIResultCodes.ProfitUnavaliable;
+                        }
+                        if(days <= 1)
                         {
                             return APIResultCodes.VotingDaysTooSmall;
                         }
