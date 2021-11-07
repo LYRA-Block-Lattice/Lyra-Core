@@ -203,6 +203,16 @@ namespace Lyra.Core.Decentralize
             return Bps.Values.ToList();
         }
 
+        public static void Load(IAccountCollectionAsync stor)
+        {
+            var bps = stor.GetAllBlueprints();
+            foreach (var bp in bps)
+            {
+                if (!Bps.Keys.Any(a => a == bp.svcReqHash))
+                    Bps.TryAdd(bp.svcReqHash, bp);
+            }
+        }
+
         public static void Persist(IAccountCollectionAsync stor)
         {
             // save to database

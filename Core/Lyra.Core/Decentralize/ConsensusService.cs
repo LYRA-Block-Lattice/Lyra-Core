@@ -422,6 +422,7 @@ namespace Lyra.Core.Decentralize
                         await DeclareConsensusNodeAsync();
 
                     await InitJobSchedulerAsync();
+                    BrokerFactory.Load(_sys.Storage);
 
                     do
                     {

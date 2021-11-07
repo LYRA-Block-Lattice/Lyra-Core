@@ -242,6 +242,12 @@ namespace Lyra.Core.Authorizers
                             // one type per account. just keep it simple.
                             if (pfts.Any(a => a.PType == ptype))
                                 return APIResultCodes.DuplicateAccountType;
+
+                            if (shareRito == 0 && seats != 0)
+                                return APIResultCodes.InvalidAuthorizerCount;
+
+                            if (shareRito > 0 && seats == 0)
+                                return APIResultCodes.InvalidAuthorizerCount;
                         }
                         else
                         {

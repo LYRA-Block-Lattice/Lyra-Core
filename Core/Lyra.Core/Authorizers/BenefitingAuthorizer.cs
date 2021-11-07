@@ -18,12 +18,6 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as BenefitingBlock;
 
-            if (block.ShareRito < 0 || block.ShareRito > 1)
-                return APIResultCodes.InvalidShareRitio;
-
-            if (block.Seats < 1 || block.Seats > 100)
-                return APIResultCodes.InvalidSeatsCount;
-
             return await base.AuthorizeImplAsync(sys, tblock);
         }
 
