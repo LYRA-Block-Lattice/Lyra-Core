@@ -252,6 +252,10 @@ namespace Lyra.Core.Authorizers
 
                             if (shareRito > 0 && seats == 0)
                                 return APIResultCodes.InvalidAuthorizerCount;
+
+                            var dupname = sys.Storage.FindProfitingAccountsByName(block.Tags["name"]);
+                            if (dupname != null)
+                                return APIResultCodes.DuplicatedName;
                         }
                         else
                         {
