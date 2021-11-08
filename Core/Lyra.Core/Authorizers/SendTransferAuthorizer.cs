@@ -100,6 +100,14 @@ namespace Lyra.Core.Authorizers
             //stopwatch3.Stop();
             //Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 
+            // check busy
+            var brkacct = BrokerFactory.GetBrokerAccountID(block);
+            if(brkacct != null)
+            {
+                if (BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == brkacct))
+                    return APIResultCodes.SystemBusy;
+            }
+
             // a normal send is success.
             // monitor special account
             if (block.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
@@ -109,9 +117,6 @@ namespace Lyra.Core.Authorizers
                 switch(block.Tags[Block.REQSERVICETAG])
                 {
                     case BrokerActions.BRK_POOL_CRPL:
-                        if (BrokerFactory.GetAllBlueprints().Any(x => x.action == BrokerActions.BRK_POOL_CRPL))
-                            return APIResultCodes.SystemBusy;
-
                         svcReqResult = await VerifyCreatingPoolAsync(sys, block, lastBlock);
                         break;
                     case BrokerActions.BRK_POOL_RMLQ:
@@ -283,9 +288,6 @@ namespace Lyra.Core.Authorizers
                 //        if (!stkrs2.Any(a => a.user == block.AccountID) && pft2.OwnerAccountId != block.AccountID)
                 //            return APIResultCodes.RequestNotPermited;
 
-                //        // no concurency
-                //        if (sys.Storage.GetAllBlueprints().Any(x => x.brokerAccount == pftid2))
-                //            return APIResultCodes.SystemBusy;
                 //    }
 
                 //    return APIResultCodes.Success;
@@ -301,10 +303,6 @@ namespace Lyra.Core.Authorizers
                     var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
                     if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
                         return APIResultCodes.RequestNotPermited;
-
-                    // no concurency
-                    if (BrokerFactory.GetAllBlueprints().Any(x => x.brokerAccount == pftid))
-                        return APIResultCodes.SystemBusy;
                     break;
                 default:
                     return APIResultCodes.InvalidServiceRequest;
@@ -358,11 +356,10 @@ namespace Lyra.Core.Authorizers
 
         private async Task<APIResultCodes> VerifyWithdrawFromPoolAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
         {
-            var tgc = await CheckTagsAsync(sys, block);
-            if (tgc != APIResultCodes.Success)
-                return tgc;
+            if (block.Tags.Count != 2 || !block.Tags.ContainsKey("poolid"))
+                return APIResultCodes.InvalidBlockTags;
 
-            var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
+            var poolGenesis = sys.Storage.GetPoolByID(block.Tags["poolid"]);
             if (poolGenesis == null)
                 return APIResultCodes.PoolNotExists;
 
@@ -377,16 +374,12 @@ namespace Lyra.Core.Authorizers
             if (!pool.Shares.ContainsKey(block.AccountID))
                 return APIResultCodes.PoolShareNotExists;
 
-            // check pending swap
-            if (BrokerFactory.GetAllBlueprints().Any(x => x.brokerAccount == poolGenesis.AccountID))
-                return APIResultCodes.ReQuotaNeeded;
-
             return APIResultCodes.Success;
         }
 
         private async Task<APIResultCodes> VerifyPoolAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
         {
-            var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
+            var poolGenesis = sys.Storage.GetPoolByID(block.Tags["poolid"]);
             if (poolGenesis == null)
                 return APIResultCodes.PoolNotExists;
 
@@ -402,9 +395,8 @@ namespace Lyra.Core.Authorizers
 
         private async Task<APIResultCodes> VerifyAddLiquidateToPoolAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
         {
-            var tgc = await CheckTagsAsync(sys, block);
-            if (tgc != APIResultCodes.Success)
-                return tgc;
+            if (block.Tags.Count != 2 || !block.Tags.ContainsKey("poolid"))
+                return APIResultCodes.InvalidBlockTags;
 
             var vp = await VerifyPoolAsync(sys, block, lastBlock);
             if (vp != APIResultCodes.Success)
@@ -414,7 +406,7 @@ namespace Lyra.Core.Authorizers
             if (chgs.Changes.Count != 2)
                 return APIResultCodes.InvalidPoolDepositionAmount;
 
-            var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
+            var poolGenesis = sys.Storage.GetPoolByID(block.Tags["poolid"]);
             if (poolGenesis == null)
                 return APIResultCodes.PoolNotExists;
 
@@ -435,26 +427,23 @@ namespace Lyra.Core.Authorizers
                     )
                     return APIResultCodes.InvalidPoolDepositionRito;
             }
-
-            // check pending swap
-            if (BrokerFactory.GetAllBlueprints().Any(x => x.brokerAccount == block.DestinationAccountId))
-                return APIResultCodes.ReQuotaNeeded;
-
             return APIResultCodes.Success;
         }
 
         private async Task<APIResultCodes> VerifyPoolSwapAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
         {
-            var tgc = await CheckTagsAsync(sys, block, 4);
-            if (tgc != APIResultCodes.Success)
-                return tgc;
+            if (block.Tags.Count > 3 || !block.Tags.ContainsKey("poolid"))
+                return APIResultCodes.InvalidBlockTags;
+
+            if(block.Tags.Count == 3 && !block.Tags.ContainsKey("minrecv"))
+                return APIResultCodes.InvalidBlockTags;
 
             var vp = await VerifyPoolAsync(sys, block, lastBlock);
             if (vp != APIResultCodes.Success)
                 return vp;
 
             var chgs = block.GetBalanceChanges(lastBlock);
-            var poolGenesis = await sys.Storage.GetPoolAsync(block.Tags["token0"], block.Tags["token1"]);
+            var poolGenesis = sys.Storage.GetPoolByID(block.Tags["poolid"]);
 
             if (chgs.Changes.Count != 1)
                 return APIResultCodes.InvalidTokenToSwap;
@@ -499,11 +488,6 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.SwapSlippageExcceeded;
                 }
             }
-
-            // check pending swap
-            if (BrokerFactory.GetAllBlueprints().Any(x => x.brokerAccount == block.DestinationAccountId))
-                return APIResultCodes.ReQuotaNeeded;
-
             return APIResultCodes.Success;
         }
 

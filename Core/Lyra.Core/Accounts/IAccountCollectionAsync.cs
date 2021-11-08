@@ -98,6 +98,7 @@ namespace Lyra.Core.Accounts
         Task<bool> WasAccountImportedAsync(string ImportedAccountId, string AccountId);
 
         Task<PoolFactoryBlock> GetPoolFactoryAsync();
+        PoolGenesisBlock GetPoolByID(string poolid);
         Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1);
         Task<List<Block>> GetAllBrokerAccountsForOwnerAsync(string ownerAccount);
         Task<List<Block>> FindBlocksByRelatedTxAsync(string hash);

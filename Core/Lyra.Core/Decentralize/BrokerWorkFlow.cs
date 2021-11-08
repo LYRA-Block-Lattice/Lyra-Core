@@ -231,5 +231,35 @@ namespace Lyra.Core.Decentralize
                     stor.CreateBlueprint(n.Value);
             }    
         }
+
+        public static string GetBrokerAccountID(SendTransferBlock send)
+        {
+            string action = null;
+            if (send.Tags != null && send.Tags.ContainsKey(Block.REQSERVICETAG))
+                action = send.Tags[Block.REQSERVICETAG];
+
+            string brkaccount;
+            switch (action)
+            {
+                case BrokerActions.BRK_PFT_GETPFT:
+                    brkaccount = send.Tags["pftid"];
+                    break;
+                case BrokerActions.BRK_POOL_ADDLQ:
+                case BrokerActions.BRK_POOL_SWAP:
+                case BrokerActions.BRK_POOL_RMLQ:
+                    brkaccount = send.Tags["poolid"];
+                    break;
+                case BrokerActions.BRK_STK_ADDSTK:
+                    brkaccount = send.DestinationAccountId;
+                    break;
+                case BrokerActions.BRK_STK_UNSTK:
+                    brkaccount = send.Tags["stkid"];
+                    break;
+                default:
+                    brkaccount = null;
+                    break;
+            };
+            return brkaccount;
+        }
     }
 }

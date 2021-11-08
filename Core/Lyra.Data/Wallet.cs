@@ -1770,8 +1770,7 @@ namespace Lyra.Core.Accounts
 
             var tags = new Dictionary<string, string>
             {
-                { "token0", pool.Token0 },
-                { "token1", pool.Token1 },
+                { "poolid", pool.PoolAccountId },
                 { Block.REQSERVICETAG, BrokerActions.BRK_POOL_ADDLQ }
             };
 
@@ -1788,8 +1787,7 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_POOL_RMLQ },
-                { "token0", pool.Token0 },
-                { "token1", pool.Token1 }
+                { "poolid", pool.PoolAccountId },
             };
             var amounts = new Dictionary<string, decimal>
             {
@@ -1808,8 +1806,7 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_POOL_SWAP },
-                { "token0", pool.Token0 },
-                { "token1", pool.Token1 },
+                { "poolid", pool.PoolAccountId },
                 { "minrecv", $"{amountToGet.ToBalanceLong()}" }
             };
             var amounts = new Dictionary<string, decimal>
@@ -1931,7 +1928,7 @@ namespace Lyra.Core.Accounts
 
             var tags = new Dictionary<string, string>
             {
-                { Block.REQSERVICETAG, BrokerActions.BRK_STK_ADDSTK }
+                { Block.REQSERVICETAG, BrokerActions.BRK_STK_ADDSTK },
             };
 
             var addStkResult = await SendExAsync(stakingAccountId, amountsDeposit, tags);

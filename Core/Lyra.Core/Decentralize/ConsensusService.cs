@@ -1687,13 +1687,16 @@ namespace Lyra.Core.Decentralize
 
             if (action != null)
             {
+                // get broker account
+                var brkaccount = BrokerFactory.GetBrokerAccountID(send);
+
                 // create a blueprint for workflow
                 var blueprint = new BrokerBlueprint
                 {
                     view = _currentView,
                     start = DateTime.UtcNow,
                     initiatorAccount = send.AccountID,
-                    brokerAccount = send.DestinationAccountId,
+                    brokerAccount = brkaccount,
                     svcReqHash = send.Hash,
                     action = action,
                     preDone = false,
@@ -1805,7 +1808,14 @@ namespace Lyra.Core.Decentralize
             if (bp == null)
                 return;
 
-            if(!bp.FullDone)
+            if(result == ConsensusResult.Nay && IsThisNodeLeader)
+            {
+                // process Nay
+                _log.LogCritical($"Fatal Error ProcessManagedBlock! RelatedTx: {key}");
+                BrokerFactory.RemoveBlueprint(key);
+            }
+
+            if (!bp.FullDone)
             {
                 _ = Task.Run(async () =>
                 {

@@ -1654,6 +1654,16 @@ namespace Lyra.Core.Accounts
             return await finds.FirstOrDefaultAsync() as PoolFactoryBlock;
         }
 
+        public PoolGenesisBlock GetPoolByID(string poolid)
+        {
+            var pool = _blocks.OfType<PoolGenesisBlock>()
+                .AsQueryable()
+                .Where(a => a.AccountID == poolid)
+                .FirstOrDefault();
+
+            return pool;
+        }
+
         public async Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1)
         {
             // get token gensis to make the token name proper
@@ -1673,7 +1683,6 @@ namespace Lyra.Core.Accounts
             var pool = await _blocks.OfType<PoolGenesisBlock>()
                 .Aggregate()
                 .Match(poolFilter)
-                .SortByDescending(x => x.Height)
                 .FirstOrDefaultAsync();
 
             return pool;

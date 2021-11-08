@@ -490,8 +490,7 @@ namespace Lyra.Data.API
 
             var tags = new Dictionary<string, string>
             {
-                { "token0", pool.Token0 },
-                { "token1", pool.Token1 },
+                { "poolid", pool.PoolAccountId },
                 { Block.REQSERVICETAG, BrokerActions.BRK_POOL_ADDLQ }
             };
 
@@ -508,8 +507,7 @@ namespace Lyra.Data.API
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_POOL_RMLQ },
-                { "token0", pool.Token0 },
-                { "token1", pool.Token1 }
+                { "poolid", pool.PoolAccountId },
             };
             var amounts = new Dictionary<string, decimal>
             {
@@ -528,8 +526,7 @@ namespace Lyra.Data.API
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_POOL_SWAP },
-                { "token0", pool.Token0 },
-                { "token1", pool.Token1 },
+                { "poolid", pool.PoolAccountId },
                 { "minrecv", $"{amountToGet.ToBalanceLong()}" }
             };
             var amounts = new Dictionary<string, decimal>
