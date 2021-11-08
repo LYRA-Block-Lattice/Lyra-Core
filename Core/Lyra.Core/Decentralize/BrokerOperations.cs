@@ -653,7 +653,8 @@ namespace Lyra.Core.Decentralize
 
                     var amount = sendAmounts[target.StkAccount];
                     var sb = await sys.Storage.GetLastServiceBlockAsync();
-                    var pftSend = CreateBenefiting(relatedTxs.Last() as TransactionBlock, sb,
+                    var lastblkx = await sys.Storage.FindLatestBlockAsync(pftid);
+                    var pftSend = CreateBenefiting(lastblkx as TransactionBlock, sb,
                         target, reqHash,
                         amount);
 
@@ -689,9 +690,8 @@ namespace Lyra.Core.Decentralize
                 return null;
 
             var sb2 = await sys.Storage.GetLastServiceBlockAsync();
-            var lastTx = relatedTxs.Last() as TransactionBlock;
-
-            var ownrSend = CreateBenefiting(lastTx, sb2, new Staker { OwnerAccount = lastBlock.OwnerAccountId }, reqHash, lastTx.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
+            var lastblk = await sys.Storage.FindLatestBlockAsync(pftid) as TransactionBlock;
+            var ownrSend = CreateBenefiting(lastblk, sb2, new Staker { OwnerAccount = lastBlock.OwnerAccountId }, reqHash, lastblk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal());
 
             return ownrSend;
         }
