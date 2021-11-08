@@ -51,7 +51,7 @@ namespace Neo.Cryptography.ECC
         public static ECPoint DecodePoint(byte[] encoded, ECCurve curve)
         {
             ECPoint p = null;
-            int expectedLength = (curve.Q.GetBitLength() + 7) / 8;
+            int expectedLength = ((int)curve.Q.GetBitLength() + 7) / 8;
             switch (encoded[0])
             {
                 case 0x02: // compressed
@@ -113,7 +113,7 @@ namespace Neo.Cryptography.ECC
 
         public static ECPoint DeserializeFrom(BinaryReader reader, ECCurve curve)
         {
-            int expectedLength = (curve.Q.GetBitLength() + 7) / 8;
+            int expectedLength = ((int)curve.Q.GetBitLength() + 7) / 8;
             byte[] buffer = new byte[1 + expectedLength * 2];
             buffer[0] = reader.ReadByte();
             switch (buffer[0])
@@ -200,7 +200,7 @@ namespace Neo.Cryptography.ECC
         internal static ECPoint Multiply(ECPoint p, BigInteger k)
         {
             // floor(log2(k))
-            int m = k.GetBitLength();
+            int m = (int)k.GetBitLength();
 
             // width of the Window NAF
             sbyte width;

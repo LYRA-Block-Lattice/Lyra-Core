@@ -14,8 +14,20 @@ namespace Noded.Services
     {
         public string GetThumbPrint()
         {
-            var ks = Startup.App.ApplicationServices.GetService(typeof(IServer)) as KestrelServer;
+            var ksi = Startup.App.ApplicationServices.GetService(typeof(IServer));
+#if NET6_0
+            var type = typeof(KestrelServer).Assembly.GetType("Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerImpl");
+
+            PropertyInfo kesprop =
+                type.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+
+            MethodInfo getter1 = kesprop.GetGetMethod(nonPublic: true);
+            var kso = getter1.Invoke(ksi, null) as KestrelServerOptions;
+#else
+            var ks = ksi as KestrelServer;
             var kso = ks.Options;
+#endif
+
 
             PropertyInfo prop =
                 typeof(KestrelServerOptions).GetProperty("DefaultCertificate", BindingFlags.NonPublic | BindingFlags.Instance);

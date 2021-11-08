@@ -620,8 +620,9 @@ namespace NeoSmart.SecureStore
             Array.Copy(encrypted, 0, composite, iv.Length, encrypted.Length);
             var result = hmac.ComputeHash(composite);
 #else
-            var hmac = HMACSHA1.Create();
-            hmac.Key = _hmacKey?.Buffer;
+            //var hmac = HMACSHA1.Create();
+            var hmac = new HMACSHA1(_hmacKey?.Buffer);
+            //hmac.Key = _hmacKey?.Buffer;
 
             hmac.TransformBlock(iv, 0, iv.Length, iv, 0);
             hmac.TransformFinalBlock(encrypted, 0, encrypted.Length);
