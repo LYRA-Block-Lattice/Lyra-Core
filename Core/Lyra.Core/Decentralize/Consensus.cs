@@ -522,7 +522,7 @@ namespace Lyra.Core.Decentralize
                 Height = prevSvcBlock.Height + 1,
                 FeeTicker = LyraGlobal.OFFICIALTICKERCODE,
                 ServiceHash = prevSvcBlock.Hash,
-                Leader = _sys.PosWallet.AccountId,
+                Leader = _board.LeaderCandidate,
                 TransferFee = 1,           //zero for genesis. back to normal when genesis done
                 TokenGenerationFee = 10000,
                 TradeFee = 0.1m
