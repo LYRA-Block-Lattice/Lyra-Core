@@ -248,7 +248,10 @@ namespace UnitTests
         {
             // create service block
             var lsb = await testWallet.RPC.GetLastServiceBlockAsync();
-            await cs.CreateNewViewAsNewLeaderAsync();
+            var svcb = await cs.CreateNewViewAsNewLeaderAsync();
+            var svcret = await AuthAsync(svcb);
+            Assert.IsTrue(svcret);
+
             var lsb2 = await testWallet.RPC.GetLastServiceBlockAsync();
             Assert.IsTrue(lsb.GetBlock().Height + 1 == lsb2.GetBlock().Height);
 

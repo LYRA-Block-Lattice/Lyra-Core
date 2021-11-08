@@ -111,6 +111,29 @@ namespace Lyra.Core.Blocks
                 JsonConvert.SerializeObject(Tags) == JsonConvert.SerializeObject(other.Tags);
         }
 
+        protected bool CompareDict<T>(Dictionary<string, T> self, Dictionary<string, T> other)
+        {
+            if (self == null && other == null)
+                return true;
+
+            if ((self == null && other != null) || (self != null && other == null))
+                return false;
+
+            if (self.Count != other.Count)
+                return false;
+
+            foreach (var kvp in self)
+            {
+                if (!other.ContainsKey(kvp.Key))
+                    return false;
+
+                if (!EqualityComparer<T>.Default.Equals(other[kvp.Key], kvp.Value))
+                    return false;
+            }
+
+            return true;
+        }
+
         public override string GetHashInput()
         {
             return Height.ToString() + "|" +
@@ -506,6 +529,7 @@ namespace Lyra.Core.Blocks
         InvalidBlockSequence,
         InvalidManagedTransaction,
         ProfitUnavaliable,
+        BlockCompareFailed,
 
         InvalidBlockData = 400,
         AccountLockDown,

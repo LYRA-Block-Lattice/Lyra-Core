@@ -39,6 +39,7 @@ namespace Lyra.Core.Decentralize
     {
         public class Startup { }
         public class AskForBillboard { }
+        public class AskForServiceBlock { }
         public class AskForState { }
         public class AskForStats { }
         public class AskForDbStats { }
@@ -130,11 +131,36 @@ namespace Lyra.Core.Decentralize
                     if (leader == _sys.PosWallet.AccountId)
                     {
                         // its me!
-                        _ = Task.Run(async () =>
+                        if (!_creatingSvcBlock)
                         {
-                            await Task.Delay(1000);     // some nodes may not got this in time
-                            await CreateNewViewAsNewLeaderAsync();
-                        });
+                            _creatingSvcBlock = true;
+
+                            _log.LogInformation($"Me was elected new leader. Creating New View...");
+
+                            _ = Task.Run(async () =>
+                            {
+                                await Task.Delay(1000);     // some nodes may not got this in time
+
+                                try
+                                {
+                                    var svcBlock = await CreateNewViewAsNewLeaderAsync();
+
+                                    _log.LogInformation($"New View was created. send to network...");
+                                    await SendBlockToConsensusAndForgetAsync(svcBlock);
+                                }
+                                catch (Exception e)
+                                {
+                                    _log.LogCritical($"CreateNewViewAsNewLeader: {e}");
+                                }
+                                finally
+                                {
+                                    // for unit test only, save 10 seconds
+                                    if (_hostEnv != null)
+                                        await Task.Delay(10000);
+                                    _creatingSvcBlock = false;
+                                }
+                            });
+                        }
                     }
 
                     //_ = Task.Run(async () =>
@@ -187,6 +213,7 @@ namespace Lyra.Core.Decentralize
 
             Receive<AskForState>((_) => Sender.Tell(_stateMachine.State));
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
+            ReceiveAsync<AskForServiceBlock>(async (_) => { Sender.Tell(await CreateServiceGenesisBlockAsync()); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
 

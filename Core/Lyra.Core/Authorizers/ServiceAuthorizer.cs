@@ -58,6 +58,10 @@ namespace Lyra.Core.Authorizers
                 {
                     return APIResultCodes.InvalidAuthorizerInServiceBlock;
                 }
+
+                var myscvb = await sys.Consensus.Ask<ServiceBlock>(new AskForServiceBlock());
+                if (!myscvb.AuthCompare(block))
+                    return APIResultCodes.BlockCompareFailed;
             }
             else // svc gensis
             {

@@ -77,7 +77,15 @@ namespace Lyra.Core.Blocks
             var ob = other as ServiceBlock;
 
             return base.AuthCompare(ob) &&
-                false;      // TODO: add compare in future
+                Leader == ob.Leader &&
+                CompareDict<string>(Authorizers, ob.Authorizers) &&
+                NetworkId == ob.NetworkId &&
+                FeeTicker == ob.FeeTicker &&
+                TransferFee == ob.TransferFee &&
+                TokenGenerationFee == ob.TokenGenerationFee &&
+                TradeFee == ob.TradeFee &&
+                FeesGenerated == ob.FeesGenerated
+                ;      
         }
 
         protected override string GetExtraData()
