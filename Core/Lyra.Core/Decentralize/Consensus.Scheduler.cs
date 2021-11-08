@@ -217,6 +217,7 @@ namespace Lyra.Core.Decentralize
                             if (x.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
                             {
                                 cs._log.LogError($"blueprint failed: {x.svcReqHash}");
+                                BrokerFactory.RemoveBlueprint(x.svcReqHash);
                                 blueprints.Remove(blueprints.First(a => a.svcReqHash == x.svcReqHash));
                             }
                         }
