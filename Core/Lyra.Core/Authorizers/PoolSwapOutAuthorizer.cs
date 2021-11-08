@@ -21,9 +21,15 @@ namespace Lyra.Core.Authorizers
             var block = tblock as PoolSwapOutBlock;
 
             // also prevent race condition
-            var recv = await sys.Storage.FindBlockByHashAsync(block.PreviousHash) as ReceiveTransferBlock;
-            if (recv.SourceHash != block.RelatedTx)
-                return APIResultCodes.InvalidRelatedTx;
+            var blk = await sys.Storage.FindBlockByHashAsync(block.PreviousHash);
+            if (blk is ReceiveTransferBlock recv)
+            {
+                if (recv.SourceHash != block.RelatedTx)
+                    return APIResultCodes.InvalidRelatedTx;
+            }
+            else
+                return APIResultCodes.InvalidBlockSequence;
+
 
             return await base.AuthorizeImplAsync(sys, tblock);
         }
