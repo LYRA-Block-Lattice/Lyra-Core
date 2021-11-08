@@ -485,18 +485,22 @@ namespace Lyra.Node
         }
 
         [JsonRpcMethod("CreateDividends")]
-        public async Task<bool> CreateDividendsAsync(string accountId, string profitingAccountId)
+        public async Task<SimpleResult> CreateDividendsAsync(string accountId, string profitingAccountId)
         {
             var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.CreateDividendsAsync(profitingAccountId);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return true;
+                return new SimpleResult { success = true };
             }
             else
             {
-                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+                return new SimpleResult
+                {
+                    success = false,
+                    message = result.ResultCode.ToString()
+                };
             }
         }
 
@@ -531,34 +535,42 @@ namespace Lyra.Node
         }
 
         [JsonRpcMethod("AddStaking")]
-        public async Task<bool> AddStakingAsync(string accountId, string stakingAccountId, decimal amount)
+        public async Task<SimpleResult> AddStakingAsync(string accountId, string stakingAccountId, decimal amount)
         {
             var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.AddStakingAsync(stakingAccountId, amount);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return true;
+                return new SimpleResult { success = true };
             }
             else
             {
-                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+                return new SimpleResult
+                {
+                    success = false,
+                    message = result.ResultCode.ToString()
+                };
             }
         }
 
         [JsonRpcMethod("UnStaking")]
-        public async Task<bool> UnStakingAsync(string accountId, string stakingAccountId)
+        public async Task<SimpleResult> UnStakingAsync(string accountId, string stakingAccountId)
         {
             var klWallet = CreateWallet(accountId);
 
             var result = await klWallet.UnStakingAsync(stakingAccountId);
             if (result.ResultCode == APIResultCodes.Success)
             {
-                return true;
+                return new SimpleResult { success = true };
             }
             else
             {
-                throw new Exception($"{result.ResultCode}: {result.ResultMessage}");
+                return new SimpleResult
+                {
+                    success = false,
+                    message = result.ResultCode.ToString()
+                };
             }
         }
 

@@ -12,6 +12,11 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.API
 {
+    public class SimpleResult
+    {
+        public bool success { get; set; }
+        public string message { get; set; }
+    }
     public class BrokerAccountsInfo
     {
         public string owner { get; set; }
