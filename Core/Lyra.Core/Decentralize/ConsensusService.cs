@@ -213,7 +213,7 @@ namespace Lyra.Core.Decentralize
 
             Receive<AskForState>((_) => Sender.Tell(_stateMachine.State));
             Receive<AskForBillboard>((_) => { Sender.Tell(_board); });
-            ReceiveAsync<AskForServiceBlock>(async (_) => { Sender.Tell(await CreateServiceGenesisBlockAsync()); });
+            ReceiveAsync<AskForServiceBlock>(async (_) => { Sender.Tell(await CreateNewViewAsNewLeaderAsync()); });
             Receive<AskForStats>((_) => Sender.Tell(_stats));
             Receive<AskForDbStats>((_) => Sender.Tell(PrintProfileInfo()));
 
