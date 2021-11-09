@@ -1808,7 +1808,7 @@ namespace Lyra.Core.Decentralize
             if (bp == null)
                 return;
 
-            if(result == ConsensusResult.Nay && IsThisNodeLeader)
+            if(result == ConsensusResult.Nay)
             {
                 // process Nay
                 _log.LogCritical($"Fatal Error ProcessManagedBlock! RelatedTx: {key}");
