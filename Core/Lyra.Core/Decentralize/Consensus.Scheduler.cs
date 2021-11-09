@@ -206,10 +206,6 @@ namespace Lyra.Core.Decentralize
                     if(cs.CurrentState == Data.API.BlockChainState.Almighty)
                     {
                         var blueprints = BrokerFactory.GetAllBlueprints();
-                        if (blueprints.Any())//a => a.start < DateTime.UtcNow.AddSeconds(-30)))
-                        {
-                            cs.ExecuteBlueprints();
-                        }
 
                         foreach (var x in blueprints
                             .GroupBy(a => a.brokerAccount)
@@ -225,6 +221,10 @@ namespace Lyra.Core.Decentralize
                                 cs._log.LogError($"blueprint failed: {x.bp.svcReqHash}");
                                 BrokerFactory.RemoveBlueprint(x.bp.svcReqHash);
                                 blueprints.Remove(blueprints.First(a => a.svcReqHash == x.bp.svcReqHash));
+                            }
+                            else
+                            {
+                                cs.ExecuteBlueprint(x.bp);
                             }
                         }
 
