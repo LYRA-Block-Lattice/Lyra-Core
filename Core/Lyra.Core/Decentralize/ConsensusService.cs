@@ -1694,7 +1694,7 @@ namespace Lyra.Core.Decentralize
                 var blueprint = new BrokerBlueprint
                 {
                     view = _currentView,
-                    start = DateTime.UtcNow,
+                    start = send.TimeStamp,
                     initiatorAccount = send.AccountID,
                     brokerAccount = brkaccount,
                     svcReqHash = send.Hash,

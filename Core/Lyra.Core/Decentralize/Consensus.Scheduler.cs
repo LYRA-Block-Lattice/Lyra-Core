@@ -211,14 +211,20 @@ namespace Lyra.Core.Decentralize
                             cs.ExecuteBlueprints();
                         }
 
-
-                        foreach (var x in blueprints.ToArray())
-                        {
-                            if (x.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
+                        foreach (var x in blueprints
+                            .GroupBy(a => a.brokerAccount)
+                            .Select(g => new
                             {
-                                cs._log.LogError($"blueprint failed: {x.svcReqHash}");
-                                BrokerFactory.RemoveBlueprint(x.svcReqHash);
-                                blueprints.Remove(blueprints.First(a => a.svcReqHash == x.svcReqHash));
+                                brk = g.Key, 
+                                bp = g.OrderBy(d => d.start).FirstOrDefault()
+                            })
+                            .ToArray())
+                        {
+                            if (x.bp.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
+                            {
+                                cs._log.LogError($"blueprint failed: {x.bp.svcReqHash}");
+                                BrokerFactory.RemoveBlueprint(x.bp.svcReqHash);
+                                blueprints.Remove(blueprints.First(a => a.svcReqHash == x.bp.svcReqHash));
                             }
                         }
 
