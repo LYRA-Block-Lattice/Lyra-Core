@@ -43,21 +43,21 @@ namespace Lyra.Core.Decentralize
             // Tell quartz to schedule the job using our trigger
             await CreateJobAsync(TimeSpan.FromSeconds(24), typeof(HeartBeater), "Heart Beat", jobGroup);
             await CreateJobAsync(TimeSpan.FromMilliseconds(100), typeof(BlockAuthorizationMonitor), "Block Monitor", jobGroup);
-            //await CreateJobAsync("0/2 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
+            await CreateJobAsync("0/2 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
             await CreateJobAsync(TimeSpan.FromMinutes(17), typeof(IdleWorks), "Idle Works", jobGroup);
 
             // 10 min view change, 30 min fetch balance.
-            //if (Neo.Settings.Default.LyraNode.Lyra.NetworkId == "devnet")
-            //{
-            //    // need a quick debug test
-            //    await CreateJobAsync("0 0/2 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
-            //    await CreateJobAsync(TimeSpan.FromMinutes(1), typeof(FetchBalance), "Fetch Balance", jobGroup);
-            //}
-            //else
-            //{
+            if (Neo.Settings.Default.LyraNode.Lyra.NetworkId == "devnet")
+            {
+                // need a quick debug test
+                await CreateJobAsync("0 0/2 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
+                await CreateJobAsync(TimeSpan.FromMinutes(1), typeof(FetchBalance), "Fetch Balance", jobGroup);
+            }
+            else
+            {
                 await CreateJobAsync("0 0/10 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
                 await CreateJobAsync(TimeSpan.FromMinutes(60 * 6), typeof(FetchBalance), "Fetch Balance", jobGroup);
-            //}
+            }
 
             // Start up the scheduler (nothing can actually run until the
             // scheduler has been started)
