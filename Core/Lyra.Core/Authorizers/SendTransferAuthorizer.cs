@@ -100,14 +100,6 @@ namespace Lyra.Core.Authorizers
             //stopwatch3.Stop();
             //Console.WriteLine($"SendTransfer ValidateTransaction & ValidateNonFungible takes {stopwatch3.ElapsedMilliseconds} ms.");
 
-            // check busy
-            var brkacct = BrokerFactory.GetBrokerAccountID(block);
-            if(brkacct != null)
-            {
-                if (BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == brkacct))
-                    return APIResultCodes.SystemBusy;
-            }
-
             // a normal send is success.
             // monitor special account
             if (block.Tags?.ContainsKey(Block.REQSERVICETAG) == true)
@@ -299,6 +291,14 @@ namespace Lyra.Core.Authorizers
                     var pft = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;
                     if (pft == null)
                         return APIResultCodes.InvalidAccountId;
+
+                    // check busy
+                    //var brkacct = BrokerFactory.GetBrokerAccountID(block);
+                    //if (brkacct != null)
+                    //{
+                    if (BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == pftid))
+                        return APIResultCodes.SystemBusy;
+                    //}
 
                     var stkrs = sys.Storage.FindAllStakings(pftid, DateTime.UtcNow);
                     if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
