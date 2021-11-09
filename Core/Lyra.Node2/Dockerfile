@@ -1,6 +1,6 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-FROM mcr.microsoft.com/dotnet/aspnet:3.1 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 
 ARG LYRA_POS_WALLET_NAME
 ARG LYRA_POS_WALLET_PASSWORD
@@ -32,7 +32,7 @@ EXPOSE ${LYRA_P2P_PORT}
 EXPOSE ${LYRA_API_PORT}
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:3.1 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Core/Lyra.Node2/Noded.csproj", "Core/Lyra.Node2/"]
 COPY ["Core/Lyra.Core/Core.csproj", "Core/Lyra.Core/"]
