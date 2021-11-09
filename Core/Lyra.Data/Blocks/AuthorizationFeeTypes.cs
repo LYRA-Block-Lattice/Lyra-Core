@@ -24,6 +24,11 @@
         /// dynamic calculated, like swap, with ratio, etc.
         /// </summary>
         Dynamic = 3,
+
+        /// <summary>
+        /// all funds are fees
+        /// </summary>
+        FullFee = 4,
     }
 
 }

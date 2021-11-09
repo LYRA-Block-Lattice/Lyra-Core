@@ -50,6 +50,7 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.StakingGenesis, "StakingGenesisAuthorizer");
             _authorizers.Add(BlockTypes.Staking, "StakingAuthorizer");
             _authorizers.Add(BlockTypes.UnStaking, "UnStakingAuthorizer");
+            _authorizers.Add(BlockTypes.ReceiveAsFee, "ReceiveAsFeeAuthorizer");
 
             _authorizers.Add(BlockTypes.LyraTokenGenesis, "LyraGenesisAuthorizer");
             _authorizers.Add(BlockTypes.TokenGenesis, "TokenGenesisAuthorizer");

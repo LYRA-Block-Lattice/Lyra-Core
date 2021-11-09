@@ -153,4 +153,13 @@ namespace Lyra.Core.Blocks
         }
 
     }
+
+    [BsonIgnoreExtraElements]
+    public class ReceiveAsFeeBlock : ReceiveTransferBlock
+    {
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.ReceiveAsFee;
+        }
+    }
 }

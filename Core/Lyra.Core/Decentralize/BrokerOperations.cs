@@ -24,23 +24,23 @@ namespace Lyra.Core.Decentralize
             if (recv != null)
                 return null;
 
+            TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
+            var txInfo = sendBlock.GetBalanceChanges(prevSend);
+
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
-            var receiveBlock = new ReceiveTransferBlock
+            var receiveBlock = new ReceiveAsFeeBlock
             {
                 AccountID = sendBlock.DestinationAccountId,
                 VoteFor = null,
                 ServiceHash = lsb.Hash,
                 SourceHash = sendBlock.Hash,
                 Balances = new Dictionary<string, long>(),
-                Fee = 0,
+                Fee = txInfo.Changes[LyraGlobal.OFFICIALTICKERCODE],
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee
+                FeeType = AuthorizationFeeTypes.FullFee,
             };
 
             receiveBlock.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
-
-            TransactionBlock prevSend = await sys.Storage.FindBlockByHashAsync(sendBlock.PreviousHash) as TransactionBlock;
-            var txInfo = sendBlock.GetBalanceChanges(prevSend);
 
             TransactionBlock latestPoolBlock = await sys.Storage.FindLatestBlockAsync(sendBlock.DestinationAccountId) as TransactionBlock;
 
@@ -50,16 +50,16 @@ namespace Lyra.Core.Decentralize
 
             var latestBalances = latestPoolBlock.Balances.ToDecimalDict();
             var recvBalances = latestPoolBlock.Balances.ToDecimalDict();
-            foreach (var chg in txInfo.Changes)
-            {
-                if (chg.Key != LyraGlobal.OFFICIALTICKERCODE)
-                    continue;
+            //foreach (var chg in txInfo.Changes)
+            //{
+            //    if (chg.Key != LyraGlobal.OFFICIALTICKERCODE)
+            //        continue;
 
-                if (recvBalances.ContainsKey(chg.Key))
-                    recvBalances[chg.Key] += chg.Value;
-                else
-                    recvBalances.Add(chg.Key, chg.Value);
-            }
+            //    if (recvBalances.ContainsKey(chg.Key))
+            //        recvBalances[chg.Key] += chg.Value;
+            //    else
+            //        recvBalances.Add(chg.Key, chg.Value);
+            //}
 
             receiveBlock.Balances = recvBalances.ToLongDict();
 
@@ -798,15 +798,15 @@ namespace Lyra.Core.Decentralize
 
             string relatedTx;
             DateTime start;
-            if(send is BenefitingBlock bnb)
+            if (send is BenefitingBlock bnb)
             {
                 relatedTx = bnb.RelatedTx;
-                start = DateTime.UtcNow;
+                start = (lastStk as IStaking).Start;        // compound staking, keep the start time
             }
             else
             {
                 relatedTx = send.Hash;
-                start = DateTime.UtcNow.AddDays(-1);
+                start = send.TimeStamp.AddDays(1);         // manual add staking, start after 1 day.
             }
 
             var stkNext = new StakingBlock
@@ -865,7 +865,7 @@ namespace Lyra.Core.Decentralize
                 ServiceHash = sb.Hash,
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
-                FeeType = AuthorizationFeeTypes.NoFee,
+                FeeType = AuthorizationFeeTypes.Dynamic,
                 DestinationAccountId = send.AccountID,
 
                 // pool specified config
@@ -875,6 +875,11 @@ namespace Lyra.Core.Decentralize
                 Start = DateTime.MaxValue,
                 CompoundMode = ((IStaking)lastStk).CompoundMode
             };
+
+            if(((IStaking)lastStk).Start.AddDays(((IStaking)lastStk).Days) > DateTime.UtcNow)
+            {
+                stkNext.Fee = 0.012m * lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+            }
 
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
 

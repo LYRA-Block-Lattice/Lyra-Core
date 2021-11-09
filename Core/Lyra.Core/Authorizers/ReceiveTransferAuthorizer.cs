@@ -111,7 +111,9 @@ namespace Lyra.Core.Authorizers
                 BalanceChanges sendTransaction;
                 if (block.BlockType == BlockTypes.ReceiveTransfer || block.BlockType == BlockTypes.OpenAccountWithReceiveTransfer
                     || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn
-                    || block.BlockType == BlockTypes.Staking || block.BlockType == BlockTypes.Profiting)  // temp code. should use getbalancechanges
+                    || block.BlockType == BlockTypes.Staking || block.BlockType == BlockTypes.Profiting
+                    || block.BlockType == BlockTypes.ReceiveAsFee
+                    )  // temp code. should use getbalancechanges
                 {
                     if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)
                     {
@@ -141,9 +143,20 @@ namespace Lyra.Core.Authorizers
                 else
                     return APIResultCodes.InvalidBlockType;
 
-                if (!sendTransaction.Changes.OrderBy(kvp => kvp.Key)
-                    .SequenceEqual(receiveTransaction.Changes.OrderBy(kvp => kvp.Key)))
-                    return APIResultCodes.TransactionAmountDoesNotMatch;
+                if(block.BlockType == BlockTypes.ReceiveAsFee)
+                {
+                    var send = sendTransaction.Changes[LyraGlobal.OFFICIALTICKERCODE];
+                    var recv = receiveTransaction.Changes.Count == 0 ? 0 : receiveTransaction.Changes[LyraGlobal.OFFICIALTICKERCODE];
+                    var fee = block.Fee;
+                    if (fee != send || recv != 0)
+                        return APIResultCodes.InvalidFeeAmount;
+                }
+                else
+                {
+                    if (!sendTransaction.Changes.OrderBy(kvp => kvp.Key)
+                            .SequenceEqual(receiveTransaction.Changes.OrderBy(kvp => kvp.Key)))
+                        return APIResultCodes.TransactionAmountDoesNotMatch;
+                }
 
                 //if (sendTransaction.Amount != receiveTransaction.Amount)
                 //    return APIResultCodes.TransactionAmountDoesNotMatch;

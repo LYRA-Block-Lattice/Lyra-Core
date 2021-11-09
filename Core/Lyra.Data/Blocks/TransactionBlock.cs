@@ -182,8 +182,16 @@ namespace Lyra.Core.Blocks
             }
             else
             {
-                if (trs.Changes.Count == 0 || trs.Changes.Any(a => a.Value <= 0))
-                    return false;
+                if(BlockType == BlockTypes.ReceiveAsFee)
+                {
+                    if (trs.Changes.Count != 0)
+                        return false;
+                }
+                else
+                {
+                    if (trs.Changes.Count == 0 || trs.Changes.Any(a => a.Value <= 0))
+                        return false;
+                }
             }
 
             return true;

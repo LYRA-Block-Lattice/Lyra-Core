@@ -172,6 +172,13 @@ namespace Lyra.Core.Authorizers
                         var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
                         if (!stks.Any(a => a.AccountID == block.Tags["stkid"]))
                             return APIResultCodes.InvalidStakingAccount;
+
+                        var lastStk = await sys.Storage.FindLatestBlockAsync(block.Tags["stkid"]) as TransactionBlock;
+                        if (lastStk == null)
+                            return APIResultCodes.InvalidUnstaking;
+
+                        if (!lastStk.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() == 0)
+                            return APIResultCodes.InvalidUnstaking;
                     }
                     else
                         return APIResultCodes.InvalidBlockTags;

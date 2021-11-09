@@ -278,6 +278,8 @@ namespace Lyra.Core.Blocks
         // Open a new account and import another account
         OpenAccountWithImport = 23,
 
+        ReceiveAsFee = 24,
+
         // Transaction blocks
 
         TokenGenesis = 30,

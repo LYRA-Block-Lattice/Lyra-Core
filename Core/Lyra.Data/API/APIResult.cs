@@ -260,6 +260,9 @@ namespace Lyra.Core.API
                 case BlockTypes.ReceiveTransfer:
                     block = JsonConvert.DeserializeObject<ReceiveTransferBlock>(BlockData);
                     break;
+                case BlockTypes.ReceiveAsFee:
+                    block = JsonConvert.DeserializeObject<ReceiveAsFeeBlock>(BlockData);
+                    break;
                 case BlockTypes.OpenAccountWithReceiveTransfer:
                     block = JsonConvert.DeserializeObject<OpenWithReceiveTransferBlock>(BlockData);
                     break;

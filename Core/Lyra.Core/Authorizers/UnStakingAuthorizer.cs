@@ -41,5 +41,10 @@ namespace Lyra.Core.Authorizers
         {
             return true;
         }
+
+        protected override AuthorizationFeeTypes GetFeeType()
+        {
+            return AuthorizationFeeTypes.Dynamic;
+        }
     }
 }
