@@ -127,7 +127,7 @@ namespace Lyra.Data.API
                         _primaryClients = currentBillBoard.NodeAddresses
                             .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
                             .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/"))
-                            .Take(7)    // don't spam the whole network
+                            //.Take(7)    // don't spam the whole network
                             .ToList();
                     }
 
@@ -145,11 +145,11 @@ namespace Lyra.Data.API
 
         public void ReBase(bool toSeedOnly)
         {
-            _seedsOnly = toSeedOnly;
-            if (toSeedOnly)
-                _baseIndex = _baseIndex++ % 4;
-            else
-                throw new InvalidOperationException("Only rebase to seed supported.");
+            //_seedsOnly = toSeedOnly;
+            //if (toSeedOnly)
+            //    _baseIndex = _baseIndex++ % 4;
+            //else
+            //    throw new InvalidOperationException("Only rebase to seed supported.");
 
             //// find the highest chain from seeds
             //var tasks = _primaryClients.ToDictionary(client => client.Key, client => client.GetSyncState());
