@@ -170,7 +170,7 @@ namespace Lyra.Core.Decentralize
                         {
                             try
                             {
-                                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
+                                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
                                 await client.InitAsync();
                                 var lsb = await client.GetLastServiceBlockAsync();
                                 if(lsb.ResultCode == Blocks.APIResultCodes.Success)

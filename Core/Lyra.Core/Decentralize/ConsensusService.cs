@@ -475,7 +475,7 @@ namespace Lyra.Core.Decentralize
 
                             var authorizers = new AuthorizersFactory();
 
-                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
+                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
                             await client.InitAsync();
 
                             // DBCC

@@ -169,7 +169,7 @@ namespace Lyra.Core.Decentralize
             // most db is synced. 
             // so make sure Last Float Hash equal to seed.
             var emptySyncTimes = 0;
-            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false);
+            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
             await client.InitAsync();
             for(int ii = 0; ii < 15; ii++)
             {
@@ -495,7 +495,7 @@ namespace Lyra.Core.Decentralize
             gensWallet.SetVoteFor(_sys.PosWallet.AccountId);
             foreach (var accId in ProtocolSettings.Default.StandbyValidators.Skip(1).Concat(ProtocolSettings.Default.StartupValidators))
             {
-                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true);
+                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true, _sys.PosWallet.AccountId);
                 await client.InitAsync();
                 await gensWallet.SyncAsync(client);
                 var amount = LyraGlobal.MinimalAuthorizerBalance + 100000;

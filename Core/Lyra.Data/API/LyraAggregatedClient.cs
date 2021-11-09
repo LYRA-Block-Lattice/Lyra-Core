@@ -16,6 +16,7 @@ namespace Lyra.Data.API
     {
         private readonly string _networkId;
         private bool _seedsOnly;
+        private string _poswallet;
 
         private List<LyraRestClient> _primaryClients;
 
@@ -23,10 +24,11 @@ namespace Lyra.Data.API
 
         public LyraRestClient SeedClient => LyraRestClient.Create(_networkId, Environment.OSVersion.Platform.ToString(), "LyraAggregatedClient", "1.0");
 
-        public LyraAggregatedClient(string networkId, bool seedsOnly)
+        public LyraAggregatedClient(string networkId, bool seedsOnly, string poswallet)
         {
             _networkId = networkId;
             _seedsOnly = seedsOnly;
+            _poswallet = poswallet;
 
             _baseIndex = 0;
         }
@@ -126,6 +128,7 @@ namespace Lyra.Data.API
                         // create clients for primary nodes
                         _primaryClients = currentBillBoard.NodeAddresses
                             .Where(a => currentBillBoard.PrimaryAuthorizers.Contains(a.Key))
+                            .Where(a => a.Key != _poswallet)
                             .Select(c => LyraRestClient.Create(_networkId, platform, appName, appVer, $"https://{c.Value}:{peerPort}/api/Node/"))
                             //.Take(7)    // don't spam the whole network
                             .ToList();
