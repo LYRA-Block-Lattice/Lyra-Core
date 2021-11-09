@@ -43,7 +43,7 @@ namespace Lyra.Core.Decentralize
             // Tell quartz to schedule the job using our trigger
             await CreateJobAsync(TimeSpan.FromSeconds(24), typeof(HeartBeater), "Heart Beat", jobGroup);
             await CreateJobAsync(TimeSpan.FromMilliseconds(100), typeof(BlockAuthorizationMonitor), "Block Monitor", jobGroup);
-            await CreateJobAsync("0/2 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
+            //await CreateJobAsync("0/2 * * * * ?", typeof(LeaderTaskMonitor), "Leader Monitor", jobGroup);
             await CreateJobAsync(TimeSpan.FromMinutes(17), typeof(IdleWorks), "Idle Works", jobGroup);
 
             // 10 min view change, 30 min fetch balance.
