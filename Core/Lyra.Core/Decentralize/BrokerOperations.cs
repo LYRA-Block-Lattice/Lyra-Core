@@ -878,7 +878,7 @@ namespace Lyra.Core.Decentralize
 
             if(((IStaking)lastStk).Start.AddDays(((IStaking)lastStk).Days) > DateTime.UtcNow)
             {
-                stkNext.Fee = 0.012m * lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                stkNext.Fee = 0.008m * lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
             }
 
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);

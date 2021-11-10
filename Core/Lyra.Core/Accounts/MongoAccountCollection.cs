@@ -124,6 +124,7 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<UnStakingBlock>();
             BsonClassMap.RegisterClassMap<MerchantRecv>();
             BsonClassMap.RegisterClassMap<MerchantSend>();
+            BsonClassMap.RegisterClassMap<ReceiveAsFeeBlock>();
 
             // obsolete, but needed for compatiblity
             BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
