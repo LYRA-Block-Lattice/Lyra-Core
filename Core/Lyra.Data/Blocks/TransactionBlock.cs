@@ -245,7 +245,7 @@ namespace Lyra.Core.Blocks
             {
                 if (sb.Length > 0)
                     sb.Append(", ");
-                sb.Append($"{kvp.Key}:{kvp.Value}");
+                sb.Append($"{kvp.Key}:{kvp.Value.ToBalanceDecimal()}");
             }
             return sb.ToString();
         }

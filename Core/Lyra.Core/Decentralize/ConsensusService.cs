@@ -786,7 +786,8 @@ namespace Lyra.Core.Decentralize
             _stateMachine.Configure(BlockChainState.Almighty)
                 .OnEntry(() => Task.Run(async () =>
                 {
-
+                    var lsb = await _sys.Storage.GetLastServiceBlockAsync();
+                    _viewChangeHandler.ShiftView(lsb.Height + 1);
                 }))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)         // make a quick recovery
                 .Permit(BlockChainTrigger.LocalNodeMissingBlock, BlockChainState.Engaging);

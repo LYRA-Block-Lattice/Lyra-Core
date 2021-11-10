@@ -226,6 +226,14 @@ namespace UnitTests
 
             await testWallet.SyncAsync(client);
             //Assert.AreEqual(testWallet.BaseBalance, tamount);
+            var lastBalance = testWallet.BaseBalance;
+            await genesisWallet.SendAsync(800, testWallet.AccountId);
+            await genesisWallet.SendAsync(123, testWallet.AccountId);
+            await Task.Delay(1000);
+            await CreateConsolidation();
+            await store.UpdateStatsAsync();
+            var pending = await store.GetPendingReceiveAsync(testWallet.AccountId);
+            Assert.AreEqual(923, pending);
 
             // test 2 wallet
             var walletStor3 = new AccountInMemoryStorage();
@@ -244,6 +252,15 @@ namespace UnitTests
             await Task.Delay(1000);
         }
 
+        private async Task CreateConsolidation()
+        {
+            var lcon = await store.GetLastConsolidationBlockAsync();
+            var unConsList = await testWallet.RPC.GetBlockHashesByTimeRangeAsync(lcon.TimeStamp.AddSeconds(18), DateTime.UtcNow);
+            await cs.LeaderCreateConsolidateBlockAsync(lcon, DateTime.UtcNow, unConsList.Entities);
+            var lcon2 = await testWallet.RPC.GetLastConsolidationBlockAsync();
+            Assert.IsTrue(lcon.Height + 1 == lcon2.GetBlock().Height);
+        }
+
         private async Task TestNodeFee()
         {
             // create service block
@@ -256,13 +273,9 @@ namespace UnitTests
             Assert.IsTrue(lsb.GetBlock().Height + 1 == lsb2.GetBlock().Height);
 
             var lconRet = await testWallet.RPC.GetLastConsolidationBlockAsync();
-            Assert.IsTrue(lconRet.Successful());
-            var lcon = lconRet.GetBlock() as ConsolidationBlock;
+            Assert.IsTrue(lconRet.Successful());            
 
-            var unConsList = await testWallet.RPC.GetBlockHashesByTimeRangeAsync(lcon.TimeStamp, DateTime.UtcNow);
-            await cs.LeaderCreateConsolidateBlockAsync(lcon, DateTime.UtcNow, unConsList.Entities);
-            var lcon2 = await testWallet.RPC.GetLastConsolidationBlockAsync();
-            Assert.IsTrue(lcon.Height + 1 == lcon2.GetBlock().Height);
+            await CreateConsolidation();
 
             // create a profiting account
             Console.WriteLine("Profiting gen");

@@ -511,11 +511,17 @@ namespace Lyra.Core.Decentralize
         {
             // if is current authorizers, sync fee first
             // add check to save resources
-            var feeBlk = await SyncNodeFeesAsync(sys, reqSend);
-            if (feeBlk != null)
-                return feeBlk;
-
             var pftid = reqSend.Tags["pftid"];
+            var pftgen = await sys.Storage.FindFirstBlockAsync(pftid) as ProfitingGenesis;
+            if (pftgen.OwnerAccountId != reqSend.AccountID)
+                return null;
+
+            if(pftgen.PType == ProfitingType.Node)
+            {
+                var feeBlk = await SyncNodeFeesAsync(sys, reqSend);
+                if (feeBlk != null)
+                    return feeBlk;
+            }
 
             var transfer_info = await GetSendToPftAsync(sys, pftid);
 

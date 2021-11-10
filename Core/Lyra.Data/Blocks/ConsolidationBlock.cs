@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿using Lyra.Core.API;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,7 +76,7 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"created by leader: {createdBy}\n";
             result += $"totalBlockCount: {totalBlockCount}\n";
-            result += $"totalFees: {totalFees}\n";
+            result += $"totalFees: {totalFees.ToBalanceDecimal()}\n";
             result += $"MerkelTreeHash: {MerkelTreeHash}\n";
             result += $"blockHashes: {string.Join(", ", blockHashes)}\n";
             return result;

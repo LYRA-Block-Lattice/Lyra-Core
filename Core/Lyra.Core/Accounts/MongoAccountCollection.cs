@@ -343,8 +343,8 @@ namespace Lyra.Core.Accounts
                         ConsHeight = cons.Height
                     };
                     acs.Add(ac);
-                    if (ac.LyrChg < -100000)
-                        ac.LyrChg += 1;
+                    //if (ac.LyrChg < -100000)
+                    //    ac.LyrChg += 1;       what's this???
                 }
                 if(acs.Count > 0)
                     await _accountChanges.InsertManyAsync(acs);
@@ -877,7 +877,7 @@ namespace Lyra.Core.Accounts
             var builder1 = Builders<ReceiveTransferBlock>.Filter;
             var filterDefinition1 = builder1.And(
                 builder1.Eq("AccountID", AccountId),
-                builder1.Ne("BlockType", BlockTypes.TokenGenesis));
+                builder1.Ne<string>("SourceHash", null));   // filter tokengenesis and receive node fee block
 
             var finds = await _blocks.OfType<ReceiveTransferBlock>()
                 .FindAsync(filterDefinition1, options);
@@ -1102,6 +1102,44 @@ namespace Lyra.Core.Accounts
             {
                 return null;
             }
+        }
+
+        public async Task<decimal> GetPendingReceiveAsync(string accountId)
+        {
+            var timeToScan = DateTime.MinValue;
+            var lastRecvBlock = await FindLastReceiveBlockAsync(accountId);
+            if (lastRecvBlock != null)
+            {
+                var send = await FindBlockByHashAsync(lastRecvBlock.SourceHash);
+                if (send != null)    // genesis has no send
+                    timeToScan = send.TimeStamp;
+            }
+
+            var q1 = _blocks.OfType<SendTransferBlock>()
+                .Aggregate()
+                .Match(a => a.TimeStamp > timeToScan && a.DestinationAccountId == accountId)
+                .Lookup(_networkId + "_blocks", "Hash", "SourceHash", "asSource")
+                .Project(x => new
+                {
+                    SendHash = x["Hash"],
+                    DstAccountId = x["DestinationAccountId"],
+                    RecvHash = x["asSource"],
+                    Time = x["TimeStamp"]
+                });
+
+            var x = q1.ToList();
+
+            var amts = from s in x
+                       join a in _accountChanges.AsQueryable() on s.SendHash equals a.TxHash
+                       select a.LyrChg;
+
+            var total = -1 * amts.Sum();        // send block has neg values
+            return total;
+        }
+
+        public void GetPendingFees(string nodeAccountId)
+        {
+
         }
 
         /// <summary>
