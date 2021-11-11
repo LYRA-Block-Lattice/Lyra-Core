@@ -129,7 +129,10 @@ namespace Lyra.Data.Blocks
         {
             string extraData = base.GetExtraData();
             extraData += PType.ToString() + "|";
-            extraData += ShareRito.ToString() + "|";
+            if(Version > 4)
+                extraData += ShareRito.ToBalanceLong().ToString() + "|";
+            else
+                extraData += ShareRito.ToString() + "|";
             extraData += Seats.ToString() + "|";
             return extraData;
         }
