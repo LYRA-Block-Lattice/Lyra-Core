@@ -741,7 +741,7 @@ namespace Lyra.Core.Decentralize
             // pool blocks are service block so all service block signed by leader node
             pftSend.InitializeBlock(lastPft, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
-            Console.WriteLine($"Send {target.OwnerAccount.Shorten()} Index {pftSend.Height} who is staking {target.Amount} amount {amount} hash: {pftSend.Hash}");
+            Console.WriteLine($"Benefiting {pftSend.DestinationAccountId.Shorten()} Index {pftSend.Height} who is staking {target.Amount} {amount} LYR hash: {pftSend.Hash} signed by {NodeService.Dag.PosWallet.AccountId.Shorten()}");
 
             return pftSend;
         }

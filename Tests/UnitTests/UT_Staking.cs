@@ -74,7 +74,7 @@ namespace UnitTests
                 await Task.Delay(1000);
                 await wx.SyncAsync(client);
 
-                int totalStaking = 10;
+                int totalStaking = 1;
                 // test create profiting account
                 var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 1m, totalStaking);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
