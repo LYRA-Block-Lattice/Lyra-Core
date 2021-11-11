@@ -4,6 +4,7 @@ using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 using Lyra.Shared;
 using System;
 using System.Collections.Generic;
@@ -759,6 +760,10 @@ namespace Lyra.Core.Decentralize
             var keyStr = $"{send.Hash.Substring(0, 16)},{send.Tags["voting"]},{send.AccountID}";
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
+            var start = DateTime.UtcNow.AddDays(1);
+            if (LyraNodeConfig.GetNetworkId() == "testnet")
+                start = DateTime.UtcNow;        // for debug
+
             var stkGenesis = new StakingGenesis
             {
                 Height = 1,
@@ -777,7 +782,7 @@ namespace Lyra.Core.Decentralize
                 Voting = send.Tags["voting"],
                 RelatedTx = send.Hash,
                 Days = int.Parse(send.Tags["days"]),
-                Start = DateTime.UtcNow.AddDays(1),
+                Start = start,
                 CompoundMode = send.Tags["compound"] == "True"
             };
 

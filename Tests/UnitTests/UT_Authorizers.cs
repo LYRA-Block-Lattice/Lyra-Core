@@ -229,7 +229,7 @@ namespace UnitTests
             var lastBalance = testWallet.BaseBalance;
             await genesisWallet.SendAsync(800, testWallet.AccountId);
             await genesisWallet.SendAsync(123, testWallet.AccountId);
-            await Task.Delay(1000);
+
             await CreateConsolidation();
             await store.UpdateStatsAsync();
             var pending = await store.GetPendingReceiveAsync(testWallet.AccountId);
@@ -254,6 +254,7 @@ namespace UnitTests
 
         private async Task CreateConsolidation()
         {
+            await Task.Delay(1000);
             var lcon = await store.GetLastConsolidationBlockAsync();
             var unConsList = await testWallet.RPC.GetBlockHashesByTimeRangeAsync(lcon.TimeStamp.AddSeconds(18), DateTime.UtcNow);
             await cs.LeaderCreateConsolidateBlockAsync(lcon, DateTime.UtcNow, unConsList.Entities);
