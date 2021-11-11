@@ -761,7 +761,7 @@ namespace Lyra.Core.Decentralize
             var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
 
             var start = DateTime.UtcNow.AddDays(1);
-            if (LyraNodeConfig.GetNetworkId() == "testnet")
+            if (LyraNodeConfig.GetNetworkId() == "devnet")
                 start = DateTime.UtcNow;        // for debug
 
             var stkGenesis = new StakingGenesis

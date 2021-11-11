@@ -74,25 +74,45 @@ namespace UnitTests
                 await Task.Delay(1000);
                 await wx.SyncAsync(client);
 
+                int totalStaking = 10;
                 // test create profiting account
-                var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 0.2m, 10);
+                var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 1m, totalStaking);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
 
                 var pgen = result.GetBlock() as ProfitingBlock;
                 Assert.IsNotNull(pgen);
 
-                // test create staking account
-                var result2 = await w1.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID, 30, true);
-                Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result2: {result2.ResultCode}");
+                List<Wallet> stkWallets = new List<Wallet>();
+                for(int i = 0; i < totalStaking; i++)
+                {
+                    var (pvtx, pubx) = Signatures.GenerateWallet();
+                    var stkx = Restore(pvtx);
+                    stkWallets.Add(stkx);   
 
-                var stkgen = result2.GetBlock() as StakingBlock;
-                Assert.IsNotNull(stkgen);
+                    await w1.SendAsync(30m, stkx.AccountId);
+                    await stkx.SyncAsync(client);
 
-                // test add staking
-                var result3 = await w1.AddStakingAsync(stkgen.AccountID, 1000m);
-                Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
+                    // test create staking account
+                    var result2 = await stkx.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID, 1000, true);
+                    Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result2: {result2.ResultCode}");
 
+                    var stkgen = result2.GetBlock() as StakingBlock;
+                    Assert.IsNotNull(stkgen);
 
+                    // test add staking
+                    var result3 = await stkx.AddStakingAsync(stkgen.AccountID, 10m);
+                    Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
+                }
+
+                await w1.SendAsync(100, pgen.AccountID);
+                await wx.CreateDividendsAsync(pgen.AccountID);
+                await Task.Delay(5000);
+
+                foreach (var stkx in stkWallets)
+                {
+                    await stkx.SyncAsync(client);
+                    Assert.AreEqual(10m, stkx.BaseBalance);
+                }
             }
             finally
             {
