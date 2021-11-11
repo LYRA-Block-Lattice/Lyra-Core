@@ -9,6 +9,7 @@ using Lyra.Data.Crypto;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -74,7 +75,7 @@ namespace UnitTests
                 await Task.Delay(1000);
                 await wx.SyncAsync(client);
 
-                int totalStaking = 1;
+                int totalStaking = 20;
                 // test create profiting account
                 var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 1m, totalStaking);
                 Assert.IsTrue(result.ResultCode == APIResultCodes.Success, $"Result: {result.ResultCode}");
@@ -84,6 +85,7 @@ namespace UnitTests
 
                 Console.WriteLine($"Profit account: {pgen.AccountID}");
 
+                var stopwatch = Stopwatch.StartNew();
                 List<Wallet> stkWallets = new List<Wallet>();
                 for(int i = 0; i < totalStaking; i++)
                 {
@@ -105,10 +107,11 @@ namespace UnitTests
                     var result3 = await stkx.AddStakingAsync(stkgen.AccountID, 10m);
                     Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
                 }
-
-                await w1.SendAsync(100, pgen.AccountID);
+                stopwatch.Stop();
+                Console.WriteLine($"create staking uses {stopwatch.ElapsedMilliseconds} ms");
+                await w1.SendAsync(200, pgen.AccountID);
                 await wx.CreateDividendsAsync(pgen.AccountID);
-                await Task.Delay(10000);
+                await Task.Delay(20000);
 
                 foreach (var stkx in stkWallets)
                 {
