@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.IO;
 using Lyra.Data.Crypto;
+using Lyra.Data.Blocks;
 
 namespace Lyra.Core.Blocks
 {
@@ -23,7 +24,8 @@ namespace Lyra.Core.Blocks
         public string CalculateHash()
         {
             string record = GetHashInput();
-            //Console.WriteLine($"Record: {record}");
+            if(this is ProfitingBlock)
+                Console.WriteLine($"Debug Hash Record: {record}");
             using (SHA256Managed sha = new SHA256Managed())
             {
                 byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(record));
