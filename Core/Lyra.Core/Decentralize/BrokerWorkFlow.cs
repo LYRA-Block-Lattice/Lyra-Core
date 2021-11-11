@@ -137,6 +137,8 @@ namespace Lyra.Core.Decentralize
         public static Dictionary<string, (bool pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
 
         public static ConcurrentDictionary<string, BrokerBlueprint> Bps { get; set; }
+
+        public static event Action<BrokerBlueprint> OnFinished;
         public void Init()
         {
             if (WorkFlows != null)
@@ -183,7 +185,11 @@ namespace Lyra.Core.Decentralize
         public static void RemoveBlueprint(string hash)
         {
             if (Bps.ContainsKey(hash))
-                Bps.TryRemove(hash, out _);
+            {
+                BrokerBlueprint bp;
+                Bps.TryRemove(hash, out bp);
+                OnFinished(bp);
+            }                
         }
         public static long UpdateBlueprint(BrokerBlueprint bp)
         {

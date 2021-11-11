@@ -146,7 +146,34 @@ namespace Lyra.Core.Decentralize
                                     var svcBlock = await CreateNewViewAsNewLeaderAsync();
 
                                     _log.LogInformation($"New View was created. send to network...");
-                                    await SendBlockToConsensusAndForgetAsync(svcBlock);
+                                    //await SendBlockToConsensusAndForgetAsync(svcBlock);
+                                    var result = await SendBlockToConsensusAndWaitResultAsync(svcBlock);
+                                    if(result.Item1 == ConsensusResult.Yea)
+                                    {
+                                        var blueprints = BrokerFactory.GetAllBlueprints();
+
+                                        foreach (var x in blueprints
+                                            .OrderBy(a => a.start)
+                                            .GroupBy(a => a.brokerAccount)
+                                            .Select(g => new
+                                            {
+                                                brk = g.Key,
+                                                bp = g.OrderBy(d => d.start).FirstOrDefault()
+                                            })
+                                            .ToArray())
+                                        {
+                                            if (x.bp.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
+                                            {
+                                                _log.LogError($"blueprint failed: {x.bp.svcReqHash}");
+                                                BrokerFactory.RemoveBlueprint(x.bp.svcReqHash);
+                                                blueprints.Remove(blueprints.First(a => a.svcReqHash == x.bp.svcReqHash));
+                                            }
+                                            else
+                                            {
+                                                ExecuteBlueprint(x.bp);
+                                            }
+                                        }
+                                    }
                                 }
                                 catch (Exception e)
                                 {
@@ -450,6 +477,24 @@ namespace Lyra.Core.Decentralize
 
                     await InitJobSchedulerAsync();
                     BrokerFactory.Load(_sys.Storage);
+                    BrokerFactory.OnFinished += (bp) =>
+                    {
+                        if(IsThisNodeLeader && bp.brokerAccount != null)
+                        {
+                            // queued tasks, which has same brokeraccount
+                            var blueprints = BrokerFactory.GetAllBlueprints();
+                            var bpx = blueprints
+                                        .OrderBy(a => a.start)
+                                        .Where(a => a.brokerAccount == bp.brokerAccount)
+                                        .FirstOrDefault();
+
+                            if (bpx != null)
+                            {
+                                _log.LogInformation($"BrokerFactory.OnFinished try next in queue {bpx.svcReqHash} for brk: {bp.brokerAccount}");
+                                ExecuteBlueprint(bpx);
+                            }                            
+                        }
+                    };
 
                     do
                     {
@@ -1849,7 +1894,6 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                Console.WriteLine($"Blueprint finished in {(DateTime.UtcNow - bp.start).TotalMilliseconds} ms.");
                 BrokerFactory.RemoveBlueprint(key);
             }
         }
