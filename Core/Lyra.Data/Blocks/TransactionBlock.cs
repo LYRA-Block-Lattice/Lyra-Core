@@ -226,7 +226,7 @@ namespace Lyra.Core.Blocks
         {
             string result = base.Print();
             result += $"AccountID: {AccountID}\n";
-            result += $"Balances: {BalanceToString()}\n";
+            result += $"Balances: {BalanceToReadString()}\n";
             result += $"Fee: {JsonConvert.SerializeObject(Fee)}\n";
             result += $"FeeCode: {FeeCode}\n";
             result += $"FeeType: {FeeType.ToString()}\n";
@@ -242,6 +242,18 @@ namespace Lyra.Core.Blocks
         {
             var sb = new StringBuilder();
             foreach(var kvp in Balances)
+            {
+                if (sb.Length > 0)
+                    sb.Append(", ");
+                sb.Append($"{kvp.Key}:{kvp.Value}");
+            }
+            return sb.ToString();
+        }
+
+        private string BalanceToReadString()
+        {
+            var sb = new StringBuilder();
+            foreach (var kvp in Balances)
             {
                 if (sb.Length > 0)
                     sb.Append(", ");
