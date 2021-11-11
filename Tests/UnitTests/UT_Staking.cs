@@ -82,6 +82,8 @@ namespace UnitTests
                 var pgen = result.GetBlock() as ProfitingBlock;
                 Assert.IsNotNull(pgen);
 
+                Console.WriteLine($"Profit account: {pgen.AccountID}");
+
                 List<Wallet> stkWallets = new List<Wallet>();
                 for(int i = 0; i < totalStaking; i++)
                 {
@@ -106,12 +108,19 @@ namespace UnitTests
 
                 await w1.SendAsync(100, pgen.AccountID);
                 await wx.CreateDividendsAsync(pgen.AccountID);
-                await Task.Delay(5000);
+                await Task.Delay(10000);
 
                 foreach (var stkx in stkWallets)
                 {
-                    await stkx.SyncAsync(client);
-                    Assert.AreEqual(10m, stkx.BaseBalance);
+                    var stkactcall = await stkx.RPC.GetAllBrokerAccountsForOwnerAsync(stkx.AccountId);
+                    Assert.IsTrue(stkactcall.Successful());
+
+                    var stkact = stkactcall.GetBlocks().First(a => a is IStaking) as IStaking;
+                    var last = await stkx.RPC.GetLastBlockAsync((stkact as TransactionBlock).AccountID);
+                    Assert.AreEqual(20m, (last.GetBlock() as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
+
+                    //await stkx.SyncAsync(client);
+                    //Assert.AreEqual(8m, stkx.BaseBalance);
                 }
             }
             finally

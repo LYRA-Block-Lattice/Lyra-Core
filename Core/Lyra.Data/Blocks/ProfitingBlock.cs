@@ -21,6 +21,9 @@ namespace Lyra.Data.Blocks
         public decimal ShareRito { get; set; }
         public int Seats { get; set; }
 
+        // useless. just for compatible.
+        public string ProfitHash { get; set; }
+
         public override BlockTypes GetBlockType()
         {
             return BlockTypes.Profiting;
