@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,6 +23,8 @@ namespace Lyra.Data.Blocks
         public int Seats { get; set; }
 
         // useless. just for compatible.
+        [JsonIgnore]
+        [BsonIgnore]
         public string ProfitHash { get; set; }
 
         public override BlockTypes GetBlockType()
