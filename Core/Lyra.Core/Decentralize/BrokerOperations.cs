@@ -36,7 +36,7 @@ namespace Lyra.Core.Decentralize
                 ServiceHash = lsb.Hash,
                 SourceHash = sendBlock.Hash,
                 Balances = new Dictionary<string, long>(),
-                Fee = txInfo.Changes[LyraGlobal.OFFICIALTICKERCODE],
+                Fee = Math.Round(txInfo.Changes[LyraGlobal.OFFICIALTICKERCODE], 8),
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.FullFee,
             };
@@ -892,7 +892,7 @@ namespace Lyra.Core.Decentralize
 
             if(((IStaking)lastStk).Start.AddDays(((IStaking)lastStk).Days) > DateTime.UtcNow)
             {
-                stkNext.Fee = 0.008m * lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal();
+                stkNext.Fee = Math.Round(0.008m * lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal(), 8);
             }
 
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
