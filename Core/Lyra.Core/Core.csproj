@@ -28,18 +28,18 @@
     <None Remove="Protos\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Akka" Version="1.4.21" />
-    <PackageReference Include="Akka.Cluster" Version="1.4.21" />
-    <PackageReference Include="Akka.Streams" Version="1.4.21" />
-    <PackageReference Include="K4os.Compression.LZ4" Version="1.2.6" />
+    <PackageReference Include="Akka" Version="1.4.28" />
+    <PackageReference Include="Akka.Cluster" Version="1.4.28" />
+    <PackageReference Include="Akka.Streams" Version="1.4.28" />
+    <PackageReference Include="K4os.Compression.LZ4" Version="1.2.15" />
     <PackageReference Include="Loyc.Collections" Version="29.0.3" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.WebSockets" Version="2.2.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-    <PackageReference Include="MongoDB.Driver" Version="2.12.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.13.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Quartz" Version="3.3.3" />
     <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
