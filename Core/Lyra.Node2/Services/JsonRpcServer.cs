@@ -604,5 +604,17 @@ namespace Lyra.Node
                 throw new Exception($"No such staking account");
             }
         }
+
+        [JsonRpcMethod("GetPendingStats")]
+        public async Task<PendingInfo> GetPendingStatsAsync(string accountId)
+        {
+            var ps = await _node.GetPendingStatsAsync(accountId);
+            return new PendingInfo
+            {
+                accountid = ps.AccountId,
+                funds = ps.PendingFunds,
+                fees = ps.PendingFees
+            };
+        }
     }
 }

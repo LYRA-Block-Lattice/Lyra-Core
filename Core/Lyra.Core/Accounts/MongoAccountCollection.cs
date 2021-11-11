@@ -1137,9 +1137,23 @@ namespace Lyra.Core.Accounts
             return total;
         }
 
-        public void GetPendingFees(string nodeAccountId)
+        public async Task<PendingStats> GetPendingStatsAsync(string accountId)
         {
-
+            decimal pfee = 0;
+            var pfts = await FindAllProfitingAccountForOwnerAsync(accountId);
+            var pft = pfts.Where(a => a.PType == ProfitingType.Node).FirstOrDefault();
+            if (pft != null)
+            {
+                var uf = await FindUnsettledFeesAsync(accountId, pft.AccountID);
+                pfee = uf.TotalFees;
+            }
+            var ps = new PendingStats
+            {
+                AccountId = accountId,
+                PendingFunds = await GetPendingReceiveAsync(accountId),
+                PendingFees = pfee
+            };
+            return ps;
         }
 
         /// <summary>

@@ -667,6 +667,16 @@ namespace Lyra.Core.API
             return await GetAsync<ProfitingStats>("GetBenefitStats", args);
         }
 
+        public async Task<PendingStats> GetPendingStatsAsync(string accountId)
+        {
+            var args = new Dictionary<string, string>
+            {
+
+            };
+
+            return await GetAsync<PendingStats>("GetPendingStats", args);
+        }
+
         ProfitingGenesis INodeAPI.FindProfitingAccountsByNameAsync(string Name)
         {
             throw new NotImplementedException();

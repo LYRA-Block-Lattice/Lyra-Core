@@ -120,7 +120,7 @@ namespace Lyra.Core.Accounts
         Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end);
         Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end);
         Task<decimal> GetPendingReceiveAsync(string accountId);
-
+        Task<PendingStats> GetPendingStatsAsync(string accountId);
 
     }
 }

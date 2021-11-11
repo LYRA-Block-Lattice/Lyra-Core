@@ -1101,5 +1101,9 @@ namespace Lyra.Core.Decentralize
         {
             return NodeService.Dag.Storage.GetBenefitStatsAsync(pftid, stkid, begin, end);
         }
+        public Task<PendingStats> GetPendingStatsAsync(string accountId)
+        {
+            return NodeService.Dag.Storage.GetPendingStatsAsync(accountId);
+        }
     }
 }

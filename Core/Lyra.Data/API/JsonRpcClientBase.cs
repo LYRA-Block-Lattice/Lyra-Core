@@ -17,6 +17,14 @@ namespace Lyra.Core.API
         public bool success { get; set; }
         public string message { get; set; }
     }
+
+    public class PendingInfo
+    {
+        public string accountid { get; set; }
+        public decimal funds { get; set; }
+        public decimal fees { get; set; }
+    }
+
     public class BrokerAccountsInfo
     {
         public string owner { get; set; }

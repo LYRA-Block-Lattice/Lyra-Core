@@ -90,6 +90,7 @@ namespace Lyra.Core.API
         List<Staker> FindAllStakings(string pftid, DateTime timeBefore);
         Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end);
         Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end);
+        Task<PendingStats> GetPendingStatsAsync(string accountId);
     }
 
     public interface INodeTransactionAPI

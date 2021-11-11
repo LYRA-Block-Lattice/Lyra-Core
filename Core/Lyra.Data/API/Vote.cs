@@ -7,6 +7,12 @@ using System.Text;
 
 namespace Lyra.Data.API
 {
+    public class PendingStats
+    {
+        public string AccountId { get;set; }
+        public decimal PendingFunds { get;set; }
+        public decimal PendingFees { get;set; }  
+    }
     public class Vote
     {
         public string AccountId { get; set; }

@@ -618,7 +618,14 @@ namespace LyraLexWeb2
                 new DateTime(timeEndTicks, DateTimeKind.Utc));
         }
 
-        
+        [Route("GetPendingStats")]
+        [HttpGet]
+        public async Task<PendingStats> GetPendingStatsAsync(string accountId)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetPendingStatsAsync(accountId);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

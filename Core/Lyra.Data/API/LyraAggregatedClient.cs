@@ -566,5 +566,10 @@ namespace Lyra.Data.API
         {
             throw new NotImplementedException();
         }
+
+        public Task<PendingStats> GetPendingStatsAsync(string accountId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
