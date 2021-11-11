@@ -1849,6 +1849,7 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
+                Console.WriteLine($"Blueprint finished in {(DateTime.UtcNow - bp.start).TotalMilliseconds} ms.");
                 BrokerFactory.RemoveBlueprint(key);
             }
         }

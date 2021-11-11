@@ -86,12 +86,13 @@ namespace UnitTests
                 Console.WriteLine($"Profit account: {pgen.AccountID}");
 
                 var stopwatch = Stopwatch.StartNew();
-                List<Wallet> stkWallets = new List<Wallet>();
-                for(int i = 0; i < totalStaking; i++)
+                List<Wallet> stkWallets1 = new List<Wallet>();
+                List<Wallet> stkWallets2 = new List<Wallet>();
+                for (int i = 0; i < 10; i++)
                 {
                     var (pvtx, pubx) = Signatures.GenerateWallet();
                     var stkx = Restore(pvtx);
-                    stkWallets.Add(stkx);   
+                    stkWallets1.Add(stkx);   
 
                     await w1.SendAsync(30m, stkx.AccountId);
                     await stkx.SyncAsync(client);
@@ -107,13 +108,33 @@ namespace UnitTests
                     var result3 = await stkx.AddStakingAsync(stkgen.AccountID, 10m);
                     Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
                 }
+                for (int i = 0; i < 10; i++)
+                {
+                    var (pvtx, pubx) = Signatures.GenerateWallet();
+                    var stkx = Restore(pvtx);
+                    stkWallets2.Add(stkx);
+
+                    await w1.SendAsync(30m, stkx.AccountId);
+                    await stkx.SyncAsync(client);
+
+                    // test create staking account
+                    var result2 = await stkx.CreateStakingAccountAsync($"UT{_rand.Next()}", pgen.AccountID, 1000, false);
+                    Assert.IsTrue(result2.ResultCode == APIResultCodes.Success, $"Result2: {result2.ResultCode}");
+
+                    var stkgen = result2.GetBlock() as StakingBlock;
+                    Assert.IsNotNull(stkgen);
+
+                    // test add staking
+                    var result3 = await stkx.AddStakingAsync(stkgen.AccountID, 10m);
+                    Assert.IsTrue(result3.ResultCode == APIResultCodes.Success, $"Result3: {result3.ResultCode}");
+                }
                 stopwatch.Stop();
                 Console.WriteLine($"create staking uses {stopwatch.ElapsedMilliseconds} ms");
                 await w1.SendAsync(200, pgen.AccountID);
                 await wx.CreateDividendsAsync(pgen.AccountID);
                 await Task.Delay(20000);
 
-                foreach (var stkx in stkWallets)
+                foreach (var stkx in stkWallets1)
                 {
                     var stkactcall = await stkx.RPC.GetAllBrokerAccountsForOwnerAsync(stkx.AccountId);
                     Assert.IsTrue(stkactcall.Successful());
@@ -122,8 +143,21 @@ namespace UnitTests
                     var last = await stkx.RPC.GetLastBlockAsync((stkact as TransactionBlock).AccountID);
                     Assert.AreEqual(20m, (last.GetBlock() as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
 
-                    //await stkx.SyncAsync(client);
-                    //Assert.AreEqual(8m, stkx.BaseBalance);
+                    await stkx.SyncAsync(client);
+                    Assert.AreEqual(8m, stkx.BaseBalance);
+                }
+
+                foreach (var stkx in stkWallets2)
+                {
+                    var stkactcall = await stkx.RPC.GetAllBrokerAccountsForOwnerAsync(stkx.AccountId);
+                    Assert.IsTrue(stkactcall.Successful());
+
+                    var stkact = stkactcall.GetBlocks().First(a => a is IStaking) as IStaking;
+                    var last = await stkx.RPC.GetLastBlockAsync((stkact as TransactionBlock).AccountID);
+                    Assert.AreEqual(10m, (last.GetBlock() as TransactionBlock).Balances["LYR"].ToBalanceDecimal());
+
+                    await stkx.SyncAsync(client);
+                    Assert.AreEqual(18m, stkx.BaseBalance);
                 }
             }
             finally
