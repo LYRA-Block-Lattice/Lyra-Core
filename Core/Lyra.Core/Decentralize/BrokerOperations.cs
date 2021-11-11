@@ -812,12 +812,15 @@ namespace Lyra.Core.Decentralize
             if (send is BenefitingBlock bnb)
             {
                 relatedTx = bnb.RelatedTx;
-                start = (lastStk as IStaking).Start;        // compound staking, keep the start time
+                start = (lastStk as IStaking).Start;
             }
             else
             {
                 relatedTx = send.Hash;
                 start = send.TimeStamp.AddDays(1);         // manual add staking, start after 1 day.
+
+                if (LyraNodeConfig.GetNetworkId() == "devnet")
+                    start = send.TimeStamp;        // for debug
             }
 
             var stkNext = new StakingBlock
