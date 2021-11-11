@@ -24,7 +24,7 @@ namespace Lyra.Core.Blocks
         public string CalculateHash()
         {
             string record = GetHashInput();
-            if(this is ProfitingBlock)
+            if(this is BenefitingBlock)
                 Console.WriteLine($"Debug Hash Record: {record}");
             using (SHA256Managed sha = new SHA256Managed())
             {
