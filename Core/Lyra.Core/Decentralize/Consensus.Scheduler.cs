@@ -239,8 +239,8 @@ namespace Lyra.Core.Decentralize
                         {
                             var bps = BrokerFactory.GetAllBlueprints();
                             var lsp = await cs._sys.Storage.GetLastServiceBlockAsync();
-                            if (bps.Any(a => DateTime.UtcNow - a.start > TimeSpan.FromSeconds(60))
-                                && DateTime.UtcNow - lsp.TimeStamp > TimeSpan.FromSeconds(60))
+                            if (bps.Any(a => DateTime.UtcNow - a.start > TimeSpan.FromSeconds(120))
+                                && DateTime.UtcNow - lsp.TimeStamp > TimeSpan.FromSeconds(120))
                                 await cs.BeginChangeViewAsync("block monitor", ViewChangeReason.LeaderFailedProcessingDEX);
                         }
                     }
