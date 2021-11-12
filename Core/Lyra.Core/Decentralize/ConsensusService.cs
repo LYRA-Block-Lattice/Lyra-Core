@@ -1763,6 +1763,11 @@ namespace Lyra.Core.Decentralize
             }
         }
 
+        public async Task<bool> CheckFinishedAsync(BrokerBlueprint bp)
+        {
+            return await bp.ExecuteAsync(_sys, (b) => Task.CompletedTask);
+        }
+
         public void ExecuteBlueprint(BrokerBlueprint bp)
         {
             if (_pfTaskMutex.Wait(1))

@@ -205,7 +205,12 @@ namespace Lyra.Core.Decentralize
                 {
                     if(cs.CurrentState == Data.API.BlockChainState.Almighty)
                     {
-                        //var blueprints = BrokerFactory.GetAllBlueprints();
+                        var blueprints = BrokerFactory.GetAllBlueprints();
+                        foreach (var blueprint in blueprints)
+                        {
+                            if (await cs.CheckFinishedAsync(blueprint))
+                                BrokerFactory.RemoveBlueprint(blueprint.svcReqHash);
+                        }
 
                         //foreach (var x in blueprints
                         //    .GroupBy(a => a.brokerAccount)
