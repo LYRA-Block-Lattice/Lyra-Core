@@ -212,26 +212,30 @@ namespace Lyra.Core.Decentralize
                                 BrokerFactory.RemoveBlueprint(blueprint.svcReqHash);
                         }
 
-                        //foreach (var x in blueprints
-                        //    .GroupBy(a => a.brokerAccount)
-                        //    .Select(g => new
-                        //    {
-                        //        brk = g.Key, 
-                        //        bp = g.OrderBy(d => d.start).FirstOrDefault()
-                        //    })
-                        //    .ToArray())
-                        //{
-                        //    if (x.bp.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
-                        //    {
-                        //        cs._log.LogError($"blueprint failed: {x.bp.svcReqHash}");
-                        //        BrokerFactory.RemoveBlueprint(x.bp.svcReqHash);
-                        //        blueprints.Remove(blueprints.First(a => a.svcReqHash == x.bp.svcReqHash));
-                        //    }
-                        //    else
-                        //    {
-                        //        cs.ExecuteBlueprint(x.bp);
-                        //    }
-                        //}
+                        if(cs.IsThisNodeLeader)
+                        {
+                            blueprints = BrokerFactory.GetAllBlueprints();
+                            foreach (var x in blueprints
+                                .GroupBy(a => a.brokerAccount)
+                                .Select(g => new
+                                {
+                                    brk = g.Key,
+                                    bp = g.OrderBy(d => d.start).FirstOrDefault()
+                                })
+                                .ToArray())
+                            {
+                                if (x.bp.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
+                                {
+                                    cs._log.LogError($"blueprint failed: {x.bp.svcReqHash}");
+                                    BrokerFactory.RemoveBlueprint(x.bp.svcReqHash);
+                                    blueprints.Remove(blueprints.First(a => a.svcReqHash == x.bp.svcReqHash));
+                                }
+                                else
+                                {
+                                    cs.ExecuteBlueprint(x.bp);
+                                }
+                            }
+                        }
 
                         BrokerFactory.Persist(cs._sys.Storage);
 
