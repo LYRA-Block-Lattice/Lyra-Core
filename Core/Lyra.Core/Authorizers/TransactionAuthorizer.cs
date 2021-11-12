@@ -109,7 +109,7 @@ namespace Lyra.Core.Authorizers
                     {
                         txnew = blk;
                         return Task.CompletedTask;
-                    });
+                    }, "TransactionAuthorizer");
 
                     if (txnew == null)
                     {

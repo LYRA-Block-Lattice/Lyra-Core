@@ -233,7 +233,7 @@ namespace Lyra.Core.Decentralize
                                 }
                                 else
                                 {
-                                    cs.ExecuteBlueprint(x.bp);
+                                    cs.ExecuteBlueprint(x.bp, "LeaderTaskMonitor");
                                 }
                             }
                         }

@@ -170,7 +170,7 @@ namespace Lyra.Core.Decentralize
                                             }
                                             else
                                             {
-                                                ExecuteBlueprint(x.bp);
+                                                ExecuteBlueprint(x.bp, "New Elected Leader");
                                             }
                                         }
                                     }
@@ -491,7 +491,7 @@ namespace Lyra.Core.Decentralize
                             if (bpx != null)
                             {
                                 _log.LogInformation($"BrokerFactory.OnFinished try next in queue {bpx.svcReqHash} for brk: {bp.brokerAccount}");
-                                ExecuteBlueprint(bpx);
+                                ExecuteBlueprint(bpx, "OnFinished Leader");
                             }                            
                         }
                     };
@@ -1758,17 +1758,17 @@ namespace Lyra.Core.Decentralize
                         return;
 
                     _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
-                    ExecuteBlueprint(blueprint);
+                    ExecuteBlueprint(blueprint, "Leader ProcessServerReqBlock");
                 }
             }
         }
 
         public async Task<bool> CheckFinishedAsync(BrokerBlueprint bp)
         {
-            return await bp.ExecuteAsync(_sys, (b) => Task.CompletedTask);
+            return await bp.ExecuteAsync(_sys, (b) => Task.CompletedTask, "CheckFinishedAsync");
         }
 
-        public void ExecuteBlueprint(BrokerBlueprint bp)
+        public void ExecuteBlueprint(BrokerBlueprint bp, string caller)
         {
             if (_pfTaskMutex.Wait(1))
             {
@@ -1782,7 +1782,7 @@ namespace Lyra.Core.Decentralize
                         // hack for unit test
                         if (_hostEnv == null)
                         {
-                            success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
+                            success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b), caller);
                             _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                             if (success)
                                 BrokerFactory.RemoveBlueprint(bp.svcReqHash);
@@ -1795,10 +1795,10 @@ namespace Lyra.Core.Decentralize
                                 //if (bp.LastBlockTime.AddSeconds(2) > DateTime.UtcNow)   // wait for consensus
                                 //    success = false;
                                 //else
-                                success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                                success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b), caller + " Leader");
                             }
                             else   // give normal nodes a chance to clear the queue
-                                success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
+                                success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask, caller + " normal node");
                             _log.LogInformation($"SVC request {bp.svcReqHash} executing result: {success}");
                         }
 
@@ -1874,13 +1874,13 @@ namespace Lyra.Core.Decentralize
                             {
                                 if (_hostEnv == null)
                                 {
-                                    success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b));
+                                    success = await bp.ExecuteAsync(_sys, (b) => OnNewBlock(b), "ProcessManagedBlock");
                                 }
                                 else
-                                    success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                                    success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b), "ProcessManagedBlock");
                             }
                             else   // give normal nodes a chance to clear the queue
-                                success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
+                                success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask, "ProcessManagedBlock");
                             _log.LogInformation($"broker request {bp.svcReqHash} result: {success}");
                             if (success)
                                 BrokerFactory.RemoveBlueprint(bp.svcReqHash);
