@@ -75,13 +75,19 @@ namespace Lyra.Core.Authorizers
             if (block.ContainsTag(Block.MANAGEDTAG))
             {
                 if (block.Tags[Block.MANAGEDTAG] != "")
+                {
+                    Console.WriteLine("block.Tags[Block.MANAGEDTAG] != ''");
                     return APIResultCodes.InvalidManagementBlock;
+                }
 
                 //if (!(block is IBrokerAccount) && !(block is PoolFactoryBlock) && !(block is IPool))
                 //    return APIResultCodes.InvalidBrokerAcount;
 
                 if (!IsManagedBlockAllowed(sys, blockt))
+                {
+                    Console.WriteLine("!IsManagedBlockAllowed");
                     return APIResultCodes.InvalidManagementBlock;
+                }                    
 
                 string reltx = null;
                 if (block is IBrokerAccount ib)
@@ -93,7 +99,10 @@ namespace Lyra.Core.Authorizers
                 {
                     var wf = BrokerFactory.GetBlueprint(reltx);
                     if (wf == null)
+                    {
+                        Console.WriteLine("wf == null");
                         return APIResultCodes.InvalidManagementBlock;
+                    }
 
                     TransactionBlock txnew = null;
                     await wf.ExecuteAsync(sys, (blk) =>
@@ -103,7 +112,10 @@ namespace Lyra.Core.Authorizers
                     });
 
                     if (txnew == null)
+                    {
+                        Console.WriteLine("txnew == null");
                         return APIResultCodes.InvalidManagementBlock;
+                    }
 
                     // compare block
                     if (!block.AuthCompare(txnew))
@@ -129,10 +141,16 @@ namespace Lyra.Core.Authorizers
             if (previousBlock != null && previousBlock.ContainsTag(Block.MANAGEDTAG))
             {
                 if (!blockt.ContainsTag(Block.MANAGEDTAG))
+                {
+                    Console.WriteLine("!blockt.ContainsTag(Block.MANAGEDTAG)");
                     return APIResultCodes.InvalidManagementBlock;
+                }
 
                 if (blockt.Tags[Block.MANAGEDTAG] != "")
+                {
+                    Console.WriteLine("blockt.Tags[Block.MANAGEDTAG] != ''");
                     return APIResultCodes.InvalidManagementBlock;
+                }
 
                 var board = await sys.Consensus.Ask<BillBoard>(new AskForBillboard());
                 verifyAgainst = board.CurrentLeader;

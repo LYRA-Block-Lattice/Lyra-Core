@@ -74,7 +74,7 @@ namespace UnitTests
                 await w1.SendAsync(500, wx.AccountId);
                 await Task.Delay(1000);
                 await wx.SyncAsync(client);
-
+                await Task.Delay(1000);
                 int totalStaking = 20;
                 // test create profiting account
                 var result = await wx.CreateProfitingAccountAsync($"UT{_rand.Next()}", ProfitingType.Node, 1m, totalStaking);
