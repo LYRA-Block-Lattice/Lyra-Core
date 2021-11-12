@@ -1736,6 +1736,9 @@ namespace Lyra.Core.Decentralize
                 // get broker account
                 var brkaccount = BrokerFactory.GetBrokerAccountID(send);
 
+                var bps = BrokerFactory.GetAllBlueprints();
+                var curbrks = bps.Where(a => a.brokerAccount == brkaccount).ToList();
+
                 // create a blueprint for workflow
                 var blueprint = new BrokerBlueprint
                 {
@@ -1754,15 +1757,10 @@ namespace Lyra.Core.Decentralize
                 if(IsThisNodeLeader)
                 {
                     // if same broker account, then don't run, let it wait in queue.
-                    if (brkaccount != null)
+                    if (brkaccount != null && curbrks.Any())
                     {
-                        var bps = BrokerFactory.GetAllBlueprints();
-                        var curbrks = bps.Where(a => a.brokerAccount == brkaccount).ToList();
-                        if(curbrks.Any())
-                        {
-                            _log.LogInformation($"Brk acct {brkaccount.Shorten()} exists in queue: {curbrks.Count}");
-                            return;
-                        }
+                        _log.LogInformation($"Brk acct {brkaccount.Shorten()} exists in queue: {curbrks.Count}");
+                        return;
                     }
 
                     _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
