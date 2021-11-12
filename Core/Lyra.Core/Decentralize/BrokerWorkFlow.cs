@@ -190,7 +190,10 @@ namespace Lyra.Core.Decentralize
             {
                 BrokerBlueprint bp;
                 Console.WriteLine($"remove bp: {hash}");
-                Bps.TryRemove(hash, out bp);
+                bool rmv = Bps.TryRemove(hash, out bp);
+                if (!rmv)
+                    Console.WriteLine("Bps.TryRemove error!");
+
                 OnFinished(bp);
             }                
         }
@@ -225,16 +228,18 @@ namespace Lyra.Core.Decentralize
         public static void Persist(IAccountCollectionAsync stor)
         {
             // save to database
-            var bps = stor.GetAllBlueprints();
-            foreach (var bp in bps)
+            var storeBps = stor.GetAllBlueprints();
+            foreach (var bp in storeBps)
             {
                 if(!Bps.Keys.Any(a => a == bp.svcReqHash))
                     stor.RemoveBlueprint(bp.svcReqHash);
             }
-            
-            foreach(var n in Bps)
+
+            storeBps = stor.GetAllBlueprints();
+
+            foreach (var n in Bps)
             {
-                if (bps.Any(a => a.svcReqHash == n.Key))
+                if (storeBps.Any(a => a.svcReqHash == n.Key))
                     stor.UpdateBlueprint(n.Value);
                 else
                     stor.CreateBlueprint(n.Value);
