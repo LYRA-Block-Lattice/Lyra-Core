@@ -194,7 +194,8 @@ namespace Lyra.Core.Decentralize
                 if (!rmv)
                     Console.WriteLine("Bps.TryRemove error!");
 
-                OnFinished(bp);
+                if(OnFinished != null)
+                    OnFinished(bp);
             }                
         }
         public static long UpdateBlueprint(BrokerBlueprint bp)
