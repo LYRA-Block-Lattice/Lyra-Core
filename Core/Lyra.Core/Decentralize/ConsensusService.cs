@@ -1792,10 +1792,10 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation($"Begin executing blueprints...");
                             if (IsThisNodeLeader)
                             {
-                                if (bp.LastBlockTime.AddSeconds(2) > DateTime.UtcNow)   // wait for consensus
-                                    success = false;
-                                else
-                                    success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
+                                //if (bp.LastBlockTime.AddSeconds(2) > DateTime.UtcNow)   // wait for consensus
+                                //    success = false;
+                                //else
+                                success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b));
                             }
                             else   // give normal nodes a chance to clear the queue
                                 success = await bp.ExecuteAsync(_sys, async (b) => await Task.CompletedTask);
