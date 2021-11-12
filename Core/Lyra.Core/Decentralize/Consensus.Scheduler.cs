@@ -208,7 +208,8 @@ namespace Lyra.Core.Decentralize
                         var blueprints = BrokerFactory.GetAllBlueprints();
                         foreach (var blueprint in blueprints)
                         {
-                            if (await cs.CheckFinishedAsync(blueprint))
+                            // if finished, or > 120s, delete it.
+                            if (await cs.CheckFinishedAsync(blueprint) || blueprint.start.AddSeconds(120) < DateTime.UtcNow)
                                 BrokerFactory.RemoveBlueprint(blueprint.svcReqHash);
                         }
 
