@@ -1753,6 +1753,10 @@ namespace Lyra.Core.Decentralize
 
                 if(IsThisNodeLeader)
                 {
+                    // if same broker account, then don't run, let it wait in queue.
+                    if (brkaccount != null && BrokerFactory.GetAllBlueprints().Any(a => a.brokerAccount == brkaccount))
+                        return;
+
                     _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
                     ExecuteBlueprint(blueprint);
                 }
