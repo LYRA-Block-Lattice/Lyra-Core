@@ -1754,16 +1754,15 @@ namespace Lyra.Core.Decentralize
                 if(IsThisNodeLeader)
                 {
                     // if same broker account, then don't run, let it wait in queue.
-                    var bps = BrokerFactory.GetAllBlueprints();
-                    var curbrks = bps.Where(a => a.brokerAccount == brkaccount).ToList();
-                    if (brkaccount != null && curbrks.Any())
+                    if (brkaccount != null)
                     {
-                        Console.WriteLine($"Brk acct {brkaccount.Shorten()} exists in queue: {curbrks.Count}");
-                        return;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Brk acct {brkaccount.Shorten()} not in queue.");
+                        var bps = BrokerFactory.GetAllBlueprints();
+                        var curbrks = bps.Where(a => a.brokerAccount == brkaccount).ToList();
+                        if(curbrks.Any())
+                        {
+                            _log.LogInformation($"Brk acct {brkaccount.Shorten()} exists in queue: {curbrks.Count}");
+                            return;
+                        }
                     }
 
                     _log.LogInformation($"start process broker request {blueprint.svcReqHash}");
