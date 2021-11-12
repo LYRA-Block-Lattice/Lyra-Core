@@ -56,6 +56,7 @@ namespace Lyra.Core.Decentralize
 
         public async Task<bool> ExecuteAsync(DagSystem sys, Func<TransactionBlock, Task> submit)
         {
+            Console.WriteLine($"execute bp: {svcReqHash} for {action}");
             // execute work flow
             var wf = BrokerFactory.WorkFlows[action];
             var send = await sys.Storage.FindBlockByHashAsync(svcReqHash) as SendTransferBlock;
@@ -173,6 +174,7 @@ namespace Lyra.Core.Decentralize
 
         public static void CreateBlueprint(BrokerBlueprint blueprint)
         {
+            Console.WriteLine($"create bp: {blueprint.svcReqHash}");
             Bps.TryAdd(blueprint.svcReqHash, blueprint);
         }
         public static BrokerBlueprint GetBlueprint(string relatedTx)
@@ -187,6 +189,7 @@ namespace Lyra.Core.Decentralize
             if (Bps.ContainsKey(hash))
             {
                 BrokerBlueprint bp;
+                Console.WriteLine($"remove bp: {hash}");
                 Bps.TryRemove(hash, out bp);
                 OnFinished(bp);
             }                
