@@ -146,34 +146,8 @@ namespace Lyra.Core.Decentralize
                                     var svcBlock = await CreateNewViewAsNewLeaderAsync();
 
                                     _log.LogInformation($"New View was created. send to network...");
-                                    //await SendBlockToConsensusAndForgetAsync(svcBlock);
-                                    var result = await SendBlockToConsensusAndWaitResultAsync(svcBlock);
-                                    if(result.Item1 == ConsensusResult.Yea)
-                                    {
-                                        var blueprints = BrokerFactory.GetAllBlueprints();
-
-                                        foreach (var x in blueprints
-                                            .OrderBy(a => a.start)
-                                            .GroupBy(a => a.brokerAccount)
-                                            .Select(g => new
-                                            {
-                                                brk = g.Key,
-                                                bp = g.OrderBy(d => d.start).FirstOrDefault()
-                                            })
-                                            .ToArray())
-                                        {
-                                            if (x.bp.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
-                                            {
-                                                _log.LogError($"blueprint failed: {x.bp.svcReqHash}");
-                                                BrokerFactory.RemoveBlueprint(x.bp.svcReqHash);
-                                                blueprints.Remove(blueprints.First(a => a.svcReqHash == x.bp.svcReqHash));
-                                            }
-                                            else
-                                            {
-                                                ExecuteBlueprint(x.bp, "New Elected Leader");
-                                            }
-                                        }
-                                    }
+                                    await SendBlockToConsensusAndForgetAsync(svcBlock);
+                                    //var result = await SendBlockToConsensusAndWaitResultAsync(svcBlock);
                                 }
                                 catch (Exception e)
                                 {
@@ -1647,6 +1621,36 @@ namespace Lyra.Core.Decentralize
                 if (result == ConsensusResult.Yea)
                 {
                     ServiceBlockCreated(serviceBlock);
+
+                    if(IsThisNodeLeader)
+                    {
+                        _ = Task.Run(() => {
+                            var blueprints = BrokerFactory.GetAllBlueprints();
+
+                            foreach (var x in blueprints
+                                .OrderBy(a => a.start)
+                                .GroupBy(a => a.brokerAccount)
+                                .Select(g => new
+                                {
+                                    brk = g.Key,
+                                    bp = g.OrderBy(d => d.start).FirstOrDefault()
+                                })
+                                .ToArray())
+                            {
+                                if (x.bp.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
+                                {
+                                    _log.LogError($"blueprint failed: {x.bp.svcReqHash}");
+                                    BrokerFactory.RemoveBlueprint(x.bp.svcReqHash);
+                                    blueprints.Remove(blueprints.First(a => a.svcReqHash == x.bp.svcReqHash));
+                                }
+                                else
+                                {
+                                    ExecuteBlueprint(x.bp, "New Elected Leader");
+                                }
+                            }
+                        });
+                    }
+
                     /*
                     if (IsThisNodeLeader)
                     {

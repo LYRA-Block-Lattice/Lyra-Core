@@ -1150,8 +1150,8 @@ namespace Lyra.Core.Accounts
             var ps = new PendingStats
             {
                 AccountId = accountId,
-                PendingFunds = await GetPendingReceiveAsync(accountId),
-                PendingFees = pfee
+                PendingFunds = Math.Round(await GetPendingReceiveAsync(accountId), 8),
+                PendingFees = Math.Round(pfee, 8)
             };
             return ps;
         }
