@@ -1637,16 +1637,7 @@ namespace Lyra.Core.Decentralize
                                 })
                                 .ToArray())
                             {
-                                if (x.bp.start.AddMinutes(30) < DateTime.UtcNow)    // expire failed tasks
-                                {
-                                    _log.LogError($"blueprint failed: {x.bp.svcReqHash}");
-                                    BrokerFactory.RemoveBlueprint(x.bp.svcReqHash);
-                                    blueprints.Remove(blueprints.First(a => a.svcReqHash == x.bp.svcReqHash));
-                                }
-                                else
-                                {
-                                    ExecuteBlueprint(x.bp, "New Elected Leader");
-                                }
+                                ExecuteBlueprint(x.bp, "New Elected Leader");
                             }
                         });
                     }
@@ -1802,9 +1793,6 @@ namespace Lyra.Core.Decentralize
                             _log.LogInformation($"Begin executing blueprints...");
                             if (IsThisNodeLeader)
                             {
-                                //if (bp.LastBlockTime.AddSeconds(2) > DateTime.UtcNow)   // wait for consensus
-                                //    success = false;
-                                //else
                                 success = await bp.ExecuteAsync(_sys, async (b) => await SendBlockToConsensusAndForgetAsync(b), caller + " Leader");
                             }
                             else   // give normal nodes a chance to clear the queue
