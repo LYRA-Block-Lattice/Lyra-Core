@@ -40,4 +40,3 @@ Gratz! Your new profiting account is: LMtVaJPs5uqsoC2KoSiB8raNADPqRMPb3TsduxZJ3Z
 
 poswallet> stop
 LYRA Block Lattice Client is shutting down
-$ echo "NODE_PFT_ID=LMtVaJPs5uqsoC2KoSiB8raNADPqRMPb3TsduxZJ3ZruavJvUGGu9adAVJzqU8NL7a5G5BWhsUL44txNjiZJsCCYS68Ntp" >> .env

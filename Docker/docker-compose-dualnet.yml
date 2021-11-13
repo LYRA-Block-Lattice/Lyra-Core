@@ -15,7 +15,7 @@ services:
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
 
   mainnet:
-    image: wizdy/lyranoded:3.0.3.2
+    image: wizdy/lyranoded:3.0.3.3
     restart: always
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
@@ -30,7 +30,6 @@ services:
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect: mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@mongo/${LYRA_DB_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name: ${LYRA_MAINNET_POS_WALLET_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password: ${LYRA_MAINNET_POS_WALLET_PASSWORD}
-      LYRA_ApplicationConfiguration__LyraNode__Lyra__ProfitAccountID: ${NODE_PFT_ID}
     ports:
       - ${LYRA_MAINNET_P2P_PORT}:${LYRA_MAINNET_P2P_PORT}
       - ${LYRA_MAINNET_API_PORT}:${LYRA_MAINNET_API_PORT}
@@ -40,7 +39,7 @@ services:
       - mongo
 
   testnet:
-    image: wizdy/lyranoded:3.0.3.2
+    image: wizdy/lyranoded:3.0.3.3
     restart: always
     environment:
       ASPNETCORE_Kestrel__Certificates__Default__Password: $HTTPS_CERT_PASSWORD
@@ -55,7 +54,6 @@ services:
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Database__DBConnect: mongodb://${LYRA_DB_USER}:${LYRA_DB_PASSWORD}@mongo/${LYRA_DB_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Name: ${LYRA_TESTNET_POS_WALLET_NAME}
       LYRA_ApplicationConfiguration__LyraNode__Lyra__Wallet__Password: ${LYRA_TESTNET_POS_WALLET_PASSWORD}
-      LYRA_ApplicationConfiguration__LyraNode__Lyra__ProfitAccountID: ${NODE_PFT_ID_TESTNET}
     ports:
       - ${LYRA_TESTNET_P2P_PORT}:${LYRA_TESTNET_P2P_PORT}
       - ${LYRA_TESTNET_API_PORT}:${LYRA_TESTNET_API_PORT}

@@ -90,7 +90,8 @@ vi .env
 docker pull wizdy/lyra:latest
 docker run -it --env LYRA_NETWORK=mainnet -v ~/.lyra:/root/.lyra wizdy/lyra:latest
 # then use the "profinting" command in cli to create a new profint account
-echo "NODE_PFT_ID=LMtfs...eol" >> .env
+# share ratio: percentage you want to share with others. (100 - sharerito)% will be yours.
+# seats: how many staking account you accept.
 
 # setup docker containers
 docker-compose --env-file .env up -d
