@@ -56,7 +56,7 @@ namespace Lyra.Core.Decentralize
             else
             {
                 await CreateJobAsync("0 0/10 * * * ?", typeof(NewPlayerMonitor), "Player Monitor", jobGroup);
-                await CreateJobAsync(TimeSpan.FromMinutes(60 * 6), typeof(FetchBalance), "Fetch Balance", jobGroup);
+                await CreateJobAsync(TimeSpan.FromHours(12), typeof(FetchBalance), "Fetch Balance", jobGroup);
             }
 
             // Start up the scheduler (nothing can actually run until the
@@ -312,12 +312,16 @@ namespace Lyra.Core.Decentralize
 
                 try
                 {
-                    await cs._sys.PosWallet.SyncAsync(null);
-                    // open when all upgraded.
-                    var pfts = await cs._sys.Storage.FindAllProfitingAccountForOwnerAsync(cs._sys.PosWallet.AccountId);
-                    var pft = pfts.FirstOrDefault();
-                    if (pft != null)// && pft.AccountID.StartsWith("LRJtGk"))      // debug only
-                        await cs._sys.PosWallet.CreateDividendsAsync(pft.AccountID);
+                    if(cs.IsThisNodePrimary)
+                    {
+                        await cs._sys.PosWallet.SyncAsync(null);
+                        // open when all upgraded.
+                        var pfts = await cs._sys.Storage.FindAllProfitingAccountForOwnerAsync(cs._sys.PosWallet.AccountId);
+                        var pft = pfts.Where(a => a.PType == Blocks.ProfitingType.Node)
+                            .FirstOrDefault();
+                        if (pft != null)// && pft.AccountID.StartsWith("LRJtGk"))      // debug only
+                            await cs._sys.PosWallet.CreateDividendsAsync(pft.AccountID);
+                    }
                 }
                 catch (Exception e)
                 {

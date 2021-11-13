@@ -64,6 +64,7 @@ namespace Lyra.Core.Decentralize
         private readonly List<TransStats> _stats;
         private System.Net.IPAddress _myIpAddress;
 
+        public bool IsThisNodePrimary => Board.PrimaryAuthorizers.Contains(_sys.PosWallet.AccountId);
         public bool IsThisNodeLeader => _sys.PosWallet.AccountId == Board.CurrentLeader;
         public bool IsThisNodeSeed => ProtocolSettings.Default.StandbyValidators.Contains(_sys.PosWallet.AccountId);
 
