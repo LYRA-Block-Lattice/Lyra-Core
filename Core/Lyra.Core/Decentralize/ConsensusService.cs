@@ -1107,6 +1107,16 @@ namespace Lyra.Core.Decentralize
 
                 if (thumbPrint != null)
                     node.ThumbPrint = thumbPrint;
+
+                if(node.ProfitingAccountId == null)
+                {
+                    var pfts = await _sys.Storage.FindAllProfitingAccountForOwnerAsync(accountId);
+                    var pft = pfts.Where(a => a.PType == Blocks.ProfitingType.Node)
+                        .FirstOrDefault();
+
+                    if (pft != null)
+                        node.ProfitingAccountId = pft.AccountID;
+                }
             }
             else
             {

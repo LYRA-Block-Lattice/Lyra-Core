@@ -314,9 +314,9 @@ namespace Lyra.Client.CLI
                 var sName = Console.ReadLine();
                 Console.Write("The Type of the profiting account (Node/Oracle/Merchant/Yield): ");
                 var sType = Console.ReadLine();
-                Console.Write("Percentage of revernue you want to share with voters ( 0 - 100 ) %): ");
+                Console.Write("Percentage of revernue you want to share with stakers ( 0 - 100 ) %): ");
                 var sRitio = Console.ReadLine();
-                Console.Write("Number of seats for voters ( 0 - 100 ): ");
+                Console.Write("Number of seats for stakers ( 0 - 100 ): ");
                 var sSeats = Console.ReadLine();
 
                 var type = (ProfitingType)Enum.Parse(typeof(ProfitingType), sType);

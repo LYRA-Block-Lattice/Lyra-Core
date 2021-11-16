@@ -1,5 +1,5 @@
 $ docker pull wizdy/lyra:latest
-$ docker run -it --env LYRA_NETWORK=testnet -v ~/.lyra:/root/.lyra wizdy/lyra:latest
+$ docker run -it --env LYRA_NETWORK=mainnet -v ~/.lyra:/root/.lyra wizdy/lyra:latest
 LYRA Block Lattice Command Line Client
 Version: 2.4.1.2
 
@@ -29,8 +29,9 @@ poswallet> profiting
 You have 0 accounts.
 Create a new profiting account? Y/n? y
 The Name of the profiting account: node1
-Percentage of revernue you want to share with voters (%): 100
-Number of seats for voters ( 0 - 100 ): 100
+The Type of the profiting account (Node/Oracle/Merchant/Yield): Node
+Percentage of revernue you want to share with stakers (%): 100
+Number of seats for stakers ( 0 - 100 ): 100
 Create new profiting account: node1
 Share ritio: 100 %
 Seats: 100
