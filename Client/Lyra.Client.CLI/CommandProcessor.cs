@@ -336,6 +336,10 @@ Y/n? ");
                         var pftGensis = creatRet.GetBlock() as ProfitingGenesis;
                         Console.WriteLine($"Gratz! Your new profiting account is: {pftGensis.AccountID}");
                     }
+                    else
+                    {
+                        Console.WriteLine($"Failed to create profiting account: {creatRet.ResultCode}");
+                    }
                 }
             }
         }
@@ -389,6 +393,10 @@ Y/n? ");
                         {
                             var pftGensis = creatRet.GetBlock() as StakingGenesis;
                             Console.WriteLine($"Gratz! Your new staking account is: {pftGensis.AccountID}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Failed to create staking account: {creatRet.ResultCode}");
                         }
                     }
                     break;
@@ -612,6 +620,10 @@ Amount: {amountx}
                                     else
                                         Console.WriteLine("Deposition not good.");
                                 }
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Failed to add liquidate to pool: {poolDepositResult.ResultCode}");
                             }
                         }
                         else

@@ -194,7 +194,7 @@ namespace Lyra.Core.Decentralize
                 if (!rmv)
                     Console.WriteLine("Bps.TryRemove error!");
 
-                if(OnFinished != null)
+                if(OnFinished != null && bp != null)
                     OnFinished(bp);
             }                
         }

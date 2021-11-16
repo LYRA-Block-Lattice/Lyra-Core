@@ -25,10 +25,10 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidSeatsCount;
 
             if (block.ShareRito == 0 && block.Seats != 0)
-                return APIResultCodes.InvalidAuthorizerCount;
+                return APIResultCodes.InvalidSeatsCount;
 
             if(block.ShareRito > 0 && block.Seats == 0)
-                return APIResultCodes.InvalidAuthorizerCount;
+                return APIResultCodes.InvalidSeatsCount;
 
             return await base.AuthorizeImplAsync(sys, tblock);
         }
