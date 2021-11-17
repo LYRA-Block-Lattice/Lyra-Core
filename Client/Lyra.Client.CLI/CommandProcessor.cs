@@ -445,7 +445,10 @@ Y/n? ");
                     Console.Write(@$"Withdraw funds from staking account: {stk.Name}
 Account ID: {stk.AccountID} %
 
-Y/n? ");
+Note:
+Unstaking within the promised staking period will pay 0.8% panalize fee. 
+
+Ary you sure ustaking? Y/n: ");
                     if (ReadYesNoAnswer())
                     {
                         var creatRet = await _wallet.UnStakingAsync(stk.AccountID);
