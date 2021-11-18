@@ -1860,9 +1860,17 @@ namespace Lyra.Core.Decentralize
 
             if(result == ConsensusResult.Nay)
             {
-                // process Nay
-                _log.LogCritical($"Fatal Error ProcessManagedBlock! RelatedTx: {key}");
-                BrokerFactory.RemoveBlueprint(key);
+                // PD recv never fail, it just retry again
+                if(block is ReceiveTransferBlock recv && recv.AccountID == PoolFactoryBlock.FactoryAccount)
+                {
+                    _log.LogWarning($"PoolFactory receive Nay. retry... RelatedTx: {key}");
+                }
+                else
+                {
+                    // process Nay
+                    _log.LogCritical($"Fatal Error ProcessManagedBlock! RelatedTx: {key}");
+                    BrokerFactory.RemoveBlueprint(key);
+                }
             }
 
             if (!bp.FullDone)

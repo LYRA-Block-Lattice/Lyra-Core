@@ -246,7 +246,7 @@ namespace UnitTests
 
             await TestPoolAsync();
             await TestProfitingAndStaking();
-            await TestNodeFee();
+            //await TestNodeFee();
 
             // let workflow to finish
             await Task.Delay(1000);

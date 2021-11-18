@@ -14,7 +14,7 @@ namespace UnitTests
     public class UT_DexClient
     {
         //[TestMethod]
-        public async Task TestGenerateWallet()
+        public async Task TestGenerateWalletAsync()
         {
             var (pvtx, pubx) = Signatures.GenerateWallet();
 
