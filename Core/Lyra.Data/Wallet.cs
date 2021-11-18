@@ -1862,7 +1862,7 @@ namespace Lyra.Core.Accounts
 
         public async Task<APIResult> CreateDividendsAsync(string profitingAccountId)
         {
-            var amountsDeposit = new Dictionary<string, decimal>
+            var amounts = new Dictionary<string, decimal>
             {
                 { "LYR", 1 }
             };
@@ -1873,7 +1873,7 @@ namespace Lyra.Core.Accounts
                 { "pftid", profitingAccountId }
             };
 
-            var getpftResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amountsDeposit, tags);
+            var getpftResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
             return getpftResult;
         }
 
@@ -1955,6 +1955,26 @@ namespace Lyra.Core.Accounts
             var amounts = new Dictionary<string, decimal>
             {
                 { LyraGlobal.OFFICIALTICKERCODE, 1m }
+            };
+
+            var addStkResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            return addStkResult;
+        }
+        #endregion
+
+        #region dex deposition & withdraw
+        public async Task<APIResult> CreateDexWalletAsync(string symbol, string provider)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_DEX_DPOREQ },
+                { "symbol", symbol },
+                { "provider", provider }
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee }
             };
 
             var addStkResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);

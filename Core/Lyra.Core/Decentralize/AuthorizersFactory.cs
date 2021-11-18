@@ -55,6 +55,10 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.LyraTokenGenesis, "LyraGenesisAuthorizer");
             _authorizers.Add(BlockTypes.TokenGenesis, "TokenGenesisAuthorizer");
 
+            // DEX
+            _authorizers.Add(BlockTypes.DexWalletGenesis, "DexWalletGenesisAuthorizer");
+            _authorizers.Add(BlockTypes.DexRecvToken, "DexReceiveAuthorizer");
+
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
             foreach(var kvp in _authorizers)
             {

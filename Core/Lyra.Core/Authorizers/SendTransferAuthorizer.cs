@@ -311,6 +311,15 @@ namespace Lyra.Core.Authorizers
                     if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
                         return APIResultCodes.RequestNotPermited;
                     break;
+                case BrokerActions.BRK_DEX_DPOREQ:
+                    var symbol = block.Tags.ContainsKey("symbol") ? block.Tags["symbol"] : null;
+                    if (symbol == null)
+                        return APIResultCodes.InvalidName;
+
+                    if (block.Tags.Count > 3)
+                        return APIResultCodes.InvalidBlockTags;
+
+                    break;
                 default:
                     return APIResultCodes.InvalidServiceRequest;
             }

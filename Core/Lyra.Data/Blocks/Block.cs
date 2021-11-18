@@ -332,6 +332,13 @@ namespace Lyra.Core.Blocks
         StakingGenesis = 65,
         Staking = 66,
         UnStaking = 67,
+
+        // DEX
+        DexWalletGenesis = 70,
+        DexTokenMint = 71,
+        DexSendToken = 72,
+        DexRecvToken = 73,
+        DexBurnToken = 74,
     }
 
     public enum APIResultCodes

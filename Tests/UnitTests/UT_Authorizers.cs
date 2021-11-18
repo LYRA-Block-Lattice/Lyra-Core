@@ -244,12 +244,20 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            await TestPoolAsync();
-            await TestProfitingAndStaking();
+            //await TestPoolAsync();
+            //await TestProfitingAndStaking();
             //await TestNodeFee();
+            await TestDepositWithdraw();
 
             // let workflow to finish
             await Task.Delay(1000);
+        }
+
+        private async Task TestDepositWithdraw()
+        {
+            await testWallet.SyncAsync(null);
+            var crdexret = await testWallet.CreateDexWalletAsync("TRX", "");
+            Assert.IsTrue(crdexret.Successful());
         }
 
         private async Task CreateConsolidation()

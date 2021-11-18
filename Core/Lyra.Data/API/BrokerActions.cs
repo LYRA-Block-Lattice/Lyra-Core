@@ -21,5 +21,13 @@ namespace Lyra.Data.API
         public const string BRK_MCT_UNPAY = "UNPAY";
         public const string BRK_MCT_CFPAY = "CFPAY";
         public const string BRK_MCT_GETPAY = "GETPAY";
+
+        // DEX
+        public const string BRK_DEX_DPOREQ = "DPOREQ";
+        public const string BRK_DEX_MINT = "MINT";
+        public const string BRK_DEX_GETTOK = "GETTOK";
+        public const string BRK_DEX_PUTTOK = "PUTTOK";
+        public const string BRK_DEX_WDWREQ = "WDWREQ";
+
     }
 }
