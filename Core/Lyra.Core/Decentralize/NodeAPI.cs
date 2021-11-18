@@ -1105,5 +1105,14 @@ namespace Lyra.Core.Decentralize
         {
             return NodeService.Dag.Storage.GetPendingStatsAsync(accountId);
         }
+
+        public Task<List<DexWalletGenesis>> GetAllDexWalletsAsync()
+        {
+            return NodeService.Dag.Storage.GetAllDexWalletsAsync();
+        }
+        public Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
+        {
+            return NodeService.Dag.Storage.FindDexWalletAsync(owner, symbol, provider);
+        }
     }
 }

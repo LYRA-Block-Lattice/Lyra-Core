@@ -164,6 +164,13 @@ namespace Lyra.Core.Decentralize
             WorkFlows.Add(BrokerActions.BRK_STK_ADDSTK, (false, BrokerOperations.CNOAddStakingAsync, null));
             WorkFlows.Add(BrokerActions.BRK_STK_UNSTK, (true, BrokerOperations.CNOUnStakeAsync, null));
 
+            // DEX
+            WorkFlows.Add(BrokerActions.BRK_DEX_DPOREQ, (true, BrokerOperations.CNODEXCreateWalletAsync, null));
+            WorkFlows.Add(BrokerActions.BRK_DEX_MINT, (true, BrokerOperations.CNODEXMintTokenAsync, null));
+            WorkFlows.Add(BrokerActions.BRK_DEX_GETTOK, (true, BrokerOperations.CNODEXGetTokenSendAsync, null));
+            WorkFlows.Add(BrokerActions.BRK_DEX_PUTTOK, (false, BrokerOperations.CNODEXPutTokenAsync, null));
+            WorkFlows.Add(BrokerActions.BRK_DEX_WDWREQ, (true, BrokerOperations.CNODEXWithdrawAsync, null));
+
             // merchant
             WorkFlows.Add(BrokerActions.BRK_MCT_CRMCT, (true, BrokerOperations.CNOMCTCreateAsync, null));
             WorkFlows.Add(BrokerActions.BRK_MCT_PAYMCT, (false, BrokerOperations.CNOMCTPayAsync, null));

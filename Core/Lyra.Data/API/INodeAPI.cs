@@ -91,6 +91,10 @@ namespace Lyra.Core.API
         Task<ProfitingStats> GetAccountStatsAsync(string accountId, DateTime begin, DateTime end);
         Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end);
         Task<PendingStats> GetPendingStatsAsync(string accountId);
+
+        // DEX
+        Task<List<DexWalletGenesis>> GetAllDexWalletsAsync();
+        Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider);
     }
 
     public interface INodeTransactionAPI

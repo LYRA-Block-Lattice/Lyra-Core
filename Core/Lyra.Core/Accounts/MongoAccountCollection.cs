@@ -1952,6 +1952,21 @@ namespace Lyra.Core.Accounts
 
             return await q.ToListAsync();
         }
+
+        public async Task<List<DexWalletGenesis>> GetAllDexWalletsAsync()
+        {
+            return await _blocks.OfType<DexWalletGenesis>()
+                .Find(a => true)
+                .ToListAsync();
+        }
+
+        public async Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
+        {
+            return await _blocks.OfType<DexWalletGenesis>()
+                .Find(a => a.OwnerAccountId == owner &&
+                    a.ExtSymbol == symbol && a.ExtProvider == provider)
+                .FirstOrDefaultAsync();
+        }
     }
     public static class MyExtensions
     {

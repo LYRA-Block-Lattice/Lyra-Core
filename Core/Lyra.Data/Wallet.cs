@@ -1980,6 +1980,17 @@ namespace Lyra.Core.Accounts
             var addStkResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
             return addStkResult;
         }
+
+        public async Task<List<DexWalletGenesis>> GetAllDexWalletsAsync()
+        {
+            return await RPC.GetAllDexWalletsAsync();
+        }
+
+        public async Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
+        {
+            return await RPC.FindDexWalletAsync(owner, symbol, provider);
+        }
+        
         #endregion
 
         public string PrintLastBlock()

@@ -18,7 +18,8 @@ namespace Lyra.Core.Authorizers
             BlockTypes.StakingGenesis,
             BlockTypes.PoolGenesis,
             BlockTypes.OpenAccountWithReceiveTransfer,
-            BlockTypes.LyraTokenGenesis
+            BlockTypes.LyraTokenGenesis,
+            BlockTypes.DexWalletGenesis
         };
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {

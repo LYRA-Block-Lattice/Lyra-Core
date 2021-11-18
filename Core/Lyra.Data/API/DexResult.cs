@@ -10,6 +10,7 @@
         public string Owner { get; set; }
         public string Address { get; set; }
         public string Blockchain { get; set; }
+        public string Provider { get; set; }
         public string Network { get; set; }
         public string Contract { get; set; }
     }

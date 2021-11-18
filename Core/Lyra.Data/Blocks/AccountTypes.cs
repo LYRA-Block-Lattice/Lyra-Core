@@ -8,6 +8,7 @@
         PoolFactory = 5,
         Pool = 6,
         Staking = 7,
-        Profiting = 8
+        Profiting = 8,
+        DEX = 9,
     }
 }

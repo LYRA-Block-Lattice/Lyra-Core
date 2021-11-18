@@ -122,5 +122,8 @@ namespace Lyra.Core.Accounts
         Task<decimal> GetPendingReceiveAsync(string accountId);
         Task<PendingStats> GetPendingStatsAsync(string accountId);
 
+        // DEX
+        Task<List<DexWalletGenesis>> GetAllDexWalletsAsync();
+        Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider);
     }
 }

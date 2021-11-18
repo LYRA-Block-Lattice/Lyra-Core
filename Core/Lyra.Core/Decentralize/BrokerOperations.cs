@@ -1,4 +1,5 @@
-﻿using Lyra.Core.Accounts;
+﻿using DexServer.Ext;
+using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
@@ -903,6 +904,81 @@ namespace Lyra.Core.Decentralize
             stkNext.InitializeBlock(lastStk, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
             return stkNext;
+        }
+
+        // DEX
+        public static async Task<TransactionBlock> CNODEXCreateWalletAsync(DagSystem sys, SendTransferBlock send)
+        {
+            var symbol = send.Tags["symbol"];
+            var provider = send.Tags["provider"];
+
+            // request a wallet from dex server
+            var dc = new DexClient();
+            var r1 = await dc.CreateWalletAsync(send.AccountID, symbol, provider,
+                NodeService.Dag.PosWallet.AccountId, 
+                Signatures.GetSignature(NodeService.Dag.PosWallet.PrivateKey, send.Hash, NodeService.Dag.PosWallet.AccountId)
+                );
+            //Assert.IsTrue(r1.Success);
+            var extw = r1 as DexAddress;
+            //Assert.IsTrue(extw.Address.StartsWith('T'));
+
+            var keyStr = $"{send.Hash.Substring(0, 16)},{symbol},{provider},{send.AccountID}";
+            var AccountId = Base58Encoding.EncodeAccountId(Encoding.ASCII.GetBytes(keyStr).Take(64).ToArray());
+
+            var exists = await sys.Storage.FindDexWalletAsync(send.AccountID, symbol, provider);
+            if (exists != null)
+                return null;
+
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            var wgen = new DexWalletGenesis
+            {
+                Height = 1,
+                PreviousHash = sb.Hash,
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // transaction
+                AccountID = AccountId,        // in fact we not use this account.
+                Balances = new Dictionary<string, long>(),
+
+                // broker
+                Name = symbol + (String.IsNullOrEmpty(provider) ? "" : $" via {provider}"),
+                OwnerAccountId = send.AccountID,
+                RelatedTx = send.Hash,
+
+                // Dex Recv
+                IntSymbol = $"${symbol}",
+                ExtSymbol = symbol,
+                ExtProvider = provider,
+                ExtAddress = extw.Address,
+
+                // genesis
+                AccountType = AccountTypes.DEX
+            };
+
+            wgen.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            wgen.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+
+            return wgen;
+        }
+        public static async Task<TransactionBlock> CNODEXMintTokenAsync(DagSystem sys, SendTransferBlock send)
+        {
+            throw new NotImplementedException();
+        }
+        public static async Task<TransactionBlock> CNODEXGetTokenSendAsync(DagSystem sys, SendTransferBlock send)
+        {
+            throw new NotImplementedException();
+        }
+        public static async Task<TransactionBlock> CNODEXPutTokenAsync(DagSystem sys, SendTransferBlock send)
+        {
+            throw new NotImplementedException();
+        }
+        public static async Task<TransactionBlock> CNODEXWithdrawAsync(DagSystem sys, SendTransferBlock send)
+        {
+            throw new NotImplementedException();
         }
 
         // merchants

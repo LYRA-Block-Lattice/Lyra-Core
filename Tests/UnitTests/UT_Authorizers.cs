@@ -145,6 +145,11 @@ namespace UnitTests
             mock.Setup(x => x.GetBlockHashesByTimeRangeAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>()))
                 .Returns<DateTime, DateTime>((acct, sign) => Task.FromResult(api.GetBlockHashesByTimeRangeAsync(acct, sign)).Result);
 
+            // DEX
+            mock.Setup(x => x.GetAllDexWalletsAsync())
+                .Returns(() => Task.FromResult(api.GetAllDexWalletsAsync()).Result);
+            mock.Setup(x => x.FindDexWalletAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns<string, string, string>((owner, symbol, provider) => Task.FromResult(api.FindDexWalletAsync(owner, symbol, provider)).Result);
 
             mock.Setup(x => x.GetLastBlockAsync(It.IsAny<string>()))
                 .Returns<string>(acct => Task.FromResult(api.GetLastBlockAsync(acct)).Result);
@@ -256,8 +261,14 @@ namespace UnitTests
         private async Task TestDepositWithdraw()
         {
             await testWallet.SyncAsync(null);
-            var crdexret = await testWallet.CreateDexWalletAsync("TRX", "");
+            var crdexret = await testWallet.CreateDexWalletAsync("TRX", "default");
             Assert.IsTrue(crdexret.Successful());
+
+            await Task.Delay(1000);
+            var dexws = await testWallet.GetAllDexWalletsAsync();
+            Assert.IsNotNull(dexws, "DEX Wallet not setup.");
+            var wcnt = dexws.Count(a => a.ExtSymbol == "TRX" && a.ExtProvider == "default");
+            Assert.AreEqual(1, wcnt, $"wallet not created properly. created: {wcnt}");
         }
 
         private async Task CreateConsolidation()

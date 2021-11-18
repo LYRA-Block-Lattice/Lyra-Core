@@ -626,6 +626,23 @@ namespace LyraLexWeb2
             return await _node.GetPendingStatsAsync(accountId);
         }
 
+        // DEX
+        [Route("GetAllDexWallets")]
+        [HttpGet]
+        public async Task<List<DexWalletGenesis>> GetAllDexWalletsAsync()
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.GetAllDexWalletsAsync();
+        }
+
+        [Route("FindDexWallet")]
+        [HttpGet]
+        public async Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
+        {
+            if (!CheckServiceStatus()) return null;
+            return await _node.FindDexWalletAsync(owner, symbol, provider);
+        }
+
         //[HttpPost]
         //public IActionResult Edit(int id, Product product) { ... }
 

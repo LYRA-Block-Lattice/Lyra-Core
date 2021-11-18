@@ -375,26 +375,29 @@ namespace Lyra.Core.Decentralize
                 CreateStateMachine();
 
             var timr = new System.Timers.Timer(200);
-            timr.Elapsed += (s, o) =>
+            if(_hostEnv != null)
             {
-                try
+                timr.Elapsed += (s, o) =>
                 {
-                    // clean critical msg forward table
-                    var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
-                            .Select(b => b.Key);
-
-                    foreach (var hb in oldList)
+                    try
                     {
-                        _criticalMsgCache.TryRemove(hb, out _);
+                        // clean critical msg forward table
+                        var oldList = _criticalMsgCache.Where(a => a.Value < DateTime.Now.AddSeconds(-60))
+                                .Select(b => b.Key);
+
+                        foreach (var hb in oldList)
+                        {
+                            _criticalMsgCache.TryRemove(hb, out _);
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    _log.LogError($"In Time keeper: {e}");
-                }
-            };
-            timr.AutoReset = true;
-            timr.Enabled = true;
+                    catch (Exception e)
+                    {
+                        _log.LogError($"In Time keeper: {e}");
+                    }
+                };
+                timr.AutoReset = true;
+                timr.Enabled = true;
+            }
 
             Instance = this;
             // hack for unit test

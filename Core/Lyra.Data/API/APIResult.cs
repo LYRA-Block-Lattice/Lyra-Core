@@ -338,6 +338,12 @@ namespace Lyra.Core.API
                 case BlockTypes.UnStaking:
                     block = JsonConvert.DeserializeObject<UnStakingBlock>(BlockData);
                     break;
+                case BlockTypes.DexWalletGenesis:
+                    block = JsonConvert.DeserializeObject<DexWalletGenesis>(BlockData);
+                    break;
+                case BlockTypes.DexRecvToken:
+                    block = JsonConvert.DeserializeObject<DexReceiveBlock>(BlockData);
+                    break;
                 case BlockTypes.Null:
                     block = null;
                     break;

@@ -681,5 +681,26 @@ namespace Lyra.Core.API
         {
             throw new NotImplementedException();
         }
+
+        public async Task<List<DexWalletGenesis>> GetAllDexWalletsAsync()
+        {
+            var args = new Dictionary<string, string>
+            {
+
+            };
+
+            return await GetAsync<List<DexWalletGenesis>>("GetAllDexWallets", args);
+        }
+        public async Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "owner", owner },
+                { "symbol", symbol },
+                { "provider", provider }
+            };
+
+            return await GetAsync<DexWalletGenesis>("FindDexWallet", args);
+        }
     }
 }

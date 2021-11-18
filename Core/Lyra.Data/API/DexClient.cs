@@ -1,4 +1,5 @@
 ﻿using DexServer.Ext;
+using Lyra.Data.Crypto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -86,16 +87,19 @@ namespace Lyra.Data.API
                 return result;
             }
             else
-                throw new Exception($"Web Api Failed for {_url}");
+                throw new Exception($"Web Api Failed for {url}");
         }
 
-        public async Task<DexAddress> CreateWalletAsync(string owner, string blockchain, string network)
+        public async Task<DexAddress> CreateWalletAsync(string owner, string symbol, string provider,
+            string authid, string signature)
         {
             var args = new Dictionary<string, string>
             {
                 { "owner", owner },
-                { "blockchain", blockchain },
-                { "network", network },
+                { "symbol", symbol },
+                { "provider", provider },
+                { "authid", authid },
+                { "signature", signature },
             };
             return await GetAsync<DexAddress>("CreateWallet", args);
         }
