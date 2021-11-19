@@ -933,7 +933,6 @@ namespace Lyra.Core.Decentralize
             var wgen = new DexWalletGenesis
             {
                 Height = 1,
-                PreviousHash = sb.Hash,
                 ServiceHash = sb.Hash,
                 Fee = 0,
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
@@ -966,7 +965,43 @@ namespace Lyra.Core.Decentralize
         }
         public static async Task<TransactionBlock> CNODEXMintTokenAsync(DagSystem sys, SendTransferBlock send)
         {
-            throw new NotImplementedException();
+            var dexid = send.Tags["dexid"];
+            var amount = long.Parse(send.Tags["amount"]).ToBalanceDecimal();
+
+            var last = await sys.Storage.FindLatestBlockAsync(dexid) as TransactionBlock;
+            var lastdex = last as IDexWallet;
+
+            var ticker = $"tether/{lastdex.ExtSymbol}";
+            var gensis = await sys.Storage.FindTokenGenesisBlockAsync(null, ticker);
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            var mint = new TokenMintBlock
+            {
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // transaction
+                AccountID = last.AccountID,        // in fact we not use this account.
+                Balances = new Dictionary<string, long>(),
+
+                // mint
+                MintBy = send.AccountID,
+                GenesisHash = gensis.Hash,
+                MintAmount = amount.ToBalanceLong()
+            };
+
+            mint.Balances = last.Balances.ToDecimalDict().ToLongDict();
+            if(mint.Balances.ContainsKey(ticker))
+                mint.Balances[ticker] += amount.ToBalanceLong();
+            else
+                mint.Balances.Add(ticker, amount.ToBalanceLong()); 
+
+            mint.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            mint.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+
+            return mint;
         }
         public static async Task<TransactionBlock> CNODEXGetTokenSendAsync(DagSystem sys, SendTransferBlock send)
         {

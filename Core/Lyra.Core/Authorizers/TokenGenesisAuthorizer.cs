@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 using Neo;
 using System;
 using System.Collections.Generic;
@@ -55,7 +56,7 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.EmptyDomainName;
 
                 bool tokenIssuerIsSeed0 = block.AccountID == ProtocolSettings.Default.StandbyValidators[0];
-                if (!tokenIssuerIsSeed0)
+                if (!tokenIssuerIsSeed0 && block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
                 {
                     if (block.DomainName.Length < 6)
                         return APIResultCodes.DomainNameTooShort;

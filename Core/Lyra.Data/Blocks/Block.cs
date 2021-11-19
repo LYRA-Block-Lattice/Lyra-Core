@@ -336,9 +336,10 @@ namespace Lyra.Core.Blocks
         // DEX
         DexWalletGenesis = 70,
         DexTokenMint = 71,
-        DexSendToken = 72,
-        DexRecvToken = 73,
-        DexBurnToken = 74,
+        DexTokenBurn = 72,
+        DexSendToken = 73,
+        DexRecvToken = 74,
+        
     }
 
     public enum APIResultCodes
@@ -539,6 +540,7 @@ namespace Lyra.Core.Blocks
         InvalidManagedTransaction,
         ProfitUnavaliable,
         BlockCompareFailed,
+        InvalidAmount,
 
         InvalidBlockData = 400,
         AccountLockDown,

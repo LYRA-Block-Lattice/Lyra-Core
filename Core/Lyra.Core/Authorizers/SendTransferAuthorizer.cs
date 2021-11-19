@@ -12,6 +12,7 @@ using System.Linq;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Lyra.Core.Decentralize;
+using Lyra.Data.Utils;
 
 namespace Lyra.Core.Authorizers
 {
@@ -316,8 +317,27 @@ namespace Lyra.Core.Authorizers
                     if (symbol == null)
                         return APIResultCodes.InvalidName;
 
+                    var provider = block.Tags.ContainsKey("provider") ? block.Tags["provider"] : null;
+                    if (provider == null)
+                        return APIResultCodes.InvalidName;
+
                     if (block.Tags.Count > 3)
                         return APIResultCodes.InvalidBlockTags;
+
+                    break;
+
+                case BrokerActions.BRK_DEX_MINT:
+                    var dexid = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
+                    if (dexid == null)
+                        return APIResultCodes.InvalidAccountId;
+
+                    decimal mintamount = 0;
+                    var mintamountstr = block.Tags.ContainsKey("amount") ? block.Tags["amount"] : null;
+                    if (mintamountstr == null || !decimal.TryParse(mintamountstr, out mintamount) || mintamount <= 0)
+                        return APIResultCodes.InvalidAmount;
+
+                    if (block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
+                        return APIResultCodes.InvalidAccountId;
 
                     break;
                 default:

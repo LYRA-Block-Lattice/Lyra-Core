@@ -260,6 +260,20 @@ namespace UnitTests
 
         private async Task TestDepositWithdraw()
         {
+            // prepare dex
+            string lyrawalletfolder = Wallet.GetFullFolderName("xtest", "wallets");
+            var walletStore = new SecuredWalletStore(lyrawalletfolder);
+            var dexWallet = Wallet.Open(walletStore, "dex", "");
+            await genesisWallet.SendAsync(10000000m, dexWallet.AccountId);
+            await dexWallet.SyncAsync(genesisWallet.RPC);
+            Assert.AreEqual(10000000m, dexWallet.BaseBalance);
+
+            // external token genesis
+            var tokenGenesisResult = await dexWallet.CreateTokenAsync("TRX", "tether", "", 8, 0, false, dexWallet.AccountId,
+                "", "", ContractTypes.Cryptocurrency, null);
+            Assert.IsTrue(tokenGenesisResult.Successful(), "dex token genesis failed");
+
+            // create dex wallet
             await testWallet.SyncAsync(null);
             var crdexret = await testWallet.CreateDexWalletAsync("TRX", "default");
             Assert.IsTrue(crdexret.Successful());
@@ -269,6 +283,19 @@ namespace UnitTests
             Assert.IsNotNull(dexws, "DEX Wallet not setup.");
             var wcnt = dexws.Count(a => a.ExtSymbol == "TRX" && a.ExtProvider == "default");
             Assert.AreEqual(1, wcnt, $"wallet not created properly. created: {wcnt}");
+
+            // mint
+            var dexbrk1 = dexws.First();
+            var mintRet = await dexWallet.DexMintTokenAsync(dexbrk1.AccountID, 1000m);
+            Assert.IsTrue(mintRet.Successful(), "Mint failed.");
+            await Task.Delay(1000);
+
+            var brk1lstret = await client.GetLastBlockAsync(dexbrk1.AccountID);
+            Assert.IsTrue(brk1lstret.Successful());
+            var brk1mint = brk1lstret.GetBlock() as TokenMintBlock;
+            Assert.IsNotNull(brk1mint);
+            Assert.AreEqual(2, brk1mint.Height, "No mint block generated.");
+            Assert.AreEqual(1000, brk1mint.Balances["tether/TRX"].ToBalanceDecimal());
         }
 
         private async Task CreateConsolidation()

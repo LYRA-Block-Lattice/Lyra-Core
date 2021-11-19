@@ -1977,8 +1977,8 @@ namespace Lyra.Core.Accounts
                 { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee }
             };
 
-            var addStkResult = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
-            return addStkResult;
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            return result;
         }
 
         public async Task<List<DexWalletGenesis>> GetAllDexWalletsAsync()
@@ -1990,7 +1990,25 @@ namespace Lyra.Core.Accounts
         {
             return await RPC.FindDexWalletAsync(owner, symbol, provider);
         }
-        
+
+        public async Task<APIResult> DexMintTokenAsync(string dexWalletId, decimal amount)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_DEX_MINT },
+                { "dexid", dexWalletId },
+                { "amount", amount.ToBalanceLong().ToString() }
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 }
+            };
+
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            return result;
+        }
+
         #endregion
 
         public string PrintLastBlock()

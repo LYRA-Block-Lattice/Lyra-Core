@@ -344,6 +344,12 @@ namespace Lyra.Core.API
                 case BlockTypes.DexRecvToken:
                     block = JsonConvert.DeserializeObject<DexReceiveBlock>(BlockData);
                     break;
+                case BlockTypes.DexTokenMint:
+                    block = JsonConvert.DeserializeObject<TokenMintBlock>(BlockData);
+                    break;
+                case BlockTypes.DexTokenBurn:
+                    block = JsonConvert.DeserializeObject<TokenBurnBlock>(BlockData);
+                    break;
                 case BlockTypes.Null:
                     block = null;
                     break;

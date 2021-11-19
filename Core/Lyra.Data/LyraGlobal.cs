@@ -74,6 +74,14 @@ namespace Lyra.Core.API
                     throw new Exception("Unsupported network ID: " + networkID);
             }
         }
+
+        public static string GetDexServerAccountID(string networkId)
+        {
+            if (networkId == "mainnet")
+                return "LDEXL5Qya4SC6vMwdtT24cvtbFEFtP6riD8NXSm75gcnu8odN4x7mHqyYzhkqvxE39gWLYxi8ry4vdVjK1R4zqZFRVG9HB";
+            else
+                return "LDEXLtDmnMq4Yuc9wW6DoUDrNmZznD43PLhF8TF5MpmkxWLR7zJzF7uipfVaugo19EcZBS46UFxc967V98AhHVQbWajpZk";
+        }
     }
 
     public static class LyraExtensions

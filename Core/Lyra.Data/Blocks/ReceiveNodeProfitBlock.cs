@@ -41,8 +41,8 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
-            result += $"ServiceBlock Start Height: {ServiceBlockStartHeight}";
-            result += $"ServiceBlock End Height: {ServiceBlockEndHeight}";
+            result += $"ServiceBlock Start Height: {ServiceBlockStartHeight}\n";
+            result += $"ServiceBlock End Height: {ServiceBlockEndHeight}\n";
             result += $"Authorizer Fee: {AuthorizerFee}\n";
             return result;
         }

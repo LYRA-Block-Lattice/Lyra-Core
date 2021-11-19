@@ -175,7 +175,7 @@ namespace Lyra.Core.Blocks
                 throw new ApplicationException("Precision is out of range");
 
             var Supply = Balances[Ticker];
-            if (Supply <= 0 || Supply > 90000000000 * LyraGlobal.TOKENSTORAGERITO) // bellow long.maxvalue
+            if (Supply < 0 || Supply > 90000000000 * LyraGlobal.TOKENSTORAGERITO) // bellow long.maxvalue
                 throw new ApplicationException("Supply is out of range");
 
             return true;

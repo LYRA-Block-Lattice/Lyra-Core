@@ -74,7 +74,7 @@ namespace Lyra.Core.Blocks
             string result = base.Print();
             result += $"Voting: {Voting}\n";
             result += $"Days: {Days}\n";
-            result += $"Start From: {Start}\n";
+            result += $"Start From: {DateTimeToString(Start)}\n";
             result += $"Compound Mode: {CompoundMode}\n";
             return result;
         }
