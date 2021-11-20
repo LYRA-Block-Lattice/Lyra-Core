@@ -1,7 +1,10 @@
 ﻿
 using Lyra.Core.API;
+using Lyra.Data.Blocks;
 using MongoDB.Bson.Serialization.Attributes;
+using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Lyra.Core.Blocks
 {
@@ -11,8 +14,17 @@ namespace Lyra.Core.Blocks
     /// like normal receive, it just not change the balance.
     /// </summary>
     [BsonIgnoreExtraElements]
-    public class TokenBurnBlock : TransactionBlock
+    public class TokenBurnBlock : TransactionBlock, IDexWallet
     {
+        public string Name { get; set; }
+        public string OwnerAccountId { get; set; }
+        public string RelatedTx { get; set; }
+
+        public string IntSymbol { get; set; }
+        public string ExtSymbol { get; set; }
+        public string ExtProvider { get; set; }
+        public string ExtAddress { get; set; }
+
         /// <summary>
         /// always be a DEX server's account ID
         /// </summary>
@@ -30,15 +42,31 @@ namespace Lyra.Core.Blocks
             var ob = other as TokenBurnBlock;
 
             return base.AuthCompare(ob) &&
+                IntSymbol == ob.IntSymbol &&
+                ExtSymbol == ob.ExtSymbol &&
+                ExtProvider == ob.ExtProvider &&
+                ExtAddress == ob.ExtAddress &&
+                Name == ob.Name &&
+                OwnerAccountId == ob.OwnerAccountId &&
+                RelatedTx == ob.RelatedTx &&
                 BurnBy == ob.BurnBy &&
                 GenesisHash == ob.GenesisHash &&
-                BurnAmount == ob.BurnAmount
+                BurnAmount == ob.BurnAmount 
                 ;
         }
 
         protected override string GetExtraData()
         {
             string extraData = base.GetExtraData();
+            var plainTextBytes = Encoding.UTF8.GetBytes(Name);
+            var nameEnc = Convert.ToBase64String(plainTextBytes);   // to avoid attack
+            extraData += nameEnc + "|";
+            extraData += OwnerAccountId + "|";
+            extraData += RelatedTx + "|";
+            extraData += IntSymbol + "|";
+            extraData += ExtSymbol + "|";
+            extraData += ExtProvider + "|";
+            extraData += ExtAddress + "|";
             extraData += BurnBy + "|";
             extraData += GenesisHash + "|";
             extraData += BurnAmount.ToString() + "|";
@@ -53,6 +81,13 @@ namespace Lyra.Core.Blocks
         public override string Print()
         {
             string result = base.Print();
+            result += $"Name: {Name}\n";
+            result += $"OwnerAccountId: {OwnerAccountId}\n";
+            result += $"RelatedTx: {RelatedTx}\n";
+            result += $"IntSymbol: {IntSymbol}\n";
+            result += $"ExtSymbol: {ExtSymbol}\n";
+            result += $"ExtProvider: {ExtProvider}\n";
+            result += $"ExtAddress: {ExtAddress}\n";
             result += $"BurnBy: {BurnBy}\n";
             result += $"GenesisHash: {GenesisHash}\n";
             result += $"MintAmount: {BurnAmount.ToBalanceDecimal()}\n";

@@ -548,7 +548,11 @@ namespace Lyra.Core.Blocks
 
         UnsuppportedServiceRequest = 500,
         InvalidServiceRequest = 501,
-        Unsupported
+        Unsupported,
+
+        InvalidExternalToken,
+        InvalidTokenMint,
+        InvalidTokenBurn,
 
     }
 }

@@ -1991,11 +1991,41 @@ namespace Lyra.Core.Accounts
             return await RPC.FindDexWalletAsync(owner, symbol, provider);
         }
 
+        /// <summary>
+        /// this method is for dex server.
+        /// </summary>
+        /// <param name="dexWalletId"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
         public async Task<APIResult> DexMintTokenAsync(string dexWalletId, decimal amount)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_DEX_MINT },
+                { "dexid", dexWalletId },
+                { "amount", amount.ToBalanceLong().ToString() }
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 }
+            };
+
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            return result;
+        }
+
+        /// <summary>
+        /// this method is for user to get token to own account.
+        /// </summary>
+        /// <param name="dexWalletId"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public async Task<APIResult> DexGetTokenAsync(string dexWalletId, decimal amount)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_DEX_GETTKN },
                 { "dexid", dexWalletId },
                 { "amount", amount.ToBalanceLong().ToString() }
             };

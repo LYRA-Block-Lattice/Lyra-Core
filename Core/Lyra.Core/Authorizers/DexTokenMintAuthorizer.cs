@@ -17,8 +17,20 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as TokenMintBlock;
 
+            if (string.IsNullOrWhiteSpace(block.MintBy))
+                return APIResultCodes.InvalidTokenMint;
+            if (string.IsNullOrWhiteSpace(block.GenesisHash))
+                return APIResultCodes.InvalidTokenMint;
+            if (block.MintAmount <= 0)
+                return APIResultCodes.InvalidTokenMint;
 
-            return await base.AuthorizeImplAsync(sys, tblock);
+            // IDexWallet interface
+            var brkauth = new DexWalletAuthorizer();
+            var brkret = await brkauth.AuthorizeAsync(sys, tblock);
+            if (brkret.Item1 == APIResultCodes.Success)
+                return await base.AuthorizeImplAsync(sys, tblock);
+            else
+                return brkret.Item1;
         }
 
         protected override AuthorizationFeeTypes GetFeeType()

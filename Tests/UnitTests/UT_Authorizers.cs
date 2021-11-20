@@ -296,6 +296,14 @@ namespace UnitTests
             Assert.IsNotNull(brk1mint);
             Assert.AreEqual(2, brk1mint.Height, "No mint block generated.");
             Assert.AreEqual(1000, brk1mint.Balances["tether/TRX"].ToBalanceDecimal());
+
+            // get minted token to owner wallet
+            await testWallet.SyncAsync(null);
+            var getokret = await testWallet.DexGetTokenAsync(dexbrk1.AccountID, 500m);
+            Assert.IsTrue(getokret.Successful(), "error get ext token to own wallet");
+            await Task.Delay(500);
+            await testWallet.SyncAsync(null);
+            Assert.AreEqual(500m, testWallet.GetLatestBlock().Balances["tether/TRX"].ToBalanceDecimal(), "Ext token amount error");
         }
 
         private async Task CreateConsolidation()

@@ -947,7 +947,7 @@ namespace Lyra.Core.Decentralize
                 OwnerAccountId = send.AccountID,
                 RelatedTx = send.Hash,
 
-                // Dex Recv
+                // Dex wallet
                 IntSymbol = $"${symbol}",
                 ExtSymbol = symbol,
                 ExtProvider = provider,
@@ -965,6 +965,10 @@ namespace Lyra.Core.Decentralize
         }
         public static async Task<TransactionBlock> CNODEXMintTokenAsync(DagSystem sys, SendTransferBlock send)
         {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            if (blocks.Any(a => a is TokenMintBlock))
+                return null;
+
             var dexid = send.Tags["dexid"];
             var amount = long.Parse(send.Tags["amount"]).ToBalanceDecimal();
 
@@ -985,6 +989,17 @@ namespace Lyra.Core.Decentralize
                 AccountID = last.AccountID,        // in fact we not use this account.
                 Balances = new Dictionary<string, long>(),
 
+                // broker
+                Name = lastdex.Name,
+                OwnerAccountId = lastdex.OwnerAccountId,
+                RelatedTx = send.Hash,
+
+                // Dex wallet
+                IntSymbol = lastdex.IntSymbol,
+                ExtSymbol = lastdex.ExtSymbol,
+                ExtProvider = lastdex.ExtProvider,
+                ExtAddress = lastdex.ExtAddress,
+
                 // mint
                 MintBy = send.AccountID,
                 GenesisHash = gensis.Hash,
@@ -1003,7 +1018,7 @@ namespace Lyra.Core.Decentralize
 
             return mint;
         }
-        public static async Task<TransactionBlock> CNODEXGetTokenSendAsync(DagSystem sys, SendTransferBlock send)
+        public static async Task<TransactionBlock> CNODEXGetTokenAsync(DagSystem sys, SendTransferBlock send)
         {
             throw new NotImplementedException();
         }

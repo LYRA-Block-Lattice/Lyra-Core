@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Authorizers
 {
-    public class BrokerAccountRecvAuthorizer : ReceiveTransferAuthorizer
+    public class BrokerAccountAuthorizer : TransactionAuthorizer
     {
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            var block = tblock as BrokerAccountRecv;
+            var block = tblock as IBrokerAccount;
             if (block == null)
                 return APIResultCodes.InvalidBlockType;
 
@@ -25,12 +25,30 @@ namespace Lyra.Core.Authorizers
             if (send == null)
                 return APIResultCodes.InvalidRelatedTx;
 
+            return APIResultCodes.Success;
+        }
+    }
+
+    public class BrokerAccountRecvAuthorizer : ReceiveTransferAuthorizer
+    {
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        {
+            var block = tblock as BrokerAccountRecv;
+            if (block == null)
+                return APIResultCodes.InvalidBlockType;
+
             // may have multiple receive. like profiting block.
             //var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(block.RelatedTx);
             //if (blocks.Count != 0)
             //    return APIResultCodes.InvalidRelatedTx;
 
-            return await base.AuthorizeImplAsync(sys, tblock);
+            // IBrokerAccount interface
+            var brkauth = new BrokerAccountAuthorizer();
+            var brkret = await brkauth.AuthorizeAsync(sys, tblock);
+            if (brkret.Item1 == APIResultCodes.Success)
+                return await base.AuthorizeImplAsync(sys, tblock);
+            else
+                return brkret.Item1;
         }
     }
 
@@ -42,16 +60,6 @@ namespace Lyra.Core.Authorizers
             if (block == null)
                 return APIResultCodes.InvalidBlockType;
 
-            if (string.IsNullOrWhiteSpace(block.Name))
-                return APIResultCodes.InvalidName;
-
-            if (!await sys.Storage.AccountExistsAsync(block.OwnerAccountId))
-                return APIResultCodes.AccountDoesNotExist;
-
-            var send = await sys.Storage.FindBlockByHashAsync(block.RelatedTx) as SendTransferBlock;
-            if (send == null)
-                return APIResultCodes.InvalidRelatedTx;
-
             // benefiting may have multiple blocks
             if(!(block is BenefitingBlock))
             {
@@ -60,7 +68,13 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.InvalidRelatedTx;
             }
 
-            return await base.AuthorizeImplAsync(sys, tblock);
+            // IBrokerAccount interface
+            var brkauth = new BrokerAccountAuthorizer();
+            var brkret = await brkauth.AuthorizeAsync(sys, tblock);
+            if (brkret.Item1 == APIResultCodes.Success)
+                return await base.AuthorizeImplAsync(sys, tblock);
+            else
+                return brkret.Item1;
         }
 
         protected override AuthorizationFeeTypes GetFeeType()

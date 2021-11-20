@@ -336,7 +336,24 @@ namespace Lyra.Core.Authorizers
                     if (mintamountstr == null || !decimal.TryParse(mintamountstr, out mintamount) || mintamount <= 0)
                         return APIResultCodes.InvalidAmount;
 
+                    // verify if sender is dex server
                     if (block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
+                        return APIResultCodes.InvalidAccountId;
+
+                    break;
+                case BrokerActions.BRK_DEX_GETTKN:
+                    var dexid2 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
+                    if (dexid2 == null)
+                        return APIResultCodes.InvalidAccountId;
+
+                    decimal mintamount2 = 0;
+                    var mintamountstr2 = block.Tags.ContainsKey("amount") ? block.Tags["amount"] : null;
+                    if (mintamountstr2 == null || !decimal.TryParse(mintamountstr2, out mintamount2) || mintamount2 <= 0)
+                        return APIResultCodes.InvalidAmount;
+
+                    // verify owner
+                    var lb = await sys.Storage.FindLatestBlockAsync(dexid2) as IBrokerAccount;
+                    if (lb == null || block.AccountID != lb.OwnerAccountId)
                         return APIResultCodes.InvalidAccountId;
 
                     break;

@@ -18,7 +18,13 @@ namespace Lyra.Core.Authorizers
             var block = tblock as DexReceiveBlock;
 
 
-            return await base.AuthorizeImplAsync(sys, tblock);
+            // IDexWallet interface
+            var brkauth = new DexWalletAuthorizer();
+            var brkret = await brkauth.AuthorizeAsync(sys, tblock);
+            if (brkret.Item1 == APIResultCodes.Success)
+                return await base.AuthorizeImplAsync(sys, tblock);
+            else
+                return brkret.Item1;
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
