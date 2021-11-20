@@ -315,7 +315,7 @@ namespace UnitTests
             Assert.AreEqual(1000m, brk1lastblk.Balances["tether/TRX"].ToBalanceDecimal(), "brk1 ext tok balance error");
 
             // withdraw token to external blockchain
-            var wdwret = await testWallet.DexWithdrawTokenAsync(dexbrk1.AccountID, 1000m);
+            var wdwret = await testWallet.DexWithdrawTokenAsync(dexbrk1.AccountID, "Txxxxxxxxx", 1000m);
             Assert.IsTrue(wdwret.Successful(), "Error withdraw");
             await Task.Delay(1500);
             var brk1lstret3 = await client.GetLastBlockAsync(dexbrk1.AccountID);

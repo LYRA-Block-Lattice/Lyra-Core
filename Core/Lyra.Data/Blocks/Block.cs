@@ -339,6 +339,7 @@ namespace Lyra.Core.Blocks
         DexTokenBurn = 72,
         DexSendToken = 73,
         DexRecvToken = 74,
+        DexWithdrawToken = 75,
         
     }
 
@@ -553,6 +554,7 @@ namespace Lyra.Core.Blocks
         InvalidExternalToken,
         InvalidTokenMint,
         InvalidTokenBurn,
+        InvalidWithdrawToAddress,
 
     }
 }

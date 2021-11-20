@@ -51,7 +51,7 @@ namespace Lyra.Core.Blocks
                 RelatedTx == ob.RelatedTx &&
                 BurnBy == ob.BurnBy &&
                 GenesisHash == ob.GenesisHash &&
-                BurnAmount == ob.BurnAmount 
+                BurnAmount == ob.BurnAmount
                 ;
         }
 
@@ -90,9 +90,43 @@ namespace Lyra.Core.Blocks
             result += $"ExtAddress: {ExtAddress}\n";
             result += $"BurnBy: {BurnBy}\n";
             result += $"GenesisHash: {GenesisHash}\n";
-            result += $"MintAmount: {BurnAmount.ToBalanceDecimal()}\n";
+            result += $"BurnAmount: {BurnAmount.ToBalanceDecimal()}\n";
             return result;
         }
 
+    }
+
+    [BsonIgnoreExtraElements]
+    public class TokenWithdrawBlock : TokenBurnBlock
+    {
+        public string WithdrawToExtAddress { get; set; }
+
+        public override BlockTypes GetBlockType()
+        {
+            return BlockTypes.DexWithdrawToken;
+        }
+
+        public override bool AuthCompare(Block other)
+        {
+            var ob = other as TokenWithdrawBlock;
+
+            return base.AuthCompare(ob) &&
+                WithdrawToExtAddress == ob.WithdrawToExtAddress
+                ;
+        }
+
+        protected override string GetExtraData()
+        {
+            string extraData = base.GetExtraData();
+            extraData += WithdrawToExtAddress + "|";
+            return extraData;
+        }
+
+        public override string Print()
+        {
+            string result = base.Print();
+            result += $"WithdrawToExtAddress: {WithdrawToExtAddress}\n";
+            return result;
+        }
     }
 }

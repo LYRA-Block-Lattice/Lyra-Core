@@ -103,5 +103,22 @@ namespace Lyra.Data.API
             };
             return await GetAsync<DexAddress>("CreateWallet", args);
         }
+
+        public async Task<DexResult> RequestWithdrawAsync(string owner, string symbol, string provider,
+            string address, long amountlong, 
+            string authid, string signature)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "owner", owner },
+                { "symbol", symbol },
+                { "provider", provider },
+                { "address", address },
+                { "amountlong", amountlong.ToString() },
+                { "authid", authid },
+                { "signature", signature },
+            };
+            return await GetAsync<DexAddress>("RequestWithdraw", args);
+        }
     }
 }

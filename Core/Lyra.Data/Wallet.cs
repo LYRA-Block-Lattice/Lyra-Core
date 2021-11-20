@@ -2056,12 +2056,13 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<APIResult> DexWithdrawTokenAsync(string dexWalletId, decimal amount)
+        public async Task<APIResult> DexWithdrawTokenAsync(string dexWalletId, string extaddress, decimal amount)
         {
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_DEX_WDWREQ },
                 { "dexid", dexWalletId },
+                { "extaddr", extaddress },
                 { "amount", amount.ToBalanceLong().ToString() }
             };
 

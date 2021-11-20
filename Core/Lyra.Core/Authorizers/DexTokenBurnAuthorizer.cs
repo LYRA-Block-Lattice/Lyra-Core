@@ -42,4 +42,20 @@ namespace Lyra.Core.Authorizers
             return true;
         }
     }
+
+    public class DexWithdrawAuthorizer : DexTokenBurnAuthorizer
+    {
+        protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
+        {
+            if (!(tblock is TokenWithdrawBlock))
+                return APIResultCodes.InvalidBlockType;
+
+            var block = tblock as TokenWithdrawBlock;
+
+            if (string.IsNullOrWhiteSpace(block.WithdrawToExtAddress))
+                return APIResultCodes.InvalidWithdrawToAddress;
+
+            return await base.AuthorizeImplAsync(sys, tblock);
+        }
+    }
 }

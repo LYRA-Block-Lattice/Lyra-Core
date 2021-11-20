@@ -353,6 +353,9 @@ namespace Lyra.Core.API
                 case BlockTypes.DexTokenBurn:
                     block = JsonConvert.DeserializeObject<TokenBurnBlock>(BlockData);
                     break;
+                case BlockTypes.DexWithdrawToken:
+                    block = JsonConvert.DeserializeObject<TokenWithdrawBlock>(BlockData);
+                    break;
                 case BlockTypes.Null:
                     block = null;
                     break;

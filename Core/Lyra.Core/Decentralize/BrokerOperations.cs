@@ -1135,6 +1135,7 @@ namespace Lyra.Core.Decentralize
                 return null;
 
             var dexid = send.Tags["dexid"];
+            var extaddr = send.Tags["extaddr"];
             var amount = long.Parse(send.Tags["amount"]).ToBalanceDecimal();
 
             var last = await sys.Storage.FindLatestBlockAsync(dexid) as TransactionBlock;
@@ -1143,7 +1144,7 @@ namespace Lyra.Core.Decentralize
             var ticker = $"tether/{lastdex.ExtSymbol}";
             var gensis = await sys.Storage.FindTokenGenesisBlockAsync(null, ticker);
             var sb = await sys.Storage.GetLastServiceBlockAsync();
-            var burntoken = new TokenBurnBlock
+            var burntoken = new TokenWithdrawBlock
             {
                 ServiceHash = sb.Hash,
                 Fee = 0,
@@ -1168,7 +1169,10 @@ namespace Lyra.Core.Decentralize
                 // Burn
                 BurnBy = sb.Leader,
                 GenesisHash = gensis.Hash,
-                BurnAmount = amount.ToBalanceLong()
+                BurnAmount = amount.ToBalanceLong(),
+
+                // withdraw
+                WithdrawToExtAddress = extaddr,
             };
 
             burntoken.Balances = last.Balances.ToDecimalDict().ToLongDict();
@@ -1179,6 +1183,28 @@ namespace Lyra.Core.Decentralize
             burntoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
 
             return burntoken;
+        }
+
+        public static async Task<TransactionBlock> CNODEXWithdrawToExtBlockchainReqAsync(DagSystem sys, string hash)
+        {
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(hash);
+            if (!blocks.Any(a => a is TokenWithdrawBlock))
+                throw new Exception($"TokenWithdrawBlock not found.");
+
+            var burnblock = blocks.Where(a => a is TokenWithdrawBlock).First();
+            var burnbrk = burnblock as IBrokerAccount;
+            var burn = burnblock as TokenWithdrawBlock;
+
+            var dc = new DexClient();
+            var ret = await dc.RequestWithdrawAsync(burnbrk.OwnerAccountId, burn.ExtSymbol, burn.ExtProvider,
+                burn.WithdrawToExtAddress, burn.BurnAmount,
+                NodeService.Dag.PosWallet.AccountId,
+                Signatures.GetSignature(NodeService.Dag.PosWallet.PrivateKey, hash, NodeService.Dag.PosWallet.AccountId));
+
+            if (!ret.Success)
+                throw new Exception($"Error RequestWithdrawAsync to DEX Server: {ret.Message}");
+
+            return null;
         }
 
         // merchants
