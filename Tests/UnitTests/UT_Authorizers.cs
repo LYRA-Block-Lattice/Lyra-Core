@@ -301,7 +301,7 @@ namespace UnitTests
             await testWallet.SyncAsync(null);
             var getokret = await testWallet.DexGetTokenAsync(dexbrk1.AccountID, 500m);
             Assert.IsTrue(getokret.Successful(), "error get ext token to own wallet");
-            await Task.Delay(500);
+            await Task.Delay(1500);
             await testWallet.SyncAsync(null);
             Assert.AreEqual(500m, testWallet.GetLatestBlock().Balances["tether/TRX"].ToBalanceDecimal(), "Ext token amount error");
         }

@@ -59,7 +59,7 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.DexWalletGenesis, "DexWalletGenesisAuthorizer");
             _authorizers.Add(BlockTypes.DexTokenMint, "DexTokenMintAuthorizer");
             _authorizers.Add(BlockTypes.DexTokenBurn, "DexTokenBurnAuthorizer");
-
+            _authorizers.Add(BlockTypes.DexSendToken, "DexSendAuthorizer");
             _authorizers.Add(BlockTypes.DexRecvToken, "DexReceiveAuthorizer");
 
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();

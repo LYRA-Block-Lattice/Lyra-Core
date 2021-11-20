@@ -1020,7 +1020,53 @@ namespace Lyra.Core.Decentralize
         }
         public static async Task<TransactionBlock> CNODEXGetTokenAsync(DagSystem sys, SendTransferBlock send)
         {
-            throw new NotImplementedException();
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            if (blocks.Any(a => a is DexSendBlock))
+                return null;
+
+            var dexid = send.Tags["dexid"];
+            var amount = long.Parse(send.Tags["amount"]).ToBalanceDecimal();
+
+            var last = await sys.Storage.FindLatestBlockAsync(dexid) as TransactionBlock;
+            var lastdex = last as IDexWallet;
+
+            var ticker = $"tether/{lastdex.ExtSymbol}";
+            var gensis = await sys.Storage.FindTokenGenesisBlockAsync(null, ticker);
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            var sendtoken = new DexSendBlock
+            {
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // transaction
+                AccountID = last.AccountID,        // in fact we not use this account.
+                Balances = new Dictionary<string, long>(),
+
+                // broker
+                Name = lastdex.Name,
+                OwnerAccountId = lastdex.OwnerAccountId,
+                RelatedTx = send.Hash,
+
+                // Dex wallet
+                IntSymbol = lastdex.IntSymbol,
+                ExtSymbol = lastdex.ExtSymbol,
+                ExtProvider = lastdex.ExtProvider,
+                ExtAddress = lastdex.ExtAddress,
+
+                // send
+                DestinationAccountId = send.AccountID
+            };
+
+            sendtoken.Balances = last.Balances.ToDecimalDict().ToLongDict();
+            sendtoken.Balances[ticker] -= amount.ToBalanceLong();
+
+            sendtoken.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            sendtoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+
+            return sendtoken;
         }
         public static async Task<TransactionBlock> CNODEXPutTokenAsync(DagSystem sys, SendTransferBlock send)
         {
