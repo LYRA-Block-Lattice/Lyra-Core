@@ -2056,6 +2056,23 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
+        public async Task<APIResult> DexWithdrawTokenAsync(string dexWalletId, decimal amount)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_DEX_WDWREQ },
+                { "dexid", dexWalletId },
+                { "amount", amount.ToBalanceLong().ToString() }
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, 1 }
+            };
+
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            return result;
+        }
         #endregion
 
         public string PrintLastBlock()

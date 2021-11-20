@@ -313,6 +313,16 @@ namespace UnitTests
             Assert.IsTrue(brk1lstret2.Successful());
             var brk1lastblk = brk1lstret2.GetBlock() as TransactionBlock;
             Assert.AreEqual(1000m, brk1lastblk.Balances["tether/TRX"].ToBalanceDecimal(), "brk1 ext tok balance error");
+
+            // withdraw token to external blockchain
+            var wdwret = await testWallet.DexWithdrawTokenAsync(dexbrk1.AccountID, 1000m);
+            Assert.IsTrue(wdwret.Successful(), "Error withdraw");
+            await Task.Delay(1500);
+            var brk1lstret3 = await client.GetLastBlockAsync(dexbrk1.AccountID);
+            Assert.IsTrue(brk1lstret3.Successful());
+            var brk1lastblk3 = brk1lstret3.GetBlock() as TokenBurnBlock;
+            Assert.AreEqual(0m, brk1lastblk3.Balances["tether/TRX"].ToBalanceDecimal(), "brk1 ext tok burn error");
+
         }
 
         private async Task CreateConsolidation()

@@ -1071,7 +1071,7 @@ namespace Lyra.Core.Decentralize
         public static async Task<TransactionBlock> CNODEXPutTokenAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
-            if (blocks.Any(a => a is DexSendBlock))
+            if (blocks.Any(a => a is DexReceiveBlock))
                 return null;
 
             var dexid = send.Tags["dexid"];
@@ -1130,7 +1130,55 @@ namespace Lyra.Core.Decentralize
         }
         public static async Task<TransactionBlock> CNODEXWithdrawAsync(DagSystem sys, SendTransferBlock send)
         {
-            throw new NotImplementedException();
+            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+            if (blocks.Any(a => a is TokenBurnBlock))
+                return null;
+
+            var dexid = send.Tags["dexid"];
+            var amount = long.Parse(send.Tags["amount"]).ToBalanceDecimal();
+
+            var last = await sys.Storage.FindLatestBlockAsync(dexid) as TransactionBlock;
+            var lastdex = last as IDexWallet;
+
+            var ticker = $"tether/{lastdex.ExtSymbol}";
+            var gensis = await sys.Storage.FindTokenGenesisBlockAsync(null, ticker);
+            var sb = await sys.Storage.GetLastServiceBlockAsync();
+            var burntoken = new TokenBurnBlock
+            {
+                ServiceHash = sb.Hash,
+                Fee = 0,
+                FeeCode = LyraGlobal.OFFICIALTICKERCODE,
+                FeeType = AuthorizationFeeTypes.NoFee,
+
+                // transaction
+                AccountID = last.AccountID,        // in fact we not use this account.
+                Balances = new Dictionary<string, long>(),
+
+                // broker
+                Name = lastdex.Name,
+                OwnerAccountId = lastdex.OwnerAccountId,
+                RelatedTx = send.Hash,
+
+                // Dex wallet
+                IntSymbol = lastdex.IntSymbol,
+                ExtSymbol = lastdex.ExtSymbol,
+                ExtProvider = lastdex.ExtProvider,
+                ExtAddress = lastdex.ExtAddress,
+
+                // Burn
+                BurnBy = sb.Leader,
+                GenesisHash = gensis.Hash,
+                BurnAmount = amount.ToBalanceLong()
+            };
+
+            burntoken.Balances = last.Balances.ToDecimalDict().ToLongDict();
+            burntoken.Balances[ticker] -= amount.ToBalanceLong();
+
+            burntoken.AddTag(Block.MANAGEDTAG, "");   // value is always ignored
+
+            burntoken.InitializeBlock(last, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
+
+            return burntoken;
         }
 
         // merchants

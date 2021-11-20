@@ -176,6 +176,22 @@ namespace Lyra.Core.Authorizers
                         if (lb3 == null || block.AccountID != lb3.OwnerAccountId)
                             return APIResultCodes.InvalidAccountId;
                         break;
+                    case BrokerActions.BRK_DEX_WDWREQ:
+                        var dexid4 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
+                        if (dexid4 == null)
+                            return APIResultCodes.InvalidAccountId;
+
+                        decimal wdwmount4 = 0;
+                        var wdwamountstr4 = block.Tags.ContainsKey("amount") ? block.Tags["amount"] : null;
+                        if (wdwamountstr4 == null || !decimal.TryParse(wdwamountstr4, out wdwmount4) || wdwmount4 <= 0)
+                            return APIResultCodes.InvalidAmount;
+
+                        // verify owner
+                        var lb4 = await sys.Storage.FindLatestBlockAsync(dexid4) as IBrokerAccount;
+                        if (lb4 == null || block.AccountID != lb4.OwnerAccountId)
+                            return APIResultCodes.InvalidAccountId;
+
+                        break;
                     case BrokerActions.BRK_STK_ADDSTK:
                     case BrokerActions.BRK_STK_UNSTK:
                     case BrokerActions.BRK_STK_CRSTK:
