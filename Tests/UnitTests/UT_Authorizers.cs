@@ -220,8 +220,8 @@ namespace UnitTests
         [TestMethod]
         public async Task FullTest()
         {
-            await CreateTestBlockchainAsync();
-            //await CreateDevnet();
+            //await CreateTestBlockchainAsync();
+            await CreateDevnet();
 
             // test 1 wallet
             var walletStor2 = new AccountInMemoryStorage();
@@ -235,10 +235,13 @@ namespace UnitTests
             await genesisWallet.SendAsync(800, testWallet.AccountId);
             await genesisWallet.SendAsync(123, testWallet.AccountId);
 
-            await CreateConsolidation();
-            await store.UpdateStatsAsync();
-            var pending = await store.GetPendingReceiveAsync(testWallet.AccountId);
-            Assert.AreEqual(923, pending);
+            if(networkId == "xunit")
+            {
+                await CreateConsolidation();
+                await store.UpdateStatsAsync();
+                var pending = await store.GetPendingReceiveAsync(testWallet.AccountId);
+                Assert.AreEqual(923, pending);
+            }
 
             // test 2 wallet
             var walletStor3 = new AccountInMemoryStorage();
@@ -261,17 +264,22 @@ namespace UnitTests
         private async Task TestDepositWithdraw()
         {
             // prepare dex
-            string lyrawalletfolder = Wallet.GetFullFolderName("xtest", "wallets");
+            string lyrawalletfolder = Wallet.GetFullFolderName(networkId, "wallets");
             var walletStore = new SecuredWalletStore(lyrawalletfolder);
             var dexWallet = Wallet.Open(walletStore, "dex", "");
-            await genesisWallet.SendAsync(10000000m, dexWallet.AccountId);
+            await genesisWallet.SendAsync(100000m, dexWallet.AccountId);
+            await Task.Delay(1000);
             await dexWallet.SyncAsync(genesisWallet.RPC);
-            Assert.AreEqual(10000000m, dexWallet.BaseBalance);
+            Assert.IsTrue(dexWallet.BaseBalance > 100000m);
 
             // external token genesis
-            var tokenGenesisResult = await dexWallet.CreateTokenAsync("TRX", "tether", "", 8, 0, false, dexWallet.AccountId,
-                "", "", ContractTypes.Cryptocurrency, null);
-            Assert.IsTrue(tokenGenesisResult.Successful(), "dex token genesis failed");
+            var tgexists = await client.GetTokenGenesisBlockAsync(null, "tether/TRX", null);
+            if(!tgexists.Successful())
+            {
+                var tokenGenesisResult = await dexWallet.CreateTokenAsync("TRX", "tether", "", 8, 0, false, dexWallet.AccountId,
+                        "", "", ContractTypes.Cryptocurrency, null);
+                Assert.IsTrue(tokenGenesisResult.Successful(), "dex token genesis failed");
+            }
 
             // create dex wallet
             await testWallet.SyncAsync(null);

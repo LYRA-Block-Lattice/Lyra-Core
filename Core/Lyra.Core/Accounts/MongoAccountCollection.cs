@@ -126,6 +126,14 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<MerchantSend>();
             BsonClassMap.RegisterClassMap<ReceiveAsFeeBlock>();
 
+            // DEX
+            BsonClassMap.RegisterClassMap<DexReceiveBlock>();
+            BsonClassMap.RegisterClassMap<DexSendBlock>();
+            BsonClassMap.RegisterClassMap<DexWalletGenesis>();
+            BsonClassMap.RegisterClassMap<TokenMintBlock>();
+            BsonClassMap.RegisterClassMap<TokenBurnBlock>();
+            BsonClassMap.RegisterClassMap<TokenWithdrawBlock>();
+
             // obsolete, but needed for compatiblity
             BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
 
