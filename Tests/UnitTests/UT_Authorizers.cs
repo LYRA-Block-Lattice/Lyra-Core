@@ -302,8 +302,12 @@ namespace UnitTests
             Assert.IsTrue(brk1lstret.Successful());
             var brk1mint = brk1lstret.GetBlock() as TokenMintBlock;
             Assert.IsNotNull(brk1mint);
-            Assert.AreEqual(2, brk1mint.Height, "No mint block generated.");
-            Assert.AreEqual(1000, brk1mint.Balances["tether/TRX"].ToBalanceDecimal());
+
+            if(networkId == "xunit")
+            {
+                Assert.AreEqual(2, brk1mint.Height, "No mint block generated.");
+                Assert.AreEqual(1000, brk1mint.Balances["tether/TRX"].ToBalanceDecimal());
+            }
 
             // get minted token to owner wallet
             await testWallet.SyncAsync(null);
@@ -320,7 +324,10 @@ namespace UnitTests
             var brk1lstret2 = await client.GetLastBlockAsync(dexbrk1.AccountID);
             Assert.IsTrue(brk1lstret2.Successful());
             var brk1lastblk = brk1lstret2.GetBlock() as TransactionBlock;
-            Assert.AreEqual(1000m, brk1lastblk.Balances["tether/TRX"].ToBalanceDecimal(), "brk1 ext tok balance error");
+            if(networkId == "xunit")
+            {
+                Assert.AreEqual(1000m, brk1lastblk.Balances["tether/TRX"].ToBalanceDecimal(), "brk1 ext tok balance error");
+            }
 
             // withdraw token to external blockchain
             var wdwret = await testWallet.DexWithdrawTokenAsync(dexbrk1.AccountID, "Txxxxxxxxx", 1000m);
@@ -329,7 +336,8 @@ namespace UnitTests
             var brk1lstret3 = await client.GetLastBlockAsync(dexbrk1.AccountID);
             Assert.IsTrue(brk1lstret3.Successful());
             var brk1lastblk3 = brk1lstret3.GetBlock() as TokenBurnBlock;
-            Assert.AreEqual(0m, brk1lastblk3.Balances["tether/TRX"].ToBalanceDecimal(), "brk1 ext tok burn error");
+            if(networkId == "xunit")
+                Assert.AreEqual(0m, brk1lastblk3.Balances["tether/TRX"].ToBalanceDecimal(), "brk1 ext tok burn error");
 
         }
 

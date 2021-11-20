@@ -336,6 +336,10 @@ namespace Lyra.Core.Accounts
                     {
                         continue;
                     }
+                    else if(blk is TokenMintBlock || blk is TokenBurnBlock)
+                    {
+                        continue;
+                    }
                     else
                     {
                         _log.LogCritical($"Unprocessed block type: {blk.GetBlockType()} Height: {blk.Height}");
