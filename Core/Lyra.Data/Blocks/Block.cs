@@ -555,6 +555,9 @@ namespace Lyra.Core.Blocks
         InvalidTokenMint,
         InvalidTokenBurn,
         InvalidWithdrawToAddress,
-
+        InvalidAccountType,
+        UnsupportedDexToken,
+        InvalidDexServer,
+        InvalidExternalAddress,
     }
 }

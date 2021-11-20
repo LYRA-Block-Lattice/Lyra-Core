@@ -156,32 +156,4 @@ namespace Lyra.Core.Blocks
         }
     }
 
-    [BsonIgnoreExtraElements]
-    public class DexTokenMintBlock : DexReceiveBlock
-    {
-        public override BlockTypes GetBlockType()
-        {
-            return BlockTypes.DexTokenMint;
-        }
-
-        public override bool AuthCompare(Block other)
-        {
-            var ob = other as DexWalletGenesis;
-
-            return base.AuthCompare(ob)
-                ;
-        }
-
-        protected override string GetExtraData()
-        {
-            string extraData = base.GetExtraData();
-            return extraData;
-        }
-
-        public override string Print()
-        {
-            string result = base.Print();
-            return result;
-        }
-    }
 }

@@ -1,5 +1,7 @@
-﻿using Lyra.Core.Blocks;
+﻿using Lyra.Core.API;
+using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +25,9 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidTokenMint;
             if (block.MintAmount <= 0)
                 return APIResultCodes.InvalidTokenMint;
+
+            if (block.MintBy != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
+                return APIResultCodes.InvalidDexServer;
 
             // IDexWallet interface
             var brkauth = new DexWalletAuthorizer();

@@ -118,7 +118,16 @@ namespace Lyra.Data.API
                 { "authid", authid },
                 { "signature", signature },
             };
-            return await GetAsync<DexAddress>("RequestWithdraw", args);
+            return await GetAsync<DexResult>("RequestWithdraw", args);
+        }
+
+        public async Task<SupportedTokens> GetSupportedExtTokenAsync()
+        {
+            var args = new Dictionary<string, string>
+            {
+
+            };
+            return await GetAsync<SupportedTokens>("GetSupportedExtToken", args);
         }
     }
 }

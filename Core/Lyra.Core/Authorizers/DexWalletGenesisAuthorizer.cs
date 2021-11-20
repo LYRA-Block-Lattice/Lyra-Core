@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,16 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as DexWalletGenesis;
 
+            if (block.AccountType != AccountTypes.DEX)
+                return APIResultCodes.InvalidAccountType;
+
+            var dc = new DexClient();
+            var asts = await dc.GetSupportedExtTokenAsync();
+
+            var ast = asts.Asserts.Where(a => a.Symbol == block.ExtSymbol)
+                .FirstOrDefault();
+            if (ast == null || ast.NetworkProvider != block.ExtProvider)
+                return APIResultCodes.UnsupportedDexToken;
 
             return await base.AuthorizeImplAsync(sys, tblock);
         }

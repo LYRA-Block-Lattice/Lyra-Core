@@ -220,8 +220,8 @@ namespace UnitTests
         [TestMethod]
         public async Task FullTest()
         {
-            //await CreateTestBlockchainAsync();
-            await CreateDevnet();
+            await CreateTestBlockchainAsync();
+            //await CreateDevnet();
 
             // test 1 wallet
             var walletStor2 = new AccountInMemoryStorage();
@@ -270,7 +270,7 @@ namespace UnitTests
             await genesisWallet.SendAsync(100000m, dexWallet.AccountId);
             await Task.Delay(1000);
             await dexWallet.SyncAsync(genesisWallet.RPC);
-            Assert.IsTrue(dexWallet.BaseBalance > 100000m);
+            Assert.IsTrue(dexWallet.BaseBalance >= 100000m);
 
             // external token genesis
             var tgexists = await client.GetTokenGenesisBlockAsync(null, "tether/TRX", null);
@@ -283,13 +283,13 @@ namespace UnitTests
 
             // create dex wallet
             await testWallet.SyncAsync(null);
-            var crdexret = await testWallet.CreateDexWalletAsync("TRX", "default");
+            var crdexret = await testWallet.CreateDexWalletAsync("TRX", "mainnet");
             Assert.IsTrue(crdexret.Successful());
 
             await Task.Delay(1000);
             var dexws = await testWallet.GetAllDexWalletsAsync();
             Assert.IsNotNull(dexws, "DEX Wallet not setup.");
-            var wcnt = dexws.Count(a => a.ExtSymbol == "TRX" && a.ExtProvider == "default");
+            var wcnt = dexws.Count(a => a.ExtSymbol == "TRX" && a.ExtProvider == "mainnet");
             Assert.AreEqual(1, wcnt, $"wallet not created properly. created: {wcnt}");
 
             // mint

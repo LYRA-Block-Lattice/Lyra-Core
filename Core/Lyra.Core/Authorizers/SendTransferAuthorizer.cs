@@ -133,6 +133,14 @@ namespace Lyra.Core.Authorizers
                         if (block.Tags.Count > 3)
                             return APIResultCodes.InvalidBlockTags;
 
+                        var dc = new DexClient();
+                        var asts = await dc.GetSupportedExtTokenAsync();
+
+                        var ast = asts.Asserts.Where(a => a.Symbol == symbol && a.NetworkProvider == provider)
+                            .FirstOrDefault();
+                        if (ast == null)
+                            return APIResultCodes.InvalidExternalToken;
+
                         break;
 
                     case BrokerActions.BRK_DEX_MINT:
@@ -147,7 +155,12 @@ namespace Lyra.Core.Authorizers
 
                         // verify if sender is dex server
                         if (block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
-                            return APIResultCodes.InvalidAccountId;
+                            return APIResultCodes.InvalidDexServer;
+
+                        // verify dex wallet owner
+                        var brkr = await sys.Storage.FindLatestBlockAsync(dexid) as IBrokerAccount;
+                        if (brkr == null)
+                            return APIResultCodes.InvalidBrokerAcount;
 
                         break;
                     case BrokerActions.BRK_DEX_GETTKN:
@@ -190,6 +203,10 @@ namespace Lyra.Core.Authorizers
                         var lb4 = await sys.Storage.FindLatestBlockAsync(dexid4) as IBrokerAccount;
                         if (lb4 == null || block.AccountID != lb4.OwnerAccountId)
                             return APIResultCodes.InvalidAccountId;
+
+                        var extaddr = block.Tags.ContainsKey("extaddr") ? block.Tags["extaddr"] : null;
+                        if (string.IsNullOrWhiteSpace(extaddr))
+                            return APIResultCodes.InvalidExternalAddress;
 
                         break;
                     case BrokerActions.BRK_STK_ADDSTK:
