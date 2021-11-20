@@ -114,6 +114,7 @@ namespace Lyra.Core.Authorizers
                     || block.BlockType == BlockTypes.PoolDeposit || block.BlockType == BlockTypes.PoolSwapIn
                     || block.BlockType == BlockTypes.Staking || block.BlockType == BlockTypes.Profiting
                     || block.BlockType == BlockTypes.ReceiveAsFee
+                    || block.BlockType == BlockTypes.DexRecvToken
                     )  // temp code. should use getbalancechanges
                 {
                     if ((sourceBlock as SendTransferBlock).DestinationAccountId != block.AccountID)

@@ -341,6 +341,9 @@ namespace Lyra.Core.API
                 case BlockTypes.DexWalletGenesis:
                     block = JsonConvert.DeserializeObject<DexWalletGenesis>(BlockData);
                     break;
+                case BlockTypes.DexSendToken:
+                    block = JsonConvert.DeserializeObject<DexSendBlock>(BlockData);
+                    break;
                 case BlockTypes.DexRecvToken:
                     block = JsonConvert.DeserializeObject<DexReceiveBlock>(BlockData);
                     break;

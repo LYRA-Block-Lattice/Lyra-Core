@@ -121,8 +121,70 @@ namespace Lyra.Core.Authorizers
                     case BrokerActions.BRK_POOL_SWAP:
                         svcReqResult = await VerifyPoolSwapAsync(sys, block, lastBlock);
                         break;
-                    default:
+                    case BrokerActions.BRK_DEX_DPOREQ:
+                        var symbol = block.Tags.ContainsKey("symbol") ? block.Tags["symbol"] : null;
+                        if (symbol == null)
+                            return APIResultCodes.InvalidName;
+
+                        var provider = block.Tags.ContainsKey("provider") ? block.Tags["provider"] : null;
+                        if (provider == null)
+                            return APIResultCodes.InvalidName;
+
+                        if (block.Tags.Count > 3)
+                            return APIResultCodes.InvalidBlockTags;
+
+                        break;
+
+                    case BrokerActions.BRK_DEX_MINT:
+                        var dexid = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
+                        if (dexid == null)
+                            return APIResultCodes.InvalidAccountId;
+
+                        decimal mintamount = 0;
+                        var mintamountstr = block.Tags.ContainsKey("amount") ? block.Tags["amount"] : null;
+                        if (mintamountstr == null || !decimal.TryParse(mintamountstr, out mintamount) || mintamount <= 0)
+                            return APIResultCodes.InvalidAmount;
+
+                        // verify if sender is dex server
+                        if (block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
+                            return APIResultCodes.InvalidAccountId;
+
+                        break;
+                    case BrokerActions.BRK_DEX_GETTKN:
+                        var dexid2 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
+                        if (dexid2 == null)
+                            return APIResultCodes.InvalidAccountId;
+
+                        decimal mintamount2 = 0;
+                        var mintamountstr2 = block.Tags.ContainsKey("amount") ? block.Tags["amount"] : null;
+                        if (mintamountstr2 == null || !decimal.TryParse(mintamountstr2, out mintamount2) || mintamount2 <= 0)
+                            return APIResultCodes.InvalidAmount;
+
+                        // verify owner
+                        var lb = await sys.Storage.FindLatestBlockAsync(dexid2) as IBrokerAccount;
+                        if (lb == null || block.AccountID != lb.OwnerAccountId)
+                            return APIResultCodes.InvalidAccountId;
+
+                        break;
+                    case BrokerActions.BRK_DEX_PUTTKN:
+                        var dexid3 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
+                        if (dexid3 == null)
+                            return APIResultCodes.InvalidAccountId;
+
+                        // verify owner
+                        var lb3 = await sys.Storage.FindLatestBlockAsync(dexid3) as IBrokerAccount;
+                        if (lb3 == null || block.AccountID != lb3.OwnerAccountId)
+                            return APIResultCodes.InvalidAccountId;
+                        break;
+                    case BrokerActions.BRK_STK_ADDSTK:
+                    case BrokerActions.BRK_STK_UNSTK:
+                    case BrokerActions.BRK_STK_CRSTK:
+                    case BrokerActions.BRK_PFT_CRPFT:
+                    case BrokerActions.BRK_PFT_GETPFT:
                         svcReqResult = await VerifyStkPftAsync(sys, block, lastBlock);
+                        break;
+                    default:
+                        svcReqResult = APIResultCodes.InvalidServiceRequest;
                         break;
                 }
 
@@ -312,51 +374,7 @@ namespace Lyra.Core.Authorizers
                     if (!stkrs.Any(a => a.OwnerAccount == block.AccountID) && pft.OwnerAccountId != block.AccountID)
                         return APIResultCodes.RequestNotPermited;
                     break;
-                case BrokerActions.BRK_DEX_DPOREQ:
-                    var symbol = block.Tags.ContainsKey("symbol") ? block.Tags["symbol"] : null;
-                    if (symbol == null)
-                        return APIResultCodes.InvalidName;
 
-                    var provider = block.Tags.ContainsKey("provider") ? block.Tags["provider"] : null;
-                    if (provider == null)
-                        return APIResultCodes.InvalidName;
-
-                    if (block.Tags.Count > 3)
-                        return APIResultCodes.InvalidBlockTags;
-
-                    break;
-
-                case BrokerActions.BRK_DEX_MINT:
-                    var dexid = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
-                    if (dexid == null)
-                        return APIResultCodes.InvalidAccountId;
-
-                    decimal mintamount = 0;
-                    var mintamountstr = block.Tags.ContainsKey("amount") ? block.Tags["amount"] : null;
-                    if (mintamountstr == null || !decimal.TryParse(mintamountstr, out mintamount) || mintamount <= 0)
-                        return APIResultCodes.InvalidAmount;
-
-                    // verify if sender is dex server
-                    if (block.AccountID != LyraGlobal.GetDexServerAccountID(LyraNodeConfig.GetNetworkId()))
-                        return APIResultCodes.InvalidAccountId;
-
-                    break;
-                case BrokerActions.BRK_DEX_GETTKN:
-                    var dexid2 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
-                    if (dexid2 == null)
-                        return APIResultCodes.InvalidAccountId;
-
-                    decimal mintamount2 = 0;
-                    var mintamountstr2 = block.Tags.ContainsKey("amount") ? block.Tags["amount"] : null;
-                    if (mintamountstr2 == null || !decimal.TryParse(mintamountstr2, out mintamount2) || mintamount2 <= 0)
-                        return APIResultCodes.InvalidAmount;
-
-                    // verify owner
-                    var lb = await sys.Storage.FindLatestBlockAsync(dexid2) as IBrokerAccount;
-                    if (lb == null || block.AccountID != lb.OwnerAccountId)
-                        return APIResultCodes.InvalidAccountId;
-
-                    break;
                 default:
                     return APIResultCodes.InvalidServiceRequest;
             }

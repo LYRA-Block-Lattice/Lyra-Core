@@ -2039,6 +2039,23 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
+        public async Task<APIResult> DexPutTokenAsync(string dexWalletId, string ticker, decimal amount)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_DEX_PUTTKN },
+                { "dexid", dexWalletId },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { ticker, amount }
+            };
+
+            var result = await SendExAsync(dexWalletId, amounts, tags);
+            return result;
+        }
+
         #endregion
 
         public string PrintLastBlock()

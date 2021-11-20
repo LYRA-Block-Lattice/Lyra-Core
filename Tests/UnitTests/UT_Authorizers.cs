@@ -304,6 +304,15 @@ namespace UnitTests
             await Task.Delay(1500);
             await testWallet.SyncAsync(null);
             Assert.AreEqual(500m, testWallet.GetLatestBlock().Balances["tether/TRX"].ToBalanceDecimal(), "Ext token amount error");
+
+            // put external token to dex wallet
+            var putokret = await testWallet.DexPutTokenAsync(dexbrk1.AccountID, "tether/TRX", 500m);
+            Assert.IsTrue(putokret.Successful(), "Put token error");
+            await Task.Delay(1500);
+            var brk1lstret2 = await client.GetLastBlockAsync(dexbrk1.AccountID);
+            Assert.IsTrue(brk1lstret2.Successful());
+            var brk1lastblk = brk1lstret2.GetBlock() as TransactionBlock;
+            Assert.AreEqual(1000m, brk1lastblk.Balances["tether/TRX"].ToBalanceDecimal(), "brk1 ext tok balance error");
         }
 
         private async Task CreateConsolidation()
