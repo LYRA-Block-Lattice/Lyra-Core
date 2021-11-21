@@ -168,15 +168,22 @@ namespace Lyra.Core.Authorizers
                         if (dexid2 == null)
                             return APIResultCodes.InvalidAccountId;
 
-                        decimal mintamount2 = 0;
-                        var mintamountstr2 = block.Tags.ContainsKey("amount") ? block.Tags["amount"] : null;
-                        if (mintamountstr2 == null || !decimal.TryParse(mintamountstr2, out mintamount2) || mintamount2 <= 0)
+                        decimal amountToGet = 0;
+                        var amountToGetStr = block.Tags.ContainsKey("amount") ? block.Tags["amount"] : null;
+                        if (amountToGetStr == null || !decimal.TryParse(amountToGetStr, out amountToGet) || amountToGet <= 0)
                             return APIResultCodes.InvalidAmount;
 
                         // verify owner
-                        var lb = await sys.Storage.FindLatestBlockAsync(dexid2) as IBrokerAccount;
+                        var lb = await sys.Storage.FindLatestBlockAsync(dexid2) as IDexWallet;
                         if (lb == null || block.AccountID != lb.OwnerAccountId)
                             return APIResultCodes.InvalidAccountId;
+
+                        var ticker = $"tether/{lb.ExtSymbol}";
+
+                        var lbtx = lb as TransactionBlock;
+                        if (lbtx == null || !lbtx.Balances.ContainsKey(ticker)
+                            || lbtx.Balances[ticker] < amountToGet)
+                            return APIResultCodes.InvalidAmount;
 
                         break;
                     case BrokerActions.BRK_DEX_PUTTKN:
@@ -185,9 +192,15 @@ namespace Lyra.Core.Authorizers
                             return APIResultCodes.InvalidAccountId;
 
                         // verify owner
-                        var lb3 = await sys.Storage.FindLatestBlockAsync(dexid3) as IBrokerAccount;
+                        var lb3 = await sys.Storage.FindLatestBlockAsync(dexid3) as IDexWallet;
                         if (lb3 == null || block.AccountID != lb3.OwnerAccountId)
                             return APIResultCodes.InvalidAccountId;
+
+                        var tickerp = $"tether/{lb3.ExtSymbol}";
+
+                        var userlb = await sys.Storage.FindLatestBlockAsync(block.AccountID) as TransactionBlock;
+                        if (userlb == null || !userlb.Balances.ContainsKey(tickerp))
+                            return APIResultCodes.InvalidAmount;
                         break;
                     case BrokerActions.BRK_DEX_WDWREQ:
                         var dexid4 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;

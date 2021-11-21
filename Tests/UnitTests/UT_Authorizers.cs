@@ -292,6 +292,11 @@ namespace UnitTests
             var wcnt = dexws.Count(a => (a as IDexWallet).ExtSymbol == "TRX" && (a as IDexWallet).ExtProvider == "mainnet");
             Assert.AreEqual(1, wcnt, $"wallet not created properly. created: {wcnt}");
 
+            // must fail
+            //await testWallet.SyncAsync(null);
+            //var getokretx = await testWallet.DexGetTokenAsync((dexws.First() as TransactionBlock).AccountID, 500m);
+            //Assert.IsTrue(!getokretx.Successful(), "Should not success");
+
             // mint
             var dexbrk1 = dexws.First() as TransactionBlock;
             var mintRet = await dexWallet.DexMintTokenAsync(dexbrk1.AccountID, 1000m);
