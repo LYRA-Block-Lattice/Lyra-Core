@@ -1106,9 +1106,31 @@ namespace Lyra.Core.Decentralize
             return NodeService.Dag.Storage.GetPendingStatsAsync(accountId);
         }
 
-        public Task<List<IDexWallet>> GetAllDexWalletsAsync()
+        public async Task<MultiBlockAPIResult> GetAllDexWalletsAsync()
         {
-            return NodeService.Dag.Storage.GetAllDexWalletsAsync();
+            var result = new MultiBlockAPIResult();
+
+            try
+            {
+                var blocks = await NodeService.Dag.Storage.GetAllDexWalletsAsync();
+                if (blocks == null)
+                {
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+                    return result;
+                }
+
+                result.SetBlocks(blocks.ToArray());
+                result.ResultCode = APIResultCodes.Success;
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetAllDexWalletsAsync(Hash): " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
         }
         public Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
         {

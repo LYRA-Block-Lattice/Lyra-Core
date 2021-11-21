@@ -572,7 +572,7 @@ namespace Lyra.Data.API
             return SeedClient.GetPendingStatsAsync(accountId);
         }
 
-        public Task<List<IDexWallet>> GetAllDexWalletsAsync()
+        public Task<MultiBlockAPIResult> GetAllDexWalletsAsync()
         {
             return SeedClient.GetAllDexWalletsAsync();
         }

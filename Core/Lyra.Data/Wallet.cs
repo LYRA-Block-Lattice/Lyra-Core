@@ -1983,7 +1983,11 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<IDexWallet>> GetAllDexWalletsAsync()
         {
-            return await RPC.GetAllDexWalletsAsync();
+            var ret = await RPC.GetAllDexWalletsAsync();
+            if (ret.Successful())
+                return ret.GetBlocks().Cast<IDexWallet>().ToList();
+            else
+                return null;
         }
 
         public async Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)

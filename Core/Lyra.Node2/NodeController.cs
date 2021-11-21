@@ -629,7 +629,7 @@ namespace LyraLexWeb2
         // DEX
         [Route("GetAllDexWallets")]
         [HttpGet]
-        public async Task<List<IDexWallet>> GetAllDexWalletsAsync()
+        public async Task<MultiBlockAPIResult> GetAllDexWalletsAsync()
         {
             if (!CheckServiceStatus()) return null;
             return await _node.GetAllDexWalletsAsync();

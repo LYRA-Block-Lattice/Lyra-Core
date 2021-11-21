@@ -682,14 +682,9 @@ namespace Lyra.Core.API
             throw new NotImplementedException();
         }
 
-        public async Task<List<IDexWallet>> GetAllDexWalletsAsync()
+        public async Task<MultiBlockAPIResult> GetAllDexWalletsAsync()
         {
-            var args = new Dictionary<string, string>
-            {
-
-            };
-
-            return await GetAsync<List<IDexWallet>>("GetAllDexWallets", args);
+            return await GetMultiBlockByUrlAsync($"GetAllDexWallets");
         }
         public async Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
         {
