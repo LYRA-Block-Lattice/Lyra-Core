@@ -1981,7 +1981,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<List<DexWalletGenesis>> GetAllDexWalletsAsync()
+        public async Task<List<TransactionBlock>> GetAllDexWalletsAsync()
         {
             return await RPC.GetAllDexWalletsAsync();
         }

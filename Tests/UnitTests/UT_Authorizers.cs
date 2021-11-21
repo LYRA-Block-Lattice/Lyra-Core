@@ -289,7 +289,7 @@ namespace UnitTests
             await Task.Delay(1000);
             var dexws = await testWallet.GetAllDexWalletsAsync();
             Assert.IsNotNull(dexws, "DEX Wallet not setup.");
-            var wcnt = dexws.Count(a => a.ExtSymbol == "TRX" && a.ExtProvider == "mainnet");
+            var wcnt = dexws.Count(a => (a as IDexWallet).ExtSymbol == "TRX" && (a as IDexWallet).ExtProvider == "mainnet");
             Assert.AreEqual(1, wcnt, $"wallet not created properly. created: {wcnt}");
 
             // mint

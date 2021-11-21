@@ -572,7 +572,7 @@ namespace Lyra.Data.API
             throw new NotImplementedException();
         }
 
-        public Task<List<DexWalletGenesis>> GetAllDexWalletsAsync()
+        public Task<List<TransactionBlock>> GetAllDexWalletsAsync()
         {
             throw new NotImplementedException();
         }

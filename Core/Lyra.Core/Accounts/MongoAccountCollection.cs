@@ -1965,11 +1965,18 @@ namespace Lyra.Core.Accounts
             return await q.ToListAsync();
         }
 
-        public async Task<List<DexWalletGenesis>> GetAllDexWalletsAsync()
+        public async Task<List<TransactionBlock>> GetAllDexWalletsAsync()
         {
-            return await _blocks.OfType<DexWalletGenesis>()
+            var wgens = await _blocks.OfType<DexWalletGenesis>()
                 .Find(a => true)
                 .ToListAsync();
+
+            var all = new List<TransactionBlock>();
+            foreach(var w in wgens)
+            {
+                all.Add(await FindLatestBlockAsync(w.AccountID) as TransactionBlock);
+            }
+            return all;
         }
 
         public async Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
