@@ -559,5 +559,6 @@ namespace Lyra.Core.Blocks
         UnsupportedDexToken,
         InvalidDexServer,
         InvalidExternalAddress,
+        TokenNotFound
     }
 }

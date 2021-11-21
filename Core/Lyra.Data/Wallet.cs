@@ -694,7 +694,7 @@ namespace Lyra.Core.Accounts
             // check tokens exists
             if (Amounts.Keys.Any(a => !previousBlock.Balances.ContainsKey(a)))
             {
-                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenGenesisBlockNotFound };
+                return new AuthorizationAPIResult() { ResultCode = APIResultCodes.TokenNotFound };
             }
 
             // check if fee is enough
