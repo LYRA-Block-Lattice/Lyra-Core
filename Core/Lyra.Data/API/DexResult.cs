@@ -24,6 +24,10 @@ namespace DexServer.Ext
         public decimal MinDeposit { get; set; }
         public decimal DepositFee { get; set; }
         public string ConfirmationInfo { get; set; }
+
+        public decimal MinWithdraw { get; set; }
+        public decimal WithdrawFee { get; set; }
+        public decimal DailyWithdrawLimit { get; set; }
     }
 
     public class DexAddress : DexResult

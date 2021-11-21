@@ -1199,6 +1199,7 @@ namespace Lyra.Core.Decentralize
 
             var dc = new DexClient();
             var ret = await dc.RequestWithdrawAsync(burnbrk.OwnerAccountId, burn.ExtSymbol, burn.ExtProvider,
+                burn.AccountID, hash,
                 burn.WithdrawToExtAddress, burn.BurnAmount,
                 NodeService.Dag.PosWallet.AccountId,
                 Signatures.GetSignature(NodeService.Dag.PosWallet.PrivateKey, hash, NodeService.Dag.PosWallet.AccountId));

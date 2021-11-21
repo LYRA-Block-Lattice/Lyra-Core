@@ -105,6 +105,7 @@ namespace Lyra.Data.API
         }
 
         public async Task<DexResult> RequestWithdrawAsync(string owner, string symbol, string provider,
+            string dexid, string reqhash,
             string address, long amountlong, 
             string authid, string signature)
         {
@@ -113,6 +114,8 @@ namespace Lyra.Data.API
                 { "owner", owner },
                 { "symbol", symbol },
                 { "provider", provider },
+                { "dexid", dexid },
+                { "reqhash", reqhash },
                 { "address", address },
                 { "amountlong", amountlong.ToString() },
                 { "authid", authid },
