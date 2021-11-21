@@ -93,8 +93,8 @@ namespace Lyra.Core.API
         Task<PendingStats> GetPendingStatsAsync(string accountId);
 
         // DEX
-        Task<MultiBlockAPIResult> GetAllDexWalletsAsync();
-        Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider);
+        Task<MultiBlockAPIResult> GetAllDexWalletsAsync(string owner);
+        Task<BlockAPIResult> FindDexWalletAsync(string owner, string symbol, string provider);
     }
 
     public interface INodeTransactionAPI

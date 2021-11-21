@@ -919,7 +919,7 @@ namespace Lyra.Core.Decentralize
                 Signatures.GetSignature(NodeService.Dag.PosWallet.PrivateKey, send.Hash, NodeService.Dag.PosWallet.AccountId)
                 );
             if (!r1.Success)
-                throw new Exception("DEX Server failed.");
+                throw new Exception("DEX Server failed: " + r1.Message);
 
             var extw = r1 as DexAddress;
             //Assert.IsTrue(extw.Address.StartsWith('T'));

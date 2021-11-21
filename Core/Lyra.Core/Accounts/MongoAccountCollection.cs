@@ -1965,10 +1965,10 @@ namespace Lyra.Core.Accounts
             return await q.ToListAsync();
         }
 
-        public async Task<List<TransactionBlock>> GetAllDexWalletsAsync()
+        public async Task<List<TransactionBlock>> GetAllDexWalletsAsync(string owner)
         {
             var wgens = await _blocks.OfType<DexWalletGenesis>()
-                .Find(a => true)
+                .Find(a => a.OwnerAccountId == owner)
                 .ToListAsync();
 
             var all = new List<TransactionBlock>();
@@ -1983,12 +1983,12 @@ namespace Lyra.Core.Accounts
             return all;
         }
 
-        public async Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
+        public async Task<TransactionBlock> FindDexWalletAsync(string owner, string symbol, string provider)
         {
-            return await _blocks.OfType<DexWalletGenesis>()
-                .Find(a => a.OwnerAccountId == owner &&
-                    a.ExtSymbol == symbol && a.ExtProvider == provider)
-                .FirstOrDefaultAsync();
+            var all = await GetAllDexWalletsAsync(owner);
+            return all.Cast<IDexWallet>()
+                .FirstOrDefault(a => a.ExtSymbol == symbol && a.ExtProvider == provider)
+                as TransactionBlock;
         }
     }
     public static class MyExtensions

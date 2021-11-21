@@ -1981,18 +1981,22 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<List<IDexWallet>> GetAllDexWalletsAsync()
+        public async Task<List<IDexWallet>> GetAllDexWalletsAsync(string owner)
         {
-            var ret = await RPC.GetAllDexWalletsAsync();
+            var ret = await RPC.GetAllDexWalletsAsync(owner);
             if (ret.Successful())
                 return ret.GetBlocks().Cast<IDexWallet>().ToList();
             else
                 return null;
         }
 
-        public async Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
+        public async Task<IDexWallet> FindDexWalletAsync(string owner, string symbol, string provider)
         {
-            return await RPC.FindDexWalletAsync(owner, symbol, provider);
+            var ret = await RPC.FindDexWalletAsync(owner, symbol, provider);
+            if (ret.Successful())
+                return ret.GetBlock() as IDexWallet;
+            else
+                return null;
         }
 
         /// <summary>

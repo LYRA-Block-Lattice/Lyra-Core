@@ -146,8 +146,8 @@ namespace UnitTests
                 .Returns<DateTime, DateTime>((acct, sign) => Task.FromResult(api.GetBlockHashesByTimeRangeAsync(acct, sign)).Result);
 
             // DEX
-            mock.Setup(x => x.GetAllDexWalletsAsync())
-                .Returns(() => Task.FromResult(api.GetAllDexWalletsAsync()).Result);
+            mock.Setup(x => x.GetAllDexWalletsAsync(It.IsAny<string>()))
+                .Returns<string>((owner) => Task.FromResult(api.GetAllDexWalletsAsync(owner)).Result);
             mock.Setup(x => x.FindDexWalletAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns<string, string, string>((owner, symbol, provider) => Task.FromResult(api.FindDexWalletAsync(owner, symbol, provider)).Result);
 
@@ -287,7 +287,7 @@ namespace UnitTests
             Assert.IsTrue(crdexret.Successful());
 
             await Task.Delay(1000);
-            var dexws = await testWallet.GetAllDexWalletsAsync();
+            var dexws = await testWallet.GetAllDexWalletsAsync(testWallet.AccountId);
             Assert.IsNotNull(dexws, "DEX Wallet not setup.");
             var wcnt = dexws.Count(a => (a as IDexWallet).ExtSymbol == "TRX" && (a as IDexWallet).ExtProvider == "mainnet");
             Assert.AreEqual(1, wcnt, $"wallet not created properly. created: {wcnt}");

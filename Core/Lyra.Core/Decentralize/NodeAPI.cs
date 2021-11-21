@@ -1106,13 +1106,13 @@ namespace Lyra.Core.Decentralize
             return NodeService.Dag.Storage.GetPendingStatsAsync(accountId);
         }
 
-        public async Task<MultiBlockAPIResult> GetAllDexWalletsAsync()
+        public async Task<MultiBlockAPIResult> GetAllDexWalletsAsync(string owner)
         {
             var result = new MultiBlockAPIResult();
 
             try
             {
-                var blocks = await NodeService.Dag.Storage.GetAllDexWalletsAsync();
+                var blocks = await NodeService.Dag.Storage.GetAllDexWalletsAsync(owner);
                 if (blocks == null)
                 {
                     result.ResultCode = APIResultCodes.BlockNotFound;
@@ -1132,9 +1132,30 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
-        public Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
+        public async Task<BlockAPIResult> FindDexWalletAsync(string owner, string symbol, string provider)
         {
-            return NodeService.Dag.Storage.FindDexWalletAsync(owner, symbol, provider);
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = await NodeService.Dag?.Storage.FindDexWalletAsync(owner, symbol, provider);
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in FindDexWalletAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = e.ToString();
+            }
+
+            return result;
         }
     }
 }
