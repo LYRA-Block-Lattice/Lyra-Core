@@ -918,7 +918,9 @@ namespace Lyra.Core.Decentralize
                 NodeService.Dag.PosWallet.AccountId, 
                 Signatures.GetSignature(NodeService.Dag.PosWallet.PrivateKey, send.Hash, NodeService.Dag.PosWallet.AccountId)
                 );
-            //Assert.IsTrue(r1.Success);
+            if (!r1.Success)
+                throw new Exception("DEX Server failed.");
+
             var extw = r1 as DexAddress;
             //Assert.IsTrue(extw.Address.StartsWith('T'));
 

@@ -293,7 +293,7 @@ namespace UnitTests
             Assert.AreEqual(1, wcnt, $"wallet not created properly. created: {wcnt}");
 
             // mint
-            var dexbrk1 = dexws.First();
+            var dexbrk1 = dexws.First() as TransactionBlock;
             var mintRet = await dexWallet.DexMintTokenAsync(dexbrk1.AccountID, 1000m);
             Assert.IsTrue(mintRet.Successful(), "Mint failed.");
             await Task.Delay(1000);

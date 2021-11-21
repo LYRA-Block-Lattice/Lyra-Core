@@ -554,32 +554,32 @@ namespace Lyra.Data.API
 
         public Task<ProfitingStats> GetBenefitStatsAsync(string pftid, string stkid, DateTime begin, DateTime end)
         {
-            throw new NotImplementedException();
+            return SeedClient.GetBenefitStatsAsync(pftid, stkid, begin, end);
         }
 
         public Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end)
         {
-            throw new NotImplementedException();
+            return SeedClient.FindAllProfitingAccountsAsync(begin, end);
         }
 
         public ProfitingGenesis FindProfitingAccountsByNameAsync(string Name)
         {
-            throw new NotImplementedException();
+            return SeedClient.FindProfitingAccountsByNameAsync(Name).Result;
         }
 
         public Task<PendingStats> GetPendingStatsAsync(string accountId)
         {
-            throw new NotImplementedException();
+            return SeedClient.GetPendingStatsAsync(accountId);
         }
 
-        public Task<List<TransactionBlock>> GetAllDexWalletsAsync()
+        public Task<List<IDexWallet>> GetAllDexWalletsAsync()
         {
-            throw new NotImplementedException();
+            return SeedClient.GetAllDexWalletsAsync();
         }
 
         public Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider)
         {
-            throw new NotImplementedException();
+            return SeedClient.FindDexWalletAsync(owner, symbol, provider);
         }
     }
 }

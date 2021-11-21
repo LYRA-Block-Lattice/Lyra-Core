@@ -1106,7 +1106,7 @@ namespace Lyra.Core.Decentralize
             return NodeService.Dag.Storage.GetPendingStatsAsync(accountId);
         }
 
-        public Task<List<TransactionBlock>> GetAllDexWalletsAsync()
+        public Task<List<IDexWallet>> GetAllDexWalletsAsync()
         {
             return NodeService.Dag.Storage.GetAllDexWalletsAsync();
         }

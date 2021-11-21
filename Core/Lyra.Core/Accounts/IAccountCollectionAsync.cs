@@ -123,7 +123,7 @@ namespace Lyra.Core.Accounts
         Task<PendingStats> GetPendingStatsAsync(string accountId);
 
         // DEX
-        Task<List<TransactionBlock>> GetAllDexWalletsAsync();
+        Task<List<IDexWallet>> GetAllDexWalletsAsync();
         Task<DexWalletGenesis> FindDexWalletAsync(string owner, string symbol, string provider);
     }
 }
