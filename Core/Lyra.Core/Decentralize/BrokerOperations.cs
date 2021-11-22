@@ -918,7 +918,7 @@ namespace Lyra.Core.Decentralize
             var provider = send.Tags["provider"];
 
             // request a wallet from dex server
-            var dc = new DexClient();
+            var dc = new DexClient(LyraNodeConfig.GetNetworkId());
             var r1 = await dc.CreateWalletAsync(send.AccountID, symbol, provider,
                 NodeService.Dag.PosWallet.AccountId, 
                 Signatures.GetSignature(NodeService.Dag.PosWallet.PrivateKey, send.Hash, NodeService.Dag.PosWallet.AccountId)
@@ -1202,7 +1202,7 @@ namespace Lyra.Core.Decentralize
             var burnbrk = burnblock as IBrokerAccount;
             var burn = burnblock as TokenWithdrawBlock;
 
-            var dc = new DexClient();
+            var dc = new DexClient(LyraNodeConfig.GetNetworkId());
             var ret = await dc.RequestWithdrawAsync(burnbrk.OwnerAccountId, burn.ExtSymbol, burn.ExtProvider,
                 burn.AccountID, hash,
                 burn.WithdrawToExtAddress, burn.BurnAmount,

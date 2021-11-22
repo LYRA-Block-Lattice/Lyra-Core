@@ -13,11 +13,18 @@ namespace Lyra.Data.API
 {
     public class DexClient
     {
-        string _url = "https://192.168.3.99:7010/api/Dex/";
+        string _url;
         private CancellationTokenSource _cancel;
-        public DexClient()
+        public DexClient(string networkid)
         {
             _cancel = new CancellationTokenSource();
+
+            if (networkid == "devnet")
+                _url = "https://192.168.3.99:7010/api/Dex/";
+            else if (networkid == "testnet")
+                _url = "https://dextestnet.lyra.live/api/Dex/";
+            else
+                _url = "https://dex.lyra.live/api/Dex/";
         }
 
         private HttpClient CreateClient()

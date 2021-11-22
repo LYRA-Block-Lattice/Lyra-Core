@@ -133,7 +133,7 @@ namespace Lyra.Core.Authorizers
                         if (block.Tags.Count > 3)
                             return APIResultCodes.InvalidBlockTags;
 
-                        var dc = new DexClient();
+                        var dc = new DexClient(LyraNodeConfig.GetNetworkId());
                         var asts = await dc.GetSupportedExtTokenAsync(LyraNodeConfig.GetNetworkId());
 
                         var ast = asts.Asserts.Where(a => a.Symbol == symbol && a.NetworkProvider == provider)

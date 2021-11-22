@@ -18,7 +18,7 @@ namespace UnitTests
         {
             var (pvtx, pubx) = Signatures.GenerateWallet();
 
-            var dc = new DexClient();
+            var dc = new DexClient("devnet");
             var r1 = await dc.CreateWalletAsync(pubx, "tron", "mainnet", "", "");
             Assert.IsTrue(r1.Success);
             var extw = r1 as DexAddress;
