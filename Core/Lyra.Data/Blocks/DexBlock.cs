@@ -16,7 +16,7 @@ namespace Lyra.Core.Blocks
         public string IntSymbol { get; set; }
         // external symbol, 'USDT'
         public string ExtSymbol { get; set; }
-        // external provider, like 'TRC20', 'ERC20'
+        // external provider, like 'TRC-20', 'ERC-20'
         public string ExtProvider { get; set; }
         // external address, like 'Trxss.e...', '0x35535...'
         public string ExtAddress { get; set; }

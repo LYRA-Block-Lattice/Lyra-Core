@@ -1,6 +1,7 @@
 ﻿using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
+using Lyra.Data.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidAccountType;
 
             var dc = new DexClient();
-            var asts = await dc.GetSupportedExtTokenAsync();
+            var asts = await dc.GetSupportedExtTokenAsync(LyraNodeConfig.GetNetworkId());
 
             var ast = asts.Asserts.Where(a => a.Symbol == block.ExtSymbol)
                 .FirstOrDefault();

@@ -16,6 +16,7 @@ namespace DexServer.Ext
     public class ExtAssert
     {
         public string Name { get; set; }
+        public string Url { get; set; }
         public string Symbol { get; set; }
 
         public string NetworkProvider { get; set; }

@@ -134,7 +134,7 @@ namespace Lyra.Core.Authorizers
                             return APIResultCodes.InvalidBlockTags;
 
                         var dc = new DexClient();
-                        var asts = await dc.GetSupportedExtTokenAsync();
+                        var asts = await dc.GetSupportedExtTokenAsync(LyraNodeConfig.GetNetworkId());
 
                         var ast = asts.Asserts.Where(a => a.Symbol == symbol && a.NetworkProvider == provider)
                             .FirstOrDefault();

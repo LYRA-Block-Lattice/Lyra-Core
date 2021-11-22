@@ -124,11 +124,11 @@ namespace Lyra.Data.API
             return await GetAsync<DexResult>("RequestWithdraw", args);
         }
 
-        public async Task<SupportedTokens> GetSupportedExtTokenAsync()
+        public async Task<SupportedTokens> GetSupportedExtTokenAsync(string networkid)
         {
             var args = new Dictionary<string, string>
             {
-
+                { "networkid", networkid },
             };
             return await GetAsync<SupportedTokens>("GetSupportedExtToken", args);
         }
