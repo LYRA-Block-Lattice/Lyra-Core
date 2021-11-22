@@ -37,7 +37,7 @@ namespace Lyra.Core.Decentralize
                 ServiceHash = lsb.Hash,
                 SourceHash = sendBlock.Hash,
                 Balances = new Dictionary<string, long>(),
-                Fee = Math.Round(txInfo.Changes[LyraGlobal.OFFICIALTICKERCODE], 8),
+                Fee = Math.Round(txInfo.Changes[LyraGlobal.OFFICIALTICKERCODE], 8, MidpointRounding.ToZero),
                 FeeCode = LyraGlobal.OFFICIALTICKERCODE,
                 FeeType = AuthorizationFeeTypes.FullFee,
             };
@@ -645,7 +645,7 @@ namespace Lyra.Core.Decentralize
                 var sendAmounts = new Dictionary<string, decimal>();
                 foreach (var target in targets)
                 {
-                    var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8);
+                    var amount = Math.Round(profitToDistribute * (target.Amount / totalStakingAmount), 8, MidpointRounding.ToZero);
                     if(amount > 0.00000001m)
                         sendAmounts.Add(target.StkAccount, amount);
                 }
@@ -674,14 +674,19 @@ namespace Lyra.Core.Decentralize
                 {
                     if(target.CompoundMode)
                     {
-                        var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.StkAccount);
-                        if (stkSend == null)
+                        //var stkSend = sentBlocks.FirstOrDefault(a => a.StakingAccountId == target.StkAccount);
+                        //if (stkSend == null)
+                        //    continue;
+
+                        //if (relatedTxs.Any(a => a is StakingBlock stk && stk.SourceHash == stkSend.Hash))
+                        //    continue;
+
+                        // look for any unsettled receive
+                        SendTransferBlock xsend = await NodeService.Dag.Storage.FindUnsettledSendBlockAsync(target.StkAccount);
+                        if (xsend == null)
                             continue;
 
-                        if (relatedTxs.Any(a => a is StakingBlock stk && stk.SourceHash == stkSend.Hash))
-                            continue;
-
-                        var compstk = await CNOAddStakingAsync(sys, stkSend);
+                        var compstk = await CNOAddStakingAsync(sys, xsend);
                         if (compstk != null)
                             return compstk;
                     }
@@ -893,7 +898,7 @@ namespace Lyra.Core.Decentralize
 
             if(((IStaking)lastStk).Start.AddDays(((IStaking)lastStk).Days) > DateTime.UtcNow)
             {
-                stkNext.Fee = Math.Round(0.008m * lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal(), 8);
+                stkNext.Fee = Math.Round(0.008m * lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal(), 8, MidpointRounding.ToZero);
             }
 
             stkNext.Balances.Add(LyraGlobal.OFFICIALTICKERCODE, 0);
