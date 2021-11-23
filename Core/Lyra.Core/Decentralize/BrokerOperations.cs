@@ -812,16 +812,14 @@ namespace Lyra.Core.Decentralize
             var lastBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId);
             var lastStk = lastBlock as TransactionBlock;
 
-            string relatedTx;
+            string relatedTx = send.Hash;
             DateTime start;
             if (send is BenefitingBlock bnb)
             {
-                relatedTx = bnb.RelatedTx;
                 start = (lastStk as IStaking).Start;
             }
             else
             {
-                relatedTx = send.Hash;
                 start = send.TimeStamp.AddDays(1);         // manual add staking, start after 1 day.
 
                 if (LyraNodeConfig.GetNetworkId() == "devnet")
