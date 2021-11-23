@@ -98,6 +98,7 @@ namespace Lyra.Data.API
         }
 
         public async Task<DexAddress> CreateWalletAsync(string owner, string symbol, string provider,
+            string reqhash,
             string authid, string signature)
         {
             var args = new Dictionary<string, string>
@@ -105,6 +106,7 @@ namespace Lyra.Data.API
                 { "owner", owner },
                 { "symbol", symbol },
                 { "provider", provider },
+                { "reqhash", reqhash },
                 { "authid", authid },
                 { "signature", signature },
             };

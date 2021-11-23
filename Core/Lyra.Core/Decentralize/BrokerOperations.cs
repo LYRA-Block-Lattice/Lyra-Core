@@ -921,6 +921,7 @@ namespace Lyra.Core.Decentralize
             // request a wallet from dex server
             var dc = new DexClient(LyraNodeConfig.GetNetworkId());
             var r1 = await dc.CreateWalletAsync(send.AccountID, symbol, provider,
+                send.Hash,
                 NodeService.Dag.PosWallet.AccountId, 
                 Signatures.GetSignature(NodeService.Dag.PosWallet.PrivateKey, send.Hash, NodeService.Dag.PosWallet.AccountId)
                 );
