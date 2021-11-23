@@ -685,7 +685,7 @@ namespace Lyra.Core.Decentralize
                         if (xsend == null)
                             continue;
 
-                        var compstk = await CNOAddStakingAsync(sys, xsend);
+                        var compstk = await CNOAddStakingImplAsync(sys, xsend, reqHash);
                         if (compstk != null)
                             return compstk;
                     }
@@ -803,6 +803,10 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> CNOAddStakingAsync(DagSystem sys, SendTransferBlock send)
         {
+            return await CNOAddStakingImplAsync(sys, send, send.Hash);
+        }
+        private static async Task<TransactionBlock> CNOAddStakingImplAsync(DagSystem sys, SendTransferBlock send, string relatedTx)
+        {
             var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             if (block != null)
                 return null;
@@ -812,7 +816,6 @@ namespace Lyra.Core.Decentralize
             var lastBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId);
             var lastStk = lastBlock as TransactionBlock;
 
-            string relatedTx = send.Hash;
             DateTime start;
             if (send is BenefitingBlock bnb)
             {
