@@ -681,6 +681,18 @@ namespace Lyra.Core.Accounts
 
         public async Task<AuthorizationAPIResult> SendExAsync(string DestinationAccountId, Dictionary<string, decimal> Amounts, Dictionary<string, string> tags)
         {
+            if (_lastTransactionBlock == null)
+                await SyncAsync(null);
+
+            if (_lastTransactionBlock == null ||
+                !_lastTransactionBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) ||
+                _lastTransactionBlock.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() <
+                    TransferFee + (Amounts.ContainsKey(LyraGlobal.OFFICIALTICKERCODE)
+                    ? Amounts[LyraGlobal.OFFICIALTICKERCODE]
+                    : 0)
+                )
+                return new AuthorizationAPIResult { ResultCode = APIResultCodes.InsufficientFunds };
+
             if (Amounts.Any(a => a.Value <= 0m))
                 throw new Exception("Amount must > 0");
 

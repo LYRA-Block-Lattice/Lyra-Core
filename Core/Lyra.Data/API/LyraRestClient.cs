@@ -19,6 +19,7 @@ namespace Lyra.Core.API
     public class LyraRestClient : ILyraAPI
     {
         public string ServerThumbPrint { get; private set; }
+        private readonly string _platform;
         private readonly string _appName;
         private readonly string _appVersion;
         private readonly string _url;
@@ -27,38 +28,44 @@ namespace Lyra.Core.API
         private CancellationTokenSource _cancel;
         public LyraRestClient(string platform, string appName, string appVersion, string url)
         {
+            _platform = platform;
             _url = url;
             _appName = appName;
             _appVersion = appVersion;
 
             _cancel = new CancellationTokenSource();
 
-            if(platform == "iOS" || platform == "Unix")
+            if (platform == "iOS" || platform == "Unix")
             {
                 System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) =>
                 {
-                    if (certificate.Issuer.Equals("CN=localhost"))
-                        return true;
-                    return sslPolicyErrors == System.Net.Security.SslPolicyErrors.None;
+                    return true;
+                    //if (certificate.Issuer.Equals("CN=localhost"))
+                    //    return true;
+                    //return sslPolicyErrors == System.Net.Security.SslPolicyErrors.None;
                 };
-            }         
+            }
+        }
+
+        // This method must be in a class in a platform project, even if
+        // the HttpClient object is constructed in a shared project.
+        public HttpClientHandler GetInsecureHandler()
+        {
+            HttpClientHandler handler = new HttpClientHandler();
+            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+            {
+                //if (cert.Issuer.Equals("CN=localhost"))
+                //    return true;
+                //return errors == System.Net.Security.SslPolicyErrors.None;
+                return true;
+            };
+            return handler;
         }
 
         private HttpClient CreateClient()
         {
-            var handler = new HttpClientHandler();
-            try
-            {
-                handler.ServerCertificateCustomValidationCallback = (sender, cert, chain, error) =>
-                {
-                    var cert2 = new X509Certificate2(cert.GetRawCertData());
-                    ServerThumbPrint = cert2.Thumbprint;
-                    return true;
-                };
-            }
-            catch { }
-
-            var client = new HttpClient(handler)
+            HttpClientHandler insecureHandler = GetInsecureHandler();
+            var client = new HttpClient(insecureHandler)
             {
                 BaseAddress = new Uri(_url),
                 //_client.DefaultRequestHeaders.Accept.Clear();
