@@ -33,7 +33,7 @@ namespace Lyra.Core.API
 
             _cancel = new CancellationTokenSource();
 
-            if(platform == "iOS")
+            if(platform == "iOS" || platform == "Unix")
             {
                 System.Net.ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) =>
                 {

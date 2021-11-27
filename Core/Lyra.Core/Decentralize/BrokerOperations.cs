@@ -361,7 +361,7 @@ namespace Lyra.Core.Decentralize
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var send = await sys.Storage.FindBlockByHashAsync(swapInBlock.SourceHash) as SendTransferBlock;
-            var swapOutBlock = new PoolSwapOutBlock()
+            var swapOutBlock = new PoolSwapOutBlock
             {
                 AccountID = send.DestinationAccountId,
                 ServiceHash = lsb.Hash,

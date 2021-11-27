@@ -334,11 +334,35 @@ namespace Lyra.Core.Blocks
 
     public class SwapCalculator
     {
-        public const decimal LiquidateProviderFee = 0.003m;
-        public const decimal ConsensusProtocolFee = 0.001m;
+        /*
+         
+        @startuml
+actor From as from
+entity AuthFee as auth
+entity LiquidFee as liquid
+control Swap as swap
+actor To as to
+== Lyra to Token ==
 
-        public decimal ProviderFee { get; set; }
-        public decimal ProtocolFee { get; set; }
+from -> auth	: Pay auth fee
+auth -> liquid : pay liquidate fee
+liquid -> swap	: Swap
+swap -> to	: get output
+
+
+== Token to Lyra ==
+from -> liquid : pay liquidate fee
+liquid -> swap : Swap
+swap -> auth : pay auth fee
+auth -> to : get output
+@enduml
+         
+         */
+        public const decimal LiquidateProviderFeeRito = 0.003m;
+        public const decimal ConsensusProtocolFeeRito = 0.001m;
+
+        //public decimal ProviderFee { get; set; }
+        //public decimal ProtocolFee { get; set; }
         public string SwapInToken { get; set; }
         public decimal SwapInAmount { get; set; }
         public string SwapOutToken { get; set; }
@@ -354,8 +378,8 @@ namespace Lyra.Core.Blocks
             if (token0 == null || token1 == null || pool == null || !pool.Balances.ContainsKey(token0) || !pool.Balances.ContainsKey(token1))
                 throw new ArgumentException();
 
-            ProviderFee = LiquidateProviderFee;
-            ProtocolFee = ConsensusProtocolFee;
+            //ProviderFee = LiquidateProviderFeeRito * fromAmount;
+            //ProtocolFee = ConsensusProtocolFeeRito * fromAmount;
             SwapInAmount = fromAmount;
             SwapInToken = fromToken;
 
@@ -365,13 +389,13 @@ namespace Lyra.Core.Blocks
             decimal fromFeeRito, toFeeRito;
             if (fromToken == LyraGlobal.OFFICIALTICKERCODE)
             {
-                fromFeeRito = LiquidateProviderFee + ConsensusProtocolFee;
+                fromFeeRito = LiquidateProviderFeeRito + ConsensusProtocolFeeRito;
                 toFeeRito = 0;
             }
             else
             {
-                fromFeeRito = LiquidateProviderFee;
-                toFeeRito = ConsensusProtocolFee;
+                fromFeeRito = LiquidateProviderFeeRito;
+                toFeeRito = ConsensusProtocolFeeRito;
             }
 
             decimal pureTo;
@@ -402,14 +426,14 @@ namespace Lyra.Core.Blocks
                 MinimumReceived = Math.Round(SwapOutAmount * (1m - slippage), 8);
             }
 
-            PayToProvider = Math.Round(fromAmount * LiquidateProviderFee, 8);
+            PayToProvider = Math.Round(fromAmount * LiquidateProviderFeeRito, 8);
             if (fromToken == LyraGlobal.OFFICIALTICKERCODE)
             {
-                PayToAuthorizer = Math.Round(fromAmount * ConsensusProtocolFee, 8);
+                PayToAuthorizer = Math.Round(fromAmount * ConsensusProtocolFeeRito, 8);
             }
             else
             {
-                PayToAuthorizer = Math.Round(pureTo * ConsensusProtocolFee, 8);
+                PayToAuthorizer = Math.Round(pureTo * ConsensusProtocolFeeRito, 8);
             }
 
             //Console.WriteLine($"Price {price} Got {to} X, Price Impact: {chg * 100:n} %");
