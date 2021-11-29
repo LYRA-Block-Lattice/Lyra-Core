@@ -68,8 +68,8 @@ namespace Lyra.Data.API
                             currentBillBoard = await apiClient.GetBillBoardAsync();
                             break;
                         }
-                        catch {
-                            
+                        catch(Exception e){
+                            Console.WriteLine("LyraAggregatedClient.InitAsync: " + e.Message);
                         }
                     }
 

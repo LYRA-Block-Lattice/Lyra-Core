@@ -1,4 +1,4 @@
-﻿using DexServer.Ext;
+using DexServer.Ext;
 using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
@@ -361,7 +361,7 @@ namespace Lyra.Core.Decentralize
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
             var send = await sys.Storage.FindBlockByHashAsync(swapInBlock.SourceHash) as SendTransferBlock;
-            var swapOutBlock = new PoolSwapOutBlock()
+            var swapOutBlock = new PoolSwapOutBlock
             {
                 AccountID = send.DestinationAccountId,
                 ServiceHash = lsb.Hash,
@@ -686,7 +686,7 @@ namespace Lyra.Core.Decentralize
                         if (xsend == null)
                             continue;
 
-                        var compstk = await CNOAddStakingAsync(sys, xsend);
+                        var compstk = await CNOAddStakingImplAsync(sys, xsend, reqHash);
                         if (compstk != null)
                             return compstk;
                     }
@@ -804,6 +804,10 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<TransactionBlock> CNOAddStakingAsync(DagSystem sys, SendTransferBlock send)
         {
+            return await CNOAddStakingImplAsync(sys, send, send.Hash);
+        }
+        private static async Task<TransactionBlock> CNOAddStakingImplAsync(DagSystem sys, SendTransferBlock send, string relatedTx)
+        {
             var block = await sys.Storage.FindBlockBySourceHashAsync(send.Hash);
             if (block != null)
                 return null;
@@ -813,16 +817,13 @@ namespace Lyra.Core.Decentralize
             var lastBlock = await sys.Storage.FindLatestBlockAsync(send.DestinationAccountId);
             var lastStk = lastBlock as TransactionBlock;
 
-            string relatedTx;
             DateTime start;
             if (send is BenefitingBlock bnb)
             {
-                relatedTx = bnb.RelatedTx;
                 start = (lastStk as IStaking).Start;
             }
             else
             {
-                relatedTx = send.Hash;
                 start = send.TimeStamp.AddDays(1);         // manual add staking, start after 1 day.
 
                 if (LyraNodeConfig.GetNetworkId() == "devnet")
@@ -918,8 +919,9 @@ namespace Lyra.Core.Decentralize
             var provider = send.Tags["provider"];
 
             // request a wallet from dex server
-            var dc = new DexClient();
+            var dc = new DexClient(LyraNodeConfig.GetNetworkId());
             var r1 = await dc.CreateWalletAsync(send.AccountID, symbol, provider,
+                send.Hash,
                 NodeService.Dag.PosWallet.AccountId, 
                 Signatures.GetSignature(NodeService.Dag.PosWallet.PrivateKey, send.Hash, NodeService.Dag.PosWallet.AccountId)
                 );
@@ -1202,7 +1204,7 @@ namespace Lyra.Core.Decentralize
             var burnbrk = burnblock as IBrokerAccount;
             var burn = burnblock as TokenWithdrawBlock;
 
-            var dc = new DexClient();
+            var dc = new DexClient(LyraNodeConfig.GetNetworkId());
             var ret = await dc.RequestWithdrawAsync(burnbrk.OwnerAccountId, burn.ExtSymbol, burn.ExtProvider,
                 burn.AccountID, hash,
                 burn.WithdrawToExtAddress, burn.BurnAmount,

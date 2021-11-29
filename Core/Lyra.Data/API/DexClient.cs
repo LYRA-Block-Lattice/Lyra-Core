@@ -13,11 +13,18 @@ namespace Lyra.Data.API
 {
     public class DexClient
     {
-        string _url = "https://192.168.3.99:7010/api/Dex/";
+        string _url;
         private CancellationTokenSource _cancel;
-        public DexClient()
+        public DexClient(string networkid)
         {
             _cancel = new CancellationTokenSource();
+
+            if (networkid == "devnet")
+                _url = "https://192.168.3.99:7010/api/Dex/";
+            else if (networkid == "testnet")
+                _url = "https://dextestnet.lyra.live/api/Dex/";
+            else
+                _url = "https://dex.lyra.live/api/Dex/";
         }
 
         private HttpClient CreateClient()
@@ -91,6 +98,7 @@ namespace Lyra.Data.API
         }
 
         public async Task<DexAddress> CreateWalletAsync(string owner, string symbol, string provider,
+            string reqhash,
             string authid, string signature)
         {
             var args = new Dictionary<string, string>
@@ -98,6 +106,7 @@ namespace Lyra.Data.API
                 { "owner", owner },
                 { "symbol", symbol },
                 { "provider", provider },
+                { "reqhash", reqhash },
                 { "authid", authid },
                 { "signature", signature },
             };
@@ -124,11 +133,11 @@ namespace Lyra.Data.API
             return await GetAsync<DexResult>("RequestWithdraw", args);
         }
 
-        public async Task<SupportedTokens> GetSupportedExtTokenAsync()
+        public async Task<SupportedTokens> GetSupportedExtTokenAsync(string networkid)
         {
             var args = new Dictionary<string, string>
             {
-
+                { "networkid", networkid },
             };
             return await GetAsync<SupportedTokens>("GetSupportedExtToken", args);
         }
