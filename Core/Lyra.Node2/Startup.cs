@@ -79,6 +79,14 @@ namespace Lyra.Node2
             //                      });
             //});
 
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                builder.WithOrigins("https://localhost:8098/")
+                .AllowAnyHeader()
+                .AllowAnyMethod());
+            });
+
             // the apis
             services.AddSingleton<INodeAPI, NodeAPI>();
             services.AddSingleton<INodeTransactionAPI, ApiService>();

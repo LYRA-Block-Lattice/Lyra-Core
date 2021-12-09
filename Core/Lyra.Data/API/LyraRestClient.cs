@@ -52,13 +52,21 @@ namespace Lyra.Core.API
         public HttpClientHandler GetInsecureHandler()
         {
             HttpClientHandler handler = new HttpClientHandler();
-            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+            try
             {
-                //if (cert.Issuer.Equals("CN=localhost"))
-                //    return true;
-                //return errors == System.Net.Security.SslPolicyErrors.None;
-                return true;
-            };
+                handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                {
+                    //if (cert.Issuer.Equals("CN=localhost"))
+                    //    return true;
+                    //return errors == System.Net.Security.SslPolicyErrors.None;
+                    return true;
+                };
+            }
+            catch(Exception ex)
+            {
+                // wasm will throw platform unsupported exception
+            }
+
             return handler;
         }
 

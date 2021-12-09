@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace DexServer.Ext
 {
@@ -39,5 +40,23 @@ namespace DexServer.Ext
         public string Provider { get; set; }
         public string Network { get; set; }
         public string Contract { get; set; }
+    }
+
+    public class DexHistory : DexResult
+    {
+        public List<DexTx> Txes { get; set; }
+    }
+
+    public class DexTx
+    {
+        public DateTime time { get; set; }
+        public string action { get; set; }
+
+        public string owner { get; set; }
+        public string symbol { get; set; }
+        public string provider { get; set; }
+        public string address { get; set; }
+
+        public decimal amount { get; set; }
     }
 }
