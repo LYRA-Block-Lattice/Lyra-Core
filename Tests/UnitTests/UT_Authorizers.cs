@@ -252,10 +252,10 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            //await TestPoolAsync();
+            await TestPoolAsync();
             //await TestProfitingAndStaking();
             //await TestNodeFee();
-            await TestDepositWithdraw();
+            //await TestDepositWithdraw();
 
             // let workflow to finish
             await Task.Delay(1000);
@@ -501,9 +501,17 @@ namespace UnitTests
             Assert.IsNotNull(poolx.PoolAccountId);
             var poolLatestBlock = poolx.GetBlock() as TransactionBlock;
 
+            await testWallet.SyncAsync(null);
+            await Task.Delay(1000);
+            var oldtkn0 = testWallet.GetLatestBlock().Balances[token0].ToBalanceDecimal();
             var cal2 = new SwapCalculator(LyraGlobal.OFFICIALTICKERCODE, token0, poolLatestBlock, LyraGlobal.OFFICIALTICKERCODE, 20, 0);
             var swapret = await testWallet.SwapTokenAsync("LYR", token0, "LYR", 20, cal2.SwapOutAmount);
             Assert.IsTrue(swapret.Successful());
+            await Task.Delay(2000);
+            await testWallet.SyncAsync(null);
+            await Task.Delay(1000);
+            var gotamount = testWallet.GetLatestBlock().Balances[token0].ToBalanceDecimal() - oldtkn0;
+            Console.WriteLine($"Got swapped amount {gotamount} {token0}");
 
             await Task.Delay(1000);
 

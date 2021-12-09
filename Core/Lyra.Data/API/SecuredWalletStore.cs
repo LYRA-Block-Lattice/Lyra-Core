@@ -102,7 +102,8 @@ namespace Lyra.Core.Accounts
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            if (_stream != null)
+                _stream.Flush();
         }
 
         public bool Exists(string accountName)

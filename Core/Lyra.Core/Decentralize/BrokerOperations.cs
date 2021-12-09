@@ -315,7 +315,7 @@ namespace Lyra.Core.Decentralize
                 var lastBalance = latestPoolBlock.Balances.ToDecimalDict();
 
                 // the rito must be preserved for every deposition
-                var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
+                //var poolRito = lastBalance[poolGenesis.Token0] / lastBalance[poolGenesis.Token1];
                 foreach (var oldBalance in lastBalance)
                 {
                     if (txInfo.Changes.ContainsKey(oldBalance.Key))
@@ -392,10 +392,12 @@ namespace Lyra.Core.Decentralize
             }
             else
             {
-                // tokenOut == LYR
+                // tokenIn == other token
                 nextBalance[tokenIn] = curBalance[tokenIn];  // pool fee leave in the pool
                 nextBalance[tokenOut] = curBalance[tokenOut] - cfg.SwapOutAmount - cfg.PayToAuthorizer;
             }
+
+            Console.WriteLine($"user should receive {cfg.SwapOutAmount} {cfg.SwapOutToken}");
 
             swapOutBlock.Balances = nextBalance.ToLongDict();
             swapOutBlock.Shares = (poolLatestBlock as IPool).Shares;
