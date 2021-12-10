@@ -24,11 +24,11 @@ using Settings = Neo.Settings;
 using Stateless;
 using Org.BouncyCastle.Utilities.Net;
 using System.Net;
-using Shared;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using System.Diagnostics;
 using Lyra.Data.Blocks;
+using Lyra.Data.Shared;
 
 namespace Lyra.Core.Decentralize
 {

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using static Lyra.Core.Decentralize.ConsensusService;
 using Lyra.Data.API;
 using Microsoft.Extensions.Logging;
-using Lyra.Shared;
+using Lyra.Data.Shared;
 
 namespace Lyra.Core.Authorizers
 {

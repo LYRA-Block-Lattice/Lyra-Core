@@ -2,7 +2,7 @@
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Data.API;
-using Lyra.Shared;
+using Lyra.Data.Shared;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Concurrent;

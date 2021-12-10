@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Lyra.Shared
+namespace Lyra.Data.Shared
 {
     public static class Extensions
     {

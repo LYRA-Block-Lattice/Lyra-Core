@@ -6,7 +6,7 @@ using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Data.Utils;
-using Lyra.Shared;
+using Lyra.Data.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;

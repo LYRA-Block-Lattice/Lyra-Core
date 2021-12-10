@@ -2,7 +2,7 @@
 using Lyra.Core.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Core.Utils;
-using Lyra.Shared;
+using Lyra.Data.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
 using System;

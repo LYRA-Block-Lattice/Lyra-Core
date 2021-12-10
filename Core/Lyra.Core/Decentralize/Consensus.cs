@@ -5,7 +5,7 @@ using Lyra.Core.Blocks;
 using Lyra.Data;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
-using Lyra.Shared;
+using Lyra.Data.Shared;
 using Microsoft.Extensions.Logging;
 using Neo;
 using Newtonsoft.Json;

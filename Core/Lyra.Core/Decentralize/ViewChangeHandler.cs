@@ -1,7 +1,7 @@
 ﻿using Lyra.Core.API;
 using Lyra.Data.Crypto;
 using Lyra.Core.Utils;
-using Lyra.Shared;
+using Lyra.Data.Shared;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;

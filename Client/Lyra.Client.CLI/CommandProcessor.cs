@@ -8,7 +8,7 @@ using Neo.Cryptography.ECC;
 using Lyra.Data.Crypto;
 using System.Linq;
 using System.Security.Cryptography;
-using Lyra.Shared;
+using Lyra.Data.Shared;
 using System.Data;
 using System.Threading;
 using Lyra.Data.Blocks;

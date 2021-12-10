@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Lyra.Shared;
+using Lyra.Data.Shared;
 
 namespace Lyra.Node
 {

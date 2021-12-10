@@ -10,7 +10,7 @@ using Lyra.Core.Decentralize;
 using Lyra.Core.Utils;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
-using Lyra.Shared;
+using Lyra.Data.Shared;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
