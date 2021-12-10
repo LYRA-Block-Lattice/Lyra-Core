@@ -82,7 +82,12 @@ namespace Lyra.Node2
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(builder =>
-                builder.WithOrigins("https://localhost:8098")
+                builder.WithOrigins(
+                    "https://localhost:8098", 
+                    "https://lyra.live",
+                    "https://apptestnet.lyra.live",
+                    "https://app.lyra.live"
+                    )
                 .AllowAnyHeader()
                 .AllowAnyMethod());
             });
