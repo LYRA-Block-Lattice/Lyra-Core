@@ -66,7 +66,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Lyra.Data\Lyra.Data.csproj" />
-    <ProjectReference Include="..\Lyra.Shared\Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Stateless">
