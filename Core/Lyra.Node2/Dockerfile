@@ -37,7 +37,6 @@ WORKDIR /src
 COPY ["Core/Lyra.Node2/Noded.csproj", "Core/Lyra.Node2/"]
 COPY ["Core/Lyra.Core/Core.csproj", "Core/Lyra.Core/"]
 COPY ["Core/Lyra.Data/Lyra.Data.csproj", "Core/Lyra.Data/"]
-COPY ["Core/Lyra.Shared/Shared.csproj", "Core/Lyra.Shared/"]
 RUN dotnet restore "Core/Lyra.Node2/Noded.csproj"
 COPY . .
 WORKDIR "/src/Core/Lyra.Node2"

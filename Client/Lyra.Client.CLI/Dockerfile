@@ -8,7 +8,6 @@ WORKDIR /src
 COPY ["Client/Lyra.Client.CLI/Client.CLI.csproj", "Client/Lyra.Client.CLI/"]
 COPY ["Core/Lyra.Core/Core.csproj", "Core/Lyra.Core/"]
 COPY ["Core/Lyra.Data/Lyra.Data.csproj", "Core/Lyra.Data/"]
-COPY ["Core/Lyra.Shared/Shared.csproj", "Core/Lyra.Shared/"]
 RUN dotnet restore "Client/Lyra.Client.CLI/Client.CLI.csproj"
 COPY . .
 WORKDIR "/src/Client/Lyra.Client.CLI"
