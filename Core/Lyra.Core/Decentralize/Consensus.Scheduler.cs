@@ -240,7 +240,7 @@ namespace Lyra.Core.Decentralize
 
                         BrokerFactory.Persist(cs._sys.Storage);
 
-                        if(!cs._viewChangeHandler.IsViewChanging)
+                        if(cs._viewChangeHandler != null && !cs._viewChangeHandler.IsViewChanging)
                         {
                             var bps = BrokerFactory.GetAllBlueprints();
                             var lsp = await cs._sys.Storage.GetLastServiceBlockAsync();
