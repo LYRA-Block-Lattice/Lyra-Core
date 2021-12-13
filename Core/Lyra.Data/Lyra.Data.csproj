@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>3.0.4.6</Version>
+    <Version>3.1.0.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Wizard Young</Authors>
     <Company>Lyra.Live</Company>
@@ -12,7 +12,7 @@
     <PackageIcon>lyra_50x50.png</PackageIcon>
     <RepositoryUrl>https://github.com/LYRA-Block-Lattice/Lyra-Core</RepositoryUrl>
     <Configurations>Release;Debug</Configurations>
-    <ReleaseVersion>3.0</ReleaseVersion>
+    <ReleaseVersion>3.1</ReleaseVersion>
     <PackageIconUrl />
     <Copyright>Lyra Live Inc.</Copyright>
   </PropertyGroup>
