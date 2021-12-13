@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker;Microsoft.NET.Sdk.Publish">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>2.0.0.0</Version>
+    <Version>3.1.0.0</Version>
     <PackageId>lyranoded</PackageId>
     <Authors>lyra.live</Authors>
     <Product>Lyra Blockchain Permissionless</Product>
@@ -10,7 +10,7 @@
     <UserSecretsId>d61b9a83-beab-4fa4-9fa9-b6b26d8918f6</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
-    <ReleaseVersion>2.2.5</ReleaseVersion>
+    <ReleaseVersion>3.1</ReleaseVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Lyra.Node Mainnet' ">
     <ExternalConsole>true</ExternalConsole>
