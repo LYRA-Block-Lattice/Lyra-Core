@@ -141,10 +141,10 @@ namespace Lyra.Core.Authorizers
 
             if (BuyTokenCode == "*")
                 //BuyTokenCode = null;
-                throw new ApplicationException("Not supported");
+                throw new Exception("Not supported");
 
             if (OrderType == TradeOrderListTypes.All || OrderType == TradeOrderListTypes.BuyOnly)
-                throw new ApplicationException("Not supported");
+                throw new Exception("Not supported");
 
             
             return await getActiveSellOrdersAsync(SellTokenCode, BuyTokenCode);

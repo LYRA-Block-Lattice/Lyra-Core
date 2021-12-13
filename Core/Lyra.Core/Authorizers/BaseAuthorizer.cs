@@ -98,7 +98,7 @@ namespace Lyra.Core.Authorizers
         protected AuthorizationSignature Sign<T>(DagSystem sys, T tblock)
         {
             if (!(tblock is Block))
-                throw new System.ApplicationException("APIResultCodes.InvalidBlockType");
+                throw new System.Exception("APIResultCodes.InvalidBlockType");
 
             var block = tblock as Block;
 

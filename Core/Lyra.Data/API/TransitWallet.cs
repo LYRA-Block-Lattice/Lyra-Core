@@ -147,7 +147,7 @@ namespace Lyra.Data.API
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
                 return APIResultCodes.SendTransactionValidationFailed;
-                //throw new ApplicationException("ValidateTransaction failed");
+                //throw new Exception("ValidateTransaction failed");
             }
 
             AuthorizationAPIResult result;
@@ -205,7 +205,7 @@ namespace Lyra.Data.API
             receiveBlock.InitializeBlock(latestBlock, _signer);
 
             if (!receiveBlock.ValidateTransaction(latestBlock))
-                throw new ApplicationException("ValidateTransaction failed");
+                throw new Exception("ValidateTransaction failed");
 
             //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
 

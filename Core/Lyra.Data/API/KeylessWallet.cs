@@ -113,14 +113,14 @@ namespace Lyra.Data.API
             if (previousBlock.Balances[ticker] < balance_change.ToBalanceLong())
             {
                 return APIResultCodes.InsufficientFunds;
-                //throw new ApplicationException("Insufficient funds");
+                //throw new Exception("Insufficient funds");
             }
 
             // see if we have enough LYR to pay the transfer fee
             if (ticker != LyraGlobal.OFFICIALTICKERCODE)
                 if (!previousBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < fee.ToBalanceLong())
                 {
-                    //throw new ApplicationException("Insufficient funds to pay transfer fee");
+                    //throw new Exception("Insufficient funds to pay transfer fee");
                     return APIResultCodes.InsufficientFunds;
                 }
 
@@ -155,7 +155,7 @@ namespace Lyra.Data.API
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
                 return APIResultCodes.SendTransactionValidationFailed;
-                //throw new ApplicationException("ValidateTransaction failed");
+                //throw new Exception("ValidateTransaction failed");
             }
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
@@ -218,7 +218,7 @@ namespace Lyra.Data.API
             receiveBlock.InitializeBlock(latestBlock, _signer);
 
             if (!receiveBlock.ValidateTransaction(latestBlock))
-                throw new ApplicationException("ValidateTransaction failed");
+                throw new Exception("ValidateTransaction failed");
 
             //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
 
@@ -278,7 +278,7 @@ namespace Lyra.Data.API
             TransactionBlock previousBlock = await GetLatestBlockAsync();
             if (previousBlock == null)
             {
-                //throw new ApplicationException("Previous block not found");
+                //throw new Exception("Previous block not found");
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
             }
 
@@ -331,7 +331,7 @@ namespace Lyra.Data.API
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
-                //throw new ApplicationException("ValidateTransaction failed");
+                //throw new Exception("ValidateTransaction failed");
             }
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
@@ -375,7 +375,7 @@ namespace Lyra.Data.API
             TransactionBlock latestBlock = await GetLatestBlockAsync();
             if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < lastServiceBlock.TokenGenerationFee.ToBalanceLong())
             {
-                //throw new ApplicationException("Insufficent funds");
+                //throw new Exception("Insufficent funds");
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
             }
 

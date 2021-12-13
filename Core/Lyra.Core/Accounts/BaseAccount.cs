@@ -60,7 +60,7 @@
 //        public string CreateAccount(string path, string accountName, AccountTypes accountType)
 //        {
 //            if (AccountExistsLocally(path, accountName))
-//                throw new ApplicationException(String.Format(@"Account with name ""{0}"" already exists", AccountName));
+//                throw new Exception(String.Format(@"Account with name ""{0}"" already exists", AccountName));
 
 //            _storage.Open(path, accountName);
 //            AccountName = accountName;

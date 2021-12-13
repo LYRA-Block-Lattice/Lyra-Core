@@ -166,17 +166,17 @@ namespace Lyra.Core.Blocks
         {
             var result = base.IsBlockValid(prevBlock);
             if (!result)
-                throw new ApplicationException("Base Block Validation Failed");
+                throw new Exception("Base Block Validation Failed");
 
             if (!ValidateTokenName())
-                throw new ApplicationException("Domain Name Validation Failed");
+                throw new Exception("Domain Name Validation Failed");
 
             if (Precision < 0 || Precision > 8)
-                throw new ApplicationException("Precision is out of range");
+                throw new Exception("Precision is out of range");
 
             var Supply = Balances[Ticker];
             if (Supply < 0 || Supply > 90000000000 * LyraGlobal.TOKENSTORAGERITO) // bellow long.maxvalue
-                throw new ApplicationException("Supply is out of range");
+                throw new Exception("Supply is out of range");
 
             return true;
         }
@@ -185,34 +185,34 @@ namespace Lyra.Core.Blocks
         protected virtual bool ValidateStringFields()
         {
             if (Description != null && Description.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Description too long");
+                throw new Exception("Description too long");
 
             if (NonFungibleKey != null && NonFungibleKey.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("NonFungibleKey too long");
+                throw new Exception("NonFungibleKey too long");
 
             if (Owner != null && Owner.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Owner too long");
+                throw new Exception("Owner too long");
 
             if (Address != null && Address.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Address too long");
+                throw new Exception("Address too long");
 
             if (Currency != null && Currency.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Currency too long");
+                throw new Exception("Currency too long");
 
             if (Icon != null && Icon.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Icon too long");
+                throw new Exception("Icon too long");
 
             if (Image != null && Image.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Image too long");
+                throw new Exception("Image too long");
 
             if (Custom1 != null && Custom1.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Custom1 too long");
+                throw new Exception("Custom1 too long");
 
             if (Custom2 != null && Custom2.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Custom2 too long");
+                throw new Exception("Custom2 too long");
 
             if (Custom3 != null && Custom3.Length > MAX_STRING_LENGTH)
-                throw new ApplicationException("Custom3 too long");
+                throw new Exception("Custom3 too long");
 
             return true;
         }
@@ -222,47 +222,47 @@ namespace Lyra.Core.Blocks
         {
             // domain
             if (string.IsNullOrEmpty(this.DomainName))
-                throw new ApplicationException("DomainName is null or empty");
+                throw new Exception("DomainName is null or empty");
 
             // ticker
             if (string.IsNullOrEmpty(this.Ticker))
-                throw new ApplicationException("Ticker is null or empty");
+                throw new Exception("Ticker is null or empty");
 
             if (this.Ticker.Length > 255)
-                throw new ApplicationException("Ticker Length > 255");
+                throw new Exception("Ticker Length > 255");
 
             if (this.Ticker.Length < 3)
-                throw new ApplicationException("Ticker Length < 3");
+                throw new Exception("Ticker Length < 3");
 
             char[] separator = { '/' };
 
             // using the method 
             String[] names = this.Ticker.Split(separator);
             if (names.Length < 2)
-                throw new ApplicationException("Ticker does not contian domain name");
+                throw new Exception("Ticker does not contian domain name");
 
             if (names.Length > 2)
-                throw new ApplicationException("Ticker contians more than one domain name");
+                throw new Exception("Ticker contians more than one domain name");
 
             if (DomainName != names[0])
-                throw new ApplicationException("Domain name mismatch");
+                throw new Exception("Domain name mismatch");
 
             string TokenName = names[1];
 
             if (TokenName.Length < 2)
-                throw new ApplicationException("Token name is too short");
+                throw new Exception("Token name is too short");
 
             //if (this.DomainName.ToLower() == "l" ||
             //    this.DomainName.ToLower() == "ly" ||
             //    this.DomainName.ToLower() == "lyr" ||
             //    this.DomainName.ToLower() == "lyra")
-            //    throw new ApplicationException("Invalid Domain Name");
+            //    throw new Exception("Invalid Domain Name");
 
             //if (DomainName.Length < 4)
-            //    throw new ApplicationException("Domain Name is too short");
+            //    throw new Exception("Domain Name is too short");
 
             //if (DomainName.ToLower() == "graft")
-            //    throw new ApplicationException("Invalid Domain Name");
+            //    throw new Exception("Invalid Domain Name");
 
             return true;
         }
@@ -304,30 +304,30 @@ namespace Lyra.Core.Blocks
         {
             // domain
             if (string.IsNullOrEmpty(this.DomainName))
-                throw new ApplicationException("DomainName is null or empty");
+                throw new Exception("DomainName is null or empty");
 
             // ticker
             if (string.IsNullOrEmpty(this.Ticker))
-                throw new ApplicationException("Ticker is null or empty");
+                throw new Exception("Ticker is null or empty");
 
             if (this.Ticker.Length > 255)
-                throw new ApplicationException("Ticker Length > 255");
+                throw new Exception("Ticker Length > 255");
 
             if (this.Ticker.Length < 3)
-                throw new ApplicationException("Ticker Length < 3");
+                throw new Exception("Ticker Length < 3");
 
             char[] separator = { '.' };
 
             // using the method 
             String[] names = this.Ticker.Split(separator);
             if (names.Length < 2)
-                throw new ApplicationException("Ticker does not contian domain name");
+                throw new Exception("Ticker does not contian domain name");
 
             if (names.Length > 2)
-                throw new ApplicationException("Ticker contians more than one domain name");
+                throw new Exception("Ticker contians more than one domain name");
 
             if (DomainName != names[0])
-                throw new ApplicationException("Domain name mismatch");
+                throw new Exception("Domain name mismatch");
 
             return true;
         }

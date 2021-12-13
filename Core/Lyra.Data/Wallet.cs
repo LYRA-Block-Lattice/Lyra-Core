@@ -699,7 +699,7 @@ namespace Lyra.Core.Accounts
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
             {
-                //throw new ApplicationException("Previous block not found");
+                //throw new Exception("Previous block not found");
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
             }
 
@@ -753,7 +753,7 @@ namespace Lyra.Core.Accounts
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
-                //throw new ApplicationException("ValidateTransaction failed");
+                //throw new Exception("ValidateTransaction failed");
             }
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
@@ -778,7 +778,7 @@ namespace Lyra.Core.Accounts
             TransactionBlock previousBlock = GetLatestBlock();
             if (previousBlock == null)
             {
-                //throw new ApplicationException("Previous block not found");
+                //throw new Exception("Previous block not found");
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.PreviousBlockNotFound };
             }
 
@@ -803,14 +803,14 @@ namespace Lyra.Core.Accounts
             if (previousBlock.Balances[ticker] < balance_change.ToBalanceLong())
             {
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
-                //throw new ApplicationException("Insufficient funds");
+                //throw new Exception("Insufficient funds");
             }
 
             // see if we have enough LYR to pay the transfer fee
             if (ticker != LyraGlobal.OFFICIALTICKERCODE)
                 if (!previousBlock.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || previousBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < fee.ToBalanceLong())
                 {
-                    //throw new ApplicationException("Insufficient funds to pay transfer fee");
+                    //throw new Exception("Insufficient funds to pay transfer fee");
                     return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
                 }
 
@@ -851,7 +851,7 @@ namespace Lyra.Core.Accounts
             if (!sendBlock.ValidateTransaction(previousBlock))
             {
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.SendTransactionValidationFailed };
-                //throw new ApplicationException("ValidateTransaction failed");
+                //throw new Exception("ValidateTransaction failed");
             }
 
             //sendBlock.Signature = Signatures.GetSignature(PrivateKey, sendBlock.Hash);
@@ -1416,7 +1416,7 @@ namespace Lyra.Core.Accounts
 
             if (last_imported_block != null) // only validate if imported account is not empty
                 if (!import_block.ValidateTransaction(previousBlock))
-                    throw new ApplicationException("ValidateTransaction failed");
+                    throw new Exception("ValidateTransaction failed");
 
             import_block.InitializeBlock(previousBlock, PrivateKey, AccountId);
 
@@ -1475,7 +1475,7 @@ namespace Lyra.Core.Accounts
             receiveBlock.InitializeBlock(latestBlock, PrivateKey, AccountId);
 
             if (!receiveBlock.ValidateTransaction(latestBlock))
-                throw new ApplicationException("ValidateTransaction failed");
+                throw new Exception("ValidateTransaction failed");
 
             //receiveBlock.Signature = Signatures.GetSignature(PrivateKey, receiveBlock.Hash);
 
@@ -1589,7 +1589,7 @@ namespace Lyra.Core.Accounts
             TransactionBlock latestBlock = GetLatestBlock();
             if (latestBlock == null || latestBlock.Balances[LyraGlobal.OFFICIALTICKERCODE] < TokenGenerationFee.ToBalanceLong())
             {
-                //throw new ApplicationException("Insufficent funds");
+                //throw new Exception("Insufficent funds");
                 return new AuthorizationAPIResult() { ResultCode = APIResultCodes.InsufficientFunds };
             }
 

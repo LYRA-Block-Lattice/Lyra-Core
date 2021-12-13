@@ -360,7 +360,7 @@ namespace Lyra.Core.API
                     block = null;
                     break;
                 default:
-                    throw new ApplicationException("Unknown block type");
+                    throw new Exception("Unknown block type");
             }
             // here verify block signature. 
             if(block != null && block.VerifyHash())

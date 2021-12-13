@@ -206,15 +206,15 @@ namespace Lyra.Core.Blocks
                 return true;
 
             if (Tags.Count > MAX_TAGS_COUNT)
-                throw new ApplicationException("Too many tags");
+                throw new Exception("Too many tags");
 
             foreach (var tag in Tags)
             {
-                if (string.IsNullOrEmpty(tag.Value) && tag.Value.Length > MAX_STRING_LENGTH)
-                    throw new ApplicationException("Tag value is too long");
+                if (!string.IsNullOrEmpty(tag.Value) && tag.Value.Length > MAX_STRING_LENGTH)
+                    throw new Exception("Tag value is too long");
 
-                if (string.IsNullOrEmpty(tag.Key) && tag.Key.Length > MAX_STRING_LENGTH)
-                    throw new ApplicationException("Tag key is too long");
+                if (!string.IsNullOrEmpty(tag.Key) && tag.Key.Length > MAX_STRING_LENGTH)
+                    throw new Exception("Tag key is too long");
             }
 
             return true;
