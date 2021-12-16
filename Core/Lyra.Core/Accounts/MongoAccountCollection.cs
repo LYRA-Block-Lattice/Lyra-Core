@@ -579,17 +579,22 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<TokenGenesisBlock>> FindTokenGenesisBlocksAsync(string keyword)
         {
-            var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.Eq("BlockType", BlockTypes.TokenGenesis);
-            var result = await _blocks.FindAsync(filterDefinition);
+            //.Where(x => x.AccountID != "LJcP9ztmYqzjbSRsr2sKZ44pSkhqdtUp5g8YbgPQbxNPNf9FuQ93K1FQUSXYxcofZqgV8qgzWYXArjR9w9VPGBbENcS1Z3") // filter out trash token
+            var builder = Builders<TokenGenesisBlock>.Filter;
+            var filterDefinition =
+                builder.And(
+                    builder.Eq("BlockType", BlockTypes.TokenGenesis),
+                    builder.Ne("AccountID", "LJcP9ztmYqzjbSRsr2sKZ44pSkhqdtUp5g8YbgPQbxNPNf9FuQ93K1FQUSXYxcofZqgV8qgzWYXArjR9w9VPGBbENcS1Z3"));
+            var result = await _blocks.OfType< TokenGenesisBlock>()
+                .FindAsync(filterDefinition);
 
             if (string.IsNullOrEmpty(keyword))
             {
-                return result.ToList().Cast<TokenGenesisBlock>().ToList();
+                return result.ToList();
             }
             else
             {
-                return result.ToList().Cast<TokenGenesisBlock>().Where(a => a.Ticker.Contains(keyword)).ToList();
+                return result.ToList().Where(a => a.Ticker.Contains(keyword)).ToList();
             }
         }
 
