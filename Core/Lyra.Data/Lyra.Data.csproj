@@ -12,7 +12,7 @@
     <PackageIcon>lyra_50x50.png</PackageIcon>
     <RepositoryUrl>https://github.com/LYRA-Block-Lattice/Lyra-Core</RepositoryUrl>
     <Configurations>Release;Debug</Configurations>
-    <ReleaseVersion>3.1</ReleaseVersion>
+    <ReleaseVersion>3.1.0.1</ReleaseVersion>
     <PackageIconUrl />
     <Copyright>Lyra Live Inc.</Copyright>
   </PropertyGroup>
