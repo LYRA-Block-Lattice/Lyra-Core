@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Version>3.1.0.0</Version>
+    <Version>3.1.0.5</Version>
     <AssemblyName>lyra.core</AssemblyName>
     <PackageId>lyra.core</PackageId>
     <Authors>lyra.core</Authors>

@@ -15,7 +15,7 @@ namespace Lyra.Core.Authorizers
     public class TokenGenesisAuthorizer : ReceiveTransferAuthorizer
     {
         private readonly List<string> _reservedDomains = new List<string> {
-            "wizard", "official", "tether"
+            "wizard", "official", "tether", "contract"
         };
 
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
