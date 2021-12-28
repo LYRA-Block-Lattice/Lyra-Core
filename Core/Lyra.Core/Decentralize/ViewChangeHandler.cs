@@ -193,7 +193,7 @@ namespace Lyra.Core.Decentralize
                                 await Task.Delay(3000);
                                 _vcTaskMutex.Release();
                             }
-                        });
+                        }).ConfigureAwait(false);
                     }
                 }
                 return;

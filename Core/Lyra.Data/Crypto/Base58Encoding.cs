@@ -144,15 +144,17 @@ namespace Lyra.Data.Crypto
         }
 
         private static byte[] GetCheckSum(byte[] data)
-        {            
-            SHA256 sha256 = new SHA256Managed();
-            byte[] hash1 = sha256.ComputeHash(data);
-            byte[] hash2 = sha256.ComputeHash(hash1);
+        {
+            using (var sha = SHA256.Create())
+            {
+                byte[] hash1 = sha.ComputeHash(data);
+                byte[] hash2 = sha.ComputeHash(hash1);
 
-            var result = new byte[CheckSumSizeInBytes];
-            Buffer.BlockCopy(hash2, 0, result, 0, result.Length);
+                var result = new byte[CheckSumSizeInBytes];
+                Buffer.BlockCopy(hash2, 0, result, 0, result.Length);
 
-            return result;
+                return result;
+            }
         }
     }
 

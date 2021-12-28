@@ -83,7 +83,7 @@ namespace Lyra.Core.Blocks
 
         public static string CalculateHash(string txt)
         {
-            using (SHA256Managed sha = new SHA256Managed())
+            using (var sha = SHA256.Create())
             {
                 byte[] hash_bytes = sha.ComputeHash(Encoding.Unicode.GetBytes(txt));
                 string hash = Base58Encoding.Encode(hash_bytes);

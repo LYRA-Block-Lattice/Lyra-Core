@@ -61,7 +61,7 @@ namespace Friday
 
                       Console.WriteLine($"\n============> TPS: {tps} / 10\n");
                   }
-              });
+              }).ConfigureAwait(false);
 
             var all = await tt.RefreshBalancesAsync(wallets.Select(a => a.Value).ToArray());
             File.WriteAllText(workingFolder + @"\balances.json", JsonConvert.SerializeObject(all));

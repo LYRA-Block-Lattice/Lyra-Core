@@ -63,7 +63,7 @@ namespace Lyra.Node
                             }
                         }
                     }
-                });
+                }).ConfigureAwait(false);
             }
 
             _instances?.TryAdd(this.GetHashCode(), this);

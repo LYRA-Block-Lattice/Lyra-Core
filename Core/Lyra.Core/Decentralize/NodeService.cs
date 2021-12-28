@@ -91,7 +91,7 @@ namespace Lyra.Core.Decentralize
                     Settings.Default.LyraNode.Lyra.Database.DatabaseName);
                 var localNode = DagSystem.ActorSystem.ActorOf(Neo.Network.P2P.LocalNode.Props());
                 Dag = new DagSystem(_hostEnv, store, PosWallet, localNode);
-                _ = Task.Run(async () => await Dag.StartAsync());
+                _ = Task.Run(async () => await Dag.StartAsync()).ConfigureAwait(false);
                 await Task.Delay(30000);
 
                 if (_db == null)

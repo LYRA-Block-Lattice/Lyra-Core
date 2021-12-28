@@ -163,7 +163,7 @@ namespace Lyra.Core.Decentralize
 
                             await AuthorizeAsync(msg);
                             _localAuthState = LocalAuthState.Finished;
-                        });
+                        }).ConfigureAwait(false);
                     }
                 }
             }

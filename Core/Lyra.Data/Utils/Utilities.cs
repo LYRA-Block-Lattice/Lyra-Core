@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Lyra.Data
@@ -96,21 +97,25 @@ namespace Lyra.Data
 
         public static string Sha256(string randomString)
         {
-            var crypt = new System.Security.Cryptography.SHA256Managed();
-            var hash = new System.Text.StringBuilder();
-            byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(randomString));
-            foreach (byte theByte in crypto)
+            using (var sha = SHA256.Create())
             {
-                hash.Append(theByte.ToString("x2"));
+                var hash = new System.Text.StringBuilder();
+                byte[] crypto = sha.ComputeHash(Encoding.UTF8.GetBytes(randomString));
+                foreach (byte theByte in crypto)
+                {
+                    hash.Append(theByte.ToString("x2"));
+                }
+                return hash.ToString();
             }
-            return hash.ToString();
         }
 
         public static int Sha256Int(string randomString)
         {
-            var crypt = new System.Security.Cryptography.SHA256Managed();
-            byte[] crypto = crypt.ComputeHash(Encoding.UTF8.GetBytes(randomString));
-            return BitConverter.ToUInt16(crypto, 0);
+            using (var sha = SHA256.Create())
+            {
+                byte[] crypto = sha.ComputeHash(Encoding.UTF8.GetBytes(randomString));
+                return BitConverter.ToUInt16(crypto, 0);
+            }
         }
     }
 }

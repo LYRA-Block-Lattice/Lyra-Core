@@ -247,7 +247,7 @@ namespace Lyra.Core.Accounts
                 {
                     _log.LogError("In create index: " + e.ToString());
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         public async Task UpdateStatsAsync()

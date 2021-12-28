@@ -525,8 +525,8 @@ namespace Lyra.Data.API
         public FeeStats GetFeeStats()
         {
             FeeStats result = null;
-            var t = Task.Run(async () => { result = await SeedClient.GetFeeStatsAsync(); });
-            Task.WaitAll(t);
+            var t = Task.Run(async () => { result = await SeedClient.GetFeeStatsAsync(); }).ConfigureAwait(false);
+            t.GetAwaiter().GetResult();
             return result;
         }
 

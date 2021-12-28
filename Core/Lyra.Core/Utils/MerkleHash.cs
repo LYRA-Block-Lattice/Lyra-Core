@@ -65,8 +65,8 @@ namespace Clifton.Blockchain
 
         public void ComputeHash(byte[] buffer)
         {
-            SHA256 sha256 = SHA256.Create();
-            SetHash(sha256.ComputeHash(buffer));
+            using (var sha = SHA256.Create())
+                SetHash(sha.ComputeHash(buffer));
         }
 
         public void SetHash(byte[] hash)

@@ -101,6 +101,11 @@ namespace Lyra.Core.Accounts
         //        Console.Write(s1, s2);
         //}
 
+        public void SetClient(ILyraAPI client)
+        {
+            _rpcClient = client;
+        }
+
         public static string GetFullFolderName(string NetworkId, string FolderName)
         {
             return $"{Utilities.GetLyraDataDir(NetworkId, LyraGlobal.OFFICIALDOMAIN)}{Utilities.PathSeperator}{FolderName}{Utilities.PathSeperator}";
@@ -254,6 +259,12 @@ namespace Lyra.Core.Accounts
                 PrintConLine("Exception in SyncServiceChain(): " + e.Message);
                 return APIResultCodes.UnknownError;
             }
+        }
+
+        public async Task<bool> GetPendingRecvAsync()
+        {
+            var lookup_result = await _rpcClient.LookForNewTransfer2Async(AccountId, SignAPICall());
+            return lookup_result.Successful();
         }
 
         private async Task<APIResultCodes> SyncIncomingTransfersAsync()

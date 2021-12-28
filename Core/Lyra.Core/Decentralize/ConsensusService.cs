@@ -161,7 +161,7 @@ namespace Lyra.Core.Decentralize
                                         await Task.Delay(10000);
                                     _creatingSvcBlock = false;
                                 }
-                            });
+                            }).ConfigureAwait(false);
                         }
                     }
 
@@ -748,7 +748,7 @@ namespace Lyra.Core.Decentralize
                             await Task.Delay(2000);
                         }
                     }
-                }))
+                }).ConfigureAwait(false))
                 .PermitReentry(BlockChainTrigger.QueryingConsensusNode)
                 .Permit(BlockChainTrigger.ConsensusBlockChainEmpty, BlockChainState.Genesis)
                 .Permit(BlockChainTrigger.ConsensusNodesInitSynced, BlockChainState.Engaging);
@@ -782,7 +782,7 @@ namespace Lyra.Core.Decentralize
                         // wait for genesis to finished.
                         await Task.Delay(360000);
                     }
-                }))
+                }).ConfigureAwait(false))
                 .Permit(BlockChainTrigger.GenesisDone, BlockChainState.Almighty);
 
             _stateMachine.Configure(BlockChainState.Engaging)
@@ -802,7 +802,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 await _stateMachine.FireAsync(BlockChainTrigger.LocalNodeFullySynced);
                             }
-                        });
+                        }).ConfigureAwait(false);
                     })
                 .Permit(BlockChainTrigger.LocalNodeFullySynced, BlockChainState.Almighty);
 
@@ -811,7 +811,7 @@ namespace Lyra.Core.Decentralize
                 {
                     var lsb = await _sys.Storage.GetLastServiceBlockAsync();
                     _viewChangeHandler.ShiftView(lsb.Height + 1);
-                }))
+                }).ConfigureAwait(false))
                 .Permit(BlockChainTrigger.LocalNodeOutOfSync, BlockChainState.Engaging)         // make a quick recovery
                 .Permit(BlockChainTrigger.LocalNodeMissingBlock, BlockChainState.Engaging);
 
@@ -1654,7 +1654,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 ExecuteBlueprint(x.bp, "New Elected Leader");
                             }
-                        });
+                        }).ConfigureAwait(false);
                     }
 
                     /*
@@ -1711,7 +1711,7 @@ namespace Lyra.Core.Decentralize
                             _svcQueue.Clean();
                             allLeaderTasks = _svcQueue.AllTx.OrderBy(x => x.TimeStamp).ToList();
                             _log.LogInformation($"This new leader still have {allLeaderTasks.Count} leader tasks in queue.");
-                        });
+                        }).ConfigureAwait(false);
                     }*/
                 }
 
@@ -1719,7 +1719,7 @@ namespace Lyra.Core.Decentralize
             }
             else if (block is ConsolidationBlock && CurrentState == BlockChainState.Genesis)
             {
-                _ = Task.Run(async () => { await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone); });
+                _ = Task.Run(async () => { await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone); }).ConfigureAwait(false);
             }
 
             //if (block is SendTransferBlock send &&
@@ -1831,7 +1831,7 @@ namespace Lyra.Core.Decentralize
                         _log.LogInformation("Executing blueprints Done.");
                         _pfTaskMutex.Release();
                     }
-                });
+                }).ConfigureAwait(false);
             }
         }
 
@@ -1920,7 +1920,7 @@ namespace Lyra.Core.Decentralize
                             _pfTaskMutex.Release();
                         }
                     }
-                });
+                }).ConfigureAwait(false);
             }
             else
             {
@@ -2006,7 +2006,7 @@ namespace Lyra.Core.Decentralize
                     await OnHeartBeatAsync(chat as HeartBeatMessage);
                     break;
                 case ChatMessageType.NodeUp:
-                    await Task.Run(async () => { await OnNodeUpAsync(chat); });
+                    await Task.Run(async () => { await OnNodeUpAsync(chat); }).ConfigureAwait(false);
                     break;
                 //case ChatMessageType.NodeStatusInquiry:
                 //    var status = await GetNodeStatusAsync();

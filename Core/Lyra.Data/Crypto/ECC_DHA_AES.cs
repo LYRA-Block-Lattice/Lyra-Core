@@ -116,7 +116,7 @@ namespace Lyra.Data.Crypto
 
             var sharedSecret = dh.CalculateAgreement(publicKeyParameters);
 
-            using (SHA256Managed sha = new SHA256Managed())
+            using (var sha = SHA256.Create())
             {
                 var hash = sha.ComputeHash(sharedSecret.ToByteArray());
                 return hash;
