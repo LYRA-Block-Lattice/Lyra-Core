@@ -1746,7 +1746,7 @@ namespace Lyra.Core.Decentralize
                 {
                     // make sure database is healthy
                     var dbblks = await _sys.Storage.GetBlockCountAsync();
-                    if(cons.totalBlockCount + 1 != dbblks)
+                    if(cons.totalBlockCount + 1 > dbblks)
                     {
                         _ = Task.Run(async () => { await DBCCAsync(); }).ConfigureAwait(false);
                     }
