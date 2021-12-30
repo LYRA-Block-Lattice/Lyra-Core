@@ -434,6 +434,118 @@ namespace Lyra.Core.Decentralize
             await BeginChangeViewAsync("consensus network", ViewChangeReason.TooManyViewChangeRquests);
         }
 
+        private bool InDBCC = false;
+        private async Task<bool> DBCCAsync()
+        {
+            if (InDBCC)
+                return true;
+
+            InDBCC = true;
+            try
+            {
+                _log.LogInformation($"Database consistent check... It may take a while.");
+
+                var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
+                await client.InitAsync();
+
+                var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
+                var fixedHeight = lastCons?.Height ?? 0;
+                var shouldReset = false;
+
+                var localSafeCons = LocalDbSyncState.Load().lastVerifiedConsHeight;
+                for (long i = lastCons == null ? 0 : lastCons.Height; i >= localSafeCons; i--)
+                {
+                    bool missingBlock = false;
+
+                    if (lastCons != null)
+                    {
+                        for (int k = i == 1 ? 0 : 1; k < lastCons.blockHashes.Count; k++)
+                        {
+                            var b = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[k]);
+                            if (b == null)
+                            {
+                                _log.LogCritical($"DBCC: missing block: {lastCons.blockHashes[k]}");
+                                missingBlock = true;
+                            }
+                        }
+                    }
+
+                    ConsolidationBlock nextCons = null;
+                    if (i > 1)
+                    {
+                        nextCons = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[0]) as ConsolidationBlock;
+                        if (nextCons == null)
+                        {
+                            _log.LogCritical($"DBCC: missing consolidation block: {lastCons.Height - 1} {lastCons.blockHashes[0]}");
+                            missingBlock = true;
+                        }
+                        else
+                        {
+                            var allBlocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRangeAsync(nextCons.TimeStamp, lastCons.TimeStamp);
+                            var extras = allBlocksInTimeRange.Where(a => !lastCons.blockHashes.Contains(a));
+                            if (extras.Any())
+                            {
+                                _log.LogCritical($"Found extra blocks in cons range {nextCons.Height} to {lastCons.Height}");
+
+                                foreach (var extraHash in extras)
+                                {
+                                    _log.LogCritical($"Found extra block {extraHash} in cons range {nextCons.Height} to {lastCons.Height}");
+                                    await _sys.Storage.RemoveBlockAsync(extraHash);
+                                    _log.LogInformation("Extra block removed.");
+                                }
+                                i++;
+                                continue;
+                            }
+                        }
+                    }
+
+                    if (missingBlock)
+                    {
+                        _log.LogInformation($"DBCC: Fixing database...");
+                        var consSyncResult = await SyncAndVerifyConsolidationBlockAsync(client, lastCons);
+                        if (consSyncResult)
+                            i++;
+                        else
+                        {
+                            // reset aggregated client
+                            shouldReset = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (i == 1)
+                            break;
+
+                        lastCons = nextCons;
+                    }
+                }
+
+                if (shouldReset)
+                {
+                    _log.LogInformation($"Database consistent check has problem syncing database. Redo... ");
+                    return false;
+                }
+
+                _log.LogInformation($"Database consistent check is done.");
+                var localState = LocalDbSyncState.Load();
+                if (string.IsNullOrEmpty(localState.svcGenHash) && localState.lastVerifiedConsHeight > 0)
+                {
+                    localState.databaseVersion = LyraGlobal.DatabaseVersion;
+                    var svcGen = await _sys.Storage.GetServiceGenesisBlockAsync();
+                    localState.svcGenHash = svcGen.Hash;
+                }
+                localState.lastVerifiedConsHeight = fixedHeight;
+                LocalDbSyncState.Save(localState);
+
+                return true;
+            }
+            finally
+            {
+                InDBCC = false;
+            }
+        }
+
         private void CreateStateMachine()
         {
             _stateMachine.Configure(BlockChainState.NULL)
@@ -496,108 +608,17 @@ namespace Lyra.Core.Decentralize
                                 _board.AllVoters = _board.PrimaryAuthorizers;
                             }
 
-                            var authorizers = new AuthorizersFactory();
-
-                            var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
-                            await client.InitAsync();
-
                             // DBCC
-                            _log.LogInformation($"Database consistent check... It may take a while.");
-
-                            var lastCons = await _sys.Storage.GetLastConsolidationBlockAsync();
-                            var fixedHeight = lastCons?.Height ?? 0;
-                            var shouldReset = false;
-
-                            var localSafeCons = LocalDbSyncState.Load().lastVerifiedConsHeight;
-                            for (long i = lastCons == null ? 0 : lastCons.Height; i >= localSafeCons; i--)
-                            {
-                                bool missingBlock = false;
-
-                                if (lastCons != null)
-                                {
-                                    for (int k = i == 1 ? 0 : 1; k < lastCons.blockHashes.Count; k++)
-                                    {
-                                        var b = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[k]);
-                                        if (b == null)
-                                        {
-                                            _log.LogCritical($"DBCC: missing block: {lastCons.blockHashes[k]}");
-                                            missingBlock = true;
-                                        }
-                                    }
-                                }
-
-                                ConsolidationBlock nextCons = null;
-                                if (i > 1)
-                                {
-                                    nextCons = await _sys.Storage.FindBlockByHashAsync(lastCons.blockHashes[0]) as ConsolidationBlock;
-                                    if (nextCons == null)
-                                    {
-                                        _log.LogCritical($"DBCC: missing consolidation block: {lastCons.Height - 1} {lastCons.blockHashes[0]}");
-                                        missingBlock = true;
-                                    }
-                                    else
-                                    {
-                                        var allBlocksInTimeRange = await _sys.Storage.GetBlockHashesByTimeRangeAsync(nextCons.TimeStamp, lastCons.TimeStamp);
-                                        var extras = allBlocksInTimeRange.Where(a => !lastCons.blockHashes.Contains(a));
-                                        if (extras.Any())
-                                        {
-                                            _log.LogCritical($"Found extra blocks in cons range {nextCons.Height} to {lastCons.Height}");
-
-                                            foreach (var extraHash in extras)
-                                            {
-                                                _log.LogCritical($"Found extra block {extraHash} in cons range {nextCons.Height} to {lastCons.Height}");
-                                                await _sys.Storage.RemoveBlockAsync(extraHash);
-                                                _log.LogInformation("Extra block removed.");
-                                            }
-                                            i++;
-                                            continue;
-                                        }
-                                    }
-                                }
-
-                                if (missingBlock)
-                                {
-                                    _log.LogInformation($"DBCC: Fixing database...");
-                                    var consSyncResult = await SyncAndVerifyConsolidationBlockAsync(authorizers, client, lastCons);
-                                    if (consSyncResult)
-                                        i++;
-                                    else
-                                    {
-                                        // reset aggregated client
-                                        shouldReset = true;
-                                        break;
-                                    }
-                                }
-                                else
-                                {
-                                    if (i == 1)
-                                        break;
-
-                                    lastCons = nextCons;
-                                }
-                            }
-
-                            if (shouldReset)
-                            {
-                                _log.LogInformation($"Database consistent check has problem syncing database. Redo... ");
+                            if (!await DBCCAsync())
                                 continue;
-                            }
-
-                            _log.LogInformation($"Database consistent check is done.");
-                            var localState = LocalDbSyncState.Load();
-                            if (string.IsNullOrEmpty(localState.svcGenHash) && localState.lastVerifiedConsHeight > 0)
-                            {
-                                localState.databaseVersion = LyraGlobal.DatabaseVersion;
-                                var svcGen = await _sys.Storage.GetServiceGenesisBlockAsync();
-                                localState.svcGenHash = svcGen.Hash;
-                            }
-                            localState.lastVerifiedConsHeight = fixedHeight;
-                            LocalDbSyncState.Save(localState);
 
                             while (true)
                             {
                                 try
                                 {
+                                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
+                                    await client.InitAsync();
+
                                     var result = await client.GetLastServiceBlockAsync();
                                     if (result.ResultCode == APIResultCodes.Success)
                                     {
@@ -1603,7 +1624,7 @@ namespace Lyra.Core.Decentralize
         //    return APIResultCodes.Success;
         //}
 
-        public void Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
+        public async void Worker_OnConsensusSuccess(Block block, ConsensusResult? result, bool localIsGood)
         {
             if(result != ConsensusResult.Uncertain)
                 _successBlockCount++;
@@ -1717,9 +1738,19 @@ namespace Lyra.Core.Decentralize
 
                 return;
             }
-            else if (block is ConsolidationBlock && CurrentState == BlockChainState.Genesis)
+            else if (block is ConsolidationBlock cons)
             {
-                _ = Task.Run(async () => { await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone); }).ConfigureAwait(false);
+                if(CurrentState == BlockChainState.Genesis)
+                    _ = Task.Run(async () => { await _stateMachine.FireAsync(BlockChainTrigger.GenesisDone); }).ConfigureAwait(false);
+                else
+                {
+                    // make sure database is healthy
+                    var dbblks = await _sys.Storage.GetBlockCountAsync();
+                    if(cons.totalBlockCount != dbblks)
+                    {
+                        _ = Task.Run(async () => { await DBCCAsync(); }).ConfigureAwait(false);
+                    }
+                }
             }
 
             //if (block is SendTransferBlock send &&

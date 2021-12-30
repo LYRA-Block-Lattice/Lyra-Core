@@ -122,7 +122,7 @@ namespace Lyra.Core.Decentralize
                             {
                                 var consTarget = block as ConsolidationBlock;
                                 _log.LogInformation($"SyncDatabase: Sync consolidation block {consTarget.Height} of total {lastCons.Height}.");
-                                if (await SyncAndVerifyConsolidationBlockAsync(_authorizers, consensusClient, consTarget))
+                                if (await SyncAndVerifyConsolidationBlockAsync(consensusClient, consTarget))
                                 {
                                     _log.LogInformation($"Consolidation block {consTarget.Height} is OK.");
 
@@ -320,13 +320,13 @@ namespace Lyra.Core.Decentralize
             }
         }
 
-        private async Task<bool> SyncAndVerifyConsolidationBlockAsync(AuthorizersFactory factory, ILyraAPI client, ConsolidationBlock consBlock)
+        private async Task<bool> SyncAndVerifyConsolidationBlockAsync(ILyraAPI client, ConsolidationBlock consBlock)
         {
             _log.LogInformation($"Sync and verify consolidation block height {consBlock.Height}");
 
             foreach(var hash in consBlock.blockHashes)
             {
-                if (!await SyncOneBlockAsync(factory, client, hash))
+                if (!await SyncOneBlockAsync(client, hash))
                     return false;
             }
 
@@ -418,7 +418,7 @@ namespace Lyra.Core.Decentralize
         //    }
         //}
 
-        private async Task<bool> SyncOneBlockAsync(AuthorizersFactory factory, ILyraAPI client, string hash)
+        private async Task<bool> SyncOneBlockAsync(ILyraAPI client, string hash)
         {
             if(null != await _sys.Storage.FindBlockByHashAsync(hash))
                 await _sys.Storage.RemoveBlockAsync(hash);

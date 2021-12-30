@@ -341,6 +341,8 @@ namespace Lyra.Core.Blocks
         DexRecvToken = 74,
         DexWithdrawToken = 75,
         
+        // DAO
+        DaoOrgnization = 80,
     }
 
     public enum APIResultCodes
