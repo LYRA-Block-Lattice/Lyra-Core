@@ -2,6 +2,7 @@
 using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -43,8 +44,16 @@ namespace Lyra.Core.Authorizers
             //    return APIResultCodes.InvalidRelatedTx;
 
             // IBrokerAccount interface
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             var brkauth = new BrokerAccountAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
+
+            stopwatch.Stop();
+            Console.WriteLine($"AuthImpl BrokerAccountAuthorizer uses {stopwatch.ElapsedMilliseconds} ms");
+
             if (brkret.Item1 == APIResultCodes.Success)
                 return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
             else
