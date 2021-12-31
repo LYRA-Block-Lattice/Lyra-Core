@@ -55,7 +55,7 @@ namespace Lyra.Core.Authorizers
             Console.WriteLine($"AuthImpl BrokerAccountAuthorizer uses {stopwatch.ElapsedMilliseconds} ms");
 
             if (brkret.Item1 == APIResultCodes.Success)
-                return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+                return await MeasureAuthAsync("BrokerAccountRecvAuthorizer", base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
             else
                 return brkret.Item1;
         }

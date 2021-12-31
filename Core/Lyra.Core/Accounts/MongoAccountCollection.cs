@@ -664,19 +664,29 @@ namespace Lyra.Core.Accounts
             return block;
         }
 
-        public async Task<Block> FindBlockByHashAsync(string hash)
+        public Task<Block> FindBlockByHashAsync(string hash)
         {
             if (string.IsNullOrEmpty(hash))
-                return null;
+                throw new ArgumentNullException("hash");
 
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-            };
-            var filter = Builders<Block>.Filter.Eq("Hash", hash);
+            var blk = _blocks
+                    .AsQueryable()
+                    .Where(a => a.Hash == hash)
+                    .FirstOrDefault();
 
-            var block = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
-            return block;
+            return Task.FromResult(blk);
+
+            //if (string.IsNullOrEmpty(hash))
+            //    return null;
+
+            //var options = new FindOptions<Block, Block>
+            //{
+            //    Limit = 1,
+            //};
+            //var filter = Builders<Block>.Filter.Eq("Hash", hash);
+
+            //var block = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
+            //return block;
         }
 
         public async Task<Block> FindBlockByHashAsync(string AccountId, string hash)
@@ -807,21 +817,30 @@ namespace Lyra.Core.Accounts
         /// </summary>
         /// <param name="hash"></param>
         /// <returns></returns>
-        public async Task<ReceiveTransferBlock> FindBlockBySourceHashAsync(string hash)
+        public Task<ReceiveTransferBlock> FindBlockBySourceHashAsync(string hash)
         {
-            var builder = Builders<Block>.Filter;
-            var filterDefinition = builder.Eq("SourceHash", hash);
+            var blk = _blocks.OfType<ReceiveTransferBlock>()
+                    .AsQueryable()
+                    .Where(a => a.SourceHash == hash 
+                        && a.BlockType != BlockTypes.OpenAccountWithReceiveFee 
+                        && a.BlockType != BlockTypes.ReceiveFee)
+                    .FirstOrDefault();
 
-            var result = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
+            return Task.FromResult(blk);
 
-            foreach (var block in result)
-            {
-                if (block.BlockType == BlockTypes.OpenAccountWithReceiveFee || block.BlockType == BlockTypes.ReceiveFee)
-                    continue;
-                else
-                    return block as ReceiveTransferBlock;
-            }
-            return null;
+            //var builder = Builders<Block>.Filter;
+            //var filterDefinition = builder.Eq("SourceHash", hash);
+
+            //var result = await (await _blocks.FindAsync(filterDefinition)).ToListAsync();
+
+            //foreach (var block in result)
+            //{
+            //    if (block.BlockType == BlockTypes.OpenAccountWithReceiveFee || block.BlockType == BlockTypes.ReceiveFee)
+            //        continue;
+            //    else
+            //        return block as ReceiveTransferBlock;
+            //}
+            //return null;
         }
 
         public async Task<List<Block>> FindBlocksByRelatedTxAsync(string hash)

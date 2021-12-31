@@ -23,7 +23,7 @@ namespace Lyra.Core.Authorizers
             if (block.Days < 1 || block.Days > 36500)
                 return APIResultCodes.InvalidTimeRange;
 
-            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync("StakingAuthorizer", base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
