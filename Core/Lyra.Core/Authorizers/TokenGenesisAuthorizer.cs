@@ -107,7 +107,7 @@ namespace Lyra.Core.Authorizers
                 }
             }
 
-            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override AuthorizationFeeTypes GetFeeType()
@@ -144,7 +144,7 @@ namespace Lyra.Core.Authorizers
             if (await sys.Storage.FindTokenGenesisBlockAsync(block.Hash, LyraGlobal.OFFICIALTICKERCODE) != null)
                 return APIResultCodes.TokenGenesisBlockAlreadyExists;
 
-            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
     }
 }

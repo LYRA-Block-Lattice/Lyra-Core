@@ -66,7 +66,7 @@ namespace Lyra.Core.Authorizers
 
             //sys.TradeEngine.AddOrder(block);
 
-            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)

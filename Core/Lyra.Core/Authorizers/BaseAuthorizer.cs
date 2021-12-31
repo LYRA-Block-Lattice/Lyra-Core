@@ -57,7 +57,7 @@ namespace Lyra.Core.Authorizers
             return result;
         }
 
-        protected async Task<APIResultCodes> MeasureAuthAsync(string clsName, Task<APIResultCodes> Impl)
+        protected async Task<APIResultCodes> MeasureAuthAsync(string clsName1, string clsName2, Task<APIResultCodes> Impl)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -66,7 +66,7 @@ namespace Lyra.Core.Authorizers
 
             stopwatch.Stop();
 
-            Console.WriteLine($"AuthImpl {clsName} uses {stopwatch.ElapsedMilliseconds} ms");
+            Console.WriteLine($"AuthImpl {clsName1} to {clsName2} uses {stopwatch.ElapsedMilliseconds} ms");
             return ret;
         }
 

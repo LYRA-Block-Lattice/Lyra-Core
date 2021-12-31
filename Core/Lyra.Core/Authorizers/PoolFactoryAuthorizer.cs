@@ -21,7 +21,7 @@ namespace Lyra.Core.Authorizers
             if (await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists;
 
-            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
     }
 }

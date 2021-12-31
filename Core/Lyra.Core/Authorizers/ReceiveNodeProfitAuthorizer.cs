@@ -40,7 +40,7 @@ namespace Lyra.Core.Authorizers
                 block.Balances[LyraGlobal.OFFICIALTICKERCODE] == oldBalance + unSetFees.TotalFees.ToBalanceLong()
                 )
             {
-                return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+                return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
             }
             else
             {

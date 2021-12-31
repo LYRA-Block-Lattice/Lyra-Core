@@ -246,7 +246,7 @@ namespace Lyra.Core.Authorizers
                 }
             }
 
-            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
 
         private async Task<APIResultCodes> VerifyStkPftAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)

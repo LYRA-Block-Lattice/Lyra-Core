@@ -18,7 +18,7 @@ namespace Lyra.Core.Authorizers
             if (block.SourceHash != block.RelatedTx)
                 return APIResultCodes.InvalidRelatedTx;
 
-            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Lyra.Core.Authorizers
             if(block.ShareRito > 0 && block.Seats == 0)
                 return APIResultCodes.InvalidSeatsCount;
 
-            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
     }
 }

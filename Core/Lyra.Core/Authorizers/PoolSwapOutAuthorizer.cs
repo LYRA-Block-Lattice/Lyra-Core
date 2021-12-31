@@ -31,7 +31,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockSequence;
 
 
-            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)

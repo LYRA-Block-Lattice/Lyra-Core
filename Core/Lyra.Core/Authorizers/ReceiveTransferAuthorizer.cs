@@ -81,7 +81,7 @@ namespace Lyra.Core.Authorizers
             if (duplicate_block != null)
                 return APIResultCodes.DuplicateReceiveBlock;
 
-            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
