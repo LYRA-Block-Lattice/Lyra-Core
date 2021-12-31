@@ -667,7 +667,7 @@ namespace Lyra.Core.Accounts
         public Task<Block> FindBlockByHashAsync(string hash)
         {
             if (string.IsNullOrEmpty(hash))
-                throw new ArgumentNullException("hash");
+                return Task.FromResult((Block)null);
 
             var blk = _blocks
                     .AsQueryable()
