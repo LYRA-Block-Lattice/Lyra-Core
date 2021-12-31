@@ -34,7 +34,7 @@ namespace Lyra.Core.Authorizers
             if (processed.Any(a => a is UnStakingBlock))
                 return APIResultCodes.InvalidUnstaking;
 
-            return await base.AuthorizeImplAsync(sys, tblock);
+            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)

@@ -81,7 +81,7 @@ namespace Lyra.Core.Authorizers
                 }
             }
 
-            return await base.AuthorizeImplAsync(sys, tblock);
+            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)

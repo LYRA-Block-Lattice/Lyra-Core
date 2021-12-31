@@ -57,6 +57,19 @@ namespace Lyra.Core.Authorizers
             return result;
         }
 
+        protected async Task<APIResultCodes> MeasureAuthAsync(string clsName, Task<APIResultCodes> Impl)
+        {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            var ret = await Impl;
+
+            stopwatch.Stop();
+
+            Console.WriteLine($"AuthImpl {clsName} uses {stopwatch.ElapsedMilliseconds} ms");
+            return ret;
+        }
+
         protected virtual async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
         {
             if (previousBlock != null)

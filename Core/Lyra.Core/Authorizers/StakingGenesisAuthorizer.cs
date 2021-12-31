@@ -38,7 +38,7 @@ namespace Lyra.Core.Authorizers
             if (block.AccountID != AccountId)
                 return APIResultCodes.InvalidAccountId;
 
-            return await base.AuthorizeImplAsync(sys, tblock);
+            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
     }
 }

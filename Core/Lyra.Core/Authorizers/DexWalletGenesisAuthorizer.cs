@@ -30,7 +30,7 @@ namespace Lyra.Core.Authorizers
             if (ast == null || ast.NetworkProvider != block.ExtProvider)
                 return APIResultCodes.UnsupportedDexToken;
 
-            return await base.AuthorizeImplAsync(sys, tblock);
+            return await MeasureAuthAsync(base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
