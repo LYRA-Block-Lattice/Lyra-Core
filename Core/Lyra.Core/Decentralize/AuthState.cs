@@ -247,6 +247,7 @@ namespace Lyra.Core.Decentralize
             if (_commited)
                 return;
 
+            _commited = true;
             try
             {
                 Done.Set();
@@ -271,8 +272,6 @@ namespace Lyra.Core.Decentralize
                     localResultGood = true;
 
                 OnConsensusSuccess?.Invoke(InputMsg?.Block, CommitConsensus, localResultGood);
-
-                _commited = true;
             }
             catch (Exception exe)
             {

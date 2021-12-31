@@ -1539,10 +1539,22 @@ namespace Lyra.Core.Decentralize
 
             if (block is TransactionBlock tx)
             {
-                //var sameChainBlocks = _activeConsensus.Values
-                //    .Select(x => x.State?.InputMsg.Block as TransactionBlock)
-                //    .Where(a => a?.AccountID == tx.AccountID);
+                var doubleSpend = _activeConsensus.Values
+                    .Where(x => x.State != null && x.State.InputMsg?.Block is TransactionBlock)
+                    .Select(x => new
+                    {
+                        x.State.IsCommited,
+                        x.State.CommitConsensus,
+                        tx = x.State.InputMsg.Block as TransactionBlock
+                    })
+                    .Where(a => !a.IsCommited && a.tx.AccountID == tx.AccountID && a.tx.Height == tx.Height)
+                    .FirstOrDefault();
 
+                if(doubleSpend != null)
+                {
+                    _log.LogWarning($"Double spend dup: {tx.Height} on {tx.AccountID} hash in queue: {doubleSpend.tx.Hash} hash new: {tx.Hash}");
+                    return true;
+                }
                 //// make strict check to ensure all account operations are in serial.
                 //if (sameChainBlocks.Any())
                 //{
