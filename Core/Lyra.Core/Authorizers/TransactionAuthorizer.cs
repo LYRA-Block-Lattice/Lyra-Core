@@ -53,7 +53,7 @@ namespace Lyra.Core.Authorizers
             if (vf != APIResultCodes.Success)
                 return vf;
 
-            return await MeasureAuthAsync("TransactionAuthorizer", base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync("TransactionAuthorizer", "BaseAuthorizer", base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)

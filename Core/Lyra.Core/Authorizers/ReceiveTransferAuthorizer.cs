@@ -98,7 +98,7 @@ namespace Lyra.Core.Authorizers
                 MyElapsedTime("4", _stopwatch.Elapsed);
             }
 
-            return await MeasureAuthAsync("ReceiveTransferAuthorizer", base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync("ReceiveTransferAuthorizer", "TransactionAuthorizer", base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)

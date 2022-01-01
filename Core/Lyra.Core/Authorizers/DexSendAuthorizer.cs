@@ -22,7 +22,7 @@ namespace Lyra.Core.Authorizers
             var brkauth = new DexWalletAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
             if (brkret.Item1 == APIResultCodes.Success)
-                return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+                return await MeasureAuthAsync("DexSendAuthorizer", "BrokerAccountSendAuthorizer", base.AuthorizeImplAsync(sys, tblock));
             else
                 return brkret.Item1;
         }

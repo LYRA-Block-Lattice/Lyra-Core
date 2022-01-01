@@ -30,7 +30,7 @@ namespace Lyra.Core.Authorizers
             if (ast == null || ast.NetworkProvider != block.ExtProvider)
                 return APIResultCodes.UnsupportedDexToken;
 
-            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync("DexWalletGenesisAuthorizer", "DexReceiveAuthorizer", base.AuthorizeImplAsync(sys, tblock));
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)

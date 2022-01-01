@@ -34,7 +34,7 @@ namespace Lyra.Core.Authorizers
 
             //sys.TradeEngine.RemoveOrder(original_order);
 
-            return await MeasureAuthAsync(this.GetType().Name, base.GetType().Name, base.AuthorizeImplAsync(sys, tblock));
+            return await MeasureAuthAsync("CancelTradeOrderAuthorizer", "ReceiveTransferAuthorizer", base.AuthorizeImplAsync(sys, tblock));
         }
 
         // The cancellation should restore the balance that was locked by the trade order.
