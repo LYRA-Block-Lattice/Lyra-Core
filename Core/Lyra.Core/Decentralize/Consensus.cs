@@ -29,7 +29,7 @@ namespace Lyra.Core.Decentralize
                 accountId = _sys.PosWallet.AccountId,
                 version = LyraGlobal.NodeAppName,
                 state = _stateMachine.State,
-                totalBlockCount = lastCons == null ? 0 : lastCons.totalBlockCount + unCons.Count(),
+                totalBlockCount = await _sys.Storage.GetBlockCountAsync(), //lastCons == null ? 0 : lastCons.totalBlockCount + unCons.Count(),
                 lastConsolidationHash = lastCons?.Hash,
                 lastUnSolidationHash = GetUnConsolidatedHash(unCons),
                 activePeers = Board.ActiveNodes.Count,
