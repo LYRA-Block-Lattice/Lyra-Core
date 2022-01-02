@@ -23,14 +23,9 @@ namespace Lyra.Core.Authorizers
             BlockTypes.DexWalletGenesis
         };
 
-        private TimeSpan _pastTimeSpan;
+        
         protected override async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock)
         {
-            var _stopwatch = new Stopwatch();
-            _stopwatch.Start();
-
-            _pastTimeSpan = _stopwatch.Elapsed;
-
             if (!(tblock is ReceiveTransferBlock))
                 return APIResultCodes.InvalidBlockType;
 
@@ -44,7 +39,7 @@ namespace Lyra.Core.Authorizers
             //{
             //    return APIResultCodes.Success;
             //}
-            MyElapsedTime("1", _stopwatch.Elapsed);
+            
             if (block is IOpeningBlock)
             {
                 if (block.Height != 1)
@@ -81,12 +76,8 @@ namespace Lyra.Core.Authorizers
                 }
             }
 
-            MyElapsedTime("2", _stopwatch.Elapsed);
-
             if (await sys.Storage.WasAccountImportedAsync(block.AccountID))
                 return APIResultCodes.CannotModifyImportedAccount;
-
-            MyElapsedTime("3", _stopwatch.Elapsed);
 
             if(block.SourceHash != null)
             {
@@ -94,8 +85,6 @@ namespace Lyra.Core.Authorizers
                 var duplicate_block = await sys.Storage.FindBlockBySourceHashAsync(block.SourceHash);
                 if (duplicate_block != null)
                     return APIResultCodes.DuplicateReceiveBlock;
-
-                MyElapsedTime("4", _stopwatch.Elapsed);
             }
 
             return await MeasureAuthAsync("ReceiveTransferAuthorizer", "TransactionAuthorizer", base.AuthorizeImplAsync(sys, tblock));
@@ -224,18 +213,6 @@ namespace Lyra.Core.Authorizers
             return APIResultCodes.Success;
         }
 
-        private void MyElapsedTime(string tag, TimeSpan ts)
-        {
-            // Get the last TimeSpan
-            TimeSpan pastTimeSpan = _pastTimeSpan;
 
-            // Update last TimeSpan with current
-            _pastTimeSpan = ts;
-
-            // Get difference between two
-            TimeSpan diffTs = ts.Subtract(pastTimeSpan);
-
-            Console.WriteLine($"Elapsed time: {tag}, " + string.Format(" {0}:{1} | Segment took {2}:{3}", Math.Floor(ts.TotalMinutes), ts.ToString("ss\\.ff"), Math.Floor(diffTs.TotalMinutes), diffTs.ToString("ss\\.ff")));
-        }
     }
 }
