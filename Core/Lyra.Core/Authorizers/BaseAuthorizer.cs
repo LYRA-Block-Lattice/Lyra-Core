@@ -52,8 +52,7 @@ namespace Lyra.Core.Authorizers
         protected virtual async Task<APIResultCodes> AuthorizeImplAsync<T>(DagSystem sys, T tblock) where T : Block
         {
             var prevBlock = await sys.Storage.FindBlockByHashAsync(tblock.PreviousHash);
-
-            var result = await VerifyWithPrevAsync(sys, tblock, prevBlock);
+            var result = await StopWatcher.TrackAsync(() => VerifyWithPrevAsync(sys, tblock, prevBlock), "VerifyWithPrevAsync");
             return result;
         }
 
@@ -61,7 +60,8 @@ namespace Lyra.Core.Authorizers
         {
             if (previousBlock != null)
             {
-                if (!block.IsBlockValid(previousBlock))
+                var prevValid = StopWatcher.Track(() => block.IsBlockValid(previousBlock), "block.IsBlockValid");
+                if (!prevValid)
                     return APIResultCodes.InvalidPreviousBlock;
 
                 if (block.Height != previousBlock.Height + 1)

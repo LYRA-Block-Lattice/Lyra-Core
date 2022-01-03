@@ -1006,12 +1006,12 @@ namespace Lyra.Core.Decentralize
                 name = g.Key,
                 times = g.Value.Count(),
                 totalTime = g.Value.Sum(t => t.MS),
-                avgTime = g.Value.Sum(t => t.MS) / g.Value.Count()
+                avgTime = g.Value.Sum(t => (decimal)t.MS) / g.Value.Count()
             })
              .OrderByDescending(b => b.totalTime);
             foreach (var d in q)
             {
-                sbLog.AppendLine($"Total time: {d.totalTime} times: {d.times} avg: {d.avgTime} ms. Method Name: {d.name}  ");
+                sbLog.AppendLine($"Total time: {d.totalTime} times: {d.times} avg: {d.avgTime:N2} ms. Method Name: {d.name}  ");
             }
 
             var info = sbLog.ToString();
