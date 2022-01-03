@@ -448,21 +448,22 @@ namespace Lyra.Core.Accounts
 
         public Task<ServiceBlock> GetLastServiceBlockAsync()
         {
-            var q = _blocks.OfType<ServiceBlock>()
-                .AsQueryable()
-                .OrderByDescending(a => a.Height)
-                .FirstOrDefault();
+            // 31 ms
+            //var q = _blocks.OfType<ServiceBlock>()
+            //    .AsQueryable()
+            //    .OrderByDescending(a => a.Height)
+            //    .FirstOrDefault();
 
-            return Task.FromResult(q);
+            //return Task.FromResult(q);
 
             // 2.5-3.2 ms
-            //var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Service);
+            var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Service);
 
-            //var block = _blocks.Find(filter)
-            //    .SortByDescending(a => a.Height)
-            //    .Limit(1)
-            //    .FirstOrDefault();
-            //return Task.FromResult(block as ServiceBlock);
+            var block = _blocks.Find(filter)
+                .SortByDescending(a => a.Height)
+                .Limit(1)
+                .FirstOrDefault();
+            return Task.FromResult(block as ServiceBlock);
 
             //var filter = Builders<Block>.Filter;
             //var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
@@ -2025,21 +2026,21 @@ namespace Lyra.Core.Accounts
 
         public async Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId)
         {
-            var filter = Builders<Block>.Filter;
-            var filterDefination = filter.Eq("OwnerAccountId", ownerAccountId);
-            var finds = await _blocks.FindAsync(filterDefination);
+            //var filter = Builders<Block>.Filter;
+            //var filterDefination = filter.Eq("OwnerAccountId", ownerAccountId);
+            //var finds = await _blocks.FindAsync(filterDefination);
 
             var q = await _blocks.OfType<ProfitingGenesis>()
                 .FindAsync(a => a.OwnerAccountId == ownerAccountId);
 
-            return await q.ToListAsync();
+            return q.ToList();
         }
 
         public async Task<List<StakingGenesis>> FindAllStakingAccountForOwnerAsync(string ownerAccountId)
         {
-            var filter = Builders<Block>.Filter;
-            var filterDefination = filter.Eq("OwnerAccountId", ownerAccountId);
-            var finds = await _blocks.FindAsync(filterDefination);
+            //var filter = Builders<Block>.Filter;
+            //var filterDefination = filter.Eq("OwnerAccountId", ownerAccountId);
+            //var finds = await _blocks.FindAsync(filterDefination);
 
             var q = await _blocks.OfType<StakingGenesis>()
                 .FindAsync(a => a.OwnerAccountId == ownerAccountId);
