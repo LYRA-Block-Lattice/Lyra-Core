@@ -457,18 +457,24 @@ namespace Lyra.Core.Accounts
             //return await finds.FirstOrDefaultAsync() as ServiceBlock;
         }
 
-        public async Task<ConsolidationBlock> GetLastConsolidationBlockAsync()
+        public Task<ConsolidationBlock> GetLastConsolidationBlockAsync()
         {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Height)
-            };
-            var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
+            //var options = new FindOptions<Block, Block>
+            //{
+            //    Limit = 1,
+            //    Sort = Builders<Block>.Sort.Descending(o => o.Height)
+            //};
+            //var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
 
-            var finds = await _blocks.FindAsync(filter, options);
-            var result = await finds.FirstOrDefaultAsync();
-            return result as ConsolidationBlock;
+            //var finds = await _blocks.FindAsync(filter, options);
+            //var result = await finds.FirstOrDefaultAsync();
+            //return result as ConsolidationBlock;
+
+            var block = _blocks.OfType<ConsolidationBlock>()
+                .AsQueryable()
+                .OrderByDescending(a => a.Height)
+                .FirstOrDefault();
+            return Task.FromResult(block);
         }
 
         // max 30
