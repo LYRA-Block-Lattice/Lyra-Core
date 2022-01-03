@@ -511,29 +511,41 @@ namespace Lyra.Core.Accounts
         //    return result;
         //}
 
-        public async Task<Block> FindLatestBlockAsync()
+        public Task<Block> FindLatestBlockAsync()
         {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.TimeStamp)
-            };
+            //var options = new FindOptions<Block, Block>
+            //{
+            //    Limit = 1,
+            //    Sort = Builders<Block>.Sort.Descending(o => o.TimeStamp)
+            //};
 
-            var result = await (await _blocks.FindAsync(FilterDefinition<Block>.Empty, options)).FirstOrDefaultAsync();
-            return result;
+            //var result = await (await _blocks.FindAsync(FilterDefinition<Block>.Empty, options)).FirstOrDefaultAsync();
+            //return result;
+
+            var blk = _blocks.Find(FilterDefinition<Block>.Empty)
+                .SortByDescending(a => a.TimeStamp)
+                .Limit(1)
+                .FirstOrDefault();
+            return Task.FromResult(blk);
         }
 
-        public async Task<Block> FindLatestBlockAsync(string AccountId)
+        public Task<Block> FindLatestBlockAsync(string AccountId)
         {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Height)
-            };
-            var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
+            var blk = _blocks.Find(Builders<Block>.Filter.Eq("AccountID", AccountId))
+                .SortByDescending(a => a.TimeStamp)
+                .Limit(1)
+                .FirstOrDefault();
+            return Task.FromResult(blk);
 
-            var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
-            return result;
+            //var options = new FindOptions<Block, Block>
+            //{
+            //    Limit = 1,
+            //    Sort = Builders<Block>.Sort.Descending(o => o.Height)
+            //};
+            //var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
+
+            //var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
+            //return result;
         }
 
         public async Task<Block> FindFirstBlockAsync(string AccountId)
@@ -622,7 +634,7 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<bool> WasAccountImportedAsync(string ImportedAccountId)
+        public Task<bool> WasAccountImportedAsync(string ImportedAccountId)
         {
             var p1 = new BsonArray
             {
@@ -633,9 +645,9 @@ namespace Lyra.Core.Accounts
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.And(builder.In("BlockType", p1), builder.And(builder.Eq("ImportedAccountId", ImportedAccountId)));
 
-            var result = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
+            var result = _blocks.Find(filterDefinition).FirstOrDefault();
 
-            return result != null;
+            return Task.FromResult(result != null);
         }
 
         public async Task<bool> WasAccountImportedAsync(string ImportedAccountId, string AccountId)
@@ -861,14 +873,14 @@ namespace Lyra.Core.Accounts
             return await result.ToListAsync();
         }
 
-        public async Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index)
+        public Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index)
         {
             var builder = new FilterDefinitionBuilder<Block>();
             var filterDefinition = builder.And(builder.Eq("AccountID", AccountId),
                 builder.Eq("Height", index));
 
-            var block = await (await _blocks.FindAsync(filterDefinition)).FirstOrDefaultAsync();
-            return block as TransactionBlock;
+            var block = _blocks.Find(filterDefinition).FirstOrDefault();
+            return Task.FromResult(block as TransactionBlock);
         }
 
         public async Task<ServiceBlock> FindServiceBlockByIndexAsync(Int64 index)
@@ -903,7 +915,7 @@ namespace Lyra.Core.Accounts
             return await result.FirstOrDefaultAsync();
         }
 
-        private async Task<ReceiveTransferBlock> FindLastReceiveBlockAsync(string AccountId)
+        private ReceiveTransferBlock FindLastReceiveBlock(string AccountId)
         {
             // must exclude token genesis
             // fees also has no sourcehash. consider it.
@@ -918,10 +930,13 @@ namespace Lyra.Core.Accounts
                 builder1.Eq("AccountID", AccountId),
                 builder1.Ne<string>("SourceHash", null));   // filter tokengenesis and receive node fee block
 
-            var finds = await _blocks.OfType<ReceiveTransferBlock>()
-                .FindAsync(filterDefinition1, options);
+            var finds = _blocks.OfType<ReceiveTransferBlock>()
+                .Find(filterDefinition1)
+                .SortByDescending(a => a.Height)
+                .Limit(1)
+                .FirstOrDefault();
 
-            return await finds.FirstOrDefaultAsync();
+            return finds;
         }
 
         public async Task<SendTransferBlock> FindUnsettledSendBlockAsync(string AccountId)
@@ -957,10 +972,10 @@ namespace Lyra.Core.Accounts
             // will implement deep scan in future.
             // get last settled receive block
             var timeToScan = DateTime.MinValue;
-            var lastRecvBlock = await FindLastReceiveBlockAsync(AccountId);
+            var lastRecvBlock = FindLastReceiveBlock(AccountId);
             if (lastRecvBlock != null)
             {
-                var send = await FindBlockByHashAsync(lastRecvBlock.SourceHash);
+                var send = FindBlockByHash(lastRecvBlock.SourceHash);
                 if(send != null)    // genesis has no send
                     timeToScan = send.TimeStamp;
             }
@@ -1146,7 +1161,7 @@ namespace Lyra.Core.Accounts
         public async Task<decimal> GetPendingReceiveAsync(string accountId)
         {
             var timeToScan = DateTime.MinValue;
-            var lastRecvBlock = await FindLastReceiveBlockAsync(accountId);
+            var lastRecvBlock = FindLastReceiveBlock(accountId);
             if (lastRecvBlock != null)
             {
                 var send = await FindBlockByHashAsync(lastRecvBlock.SourceHash);
@@ -1357,7 +1372,7 @@ namespace Lyra.Core.Accounts
         {
             //_log.LogInformation($"AddBlockAsync InsertOneAsync: {block.Height} {block.Hash}");
 
-            if (await FindBlockByHashAsync(block.Hash) != null)
+            if (FindBlockByHash(block.Hash) != null)
             {
                 _log.LogWarning("AccountCollection=>AddBlock: Block with such Hash already exists!");
                 return false;
@@ -1374,7 +1389,7 @@ namespace Lyra.Core.Accounts
 
             try
             {
-                await _blocks.InsertOneAsync(block);
+                _blocks.InsertOne(block);
                 return true;
             }
             catch(Exception e)
