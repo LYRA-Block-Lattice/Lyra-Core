@@ -813,7 +813,30 @@ namespace Lyra.Core.Decentralize
                         {
                             try
                             {
-                                await EngagingSyncAsync();
+                                while (true)
+                                {
+                                    await EngagingSyncAsync();
+
+                                    // check block count
+                                    // if total block count is not consistant according to majority of nodes, there must be a damage.
+                                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true, _sys.PosWallet.AccountId);
+                                    await client.InitAsync();
+                                    var syncstate = await client.GetSyncStateAsync();
+                                    var mysyncstate = await GetNodeStatusAsync();
+                                    if(syncstate.Successful())
+                                    {
+                                        if (syncstate.Status.totalBlockCount == mysyncstate.totalBlockCount)
+                                            break;
+                                    }
+
+                                    // reset the dbcc counter
+                                    var localState = LocalDbSyncState.Load();
+                                    localState.lastVerifiedConsHeight = 1;
+                                    LocalDbSyncState.Save(localState);
+
+                                    _log.LogWarning("Can't make sure database consistence");
+                                    await Task.Delay(10000);
+                                }
                             }
                             catch (Exception e)
                             {
