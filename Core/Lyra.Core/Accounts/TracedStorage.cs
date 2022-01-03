@@ -61,12 +61,12 @@ namespace Lyra.Core.Accounts
 
         public TransactionBlock FindFirstBlock(string AccountId)
         {
-            return StopWatcher.Track(() => _store.FindFirstBlock(AccountId), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.FindFirstBlock(AccountId), "FindFirstBlock");
         }
 
         public Block FindBlockByHash(string hash)
         {
-            return StopWatcher.Track(() => _store.FindBlockByHash(hash), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.FindBlockByHash(hash), "FindBlockByHash");
         }
 
         public Task<List<NonFungibleToken>> GetIssuedNFTInstancesAsync(bool GetOnlySendBlocks, string AccountId, string TokenCode)
@@ -131,17 +131,17 @@ namespace Lyra.Core.Accounts
 
         public TradeBlock FindUnexecutedTrade(string AccountId, string BuyTokenCode, string SellTokenCode)
         {
-            return StopWatcher.Track(() => _store.FindUnexecutedTrade(AccountId, BuyTokenCode, SellTokenCode), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.FindUnexecutedTrade(AccountId, BuyTokenCode, SellTokenCode), "FindUnexecutedTrade");
         }
 
         public List<TradeOrderBlock> GetTradeOrderBlocks()
         {
-            return StopWatcher.Track(() => _store.GetTradeOrderBlocks(), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetTradeOrderBlocks(), "GetTradeOrderBlocks");
         }
 
         public long GetCurrentView()
         {
-            return StopWatcher.Track(() => _store.GetCurrentView(), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetCurrentView(), "GetCurrentView");
         }
 
         public Task<List<TradeOrderBlock>> GetSellTradeOrdersForTokenAsync(string BuyTokenCode)
@@ -156,12 +156,12 @@ namespace Lyra.Core.Accounts
 
         public List<string> GetTradeOrderCancellations()
         {
-            return StopWatcher.Track(() => _store.GetTradeOrderCancellations(), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetTradeOrderCancellations(), "GetTradeOrderCancellations");
         }
 
         public List<string> GetExecutedTradeOrderBlocks()
         {
-            return StopWatcher.Track(() => _store.GetExecutedTradeOrderBlocks(), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetExecutedTradeOrderBlocks(), "GetExecutedTradeOrderBlocks");
         }
 
         public Task<CancelTradeOrderBlock> GetCancelTradeOrderBlockAsync(string TradeOrderId)
@@ -176,17 +176,17 @@ namespace Lyra.Core.Accounts
 
         public List<Voter> GetVoters(List<string> posAccountIds, DateTime endTime)
         {
-            return StopWatcher.Track(() => _store.GetVoters(posAccountIds, endTime), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetVoters(posAccountIds, endTime), "GetVoters");
         }
 
         public List<Vote> FindVotes(List<string> posAccountIds, DateTime endTime)
         {
-            return StopWatcher.Track(() => _store.FindVotes(posAccountIds, endTime), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.FindVotes(posAccountIds, endTime), "FindVotes");
         }
 
         public FeeStats GetFeeStats()
         {
-            return StopWatcher.Track(() => _store.GetFeeStats(), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetFeeStats(), "GetFeeStats");
         }
 
         public Task<List<Block>> GetBlocksByTimeRangeAsync(DateTime startTime, DateTime endTime)
@@ -216,7 +216,7 @@ namespace Lyra.Core.Accounts
 
         public PoolGenesisBlock GetPoolByID(string poolid)
         {
-            return StopWatcher.Track(() => _store.GetPoolByID(poolid), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetPoolByID(poolid), "GetPoolByID");
         }
 
         public Task<PoolGenesisBlock> GetPoolAsync(string token0, string token1)
@@ -246,7 +246,7 @@ namespace Lyra.Core.Accounts
 
         public BrokerBlueprint GetBlueprint(string relatedTx)
         {
-            return StopWatcher.Track(() => _store.GetBlueprint(relatedTx), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetBlueprint(relatedTx), "GetBlueprint");
         }
 
         public void RemoveBlueprint(string hash)
@@ -256,12 +256,12 @@ namespace Lyra.Core.Accounts
 
         public long UpdateBlueprint(BrokerBlueprint bp)
         {
-            return StopWatcher.Track(() => _store.UpdateBlueprint(bp), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.UpdateBlueprint(bp), "UpdateBlueprint");
         }
 
         public List<BrokerBlueprint> GetAllBlueprints()
         {
-            return StopWatcher.Track(() => _store.GetAllBlueprints(), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.GetAllBlueprints(), "GetAllBlueprints");
         }
 
         public Task<List<Profiting>> FindAllProfitingAccountsAsync(DateTime begin, DateTime end)
@@ -271,7 +271,7 @@ namespace Lyra.Core.Accounts
 
         public List<Staker> FindAllStakings(string pftid, DateTime timeBefore)
         {
-            return StopWatcher.Track(() => _store.FindAllStakings(pftid, timeBefore), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.FindAllStakings(pftid, timeBefore), "FindAllStakings");
         }
 
         public Task<List<ProfitingGenesis>> FindAllProfitingAccountForOwnerAsync(string ownerAccountId)
@@ -281,7 +281,7 @@ namespace Lyra.Core.Accounts
 
         public ProfitingGenesis FindProfitingAccountsByName(string Name)
         {
-            return StopWatcher.Track(() => _store.FindProfitingAccountsByName(Name), StopWatcher.GetCurrentMethod());
+            return StopWatcher.Track(() => _store.FindProfitingAccountsByName(Name), "FindProfitingAccountsByName");
         }
 
         public Task<List<StakingGenesis>> FindAllStakingAccountForOwnerAsync(string ownerAccountId)
