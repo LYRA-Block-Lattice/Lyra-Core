@@ -459,6 +459,7 @@ namespace Lyra.Core.Accounts
 
         public Task<ConsolidationBlock> GetLastConsolidationBlockAsync()
         {
+            // 16 ms
             //var options = new FindOptions<Block, Block>
             //{
             //    Limit = 1,
@@ -470,11 +471,20 @@ namespace Lyra.Core.Accounts
             //var result = await finds.FirstOrDefaultAsync();
             //return result as ConsolidationBlock;
 
-            var block = _blocks.OfType<ConsolidationBlock>()
-                .AsQueryable()
-                .OrderByDescending(a => a.Height)
+            // 11 ms
+            //var block = _blocks.OfType<ConsolidationBlock>()
+            //    .AsQueryable()
+            //    .OrderByDescending(a => a.Height)
+            //    .FirstOrDefault();
+            //return Task.FromResult(block);
+
+            var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
+
+            var block = _blocks.Find(filter)
+                .SortByDescending(a => a.Height)
+                .Limit(1)
                 .FirstOrDefault();
-            return Task.FromResult(block);
+            return Task.FromResult(block as ConsolidationBlock);
         }
 
         // max 30
