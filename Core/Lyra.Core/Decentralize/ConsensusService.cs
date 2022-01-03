@@ -829,12 +829,13 @@ namespace Lyra.Core.Decentralize
                                             break;
                                     }
 
+                                    _log.LogWarning("Can't make sure database consistence. forced to do a full DBCC.");
                                     // reset the dbcc counter
                                     var localState = LocalDbSyncState.Load();
                                     localState.lastVerifiedConsHeight = 1;
                                     LocalDbSyncState.Save(localState);
 
-                                    _log.LogWarning("Can't make sure database consistence");
+                                    await DBCCAsync();
                                     await Task.Delay(10000);
                                 }
                             }
