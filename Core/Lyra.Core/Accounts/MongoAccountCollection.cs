@@ -440,18 +440,21 @@ namespace Lyra.Core.Accounts
             return q;
         }
 
-        public async Task<ServiceBlock> GetLastServiceBlockAsync()
+        public Task<ServiceBlock> GetLastServiceBlockAsync()
         {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-                Sort = Builders<Block>.Sort.Descending(o => o.Height)
-            };
-            var filter = Builders<Block>.Filter;
-            var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
+            var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Service);
 
-            var finds = await _blocks.FindAsync(filterDefination, options);
-            return await finds.FirstOrDefaultAsync() as ServiceBlock;
+            var block = _blocks.Find(filter)
+                .SortByDescending(a => a.Height)
+                .Limit(1)
+                .FirstOrDefault();
+            return Task.FromResult(block as ServiceBlock);
+
+            //var filter = Builders<Block>.Filter;
+            //var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
+
+            //var finds = await _blocks.FindAsync(filterDefination, options);
+            //return await finds.FirstOrDefaultAsync() as ServiceBlock;
         }
 
         public async Task<ConsolidationBlock> GetLastConsolidationBlockAsync()
@@ -666,15 +669,15 @@ namespace Lyra.Core.Accounts
 
         public Task<Block> FindBlockByHashAsync(string hash)
         {
-            if (string.IsNullOrEmpty(hash))
-                return Task.FromResult((Block)null);
+            //if (string.IsNullOrEmpty(hash))
+            //    return Task.FromResult((Block)null);
 
-            var blk = _blocks
-                    .AsQueryable()
-                    .Where(a => a.Hash == hash)
-                    .FirstOrDefault();
+            //var blk = _blocks
+            //        .AsQueryable()
+            //        .Where(a => a.Hash == hash)
+            //        .FirstOrDefault();
 
-            return Task.FromResult(blk);
+            return Task.FromResult(FindBlockByHash(hash));
 
             //if (string.IsNullOrEmpty(hash))
             //    return null;
@@ -1596,17 +1599,26 @@ namespace Lyra.Core.Accounts
             return await result.ToListAsync();
         }
 
-        public async Task<List<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
+        public Task<List<string>> GetBlockHashesByTimeRangeAsync(DateTime startTime, DateTime endTime)
         {
-            var options = new FindOptions<Block, BsonDocument>
-            {
-                Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
-                Projection = Builders<Block>.Projection.Include(a => a.Hash)
-            };
             var builder = Builders<Block>.Filter;
             var filter = builder.And(builder.Gte("TimeStamp.Ticks", startTime.Ticks), builder.Lt("TimeStamp.Ticks", endTime.Ticks));
-            var result = await _blocks.FindAsync(filter, options);
-            return (await result.ToListAsync()).Select(a => a["Hash"].AsString).ToList();
+            var q = _blocks.Find(filter)
+                .SortBy(o => o.TimeStamp)
+                .Project(a => a.Hash)
+                .ToList();
+
+            return Task.FromResult(q);
+
+            //var options = new FindOptions<Block, BsonDocument>
+            //{
+            //    Sort = Builders<Block>.Sort.Ascending(o => o.TimeStamp),
+            //    Projection = Builders<Block>.Projection.Include(a => a.Hash)
+            //};
+            //var builder = Builders<Block>.Filter;
+            //var filter = builder.And(builder.Gte("TimeStamp.Ticks", startTime.Ticks), builder.Lt("TimeStamp.Ticks", endTime.Ticks));
+            //var result = await _blocks.FindAsync(filter, options);
+            //return (await result.ToListAsync()).Select(a => a["Hash"].AsString).ToList();
         }
 
         private class VoteInfo
