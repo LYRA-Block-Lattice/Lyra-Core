@@ -474,6 +474,14 @@ namespace Lyra.Core.Accounts
 
         public Task<ConsolidationBlock> GetLastConsolidationBlockAsync()
         {
+            var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
+
+            var block = _blocks.Find(filter)
+                .SortByDescending(a => a.Height)
+                .Limit(1)
+                .FirstOrDefault();
+            return Task.FromResult(block as ConsolidationBlock);
+
             // 16 ms
             //var options = new FindOptions<Block, Block>
             //{
@@ -487,11 +495,11 @@ namespace Lyra.Core.Accounts
             //return result as ConsolidationBlock;
 
             // 11 ms
-            var block = _blocks.OfType<ConsolidationBlock>()
-                .AsQueryable()
-                .OrderByDescending(a => a.Height)
-                .FirstOrDefault();
-            return Task.FromResult(block);
+            //var block = _blocks.OfType<ConsolidationBlock>()
+            //    .AsQueryable()
+            //    .OrderByDescending(a => a.Height)
+            //    .FirstOrDefault();
+            //return Task.FromResult(block);
 
             // 16 ms
             //var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
@@ -580,17 +588,20 @@ namespace Lyra.Core.Accounts
             //return result;
         }
 
-        public async Task<Block> FindFirstBlockAsync(string AccountId)
+        public Task<Block> FindFirstBlockAsync(string AccountId)
         {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1,
-                Sort = Builders<Block>.Sort.Ascending(o => o.Height)
-            };
+            //var options = new FindOptions<Block, Block>
+            //{
+            //    Limit = 1,
+            //    Sort = Builders<Block>.Sort.Ascending(o => o.Height)
+            //};
             var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
 
-            var result = await (await _blocks.FindAsync(filter, options)).FirstOrDefaultAsync();
-            return result;
+            var result = _blocks.Find(filter)
+                .SortBy(a => a.Height)
+                .Limit(1)
+                .FirstOrDefault();
+            return Task.FromResult(result);
         }
 
         public TransactionBlock FindFirstBlock(string AccountId)
@@ -850,13 +861,15 @@ namespace Lyra.Core.Accounts
             return null;
         }
 
-        public async Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash)
+        public Task<TransactionBlock> FindBlockByPreviousBlockHashAsync(string previousBlockHash)
         {
             var builder = Builders<Block>.Filter;
             var filterDefinition = builder.Eq("PreviousHash", previousBlockHash);
-            var result = await _blocks.FindAsync(filterDefinition);
+            var result = _blocks.Find(filterDefinition)
+                .Limit(1)
+                .FirstOrDefault();
 
-            return await result.FirstOrDefaultAsync() as TransactionBlock;
+            return Task.FromResult(result as TransactionBlock);
         }
 
         /// <summary>
@@ -890,7 +903,7 @@ namespace Lyra.Core.Accounts
             //return null;
         }
 
-        public async Task<List<Block>> FindBlocksByRelatedTxAsync(string hash)
+        public Task<List<Block>> FindBlocksByRelatedTxAsync(string hash)
         {
             //var options = new FindOptions<Block, Block>
             //{
@@ -899,10 +912,11 @@ namespace Lyra.Core.Accounts
             var builder = new FilterDefinitionBuilder<Block>();
             var filterDefinition = builder.Eq("RelatedTx", hash);
 
-            var result = await _blocks
-                .FindAsync(filterDefinition);
+            var result = _blocks
+                .Find(filterDefinition)
+                .ToList();
 
-            return await result.ToListAsync();
+            return Task.FromResult(result);
         }
 
         public Task<TransactionBlock> FindBlockByIndexAsync(string AccountId, Int64 index)
@@ -1826,14 +1840,13 @@ namespace Lyra.Core.Accounts
             var arrStr = new[] { token0Gen.Ticker, token1Gen.Ticker };
             Array.Sort(arrStr);
 
-            var builder = Builders<PoolGenesisBlock>.Filter;
+            var builder = Builders<Block>.Filter;
             var poolFilter = builder.And(builder.Eq("Token0", arrStr[0]), builder.Eq("Token1", arrStr[1]));
-            var pool = await _blocks.OfType<PoolGenesisBlock>()
-                .Aggregate()
-                .Match(poolFilter)
-                .FirstOrDefaultAsync();
+            var pool = _blocks.Find(poolFilter)
+                .Limit(1)
+                .FirstOrDefault();
 
-            return pool;
+            return pool as PoolGenesisBlock;
         }
 
         public async Task<List<Block>> GetAllBrokerAccountsForOwnerAsync(string ownerAccount)
