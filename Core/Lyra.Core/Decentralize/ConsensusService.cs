@@ -1016,6 +1016,7 @@ namespace Lyra.Core.Decentralize
                 sbLog.AppendLine($"Total time: {d.totalTime} times: {d.times} avg: {d.avgTime:N2} ms max: {d.maxTime} ms min: {d.minTime} ms. Method Name: {d.name}  ");
             }
 
+            sbLog.AppendLine($"Tatal time all call: {q.Sum(a => a.totalTime)}");
             var info = sbLog.ToString();
 
             _log.LogInformation("\n------------------------\n" + sbLog.ToString() + "\n------------------------\\n");
