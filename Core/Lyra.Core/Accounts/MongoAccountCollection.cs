@@ -418,16 +418,22 @@ namespace Lyra.Core.Accounts
             return result;
         }
 
-        public async Task<bool> AccountExistsAsync(string AccountId)
+        public Task<bool> AccountExistsAsync(string AccountId)
         {
-            var options = new FindOptions<Block, Block>
-            {
-                Limit = 1
-            };
+            // 5ms
+            //var options = new FindOptions<Block, Block>
+            //{
+            //    Limit = 1
+            //};
 
-            var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
-            var result = await _blocks.FindAsync(filter, options);
-            return await result.AnyAsync();
+            //var filter = Builders<Block>.Filter.Eq("AccountID", AccountId);
+            //var result = await _blocks.FindAsync(filter, options);
+            //return await result.AnyAsync();
+            var q = _blocks.OfType<TransactionBlock>()
+                .AsQueryable()
+                .Where(a => a.AccountID == AccountId)
+                .FirstOrDefault();
+            return Task.FromResult(q != null);
         }
 
         public ServiceBlock GetLastServiceBlock()
