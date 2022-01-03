@@ -819,7 +819,7 @@ namespace Lyra.Core.Decentralize
 
                                     // check block count
                                     // if total block count is not consistant according to majority of nodes, there must be a damage.
-                                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, true, _sys.PosWallet.AccountId);
+                                    var client = new LyraAggregatedClient(Settings.Default.LyraNode.Lyra.NetworkId, false, _sys.PosWallet.AccountId);
                                     await client.InitAsync();
                                     var syncstate = await client.GetSyncStateAsync();
                                     var mysyncstate = await GetNodeStatusAsync();
@@ -827,6 +827,12 @@ namespace Lyra.Core.Decentralize
                                     {
                                         if (syncstate.Status.totalBlockCount == mysyncstate.totalBlockCount)
                                             break;
+                                        else
+                                            _log.LogWarning($"Count from network: {syncstate.Status.totalBlockCount}, count of mine: {mysyncstate.totalBlockCount}");
+                                    }
+                                    else
+                                    {
+                                        _log.LogWarning($"Can't get status from network: {syncstate.ResultCode}");
                                     }
 
                                     _log.LogWarning("Can't make sure database consistence. forced to do a full DBCC.");
