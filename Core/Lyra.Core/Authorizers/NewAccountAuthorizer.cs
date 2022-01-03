@@ -38,7 +38,7 @@ namespace Lyra.Core.Authorizers
             if (result != APIResultCodes.Success)
                 return result;
 
-            return await MeasureAuthAsync("NewAccountAuthorizer", "ReceiveTransferAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "NewAccountAuthorizer->ReceiveTransferAuthorizer");
         }
     }
 }

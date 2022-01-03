@@ -40,7 +40,7 @@ namespace Lyra.Core.Authorizers
                 block.Balances[LyraGlobal.OFFICIALTICKERCODE] == oldBalance + unSetFees.TotalFees.ToBalanceLong()
                 )
             {
-                return await MeasureAuthAsync("ReceiveNodeProfitAuthorizer", "ProfitingAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+                return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "ReceiveNodeProfitAuthorizer->ProfitingAuthorizer");
             }
             else
             {

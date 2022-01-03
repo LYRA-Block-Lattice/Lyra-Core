@@ -87,7 +87,7 @@ namespace Lyra.Core.Authorizers
                     return APIResultCodes.DuplicateReceiveBlock;
             }
 
-            return await MeasureAuthAsync("ReceiveTransferAuthorizer", "TransactionAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "ReceiveTransferAuthorizer->TransactionAuthorizer");
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)

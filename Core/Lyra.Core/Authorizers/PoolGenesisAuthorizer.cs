@@ -35,7 +35,7 @@ namespace Lyra.Core.Authorizers
             if (block.AccountID != AccountId)
                 return APIResultCodes.InvalidAccountId;
 
-            return await MeasureAuthAsync("PoolGenesisAuthorizer", "ReceiveTransferAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "PoolGenesisAuthorizer->ReceiveTransferAuthorizer");
         }
     }
 }

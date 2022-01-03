@@ -34,7 +34,7 @@ namespace Lyra.Core.Authorizers
             if (processed.Any(a => a is UnStakingBlock))
                 return APIResultCodes.InvalidUnstaking;
 
-            return await MeasureAuthAsync("UnStakingAuthorizer", "BrokerAccountSendAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "UnStakingAuthorizer->BrokerAccountSendAuthorizer");
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)

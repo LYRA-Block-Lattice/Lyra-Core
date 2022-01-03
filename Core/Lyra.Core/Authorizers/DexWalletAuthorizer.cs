@@ -31,7 +31,7 @@ namespace Lyra.Core.Authorizers
 
             // TODO: verify against dex server
 
-            return await MeasureAuthAsync("DexWalletAuthorizer", "BrokerAccountAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DexWalletAuthorizer->BrokerAccountAuthorizer");
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)

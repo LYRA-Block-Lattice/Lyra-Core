@@ -33,7 +33,7 @@ namespace Lyra.Core.Authorizers
             var brkauth = new DexWalletAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
             if (brkret.Item1 == APIResultCodes.Success)
-                return await MeasureAuthAsync("DexTokenMintAuthorizer", "TransactionAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+                return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DexTokenMintAuthorizer->TransactionAuthorizer");
             else
                 return brkret.Item1;
         }

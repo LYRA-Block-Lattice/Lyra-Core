@@ -28,7 +28,7 @@ namespace Lyra.Core.Authorizers
             var brkauth = new DexWalletAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
             if (brkret.Item1 == APIResultCodes.Success)
-                return await MeasureAuthAsync("DexTokenBurnAuthorizer", "TransactionAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+                return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DexTokenBurnAuthorizer->TransactionAuthorizer");
             else
                 return brkret.Item1;
         }
@@ -55,7 +55,7 @@ namespace Lyra.Core.Authorizers
             if (string.IsNullOrWhiteSpace(block.WithdrawToExtAddress))
                 return APIResultCodes.InvalidWithdrawToAddress;
 
-            return await MeasureAuthAsync("DexWithdrawAuthorizer", "DexTokenBurnAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "DexWithdrawAuthorizer->DexTokenBurnAuthorizer");
         }
     }
 }

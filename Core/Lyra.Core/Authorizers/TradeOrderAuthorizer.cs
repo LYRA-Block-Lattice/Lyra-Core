@@ -66,7 +66,7 @@ namespace Lyra.Core.Authorizers
 
             //sys.TradeEngine.AddOrder(block);
 
-            return await MeasureAuthAsync("TradeOrderAuthorizer", "TransactionAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "TradeOrderAuthorizer->TransactionAuthorizer");
         }
 
         protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)

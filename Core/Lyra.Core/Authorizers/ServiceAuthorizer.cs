@@ -81,7 +81,7 @@ namespace Lyra.Core.Authorizers
                 }
             }
 
-            return await MeasureAuthAsync("ServiceAuthorizer", "BaseAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "ServiceAuthorizer->BaseAuthorizer");
         }
 
         protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)

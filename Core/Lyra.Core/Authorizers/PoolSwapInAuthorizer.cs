@@ -18,7 +18,7 @@ namespace Lyra.Core.Authorizers
             if (block.SourceHash != block.RelatedTx)
                 return APIResultCodes.InvalidRelatedTx;
 
-            return await MeasureAuthAsync("PoolSwapInAuthorizer", "ReceiveTransferAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "PoolSwapInAuthorizer->ReceiveTransferAuthorizer");
         }
     }
 }

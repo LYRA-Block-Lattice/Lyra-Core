@@ -31,7 +31,7 @@ namespace Lyra.Core.Authorizers
                 return APIResultCodes.InvalidBlockSequence;
 
 
-            return await MeasureAuthAsync("PoolSwapOutAuthorizer", "SendTransferAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "PoolSwapOutAuthorizer->SendTransferAuthorizer");
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)

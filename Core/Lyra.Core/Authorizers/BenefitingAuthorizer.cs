@@ -18,7 +18,7 @@ namespace Lyra.Core.Authorizers
 
             var block = tblock as BenefitingBlock;
 
-            return await MeasureAuthAsync("BenefitingAuthorizer", "BrokerAccountSendAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "BenefitingAuthorizer->BrokerAccountSendAuthorizer");
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)

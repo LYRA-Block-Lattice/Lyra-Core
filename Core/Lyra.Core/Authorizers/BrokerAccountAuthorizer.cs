@@ -45,17 +45,11 @@ namespace Lyra.Core.Authorizers
 
             // IBrokerAccount interface
 
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
             var brkauth = new BrokerAccountAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
 
-            stopwatch.Stop();
-            Console.WriteLine($"AuthImpl BrokerAccountAuthorizer uses {stopwatch.ElapsedMilliseconds} ms");
-
             if (brkret.Item1 == APIResultCodes.Success)
-                return await MeasureAuthAsync("BrokerAccountRecvAuthorizer", "ReceiveTransferAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+                return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "BrokerAccountRecvAuthorizer->ReceiveTransferAuthorizer");
             else
                 return brkret.Item1;
         }
@@ -81,7 +75,7 @@ namespace Lyra.Core.Authorizers
             var brkauth = new BrokerAccountAuthorizer();
             var brkret = await brkauth.AuthorizeAsync(sys, tblock);
             if (brkret.Item1 == APIResultCodes.Success)
-                return await MeasureAuthAsync("BrokerAccountSendAuthorizer", "SendTransferAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+                return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "BrokerAccountSendAuthorizer->SendTransferAuthorizer");
             else
                 return brkret.Item1;
         }

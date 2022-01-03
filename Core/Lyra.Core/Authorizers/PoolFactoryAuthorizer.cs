@@ -21,7 +21,7 @@ namespace Lyra.Core.Authorizers
             if (await sys.Storage.AccountExistsAsync(block.AccountID))
                 return APIResultCodes.AccountAlreadyExists;
 
-            return await MeasureAuthAsync("PoolFactoryAuthorizer", "BaseAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "PoolFactoryAuthorizer->BaseAuthorizer");
         }
     }
 }

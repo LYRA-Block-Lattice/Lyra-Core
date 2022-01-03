@@ -35,7 +35,7 @@ namespace Lyra.Core.Authorizers
             if (block.AccountID != AccountId)
                 return APIResultCodes.InvalidAccountId;
 
-            return await MeasureAuthAsync("ProfitingGenesisAuthorizer", "ProfitingAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "ProfitingGenesisAuthorizer->ProfitingAuthorizer");
         }
     }
 }

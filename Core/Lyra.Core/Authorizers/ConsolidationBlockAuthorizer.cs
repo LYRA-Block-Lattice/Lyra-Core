@@ -84,7 +84,7 @@ namespace Lyra.Core.Authorizers
             // consolidation must come from leader node
             // done in base authorizer already!
 
-            return await MeasureAuthAsync("ConsolidationBlockAuthorizer", "BaseAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "ConsolidationBlockAuthorizer->BaseAuthorizer");
         }
 
         protected override async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)

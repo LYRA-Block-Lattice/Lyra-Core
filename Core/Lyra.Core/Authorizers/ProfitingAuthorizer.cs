@@ -30,7 +30,7 @@ namespace Lyra.Core.Authorizers
             if(block.ShareRito > 0 && block.Seats == 0)
                 return APIResultCodes.InvalidSeatsCount;
 
-            return await MeasureAuthAsync("ProfitingAuthorizer", "BrokerAccountRecvAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "ProfitingAuthorizer->BrokerAccountRecvAuthorizer");
         }
     }
 }

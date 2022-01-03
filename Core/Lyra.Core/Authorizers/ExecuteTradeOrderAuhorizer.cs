@@ -67,7 +67,7 @@ namespace Lyra.Core.Authorizers
             //if (trade_order.MaxQuantity == 1)
             //    sys.TradeEngine.RemoveOrder(trade_order);
 
-            return await MeasureAuthAsync("ExecuteTradeOrderAuthorizer", "SendTransferAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "ExecuteTradeOrderAuthorizer->SendTransferAuthorizer");
         }
 
         protected override async Task<APIResultCodes> ValidateFeeAsync(DagSystem sys, TransactionBlock block)

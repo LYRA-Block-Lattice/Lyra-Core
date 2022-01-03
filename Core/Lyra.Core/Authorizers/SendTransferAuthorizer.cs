@@ -246,7 +246,7 @@ namespace Lyra.Core.Authorizers
                 }
             }
 
-            return await MeasureAuthAsync("SendTransferAuthorizer", "TransactionAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "SendTransferAuthorizer->TransactionAuthorizer");
         }
 
         private async Task<APIResultCodes> VerifyStkPftAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)

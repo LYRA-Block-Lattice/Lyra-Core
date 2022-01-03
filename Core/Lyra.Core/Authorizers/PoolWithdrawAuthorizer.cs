@@ -25,7 +25,7 @@ namespace Lyra.Core.Authorizers
             if(blocks.Count != 0)
                 return APIResultCodes.InvalidRelatedTx;
 
-            return await MeasureAuthAsync("PoolWithdrawAuthorizer", "SendTransferAuthorizer", base.AuthorizeImplAsync(sys, tblock));
+            return await Lyra.Shared.StopWatcher.TrackAsync(() => base.AuthorizeImplAsync(sys, tblock), "PoolWithdrawAuthorizer->SendTransferAuthorizer");
         }
 
         protected override bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
