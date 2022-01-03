@@ -442,13 +442,21 @@ namespace Lyra.Core.Accounts
 
         public Task<ServiceBlock> GetLastServiceBlockAsync()
         {
-            var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Service);
-
-            var block = _blocks.Find(filter)
-                .SortByDescending(a => a.Height)
-                .Limit(1)
+            var q = _blocks.OfType<ServiceBlock>()
+                .AsQueryable()
+                .OrderByDescending(a => a.Height)
                 .FirstOrDefault();
-            return Task.FromResult(block as ServiceBlock);
+
+            return Task.FromResult(q);
+
+            // 2.5-3.2 ms
+            //var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Service);
+
+            //var block = _blocks.Find(filter)
+            //    .SortByDescending(a => a.Height)
+            //    .Limit(1)
+            //    .FirstOrDefault();
+            //return Task.FromResult(block as ServiceBlock);
 
             //var filter = Builders<Block>.Filter;
             //var filterDefination = filter.Eq("BlockType", BlockTypes.Service);
@@ -472,19 +480,20 @@ namespace Lyra.Core.Accounts
             //return result as ConsolidationBlock;
 
             // 11 ms
-            //var block = _blocks.OfType<ConsolidationBlock>()
-            //    .AsQueryable()
-            //    .OrderByDescending(a => a.Height)
-            //    .FirstOrDefault();
-            //return Task.FromResult(block);
-
-            var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
-
-            var block = _blocks.Find(filter)
-                .SortByDescending(a => a.Height)
-                .Limit(1)
+            var block = _blocks.OfType<ConsolidationBlock>()
+                .AsQueryable()
+                .OrderByDescending(a => a.Height)
                 .FirstOrDefault();
-            return Task.FromResult(block as ConsolidationBlock);
+            return Task.FromResult(block);
+
+            // 16 ms
+            //var filter = Builders<Block>.Filter.Eq("BlockType", BlockTypes.Consolidation);
+
+            //var block = _blocks.Find(filter)
+            //    .SortByDescending(a => a.Height)
+            //    .Limit(1)
+            //    .FirstOrDefault();
+            //return Task.FromResult(block as ConsolidationBlock);
         }
 
         // max 30
