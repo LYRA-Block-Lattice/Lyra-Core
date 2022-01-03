@@ -72,11 +72,6 @@ namespace Lyra.Core.Authorizers
 
         protected virtual async Task<APIResultCodes> VerifyWithPrevAsync(DagSystem sys, Block block, Block previousBlock)
         {
-            var _stopwatch = new Stopwatch();
-            _stopwatch.Start();
-
-            _pastTimeSpan = _stopwatch.Elapsed;
-
             if (previousBlock != null)
             {
                 if (!block.IsBlockValid(previousBlock))
@@ -93,13 +88,11 @@ namespace Lyra.Core.Authorizers
                 if(block.Height != 1)
                     return APIResultCodes.InvalidBlockSequence;
             }
-            MyElapsedTime("1", _stopwatch.Elapsed);
 
             // This is the double-spending check for send block!
             if (!string.IsNullOrEmpty(block.PreviousHash) && (await sys.Storage.FindBlockByPreviousBlockHashAsync(block.PreviousHash)) != null)
                 return APIResultCodes.BlockWithThisPreviousHashAlreadyExists;
 
-            MyElapsedTime("2", _stopwatch.Elapsed);
             if (block.Height <= 0)
                 return APIResultCodes.InvalidIndexSequence;
 
@@ -112,7 +105,6 @@ namespace Lyra.Core.Authorizers
             if (previousBlock != null && block.Height != previousBlock.Height + 1)
                 return APIResultCodes.InvalidIndexSequence;
 
-            MyElapsedTime("3", _stopwatch.Elapsed);
             return APIResultCodes.Success;
         }
 
@@ -132,21 +124,6 @@ namespace Lyra.Core.Authorizers
             };
 
             return authSignature;
-        }
-
-        private TimeSpan _pastTimeSpan;
-        protected void MyElapsedTime(string tag, TimeSpan ts)
-        {
-            // Get the last TimeSpan
-            TimeSpan pastTimeSpan = _pastTimeSpan;
-
-            // Update last TimeSpan with current
-            _pastTimeSpan = ts;
-
-            // Get difference between two
-            TimeSpan diffTs = ts.Subtract(pastTimeSpan);
-
-            Console.WriteLine($"Elapsed time: {tag}, " + string.Format(" {0}:{1} | Segment took {2}:{3}", Math.Floor(ts.TotalMinutes), ts.ToString("ss\\.ff"), Math.Floor(diffTs.TotalMinutes), diffTs.ToString("ss\\.ff")));
         }
 
         //protected async Task<bool> VerifyAuthorizationSignaturesAsync(TransactionBlock block)

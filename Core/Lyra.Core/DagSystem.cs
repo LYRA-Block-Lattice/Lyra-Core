@@ -61,7 +61,7 @@ namespace Lyra
             _log = new SimpleLogger("DagSystem").Logger;
             FullStarted = false;
 
-            Storage = store;
+            Storage = new TracedStorage(store);
             PosWallet = posWallet;
 
             LocalNode = localNode;
@@ -69,7 +69,7 @@ namespace Lyra
 
             if(hostEnv != null)     // for unit test
             {
-                TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, store));
+                TheBlockchain = ActorSystem.ActorOf(BlockChain.Props(this, Storage));
                 TaskManager = ActorSystem.ActorOf(Neo.Network.P2P.TaskManager.Props(this));
 
                 TradeEngine = new TradeMatchEngine(Storage);
