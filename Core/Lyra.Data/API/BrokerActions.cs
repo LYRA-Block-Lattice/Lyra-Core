@@ -29,5 +29,10 @@ namespace Lyra.Data.API
         public const string BRK_DEX_PUTTKN = "PUTTKN";
         public const string BRK_DEX_WDWREQ = "WDWREQ";
 
+        // DAO
+        public const string BRK_DAO_CRDAO = "CRDAO";
+
+        // OTC
+        public const string BRK_OTC_CRODR = "OTCRODR";
     }
 }

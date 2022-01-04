@@ -18,6 +18,7 @@ namespace Lyra.Core.Blocks
         public const decimal StakingAccountCreateFee = 10m;
         public const decimal ProfitingAccountCreateFee = 100m;
         public const decimal DexWalletCreateFee = 10m;
+        public const decimal DaoCreateFee = 10000m;
 
         public AccountTypes AccountType { get; set; }
 

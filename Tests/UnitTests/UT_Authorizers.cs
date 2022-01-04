@@ -252,13 +252,24 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
+            //await TestOTCTrade();
             await TestPoolAsync();
-            //await TestProfitingAndStaking();
-            //await TestNodeFee();
+            await TestProfitingAndStaking();
+            await TestNodeFee();
             //await TestDepositWithdraw();
 
             // let workflow to finish
             await Task.Delay(1000);
+        }
+
+        private async Task TestOTCTrade()
+        {
+            // first create a DAO
+            var dcret = await testWallet.CreateDAOAsync("First DAO");
+            Assert.IsTrue(dcret.Successful());
+
+            var ret = await testWallet.CreateOTCOrderAsync(null);
+            Assert.IsTrue(!ret.Successful());
         }
 
         private async Task TestDepositWithdraw()

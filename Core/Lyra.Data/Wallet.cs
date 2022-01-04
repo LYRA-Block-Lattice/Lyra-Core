@@ -2107,6 +2107,60 @@ namespace Lyra.Core.Accounts
         }
         #endregion
 
+        #region DAO
+        public async Task<APIResult> CreateDAOAsync(string name)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_DAO_CRDAO },
+                { "name", JsonConvert.SerializeObject(name) },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DaoCreateFee }
+            };
+
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            return result;
+        }
+        #endregion
+
+        #region OTC
+        public class OTCOrder
+        {
+            // type
+            public enum Direction { Buy, Sell };
+            public enum PriceType { Fixed, Float }
+
+            // data
+            public string daoid { get; set; }   // DAO account ID
+            public Direction dir { get; set; }
+            public string crypto { get; set; }
+            public string fiat { get; set; }
+            public PriceType priceType { get; set;}
+            public decimal price { get; set; }
+            public decimal amount { get; set; }
+        }
+        public async Task<APIResult> CreateOTCOrderAsync(OTCOrder order)
+        {
+            var tags = new Dictionary<string, string>
+            {
+                { Block.REQSERVICETAG, BrokerActions.BRK_OTC_CRODR },
+                { "data", JsonConvert.SerializeObject(order) },
+            };
+
+            var amounts = new Dictionary<string, decimal>
+            {
+                { LyraGlobal.OFFICIALTICKERCODE, PoolFactoryBlock.DexWalletCreateFee }
+            };
+
+            var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
+            return result;
+        }
+
+        #endregion
+
         public string PrintLastBlock()
         {
             TransactionBlock latestBlock = GetLatestBlock();
