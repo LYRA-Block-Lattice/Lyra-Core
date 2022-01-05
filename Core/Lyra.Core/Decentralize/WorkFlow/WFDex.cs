@@ -13,11 +13,28 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
-    public class WFDex
+    public class WFDexDeposit : WorkFlowBase
     {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_DEX_DPOREQ,
+                RecvVia = BrokerRecvType.PFRecv,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.DexWalletGenesis,
+                        TheBlock = typeof(DexWalletGenesis),
+                        AuthorizerName = "DexWalletGenesisAuthorizer",
+                    }
+                }
+            };
+        }
+
         // DEX
         #region BRK_DEX_DPOREQ
-        public static async Task<APIResultCodes> CNODepositPreAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
         {
             var symbol = block.Tags.ContainsKey("symbol") ? block.Tags["symbol"] : null;
             if (symbol == null)
@@ -41,7 +58,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public static async Task<TransactionBlock> CNODEXCreateWalletAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var symbol = send.Tags["symbol"];
             var provider = send.Tags["provider"];
@@ -100,11 +117,37 @@ namespace Lyra.Core.Decentralize.WorkFlow
 
             return wgen;
         }
+    }
+
+    public class WFDexMint : WorkFlowBase
+    {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_DEX_MINT,
+                RecvVia = BrokerRecvType.PFRecv,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.DexTokenMint,
+                        TheBlock = typeof(TokenMintBlock),
+                        AuthorizerName = "DexTokenMintAuthorizer",
+                    },
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.DexTokenBurn,
+                        TheBlock = typeof(TokenBurnBlock),
+                        AuthorizerName = "DexTokenBurnAuthorizer",
+                    }
+                }
+            };
+        }
 
         #endregion
 
         #region BRK_DEX_MINT
-        public static async Task<APIResultCodes> CNOMintTokenPreAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
         {
             var dexid = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid == null)
@@ -126,7 +169,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
 
             return APIResultCodes.Success;
         }
-        public static async Task<TransactionBlock> CNODEXMintTokenAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is TokenMintBlock))
@@ -182,9 +225,32 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return mint;
         }
         #endregion
+    }
+
+    /// <summary>
+    /// user get token = dex server send token
+    /// </summary>
+    public class WFDexGetToken : WorkFlowBase
+    {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_DEX_GETTKN,
+                RecvVia = BrokerRecvType.PFRecv,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.DexSendToken,
+                        TheBlock = typeof(DexSendBlock),
+                        AuthorizerName = "DexSendAuthorizer",
+                    }
+                }
+            };
+        }
 
         #region BRK_DEX_GETTKN
-        public static async Task<APIResultCodes> CNOGetTokenPreAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
         {
             var dexid2 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid2 == null)
@@ -210,7 +276,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public static async Task<TransactionBlock> CNODEXGetTokenAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is DexSendBlock))
@@ -261,9 +327,29 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return sendtoken;
         }
         #endregion
+    }
+
+    public class WFDexPutToken : WorkFlowBase
+    {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_DEX_PUTTKN,
+                RecvVia = BrokerRecvType.None,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.DexRecvToken,
+                        TheBlock = typeof(DexReceiveBlock),
+                        AuthorizerName = "DexReceiveAuthorizer",
+                    }
+                }
+            };
+        }
 
         #region BRK_DEX_PUTTKN
-        public static async Task<APIResultCodes> CNOPutTokenPreAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
         {
             var dexid3 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid3 == null)
@@ -283,7 +369,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public static async Task<TransactionBlock> CNODEXPutTokenAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is DexReceiveBlock))
@@ -344,9 +430,29 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return recvtoken;
         }
         #endregion
+    }
+
+    public class WFDexWithdraw : WorkFlowBase
+    {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_DEX_WDWREQ,
+                RecvVia = BrokerRecvType.PFRecv,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.DexWithdrawToken,
+                        TheBlock = typeof(TokenWithdrawBlock),
+                        AuthorizerName = "DexWithdrawAuthorizer",
+                    }
+                }
+            };
+        }
 
         #region BRK_DEX_WDWREQ
-        public static async Task<APIResultCodes> CNOWithdrawReqPreAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock last)
         {
             var dexid4 = block.Tags.ContainsKey("dexid") ? block.Tags["dexid"] : null;
             if (dexid4 == null)
@@ -369,7 +475,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public static async Task<TransactionBlock> CNODEXWithdrawAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is TokenBurnBlock))
@@ -426,7 +532,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return burntoken;
         }
 
-        public static async Task<TransactionBlock> CNODEXWithdrawToExtBlockchainReqAsync(DagSystem sys, string hash)
+        public override async Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, string hash)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(hash);
             if (!blocks.Any(a => a is TokenWithdrawBlock))

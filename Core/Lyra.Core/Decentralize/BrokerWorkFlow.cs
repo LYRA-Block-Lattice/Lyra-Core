@@ -179,11 +179,14 @@ namespace Lyra.Core.Decentralize
             AddWorkFlow(af, new WFStakingCreate());
             AddWorkFlow(af, new WFStakingAddStaking());
             AddWorkFlow(af, new WFStakingUnStaking());
-            //WorkFlows.Add(BrokerActions.BRK_STK_CRSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFStaking.CNOCreateStakingAccountAsync, null));
-            //WorkFlows.Add(BrokerActions.BRK_STK_ADDSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.None, WFStaking.CNOAddStakingAsync, null));
-            //WorkFlows.Add(BrokerActions.BRK_STK_UNSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFStaking.CNOUnStakeAsync, null));
 
             //// DEX
+            AddWorkFlow(af, new WFDexDeposit());
+            AddWorkFlow(af, new WFDexMint());
+            AddWorkFlow(af, new WFDexGetToken());
+            AddWorkFlow(af, new WFDexPutToken());
+            AddWorkFlow(af, new WFDexWithdraw());
+
             //WorkFlows.Add(BrokerActions.BRK_DEX_DPOREQ, (WFDex.CNODepositPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXCreateWalletAsync, null));
             //WorkFlows.Add(BrokerActions.BRK_DEX_MINT, (WFDex.CNOMintTokenPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXMintTokenAsync, null));
             //WorkFlows.Add(BrokerActions.BRK_DEX_GETTKN, (WFDex.CNOGetTokenPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXGetTokenAsync, null));

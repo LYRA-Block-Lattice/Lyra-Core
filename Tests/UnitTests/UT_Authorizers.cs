@@ -257,8 +257,8 @@ namespace UnitTests
             //await TestOTCTrade();
             await TestPoolAsync();
             await TestProfitingAndStaking();
-            //await TestNodeFee();
-            //await TestDepositWithdraw();
+            await TestNodeFee();
+            await TestDepositWithdraw();
 
             // let workflow to finish
             await Task.Delay(1000);
@@ -316,13 +316,13 @@ namespace UnitTests
 
             // create dex wallet
             await testWallet.SyncAsync(null);
-            var crdexret = await testWallet.CreateDexWalletAsync("TRX", "mainnet");
+            var crdexret = await testWallet.CreateDexWalletAsync("TRX", "native");
             Assert.IsTrue(crdexret.Successful());
 
             await Task.Delay(1000);
             var dexws = await testWallet.GetAllDexWalletsAsync(testWallet.AccountId);
             Assert.IsNotNull(dexws, "DEX Wallet not setup.");
-            var wcnt = dexws.Count(a => (a as IDexWallet).ExtSymbol == "TRX" && (a as IDexWallet).ExtProvider == "mainnet");
+            var wcnt = dexws.Count(a => (a as IDexWallet).ExtSymbol == "TRX" && (a as IDexWallet).ExtProvider == "native");
             Assert.AreEqual(1, wcnt, $"wallet not created properly. created: {wcnt}");
 
             // must fail
