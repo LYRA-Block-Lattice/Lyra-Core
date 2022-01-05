@@ -9,8 +9,8 @@ namespace Lyra.Core.Decentralize.WorkFlow
 {
     public interface IWorkFlow
     {
+        WorkFlowDescription GetDescription();
         Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
-        BrokerRecvType GetRecvType();
         Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send);
         Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, string hash);
     }

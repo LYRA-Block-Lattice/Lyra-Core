@@ -338,21 +338,21 @@ namespace Lyra.Core.API
                     case BlockTypes.PoolFactory:
                         block = JsonConvert.DeserializeObject<PoolFactoryBlock>(BlockData);
                         break;
-                    case BlockTypes.PoolGenesis:
-                        block = JsonConvert.DeserializeObject<PoolGenesisBlock>(BlockData);
-                        break;
-                    case BlockTypes.PoolDeposit:
-                        block = JsonConvert.DeserializeObject<PoolDepositBlock>(BlockData);
-                        break;
-                    case BlockTypes.PoolWithdraw:
-                        block = JsonConvert.DeserializeObject<PoolWithdrawBlock>(BlockData);
-                        break;
-                    case BlockTypes.PoolSwapIn:
-                        block = JsonConvert.DeserializeObject<PoolSwapInBlock>(BlockData);
-                        break;
-                    case BlockTypes.PoolSwapOut:
-                        block = JsonConvert.DeserializeObject<PoolSwapOutBlock>(BlockData);
-                        break;
+                    //case BlockTypes.PoolGenesis:
+                    //    block = JsonConvert.DeserializeObject<PoolGenesisBlock>(BlockData);
+                    //    break;
+                    //case BlockTypes.PoolDeposit:
+                    //    block = JsonConvert.DeserializeObject<PoolDepositBlock>(BlockData);
+                    //    break;
+                    //case BlockTypes.PoolWithdraw:
+                    //    block = JsonConvert.DeserializeObject<PoolWithdrawBlock>(BlockData);
+                    //    break;
+                    //case BlockTypes.PoolSwapIn:
+                    //    block = JsonConvert.DeserializeObject<PoolSwapInBlock>(BlockData);
+                    //    break;
+                    //case BlockTypes.PoolSwapOut:
+                    //    block = JsonConvert.DeserializeObject<PoolSwapOutBlock>(BlockData);
+                    //    break;
                     case BlockTypes.ProfitingGenesis:
                         block = JsonConvert.DeserializeObject<ProfitingGenesis>(BlockData);
                         break;
@@ -391,12 +391,6 @@ namespace Lyra.Core.API
                         break;
                     case BlockTypes.DexWithdrawToken:
                         block = JsonConvert.DeserializeObject<TokenWithdrawBlock>(BlockData);
-                        break;
-                    case BlockTypes.Orgnization:
-                        block = JsonConvert.DeserializeObject<DaoBlock>(BlockData);
-                        break;
-                    case BlockTypes.OrgnizationGenesis:
-                        block = JsonConvert.DeserializeObject<DaoGenesis>(BlockData);
                         break;
                     case BlockTypes.Null:
                         block = null;

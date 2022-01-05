@@ -107,15 +107,7 @@ namespace Lyra.Core.Authorizers
             {
                 var svcReqResult = APIResultCodes.InvalidServiceRequest;
 
-                if(BrokerFactory.WorkFlows.ContainsKey(block.Tags[Block.REQSERVICETAG]))
-                {
-                    var wf = BrokerFactory.WorkFlows[block.Tags[Block.REQSERVICETAG]];
-                    if (wf.preSendAuth != null)
-                    {
-                        svcReqResult = await wf.preSendAuth(sys, block, lastBlock);
-                    }
-                }
-                else if (BrokerFactory.DynWorkFlows.ContainsKey(block.Tags[Block.REQSERVICETAG]))
+                if (BrokerFactory.DynWorkFlows.ContainsKey(block.Tags[Block.REQSERVICETAG]))
                 {
                     var wf = BrokerFactory.DynWorkFlows[block.Tags[Block.REQSERVICETAG]];
                     svcReqResult = await wf.PreSendAuthAsync(sys, block, lastBlock);

@@ -8,12 +8,17 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
-    public class WorkFlowDescription
+    public class BlockDesc
     {
-        public string Action { get; set; }
         public BlockTypes BlockType { get; set; }
         public string AuthorizerName { get; set; }
         public Type TheBlock { get; set; }
+    }
+    public class WorkFlowDescription
+    {
+        public string Action { get; set; }
+        public BrokerRecvType RecvVia { get; set; }
+        public BlockDesc[] Blocks { get; set; }
     }
 
     public abstract class WorkFlowBase : IWorkFlow
@@ -23,10 +28,6 @@ namespace Lyra.Core.Decentralize.WorkFlow
         public virtual Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, string hash)
         {
             return Task.FromResult((TransactionBlock)null);
-        }
-        public virtual BrokerRecvType GetRecvType()
-        {
-            return BrokerRecvType.None;
         }
         public abstract Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last);
     }

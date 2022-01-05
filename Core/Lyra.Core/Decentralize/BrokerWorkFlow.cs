@@ -59,14 +59,14 @@ namespace Lyra.Core.Decentralize
         {
             Console.WriteLine($"execute bp by {caller}: {svcReqHash} for {action}");
             // execute work flow
-            var wf = BrokerFactory.WorkFlows[action];
+            var wf = BrokerFactory.DynWorkFlows[action];
             var send = await sys.Storage.FindBlockByHashAsync(svcReqHash) as SendTransferBlock;
             if (send == null)
                 return false;
 
             if (!preDone)
             {
-                if(wf.pfrecv == BrokerRecvType.PFRecv)
+                if(wf.GetDescription().RecvVia == BrokerRecvType.PFRecv)
                 {
                     var preBlock = await BrokerOperations.ReceivePoolFactoryFeeAsync(sys, send);
                     if (preBlock == null)
@@ -79,7 +79,7 @@ namespace Lyra.Core.Decentralize
                         Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
                     }
                 }
-                else if(wf.pfrecv == BrokerRecvType.DaoRecv)
+                else if(wf.GetDescription().RecvVia == BrokerRecvType.DaoRecv)
                 {
                     var preBlock = await BrokerOperations.ReceiveDaoFeeAsync(sys, send);
                     if (preBlock == null)
@@ -100,47 +100,33 @@ namespace Lyra.Core.Decentralize
 
             if(preDone && !mainDone)
             {
-                if(wf.brokerOps != null)
-                {
-                    var mainBlock = await wf.brokerOps(sys, send);
-                    if (mainBlock == null)
-                        mainDone = true;
-                    else
-                    {
-                        // send it
-                        LastBlockTime = DateTime.UtcNow;
-                        await submit(mainBlock);
-                        mainDone = false;
-                        Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
-                    }
-                }
+                var mainBlock = await wf.BrokerOpsAsync(sys, send);
+                if (mainBlock == null)
+                    mainDone = true;
                 else
                 {
-                    mainDone = true;
+                    // send it
+                    LastBlockTime = DateTime.UtcNow;
+                    await submit(mainBlock);
+                    mainDone = false;
+                    Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
                 }
             }
 
             if (preDone && mainDone && !extraDone)
             {
-                if(wf.extraOps != null)
+                var otherBlocks = await wf.ExtraOpsAsync(sys, svcReqHash);
+                if (otherBlocks == null)
                 {
-                    var otherBlocks = await wf.extraOps(sys, svcReqHash);
-                    if (otherBlocks == null)
-                    {
-                        extraDone = true;
-                    }
-                    else
-                    {
-                        // foreach block send it
-                        LastBlockTime = DateTime.UtcNow;
-                        await submit(otherBlocks);
-                        Console.WriteLine($"WF: {send.Hash.Shorten()} {otherBlocks.BlockType}: extraDone: {false}");
-                        extraDone = false;
-                    }
+                    extraDone = true;
                 }
                 else
                 {
-                    extraDone = true;
+                    // foreach block send it
+                    LastBlockTime = DateTime.UtcNow;
+                    await submit(otherBlocks);
+                    Console.WriteLine($"WF: {send.Hash.Shorten()} {otherBlocks.BlockType}: extraDone: {false}");
+                    extraDone = false;
                 }
             }
             return FullDone;
@@ -150,62 +136,64 @@ namespace Lyra.Core.Decentralize
     public enum BrokerRecvType { None, PFRecv, DaoRecv }
     public class BrokerFactory
     {
-        public static Dictionary<string, WorkFlowBase> DynWorkFlows = new Dictionary<string, WorkFlowBase>();
-        public static Dictionary<string, (Func<DagSystem, SendTransferBlock, TransactionBlock, Task<APIResultCodes>> preSendAuth, BrokerRecvType pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
+        public static Dictionary<string, WorkFlowBase> DynWorkFlows;
+        private static Dictionary<string, (Func<DagSystem, SendTransferBlock, TransactionBlock, Task<APIResultCodes>> preSendAuth, BrokerRecvType pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
 
         public static ConcurrentDictionary<string, BrokerBlueprint> Bps { get; set; }
 
         public static event Action<BrokerBlueprint> OnFinished;
+
+        private void AddWorkFlow(AuthorizersFactory af, WorkFlowBase workflow)
+        {
+            var desc = workflow.GetDescription();
+            DynWorkFlows.Add(desc.Action, workflow);
+
+            foreach(var bd in desc.Blocks)
+            {
+                if (bd.AuthorizerName != null)
+                    af.Register(bd.BlockType, bd.AuthorizerName);
+
+                if (bd.TheBlock != null)
+                    BlockAPIResult.Register(bd.BlockType, bd.TheBlock);
+            }
+        }
         public void Init(AuthorizersFactory af)
         {
-            if (WorkFlows != null)
+            if (DynWorkFlows != null)
                 throw new InvalidOperationException("Already initialized.");
 
-            WorkFlows = new Dictionary<string, (
-                Func<DagSystem, SendTransferBlock, TransactionBlock, Task<APIResultCodes>> preSendAuth,
-                BrokerRecvType pfrecv, 
-                Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, 
-                Func<DagSystem, string, Task<TransactionBlock>> extraOps
-            )>();
+            DynWorkFlows = new Dictionary<string, WorkFlowBase>();
             Bps = new ConcurrentDictionary<string, BrokerBlueprint>();
 
             // liquidate pool
-            WorkFlows.Add(BrokerActions.BRK_POOL_CRPL, (WFPool.CNOCreateLiquidatePoolPreAuthAsync, BrokerRecvType.PFRecv, WFPool.CNOCreateLiquidatePoolAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_POOL_ADDLQ, (WFPool.VerifyAddLiquidateToPoolAsync, BrokerRecvType.None, WFPool.AddPoolLiquidateAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_POOL_RMLQ, (WFPool.VerifyWithdrawFromPoolAsync, BrokerRecvType.PFRecv, WFPool.SendWithdrawFundsAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_POOL_SWAP, (WFPool.VerifyPoolSwapAsync, BrokerRecvType.None, WFPool.ReceivePoolSwapInAsync, WFPool.SendPoolSwapOutTokenAsync));
+            AddWorkFlow(af, new WFPoolCreate());
+            AddWorkFlow(af, new WFPoolAddLiquidate());
+            AddWorkFlow(af, new WFPoolRemoveLiquidate());
+            AddWorkFlow(af, new WFPoolSwap());
+            //WorkFlows.Add(BrokerActions.BRK_POOL_CRPL, (WFPool.CNOCreateLiquidatePoolPreAuthAsync, BrokerRecvType.PFRecv, WFPool.CNOCreateLiquidatePoolAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_POOL_ADDLQ, (WFPool.VerifyAddLiquidateToPoolAsync, BrokerRecvType.None, WFPool.AddPoolLiquidateAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_POOL_RMLQ, (WFPool.VerifyWithdrawFromPoolAsync, BrokerRecvType.PFRecv, WFPool.SendWithdrawFundsAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_POOL_SWAP, (WFPool.VerifyPoolSwapAsync, BrokerRecvType.None, WFPool.ReceivePoolSwapInAsync, WFPool.SendPoolSwapOutTokenAsync));
 
-            // profiting
-            WorkFlows.Add(BrokerActions.BRK_PFT_CRPFT, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFProfit.CNOCreateProfitingAccountAsync, null));
-            //WorkFlows.Add(BrokerActions.BRK_PFT_FEEPFT, (BrokerRecvType.PFRecv, BrokerOperations.SyncNodeFeesAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_PFT_GETPFT, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFProfit.CNOReceiveAllProfitAsync, WFProfit.CNORedistributeProfitAsync));
+            //// profiting
+            //WorkFlows.Add(BrokerActions.BRK_PFT_CRPFT, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFProfit.CNOCreateProfitingAccountAsync, null));
+            ////WorkFlows.Add(BrokerActions.BRK_PFT_FEEPFT, (BrokerRecvType.PFRecv, BrokerOperations.SyncNodeFeesAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_PFT_GETPFT, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFProfit.CNOReceiveAllProfitAsync, WFProfit.CNORedistributeProfitAsync));
 
-            // staking
-            WorkFlows.Add(BrokerActions.BRK_STK_CRSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFStaking.CNOCreateStakingAccountAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_STK_ADDSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.None, WFStaking.CNOAddStakingAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_STK_UNSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFStaking.CNOUnStakeAsync, null));
+            //// staking
+            //WorkFlows.Add(BrokerActions.BRK_STK_CRSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFStaking.CNOCreateStakingAccountAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_STK_ADDSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.None, WFStaking.CNOAddStakingAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_STK_UNSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFStaking.CNOUnStakeAsync, null));
 
-            // DEX
-            WorkFlows.Add(BrokerActions.BRK_DEX_DPOREQ, (WFDex.CNODepositPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXCreateWalletAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_DEX_MINT, (WFDex.CNOMintTokenPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXMintTokenAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_DEX_GETTKN, (WFDex.CNOGetTokenPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXGetTokenAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_DEX_PUTTKN, (WFDex.CNOPutTokenPreAuthAsync, BrokerRecvType.None, WFDex.CNODEXPutTokenAsync, null));
-            WorkFlows.Add(BrokerActions.BRK_DEX_WDWREQ, (WFDex.CNOWithdrawReqPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXWithdrawAsync, WFDex.CNODEXWithdrawToExtBlockchainReqAsync));
+            //// DEX
+            //WorkFlows.Add(BrokerActions.BRK_DEX_DPOREQ, (WFDex.CNODepositPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXCreateWalletAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_DEX_MINT, (WFDex.CNOMintTokenPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXMintTokenAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_DEX_GETTKN, (WFDex.CNOGetTokenPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXGetTokenAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_DEX_PUTTKN, (WFDex.CNOPutTokenPreAuthAsync, BrokerRecvType.None, WFDex.CNODEXPutTokenAsync, null));
+            //WorkFlows.Add(BrokerActions.BRK_DEX_WDWREQ, (WFDex.CNOWithdrawReqPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXWithdrawAsync, WFDex.CNODEXWithdrawToExtBlockchainReqAsync));
 
             // DAO
-            DynWorkFlows.Add(BrokerActions.BRK_DAO_CRDAO, new WFDao());
-            //WorkFlows.Add(BrokerActions.BRK_DAO_CRDAO, (WFDao.CreateDaoPreAuthAsync, BrokerRecvType.PFRecv, WFDao.CNOCreateDaoAsync, null));
-
-            // register every work flow
-            foreach(var wf in DynWorkFlows.Values)
-            {
-                var desc = wf.GetDescription();
-                if (desc.AuthorizerName != null)
-                    af.Register(desc.BlockType, desc.AuthorizerName);
-
-                if (desc.TheBlock != null)
-                    BlockAPIResult.Register(desc.BlockType, desc.TheBlock);
-            }
+            AddWorkFlow(af, new WFDao());
 
             // merchant
             //WorkFlows.Add(BrokerActions.BRK_MCT_CRMCT, (true, BrokerOperations.CNOMCTCreateAsync, null));

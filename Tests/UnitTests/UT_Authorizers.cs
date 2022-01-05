@@ -254,8 +254,8 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            await TestOTCTrade();
-            //await TestPoolAsync();
+            //await TestOTCTrade();
+            await TestPoolAsync();
             //await TestProfitingAndStaking();
             //await TestNodeFee();
             //await TestDepositWithdraw();
@@ -289,7 +289,7 @@ namespace UnitTests
                 amount = 10,
             };
 
-            await Task.Delay(10000000);
+            await Task.Delay(1000);
             //var ret = await testWallet.CreateOTCOrderAsync(order);
             //Assert.IsTrue(!ret.Successful());
         }

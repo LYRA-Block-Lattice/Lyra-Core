@@ -18,9 +18,15 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return new WorkFlowDescription
             {
                 Action = BrokerActions.BRK_DAO_CRDAO,
-                BlockType = BlockTypes.OrgnizationGenesis,
-                TheBlock = typeof(DaoGenesis),
-                AuthorizerName = "DaoGenesisAuthorizer",
+                RecvVia = BrokerRecvType.PFRecv,
+                Blocks = new []{
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.OrgnizationGenesis,
+                        TheBlock = typeof(DaoGenesis),
+                        AuthorizerName = "DaoGenesisAuthorizer",
+                    }
+                }
             };
         }
 

@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.Crypto;
 using System;
 using System.Collections.Generic;
@@ -9,8 +10,25 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
-    public class WFPool
+    public class WFPoolCreate : WorkFlowBase
     {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_POOL_CRPL,
+                RecvVia = BrokerRecvType.PFRecv,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.PoolGenesis,
+                        TheBlock = typeof(PoolGenesisBlock),
+                        AuthorizerName = "PoolGenesisAuthorizer",
+                    }
+                }
+            };
+        }
+
         protected static async Task<bool> CheckTokenAsync(DagSystem sys, string tokenName)
         {
             var tokn = await sys.Storage.FindTokenGenesisBlockAsync(null, tokenName);
@@ -29,24 +47,9 @@ namespace Lyra.Core.Decentralize.WorkFlow
             else
                 return APIResultCodes.InvalidBlockTags;
         }
-        private static async Task<APIResultCodes> VerifyPoolAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
-        {
-            var poolGenesis = sys.Storage.GetPoolByID(block.Tags["poolid"]);
-            if (poolGenesis == null)
-                return APIResultCodes.PoolNotExists;
-
-            var poolGenesis2 = await sys.Storage.FindFirstBlockAsync(block.DestinationAccountId);
-            if (poolGenesis2 == null)
-                return APIResultCodes.PoolNotExists;
-
-            if (poolGenesis.Hash != poolGenesis2.Hash)
-                return APIResultCodes.PoolNotExists;
-
-            return APIResultCodes.Success;
-        }
 
         #region BRK_POOL_CRPL
-        public static async Task<APIResultCodes> CNOCreateLiquidatePoolPreAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock lastBlock)
         {
             // generic pool factory
             var tgc = await CheckPoolTagsAsync(sys, send);
@@ -77,7 +80,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public static async Task<TransactionBlock> CNOCreateLiquidatePoolAsync(DagSystem sys, SendTransferBlock send/*, ReceiveTransferBlock recvBlock, string token0, string token1*/)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var pool = await sys.Storage.GetPoolAsync(send.Tags["token0"], send.Tags["token1"]);
             if (pool != null)
@@ -132,9 +135,45 @@ namespace Lyra.Core.Decentralize.WorkFlow
             //await QueueTxActionBlockAsync(poolGenesis);
         }
         #endregion
+    }
+
+    public class WFPoolAddLiquidate : WorkFlowBase
+    {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_POOL_ADDLQ,
+                RecvVia = BrokerRecvType.None,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.PoolDeposit,
+                        TheBlock = typeof(PoolDepositBlock),
+                        AuthorizerName = "PoolDepositAuthorizer",
+                    } 
+                }
+            };
+        }
+
+        public static async Task<APIResultCodes> VerifyPoolAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        {
+            var poolGenesis = sys.Storage.GetPoolByID(block.Tags["poolid"]);
+            if (poolGenesis == null)
+                return APIResultCodes.PoolNotExists;
+
+            var poolGenesis2 = await sys.Storage.FindFirstBlockAsync(block.DestinationAccountId);
+            if (poolGenesis2 == null)
+                return APIResultCodes.PoolNotExists;
+
+            if (poolGenesis.Hash != poolGenesis2.Hash)
+                return APIResultCodes.PoolNotExists;
+
+            return APIResultCodes.Success;
+        }
 
         #region BRK_POOL_ADDLQ
-        public static async Task<APIResultCodes> VerifyAddLiquidateToPoolAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
         {
             if (block.Tags.Count != 2 || !block.Tags.ContainsKey("poolid"))
                 return APIResultCodes.InvalidBlockTags;
@@ -171,7 +210,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return APIResultCodes.Success;
         }
 
-        public static async Task<TransactionBlock> AddPoolLiquidateAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -254,9 +293,28 @@ namespace Lyra.Core.Decentralize.WorkFlow
             //await QueueBlockForPoolAsync(depositBlock, tx);  // pool deposition
         }
         #endregion
+    }
+    public class WFPoolRemoveLiquidate : WorkFlowBase
+    {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_POOL_RMLQ,
+                RecvVia = BrokerRecvType.PFRecv,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.PoolWithdraw,
+                        TheBlock = typeof(PoolWithdrawBlock),
+                        AuthorizerName = "PoolWithdrawAuthorizer",
+                    }
+                }
+            };
+        }
 
         #region BRK_POOL_RMLQ
-        public static async Task<APIResultCodes> VerifyWithdrawFromPoolAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
         {
             if (block.Tags.Count != 2 || !block.Tags.ContainsKey("poolid"))
                 return APIResultCodes.InvalidBlockTags;
@@ -278,9 +336,9 @@ namespace Lyra.Core.Decentralize.WorkFlow
 
             return APIResultCodes.Success;
         }
-        public static async Task<TransactionBlock> SendWithdrawFundsAsync(DagSystem sys, SendTransferBlock send/*, string poolId, string targetAccountId*/)
-        {
-            var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
+    public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
+    {
+        var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is PoolWithdrawBlock))
                 return null;
 
@@ -290,7 +348,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             var poolGenesis = sys.Storage.GetPoolByID(send.Tags["poolid"]);
             var poolId = poolGenesis.AccountID;
 
-            PoolWithdrawBlock withdrawBlock = new PoolWithdrawBlock()
+            PoolWithdrawBlock withdrawBlock = new PoolWithdrawBlock
             {
                 AccountID = poolId,
                 ServiceHash = lsb.Hash,
@@ -343,9 +401,36 @@ namespace Lyra.Core.Decentralize.WorkFlow
             //await QueueTxActionBlockAsync(withdrawBlock);
         }
         #endregion
+    }
+
+    public class WFPoolSwap : WorkFlowBase
+    {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_POOL_SWAP,
+                RecvVia = BrokerRecvType.None,
+                Blocks = new[]{
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.PoolSwapIn,
+                        TheBlock = typeof(PoolSwapInBlock),
+                        AuthorizerName = "PoolSwapInAuthorizer",
+                    },
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.PoolSwapOut,
+                        TheBlock = typeof(PoolSwapOutBlock),
+                        AuthorizerName = "PoolSwapOutAuthorizer",
+                    },                
+                }
+            };
+        }
+
 
         #region BRK_POOL_SWAP
-        public static async Task<APIResultCodes> VerifyPoolSwapAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
         {
             if (block.Tags.Count > 3 || !block.Tags.ContainsKey("poolid"))
                 return APIResultCodes.InvalidBlockTags;
@@ -353,7 +438,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             if (block.Tags.Count == 3 && !block.Tags.ContainsKey("minrecv"))
                 return APIResultCodes.InvalidBlockTags;
 
-            var vp = await VerifyPoolAsync(sys, block, lastBlock);
+            var vp = await WFPoolAddLiquidate.VerifyPoolAsync(sys, block, lastBlock);
             if (vp != APIResultCodes.Success)
                 return vp;
 
@@ -405,7 +490,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             }
             return APIResultCodes.Success;
         }
-        public static async Task<TransactionBlock> ReceivePoolSwapInAsync(DagSystem sys, SendTransferBlock sendBlock)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
             // assume all send variables are legal
             // token0/1, amount, etc.
@@ -469,7 +554,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return swapInBlock;
         }
 
-        public static async Task<TransactionBlock> SendPoolSwapOutTokenAsync(DagSystem sys, string reqHash)
+        public override async Task<TransactionBlock> ExtraOpsAsync(DagSystem sys, string reqHash)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(reqHash);
             var swout = blocks.FirstOrDefault(a => a is PoolSwapOutBlock);
