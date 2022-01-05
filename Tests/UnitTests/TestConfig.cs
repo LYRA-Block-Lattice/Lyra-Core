@@ -17,7 +17,7 @@ namespace UnitTests
             var _af = new AuthorizersFactory();
             _af.Init();
             var _bf = new BrokerFactory();
-            _bf.Init(_af);
+            _bf.Init(_af, null);
         }
     }
 }

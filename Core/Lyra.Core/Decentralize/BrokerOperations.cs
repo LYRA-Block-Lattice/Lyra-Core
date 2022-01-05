@@ -132,35 +132,5 @@ namespace Lyra.Core.Decentralize
             //await QueueBlockForPoolAsync(receiveBlock, tx);  // create pool / withdraw
         }
 
-
-
-
-
-
-
-
-
-
-        //// merchants
-        //public static async Task<TransactionBlock> CNOMCTCreateAsync(DagSystem sys, SendTransferBlock send)
-        //{
-        //    throw new NotImplementedException();
-        //}
-        //public static async Task<TransactionBlock> CNOMCTPayAsync(DagSystem sys, SendTransferBlock send)
-        //{
-        //    throw new NotImplementedException();
-        //}
-        //public static async Task<TransactionBlock> CNOMCTUnPayAsync(DagSystem sys, SendTransferBlock send)
-        //{
-        //    throw new NotImplementedException();
-        //}
-        //public static async Task<TransactionBlock> CNOMCTConfirmPayAsync(DagSystem sys, SendTransferBlock send)
-        //{
-        //    throw new NotImplementedException();
-        //}
-        //public static async Task<TransactionBlock> CNOMCTGetPayAsync(DagSystem sys, SendTransferBlock send)
-        //{
-        //    throw new NotImplementedException();
-        //}
     }
 }

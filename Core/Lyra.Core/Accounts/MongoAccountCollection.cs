@@ -18,6 +18,8 @@ using Lyra.Data.Utils;
 using System.Text.RegularExpressions;
 using Lyra.Data.Blocks;
 using Lyra.Core.Decentralize;
+using System.Reflection;
+using System.Globalization;
 //using Javax.Security.Auth;
 
 namespace Lyra.Core.Accounts
@@ -110,29 +112,31 @@ namespace Lyra.Core.Accounts
             BsonClassMap.RegisterClassMap<AuthorizationSignature>();
             BsonClassMap.RegisterClassMap<ImportAccountBlock>();
             BsonClassMap.RegisterClassMap<OpenAccountWithImportBlock>();
-            BsonClassMap.RegisterClassMap<PoolFactoryBlock>();
-            BsonClassMap.RegisterClassMap<PoolGenesisBlock>();
-            BsonClassMap.RegisterClassMap<PoolDepositBlock>();
-            BsonClassMap.RegisterClassMap<PoolWithdrawBlock>();
-            BsonClassMap.RegisterClassMap<PoolSwapInBlock>();
-            BsonClassMap.RegisterClassMap<PoolSwapOutBlock>();
-            BsonClassMap.RegisterClassMap<ProfitingGenesis>();
-            BsonClassMap.RegisterClassMap<ProfitingBlock>();
-            BsonClassMap.RegisterClassMap<BenefitingBlock>();
-            BsonClassMap.RegisterClassMap<StakingGenesis>();
-            BsonClassMap.RegisterClassMap<StakingBlock>();
-            BsonClassMap.RegisterClassMap<UnStakingBlock>();
-            BsonClassMap.RegisterClassMap<MerchantRecv>();
-            BsonClassMap.RegisterClassMap<MerchantSend>();
             BsonClassMap.RegisterClassMap<ReceiveAsFeeBlock>();
+            BsonClassMap.RegisterClassMap<PoolFactoryBlock>();
+
+            // all dynamically add
+
+            //BsonClassMap.RegisterClassMap<PoolGenesisBlock>();
+            //BsonClassMap.RegisterClassMap<PoolDepositBlock>();
+            //BsonClassMap.RegisterClassMap<PoolWithdrawBlock>();
+            //BsonClassMap.RegisterClassMap<PoolSwapInBlock>();
+            //BsonClassMap.RegisterClassMap<PoolSwapOutBlock>();
+            //BsonClassMap.RegisterClassMap<ProfitingGenesis>();
+            //BsonClassMap.RegisterClassMap<ProfitingBlock>();
+            //BsonClassMap.RegisterClassMap<BenefitingBlock>();
+            //BsonClassMap.RegisterClassMap<StakingGenesis>();
+            //BsonClassMap.RegisterClassMap<StakingBlock>();
+            //BsonClassMap.RegisterClassMap<UnStakingBlock>();
+
 
             // DEX
-            BsonClassMap.RegisterClassMap<DexReceiveBlock>();
-            BsonClassMap.RegisterClassMap<DexSendBlock>();
-            BsonClassMap.RegisterClassMap<DexWalletGenesis>();
-            BsonClassMap.RegisterClassMap<TokenMintBlock>();
-            BsonClassMap.RegisterClassMap<TokenBurnBlock>();
-            BsonClassMap.RegisterClassMap<TokenWithdrawBlock>();
+            //BsonClassMap.RegisterClassMap<DexReceiveBlock>();
+            //BsonClassMap.RegisterClassMap<DexSendBlock>();
+            //BsonClassMap.RegisterClassMap<DexWalletGenesis>();
+            //BsonClassMap.RegisterClassMap<TokenMintBlock>();
+            //BsonClassMap.RegisterClassMap<TokenBurnBlock>();
+            //BsonClassMap.RegisterClassMap<TokenWithdrawBlock>();
 
             // obsolete, but needed for compatiblity
             BsonClassMap.RegisterClassMap<ReceiveAuthorizerFeeBlock>();
@@ -248,6 +252,35 @@ namespace Lyra.Core.Accounts
                     _log.LogError("In create index: " + e.ToString());
                 }
             }).ConfigureAwait(false);
+        }
+
+        class MyBinder : Binder
+        {
+            public override MethodBase SelectMethod(BindingFlags bindingAttr, MethodBase[] match, Type[] types, ParameterModifier[] modifiers)
+            {
+                return match.First(m => m.IsGenericMethod);
+            }
+
+            #region not implemented
+            public override MethodBase BindToMethod(BindingFlags bindingAttr, MethodBase[] match, ref object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] names, out object state) => throw new NotImplementedException();
+            public override FieldInfo BindToField(BindingFlags bindingAttr, FieldInfo[] match, object value, CultureInfo culture) => throw new NotImplementedException();
+            public override PropertyInfo SelectProperty(BindingFlags bindingAttr, PropertyInfo[] match, Type returnType, Type[] indexes, ParameterModifier[] modifiers) => throw new NotImplementedException();
+            public override object ChangeType(object value, Type type, CultureInfo culture) => throw new NotImplementedException();
+            public override void ReorderArgumentArray(ref object[] args, object state) => throw new NotImplementedException();
+            #endregion
+        }
+
+        //BsonClassMap.RegisterClassMap<UnStakingBlock>();
+        public void Register(Type type)
+        {
+            var methodInfo = typeof(BsonClassMap).GetMethod("RegisterClassMap",
+                BindingFlags.Public | BindingFlags.Static,
+                new MyBinder(),
+                new[] { typeof(string) },
+                null);
+
+            var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+            genericMethodInfo.Invoke(null, new object[] {  });
         }
 
         public async Task UpdateStatsAsync()

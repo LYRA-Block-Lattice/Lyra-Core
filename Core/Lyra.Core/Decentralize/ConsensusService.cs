@@ -112,7 +112,7 @@ namespace Lyra.Core.Decentralize
             _af = new AuthorizersFactory();
             _af.Init();
             _bf = new BrokerFactory();
-            _bf.Init(_af);
+            _bf.Init(_af, _sys.Storage);
 
             if (localNode == null)
             {

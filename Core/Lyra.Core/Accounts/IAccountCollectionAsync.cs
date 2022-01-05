@@ -13,6 +13,7 @@ namespace Lyra.Core.Accounts
     /// </summary>
     public interface IAccountCollectionAsync : IDisposable
     {
+        void Register(Type type);
         Task UpdateStatsAsync();
         // for service
         Task<long> GetBlockCountAsync();
