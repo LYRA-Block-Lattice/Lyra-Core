@@ -254,11 +254,11 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            //await TestOTCTrade();
+            await TestOTCTrade();
             await TestPoolAsync();
             await TestProfitingAndStaking();
             await TestNodeFee();
-            await TestDepositWithdraw();
+            //await TestDepositWithdraw();
 
             // let workflow to finish
             await Task.Delay(1000);

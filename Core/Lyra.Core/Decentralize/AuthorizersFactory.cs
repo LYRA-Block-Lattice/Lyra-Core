@@ -20,7 +20,8 @@ namespace Lyra.Core.Decentralize
         public void Init()
         {
             if (_authorizerInstances != null)
-                throw new InvalidOperationException("Already initialized.");
+                return;
+                //throw new InvalidOperationException("Already initialized.");
 
             _authorizers = new Dictionary<BlockTypes, string>();
             _authorizers.Add(BlockTypes.SendTransfer, "SendTransferAuthorizer");

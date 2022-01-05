@@ -137,8 +137,7 @@ namespace Lyra.Core.Decentralize
     public class BrokerFactory
     {
         public static Dictionary<string, WorkFlowBase> DynWorkFlows;
-        private static Dictionary<string, (Func<DagSystem, SendTransferBlock, TransactionBlock, Task<APIResultCodes>> preSendAuth, BrokerRecvType pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
-
+        
         public static ConcurrentDictionary<string, BrokerBlueprint> Bps { get; set; }
 
         public static event Action<BrokerBlueprint> OnFinished;
@@ -160,7 +159,8 @@ namespace Lyra.Core.Decentralize
         public void Init(AuthorizersFactory af)
         {
             if (DynWorkFlows != null)
-                throw new InvalidOperationException("Already initialized.");
+                return;
+                //throw new InvalidOperationException("Already initialized.");
 
             DynWorkFlows = new Dictionary<string, WorkFlowBase>();
             Bps = new ConcurrentDictionary<string, BrokerBlueprint>();
