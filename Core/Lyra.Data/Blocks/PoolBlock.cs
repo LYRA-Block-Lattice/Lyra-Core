@@ -36,28 +36,8 @@ namespace Lyra.Core.Blocks
             var ob = other as PoolDepositBlock;
 
             return base.AuthCompare(ob) &&
-                CompareShares(ob.Shares) &&
+                CompareDict(Shares, ob.Shares) &&
                 RelatedTx == ob.RelatedTx;
-        }
-
-        private bool CompareShares(Dictionary<string, long> otherShares)
-        {
-            if (Shares == null && otherShares == null)
-                return true;
-
-            if (Shares.Count != otherShares.Count)
-                return false;
-
-            foreach(var kvp in Shares)
-            {
-                if (!otherShares.ContainsKey(kvp.Key))
-                    return false;
-
-                if (otherShares[kvp.Key] != kvp.Value)
-                    return false;
-            }
-
-            return true;
         }
 
         protected override string GetExtraData()

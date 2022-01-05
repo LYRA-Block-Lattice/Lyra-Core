@@ -2113,7 +2113,7 @@ namespace Lyra.Core.Accounts
             var tags = new Dictionary<string, string>
             {
                 { Block.REQSERVICETAG, BrokerActions.BRK_DAO_CRDAO },
-                { "name", JsonConvert.SerializeObject(name) },
+                { "name", name },
             };
 
             var amounts = new Dictionary<string, decimal>

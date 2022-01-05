@@ -246,6 +246,26 @@ namespace Lyra.Core.Blocks
         {
             return true == Tags?.ContainsKey(tagKey);
         }
+
+        private bool CompareDict(Dictionary<string, long> thisDict, Dictionary<string, long> otherDict)
+        {
+            if (thisDict == null && otherDict == null)
+                return true;
+
+            if (thisDict.Count != otherDict.Count)
+                return false;
+
+            foreach (var kvp in thisDict)
+            {
+                if (!otherDict.ContainsKey(kvp.Key))
+                    return false;
+
+                if (otherDict[kvp.Key] != kvp.Value)
+                    return false;
+            }
+
+            return true;
+        }
     }
 
     public enum BlockTypes : byte
@@ -342,7 +362,7 @@ namespace Lyra.Core.Blocks
         DexWithdrawToken = 75,
         
         // DAO
-        DaoOrgnization = 80,
+        Orgnization = 80,
     }
 
     public enum APIResultCodes
@@ -523,7 +543,7 @@ namespace Lyra.Core.Blocks
         InvalidProfitingAccount,
         VotingDaysTooSmall,
         InvalidShareOfProfit,
-        DuplicatedName,
+        DuplicateName,
         InvalidStakingAccount,
         SystemBusy,
         InvalidName,
@@ -561,6 +581,8 @@ namespace Lyra.Core.Blocks
         UnsupportedDexToken,
         InvalidDexServer,
         InvalidExternalAddress,
-        TokenNotFound
+        TokenNotFound,
+
+        
     }
 }

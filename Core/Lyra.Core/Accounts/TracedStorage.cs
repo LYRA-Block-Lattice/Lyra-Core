@@ -323,5 +323,10 @@ namespace Lyra.Core.Accounts
         {
             _store.Dispose();
         }
+
+        public DaoBlock GetDaoByName(string name)
+        {
+            return StopWatcher.Track(() => _store.GetDaoByName(name), StopWatcher.GetCurrentMethod());
+        }
     }
 }

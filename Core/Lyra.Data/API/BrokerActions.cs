@@ -16,11 +16,11 @@ namespace Lyra.Data.API
         //public const string BRK_PFT_FEEPFT = "FEEPFT";    // combine to getpft
         public const string BRK_PFT_GETPFT = "GETPFT";
 
-        public const string BRK_MCT_CRMCT = "CRMCT";
-        public const string BRK_MCT_PAYMCT = "PAYMCT";
-        public const string BRK_MCT_UNPAY = "UNPAY";
-        public const string BRK_MCT_CFPAY = "CFPAY";
-        public const string BRK_MCT_GETPAY = "GETPAY";
+        //public const string BRK_MCT_CRMCT = "CRMCT";
+        //public const string BRK_MCT_PAYMCT = "PAYMCT";
+        //public const string BRK_MCT_UNPAY = "UNPAY";
+        //public const string BRK_MCT_CFPAY = "CFPAY";
+        //public const string BRK_MCT_GETPAY = "GETPAY";
 
         // DEX
         public const string BRK_DEX_DPOREQ = "DPOREQ";

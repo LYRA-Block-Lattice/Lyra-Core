@@ -74,7 +74,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
                         if (stks.Any(a => a.Name == block.Tags["name"]))
-                            return APIResultCodes.DuplicatedName;
+                            return APIResultCodes.DuplicateName;
 
                         votefor = block.Tags["voting"];
                         if (!Signatures.ValidateAccountId(votefor))
@@ -120,7 +120,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                             // name dup check
                             var pfts = await sys.Storage.FindAllProfitingAccountForOwnerAsync(block.AccountID);
                             if (pfts.Any(a => a.Name == block.Tags["name"]))
-                                return APIResultCodes.DuplicatedName;
+                                return APIResultCodes.DuplicateName;
 
                             // one type per account. just keep it simple.
                             if (pfts.Any(a => a.PType == ptype))
@@ -134,7 +134,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
 
                             var dupname = sys.Storage.FindProfitingAccountsByName(block.Tags["name"]);
                             if (dupname != null)
-                                return APIResultCodes.DuplicatedName;
+                                return APIResultCodes.DuplicateName;
                         }
                         else
                         {

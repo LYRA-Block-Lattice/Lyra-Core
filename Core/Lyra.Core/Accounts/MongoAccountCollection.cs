@@ -2086,6 +2086,11 @@ namespace Lyra.Core.Accounts
                 .FirstOrDefault(a => a.ExtSymbol == symbol && a.ExtProvider == provider)
                 as TransactionBlock;
         }
+
+        public DaoBlock GetDaoByName(string name)
+        {
+            throw new NotImplementedException();
+        }
     }
     public static class MyExtensions
     {
