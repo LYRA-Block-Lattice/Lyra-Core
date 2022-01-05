@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
+    [LyraWorkFlow]
     public class WFDao : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
+    [LyraWorkFlow]
     public class WFStakingCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -137,6 +138,8 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return stkGenesis;
         }
     }
+
+    [LyraWorkFlow]
     public class WFStakingAddStaking : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -243,6 +246,8 @@ namespace Lyra.Core.Decentralize.WorkFlow
             return stkNext;
         }
     }
+
+    [LyraWorkFlow]
     public class WFStakingUnStaking : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
+    [LyraWorkFlow]
     public class WFPoolCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -137,6 +138,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
         #endregion
     }
 
+    [LyraWorkFlow]
     public class WFPoolAddLiquidate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -294,6 +296,8 @@ namespace Lyra.Core.Decentralize.WorkFlow
         }
         #endregion
     }
+
+    [LyraWorkFlow]
     public class WFPoolRemoveLiquidate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -403,6 +407,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
         #endregion
     }
 
+    [LyraWorkFlow]
     public class WFPoolSwap : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

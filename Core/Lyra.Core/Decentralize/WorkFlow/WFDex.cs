@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
+    [LyraWorkFlow]
     public class WFDexDeposit : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -119,6 +120,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
         }
     }
 
+    [LyraWorkFlow]
     public class WFDexMint : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -230,6 +232,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
     /// <summary>
     /// user get token = dex server send token
     /// </summary>
+    [LyraWorkFlow]
     public class WFDexGetToken : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -329,6 +332,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
         #endregion
     }
 
+    [LyraWorkFlow]
     public class WFDexPutToken : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -432,6 +436,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
         #endregion
     }
 
+    [LyraWorkFlow]
     public class WFDexWithdraw : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()

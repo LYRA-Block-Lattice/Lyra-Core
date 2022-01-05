@@ -10,6 +10,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -133,6 +134,10 @@ namespace Lyra.Core.Decentralize
         }
     }
 
+    public class LyraWorkFlowAttribute : Attribute
+    {
+
+    }
     public enum BrokerRecvType { None, PFRecv, DaoRecv }
     public class BrokerFactory
     {
@@ -159,6 +164,16 @@ namespace Lyra.Core.Decentralize
                 }                    
             }
         }
+
+        private IEnumerable<Type> GetTypesWithMyAttribute(Assembly assembly)
+        {
+            foreach (Type type in assembly.GetTypes())
+            {
+                if (Attribute.IsDefined(type, typeof(LyraWorkFlowAttribute)))
+                    yield return type;
+            }
+        }
+
         public void Init(AuthorizersFactory af, IAccountCollectionAsync store)
         {
             if (DynWorkFlows != null)
@@ -168,31 +183,11 @@ namespace Lyra.Core.Decentralize
             DynWorkFlows = new Dictionary<string, WorkFlowBase>();
             Bps = new ConcurrentDictionary<string, BrokerBlueprint>();
 
-            // liquidate pool
-            AddWorkFlow(af, store, new WFPoolCreate());
-            AddWorkFlow(af, store, new WFPoolAddLiquidate());
-            AddWorkFlow(af, store, new WFPoolRemoveLiquidate());
-            AddWorkFlow(af, store, new WFPoolSwap());
-
-            // profiting
-            AddWorkFlow(af, store, new WFProfitCreate());
-            AddWorkFlow(af, store, new WFProfitGet());
-
-            //// staking
-            AddWorkFlow(af, store, new WFStakingCreate());
-            AddWorkFlow(af, store, new WFStakingAddStaking());
-            AddWorkFlow(af, store, new WFStakingUnStaking());
-
-            //// DEX
-            AddWorkFlow(af, store, new WFDexDeposit());
-            AddWorkFlow(af, store, new WFDexMint());
-            AddWorkFlow(af, store, new WFDexGetToken());
-            AddWorkFlow(af, store, new WFDexPutToken());
-            AddWorkFlow(af, store, new WFDexWithdraw());
-
-            // DAO
-            AddWorkFlow(af, store, new WFDao());
-
+            foreach(var type in GetTypesWithMyAttribute(Assembly.GetExecutingAssembly()))
+            {
+                var lyrawf = (WorkFlowBase)Activator.CreateInstance(type);
+                AddWorkFlow(af, store, lyrawf);
+            }
         }
 
         public static void CreateBlueprint(BrokerBlueprint blueprint)

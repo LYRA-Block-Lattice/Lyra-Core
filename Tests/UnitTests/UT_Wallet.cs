@@ -52,15 +52,15 @@ namespace UnitTests
             wallet2.AccountId.Should().Be(ADDRESS_ID_1);
         }
 
-        [TestMethod]
-        public async Task TestUnsettlementAsync()
-        {
-            var lcx = LyraRestClient.Create("mainnet", Environment.OSVersion.ToString(), "Nebula", "1.4");
-            var txs = await lcx.SearchTransactionsAsync("LRsirJCFKsA9F5KmUeGQuRxu98fA8xpaHyLqvp5pvXfSVBYGividVK6mV4YZwFUBFU8WhvqWdXk4BWe1bye7PYiprRGQBD", DateTime.UtcNow.AddDays(-2).Ticks, DateTime.UtcNow.Ticks, 10);
-            if(txs.Successful())
-            {
+        //[TestMethod]
+        //public async Task TestUnsettlementAsync()
+        //{
+        //    var lcx = LyraRestClient.Create("mainnet", Environment.OSVersion.ToString(), "Nebula", "1.4");
+        //    var txs = await lcx.SearchTransactionsAsync("LRsirJCFKsA9F5KmUeGQuRxu98fA8xpaHyLqvp5pvXfSVBYGividVK6mV4YZwFUBFU8WhvqWdXk4BWe1bye7PYiprRGQBD", DateTime.UtcNow.AddDays(-2).Ticks, DateTime.UtcNow.Ticks, 10);
+        //    if(txs.Successful())
+        //    {
 
-            }
-        }
+        //    }
+        //}
     }
 }

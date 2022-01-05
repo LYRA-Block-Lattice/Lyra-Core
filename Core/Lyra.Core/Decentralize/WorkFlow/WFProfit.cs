@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
+    [LyraWorkFlow]
     public class WFProfitCreate : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
@@ -258,6 +259,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
         #endregion
     }
 
+    [LyraWorkFlow]
     public class WFProfitGet : WorkFlowBase
     {
         public override WorkFlowDescription GetDescription()
