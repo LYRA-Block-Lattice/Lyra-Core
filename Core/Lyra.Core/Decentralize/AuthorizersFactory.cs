@@ -26,7 +26,7 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.SendTransfer, "SendTransferAuthorizer");
             
             _authorizers.Add(BlockTypes.ReceiveFee, "ReceiveTransferAuthorizer");
-            _authorizers.Add(BlockTypes.ReceiveNodeProfit, "ReceiveNodeProfitAuthorizer");
+            //_authorizers.Add(BlockTypes.ReceiveNodeProfit, "ReceiveNodeProfitAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithReceiveFee, "NewAccountAuthorizer");
             _authorizers.Add(BlockTypes.OpenAccountWithReceiveTransfer, "NewAccountAuthorizer");
             //_authorizers.Add(BlockTypes.OpenAccountWithImport, "NewAccountWithImportAuthorizer");
@@ -47,24 +47,26 @@ namespace Lyra.Core.Decentralize
             //_authorizers.Add(BlockTypes.PoolSwapIn, "PoolSwapInAuthorizer");
             //_authorizers.Add(BlockTypes.PoolSwapOut, "PoolSwapOutAuthorizer");
 
-            _authorizers.Add(BlockTypes.ProfitingGenesis, "ProfitingGenesisAuthorizer");
-            _authorizers.Add(BlockTypes.Profiting, "ProfitingAuthorizer");
-            _authorizers.Add(BlockTypes.Benefiting, "BenefitingAuthorizer");
-            _authorizers.Add(BlockTypes.StakingGenesis, "StakingGenesisAuthorizer");
-            _authorizers.Add(BlockTypes.Staking, "StakingAuthorizer");
-            _authorizers.Add(BlockTypes.UnStaking, "UnStakingAuthorizer");
-            _authorizers.Add(BlockTypes.ReceiveAsFee, "ReceiveAsFeeAuthorizer");
+            //_authorizers.Add(BlockTypes.ProfitingGenesis, "ProfitingGenesisAuthorizer");
+            //_authorizers.Add(BlockTypes.Profiting, "ProfitingAuthorizer");
+            //_authorizers.Add(BlockTypes.Benefiting, "BenefitingAuthorizer");
 
+            //_authorizers.Add(BlockTypes.StakingGenesis, "StakingGenesisAuthorizer");
+            //_authorizers.Add(BlockTypes.Staking, "StakingAuthorizer");
+            //_authorizers.Add(BlockTypes.UnStaking, "UnStakingAuthorizer");
+
+
+            _authorizers.Add(BlockTypes.ReceiveAsFee, "ReceiveAsFeeAuthorizer");
             _authorizers.Add(BlockTypes.LyraTokenGenesis, "LyraGenesisAuthorizer");
             _authorizers.Add(BlockTypes.TokenGenesis, "TokenGenesisAuthorizer");
 
             // DEX
-            _authorizers.Add(BlockTypes.DexWalletGenesis, "DexWalletGenesisAuthorizer");
-            _authorizers.Add(BlockTypes.DexTokenMint, "DexTokenMintAuthorizer");
-            _authorizers.Add(BlockTypes.DexTokenBurn, "DexTokenBurnAuthorizer");
-            _authorizers.Add(BlockTypes.DexWithdrawToken, "DexWithdrawAuthorizer");
-            _authorizers.Add(BlockTypes.DexSendToken, "DexSendAuthorizer");
-            _authorizers.Add(BlockTypes.DexRecvToken, "DexReceiveAuthorizer");
+            //_authorizers.Add(BlockTypes.DexWalletGenesis, "DexWalletGenesisAuthorizer");
+            //_authorizers.Add(BlockTypes.DexTokenMint, "DexTokenMintAuthorizer");
+            //_authorizers.Add(BlockTypes.DexTokenBurn, "DexTokenBurnAuthorizer");
+            //_authorizers.Add(BlockTypes.DexWithdrawToken, "DexWithdrawAuthorizer");
+            //_authorizers.Add(BlockTypes.DexSendToken, "DexSendAuthorizer");
+            //_authorizers.Add(BlockTypes.DexRecvToken, "DexReceiveAuthorizer");
 
             // DAO Note: not needed. dynamic work flow did this.
             //_authorizers.Add(BlockTypes.Orgnization, "DaoAuthorizer");

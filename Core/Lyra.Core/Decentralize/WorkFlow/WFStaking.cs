@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using Lyra.Data.Utils;
@@ -11,9 +12,82 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
-    public class WFStaking
+    public class WFStakingCreate : WorkFlowBase
     {
-        public static async Task<TransactionBlock> CNOCreateStakingAccountAsync(DagSystem sys, SendTransferBlock send)
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_STK_CRSTK,
+                RecvVia = BrokerRecvType.PFRecv,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.StakingGenesis,
+                        TheBlock = typeof(StakingGenesis),
+                        AuthorizerName = "StakingGenesisAuthorizer",
+                    }
+                }
+            };
+        }
+
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        {
+            var chgs = block.GetBalanceChanges(lastBlock);
+            if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                return APIResultCodes.InvalidFeeAmount;
+
+            switch (block.Tags[Block.REQSERVICETAG])
+            {
+                case BrokerActions.BRK_STK_CRSTK:   // create staking
+                    if (chgs.Changes[LyraGlobal.OFFICIALTICKERCODE] != PoolFactoryBlock.StakingAccountCreateFee)
+                        return APIResultCodes.InvalidFeeAmount;
+
+                    string votefor;
+                    int days;
+                    if (
+                        block.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(block.Tags["name"]) &&
+                        block.Tags.ContainsKey("days") && int.TryParse(block.Tags["days"], out days) && days >= 3 &&
+                        block.Tags.ContainsKey("voting") && !string.IsNullOrEmpty(block.Tags["voting"]) &&
+                        block.Tags.ContainsKey("compound") && !string.IsNullOrEmpty(block.Tags["compound"]) &&
+                        block.Tags.Count == 5
+                        )
+                    {
+                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
+                        if (stks.Any(a => a.Name == block.Tags["name"]))
+                            return APIResultCodes.DuplicateName;
+
+                        votefor = block.Tags["voting"];
+                        if (!Signatures.ValidateAccountId(votefor))
+                        {
+                            return APIResultCodes.InvalidProfitingAccount;
+                        }
+                        var pftgen = await sys.Storage.FindFirstBlockAsync(votefor) as ProfitingGenesis;
+                        if (pftgen == null || pftgen.AccountType != AccountTypes.Profiting)
+                        {
+                            return APIResultCodes.InvalidProfitingAccount;
+                        }
+                        if (pftgen.Seats == 0 || pftgen.ShareRito == 0)
+                        {
+                            return APIResultCodes.ProfitUnavaliable;
+                        }
+                        if (days <= 1)
+                        {
+                            return APIResultCodes.VotingDaysTooSmall;
+                        }
+                        if (block.Tags["compound"] != "True" && block.Tags["compound"] != "False")
+                            return APIResultCodes.InvalidBlockTags;
+                    }
+                    else
+                        return APIResultCodes.InvalidBlockTags;
+                    break;
+                default:
+                    return APIResultCodes.InvalidServiceRequest;
+            }
+            return APIResultCodes.Success;
+        }
+
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             var pgen = blocks.FirstOrDefault(a => a is StakingGenesis);
@@ -62,8 +136,52 @@ namespace Lyra.Core.Decentralize.WorkFlow
 
             return stkGenesis;
         }
+    }
+    public class WFStakingAddStaking : WorkFlowBase
+    {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_STK_ADDSTK,
+                RecvVia = BrokerRecvType.None,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.Staking,
+                        TheBlock = typeof(StakingBlock),
+                        AuthorizerName = "StakingAuthorizer",
+                    }
+                }
+            };
+        }
 
-        public static async Task<TransactionBlock> CNOAddStakingAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        {
+            var chgs = block.GetBalanceChanges(lastBlock);
+            if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                return APIResultCodes.InvalidFeeAmount;
+
+            switch (block.Tags[Block.REQSERVICETAG])
+            {
+                case BrokerActions.BRK_STK_ADDSTK:
+                    if (block.Tags.Count == 1)
+                    {
+                        // verify sender is the owner of stkingblock
+                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
+                        if (!stks.Any(a => a.AccountID == block.DestinationAccountId))
+                            return APIResultCodes.InvalidStakingAccount;
+                    }
+                    else
+                        return APIResultCodes.InvalidBlockTags;
+                    break;
+                default:
+                    return APIResultCodes.InvalidServiceRequest;
+            }
+            return APIResultCodes.Success;
+        }
+
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             return await CNOAddStakingImplAsync(sys, send, send.Hash);
         }
@@ -124,8 +242,65 @@ namespace Lyra.Core.Decentralize.WorkFlow
 
             return stkNext;
         }
+    }
+    public class WFStakingUnStaking : WorkFlowBase
+    {
+        public override WorkFlowDescription GetDescription()
+        {
+            return new WorkFlowDescription
+            {
+                Action = BrokerActions.BRK_STK_UNSTK,
+                RecvVia = BrokerRecvType.PFRecv,
+                Blocks = new[] {
+                    new BlockDesc
+                    {
+                        BlockType = BlockTypes.UnStaking,
+                        TheBlock = typeof(UnStakingBlock),
+                        AuthorizerName = "UnStakingAuthorizer",
+                    }
+                }
+            };
+        }
 
-        public static async Task<TransactionBlock> CNOUnStakeAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock block, TransactionBlock lastBlock)
+        {
+            var chgs = block.GetBalanceChanges(lastBlock);
+            if (!chgs.Changes.ContainsKey(LyraGlobal.OFFICIALTICKERCODE))
+                return APIResultCodes.InvalidFeeAmount;
+
+            switch (block.Tags[Block.REQSERVICETAG])
+            {
+                case BrokerActions.BRK_STK_UNSTK:
+                    if (
+                        block.Tags.ContainsKey("stkid") && !string.IsNullOrWhiteSpace(block.Tags["stkid"])
+                        && block.Tags.Count == 2
+                        )
+                    {
+                        if (block.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                            return APIResultCodes.InvalidServiceRequest;
+
+                        // verify sender is the owner of stkingblock
+                        var stks = await sys.Storage.FindAllStakingAccountForOwnerAsync(block.AccountID);
+                        if (!stks.Any(a => a.AccountID == block.Tags["stkid"]))
+                            return APIResultCodes.InvalidStakingAccount;
+
+                        var lastStk = await sys.Storage.FindLatestBlockAsync(block.Tags["stkid"]) as TransactionBlock;
+                        if (lastStk == null)
+                            return APIResultCodes.InvalidUnstaking;
+
+                        if (!lastStk.Balances.ContainsKey(LyraGlobal.OFFICIALTICKERCODE) || lastStk.Balances[LyraGlobal.OFFICIALTICKERCODE].ToBalanceDecimal() == 0)
+                            return APIResultCodes.InvalidUnstaking;
+                    }
+                    else
+                        return APIResultCodes.InvalidBlockTags;
+                    break;
+                default:
+                    return APIResultCodes.InvalidServiceRequest;
+            }
+            return APIResultCodes.Success;
+        }
+
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var blocks = await sys.Storage.FindBlocksByRelatedTxAsync(send.Hash);
             if (blocks.Any(a => a is UnStakingBlock))

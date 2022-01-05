@@ -256,7 +256,7 @@ namespace UnitTests
 
             //await TestOTCTrade();
             await TestPoolAsync();
-            //await TestProfitingAndStaking();
+            await TestProfitingAndStaking();
             //await TestNodeFee();
             //await TestDepositWithdraw();
 

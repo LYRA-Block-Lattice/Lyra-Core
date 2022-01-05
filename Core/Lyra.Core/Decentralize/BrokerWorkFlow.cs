@@ -170,17 +170,15 @@ namespace Lyra.Core.Decentralize
             AddWorkFlow(af, new WFPoolAddLiquidate());
             AddWorkFlow(af, new WFPoolRemoveLiquidate());
             AddWorkFlow(af, new WFPoolSwap());
-            //WorkFlows.Add(BrokerActions.BRK_POOL_CRPL, (WFPool.CNOCreateLiquidatePoolPreAuthAsync, BrokerRecvType.PFRecv, WFPool.CNOCreateLiquidatePoolAsync, null));
-            //WorkFlows.Add(BrokerActions.BRK_POOL_ADDLQ, (WFPool.VerifyAddLiquidateToPoolAsync, BrokerRecvType.None, WFPool.AddPoolLiquidateAsync, null));
-            //WorkFlows.Add(BrokerActions.BRK_POOL_RMLQ, (WFPool.VerifyWithdrawFromPoolAsync, BrokerRecvType.PFRecv, WFPool.SendWithdrawFundsAsync, null));
-            //WorkFlows.Add(BrokerActions.BRK_POOL_SWAP, (WFPool.VerifyPoolSwapAsync, BrokerRecvType.None, WFPool.ReceivePoolSwapInAsync, WFPool.SendPoolSwapOutTokenAsync));
 
-            //// profiting
-            //WorkFlows.Add(BrokerActions.BRK_PFT_CRPFT, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFProfit.CNOCreateProfitingAccountAsync, null));
-            ////WorkFlows.Add(BrokerActions.BRK_PFT_FEEPFT, (BrokerRecvType.PFRecv, BrokerOperations.SyncNodeFeesAsync, null));
-            //WorkFlows.Add(BrokerActions.BRK_PFT_GETPFT, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFProfit.CNOReceiveAllProfitAsync, WFProfit.CNORedistributeProfitAsync));
+            // profiting
+            AddWorkFlow(af, new WFProfitCreate());
+            AddWorkFlow(af, new WFProfitGet());
 
             //// staking
+            AddWorkFlow(af, new WFStakingCreate());
+            AddWorkFlow(af, new WFStakingAddStaking());
+            AddWorkFlow(af, new WFStakingUnStaking());
             //WorkFlows.Add(BrokerActions.BRK_STK_CRSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFStaking.CNOCreateStakingAccountAsync, null));
             //WorkFlows.Add(BrokerActions.BRK_STK_ADDSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.None, WFStaking.CNOAddStakingAsync, null));
             //WorkFlows.Add(BrokerActions.BRK_STK_UNSTK, (WFProfit.VerifyStkPftAsync, BrokerRecvType.PFRecv, WFStaking.CNOUnStakeAsync, null));
