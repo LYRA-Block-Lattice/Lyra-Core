@@ -115,8 +115,13 @@ namespace Lyra.Core.Authorizers
                         svcReqResult = await wf.preSendAuth(sys, block, lastBlock);
                     }
                 }
+                else if (BrokerFactory.DynWorkFlows.ContainsKey(block.Tags[Block.REQSERVICETAG]))
+                {
+                    var wf = BrokerFactory.DynWorkFlows[block.Tags[Block.REQSERVICETAG]];
+                    svcReqResult = await wf.PreSendAuthAsync(sys, block, lastBlock);
+                }
 
-                if(svcReqResult != APIResultCodes.Success)
+                if (svcReqResult != APIResultCodes.Success)
                 {
                     Console.WriteLine($"SVCREQ failed for {block.Tags[Block.REQSERVICETAG]}");
                     return svcReqResult;

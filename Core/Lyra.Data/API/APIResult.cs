@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Lyra.Core.Accounts;
 using Lyra.Core.Blocks;
 using Lyra.Core.Blocks.Fees;
@@ -234,6 +236,35 @@ namespace Lyra.Core.API
     // return the auhtorization signatures for send or receive blocks
     public class BlockAPIResult : APIResult
     {
+        class MyBinder : Binder
+        {
+            public override MethodBase SelectMethod(BindingFlags bindingAttr, MethodBase[] match, Type[] types, ParameterModifier[] modifiers)
+            {
+                return match.First(m => m.IsGenericMethod);
+            }
+
+            #region not implemented
+            public override MethodBase BindToMethod(BindingFlags bindingAttr, MethodBase[] match, ref object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] names, out object state) => throw new NotImplementedException();
+            public override FieldInfo BindToField(BindingFlags bindingAttr, FieldInfo[] match, object value, CultureInfo culture) => throw new NotImplementedException();
+            public override PropertyInfo SelectProperty(BindingFlags bindingAttr, PropertyInfo[] match, Type returnType, Type[] indexes, ParameterModifier[] modifiers) => throw new NotImplementedException();
+            public override object ChangeType(object value, Type type, CultureInfo culture) => throw new NotImplementedException();
+            public override void ReorderArgumentArray(ref object[] args, object state) => throw new NotImplementedException();
+            #endregion
+        }
+
+        private static Dictionary<BlockTypes, MethodInfo> TypeDict = new Dictionary<BlockTypes, MethodInfo>();
+        public static void Register(BlockTypes bt, Type type)
+        {
+            var methodInfo = typeof(JsonConvert).GetMethod("DeserializeObject",
+                BindingFlags.Public | BindingFlags.Static,
+                new MyBinder(),
+                new[] { typeof(string) },
+                null);
+
+            var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+            TypeDict[bt] = genericMethodInfo;
+        }
+
         public string BlockData { get; set; }
         public BlockTypes ResultBlockType { get; set; }
 
@@ -246,122 +277,135 @@ namespace Lyra.Core.API
         public Block GetBlock()
         {
             Block block;
-            switch (ResultBlockType)
+
+            if (TypeDict.ContainsKey(ResultBlockType))
+                block = TypeDict[ResultBlockType].Invoke(null, new object[] { BlockData }) as Block;
+            else
             {
-                case BlockTypes.SendTransfer:
-                    block = JsonConvert.DeserializeObject<SendTransferBlock>(BlockData);
-                    break;
-                case BlockTypes.TokenGenesis:
-                    block = JsonConvert.DeserializeObject<TokenGenesisBlock>(BlockData);
-                    break;
-                case BlockTypes.LyraTokenGenesis:
-                    block = JsonConvert.DeserializeObject<LyraTokenGenesisBlock>(BlockData);
-                    break;
-                case BlockTypes.ReceiveTransfer:
-                    block = JsonConvert.DeserializeObject<ReceiveTransferBlock>(BlockData);
-                    break;
-                case BlockTypes.ReceiveAsFee:
-                    block = JsonConvert.DeserializeObject<ReceiveAsFeeBlock>(BlockData);
-                    break;
-                case BlockTypes.OpenAccountWithReceiveTransfer:
-                    block = JsonConvert.DeserializeObject<OpenWithReceiveTransferBlock>(BlockData);
-                    break;
-                case BlockTypes.ReceiveAuthorizerFee:
-                    block = JsonConvert.DeserializeObject<ReceiveAuthorizerFeeBlock>(BlockData);
-                    break;
-                //case BlockTypes.ReceiveFee:
-                //    block = JsonConvert.DeserializeObject<Blocks.Fees.ReceiveFeeBlock>(BlockData);
-                //    break;
-                //case BlockTypes.OpenAccountWithReceiveFee:
-                //    block = JsonConvert.DeserializeObject<OpenWithReceiveFeeBlock>(BlockData);
-                //    break;
-                case BlockTypes.Service:
-                    block = JsonConvert.DeserializeObject<ServiceBlock>(BlockData);
-                    break;
-                case BlockTypes.Consolidation:
-                    block = JsonConvert.DeserializeObject<ConsolidationBlock>(BlockData);
-                    break;
-                case BlockTypes.TradeOrder:
-                    block = JsonConvert.DeserializeObject<TradeOrderBlock>(BlockData);
-                    break;
-                case BlockTypes.CancelTradeOrder:
-                    block = JsonConvert.DeserializeObject<CancelTradeOrderBlock>(BlockData);
-                    break;
-                case BlockTypes.Trade:
-                    block = JsonConvert.DeserializeObject<TradeBlock>(BlockData);
-                    break;
-                case BlockTypes.ExecuteTradeOrder:
-                    block = JsonConvert.DeserializeObject<ExecuteTradeOrderBlock>(BlockData);
-                    break;
-                case BlockTypes.ImportAccount:
-                    block = JsonConvert.DeserializeObject<ImportAccountBlock>(BlockData);
-                    break;
-                case BlockTypes.OpenAccountWithImport:
-                    block = JsonConvert.DeserializeObject<OpenAccountWithImportBlock>(BlockData);
-                    break;
-                case BlockTypes.PoolFactory:
-                    block = JsonConvert.DeserializeObject<PoolFactoryBlock>(BlockData);
-                    break;
-                case BlockTypes.PoolGenesis:
-                    block = JsonConvert.DeserializeObject<PoolGenesisBlock>(BlockData);
-                    break;
-                case BlockTypes.PoolDeposit:
-                    block = JsonConvert.DeserializeObject<PoolDepositBlock>(BlockData);
-                    break;
-                case BlockTypes.PoolWithdraw:
-                    block = JsonConvert.DeserializeObject<PoolWithdrawBlock>(BlockData);
-                    break;
-                case BlockTypes.PoolSwapIn:
-                    block = JsonConvert.DeserializeObject<PoolSwapInBlock>(BlockData);
-                    break;
-                case BlockTypes.PoolSwapOut:
-                    block = JsonConvert.DeserializeObject<PoolSwapOutBlock>(BlockData);
-                    break;
-                case BlockTypes.ProfitingGenesis:
-                    block = JsonConvert.DeserializeObject<ProfitingGenesis>(BlockData);
-                    break;
-                case BlockTypes.Profiting:
-                    block = JsonConvert.DeserializeObject<ProfitingBlock>(BlockData);
-                    break;
-                case BlockTypes.ReceiveNodeProfit:
-                    block = JsonConvert.DeserializeObject<ReceiveNodeProfitBlock>(BlockData);
-                    break;
-                case BlockTypes.Benefiting:
-                    block = JsonConvert.DeserializeObject<BenefitingBlock>(BlockData);
-                    break;
-                case BlockTypes.StakingGenesis:
-                    block = JsonConvert.DeserializeObject<StakingGenesis>(BlockData);
-                    break;
-                case BlockTypes.Staking:
-                    block = JsonConvert.DeserializeObject<StakingBlock>(BlockData);
-                    break;
-                case BlockTypes.UnStaking:
-                    block = JsonConvert.DeserializeObject<UnStakingBlock>(BlockData);
-                    break;
-                case BlockTypes.DexWalletGenesis:
-                    block = JsonConvert.DeserializeObject<DexWalletGenesis>(BlockData);
-                    break;
-                case BlockTypes.DexSendToken:
-                    block = JsonConvert.DeserializeObject<DexSendBlock>(BlockData);
-                    break;
-                case BlockTypes.DexRecvToken:
-                    block = JsonConvert.DeserializeObject<DexReceiveBlock>(BlockData);
-                    break;
-                case BlockTypes.DexTokenMint:
-                    block = JsonConvert.DeserializeObject<TokenMintBlock>(BlockData);
-                    break;
-                case BlockTypes.DexTokenBurn:
-                    block = JsonConvert.DeserializeObject<TokenBurnBlock>(BlockData);
-                    break;
-                case BlockTypes.DexWithdrawToken:
-                    block = JsonConvert.DeserializeObject<TokenWithdrawBlock>(BlockData);
-                    break;
-                case BlockTypes.Null:
-                    block = null;
-                    break;
-                default:
-                    throw new Exception("Unknown block type");
+                switch (ResultBlockType)
+                {
+                    case BlockTypes.SendTransfer:
+                        block = JsonConvert.DeserializeObject<SendTransferBlock>(BlockData);
+                        break;
+                    case BlockTypes.TokenGenesis:
+                        block = JsonConvert.DeserializeObject<TokenGenesisBlock>(BlockData);
+                        break;
+                    case BlockTypes.LyraTokenGenesis:
+                        block = JsonConvert.DeserializeObject<LyraTokenGenesisBlock>(BlockData);
+                        break;
+                    case BlockTypes.ReceiveTransfer:
+                        block = JsonConvert.DeserializeObject<ReceiveTransferBlock>(BlockData);
+                        break;
+                    case BlockTypes.ReceiveAsFee:
+                        block = JsonConvert.DeserializeObject<ReceiveAsFeeBlock>(BlockData);
+                        break;
+                    case BlockTypes.OpenAccountWithReceiveTransfer:
+                        block = JsonConvert.DeserializeObject<OpenWithReceiveTransferBlock>(BlockData);
+                        break;
+                    case BlockTypes.ReceiveAuthorizerFee:
+                        block = JsonConvert.DeserializeObject<ReceiveAuthorizerFeeBlock>(BlockData);
+                        break;
+                    //case BlockTypes.ReceiveFee:
+                    //    block = JsonConvert.DeserializeObject<Blocks.Fees.ReceiveFeeBlock>(BlockData);
+                    //    break;
+                    //case BlockTypes.OpenAccountWithReceiveFee:
+                    //    block = JsonConvert.DeserializeObject<OpenWithReceiveFeeBlock>(BlockData);
+                    //    break;
+                    case BlockTypes.Service:
+                        block = JsonConvert.DeserializeObject<ServiceBlock>(BlockData);
+                        break;
+                    case BlockTypes.Consolidation:
+                        block = JsonConvert.DeserializeObject<ConsolidationBlock>(BlockData);
+                        break;
+                    case BlockTypes.TradeOrder:
+                        block = JsonConvert.DeserializeObject<TradeOrderBlock>(BlockData);
+                        break;
+                    case BlockTypes.CancelTradeOrder:
+                        block = JsonConvert.DeserializeObject<CancelTradeOrderBlock>(BlockData);
+                        break;
+                    case BlockTypes.Trade:
+                        block = JsonConvert.DeserializeObject<TradeBlock>(BlockData);
+                        break;
+                    case BlockTypes.ExecuteTradeOrder:
+                        block = JsonConvert.DeserializeObject<ExecuteTradeOrderBlock>(BlockData);
+                        break;
+                    case BlockTypes.ImportAccount:
+                        block = JsonConvert.DeserializeObject<ImportAccountBlock>(BlockData);
+                        break;
+                    case BlockTypes.OpenAccountWithImport:
+                        block = JsonConvert.DeserializeObject<OpenAccountWithImportBlock>(BlockData);
+                        break;
+                    case BlockTypes.PoolFactory:
+                        block = JsonConvert.DeserializeObject<PoolFactoryBlock>(BlockData);
+                        break;
+                    case BlockTypes.PoolGenesis:
+                        block = JsonConvert.DeserializeObject<PoolGenesisBlock>(BlockData);
+                        break;
+                    case BlockTypes.PoolDeposit:
+                        block = JsonConvert.DeserializeObject<PoolDepositBlock>(BlockData);
+                        break;
+                    case BlockTypes.PoolWithdraw:
+                        block = JsonConvert.DeserializeObject<PoolWithdrawBlock>(BlockData);
+                        break;
+                    case BlockTypes.PoolSwapIn:
+                        block = JsonConvert.DeserializeObject<PoolSwapInBlock>(BlockData);
+                        break;
+                    case BlockTypes.PoolSwapOut:
+                        block = JsonConvert.DeserializeObject<PoolSwapOutBlock>(BlockData);
+                        break;
+                    case BlockTypes.ProfitingGenesis:
+                        block = JsonConvert.DeserializeObject<ProfitingGenesis>(BlockData);
+                        break;
+                    case BlockTypes.Profiting:
+                        block = JsonConvert.DeserializeObject<ProfitingBlock>(BlockData);
+                        break;
+                    case BlockTypes.ReceiveNodeProfit:
+                        block = JsonConvert.DeserializeObject<ReceiveNodeProfitBlock>(BlockData);
+                        break;
+                    case BlockTypes.Benefiting:
+                        block = JsonConvert.DeserializeObject<BenefitingBlock>(BlockData);
+                        break;
+                    case BlockTypes.StakingGenesis:
+                        block = JsonConvert.DeserializeObject<StakingGenesis>(BlockData);
+                        break;
+                    case BlockTypes.Staking:
+                        block = JsonConvert.DeserializeObject<StakingBlock>(BlockData);
+                        break;
+                    case BlockTypes.UnStaking:
+                        block = JsonConvert.DeserializeObject<UnStakingBlock>(BlockData);
+                        break;
+                    case BlockTypes.DexWalletGenesis:
+                        block = JsonConvert.DeserializeObject<DexWalletGenesis>(BlockData);
+                        break;
+                    case BlockTypes.DexSendToken:
+                        block = JsonConvert.DeserializeObject<DexSendBlock>(BlockData);
+                        break;
+                    case BlockTypes.DexRecvToken:
+                        block = JsonConvert.DeserializeObject<DexReceiveBlock>(BlockData);
+                        break;
+                    case BlockTypes.DexTokenMint:
+                        block = JsonConvert.DeserializeObject<TokenMintBlock>(BlockData);
+                        break;
+                    case BlockTypes.DexTokenBurn:
+                        block = JsonConvert.DeserializeObject<TokenBurnBlock>(BlockData);
+                        break;
+                    case BlockTypes.DexWithdrawToken:
+                        block = JsonConvert.DeserializeObject<TokenWithdrawBlock>(BlockData);
+                        break;
+                    case BlockTypes.Orgnization:
+                        block = JsonConvert.DeserializeObject<DaoBlock>(BlockData);
+                        break;
+                    case BlockTypes.OrgnizationGenesis:
+                        block = JsonConvert.DeserializeObject<DaoGenesis>(BlockData);
+                        break;
+                    case BlockTypes.Null:
+                        block = null;
+                        break;
+                    default:
+                        throw new Exception("Unknown block type");
+                }
             }
+
             // here verify block signature. 
             if(block != null && block.VerifyHash())
             {

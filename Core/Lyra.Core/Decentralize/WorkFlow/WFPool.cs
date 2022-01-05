@@ -9,8 +9,14 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
-    public class WFPool : WorkFlowBase
+    public class WFPool
     {
+        protected static async Task<bool> CheckTokenAsync(DagSystem sys, string tokenName)
+        {
+            var tokn = await sys.Storage.FindTokenGenesisBlockAsync(null, tokenName);
+            return tokn != null;
+        }
+
         protected static async Task<APIResultCodes> CheckPoolTagsAsync(DagSystem sys, Block block, int tagsCount = 3)
         {
             if (block.Tags.ContainsKey("token0") && await CheckTokenAsync(sys, block.Tags["token0"])

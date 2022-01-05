@@ -33,6 +33,6 @@ namespace Lyra.Data.API
         public const string BRK_DAO_CRDAO = "CRDAO";
 
         // OTC
-        public const string BRK_OTC_CRODR = "OTCRODR";
+        public const string BRK_OTC_CRODR = "CRODR";
     }
 }

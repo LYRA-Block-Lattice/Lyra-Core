@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.API;
 using Lyra.Core.Blocks;
+using Lyra.Data.API;
 using Lyra.Data.Blocks;
 using Lyra.Data.Crypto;
 using System;
@@ -10,31 +11,20 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize.WorkFlow
 {
-    public class WFDao
+    public class WFDao : WorkFlowBase
     {
-        internal static async Task<APIResultCodes> CreateDaoPreAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock lastblock)
+        public override WorkFlowDescription GetDescription()
         {
-            if (
-                send.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(send.Tags["name"])
-                && send.Tags.Count == 2
-                )
+            return new WorkFlowDescription
             {
-                if (send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
-                    return APIResultCodes.InvalidServiceRequest;
-
-                // check name dup
-                var name = send.Tags["name"];
-                var existsdao = sys.Storage.GetDaoByName(name);
-                if (existsdao != null)
-                    return APIResultCodes.DuplicateName;
-
-                return APIResultCodes.Success;
-            }
-            else
-                return APIResultCodes.InvalidBlockTags;
+                Action = BrokerActions.BRK_DAO_CRDAO,
+                BlockType = BlockTypes.OrgnizationGenesis,
+                TheBlock = typeof(DaoGenesis),
+                AuthorizerName = "DaoGenesisAuthorizer",
+            };
         }
 
-        internal async static Task<TransactionBlock> CNOCreateDaoAsync(DagSystem sys, SendTransferBlock send)
+        public override async Task<TransactionBlock> BrokerOpsAsync(DagSystem sys, SendTransferBlock send)
         {
             var name = send.Tags["name"];
 
@@ -72,6 +62,28 @@ namespace Lyra.Core.Decentralize.WorkFlow
             // pool blocks are service block so all service block signed by leader node
             daogen.InitializeBlock(null, NodeService.Dag.PosWallet.PrivateKey, AccountId: NodeService.Dag.PosWallet.AccountId);
             return daogen;
+        }
+
+        public override Task<APIResultCodes> PreSendAuthAsync(DagSystem sys, SendTransferBlock send, TransactionBlock last)
+        {
+            if (
+                send.Tags.ContainsKey("name") && !string.IsNullOrWhiteSpace(send.Tags["name"])
+                && send.Tags.Count == 2
+                )
+            {
+                if (send.DestinationAccountId != PoolFactoryBlock.FactoryAccount)
+                    return Task.FromResult(APIResultCodes.InvalidServiceRequest);
+
+                // check name dup
+                var name = send.Tags["name"];
+                var existsdao = sys.Storage.GetDaoByName(name);
+                if (existsdao != null)
+                    return Task.FromResult(APIResultCodes.DuplicateName);
+
+                return Task.FromResult(APIResultCodes.Success);
+            }
+            else
+                return Task.FromResult(APIResultCodes.InvalidBlockTags);
         }
     }
 }

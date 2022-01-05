@@ -81,6 +81,8 @@ namespace Lyra.Core.Decentralize
         // authorizer snapshot
         private readonly DagSystem _sys;
         public DagSystem GetDagSystem() => _sys;
+        public AuthorizersFactory AF => _af;
+        private AuthorizersFactory _af;
         private BrokerFactory _bf;
         private long _currentView;
         public static ConsensusService Instance;
@@ -107,8 +109,10 @@ namespace Lyra.Core.Decentralize
             //_verifiedIP = new ConcurrentDictionary<string, DateTime>();
             _failedLeaders = new ConcurrentDictionary<string, DateTime>();
 
+            _af = new AuthorizersFactory();
+            _af.Init();
             _bf = new BrokerFactory();
-            _bf.Init();
+            _bf.Init(_af);
 
             if (localNode == null)
             {

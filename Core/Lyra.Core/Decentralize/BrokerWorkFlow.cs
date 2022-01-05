@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.Accounts;
+using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
 using Lyra.Core.Decentralize.WorkFlow;
@@ -149,12 +150,13 @@ namespace Lyra.Core.Decentralize
     public enum BrokerRecvType { None, PFRecv, DaoRecv }
     public class BrokerFactory
     {
+        public static Dictionary<string, WorkFlowBase> DynWorkFlows = new Dictionary<string, WorkFlowBase>();
         public static Dictionary<string, (Func<DagSystem, SendTransferBlock, TransactionBlock, Task<APIResultCodes>> preSendAuth, BrokerRecvType pfrecv, Func<DagSystem, SendTransferBlock, Task<TransactionBlock>> brokerOps, Func<DagSystem, string, Task<TransactionBlock>> extraOps)> WorkFlows { get; set; }
 
         public static ConcurrentDictionary<string, BrokerBlueprint> Bps { get; set; }
 
         public static event Action<BrokerBlueprint> OnFinished;
-        public void Init()
+        public void Init(AuthorizersFactory af)
         {
             if (WorkFlows != null)
                 throw new InvalidOperationException("Already initialized.");
@@ -191,8 +193,19 @@ namespace Lyra.Core.Decentralize
             WorkFlows.Add(BrokerActions.BRK_DEX_WDWREQ, (WFDex.CNOWithdrawReqPreAuthAsync, BrokerRecvType.PFRecv, WFDex.CNODEXWithdrawAsync, WFDex.CNODEXWithdrawToExtBlockchainReqAsync));
 
             // DAO
-            WorkFlows.Add(BrokerActions.BRK_DAO_CRDAO, (WFDao.CreateDaoPreAuthAsync, BrokerRecvType.PFRecv, WFDao.CNOCreateDaoAsync, null));
+            DynWorkFlows.Add(BrokerActions.BRK_DAO_CRDAO, new WFDao());
+            //WorkFlows.Add(BrokerActions.BRK_DAO_CRDAO, (WFDao.CreateDaoPreAuthAsync, BrokerRecvType.PFRecv, WFDao.CNOCreateDaoAsync, null));
 
+            // register every work flow
+            foreach(var wf in DynWorkFlows.Values)
+            {
+                var desc = wf.GetDescription();
+                if (desc.AuthorizerName != null)
+                    af.Register(desc.BlockType, desc.AuthorizerName);
+
+                if (desc.TheBlock != null)
+                    BlockAPIResult.Register(desc.BlockType, desc.TheBlock);
+            }
 
             // merchant
             //WorkFlows.Add(BrokerActions.BRK_MCT_CRMCT, (true, BrokerOperations.CNOMCTCreateAsync, null));

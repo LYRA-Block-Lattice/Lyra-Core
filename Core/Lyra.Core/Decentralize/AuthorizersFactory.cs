@@ -63,9 +63,9 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.DexSendToken, "DexSendAuthorizer");
             _authorizers.Add(BlockTypes.DexRecvToken, "DexReceiveAuthorizer");
 
-            // DAO
-            _authorizers.Add(BlockTypes.Orgnization, "DaoAuthorizer");
-            _authorizers.Add(BlockTypes.OrgnizationGenesis, "DaoGenesisAuthorizer");
+            // DAO Note: not needed. dynamic work flow did this.
+            //_authorizers.Add(BlockTypes.Orgnization, "DaoAuthorizer");
+            //_authorizers.Add(BlockTypes.OrgnizationGenesis, "DaoGenesisAuthorizer");
 
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
             foreach(var kvp in _authorizers)
@@ -82,6 +82,11 @@ namespace Lyra.Core.Decentralize
         public IAuthorizer Create(BlockTypes blockType)
         {
             return (IAuthorizer)Activator.CreateInstance(Type.GetType("Lyra.Core.Authorizers." + _authorizers[blockType]));
+        }
+
+        public void Register(BlockTypes blockType, string authrName)
+        {
+            _authorizers.Add(blockType, authrName);
         }
     }
 }

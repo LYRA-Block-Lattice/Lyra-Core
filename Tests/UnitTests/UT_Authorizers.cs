@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using static Lyra.Core.Accounts.Wallet;
 
 namespace UnitTests
 {
@@ -34,7 +35,6 @@ namespace UnitTests
 
         private ConsensusService cs;
         private IAccountCollectionAsync store;
-        private AuthorizersFactory af;
         private DagSystem sys;
 
         private string networkId;
@@ -58,8 +58,8 @@ namespace UnitTests
             sys.StartConsensus();
             store = ta.TheDagSystem.Storage;
 
-            af = new AuthorizersFactory();
-            af.Init();
+            //af = new AuthorizersFactory();
+            //af.Init();
         }
 
         [TestCleanup]
@@ -75,7 +75,7 @@ namespace UnitTests
             {
                 var accid = block is TransactionBlock tb ? tb.AccountID : "";
                 Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Hash: {block.Hash.Shorten()} {accid.Shorten()} {block.BlockType} Index: {block.Height}");
-                var auth = af.Create(block.BlockType);
+                var auth = cs.AF.Create(block.BlockType);
                 var result = await auth.AuthorizeAsync(sys, block);
                 Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"{result.Item1}");
 
@@ -276,7 +276,21 @@ namespace UnitTests
             var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
             Assert.IsTrue(daoret.Successful(), $"Can't get DAO: {daoret.ResultCode}");
 
-            //var ret = await testWallet.CreateOTCOrderAsync(null);
+            var dao1 = daoret.GetBlock() as DaoBlock;
+
+            var order = new OTCOrder
+            {
+                daoid = dao1.AccountID,
+                dir = OTCOrder.Direction.Sell,
+                crypto = "BTC",
+                fiat = "USD",
+                priceType = OTCOrder.PriceType.Fixed,
+                price = 45000,
+                amount = 10,
+            };
+
+            await Task.Delay(10000000);
+            //var ret = await testWallet.CreateOTCOrderAsync(order);
             //Assert.IsTrue(!ret.Successful());
         }
 
