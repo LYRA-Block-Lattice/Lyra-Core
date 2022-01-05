@@ -363,6 +363,7 @@ namespace Lyra.Core.Blocks
         
         // DAO
         Orgnization = 80,
+        OrgnizationGenesis = 81,
     }
 
     public enum APIResultCodes

@@ -20,7 +20,8 @@ namespace Lyra.Core.Authorizers
             BlockTypes.PoolGenesis,
             BlockTypes.OpenAccountWithReceiveTransfer,
             BlockTypes.LyraTokenGenesis,
-            BlockTypes.DexWalletGenesis
+            BlockTypes.DexWalletGenesis,
+            BlockTypes.OrgnizationGenesis,
         };
 
         
@@ -94,7 +95,8 @@ namespace Lyra.Core.Authorizers
         {
             if (block.AccountID == PoolFactoryBlock.FactoryAccount
                 || block is IPool
-                || block is IProfiting)
+                || block is IProfiting
+                || block is IBrokerAccount)
                 return true;
 
             return base.IsManagedBlockAllowed(sys, block);

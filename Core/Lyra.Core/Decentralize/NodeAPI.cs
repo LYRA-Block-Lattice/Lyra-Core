@@ -1157,5 +1157,31 @@ namespace Lyra.Core.Decentralize
 
             return result;
         }
+
+        public Task<BlockAPIResult> GetDaoByNameAsync(string name)
+        {
+            var result = new BlockAPIResult();
+
+            try
+            {
+                var block = NodeService.Dag?.Storage.GetDaoByName(name);
+                if (block != null)
+                {
+                    result.BlockData = Json(block);
+                    result.ResultBlockType = block.BlockType;
+                    result.ResultCode = APIResultCodes.Success;
+                }
+                else
+                    result.ResultCode = APIResultCodes.BlockNotFound;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in GetDaoByNameAsync: " + e.Message);
+                result.ResultCode = APIResultCodes.UnknownError;
+                result.ResultMessage = e.ToString();
+            }
+
+            return Task.FromResult(result);
+        }
     }
 }

@@ -10,5 +10,6 @@
         Staking = 7,
         Profiting = 8,
         DEX = 9,
+        DAO = 10,
     }
 }

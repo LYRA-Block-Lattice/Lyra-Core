@@ -95,6 +95,9 @@ namespace Lyra.Core.API
         // DEX
         Task<MultiBlockAPIResult> GetAllDexWalletsAsync(string owner);
         Task<BlockAPIResult> FindDexWalletAsync(string owner, string symbol, string provider);
+
+        // DAO
+        Task<BlockAPIResult> GetDaoByNameAsync(string name);
     }
 
     public interface INodeTransactionAPI

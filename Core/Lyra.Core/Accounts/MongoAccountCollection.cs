@@ -2089,7 +2089,10 @@ namespace Lyra.Core.Accounts
 
         public DaoBlock GetDaoByName(string name)
         {
-            throw new NotImplementedException();
+            var q = _blocks.OfType<DaoBlock>()
+                .Find(a => a.Name == name)
+                .FirstOrDefault();
+            return q;
         }
     }
     public static class MyExtensions

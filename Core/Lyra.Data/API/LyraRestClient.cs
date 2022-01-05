@@ -712,5 +712,15 @@ namespace Lyra.Core.API
 
             return await GetAsync<BlockAPIResult>("FindDexWallet", args);
         }
+
+        public async Task<BlockAPIResult> GetDaoByNameAsync(string name)
+        {
+            var args = new Dictionary<string, string>
+            {
+                { "name", name },
+            };
+
+            return await GetAsync<BlockAPIResult>("GetDaoByName", args);
+        }
     }
 }

@@ -63,6 +63,10 @@ namespace Lyra.Core.Decentralize
             _authorizers.Add(BlockTypes.DexSendToken, "DexSendAuthorizer");
             _authorizers.Add(BlockTypes.DexRecvToken, "DexReceiveAuthorizer");
 
+            // DAO
+            _authorizers.Add(BlockTypes.Orgnization, "DaoAuthorizer");
+            _authorizers.Add(BlockTypes.OrgnizationGenesis, "DaoGenesisAuthorizer");
+
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
             foreach(var kvp in _authorizers)
             {

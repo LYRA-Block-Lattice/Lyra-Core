@@ -581,5 +581,10 @@ namespace Lyra.Data.API
         {
             return SeedClient.FindDexWalletAsync(owner, symbol, provider);
         }
+
+        public Task<BlockAPIResult> GetDaoByNameAsync(string name)
+        {
+            return SeedClient.GetDaoByNameAsync(name);
+        }
     }
 }

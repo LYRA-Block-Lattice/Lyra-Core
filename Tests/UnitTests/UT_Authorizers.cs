@@ -163,6 +163,8 @@ namespace UnitTests
                 .Returns<string, string, string>((acct, token, sign) => Task.FromResult(api.GetTokenGenesisBlockAsync(acct, token, sign)).Result);
             mock.Setup(x => x.GetPoolAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns<string, string>((acct, sign) => Task.FromResult(api.GetPoolAsync(acct, sign)).Result);
+            mock.Setup(x => x.GetDaoByNameAsync(It.IsAny<string>()))
+                .Returns<string>(name => Task.FromResult(api.GetDaoByNameAsync(name)).Result);
 
             mock.Setup(x => x.ReceiveTransferAsync(It.IsAny<ReceiveTransferBlock>()))
                 .Callback((ReceiveTransferBlock block) => {
@@ -265,11 +267,17 @@ namespace UnitTests
         private async Task TestOTCTrade()
         {
             // first create a DAO
-            var dcret = await testWallet.CreateDAOAsync("First DAO");
+            var name = "First DAO";
+            var dcret = await testWallet.CreateDAOAsync(name);
             Assert.IsTrue(dcret.Successful());
 
-            var ret = await testWallet.CreateOTCOrderAsync(null);
-            Assert.IsTrue(!ret.Successful());
+            await Task.Delay(1000);
+
+            var daoret = await testWallet.RPC.GetDaoByNameAsync(name);
+            Assert.IsTrue(daoret.Successful(), $"Can't get DAO: {daoret.ResultCode}");
+
+            //var ret = await testWallet.CreateOTCOrderAsync(null);
+            //Assert.IsTrue(!ret.Successful());
         }
 
         private async Task TestDepositWithdraw()
