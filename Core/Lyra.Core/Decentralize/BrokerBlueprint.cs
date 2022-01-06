@@ -16,13 +16,75 @@ using System.Threading.Tasks;
 
 namespace Lyra.Core.Decentralize
 {
-    public class BrokerWorkFlow
-    {
-        //public APIResultCodes EntryAuth(DagSystem sys, SendTransferBlock send, TransactionBlock lastBlock)
-        //{
-            
-        //}
-    }
+    /*
+
+@startuml
+title Lyra Block Lattice as a decentralised Work Flow Engine
+
+actor Actor as acta
+participant Sendblock as send
+control Authorizer as autha
+
+database "Blockchain" as db
+
+control Authorizer as authb
+participant ReceiveBlock as recv
+
+collections "Any Work Flow Generated Block" as anyblock
+
+== Create Work Flow ==
+acta --> send : Create new Order
+send -> autha : Send Request w/ SVCREQ
+activate autha
+autha -> autha: PreSendAuthAsync
+autha -> db : Request accepted
+deactivate autha
+
+activate db
+db -> db : Create Blueprint
+db -> db : Start Background Task
+
+== Work Flow Begin ==
+
+note over db: Work Flow On Start Event
+
+group Execute Receive of Fee/Collateral
+  db --> recv : ACK (Create Receive Block)
+
+  recv -> authb: Authorize
+  activate authb
+  authb -> authb : Receive Authorizer
+  authb -> db : Ack Accepted
+  deactivate authb
+end
+
+
+group Main Loop
+      db --> anyblock : Create Any Block
+      activate anyblock
+      anyblock -> authb : Begin auth 
+      deactivate anyblock
+      activate authb
+      
+      authb -> authb : Work Flow Authorizer
+
+      authb -> db: Confirm
+      deactivate authb
+end
+
+group Extra Operation
+	db -> db : Execute Extra Action (Optional)
+end
+
+note over db: Work Flow On Stop Event
+
+deactivate db
+
+== End ==
+@enduml
+
+
+    */
 
     [BsonIgnoreExtraElements]
     public class BrokerBlueprint
@@ -150,8 +212,8 @@ namespace Lyra.Core.Decentralize
 
             foreach(var bd in desc.Blocks)
             {
-                if (bd.AuthorizerType != null)
-                    af.Register(bd.BlockType, bd.AuthorizerType);
+                //if (bd.AuthorizerType != null)
+                //    af.Register(bd.BlockType, bd.AuthorizerType);
 
                 if (bd.TheBlock != null)
                 {

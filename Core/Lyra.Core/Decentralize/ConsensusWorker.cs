@@ -251,7 +251,7 @@ namespace Lyra.Core.Decentralize
             }
 
             var stopwatch = Stopwatch.StartNew();
-            var authorizer = _authorizers.Create(item.Block.BlockType);
+            var authorizer = _authorizers.Create(item.Block);
 
             AuthorizedMsg result;
             try

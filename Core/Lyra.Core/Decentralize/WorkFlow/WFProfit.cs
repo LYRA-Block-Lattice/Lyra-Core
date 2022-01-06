@@ -27,7 +27,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.ProfitingGenesis,
                         TheBlock = typeof(ProfitingGenesis),
-                        AuthorizerType = typeof(ProfitingGenesisAuthorizer),
+                        //AuthorizerType = typeof(ProfitingGenesisAuthorizer),
                     }
                 }
             };
@@ -274,19 +274,19 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.Profiting,
                         TheBlock = typeof(ProfitingBlock),
-                        AuthorizerType = typeof(ProfitingAuthorizer),
+                        //AuthorizerType = typeof(ProfitingAuthorizer),
                     },
                     new BlockDesc
                     {
                         BlockType = BlockTypes.Benefiting,
                         TheBlock = typeof(BenefitingBlock),
-                        AuthorizerType = typeof(BenefitingAuthorizer),
+                        //AuthorizerType = typeof(BenefitingAuthorizer),
                     },
                     new BlockDesc
                     {
                         BlockType = BlockTypes.ReceiveNodeProfit,
                         TheBlock = typeof(ReceiveNodeProfitBlock),
-                        AuthorizerType = typeof(ReceiveNodeProfitAuthorizer),
+                        //AuthorizerType = typeof(ReceiveNodeProfitAuthorizer),
                     },
                 }
             };

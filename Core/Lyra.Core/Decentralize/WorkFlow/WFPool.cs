@@ -25,7 +25,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.PoolGenesis,
                         TheBlock = typeof(PoolGenesisBlock),
-                        AuthorizerType = typeof(PoolGenesisAuthorizer),
+                        //AuthorizerType = typeof(PoolGenesisAuthorizer),
                     }
                 }
             };
@@ -153,7 +153,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.PoolDeposit,
                         TheBlock = typeof(PoolDepositBlock),
-                        AuthorizerType = typeof(PoolDepositAuthorizer),
+                        //AuthorizerType = typeof(PoolDepositAuthorizer),
                     } 
                 }
             };
@@ -312,7 +312,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.PoolWithdraw,
                         TheBlock = typeof(PoolWithdrawBlock),
-                        AuthorizerType = typeof(PoolWithdrawAuthorizer),
+                        //AuthorizerType = typeof(PoolWithdrawAuthorizer),
                     }
                 }
             };
@@ -422,13 +422,13 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.PoolSwapIn,
                         TheBlock = typeof(PoolSwapInBlock),
-                        AuthorizerType = typeof(PoolSwapInAuthorizer),
+                        //AuthorizerType = typeof(PoolSwapInAuthorizer),
                     },
                     new BlockDesc
                     {
                         BlockType = BlockTypes.PoolSwapOut,
                         TheBlock = typeof(PoolSwapOutBlock),
-                        AuthorizerType = typeof(PoolSwapOutAuthorizer),
+                        //AuthorizerType = typeof(PoolSwapOutAuthorizer),
                     },                
                 }
             };

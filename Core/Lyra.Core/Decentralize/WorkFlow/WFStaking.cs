@@ -27,7 +27,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.StakingGenesis,
                         TheBlock = typeof(StakingGenesis),
-                        AuthorizerType = typeof(StakingGenesisAuthorizer),
+                        //AuthorizerType = typeof(StakingGenesisAuthorizer),
                     }
                 }
             };
@@ -154,7 +154,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.Staking,
                         TheBlock = typeof(StakingBlock),
-                        AuthorizerType = typeof(StakingAuthorizer),
+                        //AuthorizerType = typeof(StakingAuthorizer),
                     }
                 }
             };
@@ -262,7 +262,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.UnStaking,
                         TheBlock = typeof(UnStakingBlock),
-                        AuthorizerType = typeof(UnStakingAuthorizer),
+                        //AuthorizerType = typeof(UnStakingAuthorizer),
                     }
                 }
             };

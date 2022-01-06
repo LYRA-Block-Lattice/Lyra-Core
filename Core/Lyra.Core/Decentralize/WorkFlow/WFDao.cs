@@ -26,7 +26,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.OrgnizationGenesis,
                         TheBlock = typeof(DaoGenesis),
-                        AuthorizerType = typeof(DaoGenesisAuthorizer),
+                        //AuthorizerType = typeof(BrokerAccountRecvAuthorizer),       // generic, no need for dedicate one
                     }
                 }
             };

@@ -20,6 +20,7 @@ using Neo.Network.P2P;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using static Lyra.Core.Accounts.Wallet;
 
@@ -48,6 +49,9 @@ namespace UnitTests
 
         ILyraAPI client;
 
+        bool _authResult = true;
+        StringBuilder _sbAuthResults = new StringBuilder();
+
         [TestInitialize]
         public void TestSetup()
         {
@@ -63,6 +67,13 @@ namespace UnitTests
             //af.Init();
         }
 
+        // when we create failure test case, call this
+        private void ResetAuthFail()
+        {
+            _authResult = true;
+            _sbAuthResults.Clear();
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
@@ -75,19 +86,23 @@ namespace UnitTests
             if(block is TransactionBlock)
             {
                 var accid = block is TransactionBlock tb ? tb.AccountID : "";
-                var auth = cs.AF.Create(block.BlockType);
+                var auth = cs.AF.Create(block);
                 var result = await auth.AuthorizeAsync(sys, block);
 
                 Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): {block.BlockType} Index: {block.Height} Result: {result.Item1} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} ");
+                //Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"Auth Failed: {result.Item1}");
 
-                Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"{result.Item1}");
-
-                if(result.Item1 == APIResultCodes.Success)
+                if (result.Item1 == APIResultCodes.Success)
                 {
                     await store.AddBlockAsync(block);
 
                     cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
                 }                    
+                else
+                {
+                    _authResult = false;
+                    _sbAuthResults.Append($"{result.Item1}, ");
+                }
 
                 return result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success;
             }
@@ -260,14 +275,16 @@ namespace UnitTests
             await test2Wallet.SyncAsync(client);
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
-            await TestOTCTrade();
-            //await TestPoolAsync();
-            //await TestProfitingAndStaking();
-            //await TestNodeFee();
+            //await TestOTCTrade();
+            await TestPoolAsync();
+            await TestProfitingAndStaking();
+            await TestNodeFee();
             //await TestDepositWithdraw();
 
             // let workflow to finish
             await Task.Delay(1000);
+
+            
         }
 
         private async Task TestOTCTrade()
@@ -298,6 +315,10 @@ namespace UnitTests
             await Task.Delay(1000);
             var ret = await testWallet.CreateOTCOrderAsync(order);
             Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
+
+            await Task.Delay(1000);
+            Assert.IsTrue(_authResult, $"Authorizer failed: {_sbAuthResults}");
+            ResetAuthFail();
         }
 
         private async Task TestDepositWithdraw()

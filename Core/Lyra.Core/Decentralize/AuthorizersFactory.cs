@@ -1,5 +1,6 @@
 ﻿using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
+using Lyra.Data.Blocks;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,6 +12,7 @@ namespace Lyra.Core.Decentralize
         public AuthorizersFactory Singleton { get; private set; }
         static Dictionary<BlockTypes, Type> _authorizers;
         static Dictionary<BlockTypes, IAuthorizer> _authorizerInstances;
+        static TransactionAuthorizer _wfAuthorizer;
 
         public AuthorizersFactory()
         {
@@ -80,15 +82,20 @@ namespace Lyra.Core.Decentralize
                 _authorizerInstances.Add(kvp.Key, authorizer);
             }
 
+            _wfAuthorizer = new TransactionAuthorizer();
+
             Singleton = this;
         }
 
-        //public IAuthorizer this[BlockTypes blockType] => _authorizerInstances[blockType];
-
-        public IAuthorizer Create(BlockTypes blockType)
+        public IAuthorizer Create(Block block)
         {
             //return (IAuthorizer)Activator.CreateInstance(_authorizers[blockType]);
-            return _authorizerInstances[blockType];
+            if (_authorizerInstances.ContainsKey(block.BlockType))
+                return _authorizerInstances[block.BlockType];
+            else if (block is IBrokerAccount || block is IPool)
+                return _wfAuthorizer;
+            else
+                throw new Exception($"No authorizer for {block.BlockType}");
         }
 
         public void Register(BlockTypes blockType, Type authrType)

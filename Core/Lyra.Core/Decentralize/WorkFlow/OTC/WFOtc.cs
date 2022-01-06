@@ -26,7 +26,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.OTCOrderGenesis,
                         TheBlock = typeof(OtcGenesis),
-                        AuthorizerType = typeof(OtcGenesisAuthorizer),
+                        //AuthorizerType = typeof(OtcGenesisAuthorizer),
                     }
                 }
             };

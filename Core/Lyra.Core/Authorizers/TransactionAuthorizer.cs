@@ -39,7 +39,7 @@ namespace Lyra.Core.Authorizers
             if (tx.FeeCode != LyraGlobal.OFFICIALTICKERCODE)
                 return APIResultCodes.InvalidFeeTicker;
 
-            if (tx.FeeType != GetFeeType())
+            if(!(tblock is IPool || tblock is IBrokerAccount) && tx.FeeType != GetFeeType())
                 return APIResultCodes.InvalidFeeType;
 
             if (tx.FeeType == AuthorizationFeeTypes.NoFee && tx.Fee > 0)
@@ -197,7 +197,7 @@ namespace Lyra.Core.Authorizers
 
         protected virtual bool IsManagedBlockAllowed(DagSystem sys, TransactionBlock block)
         {
-            return false;
+            return block is IPool || block is IBrokerAccount;
         }
 
         protected virtual decimal GetFeeAmount()

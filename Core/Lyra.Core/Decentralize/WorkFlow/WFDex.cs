@@ -28,7 +28,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.DexWalletGenesis,
                         TheBlock = typeof(DexWalletGenesis),
-                        AuthorizerType = typeof(DexWalletGenesisAuthorizer),
+                        //AuthorizerType = typeof(DexWalletGenesisAuthorizer),
                     }
                 }
             };
@@ -135,13 +135,13 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.DexTokenMint,
                         TheBlock = typeof(TokenMintBlock),
-                        AuthorizerType = typeof(DexTokenMintAuthorizer),
+                        //AuthorizerType = typeof(DexTokenMintAuthorizer),
                     },
                     new BlockDesc
                     {
                         BlockType = BlockTypes.DexTokenBurn,
                         TheBlock = typeof(TokenBurnBlock),
-                        AuthorizerType = typeof(DexTokenBurnAuthorizer),
+                        //AuthorizerType = typeof(DexTokenBurnAuthorizer),
                     }
                 }
             };
@@ -247,7 +247,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.DexSendToken,
                         TheBlock = typeof(DexSendBlock),
-                        AuthorizerType = typeof(DexSendAuthorizer),
+                        //AuthorizerType = typeof(DexSendAuthorizer),
                     }
                 }
             };
@@ -347,7 +347,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.DexRecvToken,
                         TheBlock = typeof(DexReceiveBlock),
-                        AuthorizerType = typeof(DexReceiveAuthorizer),
+                        //AuthorizerType = typeof(DexReceiveAuthorizer),
                     }
                 }
             };
@@ -451,7 +451,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.DexWithdrawToken,
                         TheBlock = typeof(TokenWithdrawBlock),
-                        AuthorizerType = typeof(DexWithdrawAuthorizer),
+                        //AuthorizerType = typeof(DexWithdrawAuthorizer),
                     }
                 }
             };
