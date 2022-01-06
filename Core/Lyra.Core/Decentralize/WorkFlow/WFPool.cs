@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.Crypto;
@@ -24,7 +25,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.PoolGenesis,
                         TheBlock = typeof(PoolGenesisBlock),
-                        AuthorizerName = "PoolGenesisAuthorizer",
+                        AuthorizerType = typeof(PoolGenesisAuthorizer),
                     }
                 }
             };
@@ -152,7 +153,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.PoolDeposit,
                         TheBlock = typeof(PoolDepositBlock),
-                        AuthorizerName = "PoolDepositAuthorizer",
+                        AuthorizerType = typeof(PoolDepositAuthorizer),
                     } 
                 }
             };
@@ -311,7 +312,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.PoolWithdraw,
                         TheBlock = typeof(PoolWithdrawBlock),
-                        AuthorizerName = "PoolWithdrawAuthorizer",
+                        AuthorizerType = typeof(PoolWithdrawAuthorizer),
                     }
                 }
             };
@@ -421,13 +422,13 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.PoolSwapIn,
                         TheBlock = typeof(PoolSwapInBlock),
-                        AuthorizerName = "PoolSwapInAuthorizer",
+                        AuthorizerType = typeof(PoolSwapInAuthorizer),
                     },
                     new BlockDesc
                     {
                         BlockType = BlockTypes.PoolSwapOut,
                         TheBlock = typeof(PoolSwapOutBlock),
-                        AuthorizerName = "PoolSwapOutAuthorizer",
+                        AuthorizerType = typeof(PoolSwapOutAuthorizer),
                     },                
                 }
             };

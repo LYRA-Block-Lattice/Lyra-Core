@@ -1,4 +1,5 @@
 ﻿using Lyra.Core.API;
+using Lyra.Core.Authorizers;
 using Lyra.Core.Blocks;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
@@ -25,7 +26,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
                     {
                         BlockType = BlockTypes.OrgnizationGenesis,
                         TheBlock = typeof(DaoGenesis),
-                        AuthorizerName = "DaoGenesisAuthorizer",
+                        AuthorizerType = typeof(DaoGenesisAuthorizer),
                     }
                 }
             };

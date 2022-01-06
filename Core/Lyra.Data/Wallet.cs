@@ -14,6 +14,7 @@ using Lyra.Data.API;
 using Lyra.Data.Utils;
 using System.Threading;
 using Lyra.Data.Blocks;
+using Lyra.Core.Decentralize.WorkFlow.OTC;
 
 namespace Lyra.Core.Accounts
 {
@@ -2127,21 +2128,6 @@ namespace Lyra.Core.Accounts
         #endregion
 
         #region OTC
-        public class OTCOrder
-        {
-            // type
-            public enum Direction { Buy, Sell };
-            public enum PriceType { Fixed, Float }
-
-            // data
-            public string daoid { get; set; }   // DAO account ID
-            public Direction dir { get; set; }
-            public string crypto { get; set; }
-            public string fiat { get; set; }
-            public PriceType priceType { get; set;}
-            public decimal price { get; set; }
-            public decimal amount { get; set; }
-        }
         public async Task<APIResult> CreateOTCOrderAsync(OTCOrder order)
         {
             var tags = new Dictionary<string, string>
@@ -2158,7 +2144,6 @@ namespace Lyra.Core.Accounts
             var result = await SendExAsync(PoolFactoryBlock.FactoryAccount, amounts, tags);
             return result;
         }
-
         #endregion
 
         public string PrintLastBlock()

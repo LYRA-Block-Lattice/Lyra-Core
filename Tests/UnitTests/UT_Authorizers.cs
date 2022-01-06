@@ -7,6 +7,7 @@ using Lyra.Core.Accounts;
 using Lyra.Core.API;
 using Lyra.Core.Blocks;
 using Lyra.Core.Decentralize;
+using Lyra.Core.Decentralize.WorkFlow.OTC;
 using Lyra.Core.Utils;
 using Lyra.Data.API;
 using Lyra.Data.Blocks;
@@ -74,14 +75,19 @@ namespace UnitTests
             if(block is TransactionBlock)
             {
                 var accid = block is TransactionBlock tb ? tb.AccountID : "";
-                Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): Hash: {block.Hash.Shorten()} {accid.Shorten()} {block.BlockType} Index: {block.Height}");
                 var auth = cs.AF.Create(block.BlockType);
                 var result = await auth.AuthorizeAsync(sys, block);
+
+                Console.WriteLine($"Auth ({DateTime.Now:mm:ss.ff}): {block.BlockType} Index: {block.Height} Result: {result.Item1} Hash: {block.Hash.Shorten()} Account ID: {accid.Shorten()} ");
+
                 Assert.IsTrue(result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success, $"{result.Item1}");
 
-                await store.AddBlockAsync(block);
+                if(result.Item1 == APIResultCodes.Success)
+                {
+                    await store.AddBlockAsync(block);
 
-                cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
+                    cs.Worker_OnConsensusSuccess(block, ConsensusResult.Yea, true);
+                }                    
 
                 return result.Item1 == Lyra.Core.Blocks.APIResultCodes.Success;
             }
@@ -255,9 +261,9 @@ namespace UnitTests
             //Assert.AreEqual(test2Wallet.BaseBalance, tamount);
 
             await TestOTCTrade();
-            await TestPoolAsync();
-            await TestProfitingAndStaking();
-            await TestNodeFee();
+            //await TestPoolAsync();
+            //await TestProfitingAndStaking();
+            //await TestNodeFee();
             //await TestDepositWithdraw();
 
             // let workflow to finish
@@ -290,8 +296,8 @@ namespace UnitTests
             };
 
             await Task.Delay(1000);
-            //var ret = await testWallet.CreateOTCOrderAsync(order);
-            //Assert.IsTrue(!ret.Successful());
+            var ret = await testWallet.CreateOTCOrderAsync(order);
+            Assert.IsTrue(ret.Successful(), $"Can't create order: {ret.ResultCode}");
         }
 
         private async Task TestDepositWithdraw()
@@ -519,9 +525,9 @@ namespace UnitTests
 
             var crplret = await testWallet.CreateLiquidatePoolAsync(token0, "LYR");
             Assert.IsTrue(crplret.Successful());
-            await Task.Delay(2000);
+            await Task.Delay(10000);
             var pool = await testWallet.GetLiquidatePoolAsync(token0, "LYR");
-            Assert.IsTrue(pool.PoolAccountId.StartsWith('L'));
+            Assert.IsTrue(pool.PoolAccountId != null && pool.PoolAccountId.StartsWith('L'), "Can't get pool created.");
 
             // add liquidate to pool
             var addpoolret = await testWallet.AddLiquidateToPoolAsync(token0, 1000000, "LYR", 5000);

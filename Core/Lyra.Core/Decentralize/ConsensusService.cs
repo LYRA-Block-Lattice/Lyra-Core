@@ -1992,7 +1992,9 @@ namespace Lyra.Core.Decentralize
                         }
                         catch (Exception e)
                         {
-                            _log.LogError("Error Executing blueprints: " + e.ToString());
+                            var err = "Error Executing blueprints: " + e.ToString();
+                            Console.WriteLine(err);
+                            _log.LogError(err);
                         }
                         finally
                         {

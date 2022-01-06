@@ -9,7 +9,7 @@ namespace Lyra.Core.Decentralize
     public class AuthorizersFactory
     {
         public AuthorizersFactory Singleton { get; private set; }
-        static Dictionary<BlockTypes, string> _authorizers;
+        static Dictionary<BlockTypes, Type> _authorizers;
         static Dictionary<BlockTypes, IAuthorizer> _authorizerInstances;
 
         public AuthorizersFactory()
@@ -23,23 +23,23 @@ namespace Lyra.Core.Decentralize
                 return;
                 //throw new InvalidOperationException("Already initialized.");
 
-            _authorizers = new Dictionary<BlockTypes, string>();
-            _authorizers.Add(BlockTypes.SendTransfer, "SendTransferAuthorizer");
+            _authorizers = new Dictionary<BlockTypes, Type>();
+            _authorizers.Add(BlockTypes.SendTransfer, typeof(SendTransferAuthorizer));
             
-            _authorizers.Add(BlockTypes.ReceiveFee, "ReceiveTransferAuthorizer");
+            _authorizers.Add(BlockTypes.ReceiveFee, typeof(ReceiveTransferAuthorizer));
             //_authorizers.Add(BlockTypes.ReceiveNodeProfit, "ReceiveNodeProfitAuthorizer");
-            _authorizers.Add(BlockTypes.OpenAccountWithReceiveFee, "NewAccountAuthorizer");
-            _authorizers.Add(BlockTypes.OpenAccountWithReceiveTransfer, "NewAccountAuthorizer");
+            _authorizers.Add(BlockTypes.OpenAccountWithReceiveFee, typeof(NewAccountAuthorizer));
+            _authorizers.Add(BlockTypes.OpenAccountWithReceiveTransfer, typeof(NewAccountAuthorizer));
             //_authorizers.Add(BlockTypes.OpenAccountWithImport, "NewAccountWithImportAuthorizer");
-            _authorizers.Add(BlockTypes.ReceiveTransfer, "ReceiveTransferAuthorizer");
+            _authorizers.Add(BlockTypes.ReceiveTransfer, typeof(ReceiveTransferAuthorizer));
             //_authorizers.Add(BlockTypes.ImportAccount, "ImportAccountAuthorizer");
-            _authorizers.Add(BlockTypes.Consolidation, "ConsolidationBlockAuthorizer");
-            _authorizers.Add(BlockTypes.Service, "ServiceAuthorizer");
-            _authorizers.Add(BlockTypes.TradeOrder, "TradeOrderAuthorizer");
-            _authorizers.Add(BlockTypes.Trade, "TradeAuthorizer");
-            _authorizers.Add(BlockTypes.CancelTradeOrder, "CancelTradeOrderAuthorizer"); //HACK: wait for code check in
-            _authorizers.Add(BlockTypes.ExecuteTradeOrder, "ExecuteTradeOrderAuthorizer");
-            _authorizers.Add(BlockTypes.PoolFactory, "PoolFactoryAuthorizer");
+            _authorizers.Add(BlockTypes.Consolidation, typeof(ConsolidationBlockAuthorizer));
+            _authorizers.Add(BlockTypes.Service, typeof(ServiceAuthorizer));
+            _authorizers.Add(BlockTypes.TradeOrder, typeof(TradeOrderAuthorizer));
+            _authorizers.Add(BlockTypes.Trade, typeof(TradeAuthorizer));
+            _authorizers.Add(BlockTypes.CancelTradeOrder, typeof(CancelTradeOrderAuthorizer)); //HACK: wait for code check in
+            _authorizers.Add(BlockTypes.ExecuteTradeOrder, typeof(ExecuteTradeOrderAuthorizer));
+            _authorizers.Add(BlockTypes.PoolFactory, typeof(PoolFactoryAuthorizer));
 
             // pool, not needed
             //_authorizers.Add(BlockTypes.PoolGenesis, "PoolGenesisAuthorizer");
@@ -57,9 +57,9 @@ namespace Lyra.Core.Decentralize
             //_authorizers.Add(BlockTypes.UnStaking, "UnStakingAuthorizer");
 
 
-            _authorizers.Add(BlockTypes.ReceiveAsFee, "ReceiveAsFeeAuthorizer");
-            _authorizers.Add(BlockTypes.LyraTokenGenesis, "LyraGenesisAuthorizer");
-            _authorizers.Add(BlockTypes.TokenGenesis, "TokenGenesisAuthorizer");
+            _authorizers.Add(BlockTypes.ReceiveAsFee, typeof(ReceiveAsFeeAuthorizer));
+            _authorizers.Add(BlockTypes.LyraTokenGenesis, typeof(LyraGenesisAuthorizer));
+            _authorizers.Add(BlockTypes.TokenGenesis, typeof(TokenGenesisAuthorizer));
 
             // DEX
             //_authorizers.Add(BlockTypes.DexWalletGenesis, "DexWalletGenesisAuthorizer");
@@ -76,7 +76,7 @@ namespace Lyra.Core.Decentralize
             _authorizerInstances = new Dictionary<BlockTypes, IAuthorizer>();
             foreach(var kvp in _authorizers)
             {
-                var authorizer = (IAuthorizer)Activator.CreateInstance(Type.GetType("Lyra.Core.Authorizers." + kvp.Value));
+                var authorizer = (IAuthorizer)Activator.CreateInstance(kvp.Value);
                 _authorizerInstances.Add(kvp.Key, authorizer);
             }
 
@@ -87,12 +87,16 @@ namespace Lyra.Core.Decentralize
 
         public IAuthorizer Create(BlockTypes blockType)
         {
-            return (IAuthorizer)Activator.CreateInstance(Type.GetType("Lyra.Core.Authorizers." + _authorizers[blockType]));
+            //return (IAuthorizer)Activator.CreateInstance(_authorizers[blockType]);
+            return _authorizerInstances[blockType];
         }
 
-        public void Register(BlockTypes blockType, string authrName)
+        public void Register(BlockTypes blockType, Type authrType)
         {
-            _authorizers.Add(blockType, authrName);
+            _authorizers.Add(blockType, authrType);
+
+            var authorizer = (IAuthorizer)Activator.CreateInstance(authrType);
+            _authorizerInstances.Add(blockType, authorizer);
         }
     }
 }

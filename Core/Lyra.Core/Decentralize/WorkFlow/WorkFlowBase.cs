@@ -11,7 +11,7 @@ namespace Lyra.Core.Decentralize.WorkFlow
     public class BlockDesc
     {
         public BlockTypes BlockType { get; set; }
-        public string AuthorizerName { get; set; }
+        public Type AuthorizerType { get; set; }
         public Type TheBlock { get; set; }
     }
     public class WorkFlowDescription

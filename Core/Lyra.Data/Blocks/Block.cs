@@ -364,6 +364,10 @@ namespace Lyra.Core.Blocks
         // DAO
         Orgnization = 80,
         OrgnizationGenesis = 81,
+
+        // OTC
+        OTCOrder = 84,
+        OTCOrderGenesis = 85,
     }
 
     public enum APIResultCodes
@@ -584,6 +588,6 @@ namespace Lyra.Core.Blocks
         InvalidExternalAddress,
         TokenNotFound,
 
-        
+        InvalidOrgnization,
     }
 }

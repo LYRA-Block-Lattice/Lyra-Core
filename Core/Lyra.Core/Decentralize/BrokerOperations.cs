@@ -77,7 +77,6 @@ namespace Lyra.Core.Decentralize
 
         public static async Task<ReceiveTransferBlock> ReceiveDaoFeeAsync(DagSystem sys, SendTransferBlock sendBlock)
         {
-            throw new NotImplementedException();
             // check exists
             var recv = await sys.Storage.FindBlockBySourceHashAsync(sendBlock.Hash);
             if (recv != null)
@@ -87,7 +86,7 @@ namespace Lyra.Core.Decentralize
             var txInfo = sendBlock.GetBalanceChanges(prevSend);
 
             var lsb = await sys.Storage.GetLastServiceBlockAsync();
-            var receiveBlock = new ReceiveAsFeeBlock
+            var receiveBlock = new ReceiveTransferBlock
             {
                 AccountID = sendBlock.DestinationAccountId,
                 VoteFor = null,

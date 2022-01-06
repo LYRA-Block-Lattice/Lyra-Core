@@ -76,7 +76,6 @@ namespace Lyra.Core.Decentralize
                     {
                         LastBlockTime = DateTime.UtcNow;
                         await submit(preBlock);
-                        preDone = false;
                         Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
                     }
                 }
@@ -89,7 +88,6 @@ namespace Lyra.Core.Decentralize
                     {
                         LastBlockTime = DateTime.UtcNow;
                         await submit(preBlock);
-                        preDone = false;
                         Console.WriteLine($"WF: {send.Hash.Shorten()} preDone: {preDone}");
                     }
                 }
@@ -109,7 +107,6 @@ namespace Lyra.Core.Decentralize
                     // send it
                     LastBlockTime = DateTime.UtcNow;
                     await submit(mainBlock);
-                    mainDone = false;
                     Console.WriteLine($"WF: {send.Hash.Shorten()} {mainBlock.BlockType} mainDone: {mainDone}");
                 }
             }
@@ -127,7 +124,6 @@ namespace Lyra.Core.Decentralize
                     LastBlockTime = DateTime.UtcNow;
                     await submit(otherBlocks);
                     Console.WriteLine($"WF: {send.Hash.Shorten()} {otherBlocks.BlockType}: extraDone: {false}");
-                    extraDone = false;
                 }
             }
             return FullDone;
@@ -154,8 +150,8 @@ namespace Lyra.Core.Decentralize
 
             foreach(var bd in desc.Blocks)
             {
-                if (bd.AuthorizerName != null)
-                    af.Register(bd.BlockType, bd.AuthorizerName);
+                if (bd.AuthorizerType != null)
+                    af.Register(bd.BlockType, bd.AuthorizerType);
 
                 if (bd.TheBlock != null)
                 {
